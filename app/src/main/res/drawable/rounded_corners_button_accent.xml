@@ -3,6 +3,6 @@
     android:shape="rectangle">
     <stroke
         android:width="0.75dp"
-        android:color="@color/recycler_selected" />
+        android:color="?attr/border" />
     <corners android:radius="5dp" />
 </shape>
