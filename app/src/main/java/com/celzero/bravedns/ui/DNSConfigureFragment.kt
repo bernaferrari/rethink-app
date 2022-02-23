@@ -17,6 +17,7 @@ package com.celzero.bravedns.ui
 
 import android.content.Context
 import android.content.Intent
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -30,6 +31,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
+import com.celzero.bravedns.customdownloader.LocalBlocklistDownloader
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.databinding.FragmentDnsConfigureBinding
 import com.celzero.bravedns.download.AppDownloadManager
@@ -42,10 +44,12 @@ import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.celzero.bravedns.util.Constants.Companion.TIME_FORMAT_2
 import com.celzero.bravedns.util.LoggerConstants
 import com.celzero.bravedns.util.LoggerConstants.Companion.LOG_TAG_VPN
+import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.Companion.hasLocalBlocklists
 import com.celzero.bravedns.util.Utilities.Companion.isPlayStoreFlavour
 import com.celzero.bravedns.util.Utilities.Companion.openVpnProfile
+import com.celzero.bravedns.viewmodel.CustomDomainViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -54,19 +58,22 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.dnsoverhttps.DnsOverHttps
 import org.json.JSONObject
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.io.IOException
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
-class DNSConfigureFragment : Fragment(R.layout.fragment_dns_configure) {
+class DnsConfigureFragment : Fragment(R.layout.fragment_dns_configure) {
     private val b by viewBinding(FragmentDnsConfigureBinding::bind)
 
     private val persistentState by inject<PersistentState>()
     private val appDownloadManager by inject<AppDownloadManager>()
     private val appConfig by inject<AppConfig>()
 
+    private val customDomainViewModel: CustomDomainViewModel by viewModel()
+
     companion object {
-        fun newInstance() = DNSConfigureFragment()
+        fun newInstance() = DnsConfigureFragment()
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -91,62 +98,83 @@ class DNSConfigureFragment : Fragment(R.layout.fragment_dns_configure) {
     private fun observeWorkManager() {
         val workManager = WorkManager.getInstance(requireContext().applicationContext)
 
-        workManager.getWorkInfosByTagLiveData(DownloadConstants.DOWNLOAD_TAG).observe(
-            viewLifecycleOwner, { workInfoList ->
-                val workInfo = workInfoList?.getOrNull(0) ?: return@observe
-                Log.i(LoggerConstants.LOG_TAG_DOWNLOAD,
-                      "WorkManager state: ${workInfo.state} for ${DownloadConstants.DOWNLOAD_TAG}")
-                if (WorkInfo.State.ENQUEUED == workInfo.state || WorkInfo.State.RUNNING == workInfo.state) {
-                    onDownloadStart()
-                } else if (WorkInfo.State.CANCELLED == workInfo.state || WorkInfo.State.FAILED == workInfo.state) {
-                    onDownloadAbort()
-                    workManager.pruneWork()
-                    workManager.cancelAllWorkByTag(DownloadConstants.DOWNLOAD_TAG)
-                    workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
-                }
-            })
+        // observer for custom download manager worker
+        workManager.getWorkInfosByTagLiveData(LocalBlocklistDownloader.CUSTOM_DOWNLOAD).observe(
+            viewLifecycleOwner) { workInfoList ->
+            val workInfo = workInfoList?.getOrNull(0) ?: return@observe
+            Log.i(LoggerConstants.LOG_TAG_DOWNLOAD,
+                  "WorkManager state: ${workInfo.state} for ${LocalBlocklistDownloader.CUSTOM_DOWNLOAD}")
+            if (WorkInfo.State.ENQUEUED == workInfo.state || WorkInfo.State.RUNNING == workInfo.state) {
+                onDownloadStart()
+            } else if (WorkInfo.State.SUCCEEDED == workInfo.state) {
+                onDownloadSuccess()
+                workManager.pruneWork()
+            } else if (WorkInfo.State.CANCELLED == workInfo.state || WorkInfo.State.FAILED == workInfo.state) {
+                onDownloadAbort()
+                workManager.pruneWork()
+                workManager.cancelAllWorkByTag(LocalBlocklistDownloader.CUSTOM_DOWNLOAD)
+            } else { // state == blocked
+                // no-op
+            }
+        }
 
+        // observer for Androids default download manager
+        workManager.getWorkInfosByTagLiveData(DownloadConstants.DOWNLOAD_TAG).observe(
+            viewLifecycleOwner) { workInfoList ->
+            val workInfo = workInfoList?.getOrNull(0) ?: return@observe
+            Log.i(LoggerConstants.LOG_TAG_DOWNLOAD,
+                  "WorkManager state: ${workInfo.state} for ${DownloadConstants.DOWNLOAD_TAG}")
+            if (WorkInfo.State.ENQUEUED == workInfo.state || WorkInfo.State.RUNNING == workInfo.state) {
+                onDownloadStart()
+            } else if (WorkInfo.State.CANCELLED == workInfo.state || WorkInfo.State.FAILED == workInfo.state) {
+                onDownloadAbort()
+                workManager.pruneWork()
+                workManager.cancelAllWorkByTag(DownloadConstants.DOWNLOAD_TAG)
+                workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
+            } else { // state == blocked, succeeded
+                // no-op
+            }
+        }
+
+        // observer for File watcher worker(part of Android default download manager)
         workManager.getWorkInfosByTagLiveData(DownloadConstants.FILE_TAG).observe(
-            viewLifecycleOwner, { workInfoList ->
-                val workInfo = workInfoList?.getOrNull(0) ?: return@observe
-                Log.i(LoggerConstants.LOG_TAG_DOWNLOAD,
-                      "WorkManager state: ${workInfo.state} for ${DownloadConstants.FILE_TAG}")
-                if (WorkInfo.State.SUCCEEDED == workInfo.state) {
-                    onDownloadSuccess()
-                    workManager.pruneWork()
-                } else if (WorkInfo.State.CANCELLED == workInfo.state || WorkInfo.State.FAILED == workInfo.state) {
-                    onDownloadAbort()
-                    workManager.pruneWork()
-                    workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
-                } else { // state == blocked, queued, or running
-                    // no-op
-                }
-            })
+            viewLifecycleOwner) { workInfoList ->
+            val workInfo = workInfoList?.getOrNull(0) ?: return@observe
+            Log.i(LoggerConstants.LOG_TAG_DOWNLOAD,
+                  "WorkManager state: ${workInfo.state} for ${DownloadConstants.FILE_TAG}")
+            if (WorkInfo.State.SUCCEEDED == workInfo.state) {
+                onDownloadSuccess()
+                workManager.pruneWork()
+            } else if (WorkInfo.State.CANCELLED == workInfo.state || WorkInfo.State.FAILED == workInfo.state) {
+                onDownloadAbort()
+                workManager.pruneWork()
+                workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
+            } else { // state == blocked, queued, or running
+                // no-op
+            }
+        }
     }
 
     private fun observeBraveMode() {
-        appConfig.braveModeObserver.observe(viewLifecycleOwner, {
+        appConfig.braveModeObserver.observe(viewLifecycleOwner) {
             when (it) {
                 // TODO: disable local-blocklist for dns-only mode
                 // TODO: disable prevent dns leaks in dns-only mode
             }
-        })
+        }
     }
 
     private fun initClickListeners() {
 
         b.dcCustomBlocklistCard.setOnClickListener {
             enableAfterDelay(TimeUnit.SECONDS.toMillis(1), b.dcCustomBlocklist)
-
-            val intent = Intent(requireContext(), CustomDomainActivity::class.java)
-            intent.flags = Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
-            startActivity(intent)
+            openCustomDomainDialog()
         }
 
         b.dcMoreDnsCard.setOnClickListener {
             enableAfterDelay(TimeUnit.SECONDS.toMillis(1), b.dcMoreDns)
 
-            val intent = Intent(requireContext(), DNSListActivity::class.java)
+            val intent = Intent(requireContext(), DnsListActivity::class.java)
             intent.flags = Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
             startActivity(intent)
         }
@@ -156,13 +184,12 @@ class DNSConfigureFragment : Fragment(R.layout.fragment_dns_configure) {
 
             go {
                 uiCtx {
-
                     val blocklistsExist = withContext(Dispatchers.Default) {
                         hasLocalBlocklists(requireContext(),
                                            persistentState.localBlocklistTimestamp)
                     }
                     if (blocklistsExist) {
-                        setBraveDNSLocal() // TODO: Move this to vpnService observer
+                        setBraveDnsLocal() // TODO: Move this to vpnService observer
                         b.dcOnDeviceBlockDesc.text = getString(
                             R.string.settings_local_blocklist_in_use,
                             persistentState.numberOfLocalBlocklists.toString())
@@ -181,7 +208,7 @@ class DNSConfigureFragment : Fragment(R.layout.fragment_dns_configure) {
             enableAfterDelay(TimeUnit.SECONDS.toMillis(1), b.dcOnDeviceBlockEnableBtn)
 
             if (persistentState.blocklistEnabled) {
-                removeBraveDNSLocal()
+                removeBraveDnsLocal()
                 return@setOnClickListener
             }
             go {
@@ -191,7 +218,7 @@ class DNSConfigureFragment : Fragment(R.layout.fragment_dns_configure) {
                                            persistentState.localBlocklistTimestamp)
                     }
                     if (blocklistsExist) {
-                        setBraveDNSLocal() // TODO: Move this to vpnService observer
+                        setBraveDnsLocal() // TODO: Move this to vpnService observer
                         b.dcOnDeviceBlockDesc.text = getString(
                             R.string.settings_local_blocklist_in_use,
                             persistentState.numberOfLocalBlocklists.toString())
@@ -203,12 +230,12 @@ class DNSConfigureFragment : Fragment(R.layout.fragment_dns_configure) {
         b.dcOnDeviceBlockConfigureBtn.setOnClickListener {
             enableAfterDelay(TimeUnit.SECONDS.toMillis(1), b.dcOnDeviceBlockConfigureBtn)
 
-            val intent = Intent(requireContext(), DNSConfigureWebViewActivity::class.java)
+            val intent = Intent(requireContext(), DnsConfigureWebViewActivity::class.java)
             val stamp = persistentState.localBlocklistStamp
             if (DEBUG) Log.d(LOG_TAG_VPN, "Stamp value in settings screen: $stamp")
             intent.flags = Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED
             intent.putExtra(Constants.BLOCKLIST_LOCATION_INTENT_EXTRA,
-                            DNSConfigureWebViewActivity.LOCAL)
+                            DnsConfigureWebViewActivity.LOCAL)
             intent.putExtra(Constants.BLOCKLIST_STAMP_INTENT_EXTRA, stamp)
             requireContext().startActivity(intent)
         }
@@ -228,12 +255,33 @@ class DNSConfigureFragment : Fragment(R.layout.fragment_dns_configure) {
             enableAfterDelay(TimeUnit.SECONDS.toMillis(1), b.dcPreventDnsLeaksSwitch)
             persistentState.preventDnsLeaks = enabled
         }
+
+        b.dcRethinkButton.setOnClickListener {
+            launchConfigureRethinkPlusActivity()
+        }
+    }
+
+    private fun openCustomDomainDialog() {
+        val themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
+
+        val customDialog = CustomDomainDialog(requireActivity(), customDomainViewModel, themeId)
+        customDialog.setCanceledOnTouchOutside(false)
+        customDialog.show()
+    }
+
+    private fun isDarkThemeOn(): Boolean {
+        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
     }
 
     // FIXME: Verification of BraveDns object should be added in future.
-    private fun setBraveDNSLocal() {
+    private fun setBraveDnsLocal() {
         persistentState.blocklistEnabled = true
         refreshOnDeviceBlocklistUi()
+    }
+
+    private fun launchConfigureRethinkPlusActivity() {
+        val intent = Intent(requireContext(), ConfigureRethinkPlusActivity::class.java)
+        startActivity(intent)
     }
 
     private fun handleLockdownModeIfNeeded() {
@@ -248,34 +296,39 @@ class DNSConfigureFragment : Fragment(R.layout.fragment_dns_configure) {
     }
 
     private fun showVpnLockdownDownloadDialog() {
-        val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle(R.string.download_lockdown_dialog_heading)
-        builder.setMessage(R.string.download_lockdown_dialog_desc)
-        builder.setCancelable(false)
-        builder.setPositiveButton(getString(R.string.download_lockdown_dialog_positive)) { _, _ ->
-            openVpnProfile(requireContext())
+        uithread(activity) {
+            val builder = AlertDialog.Builder(requireContext())
+            builder.setTitle(R.string.download_lockdown_dialog_heading)
+            builder.setMessage(R.string.download_lockdown_dialog_desc)
+            builder.setCancelable(false)
+            builder.setPositiveButton(
+                getString(R.string.download_lockdown_dialog_positive)) { _, _ ->
+                openVpnProfile(requireContext())
+            }
+            builder.setNegativeButton(
+                getString(R.string.download_lockdown_dialog_negative)) { dialog, _ ->
+                dialog.dismiss()
+            }
+            builder.create().show()
         }
-        builder.setNegativeButton(
-            getString(R.string.download_lockdown_dialog_negative)) { dialog, _ ->
-            dialog.dismiss()
-        }
-        builder.create().show()
     }
 
     private fun showDownloadDialog() {
-        val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle(R.string.local_blocklist_download)
-        builder.setMessage(R.string.local_blocklist_download_desc)
-        builder.setCancelable(false)
-        builder.setPositiveButton(
-            getString(R.string.settings_local_blocklist_dialog_positive)) { _, _ ->
-            updateBlocklistIfNeeded(isRefresh = false)
+        uithread(activity) {
+            val builder = AlertDialog.Builder(requireContext())
+            builder.setTitle(R.string.local_blocklist_download)
+            builder.setMessage(R.string.local_blocklist_download_desc)
+            builder.setCancelable(false)
+            builder.setPositiveButton(
+                getString(R.string.settings_local_blocklist_dialog_positive)) { _, _ ->
+                updateBlocklistIfNeeded(isRefresh = false)
+            }
+            builder.setNegativeButton(
+                getString(R.string.settings_local_blocklist_dialog_negative)) { dialog, _ ->
+                dialog.dismiss()
+            }
+            builder.create().show()
         }
-        builder.setNegativeButton(
-            getString(R.string.settings_local_blocklist_dialog_negative)) { dialog, _ ->
-            dialog.dismiss()
-        }
-        builder.create().show()
     }
 
     private fun showRedownloadDialogLockdown(timestamp: Long) {
@@ -313,19 +366,22 @@ class DNSConfigureFragment : Fragment(R.layout.fragment_dns_configure) {
     }
 
     private fun showFileCorruptionDialog(timestamp: Long) {
-        val builder = AlertDialog.Builder(requireContext())
-        builder.setTitle(R.string.local_blocklist_corrupt)
-        builder.setMessage(R.string.local_blocklist_corrupt_desc)
-        builder.setCancelable(false)
-        builder.setNegativeButton(
-            getString(R.string.local_blocklist_corrupt_negative)) { dialogInterface, _ ->
-            handleFailedDownload(isRefresh = false)
-            dialogInterface.dismiss()
+        uithread(activity) {
+            val builder = AlertDialog.Builder(requireContext())
+            builder.setTitle(R.string.local_blocklist_corrupt)
+            builder.setMessage(R.string.local_blocklist_corrupt_desc)
+            builder.setCancelable(false)
+            builder.setNegativeButton(
+                getString(R.string.local_blocklist_corrupt_negative)) { dialogInterface, _ ->
+                handleFailedDownload(isRefresh = false)
+                dialogInterface.dismiss()
+            }
+            builder.setPositiveButton(
+                getString(R.string.local_blocklist_corrupt_positive)) { _, _ ->
+                appDownloadManager.downloadLocalBlocklist(timestamp)
+            }
+            builder.create().show()
         }
-        builder.setPositiveButton(getString(R.string.local_blocklist_corrupt_positive)) { _, _ ->
-            appDownloadManager.downloadLocalBlocklist(timestamp)
-        }
-        builder.create().show()
     }
 
     private fun refreshOnDeviceBlocklistUi() {
@@ -501,7 +557,7 @@ class DNSConfigureFragment : Fragment(R.layout.fragment_dns_configure) {
         refreshOnDeviceBlocklistUi()
     }
 
-    private fun removeBraveDNSLocal() {
+    private fun removeBraveDnsLocal() {
         persistentState.blocklistEnabled = false
         refreshOnDeviceBlocklistUi()
     }

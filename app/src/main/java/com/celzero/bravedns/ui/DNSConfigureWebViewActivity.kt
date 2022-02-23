@@ -50,6 +50,7 @@ import com.celzero.bravedns.util.LoggerConstants.Companion.LOG_TAG_VPN
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.util.Utilities.Companion.hasRemoteBlocklists
 import com.celzero.bravedns.util.Utilities.Companion.isAtleastO
 import com.celzero.bravedns.util.Utilities.Companion.remoteBlocklistDir
 import kotlinx.coroutines.Dispatchers
@@ -61,13 +62,14 @@ import xdns.Xdns
 import java.io.File
 import java.io.IOException
 
-class DNSConfigureWebViewActivity : AppCompatActivity(R.layout.activity_faq_webview_layout) {
+class DnsConfigureWebViewActivity : AppCompatActivity(R.layout.activity_faq_webview_layout) {
     private val b by viewBinding(ActivityFaqWebviewLayoutBinding::bind)
     private val maxProgressBar = 100
     private var receivedIntentFrom: Int = 0
     private var receivedStamp: String = ""
     private val persistentState by inject<PersistentState>()
     private val appConfig by inject<AppConfig>()
+    private lateinit var ctx: Context
 
     companion object {
         const val LOCAL = 1
@@ -80,6 +82,7 @@ class DNSConfigureWebViewActivity : AppCompatActivity(R.layout.activity_faq_webv
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(getCurrentTheme(isDarkThemeOn(), persistentState.theme))
         super.onCreate(savedInstanceState)
+        ctx = this
         receivedIntentFrom = intent.getIntExtra(Constants.BLOCKLIST_LOCATION_INTENT_EXTRA, 0)
         val stamp = intent.getStringExtra(Constants.BLOCKLIST_STAMP_INTENT_EXTRA)
 
@@ -294,7 +297,11 @@ class DNSConfigureWebViewActivity : AppCompatActivity(R.layout.activity_faq_webv
     private fun initWebView() {
         b.configureWebview.settings.javaScriptEnabled = true
         b.configureWebview.settings.loadWithOverviewMode = true
-        b.configureWebview.settings.useWideViewPort = true
+        //b.configureWebview.settings.useWideViewPort = true
+        // part of issue fix: #401
+        b.configureWebview.settings.builtInZoomControls = true
+        b.configureWebview.settings.displayZoomControls = false
+
         if (isAtleastO()) {
             b.configureWebview.setRendererPriorityPolicy(RENDERER_PRIORITY_BOUND, true)
         }
@@ -342,7 +349,8 @@ class DNSConfigureWebViewActivity : AppCompatActivity(R.layout.activity_faq_webv
                 // and allow your app to continue executing, you should 1) destroy the
                 // current WebView instance, 2) specify logic for how the app can
                 // continue executing, and 3) return "true" instead.
-                return false
+                showErrorDialog(null)
+                return true
             }
 
         }
@@ -425,7 +433,8 @@ class DNSConfigureWebViewActivity : AppCompatActivity(R.layout.activity_faq_webv
 
             val t = parseLong(timestamp)
 
-            if (persistentState.remoteBlocklistTimestamp >= t) return
+            if (persistentState.remoteBlocklistTimestamp >= t && hasRemoteBlocklists(ctx,
+                                                                                     persistentState.remoteBlocklistTimestamp)) return
 
             try {
                 val filetag = makeFile(t) ?: return
