@@ -33,7 +33,7 @@ import com.celzero.bravedns.util.Utilities.Companion.openPauseActivityAndFinish
 import com.google.android.material.tabs.TabLayoutMediator
 import org.koin.android.ext.android.inject
 
-class DNSDetailActivity : AppCompatActivity(R.layout.activity_dns_detail) {
+class DnsDetailActivity : AppCompatActivity(R.layout.activity_dns_detail) {
     private val b by viewBinding(ActivityDnsDetailBinding::bind)
     private var fragmentIndex = 0
     private val persistentState by inject<PersistentState>()
@@ -59,9 +59,9 @@ class DNSDetailActivity : AppCompatActivity(R.layout.activity_dns_detail) {
         b.dnsDetailActViewpager.adapter = object : FragmentStateAdapter(this) {
             override fun createFragment(position: Int): Fragment {
                 return when (position) {
-                    Tabs.LOGS.screen -> DNSLogFragment.newInstance()
-                    Tabs.CONFIGURE.screen -> ConfigureDNSFragment.newInstance()
-                    else -> ConfigureDNSFragment.newInstance()
+                    Tabs.LOGS.screen -> DnsLogFragment.newInstance()
+                    Tabs.CONFIGURE.screen -> DnsConfigureFragment.newInstance()
+                    else -> DnsConfigureFragment.newInstance()
                 }
             }
 
@@ -85,14 +85,15 @@ class DNSDetailActivity : AppCompatActivity(R.layout.activity_dns_detail) {
     }
 
     private fun observeAppState() {
-        VpnController.connectionStatus.observe(this, {
+        VpnController.connectionStatus.observe(this) {
             if (it == BraveVPNService.State.PAUSED) {
                 openPauseActivityAndFinish(this)
             }
-        })
+        }
     }
 
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
     }
+
 }

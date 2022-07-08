@@ -25,29 +25,18 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.databinding.ActivityOtherDnsListBinding
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.util.Themes
 import com.google.android.material.tabs.TabLayoutMediator
 import org.koin.android.ext.android.inject
 
-class DNSListActivity : AppCompatActivity(R.layout.activity_other_dns_list) {
+class DnsListActivity : AppCompatActivity(R.layout.activity_other_dns_list) {
     private val b by viewBinding(ActivityOtherDnsListBinding::bind)
 
     private val dnsTabsCount = 3
     private val persistentState by inject<PersistentState>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        if (persistentState.theme == 0) {
-            if (isDarkThemeOn()) {
-                setTheme(R.style.AppThemeTrueBlack)
-            } else {
-                setTheme(R.style.AppThemeWhite)
-            }
-        } else if (persistentState.theme == 1) {
-            setTheme(R.style.AppThemeWhite)
-        } else if (persistentState.theme == 2) {
-            setTheme(R.style.AppTheme)
-        } else {
-            setTheme(R.style.AppThemeTrueBlack)
-        }
+        setTheme(Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme))
         super.onCreate(savedInstanceState)
         init()
     }
@@ -56,9 +45,9 @@ class DNSListActivity : AppCompatActivity(R.layout.activity_other_dns_list) {
         b.otherDnsActViewpager.adapter = object : FragmentStateAdapter(this) {
             override fun createFragment(position: Int): Fragment {
                 return when (position) {
-                    0 -> DOHListFragment.newInstance()
-                    1 -> DNSCryptListFragment.newInstance()
-                    else -> DNSProxyListFragment.newInstance()
+                    0 -> DohListFragment.newInstance()
+                    1 -> DnsCryptListFragment.newInstance()
+                    else -> DnsProxyListFragment.newInstance()
                 }
             }
 
@@ -80,5 +69,4 @@ class DNSListActivity : AppCompatActivity(R.layout.activity_other_dns_list) {
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
     }
-
 }
