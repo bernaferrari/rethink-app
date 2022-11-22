@@ -25,7 +25,6 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.automaton.RethinkBlocklistManager
 import com.celzero.bravedns.databinding.ListItemRethinkBlocklistSimpleBinding
 import com.celzero.bravedns.ui.RethinkBlocklistFragment
-import com.celzero.bravedns.ui.RethinkBlocklistFragment.Companion.selectedFileTags
 import com.celzero.bravedns.util.Utilities
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +32,7 @@ import kotlinx.coroutines.launch
 
 class RethinkSimpleViewAdapter(val context: Context,
                                var fileTags: List<RethinkBlocklistManager.SimpleViewTag>,
+                               val selectedTags: List<Int>,
                                val type: RethinkBlocklistFragment.RethinkBlocklistType) :
         RecyclerView.Adapter<RethinkSimpleViewAdapter.RethinkSimpleViewHolder>() {
 
@@ -80,50 +80,17 @@ class RethinkSimpleViewAdapter(val context: Context,
         private fun toggleCheckbox(isSelected: Boolean, position: Int) {
             b.crpCheckBox.isChecked = isSelected
             setCardBackground(b.crpCard, isSelected)
-
-            if (isSelected) {
-
-                addBlocklistTag(fileTags[position].tags)
-                return
-            }
-
-            removeBlocklistTag(fileTags[position].tags)
+            setFileTags(fileTags[position].tags, if (isSelected) 1 else 0)
         }
 
-        private fun addBlocklistTag(set: MutableList<Int>?) {
+        private fun setFileTags(set: MutableList<Int>?, selected: Int) {
             if (set == null) return
 
-            updateRethinkBlocklist(set, 1 /* isSelected: true */)
-
-            if (selectedFileTags.value == null) {
-                selectedFileTags.value = set.toMutableSet()
-            } else {
-                selectedFileTags.value?.addAll(set)
-            }
-
-            selectedFileTags.postValue(selectedFileTags.value)
-        }
-
-        private fun removeBlocklistTag(set: MutableList<Int>?) {
-            if (set == null) return
-
-            updateRethinkBlocklist(set, 0 /* isSelected: false */)
-
-            if (selectedFileTags.value == null) {
-                selectedFileTags.value = set.toMutableSet()
-            } else {
-                selectedFileTags.value?.removeAll(set)
-            }
-
-            selectedFileTags.postValue(selectedFileTags.value)
-        }
-
-        private fun updateRethinkBlocklist(set: MutableList<Int>, isSelected: Int) {
             io {
                 if (type.isRemote()) {
-                    RethinkBlocklistManager.updateSelectedFiletagsRemote(set.toSet(), isSelected)
+                    RethinkBlocklistManager.updateFiletagsRemote(set.toSet(), selected)
                 } else {
-                    RethinkBlocklistManager.updateSelectedFiletagsLocal(set.toSet(), isSelected)
+                    RethinkBlocklistManager.updateFiletagsLocal(set.toSet(), selected)
                 }
             }
         }
@@ -147,9 +114,9 @@ class RethinkSimpleViewAdapter(val context: Context,
             b.crpCheckBox.isChecked = false
 
             // enable the check box if the stamp contains all the values
-            if (selectedFileTags.value.isNullOrEmpty()) return
+            if (selectedTags.isEmpty() || simpleView.tags.isEmpty()) return
 
-            if (selectedFileTags.value!!.containsAll(simpleView.tags)) {
+            if (selectedTags.containsAll(simpleView.tags)) {
                 b.crpCheckBox.isChecked = true
                 setCardBackground(b.crpCard, true)
             }
