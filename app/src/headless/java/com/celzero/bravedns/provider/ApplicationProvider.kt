@@ -68,7 +68,7 @@ class ApplicationProvider : ContentProvider() {
     }
 
     override fun getType(uri: Uri): String {
-        BlocklistProvider.uriMatcher.match(uri).let {
+        uriMatcher.match(uri).let {
             return when (it) {
                 1 -> URI_APP
                 2 -> URI_APP
@@ -85,6 +85,9 @@ class ApplicationProvider : ContentProvider() {
         val appInfo = AppInfo().fromContentValues(values) ?: return null
 
         val id = appInfoRepository.cpInsert(appInfo)
+        // update the app info cache
+        CoroutineScope(Dispatchers.IO).launch { FirewallManager.reloadAppList() }
+        context?.contentResolver?.notifyChange(uri, null)
         return ContentUris.withAppendedId(uri, id)
     }
 
@@ -99,6 +102,8 @@ class ApplicationProvider : ContentProvider() {
         )
         val id = ContentUris.parseId(uri).toInt()
         val count = appInfoRepository.cpDelete(id)
+        // update the app info cache
+        CoroutineScope(Dispatchers.IO).launch { FirewallManager.reloadAppList() }
         context?.contentResolver?.notifyChange(uri, null)
         return count
     }
