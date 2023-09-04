@@ -16,10 +16,13 @@
 package com.celzero.bravedns.util
 
 import android.content.Context
+import com.celzero.bravedns.R
 import com.celzero.bravedns.database.DnsLog
 
 object UIUtils {
-    fun fetchFavIcon(context: Context, dnsLog: DnsLog) {
+    fun fetchFavIcon(context: Context, dnsLog: DnsLog) {}
 
+    fun getAccentColor(appTheme: Int): Int {
+        return R.color.accentGoodBlack
     }
 }
