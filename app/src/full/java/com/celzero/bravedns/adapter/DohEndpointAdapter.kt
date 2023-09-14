@@ -32,7 +32,7 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.DoHEndpoint
-import com.celzero.bravedns.databinding.DohEndpointListItemBinding
+import com.celzero.bravedns.databinding.ListItemEndpointBinding
 import com.celzero.bravedns.util.LoggerConstants.Companion.LOG_TAG_DNS
 import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.UIUtils.getDnsStatus
@@ -71,7 +71,7 @@ class DohEndpointAdapter(
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoHEndpointViewHolder {
         val itemBinding =
-            DohEndpointListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ListItemEndpointBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return DoHEndpointViewHolder(itemBinding)
     }
 
@@ -80,7 +80,7 @@ class DohEndpointAdapter(
         holder.update(doHEndpoint)
     }
 
-    inner class DoHEndpointViewHolder(private val b: DohEndpointListItemBinding) :
+    inner class DoHEndpointViewHolder(private val b: ListItemEndpointBinding) :
         RecyclerView.ViewHolder(b.root) {
 
         fun update(endpoint: DoHEndpoint) {
@@ -90,31 +90,29 @@ class DohEndpointAdapter(
 
         private fun setupClickListeners(endpoint: DoHEndpoint) {
             b.root.setOnClickListener { updateConnection(endpoint) }
-            b.dohEndpointListActionImage.setOnClickListener {
-                showExplanationOnImageClick(endpoint)
-            }
-            b.dohEndpointListCheckImage.setOnClickListener { updateConnection(endpoint) }
+            b.endpointInfoImg.setOnClickListener { showExplanationOnImageClick(endpoint) }
+            b.endpointCheck.setOnClickListener { updateConnection(endpoint) }
         }
 
         private fun displayDetails(endpoint: DoHEndpoint) {
             if (endpoint.isSecure) {
-                b.dohEndpointListUrlName.text = endpoint.dohName
+                b.endpointName.text = endpoint.dohName
             } else {
-                b.dohEndpointListUrlName.text =
+                b.endpointName.text =
                     context.getString(
                         R.string.ci_desc,
                         endpoint.dohName,
                         context.getString(R.string.lbl_insecure)
                     )
             }
-            b.dohEndpointListUrlExplanation.text = ""
-            b.dohEndpointListCheckImage.isChecked = endpoint.isSelected
+            b.endpointDesc.text = ""
+            b.endpointCheck.isChecked = endpoint.isSelected
             Log.i(
                 LOG_TAG_DNS,
                 "connected to doh: ${endpoint.dohName} isSelected? ${endpoint.isSelected}"
             )
             if (endpoint.isSelected) {
-                b.dohEndpointListUrlExplanation.text =
+                b.endpointDesc.text =
                     context.getString(getDnsStatus()).replaceFirstChar(Char::titlecase)
             }
 
@@ -124,11 +122,11 @@ class DohEndpointAdapter(
 
         private fun showIcon(endpoint: DoHEndpoint) {
             if (endpoint.isDeletable()) {
-                b.dohEndpointListActionImage.setImageDrawable(
+                b.endpointInfoImg.setImageDrawable(
                     ContextCompat.getDrawable(context, R.drawable.ic_fab_uninstall)
                 )
             } else {
-                b.dohEndpointListActionImage.setImageDrawable(
+                b.endpointInfoImg.setImageDrawable(
                     ContextCompat.getDrawable(context, R.drawable.ic_info)
                 )
             }
