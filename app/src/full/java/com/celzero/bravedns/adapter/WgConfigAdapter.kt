@@ -17,6 +17,7 @@ package com.celzero.bravedns.adapter
 
 import android.content.Context
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
@@ -27,12 +28,12 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.WgConfigFiles
-import com.celzero.bravedns.databinding.ListItemWgInterfaceBinding
+import com.celzero.bravedns.databinding.ListItemWgGeneralInterfaceBinding
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
-import com.celzero.bravedns.ui.WgConfigDetailActivity
-import com.celzero.bravedns.ui.WgConfigEditorActivity.Companion.INTENT_EXTRA_WG_ID
+import com.celzero.bravedns.ui.activity.WgConfigDetailActivity
+import com.celzero.bravedns.ui.activity.WgConfigEditorActivity.Companion.INTENT_EXTRA_WG_ID
 import com.celzero.bravedns.util.UIUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -72,16 +73,21 @@ class WgConfigAdapter(private val context: Context) :
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WgInterfaceViewHolder {
         val itemBinding =
-            ListItemWgInterfaceBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+            ListItemWgGeneralInterfaceBinding.inflate(
+                LayoutInflater.from(parent.context),
+                parent,
+                false
+            )
         return WgInterfaceViewHolder(itemBinding)
     }
 
-    inner class WgInterfaceViewHolder(private val b: ListItemWgInterfaceBinding) :
+    inner class WgInterfaceViewHolder(private val b: ListItemWgGeneralInterfaceBinding) :
         RecyclerView.ViewHolder(b.root) {
 
         fun update(config: WgConfigFiles) {
             b.interfaceNameText.text = config.name
             b.interfaceSwitch.isChecked = config.isActive
+            b.interfaceLockdown.text = "Lockdown: ${config.isLockdown}"
             updateStatus(config)
             setupClickListeners(config)
         }
@@ -100,6 +106,8 @@ class WgConfigAdapter(private val context: Context) :
                 val statusId = VpnController.getProxyStatusById(id)
                 if (statusId != null) {
                     val resId = UIUtils.getProxyStatusStringRes(statusId)
+                    b.interfaceProxyStatus.text =
+                        "Status: ${context.getString(resId).replaceFirstChar(Char::titlecase)}"
                     b.interfaceStatus.text =
                         context.getString(
                             R.string.about_version_install_source,
@@ -107,6 +115,8 @@ class WgConfigAdapter(private val context: Context) :
                             appsCount
                         )
                 } else {
+                    b.interfaceProxyStatus.text =
+                        "Status: ${context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)}"
                     b.interfaceStatus.text =
                         context.getString(
                             R.string.about_version_install_source,
@@ -117,6 +127,8 @@ class WgConfigAdapter(private val context: Context) :
                         )
                 }
             } else {
+                b.interfaceProxyStatus.text =
+                    "Status: ${context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase)}"
                 b.interfaceStatus.text =
                     context.getString(
                         R.string.about_version_install_source,
@@ -159,6 +171,7 @@ class WgConfigAdapter(private val context: Context) :
         private fun launchConfigDetail(id: Int) {
             val intent = Intent(context, WgConfigDetailActivity::class.java)
             intent.putExtra(INTENT_EXTRA_WG_ID, id)
+            Log.d("TEST", "ProxyLogs - WgConfigAdapter - launchConfigDetail - id: $id")
             context.startActivity(intent)
         }
     }
