@@ -18,11 +18,42 @@ package com.celzero.bravedns.ui.bottomsheet
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
-import android.view.LayoutInflater
 import android.view.View
-import android.view.WindowManager
-import android.widget.AdapterView
 import android.widget.ImageView
+import android.widget.TextView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.text.HtmlCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.FragmentActivity
@@ -34,32 +65,26 @@ import com.bumptech.glide.request.target.CustomViewTarget
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.bumptech.glide.request.transition.Transition
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.FirewallStatusSpinnerAdapter
 import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
-import com.celzero.bravedns.databinding.BottomSheetDnsLogBinding
-import com.celzero.bravedns.databinding.DialogInfoRulesLayoutBinding
-import com.celzero.bravedns.databinding.DialogIpDetailsLayoutBinding
 import com.celzero.bravedns.glide.FavIconDownloader
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.EventLogger
-import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.activity.DomainConnectionsActivity
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Themes
-import com.celzero.bravedns.util.UIUtils.htmlToSpannedText
+import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
 import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -67,16 +92,26 @@ class DnsBlocklistDialog(
     private val activity: FragmentActivity,
     private val log: DnsLog
 ) : KoinComponent {
-    private val binding = BottomSheetDnsLogBinding.inflate(LayoutInflater.from(activity))
     private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()
 
-    private var lastStatus: DomainRulesManager.Status = DomainRulesManager.Status.NONE
+    private var lastStatus by mutableStateOf(DomainRulesManager.Status.NONE)
+    private var showRuleInfo by mutableStateOf(false)
+    private var showIpDetails by mutableStateOf(false)
+    private var showAppInfo by mutableStateOf(false)
+    private var ipDetailsText by mutableStateOf("")
+    private var appInfoText by mutableStateOf("")
 
     init {
-        dialog.setContentView(binding.root)
+        val composeView = ComposeView(activity)
+        composeView.setContent {
+            RethinkTheme {
+                DnsBlocklistContent()
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.setOnShowListener {
             dialog.useTransparentNoDimBackground()
             dialog.window?.let { window ->
@@ -87,7 +122,6 @@ class DnsBlocklistDialog(
                 }
             }
         }
-        initView()
     }
 
     fun show() {
@@ -101,103 +135,300 @@ class DnsBlocklistDialog(
         return Themes.getBottomsheetCurrentTheme(isDark, persistentState.theme)
     }
 
-    private fun initView() {
-        binding.bsdlDomainRuleDesc.text = htmlToSpannedText(activity.getString(R.string.bsdl_block_desc))
-        binding.dnsBlockUrl.text = log.queryStr
-        binding.dnsBlockIpAddress.text = getResponseIp()
-        binding.dnsBlockConnectionFlag.text = log.flag
-        binding.dnsBlockIpLatency.text =
-            activity.getString(R.string.dns_btm_latency_ms, log.latency.toString())
+    @Composable
+    private fun DnsBlocklistContent() {
+        val borderColor = Color(UIUtils.fetchColor(activity, R.attr.border))
+        val ruleLabels = remember { DomainRulesManager.Status.getLabel(activity).toList() }
+        val ruleOptions =
+            remember {
+                listOf(
+                    DomainRulesManager.Status.NONE,
+                    DomainRulesManager.Status.BLOCK,
+                    DomainRulesManager.Status.TRUST
+                )
+            }
+        var ruleExpanded by remember { mutableStateOf(false) }
+        val currentRule = remember { getRuleUid() }
+        val selectedIndex = ruleOptions.indexOf(lastStatus).coerceAtLeast(0)
+        var selectedLabel by remember { mutableStateOf(ruleLabels[selectedIndex]) }
 
-        binding.dnsMessage.text = log.msg
-
-        val region = log.region
-        binding.dnsRegion.isVisible = region.isNotEmpty()
-        binding.dnsRegion.text = region
-
-        binding.dnsBlockedTarget.isVisible = log.blockedTarget.isNotEmpty()
-        binding.dnsBlockedTarget.text = log.blockedTarget
-
-        setupClickListeners()
-        updateAppDetails()
-        setupDomainRuleSpinner()
-
-        binding.root.post {
-            displayRecordTypeChip()
-            displayBlockedSummary()
-            displayBlocklistChips()
+        LaunchedEffect(Unit) {
+            val domain = log.queryStr
+            if (domain.isNotEmpty()) {
+                lastStatus = DomainRulesManager.getDomainRule(domain, currentRule)
+                selectedLabel = ruleLabels[lastStatus.id]
+            }
+            ipDetailsText = getResponseIps()
+            appInfoText = log.packageName
         }
 
-        activity.lifecycleScope.launch {
-            kotlinx.coroutines.delay(150)
-            displayFavIcon()
-        }
-    }
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                        .width(60.dp)
+                        .height(3.dp)
+                        .background(borderColor, RoundedCornerShape(2.dp))
+            )
 
-    private fun setupDomainRuleSpinner() {
-        val domain = log.queryStr
-        if (domain.isEmpty()) {
-            binding.bsdlDomainRuleSpinner.isEnabled = false
-            return
-        }
-
-        binding.bsdlDomainRuleSpinner.adapter =
-            FirewallStatusSpinnerAdapter(activity, DomainRulesManager.Status.getLabel(activity))
-        val uid = getRuleUid()
-        lastStatus = DomainRulesManager.getDomainRule(domain, uid)
-        binding.bsdlDomainRuleSpinner.setSelection(lastStatus.id, false)
-
-        var ignoreSelection = true
-        binding.bsdlDomainRuleSpinner.onItemSelectedListener =
-            object : AdapterView.OnItemSelectedListener {
-                override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View?,
-                    position: Int,
-                    id: Long
-                ) {
-                    if (ignoreSelection) {
-                        ignoreSelection = false
-                        return
-                    }
-
-                    val status = DomainRulesManager.Status.getStatus(position)
-                    if (status == lastStatus) return
-                    applyDomainRule(domain, uid, status)
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (persistentState.fetchFavIcon) {
+                    AndroidView(
+                        factory = { ctx ->
+                            ImageView(ctx).apply {
+                                visibility = View.GONE
+                            }
+                        },
+                        update = { view -> loadFavIcon(view) },
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
                 }
-
-                override fun onNothingSelected(parent: AdapterView<*>?) {}
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = log.queryStr,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.clickable { openDomainConnections() }
+                    )
+                    Text(
+                        text = log.flag,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = activity.getString(
+                            R.string.dns_btm_latency_ms,
+                            log.latency.toString()
+                        ),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(
+                        text = getResponseIp(),
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.clickable { showIpDetails = true }
+                    )
+                }
             }
-    }
 
-    private fun updateAppDetails() {
-        if (log.appName.isNotEmpty() && log.packageName.isNotEmpty()) {
-            binding.dnsAppNameHeader.isVisible = true
-            binding.dnsAppName.text = log.appName
-            binding.dnsAppIcon.setImageDrawable(getIcon(activity, log.packageName, log.appName))
-            return
+            HtmlText(
+                html = activity.getString(R.string.bsdl_block_desc),
+                modifier = Modifier.padding(horizontal = 10.dp)
+            ) { showRuleInfo = true }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(text = activity.getString(R.string.lbl_domain_rules))
+                Box(modifier = Modifier.weight(1f)) {
+                    TextButton(
+                        onClick = { ruleExpanded = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(text = selectedLabel)
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(text = "▼")
+                    }
+                    DropdownMenu(
+                        expanded = ruleExpanded,
+                        onDismissRequest = { ruleExpanded = false }
+                    ) {
+                        ruleOptions.forEachIndexed { index, option ->
+                            DropdownMenuItem(
+                                text = { Text(ruleLabels[index]) },
+                                onClick = {
+                                    ruleExpanded = false
+                                    if (option == lastStatus) return@DropdownMenuItem
+                                    val domain = log.queryStr
+                                    if (domain.isNotEmpty()) {
+                                        selectedLabel = ruleLabels[index]
+                                        applyDomainRule(domain, currentRule, option)
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (log.msg.isNotEmpty()) {
+                Text(
+                    text = log.msg,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                )
+            }
+
+            if (log.region.isNotEmpty()) {
+                Text(
+                    text = log.region,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                )
+            }
+
+            if (log.blockedTarget.isNotEmpty()) {
+                Text(
+                    text = log.blockedTarget,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                )
+            }
+
+            BlockedSummary()
+
+            FlowRow(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                val blocklists = log.getBlocklists().filter { it.isNotBlank() }
+                if (blocklists.isNotEmpty()) {
+                    val countText =
+                        activity.getString(R.string.rsv_blocklist_count_text, blocklists.size)
+                    ChipText(countText)
+                }
+                val ips = log.responseIps.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                if (ips.isNotEmpty()) {
+                    val ipLabel = activity.getString(R.string.lbl_ip)
+                    val text =
+                        activity.getString(
+                            R.string.two_argument_colon,
+                            ipLabel,
+                            ips.size.toString()
+                        )
+                    ChipText(text)
+                }
+                if (log.typeName.isNotEmpty()) {
+                    ChipText(log.typeName)
+                }
+            }
+
+            AppInfoRow()
         }
 
-        io {
-            val appNames = FirewallManager.getAppNamesByUid(log.uid)
-            if (appNames.isEmpty()) {
-                uiCtx { binding.dnsAppNameHeader.isVisible = false }
-                return@io
-            }
-            uiCtx {
-                binding.dnsAppNameHeader.isVisible = true
-                binding.dnsAppName.text = appNames[0]
-                binding.dnsAppIcon.setImageDrawable(getIcon(activity, log.packageName, appNames[0]))
-            }
+        if (showRuleInfo) {
+            AlertDialog(
+                onDismissRequest = { showRuleInfo = false },
+                title = { Text(text = activity.getString(R.string.lbl_domain_rules)) },
+                text = { HtmlText(html = activity.getString(R.string.bsdl_block_desc)) },
+                confirmButton = {
+                    TextButton(onClick = { showRuleInfo = false }) {
+                        Text(text = activity.getString(R.string.hs_download_positive_default))
+                    }
+                }
+            )
+        }
+
+        if (showIpDetails) {
+            AlertDialog(
+                onDismissRequest = { showIpDetails = false },
+                title = { Text(text = log.queryStr) },
+                text = { Text(text = ipDetailsText) },
+                confirmButton = {
+                    TextButton(onClick = { showIpDetails = false }) {
+                        Text(text = activity.getString(R.string.hs_download_positive_default))
+                    }
+                }
+            )
+        }
+
+        if (showAppInfo) {
+            AlertDialog(
+                onDismissRequest = { showAppInfo = false },
+                title = { Text(text = log.appName) },
+                text = { Text(text = appInfoText) },
+                confirmButton = {
+                    TextButton(onClick = { showAppInfo = false }) {
+                        Text(text = activity.getString(R.string.hs_download_positive_default))
+                    }
+                }
+            )
         }
     }
 
-    private fun setupClickListeners() {
-        binding.dnsBlockUrl.setOnClickListener { openDomainConnections() }
-        binding.dnsBlockIpAddress.setOnClickListener { showIpDetailsDialog() }
-        binding.bsdlDomainRuleDesc.setOnClickListener { showRuleInfoDialog() }
-        binding.dnsAppNameHeader.setOnClickListener {
-            showInfoDialog(log.appName, log.packageName)
+    @Composable
+    private fun HtmlText(html: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
+        AndroidView(
+            factory = { ctx ->
+                TextView(ctx).apply {
+                    text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY)
+                }
+            },
+            update = { view ->
+                view.text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY)
+                view.setOnClickListener {
+                    onClick?.invoke()
+                }
+            },
+            modifier = modifier
+        )
+    }
+
+    @Composable
+    private fun ChipText(text: String) {
+        Box(
+            modifier =
+                Modifier.background(
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+        ) {
+            Text(text = text, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+
+    @Composable
+    private fun BlockedSummary() {
+        if (!log.isBlocked && !log.upstreamBlock && log.blockLists.isEmpty()) return
+
+        val blockedBy =
+            when {
+                log.blockedTarget.isNotEmpty() -> log.blockedTarget
+                log.blockLists.isNotEmpty() -> activity.getString(R.string.lbl_rules)
+                log.proxyId.isNotEmpty() -> log.proxyId
+                log.resolver.isNotEmpty() -> log.resolver
+                else -> activity.getString(R.string.lbl_domain_rules)
+            }
+        Text(
+            text = activity.getString(R.string.bsdl_blocked_desc, log.queryStr, blockedBy),
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 10.dp)
+        )
+    }
+
+    @Composable
+    private fun AppInfoRow() {
+        if (log.appName.isEmpty() && log.packageName.isEmpty()) return
+
+        Row(
+            modifier =
+                Modifier.fillMaxWidth().padding(horizontal = 10.dp).clickable {
+                    showAppInfo = true
+                },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AndroidView(
+                factory = { ctx -> ImageView(ctx) },
+                update = { view ->
+                    view.setImageDrawable(getIcon(activity, log.packageName, log.appName))
+                },
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = log.appName, style = MaterialTheme.typography.bodyMedium)
         }
     }
 
@@ -205,7 +436,10 @@ class DnsBlocklistDialog(
         val domain = log.queryStr
         if (domain.isEmpty()) return
         val intent = Intent(activity, DomainConnectionsActivity::class.java)
-        intent.putExtra(DomainConnectionsActivity.INTENT_EXTRA_TYPE, DomainConnectionsActivity.InputType.DOMAIN.type)
+        intent.putExtra(
+            DomainConnectionsActivity.INTENT_EXTRA_TYPE,
+            DomainConnectionsActivity.InputType.DOMAIN.type
+        )
         intent.putExtra(DomainConnectionsActivity.INTENT_EXTRA_DOMAIN, domain)
         intent.putExtra(DomainConnectionsActivity.INTENT_EXTRA_IS_BLOCKED, log.isBlocked)
         intent.putExtra(
@@ -215,118 +449,6 @@ class DnsBlocklistDialog(
         activity.startActivity(intent)
     }
 
-    private fun showRuleInfoDialog() {
-        val dialogBinding = DialogInfoRulesLayoutBinding.inflate(LayoutInflater.from(activity))
-        val builder =
-            MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
-        val lp = WindowManager.LayoutParams()
-        val dialog = builder.create()
-        dialog.show()
-        lp.copyFrom(dialog.window?.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-
-        dialog.setCancelable(true)
-        dialog.window?.attributes = lp
-
-        dialogBinding.infoRulesDialogRulesTitle.text = activity.getString(R.string.lbl_domain_rules)
-        dialogBinding.infoRulesDialogRulesDesc.text =
-            htmlToSpannedText(activity.getString(R.string.bsdl_block_desc))
-        dialogBinding.infoRulesDialogRulesIcon.visibility = View.GONE
-
-        dialogBinding.infoRulesDialogCancelImg.setOnClickListener { dialog.dismiss() }
-        dialogBinding.infoRulesDialogOkBtn.setOnClickListener { dialog.dismiss() }
-    }
-
-    private fun showInfoDialog(appName: String?, packageName: String?) {
-        if (appName.isNullOrEmpty() && packageName.isNullOrEmpty()) return
-        val dialogBinding = DialogInfoRulesLayoutBinding.inflate(LayoutInflater.from(activity))
-        val builder =
-            MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
-        val lp = WindowManager.LayoutParams()
-        val dialog = builder.create()
-        dialog.show()
-        lp.copyFrom(dialog.window?.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-
-        dialog.setCancelable(true)
-        dialog.window?.attributes = lp
-
-        dialogBinding.infoRulesDialogRulesTitle.text = appName
-        dialogBinding.infoRulesDialogRulesDesc.text = packageName
-        dialogBinding.infoRulesDialogRulesIcon.visibility = View.GONE
-
-        dialogBinding.infoRulesDialogCancelImg.setOnClickListener { dialog.dismiss() }
-        dialogBinding.infoRulesDialogOkBtn.setOnClickListener { dialog.dismiss() }
-    }
-
-    private fun showIpDetailsDialog() {
-        val dialogBinding = DialogIpDetailsLayoutBinding.inflate(LayoutInflater.from(activity))
-        val builder =
-            MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
-        val lp = WindowManager.LayoutParams()
-        val dialog = builder.create()
-        dialog.show()
-        lp.copyFrom(dialog.window?.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-
-        dialog.setCancelable(true)
-        dialog.window?.attributes = lp
-
-        dialogBinding.ipDetailsFqdnTxt.text = log.queryStr
-        dialogBinding.ipDetailsIpDetailsTxt.text = getResponseIps()
-
-        dialogBinding.infoRulesDialogCancelImg.setOnClickListener { dialog.dismiss() }
-    }
-
-    private fun displayRecordTypeChip() {
-        val typeName = log.typeName
-        binding.dnsRecordTypeChip.isVisible = typeName.isNotEmpty()
-        binding.dnsRecordTypeChip.text = typeName
-    }
-
-    private fun displayBlockedSummary() {
-        if (!log.isBlocked && !log.upstreamBlock && log.blockLists.isEmpty()) {
-            binding.dnsBlockBlockedDesc.isVisible = false
-            return
-        }
-
-        val blockedBy = when {
-            log.blockedTarget.isNotEmpty() -> log.blockedTarget
-            log.blockLists.isNotEmpty() -> activity.getString(R.string.lbl_rules)
-            log.proxyId.isNotEmpty() -> log.proxyId
-            log.resolver.isNotEmpty() -> log.resolver
-            else -> activity.getString(R.string.lbl_domain_rules)
-        }
-
-        binding.dnsBlockBlockedDesc.isVisible = true
-        binding.dnsBlockBlockedDesc.text =
-            activity.getString(R.string.bsdl_blocked_desc, log.queryStr, blockedBy)
-    }
-
-    private fun displayBlocklistChips() {
-        val blocklists = log.getBlocklists().filter { it.isNotBlank() }
-        if (blocklists.isNotEmpty()) {
-            val countText = activity.getString(R.string.rsv_blocklist_count_text, blocklists.size)
-            binding.dnsBlockBlocklistChip.text = countText
-            binding.dnsBlockBlocklistChip.isVisible = true
-        } else {
-            binding.dnsBlockBlocklistChip.isVisible = false
-        }
-
-        val ips = log.responseIps.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-        if (ips.isNotEmpty()) {
-            val ipLabel = activity.getString(R.string.lbl_ip)
-            binding.dnsBlockIpsChip.text =
-                activity.getString(R.string.two_argument_colon, ipLabel, ips.size.toString())
-            binding.dnsBlockIpsChip.isVisible = true
-        } else {
-            binding.dnsBlockIpsChip.isVisible = false
-        }
-    }
-
     private fun getResponseIp(): String {
         return log.responseIps.split(",").firstOrNull()?.trim().orEmpty()
     }
@@ -334,27 +456,31 @@ class DnsBlocklistDialog(
     private fun getResponseIps(): String {
         val ips = log.responseIps.split(",").map { it.trim() }.filter { it.isNotEmpty() }
         return if (ips.isEmpty()) {
-            activity.getString(R.string.two_argument_colon, activity.getString(R.string.lbl_ip), "0")
+            activity.getString(
+                R.string.two_argument_colon,
+                activity.getString(R.string.lbl_ip),
+                "0"
+            )
         } else {
             ips.joinToString(separator = "\n")
         }
     }
 
-    private fun displayFavIcon() {
+    private fun loadFavIcon(view: ImageView) {
         if (!persistentState.fetchFavIcon) {
-            binding.dnsBlockFavIcon.visibility = View.GONE
+            view.visibility = View.GONE
             return
         }
 
         val domain = log.queryStr
         if (domain.isEmpty()) {
-            binding.dnsBlockFavIcon.visibility = View.GONE
+            view.visibility = View.GONE
             return
         }
 
         val trim = domain.dropLastWhile { it == '.' }
         if (FavIconDownloader.isUrlAvailableInFailedCache(trim) != null) {
-            binding.dnsBlockFavIcon.visibility = View.GONE
+            view.visibility = View.GONE
             return
         }
 
@@ -380,21 +506,26 @@ class DnsBlocklistDialog(
                     )
             )
             .transition(DrawableTransitionOptions.withCrossFade(factory))
-            .into(object : CustomViewTarget<ImageView, Drawable>(binding.dnsBlockFavIcon) {
-                override fun onLoadFailed(errorDrawable: Drawable?) {
-                    binding.dnsBlockFavIcon.visibility = View.GONE
-                }
+            .into(
+                object : CustomViewTarget<ImageView, Drawable>(view) {
+                    override fun onLoadFailed(errorDrawable: Drawable?) {
+                        view.isVisible = false
+                    }
 
-                override fun onResourceCleared(placeholder: Drawable?) {
-                    binding.dnsBlockFavIcon.visibility = View.GONE
-                    binding.dnsBlockFavIcon.setImageDrawable(null)
-                }
+                    override fun onResourceCleared(placeholder: Drawable?) {
+                        view.isVisible = false
+                        view.setImageDrawable(null)
+                    }
 
-                override fun onResourceReady(resource: Drawable, transition: Transition<in Drawable>?) {
-                    binding.dnsBlockFavIcon.visibility = View.VISIBLE
-                    binding.dnsBlockFavIcon.setImageDrawable(resource)
+                    override fun onResourceReady(
+                        resource: Drawable,
+                        transition: Transition<in Drawable>?
+                    ) {
+                        view.isVisible = true
+                        view.setImageDrawable(resource)
+                    }
                 }
-            })
+            )
     }
 
     private fun applyDomainRule(domain: String, uid: Int, status: DomainRulesManager.Status) {
@@ -432,9 +563,5 @@ class DnsBlocklistDialog(
 
     private fun io(f: suspend () -> Unit) {
         activity.lifecycleScope.launch(Dispatchers.IO) { f() }
-    }
-
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
     }
 }
