@@ -15,14 +15,9 @@
  */
 package com.celzero.bravedns.ui.bottomsheet
 
-import Logger
-import Logger.LOG_TAG_UI
-import Logger.LOG_TAG_VPN
 import android.content.Intent
 import android.content.res.Configuration
 import android.text.format.DateUtils
-import android.util.TypedValue
-import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -51,12 +46,18 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.LinkInteractionListener
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.TextLinkStyles
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.style.TextDecoration
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
-import androidx.core.text.HtmlCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.compose.ui.viewinterop.AndroidView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.service.PersistentState
@@ -72,6 +73,7 @@ import com.celzero.bravedns.util.UIUtils.openVpnProfile
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
@@ -198,11 +200,61 @@ class HomeScreenSettingDialog(private val activity: FragmentActivity) : KoinComp
     @Composable
     private fun LockdownMessage(isLockdown: Boolean) {
         val textColor = UIUtils.fetchColor(activity, R.attr.primaryTextColor)
+        val linkStyle =
+            SpanStyle(color = Color(textColor), textDecoration = TextDecoration.Underline)
+        val linkInteractionListener =
+            remember(isLockdown) {
+                object : LinkInteractionListener {
+                    override fun onClick(link: LinkAnnotation) {
+                        if (isLockdown) {
+                            openVpnProfile(activity)
+                        } else if (appConfig.isProxyEnabled()) {
+                            if (appConfig.isWireGuardEnabled()) {
+                                openProxySettings(SCREEN_WG)
+                            } else {
+                                openProxySettings(SCREEN_PROXY)
+                            }
+                        }
+                    }
+                }
+            }
         val warning =
             if (isLockdown) {
                 activity.getString(R.string.hs_btm_sheet_lock_down)
             } else {
                 activity.getString(R.string.mode_change_error_proxy_enabled)
+            }
+
+        val warningText =
+            remember(warning) {
+                buildAnnotatedString {
+                    val openTag = "<u>"
+                    val closeTag = "</u>"
+                    val startIndex = warning.indexOf(openTag)
+                    val endIndex = warning.indexOf(closeTag)
+                    if (startIndex != -1 && endIndex != -1 && endIndex > startIndex) {
+                        val before = warning.substring(0, startIndex)
+                        val linkText = warning.substring(startIndex + openTag.length, endIndex)
+                        val after = warning.substring(endIndex + closeTag.length)
+                        append(before)
+                        withLink(
+                            LinkAnnotation.Clickable(
+                                tag = "settings",
+                                styles = TextLinkStyles(style = linkStyle),
+                                linkInteractionListener = linkInteractionListener
+                            )
+                        ) {
+                            withStyle(
+                                style = linkStyle
+                            ) {
+                                append(linkText)
+                            }
+                        }
+                        append(after)
+                    } else {
+                        append(warning)
+                    }
+                }
             }
 
         Row(
@@ -215,27 +267,10 @@ class HomeScreenSettingDialog(private val activity: FragmentActivity) : KoinComp
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
-            AndroidView(
-                factory = { ctx ->
-                    TextView(ctx).apply {
-                        setTextSize(TypedValue.COMPLEX_UNIT_SP, 14f)
-                        setTextColor(textColor)
-                    }
-                },
-                update = { tv ->
-                    tv.text = HtmlCompat.fromHtml(warning, HtmlCompat.FROM_HTML_MODE_LEGACY)
-                    tv.setOnClickListener {
-                        if (isLockdown) {
-                            openVpnProfile(activity)
-                        } else if (appConfig.isProxyEnabled()) {
-                            if (appConfig.isWireGuardEnabled()) {
-                                openProxySettings(SCREEN_WG)
-                            } else {
-                                openProxySettings(SCREEN_PROXY)
-                            }
-                        }
-                    }
-                }
+            Text(
+                text = warningText,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(textColor)
             )
         }
     }
@@ -276,10 +311,10 @@ class HomeScreenSettingDialog(private val activity: FragmentActivity) : KoinComp
 
     private fun openProxySettings(screen: String) {
         val intent = if (screen == SCREEN_WG) {
-            Logger.d(LOG_TAG_UI, "hmbs; invoke wireguard settings screen")
+            Napier.d("hmbs; invoke wireguard settings screen")
             Intent(activity, WgMainActivity::class.java)
         } else {
-            Logger.d(LOG_TAG_UI, "hmbs; invoke proxy settings screen")
+            Napier.d("hmbs; invoke proxy settings screen")
             Intent(activity, ProxySettingsActivity::class.java)
         }
         activity.startActivity(intent)
@@ -319,7 +354,7 @@ class HomeScreenSettingDialog(private val activity: FragmentActivity) : KoinComp
     }
 
     private fun modifyBraveMode(braveMode: Int) {
-        Logger.d(LOG_TAG_VPN, "Home screen bottom sheet selectedIndex: $braveMode")
+        Napier.d("Home screen bottom sheet selectedIndex: $braveMode")
         io { appConfig.changeBraveMode(braveMode) }
     }
 

@@ -246,6 +246,7 @@ dependencies {
 
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.gson)
+    implementation(libs.napier)
 
     // Room
     implementation(libs.androidx.room.runtime)

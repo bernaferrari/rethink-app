@@ -6,6 +6,8 @@ import com.celzero.bravedns.scheduler.ScheduleManager
 import com.celzero.bravedns.service.ServiceModule
 import com.celzero.bravedns.util.GlobalExceptionHandler
 import com.celzero.bravedns.util.LocalBlocklistUtil
+import io.github.aakira.napier.DebugAntilog
+import io.github.aakira.napier.Napier
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
@@ -42,6 +44,10 @@ class RethinkDnsApplication : Application() {
             koin.loadModules(ServiceModule.modules)
             LocalBlocklistUtil(this@RethinkDnsApplication, get()).init()
             koin.loadModules(AppModules)
+        }
+
+        if (DEBUG) {
+            Napier.base(DebugAntilog())
         }
 
         // Initialize global exception handler

@@ -24,6 +24,8 @@ import com.celzero.bravedns.scheduler.ScheduleManager
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.util.FirebaseErrorReporting
 import com.celzero.bravedns.util.GlobalExceptionHandler
+import io.github.aakira.napier.DebugAntilog
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
@@ -47,6 +49,10 @@ class RethinkDnsApplication : Application() {
             if (DEBUG) androidLogger()
             androidContext(this@RethinkDnsApplication)
             koin.loadModules(AppModules)
+        }
+
+        if (DEBUG) {
+            Napier.base(DebugAntilog())
         }
 
         // Initialize global exception handler
