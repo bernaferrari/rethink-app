@@ -15,18 +15,38 @@
  */
 package com.celzero.bravedns.ui.bottomsheet
 
-import Logger
-import Logger.LOG_TAG_DNS
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
 import android.net.Uri
-import android.view.LayoutInflater
-import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.content.ContextCompat
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
@@ -34,20 +54,20 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.celzero.bravedns.R
 import com.celzero.bravedns.customdownloader.LocalBlocklistCoordinator
-import com.celzero.bravedns.databinding.BottomSheetLocalBlocklistsBinding
 import com.celzero.bravedns.download.AppDownloadManager
 import com.celzero.bravedns.download.DownloadConstants
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.activity.ConfigureRethinkBasicActivity
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.celzero.bravedns.util.Constants.Companion.LOCAL_BLOCKLIST_DOWNLOAD_FOLDER_NAME
 import com.celzero.bravedns.util.Constants.Companion.RETHINK_SEARCH_URL
 import com.celzero.bravedns.util.Themes.Companion.getBottomsheetCurrentTheme
+import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.clipboardCopy
-import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
 import com.celzero.bravedns.util.UIUtils.openUrl
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.blocklistCanonicalPath
@@ -56,7 +76,7 @@ import com.celzero.bravedns.util.Utilities.deleteRecursive
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -68,18 +88,42 @@ class LocalBlocklistsDialog(
     private val activity: FragmentActivity,
     private val onDismiss: () -> Unit
 ) : KoinComponent {
-    private val b = BottomSheetLocalBlocklistsBinding.inflate(LayoutInflater.from(activity))
     private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
     private val appDownloadManager by inject<AppDownloadManager>()
+
+    private var showDownloadDialog by mutableStateOf(false)
+    private var downloadDialogIsRedownload by mutableStateOf(false)
+    private var showDeleteDialog by mutableStateOf(false)
+    private var showLockdownDialog by mutableStateOf(false)
+
+    private var enableLabel by mutableStateOf("")
+    private var enableColor by mutableStateOf(Color.Unspecified)
+    private var headingText by mutableStateOf("")
+    private var versionText by mutableStateOf("")
+    private var canConfigure by mutableStateOf(false)
+    private var canCopy by mutableStateOf(false)
+    private var canSearch by mutableStateOf(false)
+    private var showCheckDownload by mutableStateOf(true)
+    private var showDownload by mutableStateOf(false)
+    private var showRedownload by mutableStateOf(false)
+    private var isChecking by mutableStateOf(false)
+    private var isDownloading by mutableStateOf(false)
+    private var isRedownloading by mutableStateOf(false)
 
     companion object {
         private const val BUTTON_ALPHA_DISABLED = 0.5f
     }
 
     init {
-        dialog.setContentView(b.root)
+        val composeView = ComposeView(activity)
+        composeView.setContent {
+            RethinkTheme {
+                LocalBlocklistsContent()
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.setOnShowListener {
             dialog.useTransparentNoDimBackground()
             dialog.window?.let { window ->
@@ -95,7 +139,7 @@ class LocalBlocklistsDialog(
         updateLocalBlocklistUi()
         init()
         initializeObservers()
-        initializeClickListeners()
+        observeWorkManager()
     }
 
     fun show() {
@@ -111,13 +155,12 @@ class LocalBlocklistsDialog(
 
     private fun init() {
         if (persistentState.localBlocklistTimestamp == INIT_TIME_MS) {
-            b.lbbsDownloadLl.visibility = View.GONE
             showCheckUpdateUi()
+            versionText = ""
             return
         }
 
-        b.lbbsDownloadLl.visibility = View.VISIBLE
-        b.lbbsVersion.text =
+        versionText =
             activity.getString(
                 R.string.settings_local_blocklist_version,
                 convertLongToTime(
@@ -131,9 +174,7 @@ class LocalBlocklistsDialog(
             return
         }
 
-        if (
-            persistentState.newestLocalBlocklistTimestamp > persistentState.localBlocklistTimestamp
-        ) {
+        if (persistentState.newestLocalBlocklistTimestamp > persistentState.localBlocklistTimestamp) {
             showUpdateUi()
             return
         }
@@ -143,179 +184,318 @@ class LocalBlocklistsDialog(
 
     private fun initializeObservers() {
         appDownloadManager.downloadRequired.observe(activity) {
-            Logger.i(LOG_TAG_DNS, "Check for blocklist update, status: $it")
+            Napier.i("Check for blocklist update, status: $it")
             if (it == null) return@observe
 
             handleDownloadStatus(it)
         }
     }
 
-    private fun showCheckDownloadProgressUi() {
-        b.lbbsCheckDownloadProgress.visibility = View.VISIBLE
-        b.lbbsCheckDownloadImg.visibility = View.GONE
+    @Composable
+    private fun LocalBlocklistsContent() {
+        val borderColor = Color(UIUtils.fetchColor(activity, R.attr.border))
+
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                        .width(60.dp)
+                        .height(3.dp)
+                        .background(borderColor, RoundedCornerShape(2.dp))
+            )
+
+            Text(
+                text = headingText,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = enableLabel,
+                    color = enableColor,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                TextButton(onClick = { enableBlocklist() }) {
+                    Text(text = activity.getString(R.string.lbl_apply))
+                }
+            }
+
+            if (versionText.isNotEmpty()) {
+                Text(
+                    text = versionText,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ActionButton(
+                    text = activity.getString(R.string.lbl_configure),
+                    enabled = canConfigure,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    invokeRethinkActivity()
+                }
+                ActionButton(
+                    text = activity.getString(R.string.lbbs_copy),
+                    enabled = canCopy,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    val url = Constants.RETHINK_BASE_URL_MAX + persistentState.localBlocklistStamp
+                    clipboardCopy(activity, url, activity.getString(R.string.copy_clipboard_label))
+                    Utilities.showToastUiCentered(
+                        activity,
+                        activity.getString(R.string.info_dialog_rethink_toast_msg),
+                        Toast.LENGTH_SHORT
+                    )
+                }
+                ActionButton(
+                    text = activity.getString(R.string.lbl_search),
+                    enabled = canSearch,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    dialog.dismiss()
+                    val url = RETHINK_SEARCH_URL + Uri.encode(persistentState.localBlocklistStamp)
+                    openUrl(activity, url)
+                }
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (showCheckDownload) {
+                    DownloadRow(
+                        label = activity.getString(R.string.lbbs_update_check),
+                        isLoading = isChecking,
+                        enabled = !isChecking
+                    ) {
+                        isChecking = true
+                        isBlocklistUpdateAvailable()
+                    }
+                }
+                if (showDownload) {
+                    DownloadRow(
+                        label = activity.getString(R.string.local_blocklist_download),
+                        isLoading = isDownloading,
+                        enabled = !isDownloading
+                    ) {
+                        downloadDialogIsRedownload = false
+                        showDownloadDialog = true
+                    }
+                }
+                if (showRedownload) {
+                    DownloadRow(
+                        label = activity.getString(R.string.local_blocklist_redownload),
+                        isLoading = isRedownloading,
+                        enabled = !isRedownloading
+                    ) {
+                        downloadDialogIsRedownload = true
+                        showDownloadDialog = true
+                    }
+                }
+                DownloadRow(
+                    label = activity.getString(R.string.lbl_delete),
+                    isLoading = false,
+                    enabled = true
+                ) {
+                    showDeleteDialog = true
+                }
+            }
+        }
+
+        if (showDownloadDialog) {
+            val title =
+                if (downloadDialogIsRedownload) {
+                    activity.getString(R.string.local_blocklist_redownload)
+                } else {
+                    activity.getString(R.string.local_blocklist_download)
+                }
+            val message =
+                if (downloadDialogIsRedownload) {
+                    activity.getString(
+                        R.string.local_blocklist_redownload_desc,
+                        convertLongToTime(
+                            persistentState.localBlocklistTimestamp,
+                            Constants.TIME_FORMAT_2
+                        )
+                    )
+                } else {
+                    activity.getString(R.string.local_blocklist_download_desc)
+                }
+            AlertDialog(
+                onDismissRequest = { showDownloadDialog = false },
+                title = { Text(text = title) },
+                text = { Text(text = message) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDownloadDialog = false
+                            downloadLocalBlocklist(downloadDialogIsRedownload)
+                        }
+                    ) {
+                        Text(text = activity.getString(R.string.settings_local_blocklist_dialog_positive))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDownloadDialog = false }) {
+                        Text(text = activity.getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text(text = activity.getString(R.string.lbl_delete)) },
+                text = { Text(text = activity.getString(R.string.local_blocklist_delete_desc)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            deleteLocalBlocklist()
+                        }
+                    ) {
+                        Text(text = activity.getString(R.string.lbl_delete))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text(text = activity.getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showLockdownDialog) {
+            AlertDialog(
+                onDismissRequest = { showLockdownDialog = false },
+                title = { Text(text = activity.getString(R.string.lockdown_download_enable_inapp)) },
+                text = { Text(text = activity.getString(R.string.lockdown_download_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showLockdownDialog = false
+                            persistentState.useCustomDownloadManager = true
+                            downloadLocalBlocklist(downloadDialogIsRedownload)
+                        }
+                    ) {
+                        Text(text = activity.getString(R.string.lockdown_download_enable_inapp))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showLockdownDialog = false
+                            proceedWithDownload(downloadDialogIsRedownload)
+                        }
+                    ) {
+                        Text(text = activity.getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
     }
 
-    private fun onDownloadProgress() {
-        b.lbbsDownloadProgress.visibility = View.VISIBLE
-        b.lbbsRedownloadProgress.visibility = View.VISIBLE
-        b.lbbsDownloadImg.visibility = View.GONE
-        b.lbbsRedownloadImg.visibility = View.GONE
+    @Composable
+    private fun DownloadRow(label: String, isLoading: Boolean, enabled: Boolean, onClick: () -> Unit) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+                Text(text = label, style = MaterialTheme.typography.bodyMedium)
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(18.dp))
+            } else {
+                TextButton(onClick = onClick, enabled = enabled) {
+                    Text(text = activity.getString(R.string.lbl_proceed))
+                }
+            }
+        }
     }
 
-    private fun onDownloadSuccess() {
-        b.lbbsDownload.isEnabled = true
-        b.lbbsRedownload.isEnabled = true
-        b.lbbsDownloadProgress.visibility = View.GONE
-        b.lbbsRedownloadProgress.visibility = View.GONE
-        b.lbbsDownloadImg.visibility = View.VISIBLE
-        b.lbbsRedownloadImg.visibility = View.VISIBLE
-        Utilities.showToastUiCentered(
-            activity,
-            activity.getString(R.string.download_update_dialog_message_success),
-            Toast.LENGTH_SHORT
-        )
-    }
-
-    private fun onDownloadFail() {
-        b.lbbsDownload.isEnabled = true
-        b.lbbsRedownload.isEnabled = true
-        b.lbbsDownloadProgress.visibility = View.GONE
-        b.lbbsRedownloadProgress.visibility = View.GONE
-        b.lbbsDownloadImg.visibility = View.VISIBLE
-        b.lbbsRedownloadImg.visibility = View.VISIBLE
-        Utilities.showToastUiCentered(
-            activity,
-            activity.getString(R.string.blocklist_update_check_failure),
-            Toast.LENGTH_SHORT
-        )
+    @Composable
+    private fun ActionButton(
+        text: String,
+        enabled: Boolean,
+        modifier: Modifier = Modifier,
+        onClick: () -> Unit
+    ) {
+        val alpha = if (enabled) 1f else BUTTON_ALPHA_DISABLED
+        Button(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = modifier.height(36.dp).alpha(alpha),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
+        ) {
+            Text(text = text, modifier = Modifier.padding(horizontal = 6.dp))
+        }
     }
 
     private fun showCheckUpdateUi() {
-        b.lbbsCheckDownload.visibility = View.VISIBLE
-        b.lbbsDownload.visibility = View.GONE
-        b.lbbsRedownload.visibility = View.GONE
-
-        b.lbbsCheckDownloadImg.visibility = View.VISIBLE
-        b.lbbsCheckDownloadProgress.visibility = View.GONE
-        b.lbbsDownloadProgress.visibility = View.GONE
-        b.lbbsRedownloadProgress.visibility = View.GONE
+        showCheckDownload = true
+        showDownload = false
+        showRedownload = false
+        isChecking = false
+        isDownloading = false
+        isRedownloading = false
     }
 
     private fun showUpdateUi() {
-        b.lbbsCheckDownload.visibility = View.GONE
-        b.lbbsDownload.visibility = View.VISIBLE
-        b.lbbsRedownload.visibility = View.GONE
-
-        b.lbbsDownloadImg.visibility = View.VISIBLE
-        b.lbbsCheckDownloadProgress.visibility = View.GONE
-        b.lbbsDownloadProgress.visibility = View.GONE
-        b.lbbsRedownloadProgress.visibility = View.GONE
+        showCheckDownload = false
+        showDownload = true
+        showRedownload = false
+        isChecking = false
+        isDownloading = false
+        isRedownloading = false
     }
 
     private fun showRedownloadUi() {
-        b.lbbsCheckDownload.visibility = View.GONE
-        b.lbbsDownload.visibility = View.GONE
-        b.lbbsRedownload.visibility = View.VISIBLE
-
-        b.lbbsRedownloadImg.visibility = View.VISIBLE
-        b.lbbsCheckDownloadProgress.visibility = View.GONE
-        b.lbbsDownloadProgress.visibility = View.GONE
-        b.lbbsRedownloadProgress.visibility = View.GONE
-    }
-
-    private fun showDownloadDialog(isRedownload: Boolean) {
-        val builder = MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim)
-        if (isRedownload) {
-            builder.setTitle(R.string.local_blocklist_redownload)
-            builder.setMessage(
-                activity.getString(
-                    R.string.local_blocklist_redownload_desc,
-                    convertLongToTime(
-                        persistentState.localBlocklistTimestamp,
-                        Constants.TIME_FORMAT_2
-                    )
-                )
-            )
-        } else {
-            builder.setTitle(R.string.local_blocklist_download)
-            builder.setMessage(R.string.local_blocklist_download_desc)
-        }
-        builder.setCancelable(false)
-        builder.setPositiveButton(activity.getString(R.string.settings_local_blocklist_dialog_positive)) {
-                _,
-                _ ->
-            downloadLocalBlocklist(isRedownload)
-        }
-        builder.setNegativeButton(activity.getString(R.string.lbl_cancel)) { dialog, _ ->
-            dialog.dismiss()
-        }
-        val dialog: AlertDialog = builder.create()
-        dialog.show()
-    }
-
-    private fun showDeleteDialog() {
-        val builder = MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.lbl_delete)
-        builder.setMessage(activity.getString(R.string.local_blocklist_delete_desc))
-        builder.setCancelable(false)
-        builder.setPositiveButton(activity.getString(R.string.lbl_delete)) { _: DialogInterface, _: Int ->
-            deleteLocalBlocklist()
-        }
-        builder.setNegativeButton(activity.getString(R.string.lbl_cancel)) { dialog, _ ->
-            dialog.dismiss()
-        }
-        val alertDialog: AlertDialog = builder.create()
-        alertDialog.show()
+        showCheckDownload = false
+        showDownload = false
+        showRedownload = true
+        isChecking = false
+        isDownloading = false
+        isRedownloading = false
     }
 
     private fun downloadLocalBlocklist(isRedownload: Boolean) {
         if (VpnController.isVpnLockdown() && !persistentState.useCustomDownloadManager) {
-            showLockdownDownloadDialog(isRedownload)
+            showLockdownDialog = true
             return
         }
 
         proceedWithDownload(isRedownload)
     }
 
-    private fun showLockdownDownloadDialog(isRedownload: Boolean) {
-        val builder = MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.lockdown_download_enable_inapp)
-        builder.setMessage(R.string.lockdown_download_message)
-        builder.setCancelable(true)
-        builder.setPositiveButton(R.string.lockdown_download_enable_inapp) { _, _ ->
-            persistentState.useCustomDownloadManager = true
-            downloadLocalBlocklist(isRedownload)
-        }
-        builder.setNegativeButton(R.string.lbl_cancel) { dialog, _ ->
-            dialog.dismiss()
-            proceedWithDownload(isRedownload)
-        }
-        val alertDialog: AlertDialog = builder.create()
-        alertDialog.show()
-    }
-
     private fun proceedWithDownload(isRedownload: Boolean) {
         ui {
             var status = AppDownloadManager.DownloadManagerStatus.NOT_STARTED
-            b.lbbsDownload.isEnabled = false
-            b.lbbsRedownload.isEnabled = false
+            isDownloading = !isRedownload
+            isRedownloading = isRedownload
             val currentTs = persistentState.localBlocklistTimestamp
             ioCtx { status = appDownloadManager.downloadLocalBlocklist(currentTs, isRedownload) }
-
             handleDownloadStatus(status)
         }
     }
 
     private fun deleteLocalBlocklist() {
         ui {
-            b.lbbsDelete.isEnabled = false
-            b.lbbsDownload.isEnabled = false
-            b.lbbsRedownload.isEnabled = false
-            b.lbbsCheckDownload.isEnabled = false
-
             ioCtx {
-                val path =
-                    blocklistCanonicalPath(activity, LOCAL_BLOCKLIST_DOWNLOAD_FOLDER_NAME)
+                val path = blocklistCanonicalPath(activity, LOCAL_BLOCKLIST_DOWNLOAD_FOLDER_NAME)
                 val dir = File(path)
                 deleteRecursive(dir)
                 persistentState.localBlocklistTimestamp = INIT_TIME_MS
@@ -336,50 +516,44 @@ class LocalBlocklistsDialog(
     private fun handleDownloadStatus(status: AppDownloadManager.DownloadManagerStatus) {
         when (status) {
             AppDownloadManager.DownloadManagerStatus.IN_PROGRESS -> {
-                ui { showCheckDownloadProgressUi() }
+                isChecking = true
             }
             AppDownloadManager.DownloadManagerStatus.STARTED -> {
-                ui {
-                    observeWorkManager()
-                    showCheckDownloadProgressUi()
-                }
+                isChecking = true
             }
             AppDownloadManager.DownloadManagerStatus.NOT_STARTED -> {
                 // no-op
             }
             AppDownloadManager.DownloadManagerStatus.SUCCESS -> {
-                ui {
-                    showUpdateUi()
-                    b.lbbsCheckDownload.isEnabled = true
-                }
+                showUpdateUi()
+                isChecking = false
+                isDownloading = false
+                isRedownloading = false
                 appDownloadManager.downloadRequired.postValue(
                     AppDownloadManager.DownloadManagerStatus.NOT_STARTED
                 )
             }
             AppDownloadManager.DownloadManagerStatus.FAILURE -> {
-                ui {
-                    b.lbbsCheckDownload.isEnabled = true
-                    Utilities.showToastUiCentered(
-                        activity,
-                        activity.getString(R.string.blocklist_update_check_failure),
-                        Toast.LENGTH_SHORT
-                    )
-                }
+                isChecking = false
+                isDownloading = false
+                isRedownloading = false
+                Utilities.showToastUiCentered(
+                    activity,
+                    activity.getString(R.string.blocklist_update_check_failure),
+                    Toast.LENGTH_SHORT
+                )
                 appDownloadManager.downloadRequired.postValue(
                     AppDownloadManager.DownloadManagerStatus.NOT_STARTED
                 )
-                onDownloadFail()
             }
             AppDownloadManager.DownloadManagerStatus.NOT_REQUIRED -> {
-                ui {
-                    showRedownloadUi()
-                    b.lbbsCheckDownload.isEnabled = true
-                    Utilities.showToastUiCentered(
-                        activity,
-                        activity.getString(R.string.blocklist_update_check_not_required),
-                        Toast.LENGTH_SHORT
-                    )
-                }
+                showRedownloadUi()
+                isChecking = false
+                Utilities.showToastUiCentered(
+                    activity,
+                    activity.getString(R.string.blocklist_update_check_not_required),
+                    Toast.LENGTH_SHORT
+                )
                 appDownloadManager.downloadRequired.postValue(
                     AppDownloadManager.DownloadManagerStatus.NOT_STARTED
                 )
@@ -408,74 +582,27 @@ class LocalBlocklistsDialog(
     }
 
     private fun enableBlocklistUi() {
-        b.lbbsEnable.text = activity.getString(R.string.lbbs_enabled)
-        b.lbbsEnable.setTextColor(fetchToggleBtnColors(activity, R.color.accentGood))
-        b.lbbsHeading.text =
+        enableLabel = activity.getString(R.string.lbbs_enabled)
+        enableColor = Color(UIUtils.fetchToggleBtnColors(activity, R.color.accentGood))
+        headingText =
             activity.getString(
                 R.string.settings_local_blocklist_in_use,
                 persistentState.numberOfLocalBlocklists.toString()
             )
-        setDrawable(R.drawable.ic_tick, b.lbbsEnable)
 
-        b.lbbsConfigure.isEnabled = true
-        b.lbbsCopy.isEnabled = true
-        b.lbbsSearch.isEnabled = true
-
-        b.lbbsConfigure.alpha = 1f
-        b.lbbsCopy.alpha = 1f
-        b.lbbsSearch.alpha = 1f
+        canConfigure = true
+        canCopy = true
+        canSearch = true
     }
 
     private fun disableBlocklistUi() {
-        b.lbbsEnable.text = activity.getString(R.string.lbl_disabled)
-        b.lbbsEnable.setTextColor(fetchToggleBtnColors(activity, R.color.accentBad))
-        b.lbbsHeading.text = activity.getString(R.string.lbbs_heading)
-        setDrawable(R.drawable.ic_cross_accent, b.lbbsEnable)
+        enableLabel = activity.getString(R.string.lbl_disabled)
+        enableColor = Color(UIUtils.fetchToggleBtnColors(activity, R.color.accentBad))
+        headingText = activity.getString(R.string.lbbs_heading)
 
-        b.lbbsConfigure.isEnabled = false
-        b.lbbsCopy.isEnabled = false
-        b.lbbsSearch.isEnabled = false
-
-        b.lbbsConfigure.alpha = BUTTON_ALPHA_DISABLED
-        b.lbbsCopy.alpha = BUTTON_ALPHA_DISABLED
-        b.lbbsSearch.alpha = BUTTON_ALPHA_DISABLED
-    }
-
-    private fun initializeClickListeners() {
-        b.lbbsEnable.setOnClickListener { enableBlocklist() }
-
-        b.lbbsConfigure.setOnClickListener { invokeRethinkActivity() }
-
-        b.lbbsCopy.setOnClickListener {
-            val url = Constants.RETHINK_BASE_URL_MAX + persistentState.localBlocklistStamp
-            clipboardCopy(
-                activity,
-                url,
-                activity.getString(R.string.copy_clipboard_label)
-            )
-            Utilities.showToastUiCentered(
-                activity,
-                activity.getString(R.string.info_dialog_rethink_toast_msg),
-                Toast.LENGTH_SHORT
-            )
-        }
-
-        b.lbbsSearch.setOnClickListener {
-            dialog.dismiss()
-            val url = RETHINK_SEARCH_URL + Uri.encode(persistentState.localBlocklistStamp)
-            openUrl(activity, url)
-        }
-
-        b.lbbsDownload.setOnClickListener { showDownloadDialog(isRedownload = false) }
-
-        b.lbbsCheckDownload.setOnClickListener {
-            b.lbbsCheckDownload.isEnabled = false
-            isBlocklistUpdateAvailable()
-        }
-
-        b.lbbsRedownload.setOnClickListener { showDownloadDialog(isRedownload = true) }
-
-        b.lbbsDelete.setOnClickListener { showDeleteDialog() }
+        canConfigure = false
+        canCopy = false
+        canSearch = false
     }
 
     private fun isBlocklistUpdateAvailable() {
@@ -551,11 +678,6 @@ class LocalBlocklistsDialog(
         persistentState.blocklistEnabled = false
     }
 
-    private fun setDrawable(drawable: Int, txt: AppCompatTextView) {
-        val end = ContextCompat.getDrawable(activity, drawable)
-        txt.setCompoundDrawablesWithIntrinsicBounds(null, null, end, null)
-    }
-
     private fun observeWorkManager() {
         val workManager = WorkManager.getInstance(activity.applicationContext)
 
@@ -563,23 +685,20 @@ class LocalBlocklistsDialog(
             activity
         ) { workInfoList ->
             val workInfo = workInfoList?.getOrNull(0) ?: return@observe
-            Logger.i(
-                Logger.LOG_TAG_DOWNLOAD,
-                "WorkManager state: ${workInfo.state} for ${LocalBlocklistCoordinator.CUSTOM_DOWNLOAD}"
-            )
-            if (
-                WorkInfo.State.ENQUEUED == workInfo.state ||
-                    WorkInfo.State.RUNNING == workInfo.state
-            ) {
-                onDownloadProgress()
-            } else if (WorkInfo.State.SUCCEEDED == workInfo.state) {
-                onDownloadSuccess()
+            Napier.i("WorkManager state: ${workInfo.state} for ${LocalBlocklistCoordinator.CUSTOM_DOWNLOAD}")
+            if (workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING) {
+                isDownloading = true
+            } else if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                isDownloading = false
+                showUpdateUi()
                 workManager.pruneWork()
-            } else if (
-                WorkInfo.State.CANCELLED == workInfo.state ||
-                    WorkInfo.State.FAILED == workInfo.state
-            ) {
-                onDownloadFail()
+            } else if (workInfo.state == WorkInfo.State.CANCELLED || workInfo.state == WorkInfo.State.FAILED) {
+                isDownloading = false
+                Utilities.showToastUiCentered(
+                    activity,
+                    activity.getString(R.string.blocklist_update_check_failure),
+                    Toast.LENGTH_SHORT
+                )
                 workManager.pruneWork()
                 workManager.cancelAllWorkByTag(LocalBlocklistCoordinator.CUSTOM_DOWNLOAD)
             }
@@ -589,20 +708,16 @@ class LocalBlocklistsDialog(
             activity
         ) { workInfoList ->
             val workInfo = workInfoList?.getOrNull(0) ?: return@observe
-            Logger.i(
-                Logger.LOG_TAG_DOWNLOAD,
-                "WorkManager state: ${workInfo.state} for ${DownloadConstants.DOWNLOAD_TAG}"
-            )
-            if (
-                WorkInfo.State.ENQUEUED == workInfo.state ||
-                    WorkInfo.State.RUNNING == workInfo.state
-            ) {
-                onDownloadProgress()
-            } else if (
-                WorkInfo.State.CANCELLED == workInfo.state ||
-                    WorkInfo.State.FAILED == workInfo.state
-            ) {
-                onDownloadFail()
+            Napier.i("WorkManager state: ${workInfo.state} for ${DownloadConstants.DOWNLOAD_TAG}")
+            if (workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING) {
+                isDownloading = true
+            } else if (workInfo.state == WorkInfo.State.CANCELLED || workInfo.state == WorkInfo.State.FAILED) {
+                isDownloading = false
+                Utilities.showToastUiCentered(
+                    activity,
+                    activity.getString(R.string.blocklist_update_check_failure),
+                    Toast.LENGTH_SHORT
+                )
                 workManager.pruneWork()
                 workManager.cancelAllWorkByTag(DownloadConstants.DOWNLOAD_TAG)
                 workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
@@ -612,32 +727,20 @@ class LocalBlocklistsDialog(
         workManager.getWorkInfosByTagLiveData(DownloadConstants.FILE_TAG).observe(
             activity
         ) { workInfoList ->
-            if (workInfoList != null && workInfoList.isNotEmpty()) {
-                val workInfo = workInfoList[0]
-                if (workInfo.state == WorkInfo.State.SUCCEEDED) {
-                    Logger.i(
-                        Logger.LOG_TAG_DOWNLOAD,
-                        "AppDownloadManager Work Manager completed - ${DownloadConstants.FILE_TAG}"
-                    )
-                    onDownloadSuccess()
-                    workManager.pruneWork()
-                } else if (
-                    workInfo.state == WorkInfo.State.CANCELLED ||
-                    workInfo.state == WorkInfo.State.FAILED
-                ) {
-                    onDownloadFail()
-                    workManager.pruneWork()
-                    workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
-                    Logger.i(
-                        Logger.LOG_TAG_DOWNLOAD,
-                        "AppDownloadManager Work Manager failed - ${DownloadConstants.FILE_TAG}"
-                    )
-                } else {
-                    Logger.i(
-                        Logger.LOG_TAG_DOWNLOAD,
-                        "AppDownloadManager Work Manager - ${DownloadConstants.FILE_TAG}, ${workInfo.state}"
-                    )
-                }
+            val workInfo = workInfoList?.getOrNull(0) ?: return@observe
+            if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                isDownloading = false
+                showUpdateUi()
+                workManager.pruneWork()
+            } else if (workInfo.state == WorkInfo.State.CANCELLED || workInfo.state == WorkInfo.State.FAILED) {
+                isDownloading = false
+                Utilities.showToastUiCentered(
+                    activity,
+                    activity.getString(R.string.blocklist_update_check_failure),
+                    Toast.LENGTH_SHORT
+                )
+                workManager.pruneWork()
+                workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
             }
         }
     }
