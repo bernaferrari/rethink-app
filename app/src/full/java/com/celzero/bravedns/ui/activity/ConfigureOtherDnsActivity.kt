@@ -57,6 +57,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.ComposeView
@@ -83,7 +84,6 @@ import com.celzero.bravedns.database.DnsProxyEndpoint
 import com.celzero.bravedns.database.ODoHEndpoint
 import com.celzero.bravedns.databinding.DialogSetCustomDohBinding
 import com.celzero.bravedns.databinding.DialogSetCustomOdohBinding
-import com.celzero.bravedns.databinding.DialogSetDnsCryptBinding
 import com.celzero.bravedns.databinding.FragmentDnsCryptListBinding
 import com.celzero.bravedns.databinding.FragmentDnsProxyListBinding
 import com.celzero.bravedns.databinding.FragmentDohListBinding
@@ -707,84 +707,122 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
     }
 
     private fun showAddDnsCryptDialog() {
-        val dialogBinding = DialogSetDnsCryptBinding.inflate(layoutInflater)
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
-
+        val dialog = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).create()
         val lp = WindowManager.LayoutParams()
-        val dialog = builder.create()
         dialog.show()
         lp.copyFrom(dialog.window?.attributes)
         lp.width = WindowManager.LayoutParams.MATCH_PARENT
         lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-
-        dialog.setCancelable(true)
         dialog.window?.attributes = lp
 
-        val radioServer = dialogBinding.dialogDnsCryptRadioServer
-        val radioRelay = dialogBinding.dialogDnsCryptRadioRelay
-        val applyURLBtn = dialogBinding.dialogDnsCryptOkBtn
-        val cancelURLBtn = dialogBinding.dialogDnsCryptCancelBtn
-        val cryptNameEditText = dialogBinding.dialogDnsCryptName
-        val cryptURLEditText = dialogBinding.dialogDnsCryptUrl
-        val cryptDescEditText = dialogBinding.dialogDnsCryptDesc
-        val errorText = dialogBinding.dialogDnsCryptErrorTxt
+        dialog.setCancelable(true)
 
-        radioServer.isChecked = true
-        var dnscryptNextIndex = 0
-        var relayNextIndex = 0
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                DnsCryptDialogContent(onDismiss = { dialog.dismiss() })
+            }
+        }
+        dialog.setView(composeView)
+    }
 
-        io {
+    @Composable
+    private fun DnsCryptDialogContent(onDismiss: () -> Unit) {
+        var isServer by remember { mutableStateOf(true) }
+        var dnscryptNextIndex by remember { mutableStateOf(0) }
+        var relayNextIndex by remember { mutableStateOf(0) }
+        var name by remember { mutableStateOf(getString(R.string.cd_dns_crypt_name_default)) }
+        var url by remember { mutableStateOf("") }
+        var desc by remember { mutableStateOf("") }
+        var errorText by remember { mutableStateOf("") }
+
+        LaunchedEffect(Unit) {
             dnscryptNextIndex = appConfig.getDnscryptCount().plus(1)
             relayNextIndex = appConfig.getDnscryptRelayCount().plus(1)
-            uiCtx {
-                cryptNameEditText.setText(
-                    getString(R.string.cd_dns_crypt_name, dnscryptNextIndex.toString()),
-                    TextView.BufferType.EDITABLE
-                )
-            }
         }
 
-        cryptNameEditText.setText(
-            getString(R.string.cd_dns_crypt_name_default),
-            TextView.BufferType.EDITABLE
-        )
+        LaunchedEffect(isServer, dnscryptNextIndex, relayNextIndex) {
+            name =
+                if (isServer) {
+                    getString(R.string.cd_dns_crypt_name, dnscryptNextIndex.toString())
+                } else {
+                    getString(R.string.cd_dns_crypt_relay_name, relayNextIndex.toString())
+                }
+        }
 
-        radioServer.setOnCheckedChangeListener { _, isChecked ->
-            if (!isChecked) return@setOnCheckedChangeListener
-            cryptNameEditText.setText(
-                getString(R.string.cd_dns_crypt_name, dnscryptNextIndex.toString()),
-                TextView.BufferType.EDITABLE
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(20.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = getString(R.string.cd_dns_crypt_dialog_heading),
+                style = MaterialTheme.typography.titleMedium
             )
-        }
 
-        radioRelay.setOnCheckedChangeListener { _, isChecked ->
-            if (!isChecked) return@setOnCheckedChangeListener
-            cryptNameEditText.setText(
-                getString(R.string.cd_dns_crypt_relay_name, relayNextIndex.toString()),
-                TextView.BufferType.EDITABLE
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(onClick = { isServer = true }) {
+                    Text(text = getString(R.string.cd_dns_crypt_resolver_heading))
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                TextButton(onClick = { isServer = false }) {
+                    Text(text = getString(R.string.cd_dns_crypt_relay_heading))
+                }
+            }
+
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text(text = getString(R.string.cd_dns_crypt_dialog_name)) },
+                modifier = Modifier.fillMaxWidth()
             )
-        }
+            OutlinedTextField(
+                value = url,
+                onValueChange = { url = it },
+                label = { Text(text = getString(R.string.cd_dns_crypt_dialog_stamp)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = desc,
+                onValueChange = { desc = it },
+                label = { Text(text = getString(R.string.cd_dns_crypt_dialog_desc)) },
+                modifier = Modifier.fillMaxWidth()
+            )
 
-        applyURLBtn.setOnClickListener {
-            val name = cryptNameEditText.text.toString()
-            val url = cryptURLEditText.text.toString()
-            val desc = cryptDescEditText.text.toString()
-
-            if (name.isBlank() || url.isBlank()) {
-                errorText.visibility = View.VISIBLE
-                errorText.text = getString(R.string.custom_url_error_invalid_url)
-                return@setOnClickListener
+            if (errorText.isNotBlank()) {
+                Text(text = errorText, color = MaterialTheme.colorScheme.error)
             }
 
-            if (radioServer.isChecked) {
-                insertDnsCrypt(name, url, desc)
-            } else {
-                insertDnsCryptRelay(name, url, desc)
-            }
-            dialog.dismiss()
-        }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text(text = getString(R.string.lbl_cancel))
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        if (name.isBlank() || url.isBlank()) {
+                            errorText = getString(R.string.custom_url_error_invalid_url)
+                            return@Button
+                        }
 
-        cancelURLBtn.setOnClickListener { dialog.dismiss() }
+                        if (isServer) {
+                            insertDnsCrypt(name, url, desc)
+                        } else {
+                            insertDnsCryptRelay(name, url, desc)
+                        }
+                        onDismiss()
+                    }
+                ) {
+                    Text(text = getString(R.string.lbl_add))
+                }
+            }
+        }
     }
 
     private fun insertDnsCrypt(name: String, url: String, desc: String) {
