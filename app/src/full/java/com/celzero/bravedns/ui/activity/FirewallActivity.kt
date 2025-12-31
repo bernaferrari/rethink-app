@@ -20,36 +20,25 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.fragment.app.Fragment
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
-import com.celzero.bravedns.databinding.ActivityFirewallBinding
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.fragment.FirewallSettingsFragment
+import com.celzero.bravedns.ui.compose.firewall.FirewallSettingsScreen
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
+import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.Constants.Companion.INTENT_UID
+import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
-import com.google.android.material.tabs.TabLayoutMediator
 import org.koin.android.ext.android.inject
 
-class FirewallActivity : AppCompatActivity(R.layout.activity_firewall) {
-    private val b by viewBinding(ActivityFirewallBinding::bind)
+class FirewallActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
-
-    enum class Tabs(val screen: Int) {
-        UNIVERSAL(0);
-
-        companion object {
-            fun getCount(): Int {
-                return entries.count()
-            }
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         theme.applyStyle(getCurrentTheme(isDarkThemeOn(), persistentState.theme), true)
@@ -63,7 +52,17 @@ class FirewallActivity : AppCompatActivity(R.layout.activity_firewall) {
             window.isNavigationBarContrastEnforced = false
         }
 
-        init()
+        setContent {
+            RethinkTheme {
+                FirewallSettingsScreen(
+                    onUniversalFirewallClick = { openUniversalFirewallScreen() },
+                    onCustomIpDomainClick = { openCustomIpScreen() },
+                    onAppWiseIpDomainClick = { openAppWiseIpScreen() }
+                )
+            }
+        }
+
+        observeAppState()
     }
 
     private fun Context.isDarkThemeOn(): Boolean {
@@ -71,33 +70,34 @@ class FirewallActivity : AppCompatActivity(R.layout.activity_firewall) {
             Configuration.UI_MODE_NIGHT_YES
     }
 
-    private fun init() {
+    private fun openCustomIpScreen() {
+        val intent = Intent(this, CustomRulesActivity::class.java)
+        intent.putExtra(
+            Constants.VIEW_PAGER_SCREEN_TO_LOAD,
+            CustomRulesActivity.Tabs.IP_RULES.screen
+        )
+        intent.putExtra(
+            CustomRulesActivity.INTENT_RULES,
+            CustomRulesActivity.RULES.APP_SPECIFIC_RULES.type
+        )
+        intent.putExtra(INTENT_UID, UID_EVERYBODY)
+        startActivity(intent)
+    }
 
-        b.firewallActViewpager.adapter =
-            object : FragmentStateAdapter(this) {
-                override fun createFragment(position: Int): Fragment {
-                    return when (position) {
-                        Tabs.UNIVERSAL.screen -> FirewallSettingsFragment.newInstance()
-                        else -> FirewallSettingsFragment.newInstance()
-                    }
-                }
+    private fun openAppWiseIpScreen() {
+        val intent = Intent(this, CustomRulesActivity::class.java)
+        intent.putExtra(
+            Constants.VIEW_PAGER_SCREEN_TO_LOAD,
+            CustomRulesActivity.Tabs.IP_RULES.screen
+        )
+        intent.putExtra(CustomRulesActivity.INTENT_RULES, CustomRulesActivity.RULES.ALL_RULES.type)
+        intent.putExtra(INTENT_UID, UID_EVERYBODY)
+        startActivity(intent)
+    }
 
-                override fun getItemCount(): Int {
-                    return Tabs.getCount()
-                }
-            }
-
-        TabLayoutMediator(b.firewallActTabLayout, b.firewallActViewpager) { tab, position
-                -> // Styling each tab here
-                tab.text =
-                    when (position) {
-                        Tabs.UNIVERSAL.screen -> getString(R.string.firewall_act_universal_tab)
-                        else -> getString(R.string.firewall_act_universal_tab)
-                    }
-            }
-            .attach()
-
-        observeAppState()
+    private fun openUniversalFirewallScreen() {
+        val intent = Intent(this, UniversalFirewallSettingsActivity::class.java)
+        startActivity(intent)
     }
 
     private fun observeAppState() {

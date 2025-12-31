@@ -210,7 +210,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     homeUiState = homeState,
                     onHomeStartStopClick = { handleMainScreenBtnClickEvent() },
                     onHomeDnsClick = { startDnsActivity(0) },
-                    onHomeFirewallClick = { startFirewallActivity(FirewallActivity.Tabs.UNIVERSAL.screen) },
+                    onHomeFirewallClick = { startFirewallActivity(0) },
                     onHomeProxyClick = {
                         if (appConfig.isWireGuardEnabled()) {
                             startActivity(ScreenType.PROXY_WIREGUARD)
