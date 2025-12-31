@@ -242,8 +242,8 @@ class RethinkEndpointAdapter(private val context: Context, private val appConfig
 
             val intent = Intent(context, ConfigureRethinkBasicActivity::class.java)
             intent.putExtra(
-                ConfigureRethinkBasicActivity.RETHINK_BLOCKLIST_TYPE,
-                RethinkBlocklistManager.RethinkBlocklistType.REMOTE
+                ConfigureRethinkBasicActivity.INTENT,
+                ConfigureRethinkBasicActivity.FragmentLoader.REMOTE.ordinal
             )
             intent.putExtra(ConfigureRethinkBasicActivity.RETHINK_BLOCKLIST_NAME, endpoint.name)
             intent.putExtra(ConfigureRethinkBasicActivity.RETHINK_BLOCKLIST_URL, endpoint.url)

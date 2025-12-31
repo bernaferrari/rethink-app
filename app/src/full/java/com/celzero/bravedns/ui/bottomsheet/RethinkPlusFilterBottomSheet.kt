@@ -29,7 +29,8 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.data.FileTag
 import com.celzero.bravedns.databinding.BottomSheetRethinkPlusFilterBinding
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.fragment.RethinkBlocklistFragment
+import com.celzero.bravedns.ui.rethink.RethinkBlocklistFilterHost
+import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
@@ -47,17 +48,17 @@ class RethinkPlusFilterBottomSheet : BottomSheetDialogFragment() {
 
     private val persistentState by inject<PersistentState>()
 
-    private var filters: RethinkBlocklistFragment.Filters? = null
+    private var filters: RethinkBlocklistState.Filters? = null
 
     // Store activity reference (not in constructor to allow no-arg constructor)
-    private var fragmentActivity: RethinkBlocklistFragment? = null
+    private var fragmentActivity: RethinkBlocklistFilterHost? = null
 
     companion object {
         private const val ARG_FILE_TAGS = "file_tags"
         
         // Factory method to create instance with parameters
         fun newInstance(
-            activity: RethinkBlocklistFragment?,
+            activity: RethinkBlocklistFilterHost?,
             fileTags: List<FileTag>
         ): RethinkPlusFilterBottomSheet {
             val fragment = RethinkPlusFilterBottomSheet()
@@ -131,7 +132,7 @@ class RethinkPlusFilterBottomSheet : BottomSheetDialogFragment() {
         }
 
         b.rpfClear.setOnClickListener {
-            fragmentActivity?.filterObserver()?.postValue(RethinkBlocklistFragment.Filters())
+            fragmentActivity?.filterObserver()?.postValue(RethinkBlocklistState.Filters())
             this.dismiss()
         }
     }
@@ -166,7 +167,7 @@ class RethinkPlusFilterBottomSheet : BottomSheetDialogFragment() {
 
     private fun applySubgroupFilter(tag: String) {
         if (filters == null) {
-            filters = RethinkBlocklistFragment.Filters()
+            filters = RethinkBlocklistState.Filters()
         }
         // asserting the filters object with above check
         filters!!.subGroups.add(tag)

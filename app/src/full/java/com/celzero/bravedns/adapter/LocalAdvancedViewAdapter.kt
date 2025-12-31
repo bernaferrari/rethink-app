@@ -27,7 +27,7 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.database.RethinkLocalFileTag
 import com.celzero.bravedns.databinding.ListItemRethinkBlocklistAdvBinding
 import com.celzero.bravedns.service.RethinkBlocklistManager
-import com.celzero.bravedns.ui.fragment.RethinkBlocklistFragment
+import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.openUrl
 import kotlinx.coroutines.CoroutineScope
@@ -170,7 +170,7 @@ class LocalAdvancedViewAdapter(val context: Context) :
                 filetag.isSelected = selected
                 RethinkBlocklistManager.updateFiletagLocal(filetag)
                 val list = RethinkBlocklistManager.getSelectedFileTagsLocal().toSet()
-                RethinkBlocklistFragment.updateFileTagList(list)
+                RethinkBlocklistState.updateFileTagList(list)
             }
         }
 

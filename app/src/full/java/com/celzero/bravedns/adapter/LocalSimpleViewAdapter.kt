@@ -28,7 +28,7 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.database.LocalBlocklistPacksMap
 import com.celzero.bravedns.databinding.ListItemRethinkBlocklistSimpleBinding
 import com.celzero.bravedns.service.RethinkBlocklistManager
-import com.celzero.bravedns.ui.fragment.RethinkBlocklistFragment
+import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
 import kotlinx.coroutines.CoroutineScope
@@ -109,7 +109,7 @@ class LocalSimpleViewAdapter(val context: Context) :
             io {
                 RethinkBlocklistManager.updateFiletagsLocal(tagIds.toSet(), selected)
                 val selectedTags = RethinkBlocklistManager.getSelectedFileTagsLocal().toSet()
-                RethinkBlocklistFragment.updateFileTagList(selectedTags)
+                RethinkBlocklistState.updateFileTagList(selectedTags)
                 ui { notifyDataSetChanged() }
             }
         }
@@ -134,7 +134,7 @@ class LocalSimpleViewAdapter(val context: Context) :
                     map.blocklistIds.size.toString()
                 )
 
-            val selectedTags = RethinkBlocklistFragment.getSelectedFileTags()
+            val selectedTags = RethinkBlocklistState.getSelectedFileTags()
             // enable the check box if the stamp contains all the values
             b.crpCheckBox.isChecked = selectedTags.containsAll(map.blocklistIds)
             setCardBackground(b.crpCard, b.crpCheckBox.isChecked)
