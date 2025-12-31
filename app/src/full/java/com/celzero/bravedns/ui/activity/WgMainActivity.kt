@@ -20,19 +20,54 @@ import Logger.LOG_TAG_PROXY
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.View
+import android.util.TypedValue
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import by.kirich1409.viewbindingdelegate.viewBinding
+import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.OneWgConfigAdapter
 import com.celzero.bravedns.adapter.WgConfigAdapter
@@ -40,10 +75,10 @@ import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
-import com.celzero.bravedns.databinding.ActivityWireguardMainBinding
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.WireguardManager
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.QrCodeFromFileScanner
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.TunnelImporter
@@ -53,7 +88,6 @@ import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.zxing.qrcode.QRCodeReader
 import com.journeyapps.barcodescanner.ScanContract
@@ -65,8 +99,7 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class WgMainActivity :
-    AppCompatActivity(R.layout.activity_wireguard_main), OneWgConfigAdapter.DnsStatusListener {
-    private val b by viewBinding(ActivityWireguardMainBinding::bind)
+    AppCompatActivity(), OneWgConfigAdapter.DnsStatusListener {
     private val persistentState by inject<PersistentState>()
     private val appConfig by inject<AppConfig>()
     private val eventLogger by inject<EventLogger>()
@@ -75,8 +108,19 @@ class WgMainActivity :
     private var oneWgConfigAdapter: OneWgConfigAdapter? = null
     private val wgConfigViewModel: WgConfigViewModel by viewModel()
 
+    private var selectedTab by mutableStateOf(WgTab.ONE)
+    private var showEmpty by mutableStateOf(false)
+    private var disclaimerText by mutableStateOf("")
+    private var isFabExpanded by mutableStateOf(false)
+
     companion object {
         private const val IMPORT_LAUNCH_INPUT = "*/*"
+        private const val EMPTY_ALPHA = 0.7f
+    }
+
+    private enum class WgTab {
+        ONE,
+        GENERAL
     }
 
     private val tunnelFileImportResultLauncher =
@@ -165,7 +209,6 @@ class WgMainActivity :
         super.onCreate(savedInstanceState)
 
         handleFrostEffectIfNeeded(persistentState.theme)
-
         init()
 
         if (isAtleastQ()) {
@@ -175,89 +218,52 @@ class WgMainActivity :
         }
 
         onBackPressedDispatcher.addCallback(
-            this /* lifecycle owner */,
+            this,
             object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
-                    if (b.createFab.isVisible) {
+                    if (isFabExpanded) {
                         collapseFab()
                     } else {
                         finish()
                     }
-                    return
                 }
             }
         )
-    }
 
-    private fun init() {
-        setAdapter()
-        collapseFab()
-        observeConfig()
-        observeDnsName()
-        setupClickListeners()
-    }
-
-    private fun setAdapter() {
-        setOneWgAdapter()
-        setGeneralAdapter()
-
-        if (WireguardManager.isAnyWgActive() && !WireguardManager.oneWireGuardEnabled()) {
-            showGeneralToggle()
-        } else {
-            showOneWgToggle()
+        setContent {
+            RethinkTheme {
+                WgMainScreen()
+            }
         }
     }
 
-    private fun showOneWgToggle() {
-        if (this.isDestroyed) return
-
-        selectToggleBtnUi(b.oneWgToggleBtn)
-        unselectToggleBtnUi(b.wgGeneralToggleBtn)
-        b.wgGeneralInterfaceList.visibility = View.GONE
-        b.oneWgInterfaceList.visibility = View.VISIBLE
-        if (oneWgConfigAdapter == null) setOneWgAdapter()
-        else b.oneWgInterfaceList.adapter = oneWgConfigAdapter
+    private fun init() {
+        ensureAdapters()
+        collapseFab()
+        observeConfig()
+        observeDnsName()
+        selectedTab =
+            if (WireguardManager.isAnyWgActive() && !WireguardManager.oneWireGuardEnabled()) {
+                WgTab.GENERAL
+            } else {
+                WgTab.ONE
+            }
     }
 
-    private fun showGeneralToggle() {
-        if (this.isDestroyed) return
+    private fun ensureAdapters() {
+        if (oneWgConfigAdapter == null) {
+            oneWgConfigAdapter = OneWgConfigAdapter(this, this, eventLogger)
+            wgConfigViewModel.interfaces.observe(this) {
+                oneWgConfigAdapter?.submitData(lifecycle, it)
+            }
+        }
 
-        selectToggleBtnUi(b.wgGeneralToggleBtn)
-        unselectToggleBtnUi(b.oneWgToggleBtn)
-        b.oneWgInterfaceList.visibility = View.GONE
-        b.wgGeneralInterfaceList.visibility = View.VISIBLE
-        if (wgConfigAdapter == null) setGeneralAdapter()
-        else b.wgGeneralInterfaceList.adapter = wgConfigAdapter
-    }
-
-    private fun setGeneralAdapter() {
-        val layoutManager = LinearLayoutManager(this)
-        b.wgGeneralInterfaceList.layoutManager = layoutManager
-
-        wgConfigAdapter = WgConfigAdapter(this, this, persistentState.splitDns, eventLogger)
-        wgConfigViewModel.interfaces.observe(this) { wgConfigAdapter?.submitData(lifecycle, it) }
-        b.wgGeneralInterfaceList.adapter = wgConfigAdapter
-    }
-
-    private fun setOneWgAdapter() {
-        val layoutManager = LinearLayoutManager(this)
-        b.oneWgInterfaceList.layoutManager = layoutManager
-
-        oneWgConfigAdapter = OneWgConfigAdapter(this, this, eventLogger)
-        wgConfigViewModel.interfaces.observe(this) { oneWgConfigAdapter?.submitData(lifecycle, it) }
-        b.oneWgInterfaceList.adapter = oneWgConfigAdapter
-    }
-
-    private fun selectToggleBtnUi(b: MaterialButton) {
-        b.backgroundTintList =
-            ColorStateList.valueOf(fetchToggleBtnColors(this, R.color.accentGood))
-        b.setTextColor(UIUtils.fetchColor(this, R.attr.homeScreenHeaderTextColor))
-    }
-
-    private fun unselectToggleBtnUi(b: MaterialButton) {
-        b.backgroundTintList =
-            ColorStateList.valueOf(fetchToggleBtnColors(this, R.color.defaultToggleBtnBg))
-        b.setTextColor(UIUtils.fetchColor(this, R.attr.primaryTextColor))
+        if (wgConfigAdapter == null) {
+            wgConfigAdapter = WgConfigAdapter(this, this, persistentState.splitDns, eventLogger)
+            wgConfigViewModel.interfaces.observe(this) {
+                wgConfigAdapter?.submitData(lifecycle, it)
+            }
+        }
     }
 
     override fun onResume() {
@@ -273,42 +279,15 @@ class WgMainActivity :
 
     private fun observeConfig() {
         wgConfigViewModel.configCount().observe(this) {
-            if (it == 0) {
-                showEmptyView()
-                hideWgViews()
-            } else {
-                hideEmptyView()
-                showWgViews()
-            }
+            showEmpty = it == 0
         }
-    }
-
-    private fun showEmptyView() {
-        b.wgEmptyView.visibility = View.VISIBLE
-    }
-
-    private fun hideEmptyView() {
-        b.wgEmptyView.visibility = View.GONE
-    }
-
-    private fun showWgViews() {
-        b.wgGeneralToggleBtn.visibility = View.VISIBLE
-        b.oneWgToggleBtn.visibility = View.VISIBLE
-        b.wgWireguardDisclaimer.visibility = View.VISIBLE
-    }
-
-    private fun hideWgViews() {
-        b.wgGeneralToggleBtn.visibility = View.GONE
-        b.oneWgToggleBtn.visibility = View.GONE
-        b.wgWireguardDisclaimer.visibility = View.GONE
     }
 
     private fun observeDnsName() {
         val activeConfigs = WireguardManager.getActiveConfigs()
         if (WireguardManager.oneWireGuardEnabled()) {
             val dnsName = activeConfigs.firstOrNull()?.getName() ?: return
-            b.wgWireguardDisclaimer.text = getString(R.string.wireguard_disclaimer, dnsName)
-            // remove the observer if any config is active
+            disclaimerText = getString(R.string.wireguard_disclaimer, dnsName)
             appConfig.getConnectedDnsObservable().removeObservers(this)
         } else {
             appConfig.getConnectedDnsObservable().observe(this) { dns ->
@@ -319,70 +298,11 @@ class WgMainActivity :
                     }
                     dnsNames += activeConfigs.joinToString(",") { it.getName() }
                 }
-                // add fallback to the list as it can be used to bypass trusted ip/domains/apps
                 if (persistentState.useFallbackDnsToBypass) {
                     dnsNames += ", " + getString(R.string.lbl_fallback)
                 }
-                b.wgWireguardDisclaimer.text = getString(R.string.wireguard_disclaimer, dnsNames)
+                disclaimerText = getString(R.string.wireguard_disclaimer, dnsNames)
             }
-        }
-    }
-
-    private fun setupClickListeners() {
-        // see CustomIpFragment#setupClickListeners#bringToFront()
-        b.wgAddFab.bringToFront()
-        b.wgAddFab.setOnClickListener {
-            if (b.createFab.isVisible) {
-                collapseFab()
-            } else {
-                expendFab()
-            }
-        }
-        b.importFab.setOnClickListener {
-            try {
-                tunnelFileImportResultLauncher.launch(IMPORT_LAUNCH_INPUT)
-            } catch (e: ActivityNotFoundException) {
-                Logger.e(LOG_TAG_PROXY, "err; anf; while launching file import: ${e.message}", e)
-                Utilities.showToastUiCentered(this, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_PROXY, "err while launching file import: ${e.message}", e)
-                Utilities.showToastUiCentered(this, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
-            }
-        }
-        b.qrCodeFab.setOnClickListener {
-            try {
-                qrImportResultLauncher.launch(
-                    ScanOptions()
-                        .setOrientationLocked(false)
-                        .setBeepEnabled(false)
-                        .setPrompt(resources.getString(R.string.lbl_qr_code))
-                )
-            } catch (e: ActivityNotFoundException) {
-                Logger.e(LOG_TAG_PROXY, "err; anf while launching QR scanner: ${e.message}", e)
-                Utilities.showToastUiCentered(this, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_PROXY, "err while launching QR scanner: ${e.message}", e)
-                Utilities.showToastUiCentered(this, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
-            }
-        }
-        b.createFab.setOnClickListener { openTunnelEditorActivity() }
-
-        b.wgGeneralToggleBtn.setOnClickListener {
-            if (WireguardManager.oneWireGuardEnabled()) {
-                showDisableDialog(isOneWgToggle = false)
-                return@setOnClickListener
-            }
-            showGeneralToggle()
-        }
-        b.oneWgToggleBtn.setOnClickListener {
-            val activeConfigs = WireguardManager.getActiveConfigs()
-            val isAnyConfigActive = activeConfigs.isNotEmpty()
-            val isOneWgEnabled = WireguardManager.oneWireGuardEnabled()
-            if (isAnyConfigActive && !isOneWgEnabled) {
-                showDisableDialog(isOneWgToggle = true)
-                return@setOnClickListener
-            }
-            showOneWgToggle()
         }
     }
 
@@ -392,12 +312,10 @@ class WgMainActivity :
     }
 
     private fun showDisableDialog(isOneWgToggle: Boolean) {
-        // show alert dialog with don't show again toggle in it
         MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
             .setTitle(getString(R.string.wireguard_disable_title))
             .setMessage(getString(R.string.wireguard_disable_message))
             .setPositiveButton(getString(R.string.always_on_dialog_positive)) { _, _ ->
-                // disable all configs
                 io {
                     if (WireguardManager.canDisableAllActiveConfigs()) {
                         WireguardManager.disableAllActiveConfigs()
@@ -406,12 +324,8 @@ class WgMainActivity :
                             "all configs from toggle switch; isOneWgToggle: $isOneWgToggle"
                         )
                         uiCtx {
-                            this.observeDnsName()
-                            if (isOneWgToggle) {
-                                showOneWgToggle()
-                            } else {
-                                showGeneralToggle()
-                            }
+                            observeDnsName()
+                            selectedTab = if (isOneWgToggle) WgTab.ONE else WgTab.GENERAL
                         }
                     } else {
                         val configs = WireguardManager.getActiveCatchAllConfig()
@@ -435,29 +349,36 @@ class WgMainActivity :
                     }
                 }
             }
-            .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
-                // do nothing
-            }
+            .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
             .create()
             .show()
     }
 
-    private fun expendFab() {
-        b.createFab.visibility = View.VISIBLE
-        b.importFab.visibility = View.VISIBLE
-        b.qrCodeFab.visibility = View.VISIBLE
-        b.createFab.animate().translationY(-resources.getDimension(R.dimen.standard_55))
-        b.importFab.animate().translationY(-resources.getDimension(R.dimen.standard_105))
-        b.qrCodeFab.animate().translationY(-resources.getDimension(R.dimen.standard_155))
+    private fun onOneWgToggleClick() {
+        val activeConfigs = WireguardManager.getActiveConfigs()
+        val isAnyConfigActive = activeConfigs.isNotEmpty()
+        val isOneWgEnabled = WireguardManager.oneWireGuardEnabled()
+        if (isAnyConfigActive && !isOneWgEnabled) {
+            showDisableDialog(isOneWgToggle = true)
+            return
+        }
+        selectedTab = WgTab.ONE
+    }
+
+    private fun onGeneralToggleClick() {
+        if (WireguardManager.oneWireGuardEnabled()) {
+            showDisableDialog(isOneWgToggle = false)
+            return
+        }
+        selectedTab = WgTab.GENERAL
+    }
+
+    private fun expandFab() {
+        isFabExpanded = true
     }
 
     private fun collapseFab() {
-        b.createFab.animate().translationY(resources.getDimension(R.dimen.standard_0))
-        b.importFab.animate().translationY(resources.getDimension(R.dimen.standard_0))
-        b.qrCodeFab.animate().translationY(resources.getDimension(R.dimen.standard_0))
-        b.createFab.visibility = View.GONE
-        b.importFab.visibility = View.GONE
-        b.qrCodeFab.visibility = View.GONE
+        isFabExpanded = false
     }
 
     private fun logEvent(msg: String, details: String) {
@@ -474,5 +395,262 @@ class WgMainActivity :
 
     override fun onDnsStatusChanged() {
         observeDnsName()
+    }
+
+    private fun dpToPx(dp: Int): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            dp.toFloat(),
+            resources.displayMetrics
+        ).toInt()
+    }
+
+    @Composable
+    private fun WgMainScreen() {
+        val context = LocalContext.current
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (showEmpty) {
+                EmptyState()
+            } else {
+                Column(modifier = Modifier.fillMaxSize()) {
+                    ToggleRow(
+                        selectedTab = selectedTab,
+                        onOneWgClick = { onOneWgToggleClick() },
+                        onGeneralClick = { onGeneralToggleClick() }
+                    )
+
+                    Text(
+                        text = disclaimerText,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 6.dp)
+                            .alpha(EMPTY_ALPHA),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    val generalAdapter = wgConfigAdapter
+                    val oneAdapter = oneWgConfigAdapter
+
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        if (generalAdapter != null) {
+                            val show = selectedTab == WgTab.GENERAL
+                            AndroidView(
+                                factory = { ctx ->
+                                    RecyclerView(ctx).apply {
+                                        layoutManager = LinearLayoutManager(ctx)
+                                        adapter = generalAdapter
+                                        clipToPadding = false
+                                        setPadding(0, 0, 0, dpToPx(100))
+                                    }
+                                },
+                                modifier =
+                                    Modifier
+                                        .fillMaxSize()
+                                        .alpha(if (show) 1f else 0f)
+                            )
+                        }
+
+                        if (oneAdapter != null) {
+                            val show = selectedTab == WgTab.ONE
+                            AndroidView(
+                                factory = { ctx ->
+                                    RecyclerView(ctx).apply {
+                                        layoutManager = LinearLayoutManager(ctx)
+                                        adapter = oneAdapter
+                                        clipToPadding = false
+                                        setPadding(0, 0, 0, dpToPx(100))
+                                    }
+                                },
+                                modifier =
+                                    Modifier
+                                        .fillMaxSize()
+                                        .alpha(if (show) 1f else 0f)
+                            )
+                        }
+                    }
+                }
+            }
+
+            FabStack(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(24.dp),
+                isExpanded = isFabExpanded,
+                onMainClick = { if (isFabExpanded) collapseFab() else expandFab() },
+                onCreateClick = { openTunnelEditorActivity() },
+                onImportClick = {
+                    try {
+                        tunnelFileImportResultLauncher.launch(IMPORT_LAUNCH_INPUT)
+                    } catch (e: ActivityNotFoundException) {
+                        Logger.e(LOG_TAG_PROXY, "err; anf; while launching file import: ${e.message}", e)
+                        Utilities.showToastUiCentered(context, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
+                    } catch (e: Exception) {
+                        Logger.e(LOG_TAG_PROXY, "err while launching file import: ${e.message}", e)
+                        Utilities.showToastUiCentered(context, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
+                    }
+                },
+                onQrClick = {
+                    try {
+                        qrImportResultLauncher.launch(
+                            ScanOptions()
+                                .setOrientationLocked(false)
+                                .setBeepEnabled(false)
+                                .setPrompt(resources.getString(R.string.lbl_qr_code))
+                        )
+                    } catch (e: ActivityNotFoundException) {
+                        Logger.e(LOG_TAG_PROXY, "err; anf while launching QR scanner: ${e.message}", e)
+                        Utilities.showToastUiCentered(context, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
+                    } catch (e: Exception) {
+                        Logger.e(LOG_TAG_PROXY, "err while launching QR scanner: ${e.message}", e)
+                        Utilities.showToastUiCentered(context, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
+                    }
+                }
+            )
+        }
+    }
+
+    @Composable
+    private fun ToggleRow(
+        selectedTab: WgTab,
+        onOneWgClick: () -> Unit,
+        onGeneralClick: () -> Unit
+    ) {
+        val context = LocalContext.current
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp, start = 12.dp, end = 12.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ToggleButton(
+                text = context.getString(R.string.rt_list_simple_btn_txt),
+                selected = selectedTab == WgTab.ONE,
+                onClick = onOneWgClick
+            )
+            ToggleButton(
+                text = context.getString(R.string.lbl_advanced),
+                selected = selectedTab == WgTab.GENERAL,
+                onClick = onGeneralClick
+            )
+        }
+    }
+
+    @Composable
+    private fun ToggleButton(text: String, selected: Boolean, onClick: () -> Unit) {
+        val context = LocalContext.current
+        val background =
+            if (selected) {
+                Color(fetchToggleBtnColors(context, R.color.accentGood))
+            } else {
+                Color(fetchToggleBtnColors(context, R.color.defaultToggleBtnBg))
+            }
+        val content =
+            if (selected) {
+                Color(UIUtils.fetchColor(context, R.attr.homeScreenHeaderTextColor))
+            } else {
+                Color(UIUtils.fetchColor(context, R.attr.primaryTextColor))
+            }
+        Button(
+            onClick = onClick,
+            colors = ButtonDefaults.buttonColors(containerColor = background, contentColor = content),
+            modifier = Modifier.padding(horizontal = 4.dp)
+        ) {
+            Text(text = text)
+        }
+    }
+
+    @Composable
+    private fun EmptyState() {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = stringResourceCompat(R.string.wireguard_no_config_msg),
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            Image(
+                painter = painterResource(id = R.drawable.illustrations_no_record),
+                contentDescription = null,
+                modifier = Modifier.size(220.dp)
+            )
+        }
+    }
+
+    @Composable
+    private fun FabStack(
+        modifier: Modifier,
+        isExpanded: Boolean,
+        onMainClick: () -> Unit,
+        onCreateClick: () -> Unit,
+        onImportClick: () -> Unit,
+        onQrClick: () -> Unit
+    ) {
+        Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.End
+        ) {
+            AnimatedVisibility(
+                visible = isExpanded,
+                enter = fadeIn() + slideInVertically { it / 2 },
+                exit = fadeOut() + slideOutVertically { it / 2 }
+            ) {
+                Column(horizontalAlignment = Alignment.End) {
+                    ExtendedFloatingActionButton(
+                        onClick = onCreateClick,
+                        text = { Text(text = stringResourceCompat(R.string.lbl_create)) },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_add),
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    ExtendedFloatingActionButton(
+                        onClick = onImportClick,
+                        text = { Text(text = stringResourceCompat(R.string.lbl_import)) },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_import_conf),
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    ExtendedFloatingActionButton(
+                        onClick = onQrClick,
+                        text = { Text(text = stringResourceCompat(R.string.lbl_qr_code)) },
+                        icon = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_qr_code_scanner),
+                                contentDescription = null
+                            )
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+            }
+
+            FloatingActionButton(onClick = onMainClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_fab_without_border),
+                    contentDescription = null
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun stringResourceCompat(id: Int): String {
+        val context = LocalContext.current
+        return context.getString(id)
     }
 }

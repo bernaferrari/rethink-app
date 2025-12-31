@@ -19,14 +19,37 @@ import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
-import android.view.View
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
-import by.kirich1409.viewbindingdelegate.viewBinding
+import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.DomainConnectionsAdapter
-import com.celzero.bravedns.databinding.ActivityDomainConnectionsBinding
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.CustomLinearLayoutManager
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.UIUtils.getCountryNameFromFlag
@@ -36,17 +59,20 @@ import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class DomainConnectionsActivity : AppCompatActivity(R.layout.activity_domain_connections){
-    private val b by viewBinding(ActivityDomainConnectionsBinding::bind)
+class DomainConnectionsActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
     private val viewModel by viewModel<DomainConnectionsViewModel>()
 
     private var type: InputType = InputType.DOMAIN
+    private var titleText by mutableStateOf("")
+    private var subtitleText by mutableStateOf("")
+    private var showNoData by mutableStateOf(false)
+    private var recyclerAdapter: DomainConnectionsAdapter? = null
 
     private fun Context.isDarkThemeOn(): Boolean {
-            return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                UI_MODE_NIGHT_YES
-        }
+        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            UI_MODE_NIGHT_YES
+    }
 
     companion object {
         const val INTENT_EXTRA_TYPE = "TYPE"
@@ -56,10 +82,14 @@ class DomainConnectionsActivity : AppCompatActivity(R.layout.activity_domain_con
         const val INTENT_EXTRA_IP = "IP"
         const val INTENT_EXTRA_IS_BLOCKED = "IS_BLOCKED"
         const val INTENT_EXTRA_TIME_CATEGORY = "TIME_CATEGORY"
+        private const val HEADER_ALPHA = 0.5f
     }
 
     enum class InputType(val type: Int) {
-        DOMAIN(0), FLAG(1), ASN(2), IP(3);
+        DOMAIN(0),
+        FLAG(1),
+        ASN(2),
+        IP(3);
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,37 +111,44 @@ class DomainConnectionsActivity : AppCompatActivity(R.layout.activity_domain_con
                 val domain = intent.getStringExtra(INTENT_EXTRA_DOMAIN) ?: ""
                 val isBlocked = intent.getBooleanExtra(INTENT_EXTRA_IS_BLOCKED, false)
                 viewModel.setDomain(domain, isBlocked)
-                b.dcTitle.text = domain
+                titleText = domain
             }
             InputType.FLAG -> {
                 val flag = intent.getStringExtra(INTENT_EXTRA_FLAG) ?: ""
                 viewModel.setFlag(flag)
-                b.dcTitle.text = getString(R.string.two_argument_space, flag, getCountryNameFromFlag(flag))
+                titleText = getString(R.string.two_argument_space, flag, getCountryNameFromFlag(flag))
             }
             InputType.ASN -> {
                 val asn = intent.getStringExtra(INTENT_EXTRA_ASN) ?: ""
                 val isBlocked = intent.getBooleanExtra(INTENT_EXTRA_IS_BLOCKED, false)
                 viewModel.setAsn(asn, isBlocked)
-                b.dcTitle.text = asn
+                titleText = asn
             }
             InputType.IP -> {
                 val ip = intent.getStringExtra(INTENT_EXTRA_IP) ?: ""
                 val isBlocked = intent.getBooleanExtra(INTENT_EXTRA_IS_BLOCKED, false)
                 viewModel.setIp(ip, isBlocked)
-                b.dcTitle.text = ip
+                titleText = ip
             }
         }
+
         val tc = intent.getIntExtra(INTENT_EXTRA_TIME_CATEGORY, 0)
         val timeCategory =
             DomainConnectionsViewModel.TimeCategory.fromValue(tc)
                 ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR
         setSubTitle(timeCategory)
         viewModel.timeCategoryChanged(timeCategory)
-        setRecyclerView()
+        setupAdapter()
+
+        setContent {
+            RethinkTheme {
+                DomainConnectionsScreen()
+            }
+        }
     }
 
     private fun setSubTitle(timeCategory: DomainConnectionsViewModel.TimeCategory) {
-        b.dcSubtitle.text =
+        subtitleText =
             when (timeCategory) {
                 DomainConnectionsViewModel.TimeCategory.ONE_HOUR -> {
                     getString(
@@ -142,46 +179,110 @@ class DomainConnectionsActivity : AppCompatActivity(R.layout.activity_domain_con
             }
     }
 
-    private fun setRecyclerView() {
-        b.dcRecycler.setHasFixedSize(true)
-        val layoutManager = CustomLinearLayoutManager(this)
-        b.dcRecycler.layoutManager = layoutManager
-
-        val recyclerAdapter = DomainConnectionsAdapter(this, type)
+    private fun setupAdapter() {
+        recyclerAdapter = DomainConnectionsAdapter(this, type)
 
         val liveData = when (type) {
-            InputType.DOMAIN -> {
-                viewModel.domainConnectionList
-            }
-            InputType.FLAG -> {
-                viewModel.flagConnectionList
-            }
-            InputType.ASN -> {
-                viewModel.asnConnectionList
-            }
-            InputType.IP -> {
-                viewModel.ipConnectionList
-            }
+            InputType.DOMAIN -> viewModel.domainConnectionList
+            InputType.FLAG -> viewModel.flagConnectionList
+            InputType.ASN -> viewModel.asnConnectionList
+            InputType.IP -> viewModel.ipConnectionList
         }
 
-        liveData.observe(this) { recyclerAdapter.submitData(this.lifecycle, it) }
+        liveData.observe(this) { recyclerAdapter?.submitData(this.lifecycle, it) }
 
-        // remove the view if there is no data
-        recyclerAdapter.addLoadStateListener {
+        recyclerAdapter?.addLoadStateListener {
             if (it.append.endOfPaginationReached) {
-                if (recyclerAdapter.itemCount < 1) {
-                    b.dcRecycler.visibility = View.GONE
-                    b.dcNoDataRl.visibility = View.VISIBLE
-                    liveData.removeObservers(this)
-                } else {
-                    b.dcRecycler.visibility = View.VISIBLE
-                    b.dcNoDataRl.visibility = View.GONE
-                }
+                showNoData = recyclerAdapter?.itemCount?.let { count -> count < 1 } ?: true
             } else {
-                b.dcRecycler.visibility = View.VISIBLE
-                b.dcNoDataRl.visibility = View.GONE
+                showNoData = false
             }
         }
-        b.dcRecycler.adapter = recyclerAdapter
+    }
+
+    @Composable
+    private fun DomainConnectionsScreen() {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Header()
+            Box(modifier = Modifier.fillMaxSize()) {
+                ConnectionsList()
+                if (showNoData) {
+                    EmptyState()
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun Header() {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Text(
+                text = stringResourceCompat(R.string.app_name_small_case),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.alpha(HEADER_ALPHA)
+            )
+            Spacer(modifier = Modifier.size(6.dp))
+            Column {
+                Text(
+                    text = titleText,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = subtitleText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun ConnectionsList() {
+        val listAdapter = recyclerAdapter
+        if (listAdapter == null) return
+        AndroidView(
+            factory = { ctx ->
+                RecyclerView(ctx).apply {
+                    layoutManager = CustomLinearLayoutManager(ctx)
+                    this.adapter = listAdapter
+                    isNestedScrollingEnabled = false
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+
+    @Composable
+    private fun EmptyState() {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = stringResourceCompat(R.string.blocklist_update_check_failure),
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(bottom = 16.dp)
+            )
+            Image(
+                painter = painterResource(id = R.drawable.illustrations_no_record),
+                contentDescription = null,
+                modifier = Modifier.size(220.dp)
+            )
+        }
+    }
+
+    @Composable
+    private fun stringResourceCompat(id: Int): String {
+        val context = LocalContext.current
+        return context.getString(id)
     }
 }
