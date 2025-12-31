@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.compose.compiler)
 }
 
 java {
@@ -196,6 +197,7 @@ android {
     buildFeatures {
         viewBinding = true
         buildConfig = true
+        compose = true
     }
 
     compileOptions {
@@ -262,6 +264,17 @@ dependencies {
     implementation(libs.androidx.preference.ktx)
     "fullImplementation"(libs.androidx.constraintlayout)
     "fullImplementation"(libs.androidx.swiperefreshlayout)
+    
+    // Compose
+    val composeBom = platform(libs.androidx.compose.bom)
+    implementation(composeBom)
+    implementation(libs.androidx.ui)
+    implementation(libs.androidx.ui.graphics)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material3)
+    implementation(libs.androidx.activity.compose)
+    implementation(libs.androidx.lifecycle.runtime.compose)
+    debugImplementation(libs.androidx.ui.tooling)
 
     "fullImplementation"(libs.kotlinx.coroutines.core)
     "fullImplementation"(libs.kotlinx.coroutines.android)
