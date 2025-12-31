@@ -22,8 +22,29 @@ import android.graphics.PorterDuffColorFilter
 import android.graphics.Rect
 import android.os.Bundle
 import android.util.TypedValue
-import android.view.LayoutInflater
 import android.view.View
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import android.view.ViewTreeObserver
 import android.view.animation.Animation
 import android.view.animation.RotateAnimation
@@ -50,8 +71,10 @@ import com.celzero.bravedns.databinding.ActivityAppListBinding
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.bottomsheet.FirewallAppFilterDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
+import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
@@ -510,14 +533,89 @@ class AppListActivity :
     }
 
     private fun showInfoDialog() {
-        val li = getSystemService(LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        val view: View = li.inflate(R.layout.dialog_info_firewall_rules, null)
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(view)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                FirewallInfoDialogContent()
+            }
+        }
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(composeView)
         builder.setPositiveButton(getString(R.string.fapps_info_dialog_positive_btn)) { dialog, _ ->
             dialog.dismiss()
         }
         builder.setCancelable(true)
         builder.create().show()
+    }
+
+    @Composable
+    private fun FirewallInfoDialogContent() {
+        Column(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = getString(R.string.fapps_info_dialog_message),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(fetchColor(this@AppListActivity, R.attr.primaryTextColor))
+            )
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Spacer(
+                modifier =
+                    Modifier.fillMaxWidth()
+                        .height(1.dp)
+                        .background(Color(fetchColor(this@AppListActivity, R.attr.primaryLightColorText)))
+            )
+
+            InfoRow(
+                icon = R.drawable.ic_firewall_wifi_on_grey,
+                text = getString(R.string.fapps_info_unmetered_msg)
+            )
+            InfoRow(
+                icon = R.drawable.ic_firewall_data_on_grey,
+                text = getString(R.string.fapps_info_metered_msg)
+            )
+            InfoRow(
+                icon = R.drawable.ic_firewall_bypass_off,
+                text = getString(R.string.fapps_info_bypass_msg)
+            )
+            InfoRow(
+                icon = R.drawable.ic_bypass_dns_firewall_off,
+                text = getString(R.string.fapps_info_bypass_dns_firewall_msg)
+            )
+            InfoRow(
+                icon = R.drawable.ic_firewall_exclude_off,
+                text = getString(R.string.fapps_info_exclude_msg)
+            )
+            InfoRow(
+                icon = R.drawable.ic_firewall_lockdown_off,
+                text = getString(R.string.fapps_info_isolate_msg)
+            )
+        }
+    }
+
+    @Composable
+    private fun InfoRow(icon: Int, text: String) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(fetchColor(this@AppListActivity, R.attr.primaryTextColor))
+            )
+        }
     }
 
     private fun setFirewallFilter(firewallFilter: FirewallFilter?) {
