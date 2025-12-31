@@ -19,16 +19,41 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.BorderStroke
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
-import com.celzero.bravedns.databinding.ActivityOtherDnsListBinding
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
@@ -40,11 +65,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
-class DnsListActivity : AppCompatActivity(R.layout.activity_other_dns_list) {
-    private val b by viewBinding(ActivityOtherDnsListBinding::bind)
-
+class DnsListActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
     private val appConfig by inject<AppConfig>()
+
+    private var selectedType by mutableStateOf<AppConfig.DnsType?>(null)
+    private var selectedWorking by mutableStateOf(false)
+
+    private fun Context.isDarkThemeOn(): Boolean {
+        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         theme.applyStyle(Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme), true)
@@ -58,102 +89,20 @@ class DnsListActivity : AppCompatActivity(R.layout.activity_other_dns_list) {
             window.isNavigationBarContrastEnforced = false
         }
 
-        setupClickListeners()
-    }
-
-    private fun Context.isDarkThemeOn(): Boolean {
-        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-            Configuration.UI_MODE_NIGHT_YES
-    }
-
-    private fun setupClickListeners() {
-        b.cardDnscrypt.setOnClickListener {
-            startActivity(
-                ConfigureOtherDnsActivity.getIntent(
-                    this,
-                    ConfigureOtherDnsActivity.DnsScreen.DNS_CRYPT.index
-                )
-            )
+        setContent {
+            RethinkTheme {
+                DnsListScreen()
+            }
         }
-
-        b.cardDnsproxy.setOnClickListener {
-            startActivity(
-                ConfigureOtherDnsActivity.getIntent(
-                    this,
-                    ConfigureOtherDnsActivity.DnsScreen.DNS_PROXY.index
-                )
-            )
-        }
-
-        b.cardDoh.setOnClickListener {
-            startActivity(
-                ConfigureOtherDnsActivity.getIntent(
-                    this,
-                    ConfigureOtherDnsActivity.DnsScreen.DOH.index
-                )
-            )
-        }
-
-        b.cardDot.setOnClickListener {
-            startActivity(
-                ConfigureOtherDnsActivity.getIntent(
-                    this,
-                    ConfigureOtherDnsActivity.DnsScreen.DOT.index
-                )
-            )
-        }
-
-        b.cardOdoh.setOnClickListener {
-            startActivity(
-                ConfigureOtherDnsActivity.getIntent(
-                    this,
-                    ConfigureOtherDnsActivity.DnsScreen.ODOH.index
-                )
-            )
-        }
-
-        b.cardRethinkDns.setOnClickListener { invokeRethinkActivity() }
-    }
-
-    private fun invokeRethinkActivity() {
-        val intent = Intent(this, ConfigureRethinkBasicActivity::class.java)
-        intent.putExtra(
-            ConfigureRethinkBasicActivity.INTENT,
-            ConfigureRethinkBasicActivity.FragmentLoader.DB_LIST.ordinal
-        )
-        startActivity(intent)
     }
 
     override fun onResume() {
         super.onResume()
-        resetUi()
         updateSelectedStatus()
-    }
-
-    private fun resetUi() {
-        b.cardDoh.strokeWidth = 0
-        b.cardDnsproxy.strokeWidth = 0
-        b.cardDnscrypt.strokeWidth = 0
-        b.cardDot.strokeWidth = 0
-        b.cardOdoh.strokeWidth = 0
-        b.cardRethinkDns.strokeWidth = 0
-        b.initialDoh.setTextColor(fetchColor(this, R.attr.primaryTextColor))
-        b.abbrDoh.setTextColor(fetchColor(this, R.attr.primaryTextColor))
-        b.initialDnsproxy.setTextColor(fetchColor(this, R.attr.primaryTextColor))
-        b.abbrDnsproxy.setTextColor(fetchColor(this, R.attr.primaryTextColor))
-        b.initialDnscrypt.setTextColor(fetchColor(this, R.attr.primaryTextColor))
-        b.abbrDnscrypt.setTextColor(fetchColor(this, R.attr.primaryTextColor))
-        b.initialDot.setTextColor(fetchColor(this, R.attr.primaryTextColor))
-        b.abbrDot.setTextColor(fetchColor(this, R.attr.primaryTextColor))
-        b.initialOdoh.setTextColor(fetchColor(this, R.attr.primaryTextColor))
-        b.abbrOdoh.setTextColor(fetchColor(this, R.attr.primaryTextColor))
-        b.initialRethinkDns.setTextColor(fetchColor(this, R.attr.primaryTextColor))
-        b.abbrRethinkDns.setTextColor(fetchColor(this, R.attr.primaryTextColor))
     }
 
     private fun updateSelectedStatus() {
         io {
-            // always use the id as Dnsx.Preffered as it is the primary dns id for now
             val id = if (appConfig.isSmartDnsEnabled()) {
                 Backend.Plus
             } else {
@@ -166,71 +115,218 @@ class DnsListActivity : AppCompatActivity(R.layout.activity_other_dns_list) {
                 } else {
                     when (Transaction.Status.fromId(state)) {
                         Transaction.Status.COMPLETE,
-                        Transaction.Status.START -> {
-                            true
-                        }
-
-                        else -> {
-                            false
-                        }
+                        Transaction.Status.START -> true
+                        else -> false
                     }
                 }
-            uiCtx { highlightSelectedUi(working) }
+            uiCtx {
+                selectedType = appConfig.getDnsType()
+                selectedWorking = working
+            }
         }
     }
 
-    private fun highlightSelectedUi(working: Boolean) {
-        val strokeColor: Int
-        val textColor: Int
-        if (working) {
-            strokeColor = UIUtils.fetchToggleBtnColors(this, R.color.accentGood)
-            textColor = fetchColor(this, R.attr.secondaryTextColor)
-        } else {
-            strokeColor = UIUtils.fetchToggleBtnColors(this, R.color.accentBad)
-            textColor = fetchColor(this, R.attr.accentBad)
-        }
+    private fun invokeRethinkActivity() {
+        val intent = Intent(this, ConfigureRethinkBasicActivity::class.java)
+        intent.putExtra(
+            ConfigureRethinkBasicActivity.INTENT,
+            ConfigureRethinkBasicActivity.FragmentLoader.DB_LIST.ordinal
+        )
+        startActivity(intent)
+    }
 
-        when (appConfig.getDnsType()) {
-            AppConfig.DnsType.DOH -> {
-                b.cardDoh.strokeColor = strokeColor
-                b.cardDoh.strokeWidth = 2
-                b.initialDoh.setTextColor(textColor)
-                b.abbrDoh.setTextColor(textColor)
+    @Composable
+    private fun DnsListScreen() {
+        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                DnsCard(
+                    label = stringResourceCompat(R.string.dc_doh),
+                    title = stringResourceCompat(R.string.cd_custom_doh_url_name_default),
+                    dots = listOf(R.drawable.dot_yellow, R.drawable.dot_green),
+                    type = AppConfig.DnsType.DOH,
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        startActivity(
+                            ConfigureOtherDnsActivity.getIntent(
+                                this@DnsListActivity,
+                                ConfigureOtherDnsActivity.DnsScreen.DOH.index
+                            )
+                        )
+                    }
+                )
+                DnsCard(
+                    label = stringResourceCompat(R.string.lbl_dot_abbr),
+                    title = stringResourceCompat(R.string.lbl_dot),
+                    dots = listOf(R.drawable.dot_yellow, R.drawable.dot_green),
+                    type = AppConfig.DnsType.DOT,
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        startActivity(
+                            ConfigureOtherDnsActivity.getIntent(
+                                this@DnsListActivity,
+                                ConfigureOtherDnsActivity.DnsScreen.DOT.index
+                            )
+                        )
+                    }
+                )
             }
-            AppConfig.DnsType.DNS_PROXY -> {
-                b.cardDnsproxy.strokeColor = strokeColor
-                b.cardDnsproxy.strokeWidth = 2
-                b.initialDnsproxy.setTextColor(textColor)
-                b.abbrDnsproxy.setTextColor(textColor)
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                DnsCard(
+                    label = stringResourceCompat(R.string.dc_dns_crypt),
+                    title = stringResourceCompat(R.string.cd_dns_crypt_name_default),
+                    dots = listOf(R.drawable.dot_yellow, R.drawable.dot_green, R.drawable.dot_accent),
+                    type = AppConfig.DnsType.DNSCRYPT,
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        startActivity(
+                            ConfigureOtherDnsActivity.getIntent(
+                                this@DnsListActivity,
+                                ConfigureOtherDnsActivity.DnsScreen.DNS_CRYPT.index
+                            )
+                        )
+                    }
+                )
+                DnsCard(
+                    label = stringResourceCompat(R.string.lbl_dp_abbr),
+                    title = stringResourceCompat(R.string.lbl_dp),
+                    dots = listOf(R.drawable.dot_red),
+                    type = AppConfig.DnsType.DNS_PROXY,
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        startActivity(
+                            ConfigureOtherDnsActivity.getIntent(
+                                this@DnsListActivity,
+                                ConfigureOtherDnsActivity.DnsScreen.DNS_PROXY.index
+                            )
+                        )
+                    }
+                )
             }
-            AppConfig.DnsType.DNSCRYPT -> {
-                b.cardDnscrypt.strokeColor = strokeColor
-                b.cardDnscrypt.strokeWidth = 2
-                b.initialDnscrypt.setTextColor(textColor)
-                b.abbrDnscrypt.setTextColor(textColor)
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                DnsCard(
+                    label = stringResourceCompat(R.string.lbl_odoh_abbr),
+                    title = stringResourceCompat(R.string.lbl_odoh),
+                    dots = listOf(R.drawable.dot_yellow, R.drawable.dot_green, R.drawable.dot_accent),
+                    type = AppConfig.DnsType.ODOH,
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        startActivity(
+                            ConfigureOtherDnsActivity.getIntent(
+                                this@DnsListActivity,
+                                ConfigureOtherDnsActivity.DnsScreen.ODOH.index
+                            )
+                        )
+                    }
+                )
+                DnsCard(
+                    label = stringResourceCompat(R.string.dc_rethink_dns_radio),
+                    title = stringResourceCompat(R.string.lbl_rdns),
+                    dots = listOf(R.drawable.dot_red, R.drawable.dot_yellow, R.drawable.dot_green),
+                    type = AppConfig.DnsType.RETHINK_REMOTE,
+                    modifier = Modifier.weight(1f),
+                    onClick = { invokeRethinkActivity() }
+                )
             }
-            AppConfig.DnsType.DOT -> {
-                b.cardDot.strokeColor = strokeColor
-                b.cardDot.strokeWidth = 2
-                b.initialDot.setTextColor(textColor)
-                b.abbrDot.setTextColor(textColor)
+
+            LegendRow()
+        }
+    }
+
+    @Composable
+    private fun DnsCard(
+        label: String,
+        title: String,
+        dots: List<Int>,
+        type: AppConfig.DnsType,
+        modifier: Modifier = Modifier,
+        onClick: () -> Unit
+    ) {
+        val isSelected = selectedType == type
+        val strokeColor =
+            if (isSelected) {
+                val attr = if (selectedWorking) R.color.accentGood else R.color.accentBad
+                UIUtils.fetchToggleBtnColors(this, attr)
+            } else {
+                0
             }
-            AppConfig.DnsType.ODOH -> {
-                b.cardOdoh.strokeColor = strokeColor
-                b.cardOdoh.strokeWidth = 2
-                b.initialOdoh.setTextColor(textColor)
-                b.abbrOdoh.setTextColor(textColor)
+        val textColor =
+            if (isSelected) {
+                if (selectedWorking) fetchColor(this, R.attr.secondaryTextColor) else fetchColor(this, R.attr.accentBad)
+            } else {
+                fetchColor(this, R.attr.primaryTextColor)
             }
-            AppConfig.DnsType.RETHINK_REMOTE -> {
-                b.cardRethinkDns.strokeColor = strokeColor
-                b.cardRethinkDns.strokeWidth = 2
-                b.initialRethinkDns.setTextColor(textColor)
-                b.abbrRethinkDns.setTextColor(textColor)
+        val border =
+            if (isSelected) {
+                BorderStroke(2.dp, Color(strokeColor))
+            } else {
+                null
             }
-            else -> {
-                // no-op
+
+        Card(
+            modifier = modifier.aspectRatio(1f),
+            border = border,
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            onClick = onClick
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp).fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = Color(textColor),
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color(textColor),
+                    textAlign = TextAlign.Center
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    dots.forEach { resId ->
+                        Image(
+                            painter = painterResource(id = resId),
+                            contentDescription = null,
+                            modifier = Modifier.size(10.dp)
+                        )
+                    }
+                }
             }
         }
+    }
+
+    @Composable
+    private fun LegendRow() {
+        Row(
+            modifier = Modifier.padding(top = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            LegendItem(R.drawable.dot_red, stringResourceCompat(R.string.lbl_fast))
+            LegendItem(R.drawable.dot_yellow, stringResourceCompat(R.string.lbl_private))
+            LegendItem(R.drawable.dot_green, stringResourceCompat(R.string.lbl_secure))
+            LegendItem(R.drawable.dot_accent, stringResourceCompat(R.string.lbl_anonymous))
+        }
+    }
+
+    @Composable
+    private fun LegendItem(icon: Int, label: String) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(painter = painterResource(id = icon), contentDescription = null, modifier = Modifier.size(10.dp))
+            Spacer(modifier = Modifier.size(4.dp))
+            Text(text = label, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+
+    @Composable
+    private fun stringResourceCompat(id: Int, vararg args: Any): String {
+        val context = LocalContext.current
+        return if (args.isNotEmpty()) context.getString(id, *args) else context.getString(id)
     }
 
     private suspend fun uiCtx(f: suspend () -> Unit) {
