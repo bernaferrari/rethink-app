@@ -18,18 +18,15 @@ package com.celzero.bravedns.ui.bottomsheet
 import Logger
 import Logger.LOG_TAG_FIREWALL
 import Logger.LOG_TAG_UI
-import android.content.DialogInterface
 import android.content.res.Configuration
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.AppWiseIpsAdapter
 import com.celzero.bravedns.adapter.DomainRulesBtmSheetAdapter
 import com.celzero.bravedns.database.CustomIp
 import com.celzero.bravedns.database.EventSource
@@ -49,101 +46,67 @@ import com.celzero.bravedns.util.UIUtils.htmlToSpannedText
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.android.ext.android.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class AppIpRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet.WireguardDismissListener {
-    private var _binding: BottomSheetAppConnectionsBinding? = null
-
-    // This property is only valid between onCreateView and onDestroyView.
-    private val b
-        get() = _binding!!
+class AppIpRulesDialog(
+    private val activity: FragmentActivity,
+    private val uid: Int,
+    private val ipAddress: String,
+    private val domains: String,
+    private val position: Int,
+    private val onDismiss: (Int) -> Unit
+) : KoinComponent, WireguardListDialog.WireguardDismissListener {
+    private val b = BottomSheetAppConnectionsBinding.inflate(LayoutInflater.from(activity))
+    private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()
 
-    // listener to inform dataset change to the adapter
-    private var dismissListener: OnBottomSheetDialogFragmentDismiss? = null
-    private var adapter: AppWiseIpsAdapter? = null
-    private var position: Int = -1
-
     private var ci: CustomIp? = null
-
-    override fun getTheme(): Int =
-        getBottomsheetCurrentTheme(isDarkThemeOn(), persistentState.theme)
-
-    private var uid: Int = -1
-    private var ipAddress: String = ""
     private var ipRule: IpRulesManager.IpRuleStatus = IpRulesManager.IpRuleStatus.NONE
-    private var domains: String = ""
 
     companion object {
-        const val UID = "UID"
-        const val IP_ADDRESS = "IP_ADDRESS"
-        const val DOMAINS = "DOMAINS"
         private const val TAG = "AppIpRulesBtmSht"
     }
 
-    private fun isDarkThemeOn(): Boolean {
-        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-            Configuration.UI_MODE_NIGHT_YES
-    }
-
-    interface OnBottomSheetDialogFragmentDismiss {
-        fun notifyDataset(position: Int)
-    }
-
-    fun dismissListener(aca: AppWiseIpsAdapter?, pos: Int) {
-        adapter = aca
-        position = pos
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = BottomSheetAppConnectionsBinding.inflate(inflater, container, false)
-        return b.root
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    override fun onStart() {
-        super.onStart()
-        dialog?.useTransparentNoDimBackground()
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        dialog?.window?.let { window ->
-            if (isAtleastQ()) {
-                val controller = WindowInsetsControllerCompat(window, window.decorView)
-                controller.isAppearanceLightNavigationBars = false
-                window.isNavigationBarContrastEnforced = false
+    init {
+        dialog.setContentView(b.root)
+        dialog.setOnShowListener {
+            dialog.useTransparentNoDimBackground()
+            dialog.window?.let { window ->
+                if (isAtleastQ()) {
+                    val controller = WindowInsetsControllerCompat(window, window.decorView)
+                    controller.isAppearanceLightNavigationBars = false
+                    window.isNavigationBarContrastEnforced = false
+                }
             }
         }
-        uid = arguments?.getInt(UID) ?: INVALID_UID
-        ipAddress = arguments?.getString(IP_ADDRESS) ?: ""
-        domains = arguments?.getString(DOMAINS) ?: ""
-
-        dismissListener = adapter
+        dialog.setOnDismissListener { onDismiss(position) }
 
         init()
         initializeClickListeners()
         setRulesUi()
     }
 
+    fun show() {
+        dialog.show()
+    }
+
+    private fun getThemeId(): Int {
+        val isDark =
+            activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+                Configuration.UI_MODE_NIGHT_YES
+        return getBottomsheetCurrentTheme(isDark, persistentState.theme)
+    }
+
     private fun init() {
         if (uid == INVALID_UID) {
-            this.dismiss()
+            dialog.dismiss()
             return
         }
 
@@ -157,8 +120,8 @@ class AppIpRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet
         updateAppDetails()
         b.bsacIpAddressTv.text = ipAddress
 
-        b.bsacIpRuleTxt.text = htmlToSpannedText(getString(R.string.bsct_block_ip))
-        b.bsacDomainRuleTxt.text = htmlToSpannedText(getString(R.string.bsct_block_domain))
+        b.bsacIpRuleTxt.text = htmlToSpannedText(activity.getString(R.string.bsct_block_ip))
+        b.bsacDomainRuleTxt.text = htmlToSpannedText(activity.getString(R.string.bsct_block_domain))
 
         setupRecycler()
     }
@@ -179,7 +142,7 @@ class AppIpRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet
                 if (appCount >= 1) {
                     b.bsacAppName.text =
                         if (appCount >= 2) {
-                            getString(
+                            activity.getString(
                                 R.string.ctbs_app_other_apps,
                                 appNames[0],
                                 appCount.minus(1).toString()
@@ -188,10 +151,8 @@ class AppIpRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet
                             appNames[0]
                         }
                     if (pkgName == null) return@uiCtx
-                    b.bsacAppIcon.setImageDrawable(Utilities.getIcon(requireContext(), pkgName))
+                    b.bsacAppIcon.setImageDrawable(Utilities.getIcon(activity, pkgName))
                 } else {
-                    // apps which are not available in cache are treated as non app.
-                    // TODO: check packageManager#getApplicationInfo() for appInfo
                     handleNonApp()
                 }
             }
@@ -212,47 +173,29 @@ class AppIpRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet
         val list = domains.split(",").toTypedArray()
 
         b.bsacDomainList.setHasFixedSize(true)
-        val layoutManager = CustomLinearLayoutManager(requireContext())
+        val layoutManager = CustomLinearLayoutManager(activity)
         b.bsacDomainList.layoutManager = layoutManager
 
-        val recyclerAdapter = DomainRulesBtmSheetAdapter(requireContext(), uid, list)
+        val recyclerAdapter = DomainRulesBtmSheetAdapter(activity, uid, list)
         b.bsacDomainList.adapter = recyclerAdapter
     }
 
     private fun setRulesUi() {
         io {
-            // no need to send port number for the app info screen
             ipRule = IpRulesManager.getMostSpecificRuleMatch(uid, ipAddress)
             Logger.d(LOG_TAG_FIREWALL, "$TAG set selection of ip: $ipAddress, ${ipRule.id}")
             uiCtx {
                 when (ipRule) {
-                    IpRulesManager.IpRuleStatus.TRUST -> {
-                        enableTrustUi()
-                    }
-                    IpRulesManager.IpRuleStatus.BLOCK -> {
-                        enableBlockUi()
-                    }
-                    IpRulesManager.IpRuleStatus.NONE -> {
-                        noRuleUi()
-                    }
-                    IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL -> {
-                        noRuleUi()
-                    }
+                    IpRulesManager.IpRuleStatus.TRUST -> enableTrustUi()
+                    IpRulesManager.IpRuleStatus.BLOCK -> enableBlockUi()
+                    IpRulesManager.IpRuleStatus.NONE -> noRuleUi()
+                    IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL -> noRuleUi()
                 }
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (uid == INVALID_UID) {
-            this.dismiss()
-            return
-        }
-    }
-
     private fun initializeClickListeners() {
-
         b.blockIcon.setOnClickListener {
             if (ipRule == IpRulesManager.IpRuleStatus.BLOCK) {
                 applyIpRule(IpRulesManager.IpRuleStatus.NONE)
@@ -274,8 +217,7 @@ class AppIpRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet
         }
 
         b.chooseProxyRl.setOnClickListener {
-            val ctx = requireContext()
-            var v: MutableList<WgConfigFilesImmutable?> = mutableListOf()
+            val v: MutableList<WgConfigFilesImmutable?> = mutableListOf()
             io {
                 v.add(null)
                 v.addAll(WireguardManager.getAllMappings())
@@ -283,8 +225,8 @@ class AppIpRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet
                     Logger.w(LOG_TAG_UI, "$TAG No Wireguard configs found")
                     uiCtx {
                         Utilities.showToastUiCentered(
-                            ctx,
-                            getString(R.string.wireguard_no_config_msg),
+                            activity,
+                            activity.getString(R.string.wireguard_no_config_msg),
                             Toast.LENGTH_SHORT
                         )
                     }
@@ -292,19 +234,20 @@ class AppIpRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet
                 }
                 uiCtx {
                     Logger.v(LOG_TAG_UI, "$TAG show wg list(${v.size}) for ${ci?.ipAddress ?: ""}")
-                    showWgListBtmSheet(v)
+                    showWgListDialog(v)
                 }
             }
         }
     }
 
-    private fun showWgListBtmSheet(data: List<WgConfigFilesImmutable?>) {
-        val bottomSheetFragment =
-            WireguardListBtmSheet.newInstance(WireguardListBtmSheet.InputType.IP, ci, data, this)
-        bottomSheetFragment.show(
-            requireActivity().supportFragmentManager,
-            bottomSheetFragment.tag
-        )
+    private fun showWgListDialog(data: List<WgConfigFilesImmutable?>) {
+        WireguardListDialog(
+            activity,
+            WireguardListDialog.InputType.IP,
+            ci,
+            data,
+            this
+        ).show()
     }
 
     private fun applyIpRule(status: IpRulesManager.IpRuleStatus) {
@@ -313,40 +256,34 @@ class AppIpRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet
         val ipPair = IpRulesManager.getIpNetPort(ipAddress)
         val ip = ipPair.first ?: return
 
-        // set port number as null for all the rules applied from this screen
         io { IpRulesManager.addIpRule(uid, ip, null, status, proxyId = "", proxyCC = "") }
         logEvent("IP Rule set to ${status.name} for IP: $ipAddress, UID: $uid")
     }
 
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-        dismissListener?.notifyDataset(position)
-    }
-
     private fun enableTrustUi() {
         b.trustIcon.setImageDrawable(
-            ContextCompat.getDrawable(requireContext(), R.drawable.ic_trust_accent)
+            ContextCompat.getDrawable(activity, R.drawable.ic_trust_accent)
         )
         b.blockIcon.setImageDrawable(
-            ContextCompat.getDrawable(requireContext(), R.drawable.ic_block)
+            ContextCompat.getDrawable(activity, R.drawable.ic_block)
         )
     }
 
     private fun enableBlockUi() {
         b.trustIcon.setImageDrawable(
-            ContextCompat.getDrawable(requireContext(), R.drawable.ic_trust)
+            ContextCompat.getDrawable(activity, R.drawable.ic_trust)
         )
         b.blockIcon.setImageDrawable(
-            ContextCompat.getDrawable(requireContext(), R.drawable.ic_block_accent)
+            ContextCompat.getDrawable(activity, R.drawable.ic_block_accent)
         )
     }
 
     private fun noRuleUi() {
         b.trustIcon.setImageDrawable(
-            ContextCompat.getDrawable(requireContext(), R.drawable.ic_trust)
+            ContextCompat.getDrawable(activity, R.drawable.ic_trust)
         )
         b.blockIcon.setImageDrawable(
-            ContextCompat.getDrawable(requireContext(), R.drawable.ic_block)
+            ContextCompat.getDrawable(activity, R.drawable.ic_block)
         )
     }
 
@@ -355,7 +292,7 @@ class AppIpRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet
     }
 
     private fun io(f: suspend () -> Unit) {
-        lifecycleScope.launch(Dispatchers.IO) { f() }
+        activity.lifecycleScope.launch(Dispatchers.IO) { f() }
     }
 
     private suspend fun uiCtx(f: suspend () -> Unit) {

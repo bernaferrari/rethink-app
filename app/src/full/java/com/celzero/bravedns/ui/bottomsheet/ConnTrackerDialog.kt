@@ -22,19 +22,18 @@ import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
-import android.os.Bundle
 import android.text.Spanned
 import android.text.TextUtils
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.AdapterView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.FirewallStatusSpinnerAdapter
@@ -65,87 +64,62 @@ import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.bravedns.util.useTransparentNoDimBackground
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
-import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.android.ext.android.inject
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 import java.util.Locale
 
-class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
-
-    private var _binding: BottomSheetConnTrackBinding? = null
-
-    // This property is only valid between onCreateView and onDestroyView.
-    private val b
-        get() = _binding!!
-
-    private var info: ConnectionTracker? = null
-
-    companion object {
-        const val INSTANCE_STATE_IPDETAILS = "IPDETAILS"
-        const val INSTANCE_OBJ_RETHINKLOG = "RETHINKLOG"
-    }
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = BottomSheetConnTrackBinding.inflate(inflater, container, false)
-        return b.root
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    override fun getTheme(): Int =
-        Themes.getBottomsheetCurrentTheme(isDarkThemeOn(), persistentState.theme)
+class ConnTrackerDialog(
+    private val activity: FragmentActivity,
+    private val info: ConnectionTracker
+) : KoinComponent {
+    private val b = BottomSheetConnTrackBinding.inflate(LayoutInflater.from(activity))
+    private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        dialog?.window?.let { window ->
-            if (isAtleastQ()) {
-                val controller = WindowInsetsControllerCompat(window, window.decorView)
-                controller.isAppearanceLightNavigationBars = false
-                window.isNavigationBarContrastEnforced = false
+    init {
+        dialog.setContentView(b.root)
+        dialog.setOnShowListener {
+            dialog.useTransparentNoDimBackground()
+            dialog.window?.let { window ->
+                if (isAtleastQ()) {
+                    val controller = WindowInsetsControllerCompat(window, window.decorView)
+                    controller.isAppearanceLightNavigationBars = false
+                    window.isNavigationBarContrastEnforced = false
+                }
             }
         }
-
-        val data = arguments?.getString(INSTANCE_STATE_IPDETAILS)
-        info = Gson().fromJson(data, ConnectionTracker::class.java)
         initView()
+        refreshFirewallRulesUi()
     }
 
-    private fun isDarkThemeOn(): Boolean {
-        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-            Configuration.UI_MODE_NIGHT_YES
+    fun show() {
+        dialog.show()
+        refreshFirewallRulesUi()
+    }
+
+    private fun getThemeId(): Int {
+        val isDark =
+            activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+                Configuration.UI_MODE_NIGHT_YES
+        return Themes.getBottomsheetCurrentTheme(isDark, persistentState.theme)
     }
 
     private fun initView() {
-        if (info == null) {
-            Logger.w(LOG_TAG_FIREWALL, "ip-details missing: initView called before onViewCreated?")
-            this.dismiss()
-            return
-        }
+        b.bsConnConnectionTypeHeading.text = info.ipAddress.orEmpty()
+        b.bsConnConnectionFlag.text = info.flag.orEmpty()
 
-        b.bsConnConnectionTypeHeading.text = info?.ipAddress.orEmpty()
-        b.bsConnConnectionFlag.text = info?.flag.orEmpty()
-
-        b.bsConnBlockAppTxt.text = htmlToSpannedText(getString(R.string.bsct_block))
-        b.bsConnBlockConnAllTxt.text = htmlToSpannedText(getString(R.string.bsct_block_ip))
-        b.bsConnDomainTxt.text = htmlToSpannedText(getString(R.string.bsct_block_domain))
+        b.bsConnBlockAppTxt.text = htmlToSpannedText(activity.getString(R.string.bsct_block))
+        b.bsConnBlockConnAllTxt.text = htmlToSpannedText(activity.getString(R.string.bsct_block_ip))
+        b.bsConnDomainTxt.text = htmlToSpannedText(activity.getString(R.string.bsct_block_domain))
 
         // updates the application name and other details
         updateAppDetails()
@@ -160,20 +134,13 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
         // setup click and item selected listeners
         setupClickListeners()
         // updates the ip rules button
-        info?.let { updateIpRulesUi(it.uid, it.ipAddress) }
+        info.let { updateIpRulesUi(it.uid, it.ipAddress) }
         // updates the value from dns request cache if available
         updateDnsIfAvailable()
     }
 
-    override fun onResume() {
-        super.onResume()
-        if (info == null) {
-            Logger.w(LOG_TAG_FIREWALL, "ip-details missing: initView called before onViewCreated?")
-            this.dismiss()
-            return
-        }
-        // updates the app firewall's button
-        val uid = info?.uid ?: return
+    private fun refreshFirewallRulesUi() {
+        val uid = info.uid
         io {
             val appStatus = FirewallManager.appStatus(uid)
             val connStatus = FirewallManager.connectionStatus(uid)
@@ -181,15 +148,10 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
         }
     }
 
-    override fun onStart() {
-        super.onStart()
-        dialog?.useTransparentNoDimBackground()
-    }
-
     private fun updateDnsIfAvailable() {
-        val domain = info?.dnsQuery
-        val uid = info?.uid
-        val flag = info?.flag
+        val domain = info.dnsQuery
+        val uid = info.uid
+        val flag = info.flag
 
         if (domain.isNullOrEmpty() || uid == null) {
             b.bsConnDnsCacheText.visibility = View.VISIBLE
@@ -202,8 +164,7 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
         b.bsConnDomainSpinner.setSelection(status.id)
         b.bsConnDnsCacheText.visibility = View.VISIBLE
         b.bsConnDnsCacheText.text =
-            requireContext()
-                .getString(R.string.two_argument, UIUtils.getCountryNameFromFlag(flag), domain)
+            activity.getString(R.string.two_argument, UIUtils.getCountryNameFromFlag(flag), domain)
     }
 
     private fun updateConnDetailsChip() {
@@ -224,44 +185,44 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
         val protocolDetails = "$protocol/${currentInfo.port}"
         if (currentInfo.isBlocked) {
             b.bsConnTrackPortDetailChip.text =
-                getString(R.string.bsct_conn_desc_blocked, protocolDetails, time)
+                activity.getString(R.string.bsct_conn_desc_blocked, protocolDetails, time)
             return
         }
 
         b.bsConnTrackPortDetailChip.text =
-            getString(R.string.bsct_conn_desc_allowed, protocolDetails, time)
+            activity.getString(R.string.bsct_conn_desc_allowed, protocolDetails, time)
     }
 
     private fun updateBlockedRulesChip() {
-        if (info?.blockedByRule.isNullOrBlank()) {
-            b.bsConnTrackAppInfo.text = getString(R.string.firewall_rule_no_rule)
+        if (info.blockedByRule.isNullOrBlank()) {
+            b.bsConnTrackAppInfo.text = activity.getString(R.string.firewall_rule_no_rule)
             return
         }
 
-        val rule = info?.blockedByRule ?: return
-        val isIpnProxy = isNotLocalAndRpnProxy(info?.proxyDetails ?: "")
+        val rule = info.blockedByRule ?: return
+        val isIpnProxy = isNotLocalAndRpnProxy(info.proxyDetails ?: "")
         // TODO: below code is not required, remove it in future (20/03/2023)
         if (rule.contains(FirewallRuleset.RULE2G.id)) {
             b.bsConnTrackAppInfo.text =
-                getFirewallRule(FirewallRuleset.RULE2G.id)?.title?.let { getString(it) }
+                getFirewallRule(FirewallRuleset.RULE2G.id)?.title?.let { activity.getString(it) }
             return
-        } else if (!info?.proxyDetails.isNullOrEmpty() && isIpnProxy) {
+        } else if (!info.proxyDetails.isNullOrEmpty() && isIpnProxy) {
             // add the proxy id to the chip text if available
-            b.bsConnTrackAppInfo.text = getString(R.string.two_argument_colon, getString(FirewallRuleset.RULE12.title), info?.proxyDetails)
+            b.bsConnTrackAppInfo.text = activity.getString(R.string.two_argument_colon, activity.getString(FirewallRuleset.RULE12.title), info.proxyDetails)
         } else {
             if (isInvalidProxyDetails()) {
-                b.bsConnTrackAppInfo.text = getString(getFirewallRule(FirewallRuleset.RULE18.id)?.title ?: R.string.firewall_rule_no_rule)
+                b.bsConnTrackAppInfo.text = activity.getString(getFirewallRule(FirewallRuleset.RULE18.id)?.title ?: R.string.firewall_rule_no_rule)
             } else {
-                b.bsConnTrackAppInfo.text = getFirewallRule(rule)?.title?.let { getString(it) }
+                b.bsConnTrackAppInfo.text = getFirewallRule(rule)?.title?.let { activity.getString(it) }
             }
         }
     }
 
     private fun isInvalidProxyDetails(): Boolean {
-        val isIpnProxy = isNotLocalAndRpnProxy(info?.proxyDetails ?: "")
-        val rule = info?.blockedByRule ?: return false
+        val isIpnProxy = isNotLocalAndRpnProxy(info.proxyDetails ?: "")
+        val rule = info.blockedByRule ?: return false
         val isRuleAddedAsProxy = getFirewallRule(rule)?.id == FirewallRuleset.RULE12.id
-        if (isRuleAddedAsProxy && (info?.proxyDetails.isNullOrEmpty() || !isIpnProxy)) {
+        if (isRuleAddedAsProxy && (info.proxyDetails.isNullOrEmpty() || !isIpnProxy)) {
             // when the conn is marked as proxied with id from flow, but the returned summary
             // doesn't have the proxy details. change the rule from proxied to error (RULE1C)
             return true
@@ -286,7 +247,7 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
                     b.bsConnBlockedRule2HeaderLl.visibility = View.GONE
                     b.bsConnTrackAppName.text =
                         if (appCount >= 2) {
-                            getString(
+                            activity.getString(
                                 R.string.ctbs_app_other_apps,
                                 appNames[0],
                                 appCount.minus(1).toString()
@@ -296,7 +257,7 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
                         }
                     if (pkgName == null) return@uiCtx
                     b.bsConnTrackAppIcon.setImageDrawable(
-                        getIcon(requireContext(), pkgName, info?.appName)
+                        getIcon(activity, pkgName, info.appName)
                     )
                 } else {
                     // apps which are not available in cache are treated as non app.
@@ -313,50 +274,50 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
         if (Logger.LoggerLevel.fromId(persistentState.goLoggerLevel.toInt())
                 .isLessThan(Logger.LoggerLevel.DEBUG)
         ) {
-            b.connectionMessage.text = "${info?.proxyDetails}; ${info?.rpid}; ${info?.connId}; ${info?.message}; ${info?.synack}"
+            b.connectionMessage.text = "${info.proxyDetails}; ${info.rpid}; ${info.connId}; ${info.message}; ${info.synack}"
         } else {
-            b.connectionMessage.text = info?.message
+            b.connectionMessage.text = info.message
         }
 
         val currentInfo = info
         if (currentInfo != null && VpnController.hasCid(currentInfo.connId, currentInfo.uid)) {
             b.bsConnConnDuration.text =
-                getString(
+                activity.getString(
                     R.string.two_argument_space,
-                    getString(R.string.lbl_active),
-                    getString(R.string.symbol_green_circle)
+                    activity.getString(R.string.lbl_active),
+                    activity.getString(R.string.symbol_green_circle)
                 )
         } else {
             b.bsConnConnDuration.text =
-                getString(
+                activity.getString(
                     R.string.two_argument_space,
-                    getString(R.string.symbol_hyphen),
-                    getString(R.string.symbol_clock)
+                    activity.getString(R.string.symbol_hyphen),
+                    activity.getString(R.string.symbol_clock)
                 )
         }
 
-        val connType = ConnectionTracker.ConnType.get(info?.connType)
+        val connType = ConnectionTracker.ConnType.get(info.connType)
         if (connType.isMetered()) {
             b.bsConnConnType.text =
-                getString(
+                activity.getString(
                     R.string.two_argument_space,
-                    getString(R.string.ada_app_metered),
-                    getString(R.string.symbol_currency)
+                    activity.getString(R.string.ada_app_metered),
+                    activity.getString(R.string.symbol_currency)
                 )
         } else {
             b.bsConnConnType.text =
-                getString(
+                activity.getString(
                     R.string.two_argument_space,
-                    getString(R.string.ada_app_unmetered),
-                    getString(R.string.symbol_global)
+                    activity.getString(R.string.ada_app_unmetered),
+                    activity.getString(R.string.symbol_global)
                 )
         }
 
         if (
-            info?.message?.isEmpty() == true &&
-                info?.duration == 0 &&
-                info?.downloadBytes == 0L &&
-                info?.uploadBytes == 0L
+            info.message?.isEmpty() == true &&
+                info.duration == 0 &&
+                info.downloadBytes == 0L &&
+                info.uploadBytes == 0L
         ) {
             b.bsConnSummaryDetailLl.visibility = View.GONE
             b.bsConnConnTypeSecondary.visibility = View.VISIBLE
@@ -366,49 +327,49 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
 
         b.connectionMessageLl.visibility = View.VISIBLE
         val downloadBytes =
-            getString(
+            activity.getString(
                 R.string.symbol_download,
-                Utilities.humanReadableByteCount(info?.downloadBytes ?: 0L, true)
+                Utilities.humanReadableByteCount(info.downloadBytes ?: 0L, true)
             )
         val uploadBytes =
-            getString(
+            activity.getString(
                 R.string.symbol_upload,
-                Utilities.humanReadableByteCount(info?.uploadBytes ?: 0L, true)
+                Utilities.humanReadableByteCount(info.uploadBytes ?: 0L, true)
             )
 
         b.bsConnConnUpload.text = uploadBytes
         b.bsConnConnDownload.text = downloadBytes
-        val duration = UIUtils.getDurationInHumanReadableFormat(requireContext(), info?.duration ?: 0)
+        val duration = UIUtils.getDurationInHumanReadableFormat(activity, info.duration ?: 0)
         b.bsConnConnDuration.text =
-            getString(R.string.two_argument_space, duration, getString(R.string.symbol_clock))
+            activity.getString(R.string.two_argument_space, duration, activity.getString(R.string.symbol_clock))
     }
 
     private fun lightenUpChip() {
         // Load icons for the firewall rules if available
         b.bsConnTrackAppInfo.chipIcon =
             ContextCompat.getDrawable(
-                requireContext(),
-                FirewallRuleset.getRulesIcon(info?.blockedByRule)
+                activity,
+                FirewallRuleset.getRulesIcon(info.blockedByRule)
             )
-        if (info?.isBlocked == true || isInvalidProxyDetails()) {
-            b.bsConnTrackAppInfo.setTextColor(fetchColor(requireContext(), R.attr.chipTextNegative))
+        if (info.isBlocked == true || isInvalidProxyDetails()) {
+            b.bsConnTrackAppInfo.setTextColor(fetchColor(activity, R.attr.chipTextNegative))
             val colorFilter =
                 PorterDuffColorFilter(
-                    fetchColor(requireContext(), R.attr.chipTextNegative),
+                    fetchColor(activity, R.attr.chipTextNegative),
                     PorterDuff.Mode.SRC_IN
                 )
             b.bsConnTrackAppInfo.chipBackgroundColor =
-                ColorStateList.valueOf(fetchColor(requireContext(), R.attr.chipBgColorNegative))
+                ColorStateList.valueOf(fetchColor(activity, R.attr.chipBgColorNegative))
             b.bsConnTrackAppInfo.chipIcon?.colorFilter = colorFilter
         } else {
-            b.bsConnTrackAppInfo.setTextColor(fetchColor(requireContext(), R.attr.chipTextPositive))
+            b.bsConnTrackAppInfo.setTextColor(fetchColor(activity, R.attr.chipTextPositive))
             val colorFilter =
                 PorterDuffColorFilter(
-                    fetchColor(requireContext(), R.attr.chipTextPositive),
+                    fetchColor(activity, R.attr.chipTextPositive),
                     PorterDuff.Mode.SRC_IN
                 )
             b.bsConnTrackAppInfo.chipBackgroundColor =
-                ColorStateList.valueOf(fetchColor(requireContext(), R.attr.chipBgColorPositive))
+                ColorStateList.valueOf(fetchColor(activity, R.attr.chipBgColorPositive))
             b.bsConnTrackAppInfo.chipIcon?.colorFilter = colorFilter
         }
     }
@@ -419,7 +380,7 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
         // hide the app firewall layout
         b.bsConnBlockedRule1HeaderLl.visibility = View.GONE
         b.bsConnUnknownAppCheck.isChecked = persistentState.getBlockUnknownConnections()
-        b.bsConnTrackAppName.text = info?.appName.orEmpty()
+        b.bsConnTrackAppName.text = info.appName.orEmpty()
     }
 
     private fun setupClickListeners() {
@@ -433,18 +394,18 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
             logEvent("Universal firewall setting changed", "Block unknown apps: ${b.bsConnUnknownAppCheck.isChecked}")
         }
 
-        b.bsConnTrackAppInfo.setOnClickListener { showFirewallRulesDialog(info?.blockedByRule) }
+        b.bsConnTrackAppInfo.setOnClickListener { showFirewallRulesDialog(info.blockedByRule) }
 
         b.bsConnTrackAppNameHeader.setOnClickListener {
-            val uid = info?.uid ?: return@setOnClickListener
+            val uid = info.uid
             io {
                 val ai = FirewallManager.getAppInfoByUid(uid)
                 uiCtx {
                     // case: app is uninstalled but still available in RethinkDNS database
                     if (ai == null || uid == Constants.INVALID_UID) {
                         showToastUiCentered(
-                            requireContext(),
-                            getString(R.string.ct_bs_app_info_error),
+                            activity,
+                            activity.getString(R.string.ct_bs_app_info_error),
                             Toast.LENGTH_SHORT
                         )
                         return@uiCtx
@@ -457,8 +418,8 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
         // spinner to show firewall rules
         b.bsConnFirewallSpinner.adapter =
             FirewallStatusSpinnerAdapter(
-                requireContext(),
-                FirewallManager.getLabel(requireContext())
+                activity,
+                FirewallManager.getLabel(activity)
             )
         b.bsConnFirewallSpinner.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
@@ -474,7 +435,7 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
                     val connStatus = FirewallManager.ConnectionStatus.getStatusByLabel(position)
 
                     // no change, prev selection and current selection are same
-                    val uid = info?.uid ?: return
+                    val uid = info.uid
                     io {
                         val a = FirewallManager.appStatus(uid)
                         val c = FirewallManager.connectionStatus(uid)
@@ -486,8 +447,8 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
                                 // reset the spinner to previous selection
                                 updateFirewallRulesUi(a, c)
                                 showToastUiCentered(
-                                    requireContext(),
-                                    getString(R.string.hsf_exclude_error),
+                                    activity,
+                                    activity.getString(R.string.hsf_exclude_error),
                                     Toast.LENGTH_LONG
                                 )
                             }
@@ -500,8 +461,8 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
                                 // reset the spinner to previous selection
                                 updateFirewallRulesUi(a, c)
                                 showToastUiCentered(
-                                    requireContext(),
-                                    requireContext().getString(R.string.exclude_no_package_err_toast),
+                                    activity,
+                                    activity.getString(R.string.exclude_no_package_err_toast),
                                     Toast.LENGTH_LONG
                                 )
                             }
@@ -510,7 +471,7 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
 
                         Logger.i(
                             LOG_TAG_FIREWALL,
-                            "Change in firewall rule for app uid: ${info?.uid}, firewall status: $fStatus, conn status: $connStatus"
+                            "Change in firewall rule for app uid: ${info.uid}, firewall status: $fStatus, conn status: $connStatus"
                         )
                         applyFirewallRule(fStatus, connStatus)
                     }
@@ -521,8 +482,8 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
 
         b.bsConnIpRuleSpinner.adapter =
             FirewallStatusSpinnerAdapter(
-                requireContext(),
-                IpRulesManager.IpRuleStatus.getLabel(requireContext())
+                activity,
+                IpRulesManager.IpRuleStatus.getLabel(activity)
             )
         b.bsConnIpRuleSpinner.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
@@ -544,8 +505,8 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
 
         b.bsConnDomainSpinner.adapter =
             FirewallStatusSpinnerAdapter(
-                requireContext(),
-                DomainRulesManager.Status.getLabel(requireContext())
+                activity,
+                DomainRulesManager.Status.getLabel(activity)
             )
         b.bsConnDomainSpinner.onItemSelectedListener =
             object : AdapterView.OnItemSelectedListener {
@@ -555,8 +516,8 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
                     position: Int,
                     id: Long
                 ) {
-                    val dnsQuery = info?.dnsQuery
-                    val uid = info?.uid
+                    val dnsQuery = info.dnsQuery
+                    val uid = info.uid
                     if (dnsQuery == null) {
                         Logger.w(LOG_TAG_FIREWALL, "DNS query is null, cannot apply domain rule")
                         return
@@ -579,10 +540,10 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
     }
 
     private fun openAppDetailActivity(uid: Int) {
-        this.dismiss()
-        val intent = Intent(requireContext(), AppInfoActivity::class.java)
+        dialog.dismiss()
+        val intent = Intent(activity, AppInfoActivity::class.java)
         intent.putExtra(AppInfoActivity.INTENT_UID, uid)
-        requireContext().startActivity(intent)
+        activity.startActivity(intent)
     }
 
     private fun updateFirewallRulesUi(
@@ -637,8 +598,8 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
     private fun showFirewallRulesDialog(blockedRule: String?) {
         if (blockedRule == null) return
 
-        val dialogBinding = DialogInfoRulesLayoutBinding.inflate(layoutInflater)
-        val builder = MaterialAlertDialogBuilder(requireContext(), R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+        val dialogBinding = DialogInfoRulesLayoutBinding.inflate(activity.layoutInflater)
+        val builder = MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
         val lp = WindowManager.LayoutParams()
         val dialog = builder.create()
         dialog.show()
@@ -661,11 +622,11 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
             val group: Multimap<String, String> = HashMultimap.create()
 
             val blocklists =
-                if (info?.blocklists?.isEmpty() == true) {
+                if (info.blocklists?.isEmpty() == true) {
                     val startIndex = blockedRule.indexOfFirst { it == '|' }
                     blockedRule.substring(startIndex + 1).split(",")
                 } else {
-                    info?.blocklists?.split(",") ?: listOf()
+                    info.blocklists?.split(",") ?: listOf()
                 }
 
             blocklists.forEach {
@@ -681,29 +642,29 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
                 if (groupCount > 1) {
                     "${group.keys().firstOrNull()} +${groupCount - 1}"
                 } else if (groupCount == 1) {
-                    group.keys().firstOrNull() ?: getString(R.string.firewall_rule_no_rule)
+                    group.keys().firstOrNull() ?: activity.getString(R.string.firewall_rule_no_rule)
                 } else {
                     val tempDesc =
-                        getFirewallRule(FirewallRuleset.RULE2G.id)?.let { getString(it.desc) }
-                            ?: getString(R.string.firewall_rule_no_rule_desc)
+                        getFirewallRule(FirewallRuleset.RULE2G.id)?.let { activity.getString(it.desc) }
+                            ?: activity.getString(R.string.firewall_rule_no_rule_desc)
                     descText = htmlToSpannedText(tempDesc)
-                    getFirewallRule(FirewallRuleset.RULE2G.id)?.let { getString(it.title) }
-                        ?: getString(R.string.firewall_rule_no_rule)
+                    getFirewallRule(FirewallRuleset.RULE2G.id)?.let { activity.getString(it.title) }
+                        ?: activity.getString(R.string.firewall_rule_no_rule)
                 }
         } else {
             headingText =
-                getFirewallRule(blockedRule)?.let { getString(it.title) }
-                    ?: getString(R.string.firewall_rule_no_rule)
+                getFirewallRule(blockedRule)?.let { activity.getString(it.title) }
+                    ?: activity.getString(R.string.firewall_rule_no_rule)
             val tempDesc =
-                getFirewallRule(blockedRule)?.let { getString(it.desc) }
-                    ?: getString(R.string.firewall_rule_no_rule_desc)
+                getFirewallRule(blockedRule)?.let { activity.getString(it.desc) }
+                    ?: activity.getString(R.string.firewall_rule_no_rule_desc)
             descText = htmlToSpannedText(tempDesc)
         }
 
         desc.text = descText
         heading.text = headingText
         icon.setImageDrawable(
-            ContextCompat.getDrawable(requireContext(), FirewallRuleset.getRulesIcon(blockedRule))
+            ContextCompat.getDrawable(activity, FirewallRuleset.getRulesIcon(blockedRule))
         )
 
         okBtn.setOnClickListener { dialog.dismiss() }
@@ -718,7 +679,7 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
                     if (a.isLowerCase()) a.titlecase(Locale.getDefault()) else a.toString()
                 }
             text +=
-                getString(
+                activity.getString(
                     R.string.dns_btm_sheet_dialog_message,
                     heading,
                     groupNames.get(it).count().toString(),
@@ -733,7 +694,7 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
         firewallStatus: FirewallManager.FirewallStatus,
         connStatus: FirewallManager.ConnectionStatus
     ) {
-        val uid = info?.uid ?: return
+        val uid = info.uid
         uiCtx {
             io {
                 FirewallManager.updateFirewallStatus(uid, firewallStatus, connStatus)
@@ -783,7 +744,7 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
         eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, msg, EventSource.UI, false, details)
     }
 
-    private fun io(f: suspend () -> Unit) = lifecycleScope.launch(Dispatchers.IO) { f() }
+    private fun io(f: suspend () -> Unit) = activity.lifecycleScope.launch(Dispatchers.IO) { f() }
 
     private suspend fun uiCtx(f: suspend () -> Unit) = withContext(Dispatchers.Main) { f() }
 }

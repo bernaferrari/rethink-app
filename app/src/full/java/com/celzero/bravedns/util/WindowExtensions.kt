@@ -29,13 +29,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.toDrawable
-import androidx.fragment.app.DialogFragment
-import androidx.fragment.app.Fragment
 import com.celzero.bravedns.R
 import com.celzero.bravedns.util.Utilities.isAtleastR
 import com.celzero.bravedns.util.Utilities.isAtleastS
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import java.util.function.Consumer
 
 /** Utility extension functions to configure Activity/Dialog/BottomSheet window appearance generically. */
@@ -131,18 +128,6 @@ fun BottomSheetDialog.useTransparentNoDimBackground(
     (this as Dialog?)?.useTransparentNoDimBackground(color)
 }
 
-/** Allow calling the helper directly on a DialogFragment/BottomSheetDialogFragment. */
-fun DialogFragment?.useTransparentNoDimBackground(
-    @ColorInt color: Int = Color.TRANSPARENT
-) {
-    this?.dialog?.useTransparentNoDimBackground(color)
-}
-
-fun BottomSheetDialogFragment?.useTransparentNoDimBackground(
-    @ColorInt color: Int = Color.TRANSPARENT
-) {
-    this?.dialog?.useTransparentNoDimBackground(color)
-}
 
 private var frostWasEnabled = false
 
@@ -165,14 +150,4 @@ fun AppCompatActivity.restoreFrost(themeId: Int) {
     if (!frostWasEnabled) return
 
     handleFrostEffectIfNeeded(themeId)
-}
-
-fun Fragment.disableFrostTemporarily() {
-    val activity = activity as? AppCompatActivity ?: return
-    activity.disableFrostTemporarily()
-}
-
-fun Fragment.restoreFrost(themeId: Int) {
-    val activity = activity as? AppCompatActivity ?: return
-    activity.restoreFrost(themeId)
 }

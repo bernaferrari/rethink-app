@@ -20,7 +20,6 @@ import Logger
 import Logger.LOG_TAG_UI
 import android.content.Context
 import android.graphics.drawable.Drawable
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,14 +32,14 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
-import com.celzero.bravedns.database.ConnectionTracker
 import com.celzero.bravedns.database.RethinkLog
 import com.celzero.bravedns.databinding.ListItemConnTrackBinding
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.bottomsheet.ConnTrackerBottomSheet
+import com.celzero.bravedns.database.ConnectionTracker
+import com.celzero.bravedns.ui.bottomsheet.ConnTrackerDialog
 import com.celzero.bravedns.util.Constants.Companion.TIME_FORMAT_1
 import com.celzero.bravedns.util.KnownPorts
 import com.celzero.bravedns.util.Protocol
@@ -132,12 +131,33 @@ class RethinkLogAdapter(private val context: Context) :
                 return
             }
             // ToDo: get rid of rethink btm sht if not required
-            val bottomSheetFragment = ConnTrackerBottomSheet()
-            // see AppIpRulesAdapter.kt#openBottomSheet()
-            val bundle = Bundle()
-            bundle.putString(ConnTrackerBottomSheet.INSTANCE_STATE_IPDETAILS, Gson().toJson(log))
-            bottomSheetFragment.arguments = bundle
-            bottomSheetFragment.show(context.supportFragmentManager, bottomSheetFragment.tag)
+            ConnTrackerDialog(context, toConnectionTracker(log)).show()
+        }
+
+        private fun toConnectionTracker(log: RethinkLog): ConnectionTracker {
+            val tracker = ConnectionTracker()
+            tracker.appName = log.appName
+            tracker.uid = log.uid
+            tracker.usrId = log.usrId
+            tracker.ipAddress = log.ipAddress
+            tracker.port = log.port
+            tracker.protocol = log.protocol
+            tracker.isBlocked = log.isBlocked
+            tracker.blockedByRule = log.blockedByRule
+            tracker.blocklists = log.blocklists
+            tracker.proxyDetails = log.proxyDetails
+            tracker.flag = log.flag
+            tracker.dnsQuery = log.dnsQuery
+            tracker.timeStamp = log.timeStamp
+            tracker.connId = log.connId
+            tracker.downloadBytes = log.downloadBytes
+            tracker.uploadBytes = log.uploadBytes
+            tracker.duration = log.duration
+            tracker.synack = log.synack
+            tracker.rpid = log.rpid
+            tracker.message = log.message
+            tracker.connType = log.connType
+            return tracker
         }
 
         private fun displayTransactionDetails(log: RethinkLog) {

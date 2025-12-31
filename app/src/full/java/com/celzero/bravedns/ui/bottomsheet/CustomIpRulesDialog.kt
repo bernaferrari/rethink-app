@@ -2,19 +2,16 @@ package com.celzero.bravedns.ui.bottomsheet
 
 import Logger
 import Logger.LOG_TAG_UI
-import android.content.DialogInterface
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
-import android.os.Bundle
 import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.lifecycle.LifecycleOwner
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
@@ -36,99 +33,70 @@ import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.android.ext.android.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class CustomIpRulesBtmSheet() :
-    BottomSheetDialogFragment(), ProxyCountriesBtmSheet.CountriesDismissListener, WireguardListBtmSheet.WireguardDismissListener {
-    private var _binding: BottomSheetCustomIpsBinding? = null
-
-    // This property is only valid between onCreateView and onDestroyView.
-    private val b
-        get() = _binding!!
+class CustomIpRulesDialog(
+    private val activity: FragmentActivity,
+    private var ci: CustomIp
+) : KoinComponent,
+    ProxyCountriesDialog.CountriesDismissListener,
+    WireguardListDialog.WireguardDismissListener {
+    private val b = BottomSheetCustomIpsBinding.inflate(LayoutInflater.from(activity))
+    private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()
-    private lateinit var ci: CustomIp
-
-    private fun isDarkThemeOn(): Boolean {
-        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                Configuration.UI_MODE_NIGHT_YES
-    }
 
     companion object {
-        private const val TAG = "CIRBtmSht"
-        private const val ARG_CUSTOM_IP = "custom_ip"
-
-        fun newInstance(customIp: CustomIp): CustomIpRulesBtmSheet {
-            val fragment = CustomIpRulesBtmSheet()
-            val args = Bundle()
-            args.putSerializable(ARG_CUSTOM_IP, customIp)
-            fragment.arguments = args
-            return fragment
-        }
+        private const val TAG = "CIRDialog"
     }
 
-    override fun getTheme(): Int =
-        getBottomsheetCurrentTheme(isDarkThemeOn(), persistentState.theme)
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = BottomSheetCustomIpsBinding.inflate(inflater, container, false)
-        return b.root
-    }
-
-    override fun onStart() {
-        super.onStart()
-        dialog?.useTransparentNoDimBackground()
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        // Retrieve CustomIp from arguments
-        ci = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-            arguments?.getSerializable(ARG_CUSTOM_IP, CustomIp::class.java)
-        } else {
-            @Suppress("DEPRECATION")
-            arguments?.getSerializable(ARG_CUSTOM_IP) as? CustomIp
-        } ?: run {
-            Logger.e(LOG_TAG_UI, "$TAG: CustomIp not found in arguments, dismissing")
-            dismiss()
-            return
-        }
-
-        dialog?.window?.let { window ->
-            if (isAtleastQ()) {
-                val controller = WindowInsetsControllerCompat(window, window.decorView)
-                controller.isAppearanceLightNavigationBars = false
-                window.isNavigationBarContrastEnforced = false
+    init {
+        dialog.setContentView(b.root)
+        dialog.setOnShowListener {
+            dialog.useTransparentNoDimBackground()
+            dialog.window?.let { window ->
+                if (isAtleastQ()) {
+                    val controller = WindowInsetsControllerCompat(window, window.decorView)
+                    controller.isAppearanceLightNavigationBars = false
+                    window.isNavigationBarContrastEnforced = false
+                }
             }
         }
-        Logger.v(LOG_TAG_UI, "$TAG: onViewCreated for ${ci.ipAddress}")
+        dialog.setOnDismissListener {
+            Logger.v(LOG_TAG_UI, "$TAG onDismiss; ip: ${ci.ipAddress}")
+        }
+
+        Logger.v(LOG_TAG_UI, "$TAG view created for ${ci.ipAddress}")
         init()
         initClickListeners()
+    }
+
+    fun show() {
+        dialog.show()
+    }
+
+    private fun getThemeId(): Int {
+        val isDark =
+            activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+                Configuration.UI_MODE_NIGHT_YES
+        return getBottomsheetCurrentTheme(isDark, persistentState.theme)
     }
 
     private fun init() {
         val uid = ci.uid
         io {
             if (uid == UID_EVERYBODY) {
-                b.customIpAppNameTv.text = getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
+                b.customIpAppNameTv.text =
+                    activity.getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
                 b.customIpAppIconIv.visibility = View.GONE
             } else {
                 val appNames = FirewallManager.getAppNamesByUid(ci.uid)
@@ -138,7 +106,7 @@ class CustomIpRulesBtmSheet() :
                     b.customIpAppNameTv.text = appName
                     displayIcon(
                         Utilities.getIcon(
-                            requireContext(),
+                            activity,
                             appInfo?.packageName ?: "",
                             appInfo?.appName ?: ""
                         ),
@@ -147,7 +115,7 @@ class CustomIpRulesBtmSheet() :
                 }
             }
         }
-        Logger.v(LOG_TAG_UI, "$TAG: init for ${ci.ipAddress}, uid: $uid")
+        Logger.v(LOG_TAG_UI, "$TAG init for ${ci.ipAddress}, uid: $uid")
         val rules = IpRuleStatus.getStatus(ci.status)
         b.customIpTv.text = ci.ipAddress
         showBypassUi(uid)
@@ -158,17 +126,17 @@ class CustomIpRulesBtmSheet() :
 
     private fun getAppName(uid: Int, appNames: List<String>): String {
         if (uid == UID_EVERYBODY) {
-            return getString(R.string.firewall_act_universal_tab)
+            return activity.getString(R.string.firewall_act_universal_tab)
                 .replaceFirstChar(Char::titlecase)
         }
 
         if (appNames.isEmpty()) {
-            return getString(R.string.network_log_app_name_unknown) + " ($uid)"
+            return activity.getString(R.string.network_log_app_name_unknown) + " ($uid)"
         }
 
         val packageCount = appNames.count()
         return if (packageCount >= 2) {
-            getString(
+            activity.getString(
                 R.string.ctbs_app_other_apps,
                 appNames[0],
                 packageCount.minus(1).toString()
@@ -179,9 +147,9 @@ class CustomIpRulesBtmSheet() :
     }
 
     private fun displayIcon(drawable: Drawable?, mIconImageView: ImageView) {
-        Glide.with(requireContext())
+        Glide.with(activity)
             .load(drawable)
-            .error(Utilities.getDefaultIcon(requireContext()))
+            .error(Utilities.getDefaultIcon(activity))
             .into(mIconImageView)
     }
 
@@ -202,9 +170,9 @@ class CustomIpRulesBtmSheet() :
             showDialogForDelete()
         }
 
-       /* b.chooseProxyCard.setOnClickListener {
-            val ctx = requireContext()
-            var v: MutableList<WgConfigFilesImmutable?> = mutableListOf()
+        /* b.chooseProxyCard.setOnClickListener {
+            val ctx = activity
+            val v: MutableList<WgConfigFilesImmutable?> = mutableListOf()
             io {
                 v.add(null)
                 v.addAll(WireguardManager.getAllMappings())
@@ -213,7 +181,7 @@ class CustomIpRulesBtmSheet() :
                     uiCtx {
                         Utilities.showToastUiCentered(
                             ctx,
-                            getString(R.string.wireguard_no_config_msg),
+                            activity.getString(R.string.wireguard_no_config_msg),
                             Toast.LENGTH_SHORT
                         )
                     }
@@ -221,7 +189,7 @@ class CustomIpRulesBtmSheet() :
                 }
                 uiCtx {
                     Logger.v(LOG_TAG_UI, "$TAG show wg list(${v.size}) for ${ci.ipAddress}")
-                    showWgListBtmSheet(v)
+                    showWgListDialog(v)
                 }
             }
         }
@@ -233,7 +201,7 @@ class CustomIpRulesBtmSheet() :
                     Logger.w(LOG_TAG_UI, "$TAG No country codes found")
                     uiCtx {
                         Utilities.showToastUiCentered(
-                            requireContext(),
+                            activity,
                             "No country codes found",
                             Toast.LENGTH_SHORT
                         )
@@ -245,14 +213,14 @@ class CustomIpRulesBtmSheet() :
                         LOG_TAG_UI,
                         "$TAG show country list(${ctrys.size}) for ${ci.ipAddress}"
                     )
-                    showProxyCountriesBtmSheet(ctrys)
+                    showProxyCountriesDialog(ctrys)
                 }
             }
         }*/
     }
 
     private val ipRulesGroupListener =
-        MaterialButtonToggleGroup.OnButtonCheckedListener { group, checkedId, isChecked ->
+        MaterialButtonToggleGroup.OnButtonCheckedListener { _, checkedId, isChecked ->
             val b: MaterialButton = b.customIpToggleGroup.findViewById(checkedId)
             val statusId = findSelectedIpRule(getTag(b.tag))
             if (statusId == null) {
@@ -261,18 +229,12 @@ class CustomIpRulesBtmSheet() :
             }
 
             if (isChecked) {
-                // checked change listener is called multiple times, even for position change
-                // so, check if the status has changed or not
-                // also see CustomDomainAdapter#domainRulesGroupListener
                 val hasStatusChanged = ci.status != statusId.id
                 if (hasStatusChanged) {
                     val t = getToggleBtnUiParams(statusId)
-                    // update the toggle button
                     selectToggleBtnUi(b, t)
 
                     changeIpStatus(statusId, ci)
-                } else {
-                    // no-op
                 }
             } else {
                 unselectToggleBtnUi(b)
@@ -302,7 +264,6 @@ class CustomIpRulesBtmSheet() :
     private fun updateStatusUi(status: IpRuleStatus, modifiedTs: Long) {
         val now = System.currentTimeMillis()
         val uptime = System.currentTimeMillis() - modifiedTs
-        // returns a string describing 'time' as a time relative to 'now'
         val time =
             DateUtils.getRelativeTimeSpanString(
                 now - uptime,
@@ -313,35 +274,35 @@ class CustomIpRulesBtmSheet() :
         when (status) {
             IpRuleStatus.TRUST -> {
                 b.customIpLastUpdated.text =
-                    requireContext().getString(
+                    activity.getString(
                         R.string.ci_desc,
-                        requireContext().getString(R.string.ci_trust_txt),
+                        activity.getString(R.string.ci_trust_txt),
                         time
                     )
             }
 
             IpRuleStatus.BLOCK -> {
                 b.customIpLastUpdated.text =
-                    requireContext().getString(
+                    activity.getString(
                         R.string.ci_desc,
-                        requireContext().getString(R.string.lbl_blocked),
+                        activity.getString(R.string.lbl_blocked),
                         time
                     )
             }
 
             IpRuleStatus.NONE -> {
                 b.customIpLastUpdated.text =
-                    requireContext().getString(
+                    activity.getString(
                         R.string.ci_desc,
-                        requireContext().getString(R.string.cd_no_rule_txt),
+                        activity.getString(R.string.cd_no_rule_txt),
                         time
                     )
             }
             IpRuleStatus.BYPASS_UNIVERSAL -> {
                 b.customIpLastUpdated.text =
-                    requireContext().getString(
+                    activity.getString(
                         R.string.ci_desc,
-                        requireContext().getString(R.string.ci_bypass_universal_txt),
+                        activity.getString(R.string.ci_bypass_universal_txt),
                         time
                     )
             }
@@ -360,22 +321,21 @@ class CustomIpRulesBtmSheet() :
             uiCtx {
                 updateToggleGroup(id)
                 updateStatusUi(id, ci.modifiedDateTime)
-                Logger.v(LOG_TAG_UI, "${TAG}: changeIpStatus: ${ci.ipAddress}, status: ${id.name}")
+                Logger.v(LOG_TAG_UI, "$TAG changeIpStatus: ${ci.ipAddress}, status: ${id.name}")
             }
         }
     }
 
     private suspend fun byPassUniversal(orig: CustomIp): CustomIp {
-        Logger.i(LOG_TAG_UI, "$TAG: set ${orig.ipAddress} to bypass universal")
+        Logger.i(LOG_TAG_UI, "$TAG set ${orig.ipAddress} to bypass universal")
         val copy = orig.deepCopy()
-        // status and modified time will be set in updateRule
         IpRulesManager.updateBypass(copy)
         logEvent("Set IP ${copy.ipAddress} to bypass universal")
         return copy
     }
 
     private suspend fun byPassAppRule(orig: CustomIp): CustomIp {
-        Logger.i(LOG_TAG_UI, "$TAG: set ${orig.ipAddress} to bypass app")
+        Logger.i(LOG_TAG_UI, "$TAG set ${orig.ipAddress} to bypass app")
         val copy = orig.deepCopy()
         IpRulesManager.updateTrust(copy)
         logEvent("Set IP ${copy.ipAddress} to trust")
@@ -383,7 +343,7 @@ class CustomIpRulesBtmSheet() :
     }
 
     private suspend fun blockIp(orig: CustomIp): CustomIp {
-        Logger.i(LOG_TAG_UI, "$TAG: block ${orig.ipAddress}")
+        Logger.i(LOG_TAG_UI, "$TAG block ${orig.ipAddress}")
         val copy = orig.deepCopy()
         IpRulesManager.updateBlock(copy)
         logEvent("Blocked IP ${copy.ipAddress}")
@@ -391,7 +351,7 @@ class CustomIpRulesBtmSheet() :
     }
 
     private suspend fun noRuleIp(orig: CustomIp): CustomIp {
-        Logger.i(LOG_TAG_UI, "$TAG: no rule for ${orig.ipAddress}")
+        Logger.i(LOG_TAG_UI, "$TAG no rule for ${orig.ipAddress}")
         val copy = orig.deepCopy()
         IpRulesManager.updateNoRule(copy)
         logEvent("Set no rule for IP ${copy.ipAddress}")
@@ -404,11 +364,11 @@ class CustomIpRulesBtmSheet() :
     }
 
     private fun unselectToggleBtnUi(btn: MaterialButton) {
-        btn.setTextColor(fetchToggleBtnColors(requireContext(), R.color.defaultToggleBtnTxt))
+        btn.setTextColor(fetchToggleBtnColors(activity, R.color.defaultToggleBtnTxt))
         btn.backgroundTintList =
             ColorStateList.valueOf(
                 fetchToggleBtnColors(
-                    requireContext(),
+                    activity,
                     R.color.defaultToggleBtnBg
                 )
             )
@@ -420,29 +380,29 @@ class CustomIpRulesBtmSheet() :
         return when (id) {
             IpRuleStatus.NONE -> {
                 ToggleBtnUi(
-                    fetchColor(requireContext(), R.attr.chipTextNeutral),
-                    fetchColor(requireContext(), R.attr.chipBgColorNeutral)
+                    fetchColor(activity, R.attr.chipTextNeutral),
+                    fetchColor(activity, R.attr.chipBgColorNeutral)
                 )
             }
 
             IpRuleStatus.BLOCK -> {
                 ToggleBtnUi(
-                    fetchColor(requireContext(), R.attr.chipTextNegative),
-                    fetchColor(requireContext(), R.attr.chipBgColorNegative)
+                    fetchColor(activity, R.attr.chipTextNegative),
+                    fetchColor(activity, R.attr.chipBgColorNegative)
                 )
             }
 
             IpRuleStatus.BYPASS_UNIVERSAL -> {
                 ToggleBtnUi(
-                    fetchColor(requireContext(), R.attr.chipTextPositive),
-                    fetchColor(requireContext(), R.attr.chipBgColorPositive)
+                    fetchColor(activity, R.attr.chipTextPositive),
+                    fetchColor(activity, R.attr.chipBgColorPositive)
                 )
             }
 
             IpRuleStatus.TRUST -> {
                 ToggleBtnUi(
-                    fetchColor(requireContext(), R.attr.chipTextPositive),
-                    fetchColor(requireContext(), R.attr.chipBgColorPositive)
+                    fetchColor(activity, R.attr.chipTextPositive),
+                    fetchColor(activity, R.attr.chipBgColorPositive)
                 )
             }
         }
@@ -486,52 +446,53 @@ class CustomIpRulesBtmSheet() :
         }
     }
 
-    // each button in the toggle group is associated with tag value.
-    // tag values are ids of DomainRulesManager.DomainStatus
     private fun getTag(tag: Any): Int {
         return tag.toString().toIntOrNull() ?: 0
     }
 
-    private fun showWgListBtmSheet(data: List<WgConfigFilesImmutable?>) {
-        val bottomSheetFragment = WireguardListBtmSheet.newInstance(WireguardListBtmSheet.InputType.IP, ci, data, this)
-        bottomSheetFragment.show(
-            requireActivity().supportFragmentManager,
-            bottomSheetFragment.tag
-        )
+    private fun showWgListDialog(data: List<WgConfigFilesImmutable?>) {
+        WireguardListDialog(
+            activity,
+            WireguardListDialog.InputType.IP,
+            ci,
+            data,
+            this
+        ).show()
     }
 
-    private fun showProxyCountriesBtmSheet(data: List<String>) {
-        Logger.v(LOG_TAG_UI, "$TAG: show pcc btm sheet for ${ci.ipAddress}")
-        val bottomSheetFragment = ProxyCountriesBtmSheet.newInstance(ProxyCountriesBtmSheet.InputType.IP, ci, data, this)
-        bottomSheetFragment.show(
-            requireActivity().supportFragmentManager,
-            bottomSheetFragment.tag
-        )
+    private fun showProxyCountriesDialog(data: List<String>) {
+        Logger.v(LOG_TAG_UI, "$TAG show pcc dialog for ${ci.ipAddress}")
+        ProxyCountriesDialog(
+            activity,
+            ProxyCountriesDialog.InputType.IP,
+            ci,
+            data,
+            this
+        ).show()
     }
 
     private fun showDialogForDelete() {
-        val builder = MaterialAlertDialogBuilder(requireContext(), R.style.App_Dialog_NoDim)
+        val builder = MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim)
         builder.setTitle(R.string.univ_firewall_dialog_title)
         builder.setMessage(R.string.univ_firewall_dialog_message)
         builder.setCancelable(true)
-        builder.setPositiveButton(requireContext().getString(R.string.lbl_delete)) { _, _ ->
+        builder.setPositiveButton(activity.getString(R.string.lbl_delete)) { _, _ ->
             io { IpRulesManager.removeIpRule(ci.uid, ci.ipAddress, ci.port) }
             Utilities.showToastUiCentered(
-                requireContext(),
-                requireContext().getString(R.string.univ_ip_delete_individual_toast, ci.ipAddress),
+                activity,
+                activity.getString(R.string.univ_ip_delete_individual_toast, ci.ipAddress),
                 Toast.LENGTH_SHORT
             )
-            dismiss()
+            dialog.dismiss()
             logEvent("Deleted custom IP rule for ${ci.ipAddress}")
         }
 
-        builder.setNegativeButton(requireContext().getString(R.string.lbl_cancel)) { _, _ ->
+        builder.setNegativeButton(activity.getString(R.string.lbl_cancel)) { _, _ ->
             updateToggleGroup(IpRuleStatus.getStatus(ci.status))
         }
 
         builder.create().show()
     }
-
 
     override fun onDismissCC(obj: Any?) {
         try {
@@ -540,9 +501,9 @@ class CustomIpRulesBtmSheet() :
             val status = IpRuleStatus.getStatus(cip.status)
             updateToggleGroup(status)
             updateStatusUi(status, cip.modifiedDateTime)
-            Logger.v(LOG_TAG_UI, "$TAG: onDismissCC: ${cip.ipAddress}, ${cip.proxyCC}")
+            Logger.v(LOG_TAG_UI, "$TAG onDismissCC: ${cip.ipAddress}, ${cip.proxyCC}")
         } catch (e: Exception) {
-            Logger.w(LOG_TAG_UI, "$TAG: err in onDismissCC ${e.message}", e)
+            Logger.w(LOG_TAG_UI, "$TAG err in onDismissCC ${e.message}", e)
         }
     }
 
@@ -553,15 +514,10 @@ class CustomIpRulesBtmSheet() :
             val status = IpRuleStatus.getStatus(cip.status)
             updateToggleGroup(status)
             updateStatusUi(status, cip.modifiedDateTime)
-            Logger.v(LOG_TAG_UI, "$TAG: onDismissWg: ${cip.ipAddress}, ${cip.proxyCC}")
+            Logger.v(LOG_TAG_UI, "$TAG onDismissWg: ${cip.ipAddress}, ${cip.proxyCC}")
         } catch (e: Exception) {
-            Logger.w(LOG_TAG_UI, "$TAG: err in onDismissWg ${e.message}", e)
+            Logger.w(LOG_TAG_UI, "$TAG err in onDismissWg ${e.message}", e)
         }
-    }
-
-    override fun onDismiss(dialog: DialogInterface) {
-        super.onDismiss(dialog)
-        Logger.v(LOG_TAG_UI, "$TAG: onDismiss; ip: ${ci.ipAddress}")
     }
 
     private fun logEvent(details: String) {
@@ -569,11 +525,10 @@ class CustomIpRulesBtmSheet() :
     }
 
     private fun io(f: suspend () -> Unit) {
-        (requireContext() as LifecycleOwner).lifecycleScope.launch(Dispatchers.IO) { f() }
+        activity.lifecycleScope.launch(Dispatchers.IO) { f() }
     }
 
     private suspend fun uiCtx(f: suspend () -> Unit) {
         withContext(Dispatchers.Main) { f() }
     }
-
 }

@@ -29,7 +29,6 @@ import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
-import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.PagingDataAdapter
@@ -50,8 +49,7 @@ import com.celzero.bravedns.service.DomainRulesManager.isWildCardEntry
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.ui.activity.CustomRulesActivity
-import com.celzero.bravedns.ui.bottomsheet.CustomDomainRulesBtmSheet
-import com.celzero.bravedns.ui.bottomsheet.CustomDomainRulesBtmSheet.ToggleBtnUi
+import com.celzero.bravedns.ui.bottomsheet.CustomDomainRulesDialog
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities
@@ -63,7 +61,6 @@ import java.net.URI
 
 class CustomDomainAdapter(
     val context: Context,
-    val fragmentManager: FragmentManager,
     val rule: CustomRulesActivity.RULES,
     val eventLogger: EventLogger
 ) :
@@ -72,6 +69,7 @@ class CustomDomainAdapter(
     private val selectedItems = mutableSetOf<CustomDomain>()
     private var isSelectionMode = false
     private lateinit var adapter: CustomDomainAdapter
+    private data class ToggleBtnUi(val txtColor: Int, val bgColor: Int)
 
     companion object {
         private const val TAG = "CustomDomainAdapter"
@@ -638,8 +636,12 @@ class CustomDomainAdapter(
     }
 
     private fun showButtonsBottomSheet(customDomain: CustomDomain) {
-        val bottomSheetFragment = CustomDomainRulesBtmSheet(customDomain)
-        bottomSheetFragment.show(fragmentManager, bottomSheetFragment.tag)
+        val activity = context as? CustomRulesActivity
+        if (activity == null) {
+            Logger.w(LOG_TAG_UI, "$TAG invalid context for custom domain dialog")
+            return
+        }
+        CustomDomainRulesDialog(activity, customDomain).show()
     }
 
     private fun logEvent(details: String) {

@@ -272,7 +272,7 @@ class CustomRulesActivity : AppCompatActivity() {
 
     private fun setupDomainRulesForApp(binding: FragmentCustomDomainBinding, lifecycleOwner: LifecycleOwner) {
         observeCustomDomainRules(binding, lifecycleOwner)
-        domainAdapter = CustomDomainAdapter(this, supportFragmentManager, rules, eventLogger)
+        domainAdapter = CustomDomainAdapter(this, rules, eventLogger)
         binding.cdaRecycler.adapter = domainAdapter
         customDomainViewModel.setUid(uid)
         customDomainViewModel.customDomains.observe(lifecycleOwner) {
@@ -302,7 +302,7 @@ class CustomRulesActivity : AppCompatActivity() {
 
     private fun setupDomainRulesForAll(binding: FragmentCustomDomainBinding, lifecycleOwner: LifecycleOwner) {
         observeAllDomainRules(binding, lifecycleOwner)
-        domainAdapter = CustomDomainAdapter(this, supportFragmentManager, rules, eventLogger)
+        domainAdapter = CustomDomainAdapter(this, rules, eventLogger)
         binding.cdaRecycler.adapter = domainAdapter
         customDomainViewModel.allDomainRules.observe(lifecycleOwner) {
             domainAdapter.submitData(lifecycleOwner.lifecycle, it)

@@ -47,7 +47,7 @@ import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.ui.activity.CustomRulesActivity
-import com.celzero.bravedns.ui.bottomsheet.CustomIpRulesBtmSheet
+import com.celzero.bravedns.ui.bottomsheet.CustomIpRulesDialog
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.celzero.bravedns.util.UIUtils.fetchColor
@@ -292,8 +292,12 @@ class CustomIpAdapter(private val context: Context, private val type: CustomRule
         }
 
         private fun showBtmSheet() {
-            val bottomSheet = CustomIpRulesBtmSheet.newInstance(customIp)
-            bottomSheet.show((context as CustomRulesActivity).supportFragmentManager, bottomSheet.tag)
+            val activity = context as? CustomRulesActivity
+            if (activity == null) {
+                Logger.w(LOG_TAG_UI, "$TAG invalid context for custom ip dialog")
+                return
+            }
+            CustomIpRulesDialog(activity, customIp).show()
         }
 
         private fun toggleSelection(item: CustomIp) {
@@ -472,8 +476,12 @@ class CustomIpAdapter(private val context: Context, private val type: CustomRule
         }
 
         private fun showBtmSheet() {
-            val bottomSheet = CustomIpRulesBtmSheet.newInstance(customIp)
-            bottomSheet.show((context as CustomRulesActivity).supportFragmentManager, bottomSheet.tag)
+            val activity = context as? CustomRulesActivity
+            if (activity == null) {
+                Logger.w(LOG_TAG_UI, "$TAG invalid context for custom ip dialog")
+                return
+            }
+            CustomIpRulesDialog(activity, customIp).show()
         }
 
         private fun toggleSelection(item: CustomIp) {

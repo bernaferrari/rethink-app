@@ -18,7 +18,6 @@ package com.celzero.bravedns.adapter
 import Logger
 import Logger.LOG_TAG_UI
 import android.content.Context
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,7 +32,7 @@ import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.databinding.ListItemAppDomainDetailsBinding
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.bottomsheet.AppDomainRulesBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.AppDomainRulesDialog
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
@@ -49,8 +48,7 @@ class AppWiseDomainsAdapter(
 ) :
     PagingDataAdapter<AppConnection, AppWiseDomainsAdapter.ConnectionDetailsViewHolder>(
         DIFF_CALLBACK
-    ),
-    AppDomainRulesBottomSheet.OnBottomSheetDialogFragmentDismiss {
+    ) {
 
     private var maxValue: Int = 0
     private var minPercentage: Int = 100
@@ -73,7 +71,6 @@ class AppWiseDomainsAdapter(
         private const val TAG = "AppWiseDomainsAdapter"
     }
 
-    private lateinit var adapter: AppWiseDomainsAdapter
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -85,7 +82,6 @@ class AppWiseDomainsAdapter(
                 parent,
                 false
             )
-        adapter = this
         return ConnectionDetailsViewHolder(itemBinding)
     }
 
@@ -213,26 +209,31 @@ class AppWiseDomainsAdapter(
                 return
             }
 
-            Logger.v(LOG_TAG_UI, "$TAG open bottom sheet for uid: $uid, ip: ${appConn.ipAddress}, domain: ${appConn.appOrDnsName}")
-            val bottomSheetFragment = AppDomainRulesBottomSheet()
-            // Fix: free-form window crash
-            // all BottomSheetDialogFragment classes created must have a public, no-arg constructor.
-            // the best practice is to simply never define any constructors at all.
-            // so sending the data using Bundles
-            val bundle = Bundle()
-            bundle.putInt(AppDomainRulesBottomSheet.UID, uid)
-            bundle.putString(AppDomainRulesBottomSheet.DOMAIN, appConn.appOrDnsName)
-            bottomSheetFragment.arguments = bundle
-            // Fix: Validate position before passing to avoid IndexOutOfBoundsException
-            val currentPosition = absoluteAdapterPosition
-            if (currentPosition != RecyclerView.NO_POSITION) {
-                bottomSheetFragment.dismissListener(adapter, currentPosition)
-            } else {
-                // Position is invalid, pass -1 to indicate refresh should be used
-                Logger.w(LOG_TAG_UI, "$TAG invalid adapter position when opening bottom sheet")
-                bottomSheetFragment.dismissListener(adapter, RecyclerView.NO_POSITION)
+            val domain = appConn.appOrDnsName
+            if (domain.isNullOrEmpty()) {
+                Logger.w(LOG_TAG_UI, "$TAG missing domain for uid: $uid, ip: ${appConn.ipAddress}")
+                return
             }
-            bottomSheetFragment.show(context.supportFragmentManager, bottomSheetFragment.tag)
+
+            Logger.v(LOG_TAG_UI, "$TAG open bottom sheet for uid: $uid, ip: ${appConn.ipAddress}, domain: $domain")
+            val currentPosition = absoluteAdapterPosition
+            val positionToUse =
+                if (currentPosition != RecyclerView.NO_POSITION) currentPosition else RecyclerView.NO_POSITION
+            if (positionToUse == RecyclerView.NO_POSITION) {
+                Logger.w(LOG_TAG_UI, "$TAG invalid adapter position when opening bottom sheet")
+            }
+            AppDomainRulesDialog(
+                context,
+                uid,
+                domain,
+                positionToUse
+            ) { pos ->
+                if (pos != RecyclerView.NO_POSITION) {
+                    notifyItemChanged(pos)
+                } else {
+                    notifyDataSetChanged()
+                }
+            }.show()
         }
 
         private fun beautifyIpString(d: String): String {
@@ -279,7 +280,7 @@ class AppWiseDomainsAdapter(
         }
     }
 
-    override fun notifyDataset(position: Int) {
+    private fun notifyDataset(position: Int) {
         // Fix: IndexOutOfBoundsException - validate position before notifying
         try {
             if (position >= 0 && position < itemCount) {

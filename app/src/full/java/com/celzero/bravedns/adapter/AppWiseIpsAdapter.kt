@@ -18,7 +18,6 @@ package com.celzero.bravedns.adapter
 import Logger
 import Logger.LOG_TAG_UI
 import android.content.Context
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -31,15 +30,18 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.databinding.ListItemAppIpDetailsBinding
 import com.celzero.bravedns.service.IpRulesManager
-import com.celzero.bravedns.ui.bottomsheet.AppIpRulesBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.AppIpRulesDialog
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
 import kotlin.math.log2
 
-class AppWiseIpsAdapter(val context: Context, val lifecycleOwner: LifecycleOwner, val uid: Int, val isAsn: Boolean = false) :
-    PagingDataAdapter<AppConnection, AppWiseIpsAdapter.ConnectionDetailsViewHolder>(DIFF_CALLBACK),
-    AppIpRulesBottomSheet.OnBottomSheetDialogFragmentDismiss {
+class AppWiseIpsAdapter(
+    val context: Context,
+    val lifecycleOwner: LifecycleOwner,
+    val uid: Int,
+    val isAsn: Boolean = false
+) : PagingDataAdapter<AppConnection, AppWiseIpsAdapter.ConnectionDetailsViewHolder>(DIFF_CALLBACK) {
 
     private var maxValue: Int = 0
     private var minPercentage: Int = 100
@@ -54,12 +56,9 @@ class AppWiseIpsAdapter(val context: Context, val lifecycleOwner: LifecycleOwner
         private const val TAG = "AppWiseIpsAdapter"
     }
 
-    private lateinit var adapter: AppWiseIpsAdapter
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ConnectionDetailsViewHolder {
         val itemBinding =
             ListItemAppIpDetailsBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        adapter = this
         return ConnectionDetailsViewHolder(itemBinding)
     }
 
@@ -112,29 +111,22 @@ class AppWiseIpsAdapter(val context: Context, val lifecycleOwner: LifecycleOwner
             }
 
             Logger.vv(LOG_TAG_UI, "$TAG open bottom sheet for uid: $uid, ip: ${conn.ipAddress}, domain: ${conn.appOrDnsName}")
-            val bottomSheetFragment = AppIpRulesBottomSheet()
-            // Fix: free-form window crash
-            // all BottomSheetDialogFragment classes created must have a public, no-arg constructor.
-            // the best practice is to simply never define any constructors at all.
-            // so sending the data using Bundles
-            val bundle = Bundle()
-            bundle.putInt(AppIpRulesBottomSheet.UID, uid)
-            bundle.putString(AppIpRulesBottomSheet.IP_ADDRESS, conn.ipAddress)
-            bundle.putString(
-                AppIpRulesBottomSheet.DOMAINS,
-                beautifyDomainString(conn.appOrDnsName ?: "")
-            )
-            bottomSheetFragment.arguments = bundle
-            // Fix: Validate position before passing to avoid IndexOutOfBoundsException
             val currentPosition = absoluteAdapterPosition
-            if (currentPosition != RecyclerView.NO_POSITION) {
-                bottomSheetFragment.dismissListener(adapter, currentPosition)
-            } else {
-                // Position is invalid, pass -1 to indicate refresh should be used
-                Logger.w(LOG_TAG_UI, "$TAG invalid adapter position when opening bottom sheet")
-                bottomSheetFragment.dismissListener(adapter, RecyclerView.NO_POSITION)
+            val safePosition =
+                if (currentPosition != RecyclerView.NO_POSITION) currentPosition
+                else RecyclerView.NO_POSITION
+            if (safePosition == RecyclerView.NO_POSITION) {
+                Logger.w(LOG_TAG_UI, "$TAG invalid adapter position when opening dialog")
             }
-            bottomSheetFragment.show(context.supportFragmentManager, bottomSheetFragment.tag)
+            AppIpRulesDialog(
+                activity = context,
+                uid = uid,
+                ipAddress = conn.ipAddress,
+                domains = beautifyDomainString(conn.appOrDnsName ?: ""),
+                position = safePosition
+            ) { position ->
+                notifyDataset(position)
+            }.show()
         }
 
         private fun displayTransactionDetails(conn: AppConnection) {
@@ -208,7 +200,7 @@ class AppWiseIpsAdapter(val context: Context, val lifecycleOwner: LifecycleOwner
         }
     }
 
-    override fun notifyDataset(position: Int) {
+    private fun notifyDataset(position: Int) {
         // Fix: IndexOutOfBoundsException - validate position before notifying
         // PagingDataAdapter manages its own data, so we need to be careful with manual notifications
         try {
