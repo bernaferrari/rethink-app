@@ -15,30 +15,49 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import Logger
-import Logger.LOG_TAG_UI
 import android.content.Context
-import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.AppWiseIpsAdapter
 import com.celzero.bravedns.database.AppInfo
-import com.celzero.bravedns.databinding.ActivityAppWiseIpLogsBinding
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
@@ -46,8 +65,6 @@ import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -57,9 +74,7 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AppWiseIpLogsActivity :
-    AppCompatActivity(R.layout.activity_app_wise_ip_logs), SearchView.OnQueryTextListener {
-    private val b by viewBinding(ActivityAppWiseIpLogsBinding::bind)
-
+    AppCompatActivity(), SearchView.OnQueryTextListener {
     private val persistentState by inject<PersistentState>()
     private val networkLogsViewModel: AppConnectionsViewModel by viewModel()
     private var uid: Int = INVALID_UID
@@ -67,8 +82,18 @@ class AppWiseIpLogsActivity :
     private lateinit var appInfo: AppInfo
     private var isAsn = false
 
+    private var recyclerAdapter: AppWiseIpsAdapter? = null
+    private var recyclerViewRef: RecyclerView? = null
+    private var searchViewRef: SearchView? = null
+
+    private var selectedCategory by mutableStateOf(AppConnectionsViewModel.TimeCategory.SEVEN_DAYS)
+    private var searchHint by mutableStateOf("")
+    private var appIcon by mutableStateOf<Drawable?>(null)
+    private var showDeleteIcon by mutableStateOf(true)
+
     companion object {
         private const val QUERY_TEXT_DELAY: Long = 1000
+        private const val TAG = "AppWiseIpLogs"
     }
 
     private fun Context.isDarkThemeOn(): Boolean {
@@ -97,37 +122,34 @@ class AppWiseIpLogsActivity :
             setRethinkAdapter()
         } else {
             if (isAsn) {
-                // ASN view
-                // disable search view for ASN view, visibility should be there as the icon is used
-                b.awlSearch.isEnabled = false
-                b.awlDelete.visibility = View.GONE
+                showDeleteIcon = false
                 setAsnAdapter()
             } else {
                 setAdapter()
             }
         }
-        setClickListener()
+
+        setContent {
+            RethinkTheme {
+                AppWiseIpLogsScreen()
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        // fix for #1939, OEM-specific bug, especially on heavily customized Android
-        // some ROMs kill or freeze the keyboard/IME process to save memory or battery,
-        // causing SearchView to stop receiving input events
-        // this is a workaround to restart the IME process
-        b.awlSearch.setQuery("", false)
-        b.awlSearch.clearFocus()
+        searchViewRef?.setQuery("", false)
+        searchViewRef?.clearFocus()
 
         val imm = this.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.restartInput(b.awlSearch)
+        searchViewRef?.let { imm.restartInput(it) }
     }
 
     private fun init() {
-        setTabbedViewTxt()
-        highlightToggleBtn()
+        selectedCategory = AppConnectionsViewModel.TimeCategory.SEVEN_DAYS
+        networkLogsViewModel.timeCategoryChanged(selectedCategory, isDomain = false)
         io {
             val appInfo = FirewallManager.getAppInfoByUid(uid)
-            // case: app is uninstalled but still available in RethinkDNS database
             if (appInfo == null || uid == INVALID_UID) {
                 uiCtx { finish() }
                 return@io
@@ -139,59 +161,9 @@ class AppWiseIpLogsActivity :
 
                 val appName = appName(packages.count())
                 updateAppNameInSearchHint(appName)
-                displayIcon(
-                    Utilities.getIcon(this, appInfo.packageName, appInfo.appName),
-                    b.awlAppDetailIcon1
-                )
+                appIcon = Utilities.getIcon(this, appInfo.packageName, appInfo.appName)
             }
         }
-    }
-
-    private fun setTabbedViewTxt() {
-        b.tbRecentToggleBtn.text = getString(R.string.ci_desc, "1", getString(R.string.lbl_hour))
-        b.tbDailyToggleBtn.text = getString(R.string.ci_desc, "24", getString(R.string.lbl_hour))
-        b.tbWeeklyToggleBtn.text = getString(R.string.ci_desc, "7", getString(R.string.lbl_day))
-    }
-
-    private val listViewToggleListener =
-        MaterialButtonToggleGroup.OnButtonCheckedListener { _, checkedId, isChecked ->
-            val mb: MaterialButton = b.toggleGroup.findViewById(checkedId)
-            if (isChecked) {
-                selectToggleBtnUi(mb)
-                val tcValue = (mb.tag as String).toIntOrNull() ?: 2 // "2" tag is for 7 days
-                val timeCategory =
-                    AppConnectionsViewModel.TimeCategory.fromValue(tcValue)
-                        ?: AppConnectionsViewModel.TimeCategory.SEVEN_DAYS
-                networkLogsViewModel.timeCategoryChanged(timeCategory, isDomain = false)
-                return@OnButtonCheckedListener
-            }
-
-            unselectToggleBtnUi(mb)
-        }
-
-    private fun selectToggleBtnUi(mb: MaterialButton) {
-        mb.backgroundTintList =
-            ColorStateList.valueOf(UIUtils.fetchToggleBtnColors(this, R.color.accentGood))
-        mb.setTextColor(UIUtils.fetchColor(this, R.attr.homeScreenHeaderTextColor))
-    }
-
-    private fun unselectToggleBtnUi(mb: MaterialButton) {
-        mb.setTextColor(UIUtils.fetchColor(this, R.attr.primaryTextColor))
-        mb.backgroundTintList =
-            ColorStateList.valueOf(UIUtils.fetchToggleBtnColors(this, R.color.defaultToggleBtnBg))
-    }
-
-    private fun highlightToggleBtn() {
-        val timeCategory = "2" // default is 7 days, "2" tag is for 7 days
-        val btn = b.toggleGroup.findViewWithTag<MaterialButton>(timeCategory)
-        btn.isChecked = true
-        selectToggleBtnUi(btn)
-    }
-
-    private fun setClickListener() {
-        b.toggleGroup.addOnButtonCheckedListener(listViewToggleListener)
-        b.awlDelete.setOnClickListener { showDeleteConnectionsDialog() }
-        b.awlSearch.setOnQueryTextListener(this)
     }
 
     private fun appName(packageCount: Int): String {
@@ -206,104 +178,14 @@ class AppWiseIpLogsActivity :
         }
     }
 
-    private fun displayIcon(drawable: Drawable?, mIconImageView: ImageView) {
-        Glide.with(this).load(drawable).error(Utilities.getDefaultIcon(this)).into(mIconImageView)
-    }
-
-    private fun setAdapter() {
-        networkLogsViewModel.setUid(uid)
-        b.awlRecyclerConnection.setHasFixedSize(true)
-        layoutManager = LinearLayoutManager(this)
-        b.awlRecyclerConnection.layoutManager = layoutManager
-        val recyclerAdapter = AppWiseIpsAdapter(this, this, uid)
-        networkLogsViewModel.appIpLogs.observe(this) {
-            recyclerAdapter.submitData(this.lifecycle, it)
-        }
-        b.awlRecyclerConnection.adapter = recyclerAdapter
-
-        /*recyclerAdapter.addLoadStateListener {
-            if (it.append.endOfPaginationReached) {
-                if (networkLogsViewModel.filterQuery.isNotEmpty()) {
-                    return@addLoadStateListener
-                }
-                if (recyclerAdapter.itemCount < 1) {
-                    showNoRulesUi()
-                    hideRulesUi()
-                } else {
-                    hideNoRulesUi()
-                    showRulesUi()
-                }
-            } else {
-                hideNoRulesUi()
-                showRulesUi()
-            }
-        }*/
-    }
-
-    private fun setAsnAdapter() {
-        networkLogsViewModel.setUid(uid)
-        b.awlRecyclerConnection.setHasFixedSize(true)
-        layoutManager = LinearLayoutManager(this)
-        b.awlRecyclerConnection.layoutManager = layoutManager
-        val recyclerAdapter = AppWiseIpsAdapter(this, this, uid, isAsn = true)
-        networkLogsViewModel.asnLogs.observe(this) {
-            recyclerAdapter.submitData(this.lifecycle, it)
-        }
-        b.awlRecyclerConnection.adapter = recyclerAdapter
-
-        /*recyclerAdapter.addLoadStateListener {
-            if (it.append.endOfPaginationReached) {
-                if (networkLogsViewModel.filterQuery.isNotEmpty()) {
-                    return@addLoadStateListener
-                }
-                if (recyclerAdapter.itemCount < 1) {
-                    showNoRulesUi()
-                    hideRulesUi()
-                } else {
-                    hideNoRulesUi()
-                    showRulesUi()
-                }
-            } else {
-                hideNoRulesUi()
-                showRulesUi()
-            }
-        }*/
-    }
-
-    private fun setRethinkAdapter() {
-        networkLogsViewModel.setUid(uid)
-        b.awlRecyclerConnection.setHasFixedSize(true)
-        layoutManager = LinearLayoutManager(this)
-        b.awlRecyclerConnection.layoutManager = layoutManager
-        val recyclerAdapter = AppWiseIpsAdapter(this, this, uid)
-        networkLogsViewModel.rinrIpLogs.observe(this) {
-            recyclerAdapter.submitData(this.lifecycle, it)
-        }
-        b.awlRecyclerConnection.adapter = recyclerAdapter
-
-        /*recyclerAdapter.addLoadStateListener {
-            if (it.append.endOfPaginationReached) {
-                if (networkLogsViewModel.filterQuery.isNotEmpty()) {
-                    return@addLoadStateListener
-                }
-                if (recyclerAdapter.itemCount < 1) {
-                    showNoRulesUi()
-                    hideRulesUi()
-                } else {
-                    hideNoRulesUi()
-                    showRulesUi()
-                }
-            } else {
-                hideNoRulesUi()
-                showRulesUi()
-            }
-        }*/
-    }
-
     private fun updateAppNameInSearchHint(appName: String) {
         val appNameTruncated = appName.substring(0, appName.length.coerceAtMost(10))
         val hint = if (isAsn) {
-            val txt = getString(R.string.two_argument_space, getString(R.string.lbl_search), getString(R.string.lbl_service_providers))
+            val txt = getString(
+                R.string.two_argument_space,
+                getString(R.string.lbl_search),
+                getString(R.string.lbl_service_providers)
+            )
             getString(R.string.two_argument_colon, appNameTruncated, txt)
         } else {
             getString(
@@ -312,30 +194,41 @@ class AppWiseIpLogsActivity :
                 getString(R.string.search_universal_ips)
             )
         }
-        b.awlSearch.queryHint = hint
-        b.awlSearch.findViewById<SearchView.SearchAutoComplete>(androidx.appcompat.R.id.search_src_text).textSize =
-            14f
-        return
+        searchHint = hint
     }
 
-    // commenting for now, see if we can remove this later
-    /*private fun showNoRulesUi() {
-        b.awlNoRulesRl.visibility = View.VISIBLE
+    private fun setAdapter() {
+        networkLogsViewModel.setUid(uid)
+        layoutManager = LinearLayoutManager(this)
+        val adapter = AppWiseIpsAdapter(this, this, uid)
+        recyclerAdapter = adapter
+        networkLogsViewModel.appIpLogs.observe(this) {
+            adapter.submitData(this.lifecycle, it)
+        }
+        recyclerViewRef?.adapter = adapter
     }
 
-    private fun hideRulesUi() {
-        b.awlCardViewTop.visibility = View.GONE
-        b.awlRecyclerConnection.visibility = View.GONE
+    private fun setAsnAdapter() {
+        networkLogsViewModel.setUid(uid)
+        layoutManager = LinearLayoutManager(this)
+        val adapter = AppWiseIpsAdapter(this, this, uid, isAsn = true)
+        recyclerAdapter = adapter
+        networkLogsViewModel.asnLogs.observe(this) {
+            adapter.submitData(this.lifecycle, it)
+        }
+        recyclerViewRef?.adapter = adapter
     }
 
-    private fun hideNoRulesUi() {
-        b.awlNoRulesRl.visibility = View.GONE
+    private fun setRethinkAdapter() {
+        networkLogsViewModel.setUid(uid)
+        layoutManager = LinearLayoutManager(this)
+        val adapter = AppWiseIpsAdapter(this, this, uid)
+        recyclerAdapter = adapter
+        networkLogsViewModel.rinrIpLogs.observe(this) {
+            adapter.submitData(this.lifecycle, it)
+        }
+        recyclerViewRef?.adapter = adapter
     }
-
-    private fun showRulesUi() {
-        b.awlCardViewTop.visibility = View.VISIBLE
-        b.awlRecyclerConnection.visibility = View.VISIBLE
-    }*/
 
     override fun onQueryTextSubmit(query: String): Boolean {
         Utilities.delay(QUERY_TEXT_DELAY, lifecycleScope) {
@@ -388,5 +281,149 @@ class AppWiseIpLogsActivity :
 
     private suspend fun uiCtx(f: suspend () -> Unit) {
         withContext(Dispatchers.Main) { f() }
+    }
+
+    @Composable
+    private fun AppWiseIpLogsScreen() {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            ToggleRow()
+            Spacer(modifier = Modifier.height(8.dp))
+            HeaderRow()
+            AppWiseIpList()
+        }
+    }
+
+    @Composable
+    private fun ToggleRow() {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ToggleButton(
+                label = stringResourceCompat(R.string.ci_desc, "1", stringResourceCompat(R.string.lbl_hour)),
+                selected = selectedCategory == AppConnectionsViewModel.TimeCategory.ONE_HOUR,
+                onClick = { updateTimeCategory(AppConnectionsViewModel.TimeCategory.ONE_HOUR) }
+            )
+            ToggleButton(
+                label = stringResourceCompat(R.string.ci_desc, "24", stringResourceCompat(R.string.lbl_hour)),
+                selected = selectedCategory == AppConnectionsViewModel.TimeCategory.TWENTY_FOUR_HOUR,
+                onClick = { updateTimeCategory(AppConnectionsViewModel.TimeCategory.TWENTY_FOUR_HOUR) }
+            )
+            ToggleButton(
+                label = stringResourceCompat(R.string.ci_desc, "7", stringResourceCompat(R.string.lbl_day)),
+                selected = selectedCategory == AppConnectionsViewModel.TimeCategory.SEVEN_DAYS,
+                onClick = { updateTimeCategory(AppConnectionsViewModel.TimeCategory.SEVEN_DAYS) }
+            )
+        }
+    }
+
+    private fun updateTimeCategory(category: AppConnectionsViewModel.TimeCategory) {
+        selectedCategory = category
+        networkLogsViewModel.timeCategoryChanged(category, isDomain = false)
+    }
+
+    @Composable
+    private fun ToggleButton(label: String, selected: Boolean, onClick: () -> Unit) {
+        val context = LocalContext.current
+        val background =
+            if (selected) {
+                Color(UIUtils.fetchToggleBtnColors(context, R.color.accentGood))
+            } else {
+                Color(UIUtils.fetchToggleBtnColors(context, R.color.defaultToggleBtnBg))
+            }
+        val content =
+            if (selected) {
+                Color(UIUtils.fetchColor(context, R.attr.homeScreenHeaderTextColor))
+            } else {
+                Color(UIUtils.fetchColor(context, R.attr.primaryTextColor))
+            }
+        androidx.compose.material3.Button(
+            onClick = onClick,
+            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                containerColor = background,
+                contentColor = content
+            )
+        ) {
+            Text(text = label, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+    }
+
+    @Composable
+    private fun HeaderRow() {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AndroidView(
+                factory = { ctx ->
+                    ImageView(ctx).apply {
+                        layoutParams = android.view.ViewGroup.LayoutParams(24, 24)
+                        alpha = 0.75f
+                    }
+                },
+                update = { imageView ->
+                    Glide.with(imageView)
+                        .load(appIcon)
+                        .error(Utilities.getDefaultIcon(this@AppWiseIpLogsActivity))
+                        .into(imageView)
+                }
+            )
+
+            AndroidView(
+                factory = { ctx ->
+                    SearchView(ctx).apply {
+                        isIconified = false
+                        queryHint = searchHint.ifEmpty { ctx.getString(R.string.search_universal_ips) }
+                        isEnabled = !isAsn
+                        setOnQueryTextListener(this@AppWiseIpLogsActivity)
+                        searchViewRef = this
+                    }
+                },
+                update = { view ->
+                    view.queryHint =
+                        searchHint.ifEmpty { view.context.getString(R.string.search_universal_ips) }
+                    view.isEnabled = !isAsn
+                },
+                modifier = Modifier.weight(1f)
+            )
+
+            if (showDeleteIcon) {
+                IconButton(onClick = { showDeleteConnectionsDialog() }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_delete),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun AppWiseIpList() {
+        val adapter = recyclerAdapter
+        if (adapter == null) return
+        AndroidView(
+            factory = { ctx ->
+                RecyclerView(ctx).apply {
+                    setHasFixedSize(true)
+                    layoutManager = this@AppWiseIpLogsActivity.layoutManager
+                    this.adapter = adapter
+                    recyclerViewRef = this
+                }
+            },
+            modifier = Modifier.padding(2.dp)
+        )
+    }
+
+    @Composable
+    private fun stringResourceCompat(id: Int, vararg args: Any): String {
+        val context = LocalContext.current
+        return if (args.isNotEmpty()) context.getString(id, *args) else context.getString(id)
     }
 }

@@ -24,11 +24,37 @@ import android.content.pm.PackageInfo
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
-import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
@@ -37,14 +63,13 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.ConsoleLogAdapter
 import com.celzero.bravedns.database.ConsoleLogRepository
-import com.celzero.bravedns.databinding.ActivityConsoleLogBinding
 import com.celzero.bravedns.net.go.GoVpnAdapter
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities
@@ -65,15 +90,21 @@ import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import java.io.File
 
-class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), androidx.appcompat.widget.SearchView.OnQueryTextListener {
+class ConsoleLogActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
-    private val b by viewBinding(ActivityConsoleLogBinding::bind)
     private var layoutManager: RecyclerView.LayoutManager? = null
     private val persistentState by inject<PersistentState>()
 
     private val viewModel by inject<ConsoleLogViewModel>()
     private val consoleLogRepository by inject<ConsoleLogRepository>()
     private val workScheduler by inject<WorkScheduler>()
+
+    private var recyclerAdapter: ConsoleLogAdapter? = null
+    private var recyclerViewRef: RecyclerView? = null
+    private var searchViewRef: SearchView? = null
+
+    private var infoText by mutableStateOf("")
+    private var progressVisible by mutableStateOf(false)
 
     companion object {
         private const val FILE_NAME = "rethink_app_logs_"
@@ -83,7 +114,7 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
 
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                Configuration.UI_MODE_NIGHT_YES
+            Configuration.UI_MODE_NIGHT_YES
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -97,13 +128,19 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
             controller.isAppearanceLightNavigationBars = false
             window.isNavigationBarContrastEnforced = false
         }
+
         initView()
-        setupClickListener()
-        setQueryFilter()
+        setupQueryFilter()
+
+        setContent {
+            RethinkTheme {
+                ConsoleLogScreen()
+            }
+        }
     }
 
     @OptIn(FlowPreview::class)
-    private fun setQueryFilter() {
+    private fun setupQueryFilter() {
         lifecycleScope.launch {
             searchQuery
                 .debounce(QUERY_TEXT_DELAY)
@@ -116,22 +153,16 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
 
     override fun onResume() {
         super.onResume()
-        // fix for #1939, OEM-specific bug, especially on heavily customized Android
-        // some ROMs kill or freeze the keyboard/IME process to save memory or battery,
-        // causing SearchView to stop receiving input events
-        // this is a workaround to restart the IME process
-        b.searchView.setQuery("", false)
-        b.searchView.clearFocus()
-
         val themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
         restoreFrost(themeId)
+        searchViewRef?.setQuery("", false)
+        searchViewRef?.clearFocus()
         val imm = this.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.restartInput(b.searchView)
+        searchViewRef?.let { imm.restartInput(it) }
     }
 
     private fun initView() {
         setAdapter()
-        // update the text view with the time since logs are available
         io {
             val sinceTime = viewModel.sinceTime()
             if (sinceTime == 0L) return@io
@@ -140,22 +171,13 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
             uiCtx {
                 val desc = getString(R.string.console_log_desc)
                 val sinceTxt = getString(R.string.logs_card_duration, since)
-                val descWithTime = getString(R.string.two_argument_space, desc, sinceTxt)
-                b.consoleLogInfoText.text = descWithTime
+                infoText = getString(R.string.two_argument_space, desc, sinceTxt)
             }
         }
-        b.searchView.setOnQueryTextListener(this)
     }
-
-    var recyclerAdapter: ConsoleLogAdapter? = null
 
     private fun setAdapter() {
         try {
-            b.consoleLogList.setHasFixedSize(true)
-            // disable all animations to prevent state inconsistencies
-            b.consoleLogList.itemAnimator = null
-
-            // Set a custom layout manager that handles errors gracefully
             layoutManager = object : LinearLayoutManager(this@ConsoleLogActivity) {
                 override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
                     try {
@@ -166,9 +188,7 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
                 }
             }
 
-            b.consoleLogList.layoutManager = layoutManager
             recyclerAdapter = ConsoleLogAdapter(this)
-            b.consoleLogList.adapter = recyclerAdapter
             viewModel.setLogLevel(Logger.uiLogLevel)
             observeLog()
         } catch (e: Exception) {
@@ -183,7 +203,6 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
                     recyclerAdapter?.submitData(pagingData)
                 } catch (e: Exception) {
                     Logger.e(LOG_TAG_UI, "err submitting data: ${e.message}")
-                    // Optionally recreate adapter if needed
                     if (e is IndexOutOfBoundsException) {
                         recreateAdapter()
                     }
@@ -195,58 +214,14 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
     private fun recreateAdapter() {
         try {
             recyclerAdapter = ConsoleLogAdapter(this)
-            b.consoleLogList.adapter = recyclerAdapter
+            recyclerViewRef?.adapter = recyclerAdapter
             Logger.i(LOG_TAG_UI, "adapter recreated due to consistency error")
         } catch (e: Exception) {
             Logger.e(LOG_TAG_UI, "err; recreate adapter: ${e.message}")
         }
     }
 
-    private fun setupClickListener() {
-
-        b.consoleLogShare.setOnClickListener {
-            val filePath = makeConsoleLogFile()
-            if (filePath == null) {
-                showFileCreationErrorToast()
-                return@setOnClickListener
-            }
-            handleShareLogs(filePath)
-        }
-
-        b.fabShareLog.setOnClickListener {
-            val filePath = makeConsoleLogFile()
-            if (filePath == null) {
-                showFileCreationErrorToast()
-                return@setOnClickListener
-            }
-            handleShareLogs(filePath)
-        }
-
-        b.consoleLogDelete.setOnClickListener {
-            lifecycleScope.launch {
-                recyclerAdapter?.submitData(PagingData.empty())
-            }
-            io {
-                Logger.i(LOG_TAG_BUG_REPORT, "deleting all console logs")
-                consoleLogRepository.deleteAllLogs()
-                uiCtx {
-                    showToastUiCentered(
-                        this,
-                        getString(R.string.config_add_success_toast),
-                        Toast.LENGTH_SHORT
-                    )
-                    finish()
-                }
-            }
-        }
-
-        b.searchFilterIcon.setOnClickListener {
-            showFilterDialog()
-        }
-    }
-
     private fun showFilterDialog() {
-        // show dialog with level filter
         val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         builder.setTitle(getString(R.string.console_log_title))
         val items = arrayOf(
@@ -257,13 +232,10 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
             getString(R.string.settings_gologger_dialog_option_4),
             getString(R.string.settings_gologger_dialog_option_5),
             getString(R.string.settings_gologger_dialog_option_6),
-            getString(R.string.settings_gologger_dialog_option_7),
+            getString(R.string.settings_gologger_dialog_option_7)
         )
         val checkedItem = Logger.uiLogLevel.toInt()
-        builder.setSingleChoiceItems(
-            items.map { it }.toTypedArray(),
-            checkedItem
-        ) { _, which ->
+        builder.setSingleChoiceItems(items.map { it }.toTypedArray(), checkedItem) { _, which ->
             Logger.uiLogLevel = which.toLong()
             GoVpnAdapter.setLogLevel(
                 persistentState.goLoggerLevel.toInt(),
@@ -313,44 +285,36 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
                 onFailure()
                 workManager.pruneWork()
                 workManager.cancelAllWorkByTag(WorkScheduler.CONSOLE_LOG_SAVE_JOB_TAG)
-            } else { // state == blocked, queued, or running
-                // no-op
             }
         }
     }
 
     private fun onSuccess() {
-        // show success message
         Logger.i(LOG_TAG_BUG_REPORT, "created logs successfully")
-        b.consoleLogProgressBar.visibility = View.GONE
+        progressVisible = false
         Toast.makeText(this, getString(R.string.config_add_success_toast), Toast.LENGTH_LONG).show()
     }
 
     private fun onFailure() {
-        // show failure message
         Logger.i(LOG_TAG_BUG_REPORT, "failed to create logs")
-        b.consoleLogProgressBar.visibility = View.GONE
+        progressVisible = false
         Toast.makeText(
             this,
             getString(R.string.download_update_dialog_failure_title),
             Toast.LENGTH_LONG
-        )
-            .show()
+        ).show()
     }
 
     private fun showLogGenerationProgressUi() {
-        // show progress dialog or progress bar
         Logger.i(LOG_TAG_BUG_REPORT, "showing log generation progress UI")
-        b.consoleLogProgressBar.visibility = View.VISIBLE
+        progressVisible = true
     }
 
     private fun shareZipFileViaEmail(filePath: String) {
         disableFrostTemporarily()
         val file = File(filePath)
-        // Get the URI of the file using FileProvider
         val uri: Uri = FileProvider.getUriForFile(this, "${this.packageName}.provider", file)
 
-        // Create the intent
         val intent =
             Intent(Intent.ACTION_SEND).apply {
                 type = "application/zip"
@@ -361,21 +325,19 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
 
-        // start the email app
         startActivity(Intent.createChooser(intent, "Send email..."))
     }
 
     private fun makeConsoleLogFile(): String? {
         return try {
             val appVersion = getVersionName() + "_" + System.currentTimeMillis()
-            // create file in filesdir, no need to check for permissions
             val dir = filesDir.canonicalPath + File.separator
             val fileName: String = FILE_NAME + appVersion + FILE_EXTENSION
             val file = File(dir, fileName)
             if (!file.exists()) {
                 file.createNewFile()
             }
-            return file.absolutePath
+            file.absolutePath
         } catch (e: Exception) {
             Logger.w(LOG_TAG_BUG_REPORT, "err creating log file, ${e.message}")
             null
@@ -389,7 +351,6 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
     }
 
     private fun showFileCreationErrorToast() {
-        // show toast message
         showToastUiCentered(
             this,
             getString(R.string.error_loading_log_file),
@@ -405,20 +366,163 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
         withContext(Dispatchers.Main) { f() }
     }
 
-    private fun ui(f: () -> Unit) {
-        lifecycleScope.launch(Dispatchers.Main) { f() }
-    }
-
     val searchQuery = MutableStateFlow("")
-    @OptIn(FlowPreview::class)
     override fun onQueryTextSubmit(query: String): Boolean {
         searchQuery.value = query
         return true
     }
 
-    @OptIn(FlowPreview::class)
     override fun onQueryTextChange(query: String): Boolean {
         searchQuery.value = query
         return true
+    }
+
+    @Composable
+    private fun ConsoleLogScreen() {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                SearchRow(
+                    onFilterClick = { showFilterDialog() },
+                    onShareClick = {
+                        val filePath = makeConsoleLogFile()
+                        if (filePath == null) {
+                            showFileCreationErrorToast()
+                            return@SearchRow
+                        }
+                        handleShareLogs(filePath)
+                    },
+                    onDeleteClick = {
+                        lifecycleScope.launch {
+                            recyclerAdapter?.submitData(PagingData.empty())
+                        }
+                        io {
+                            Logger.i(LOG_TAG_BUG_REPORT, "deleting all console logs")
+                            consoleLogRepository.deleteAllLogs()
+                            uiCtx {
+                                showToastUiCentered(
+                                    this@ConsoleLogActivity,
+                                    getString(R.string.config_add_success_toast),
+                                    Toast.LENGTH_SHORT
+                                )
+                                finish()
+                            }
+                        }
+                    }
+                )
+
+                if (progressVisible) {
+                    LinearProgressIndicator(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
+                }
+
+                Text(
+                    text = if (infoText.isEmpty()) stringResourceCompat(R.string.console_log_desc) else infoText,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+
+                Box(modifier = Modifier.weight(1f)) {
+                    ConsoleLogList()
+                }
+            }
+
+            ExtendedFloatingActionButton(
+                text = { Text(text = stringResourceCompat(R.string.about_bug_report_desc)) },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_share),
+                        contentDescription = null
+                    )
+                },
+                onClick = {
+                    val filePath = makeConsoleLogFile()
+                    if (filePath == null) {
+                        showFileCreationErrorToast()
+                        return@ExtendedFloatingActionButton
+                    }
+                    handleShareLogs(filePath)
+                },
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.BottomCenter)
+            )
+        }
+    }
+
+    @Composable
+    private fun SearchRow(
+        onFilterClick: () -> Unit,
+        onShareClick: () -> Unit,
+        onDeleteClick: () -> Unit
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            AndroidView(
+                factory = { ctx ->
+                    SearchView(ctx).apply {
+                        isIconified = false
+                        queryHint = ctx.getString(R.string.lbl_search)
+                        setOnQueryTextListener(this@ConsoleLogActivity)
+                        searchViewRef = this
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            )
+
+            IconButton(onClick = onFilterClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_filter),
+                    contentDescription = null
+                )
+            }
+
+            IconButton(onClick = onShareClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_share),
+                    contentDescription = null
+                )
+            }
+
+            IconButton(onClick = onDeleteClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_delete),
+                    contentDescription = null
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun ConsoleLogList() {
+        val adapter = recyclerAdapter
+        if (adapter == null) return
+        AndroidView(
+            factory = { ctx ->
+                RecyclerView(ctx).apply {
+                    setHasFixedSize(true)
+                    itemAnimator = null
+                    layoutManager = this@ConsoleLogActivity.layoutManager
+                    this.adapter = adapter
+                    recyclerViewRef = this
+                }
+            },
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 2.dp, vertical = 2.dp)
+        )
+    }
+
+    @Composable
+    private fun stringResourceCompat(id: Int): String {
+        val context = LocalContext.current
+        return context.getString(id)
     }
 }
