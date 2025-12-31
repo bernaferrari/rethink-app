@@ -15,24 +15,46 @@
  */
 package com.celzero.bravedns.ui.dialog
 
-import Logger
-import Logger.LOG_TAG_UI
 import android.app.Activity
-import android.content.res.ColorStateList
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
 import android.view.Window
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatDialog
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
-import com.celzero.bravedns.databinding.DialogCustomLanIpBinding
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
-import com.google.android.material.button.MaterialButton
 import inet.ipaddr.IPAddressString
+import io.github.aakira.napier.Napier
 
 class CustomLanIpDialog(
     activity: Activity,
@@ -55,24 +77,43 @@ class CustomLanIpDialog(
         private const val DNS_4_IP = "10.111.222.3"
         private const val DNS_6_IP = "fd66:f83a:c650::3"
     }
-    private lateinit var binding: DialogCustomLanIpBinding
 
-    // Track initial state to detect changes
-    private var initialMode: Boolean = false
-    private var currentMode: Boolean = false
+    private var initialMode = false
+    private var currentMode by mutableStateOf(false)
+
+    private var gatewayIpv4 by mutableStateOf("")
+    private var gatewayIpv4Prefix by mutableStateOf("")
+    private var gatewayIpv6 by mutableStateOf("")
+    private var gatewayIpv6Prefix by mutableStateOf("")
+
+    private var routerIpv4 by mutableStateOf("")
+    private var routerIpv4Prefix by mutableStateOf("")
+    private var routerIpv6 by mutableStateOf("")
+    private var routerIpv6Prefix by mutableStateOf("")
+
+    private var dnsIpv4 by mutableStateOf("")
+    private var dnsIpv4Prefix by mutableStateOf("")
+    private var dnsIpv6 by mutableStateOf("")
+    private var dnsIpv6Prefix by mutableStateOf("")
+
+    private var errorMessage by mutableStateOf("")
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        binding = DialogCustomLanIpBinding.inflate(LayoutInflater.from(context))
-        setContentView(binding.root)
         setCancelable(true)
 
-        // reset customIpChanged flag when dialog is created
         persistentState.customModeOrIpChanged = false
 
         setupInitialState()
-        setupClickListeners()
+
+        val composeView = ComposeView(context)
+        composeView.setContent {
+            RethinkTheme {
+                CustomLanIpContent()
+            }
+        }
+        setContentView(composeView)
     }
 
     private fun setupInitialState() {
@@ -80,220 +121,140 @@ class CustomLanIpDialog(
         currentMode = initialMode
 
         if (currentMode) {
-            selectManualModeUi()
+            loadManualValues()
         } else {
-            selectAutoModeUi()
+            loadDefaultAutoValues()
         }
     }
 
     private fun loadDefaultAutoValues() {
-        // Load default gateway values
-        binding.gatewayIpv4.setText(GATEWAY_4_IP)
-        binding.gatewayIpv4Prefix.setText(GATEWAY_4_PREFIX.toString())
-        binding.gatewayIpv6.setText(GATEWAY_6_IP)
-        binding.gatewayIpv6Prefix.setText(GATEWAY_6_PREFIX.toString())
+        gatewayIpv4 = GATEWAY_4_IP
+        gatewayIpv4Prefix = GATEWAY_4_PREFIX.toString()
+        gatewayIpv6 = GATEWAY_6_IP
+        gatewayIpv6Prefix = GATEWAY_6_PREFIX.toString()
 
-        // Load default router values
-        binding.routerIpv4.setText(ROUTER_4_IP)
-        binding.routerIpv4Prefix.setText(ROUTER_4_PREFIX.toString())
-        binding.routerIpv6.setText(ROUTER_6_IP)
-        binding.routerIpv6Prefix.setText(ROUTER_6_PREFIX.toString())
+        routerIpv4 = ROUTER_4_IP
+        routerIpv4Prefix = ROUTER_4_PREFIX.toString()
+        routerIpv6 = ROUTER_6_IP
+        routerIpv6Prefix = ROUTER_6_PREFIX.toString()
 
-        // Load default DNS values
-        binding.dnsIpv4.setText(DNS_4_IP)
-        binding.dnsIpv4Prefix.setText(DNS_4_PREFIX.toString())
-        binding.dnsIpv6.setText(DNS_6_IP)
-        binding.dnsIpv6Prefix.setText(DNS_6_PREFIX.toString())
-    }
-
-    private fun setupClickListeners() {
-        binding.autoToggleBtn.setOnClickListener {
-            currentMode = false
-            selectAutoModeUi()
-        }
-        binding.manualToggleBtn.setOnClickListener {
-            currentMode = true
-            selectManualModeUi()
-        }
-
-        binding.resetButton.setOnClickListener {
-            if (!currentMode) {
-                Toast.makeText(context, R.string.custom_lan_ip_saved_auto, Toast.LENGTH_SHORT).show()
-            } else {
-                resetManualFields()
-            }
-        }
-
-        binding.saveButton.setOnClickListener {
-            if (!currentMode) {
-                saveAutoMode()
-            } else {
-                saveManualMode()
-            }
-        }
-    }
-
-    private fun selectAutoModeUi() {
-        selectToggleBtnUi(binding.autoToggleBtn)
-        unselectToggleBtnUi(binding.manualToggleBtn)
-
-        binding.modeDesc.text = context.getString(R.string.custom_lan_ip_auto_desc)
-
-        setManualFieldsEnabled(false)
-        binding.resetButton.isEnabled = false
-
-        // Load default AUTO values
-        loadDefaultAutoValues()
-    }
-
-    private fun selectManualModeUi() {
-        selectToggleBtnUi(binding.manualToggleBtn)
-        unselectToggleBtnUi(binding.autoToggleBtn)
-
-        binding.modeDesc.text = context.getString(R.string.custom_lan_ip_manual_desc)
-
-        setManualFieldsEnabled(true)
-        binding.resetButton.isEnabled = true
-
-        // Load saved manual values if they exist, otherwise load defaults
-        loadManualValues()
+        dnsIpv4 = DNS_4_IP
+        dnsIpv4Prefix = DNS_4_PREFIX.toString()
+        dnsIpv6 = DNS_6_IP
+        dnsIpv6Prefix = DNS_6_PREFIX.toString()
     }
 
     private fun loadManualValues() {
-        // If saved values exist in persistent state, load them
-        // Otherwise, load default values
         if (persistentState.customLanGatewayIpv4.isNotBlank()) {
-            loadIpAndPrefixIntoFields(persistentState.customLanGatewayIpv4, binding.gatewayIpv4, binding.gatewayIpv4Prefix)
+            loadIpAndPrefixIntoFields(persistentState.customLanGatewayIpv4) { ip, prefix ->
+                gatewayIpv4 = ip
+                gatewayIpv4Prefix = prefix
+            }
         } else {
-            binding.gatewayIpv4.setText(GATEWAY_4_IP)
-            binding.gatewayIpv4Prefix.setText(GATEWAY_4_PREFIX.toString())
+            gatewayIpv4 = GATEWAY_4_IP
+            gatewayIpv4Prefix = GATEWAY_4_PREFIX.toString()
         }
 
         if (persistentState.customLanGatewayIpv6.isNotBlank()) {
-            loadIpAndPrefixIntoFields(persistentState.customLanGatewayIpv6, binding.gatewayIpv6, binding.gatewayIpv6Prefix)
+            loadIpAndPrefixIntoFields(persistentState.customLanGatewayIpv6) { ip, prefix ->
+                gatewayIpv6 = ip
+                gatewayIpv6Prefix = prefix
+            }
         } else {
-            binding.gatewayIpv6.setText(GATEWAY_6_IP)
-            binding.gatewayIpv6Prefix.setText(GATEWAY_6_PREFIX.toString())
+            gatewayIpv6 = GATEWAY_6_IP
+            gatewayIpv6Prefix = GATEWAY_6_PREFIX.toString()
         }
 
         if (persistentState.customLanRouterIpv4.isNotBlank()) {
-            loadIpAndPrefixIntoFields(persistentState.customLanRouterIpv4, binding.routerIpv4, binding.routerIpv4Prefix)
+            loadIpAndPrefixIntoFields(persistentState.customLanRouterIpv4) { ip, prefix ->
+                routerIpv4 = ip
+                routerIpv4Prefix = prefix
+            }
         } else {
-            binding.routerIpv4.setText(ROUTER_4_IP)
-            binding.routerIpv4Prefix.setText(ROUTER_4_PREFIX.toString())
+            routerIpv4 = ROUTER_4_IP
+            routerIpv4Prefix = ROUTER_4_PREFIX.toString()
         }
 
         if (persistentState.customLanRouterIpv6.isNotBlank()) {
-            loadIpAndPrefixIntoFields(persistentState.customLanRouterIpv6, binding.routerIpv6, binding.routerIpv6Prefix)
+            loadIpAndPrefixIntoFields(persistentState.customLanRouterIpv6) { ip, prefix ->
+                routerIpv6 = ip
+                routerIpv6Prefix = prefix
+            }
         } else {
-            binding.routerIpv6.setText(ROUTER_6_IP)
-            binding.routerIpv6Prefix.setText(ROUTER_6_PREFIX.toString())
+            routerIpv6 = ROUTER_6_IP
+            routerIpv6Prefix = ROUTER_6_PREFIX.toString()
         }
 
         if (persistentState.customLanDnsIpv4.isNotBlank()) {
-            loadIpAndPrefixIntoFields(persistentState.customLanDnsIpv4, binding.dnsIpv4, binding.dnsIpv4Prefix)
+            loadIpAndPrefixIntoFields(persistentState.customLanDnsIpv4) { ip, prefix ->
+                dnsIpv4 = ip
+                dnsIpv4Prefix = prefix
+            }
         } else {
-            binding.dnsIpv4.setText(DNS_4_IP)
-            binding.dnsIpv4Prefix.setText(DNS_4_PREFIX.toString())
+            dnsIpv4 = DNS_4_IP
+            dnsIpv4Prefix = DNS_4_PREFIX.toString()
         }
 
         if (persistentState.customLanDnsIpv6.isNotBlank()) {
-            loadIpAndPrefixIntoFields(persistentState.customLanDnsIpv6, binding.dnsIpv6, binding.dnsIpv6Prefix)
+            loadIpAndPrefixIntoFields(persistentState.customLanDnsIpv6) { ip, prefix ->
+                dnsIpv6 = ip
+                dnsIpv6Prefix = prefix
+            }
         } else {
-            binding.dnsIpv6.setText(DNS_6_IP)
-            binding.dnsIpv6Prefix.setText(DNS_6_PREFIX.toString())
+            dnsIpv6 = DNS_6_IP
+            dnsIpv6Prefix = DNS_6_PREFIX.toString()
         }
     }
 
-    private fun selectToggleBtnUi(mb: MaterialButton) {
-        mb.backgroundTintList = ColorStateList.valueOf(fetchToggleBtnColors(context, R.color.accentGood))
-        mb.setTextColor(fetchColor(context, R.attr.homeScreenHeaderTextColor))
-    }
-
-    private fun unselectToggleBtnUi(mb: MaterialButton) {
-        mb.setTextColor(fetchColor(context, R.attr.primaryTextColor))
-        mb.backgroundTintList = ColorStateList.valueOf(fetchToggleBtnColors(context, R.color.defaultToggleBtnBg))
-    }
-
-    private fun setManualFieldsEnabled(enabled: Boolean) {
-        // Gateway
-        binding.gatewayIpv4.isEnabled = enabled
-        binding.gatewayIpv4Prefix.isEnabled = enabled
-        binding.gatewayIpv6.isEnabled = enabled
-        binding.gatewayIpv6Prefix.isEnabled = enabled
-        // Router
-        binding.routerIpv4.isEnabled = enabled
-        binding.routerIpv4Prefix.isEnabled = enabled
-        binding.routerIpv6.isEnabled = enabled
-        binding.routerIpv6Prefix.isEnabled = enabled
-        // DNS
-        binding.dnsIpv4.isEnabled = enabled
-        binding.dnsIpv4Prefix.isEnabled = enabled
-        binding.dnsIpv6.isEnabled = enabled
-        binding.dnsIpv6Prefix.isEnabled = enabled
-    }
-
     private fun resetManualFields() {
-        // Reset to default values instead of clearing
         loadDefaultAutoValues()
-
-        // Clear any error message
         hideError()
-
         Toast.makeText(context, R.string.custom_lan_ip_saved_manual, Toast.LENGTH_SHORT).show()
     }
 
     private fun showError(message: String) {
-        binding.errorText.text = message
-        binding.errorText.visibility = View.VISIBLE
+        errorMessage = message
     }
 
     private fun hideError() {
-        binding.errorText.visibility = View.GONE
-        binding.errorText.text = ""
+        errorMessage = ""
     }
 
     private fun saveAutoMode() {
         try {
-            // Check if mode changed
             val modeChanged = initialMode != currentMode
-
-            // AUTO mode: mark mode as auto and clear any saved custom values
             persistentState.customLanIpMode = false
-
-            // Set the customIpChanged flag if mode changed OR we had custom values and now cleared them
             if (modeChanged) {
                 persistentState.customModeOrIpChanged = true
-                Logger.i(LOG_TAG_UI, "Custom LAN IPs cleared (switched to AUTO)")
+                Napier.i("Custom LAN IPs cleared (switched to AUTO)")
             }
 
             hideError()
             Toast.makeText(context, R.string.custom_lan_ip_saved_auto, Toast.LENGTH_SHORT).show()
             dismiss()
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "err saving custom lan ip (auto): ${e.message}", e)
+            Napier.e("err saving custom lan ip (auto): ${e.message}")
             showError(context.getString(R.string.custom_lan_ip_save_error))
         }
     }
 
     private fun saveManualMode() {
         try {
-            val gatewayV4 = binding.gatewayIpv4.text?.toString()?.trim().orEmpty()
-            val gatewayV4Prefix = binding.gatewayIpv4Prefix.text?.toString()?.trim().orEmpty()
-            val gatewayV6 = binding.gatewayIpv6.text?.toString()?.trim().orEmpty()
-            val gatewayV6Prefix = binding.gatewayIpv6Prefix.text?.toString()?.trim().orEmpty()
+            val gatewayV4 = gatewayIpv4.trim()
+            val gatewayV4Prefix = gatewayIpv4Prefix.trim()
+            val gatewayV6 = gatewayIpv6.trim()
+            val gatewayV6Prefix = gatewayIpv6Prefix.trim()
 
-            val routerV4 = binding.routerIpv4.text?.toString()?.trim().orEmpty()
-            val routerV4Prefix = binding.routerIpv4Prefix.text?.toString()?.trim().orEmpty()
-            val routerV6 = binding.routerIpv6.text?.toString()?.trim().orEmpty()
-            val routerV6Prefix = binding.routerIpv6Prefix.text?.toString()?.trim().orEmpty()
+            val routerV4 = routerIpv4.trim()
+            val routerV4Prefix = routerIpv4Prefix.trim()
+            val routerV6 = routerIpv6.trim()
+            val routerV6Prefix = routerIpv6Prefix.trim()
 
-            val dnsV4 = binding.dnsIpv4.text?.toString()?.trim().orEmpty()
-            val dnsV4Prefix = binding.dnsIpv4Prefix.text?.toString()?.trim().orEmpty()
-            val dnsV6 = binding.dnsIpv6.text?.toString()?.trim().orEmpty()
-            val dnsV6Prefix = binding.dnsIpv6Prefix.text?.toString()?.trim().orEmpty()
+            val dnsV4 = dnsIpv4.trim()
+            val dnsV4Prefix = dnsIpv4Prefix.trim()
+            val dnsV6 = dnsIpv6.trim()
+            val dnsV6Prefix = dnsIpv6Prefix.trim()
 
-            // Validate IP + prefix pairs; only allow private/ULA ranges
             if (!validateIpv4WithPrefix(gatewayV4, gatewayV4Prefix) ||
                 !validateIpv6WithPrefix(gatewayV6, gatewayV6Prefix) ||
                 !validateIpv4WithPrefix(routerV4, routerV4Prefix) ||
@@ -305,7 +266,6 @@ class CustomLanIpDialog(
                 return
             }
 
-            // Combine new values
             val newGatewayV4 = combineIpAndPrefix(gatewayV4, gatewayV4Prefix)
             val newGatewayV6 = combineIpAndPrefix(gatewayV6, gatewayV6Prefix)
             val newRouterV4 = combineIpAndPrefix(routerV4, routerV4Prefix)
@@ -313,160 +273,148 @@ class CustomLanIpDialog(
             val newDnsV4 = combineIpAndPrefix(dnsV4, dnsV4Prefix)
             val newDnsV6 = combineIpAndPrefix(dnsV6, dnsV6Prefix)
 
-            // Check if any IP values have changed
-            val ipValuesChanged = newGatewayV4 != persistentState.customLanGatewayIpv4 ||
+            val ipValuesChanged =
+                newGatewayV4 != persistentState.customLanGatewayIpv4 ||
                     newGatewayV6 != persistentState.customLanGatewayIpv6 ||
                     newRouterV4 != persistentState.customLanRouterIpv4 ||
                     newRouterV6 != persistentState.customLanRouterIpv6 ||
                     newDnsV4 != persistentState.customLanDnsIpv4 ||
                     newDnsV6 != persistentState.customLanDnsIpv6
 
-            // Check if mode changed
             val modeChanged = initialMode != currentMode
 
             persistentState.customLanIpMode = true
-
-            // Store combined ip/prefix strings; empty pair becomes ""
             persistentState.customLanGatewayIpv4 = newGatewayV4
             persistentState.customLanGatewayIpv6 = newGatewayV6
-
             persistentState.customLanRouterIpv4 = newRouterV4
             persistentState.customLanRouterIpv6 = newRouterV6
-
             persistentState.customLanDnsIpv4 = newDnsV4
             persistentState.customLanDnsIpv6 = newDnsV6
 
-            // Set the customIpChanged flag if mode changed OR IP values changed
             if (modeChanged || ipValuesChanged) {
                 persistentState.customModeOrIpChanged = true
-                Logger.i(LOG_TAG_UI, "Custom LAN IPs changed - mode changed: $modeChanged, IP values changed: $ipValuesChanged")
+                Napier.i(
+                    "Custom LAN IPs changed - mode changed: $modeChanged, IP values changed: $ipValuesChanged"
+                )
             }
 
             hideError()
             Toast.makeText(context, R.string.custom_lan_ip_saved_manual, Toast.LENGTH_SHORT).show()
             dismiss()
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "err saving custom lan ip (manual): ${e.message}", e)
+            Napier.e("err saving custom lan ip (manual): ${e.message}")
             showError(context.getString(R.string.custom_lan_ip_save_error))
         }
     }
 
-    private fun loadIpAndPrefixIntoFields(value: String, ipField: EditText, prefixField: EditText) {
+    private fun loadIpAndPrefixIntoFields(
+        value: String,
+        onLoaded: (String, String) -> Unit
+    ) {
         if (value.isBlank()) {
-            ipField.setText("")
-            prefixField.setText("")
+            onLoaded("", "")
             return
         }
         val parts = value.split("/")
         val ip = parts.getOrNull(0).orEmpty()
         val prefix = parts.getOrNull(1).orEmpty()
-        ipField.setText(ip)
-        prefixField.setText(prefix)
+        onLoaded(ip, prefix)
     }
 
     private fun combineIpAndPrefix(ip: String, prefix: String): String {
         if (ip.isBlank() && prefix.isBlank()) return ""
-        // By this point, validation has already ensured both are non-empty and well-formed
         return "$ip/$prefix"
     }
 
     private fun validateIpv4WithPrefix(ip: String, prefixText: String): Boolean {
-        // Both must be empty or both must be filled
         if (ip.isEmpty() && prefixText.isEmpty()) return true
         if (ip.isEmpty() || prefixText.isEmpty()) {
-            Logger.w(LOG_TAG_UI, "IPv4 validation failed: both IP and prefix must be provided together")
+            Napier.w("IPv4 validation failed: both IP and prefix must be provided together")
             return false
         }
 
         return try {
-            // Validate IP address
             val addr = IPAddressString(ip).address
             if (addr == null) {
-                Logger.w(LOG_TAG_UI, "IPv4 validation failed: invalid IP address format: $ip")
+                Napier.w("IPv4 validation failed: invalid IP address format: $ip")
                 return false
             }
             if (!addr.isIPv4) {
-                Logger.w(LOG_TAG_UI, "IPv4 validation failed: not an IPv4 address: $ip")
+                Napier.w("IPv4 validation failed: not an IPv4 address: $ip")
                 return false
             }
 
-            // Only allow RFC1918 private IPv4 ranges (unique local for IPv4)
-            val host = addr.toNormalizedString() // e.g. "10.0.0.1"
+            val host = addr.toNormalizedString()
             if (!isRfc1918Ipv4(host)) {
-                Logger.w(LOG_TAG_UI, "IPv4 validation failed: not a private/unique local address (must be 10.x.x.x, 172.16-31.x.x, or 192.168.x.x): $host")
+                Napier.w(
+                    "IPv4 validation failed: not a private/unique local address (must be 10.x.x.x, 172.16-31.x.x, or 192.168.x.x): $host"
+                )
                 return false
             }
 
-            // Validate prefix length
             val prefix = prefixText.toIntOrNull()
             if (prefix == null) {
-                Logger.w(LOG_TAG_UI, "IPv4 validation failed: invalid prefix length: $prefixText")
+                Napier.w("IPv4 validation failed: invalid prefix length: $prefixText")
                 return false
             }
             if (prefix !in 0..32) {
-                Logger.w(LOG_TAG_UI, "IPv4 validation failed: prefix length must be 0-32, got: $prefix")
+                Napier.w("IPv4 validation failed: prefix length must be 0-32, got: $prefix")
                 return false
             }
 
             true
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "IPv4 validation error for $ip/$prefixText: ${e.message}", e)
+            Napier.e("IPv4 validation error for $ip/$prefixText: ${e.message}")
             false
         }
     }
 
     private fun validateIpv6WithPrefix(ip: String, prefixText: String): Boolean {
-        // Both must be empty or both must be filled
         if (ip.isEmpty() && prefixText.isEmpty()) return true
         if (ip.isEmpty() || prefixText.isEmpty()) {
-            Logger.w(LOG_TAG_UI, "IPv6 validation failed: both IP and prefix must be provided together")
+            Napier.w("IPv6 validation failed: both IP and prefix must be provided together")
             return false
         }
 
         return try {
-            // Validate IP address
             val addr = IPAddressString(ip).address
             if (addr == null) {
-                Logger.w(LOG_TAG_UI, "IPv6 validation failed: invalid IP address format: $ip")
+                Napier.w("IPv6 validation failed: invalid IP address format: $ip")
                 return false
             }
             if (!addr.isIPv6) {
-                Logger.w(LOG_TAG_UI, "IPv6 validation failed: not an IPv6 address: $ip")
+                Napier.w("IPv6 validation failed: not an IPv6 address: $ip")
                 return false
             }
 
-            // Only allow Unique Local IPv6 (fc00::/7)
-            val host = addr.toNormalizedString() // e.g. "fd00:abcd::1"
+            val host = addr.toNormalizedString()
             if (!isUlaIpv6(host)) {
-                Logger.w(LOG_TAG_UI, "IPv6 validation failed: not a unique local address (must start with fc or fd): $host")
+                Napier.w(
+                    "IPv6 validation failed: not a unique local address (must start with fc or fd): $host"
+                )
                 return false
             }
 
-            // Validate prefix length
             val prefix = prefixText.toIntOrNull()
             if (prefix == null) {
-                Logger.w(LOG_TAG_UI, "IPv6 validation failed: invalid prefix length: $prefixText")
+                Napier.w("IPv6 validation failed: invalid prefix length: $prefixText")
                 return false
             }
             if (prefix !in 0..128) {
-                Logger.w(LOG_TAG_UI, "IPv6 validation failed: prefix length must be 0-128, got: $prefix")
+                Napier.w("IPv6 validation failed: prefix length must be 0-128, got: $prefix")
                 return false
             }
 
             true
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "IPv6 validation error for $ip/$prefixText: ${e.message}", e)
+            Napier.e("IPv6 validation error for $ip/$prefixText: ${e.message}")
             false
         }
     }
 
-    // RFC1918 private IPv4 ranges using simple string prefix checks.
-    // This assumes normalized dotted decimal addresses like "10.0.0.1".
     private fun isRfc1918Ipv4(host: String): Boolean {
-        // 10.0.0.0/8
         if (host.startsWith("10.")) return true
 
-        // 172.16.0.0/12: 172.16.0.0 – 172.31.255.255
         if (host.startsWith("172.")) {
             val parts = host.split(".")
             if (parts.size == 4) {
@@ -475,17 +423,232 @@ class CustomLanIpDialog(
             }
         }
 
-        // 192.168.0.0/16
         if (host.startsWith("192.168.")) return true
 
         return false
     }
 
-    // Unique Local IPv6 (fc00::/7) string check.
-    // Normalized IPv6 will start with "fc" or "fd" for ULA.
     private fun isUlaIpv6(host: String): Boolean {
         val lower = host.lowercase()
-        // fc00::/7 = addresses starting with fc or fd
         return lower.startsWith("fc") || lower.startsWith("fd")
+    }
+
+    @Composable
+    private fun CustomLanIpContent() {
+        val manualEnabled = currentMode
+        val selectedBg = Color(fetchToggleBtnColors(context, R.color.accentGood))
+        val unselectedBg = Color(fetchToggleBtnColors(context, R.color.defaultToggleBtnBg))
+        val selectedText = Color(fetchColor(context, R.attr.homeScreenHeaderTextColor))
+        val unselectedText = Color(fetchColor(context, R.attr.primaryTextColor))
+
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ToggleButton(
+                    text = context.getString(R.string.settings_ip_text_ipv46),
+                    selected = !currentMode,
+                    selectedBg = selectedBg,
+                    unselectedBg = unselectedBg,
+                    selectedText = selectedText,
+                    unselectedText = unselectedText,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    currentMode = false
+                    loadDefaultAutoValues()
+                    hideError()
+                }
+                ToggleButton(
+                    text = context.getString(R.string.lbl_manual),
+                    selected = currentMode,
+                    selectedBg = selectedBg,
+                    unselectedBg = unselectedBg,
+                    selectedText = selectedText,
+                    unselectedText = unselectedText,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    currentMode = true
+                    loadManualValues()
+                    hideError()
+                }
+            }
+
+            Text(
+                text =
+                    if (currentMode) {
+                        context.getString(R.string.custom_lan_ip_manual_desc)
+                    } else {
+                        context.getString(R.string.custom_lan_ip_auto_desc)
+                    },
+                style = MaterialTheme.typography.bodySmall
+            )
+
+            SectionTitle(text = context.getString(R.string.custom_lan_ip_gateway))
+            IpRow(
+                ipValue = gatewayIpv4,
+                prefixValue = gatewayIpv4Prefix,
+                ipHint = context.getString(R.string.settings_ip_text_ipv4),
+                prefixHint = context.getString(R.string.lbl_prefix),
+                enabled = manualEnabled,
+                onIpChange = { gatewayIpv4 = it },
+                onPrefixChange = { gatewayIpv4Prefix = it }
+            )
+            IpRow(
+                ipValue = gatewayIpv6,
+                prefixValue = gatewayIpv6Prefix,
+                ipHint = context.getString(R.string.settings_ip_text_ipv6),
+                prefixHint = context.getString(R.string.lbl_prefix),
+                enabled = manualEnabled,
+                onIpChange = { gatewayIpv6 = it },
+                onPrefixChange = { gatewayIpv6Prefix = it }
+            )
+
+            SectionTitle(text = context.getString(R.string.custom_lan_ip_router))
+            IpRow(
+                ipValue = routerIpv4,
+                prefixValue = routerIpv4Prefix,
+                ipHint = context.getString(R.string.settings_ip_text_ipv4),
+                prefixHint = context.getString(R.string.lbl_prefix),
+                enabled = manualEnabled,
+                onIpChange = { routerIpv4 = it },
+                onPrefixChange = { routerIpv4Prefix = it }
+            )
+            IpRow(
+                ipValue = routerIpv6,
+                prefixValue = routerIpv6Prefix,
+                ipHint = context.getString(R.string.settings_ip_text_ipv6),
+                prefixHint = context.getString(R.string.lbl_prefix),
+                enabled = manualEnabled,
+                onIpChange = { routerIpv6 = it },
+                onPrefixChange = { routerIpv6Prefix = it }
+            )
+
+            SectionTitle(text = context.getString(R.string.dns_mode_info_title))
+            IpRow(
+                ipValue = dnsIpv4,
+                prefixValue = dnsIpv4Prefix,
+                ipHint = context.getString(R.string.settings_ip_text_ipv4),
+                prefixHint = context.getString(R.string.lbl_prefix),
+                enabled = manualEnabled,
+                onIpChange = { dnsIpv4 = it },
+                onPrefixChange = { dnsIpv4Prefix = it }
+            )
+            IpRow(
+                ipValue = dnsIpv6,
+                prefixValue = dnsIpv6Prefix,
+                ipHint = context.getString(R.string.settings_ip_text_ipv6),
+                prefixHint = context.getString(R.string.lbl_prefix),
+                enabled = manualEnabled,
+                onIpChange = { dnsIpv6 = it },
+                onPrefixChange = { dnsIpv6Prefix = it }
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                TextButton(
+                    onClick = {
+                        if (!currentMode) {
+                            Toast.makeText(context, R.string.custom_lan_ip_saved_auto, Toast.LENGTH_SHORT).show()
+                        } else {
+                            resetManualFields()
+                        }
+                    },
+                    modifier = Modifier.weight(1f),
+                    enabled = currentMode
+                ) {
+                    Text(text = context.getString(R.string.lbl_reset))
+                }
+                Button(
+                    onClick = {
+                        if (!currentMode) {
+                            saveAutoMode()
+                        } else {
+                            saveManualMode()
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = context.getString(R.string.lbl_save))
+                }
+            }
+
+            if (errorMessage.isNotBlank()) {
+                Text(
+                    text = errorMessage,
+                    color = Color(fetchToggleBtnColors(context, R.color.accentBad)),
+                    style = MaterialTheme.typography.bodySmall
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun ToggleButton(
+        text: String,
+        selected: Boolean,
+        selectedBg: Color,
+        unselectedBg: Color,
+        selectedText: Color,
+        unselectedText: Color,
+        modifier: Modifier,
+        onClick: () -> Unit
+    ) {
+        Button(
+            onClick = onClick,
+            modifier = modifier,
+            colors =
+                ButtonDefaults.buttonColors(
+                    containerColor = if (selected) selectedBg else unselectedBg,
+                    contentColor = if (selected) selectedText else unselectedText
+                )
+        ) {
+            Text(text = text, fontWeight = FontWeight.SemiBold)
+        }
+    }
+
+    @Composable
+    private fun SectionTitle(text: String) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 8.dp)
+        )
+    }
+
+    @Composable
+    private fun IpRow(
+        ipValue: String,
+        prefixValue: String,
+        ipHint: String,
+        prefixHint: String,
+        enabled: Boolean,
+        onIpChange: (String) -> Unit,
+        onPrefixChange: (String) -> Unit
+    ) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            OutlinedTextField(
+                value = ipValue,
+                onValueChange = onIpChange,
+                modifier = Modifier.weight(2f),
+                singleLine = true,
+                label = { Text(text = ipHint) },
+                enabled = enabled
+            )
+            OutlinedTextField(
+                value = prefixValue,
+                onValueChange = onPrefixChange,
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                label = { Text(text = prefixHint) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                enabled = enabled
+            )
+        }
     }
 }
