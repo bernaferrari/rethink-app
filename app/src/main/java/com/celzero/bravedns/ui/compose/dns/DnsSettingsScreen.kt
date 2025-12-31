@@ -224,22 +224,22 @@ fun DnsSettingsScreen(
                         onCheckedChange = { onProxyDnsChange(!it) }
                     )
                     SettingsSwitchItem(
-                        title = stringResource(id = R.string.dc_undelegated_domains_heading),
-                        description = stringResource(id = R.string.dc_undelegated_domains_desc),
+                        title = stringResource(id = R.string.dc_use_sys_dns_undelegated_heading),
+                        description = stringResource(id = R.string.dc_use_sys_dns_undelegated_desc),
                         iconId = R.drawable.ic_dns_rules_as_firewall, // placeholder
                         checked = uiState.useSystemDnsForUndelegatedDomains,
                         onCheckedChange = onUndelegatedDomainsChange
                     )
                     SettingsSwitchItem(
-                        title = stringResource(id = R.string.dc_fallback_dns_heading),
-                        description = stringResource(id = R.string.dc_fallback_dns_desc),
+                        title = stringResource(id = R.string.use_fallback_dns_to_bypass),
+                        description = stringResource(id = R.string.use_fallback_dns_to_bypass_desc),
                         iconId = R.drawable.ic_dns_rules_as_firewall, // placeholder
                         checked = uiState.useFallbackDnsToBypass,
                         onCheckedChange = onFallbackChange
                     )
                     SettingsSwitchItem(
-                        title = stringResource(id = R.string.cd_prevent_dns_leaks_heading),
-                        description = stringResource(id = R.string.cd_prevent_dns_leaks_desc),
+                        title = stringResource(id = R.string.dc_dns_leaks_heading),
+                        description = stringResource(id = R.string.dc_dns_leaks_desc),
                         iconId = R.drawable.ic_dns_rules_as_firewall, // placeholder
                         checked = uiState.preventDnsLeaks,
                         onCheckedChange = onPreventLeaksChange

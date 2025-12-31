@@ -18,6 +18,7 @@ package com.celzero.bravedns.ui.fragment
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.DialogInterface
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
@@ -78,6 +79,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.component.KoinComponent
 import java.io.File
 import java.util.concurrent.TimeUnit
+import android.net.Uri
 import android.provider.Settings
 import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
@@ -433,7 +435,7 @@ class AboutFragment : Fragment(), KoinComponent {
             } else {
                 intent.action = ACTION_APPLICATION_DETAILS_SETTINGS
                 intent.addCategory(Intent.CATEGORY_DEFAULT)
-                intent.data = "$SCHEME_PACKAGE:$packageName".toUri()
+                intent.data = Uri.fromParts("package", packageName, null)
             }
             startActivity(intent)
         } catch (e: ActivityNotFoundException) {
@@ -577,6 +579,10 @@ class AboutFragment : Fragment(), KoinComponent {
 
     private fun onAppExitInfoSuccess() {
         promptCrashLogAction()
+    }
+
+    private fun hideBugReportProgressUi() {
+        viewModel.setBugReportRunning(false)
     }
 
     private fun io(f: suspend () -> Unit) {

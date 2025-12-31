@@ -52,6 +52,25 @@ import java.util.regex.Pattern
 
 object UIUtils {
 
+    fun formatBytes(bytes: Long): String {
+        if (bytes <= 0) return "0 B"
+        val units = arrayOf("B", "KB", "MB", "GB", "TB")
+        var value = bytes.toDouble()
+        var unitIndex = 0
+
+        while (value >= 1024 && unitIndex < units.size - 1) {
+            value /= 1024
+            unitIndex++
+        }
+
+        return if (value == value.toLong().toDouble()) {
+            "${value.toLong()} ${units[unitIndex]}"
+        } else {
+            String.format("%.1f %s", value, units[unitIndex])
+        }
+    }
+
+
     fun getDnsStatusStringRes(status: Long?): Int {
         if (status == null) return R.string.failed_using_default
 

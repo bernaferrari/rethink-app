@@ -19,23 +19,22 @@ import Logger
 import Logger.LOG_TAG_UI
 import android.content.Context
 import android.graphics.drawable.Drawable
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.database.AppInfo
-import com.celzero.bravedns.databinding.ListItemStatisticsSummaryBinding
 import com.celzero.bravedns.service.FirewallManager
-import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
+import com.celzero.bravedns.ui.compose.statistics.StatisticsSummaryItem
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Utilities
-import com.celzero.bravedns.util.Utilities.isAtleastN
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -45,6 +44,7 @@ class WgNwStatsAdapter(private val context: Context) :
     PagingDataAdapter<AppConnection, WgNwStatsAdapter.WgNwStatsAdapterViewHolder>(DIFF_CALLBACK) {
 
     private var maxValue: Int = 0
+
     companion object {
         private val TAG = WgNwStatsAdapter::class.simpleName
 
@@ -60,10 +60,21 @@ class WgNwStatsAdapter(private val context: Context) :
             }
     }
 
+    private data class SummaryItemUi(
+        val title: String,
+        val subtitle: String?,
+        val countText: String,
+        val iconDrawable: Drawable?,
+        val showProgress: Boolean,
+        val progress: Float,
+        val progressColor: Color
+    )
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WgNwStatsAdapterViewHolder {
-        val inflater = LayoutInflater.from(parent.context)
-        val binding = ListItemStatisticsSummaryBinding.inflate(inflater, parent, false)
-        return WgNwStatsAdapterViewHolder(binding)
+        val composeView = ComposeView(parent.context).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        }
+        return WgNwStatsAdapterViewHolder(composeView)
     }
 
     override fun onBindViewHolder(holder: WgNwStatsAdapterViewHolder, position: Int) {
@@ -73,7 +84,6 @@ class WgNwStatsAdapter(private val context: Context) :
 
     private fun calculatePercentage(c: Double): Int {
         val value = (log2(c) * 100).toInt()
-        // maxValue will be based on the count returned by the database query (order by count desc)
         if (value > maxValue) {
             maxValue = value
         }
@@ -84,71 +94,70 @@ class WgNwStatsAdapter(private val context: Context) :
         }
     }
 
-    inner class WgNwStatsAdapterViewHolder(private val b: ListItemStatisticsSummaryBinding) :
-        RecyclerView.ViewHolder(b.root) {
+    inner class WgNwStatsAdapterViewHolder(private val composeView: ComposeView) :
+        RecyclerView.ViewHolder(composeView) {
 
         fun bind(conn: AppConnection) {
             Logger.d(LOG_TAG_UI, "$TAG: Binding data for ${conn.uid}, ${conn.appOrDnsName}")
-            setName(conn)
-            setIcon(conn)
-            showDataUsage(conn)
-            setProgress(conn)
-            setConnectionCount(conn)
-            // remove right arrow indicator as there won't be any click action
-            b.ssIndicator.visibility = View.INVISIBLE
-        }
 
-        private fun setConnectionCount(conn: AppConnection) {
-            b.ssCount.text = conn.count.toString()
-        }
-
-        private fun showDataUsage(conn: AppConnection) {
-            if (conn.downloadBytes == null || conn.uploadBytes == null) {
-                b.ssName.visibility = View.GONE
-                b.ssCount.text = conn.count.toString()
-                return
+            val usageText = if (conn.downloadBytes != null && conn.uploadBytes != null) {
+                val download =
+                    context.getString(
+                        R.string.symbol_download,
+                        Utilities.humanReadableByteCount(conn.downloadBytes, true)
+                    )
+                val upload =
+                    context.getString(
+                        R.string.symbol_upload,
+                        Utilities.humanReadableByteCount(conn.uploadBytes, true)
+                    )
+                context.getString(R.string.two_argument, upload, download)
+            } else {
+                null
             }
 
-            b.ssName.visibility = View.VISIBLE
-            val download =
-                context.getString(
-                    R.string.symbol_download,
-                    Utilities.humanReadableByteCount(conn.downloadBytes, true)
-                )
-            val upload =
-                context.getString(
-                    R.string.symbol_upload,
-                    Utilities.humanReadableByteCount(conn.uploadBytes, true)
-                )
-            val total = context.getString(R.string.two_argument, upload, download)
-            b.ssDataUsage.text = total
-            b.ssCount.text = conn.count.toString()
-        }
+            val progressPercent = calculatePercentage(((conn.downloadBytes ?: 0L) + (conn.uploadBytes ?: 0L)).toDouble())
+            val baseUi = SummaryItemUi(
+                title = conn.appOrDnsName ?: "",
+                subtitle = usageText,
+                countText = conn.count.toString(),
+                iconDrawable = Utilities.getDefaultIcon(context),
+                showProgress = true,
+                progress = progressPercent / 100f,
+                progressColor = Color.Transparent
+            )
+            bindUi(baseUi)
 
-        private fun setIcon(conn: AppConnection) {
             io {
                 val appInfo = FirewallManager.getAppInfoByUid(conn.uid)
+                val appName = getAppName(conn, appInfo) ?: ""
+                val icon =
+                    Utilities.getIcon(
+                        context,
+                        appInfo?.packageName ?: "",
+                        appInfo?.appName ?: ""
+                    ) ?: Utilities.getDefaultIcon(context)
                 uiCtx {
-                    b.ssIcon.visibility = View.VISIBLE
-                    b.ssFlag.visibility = View.GONE
-                    loadAppIcon(
-                        Utilities.getIcon(
-                            context,
-                            appInfo?.packageName ?: "",
-                            appInfo?.appName ?: ""
-                        )
-                    )
+                    bindUi(baseUi.copy(title = appName, iconDrawable = icon))
                 }
             }
         }
 
-        private fun setName(conn: AppConnection) {
-            io {
-                val appInfo = FirewallManager.getAppInfoByUid(conn.uid)
-                uiCtx {
-                    val appName = getAppName(conn, appInfo)
-                    b.ssName.visibility = View.VISIBLE
-                    b.ssName.text = appName
+        private fun bindUi(ui: SummaryItemUi) {
+            composeView.setContent {
+                RethinkTheme {
+                    StatisticsSummaryItem(
+                        title = ui.title,
+                        subtitle = ui.subtitle,
+                        countText = ui.countText,
+                        iconDrawable = ui.iconDrawable,
+                        flagText = null,
+                        showProgress = ui.showProgress,
+                        progress = ui.progress,
+                        progressColor = androidx.compose.ui.res.colorResource(id = R.color.accentGood),
+                        showIndicator = false,
+                        onClick = null
+                    )
                 }
             }
         }
@@ -164,39 +173,10 @@ class WgNwStatsAdapter(private val context: Context) :
                 conn.appOrDnsName
             }
         }
-
-        private fun setProgress(conn: AppConnection) {
-            val d = conn.downloadBytes ?: 0L
-            val u = conn.uploadBytes ?: 0L
-
-            val c = (d + u).toDouble()
-            val percentage = calculatePercentage(c)
-            b.ssProgress.setIndicatorColor(
-                fetchToggleBtnColors(context, R.color.accentGood)
-            )
-            if (isAtleastN()) {
-                b.ssProgress.setProgress(percentage, true)
-            } else {
-                b.ssProgress.progress = percentage
-            }
-        }
-
-        private fun loadAppIcon(drawable: Drawable?) {
-            ui {
-                Glide.with(context)
-                    .load(drawable)
-                    .error(Utilities.getDefaultIcon(context))
-                    .into(b.ssIcon)
-            }
-        }
     }
 
     private fun io(f: suspend () -> Unit) {
         (context as LifecycleOwner).lifecycleScope.launch(Dispatchers.IO) { f() }
-    }
-
-    private fun ui(f: suspend () -> Unit) {
-        (context as LifecycleOwner).lifecycleScope.launch(Dispatchers.Main) { f() }
     }
 
     private suspend fun uiCtx(f: suspend () -> Unit) {

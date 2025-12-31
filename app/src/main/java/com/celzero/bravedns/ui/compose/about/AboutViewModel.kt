@@ -157,4 +157,8 @@ class AboutViewModel(
         workScheduler.scheduleOneTimeWorkForAppExitInfo()
         _uiState.update { it.copy(isBugReportRunning = true) }
     }
+
+    fun setBugReportRunning(isRunning: Boolean) {
+        _uiState.update { it.copy(isBugReportRunning = isRunning) }
+    }
 }

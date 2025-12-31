@@ -335,17 +335,9 @@ class HomeScreenFragment : Fragment() {
         builder.create().show()
     }
 
-    private fun stopVpnService() {
-        VpnController.stop("home", requireContext())
-    }
-
-    private fun startVpnService() {
-        getNotificationPermissionIfNeeded()
-        VpnController.start(requireContext(), true)
-    }
-
     @Suppress("DEPRECATION")
     private fun maybeAutoStartVpn() {
+
         if (VpnController.state().activationRequested && !VpnController.isOn()) {
             Logger.i(LOG_TAG_VPN, "start VPN (previous state)")
             prepareAndStartVpn()

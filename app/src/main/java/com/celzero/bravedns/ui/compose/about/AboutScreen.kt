@@ -190,7 +190,7 @@ fun AboutScreen(
                 AboutItem(stringResource(id = R.string.about_docs), R.drawable.ic_blog, onDocsClick)
                 AboutItem(stringResource(id = R.string.about_privacy_policy), R.drawable.ic_privacy_policy, onPrivacyPolicyClick)
                 AboutItem(stringResource(id = R.string.about_terms_of_service), R.drawable.ic_terms_service, onTermsOfServiceClick)
-                AboutItem(stringResource(id = R.string.about_license), R.drawable.ic_license, onLicenseClick)
+                AboutItem(stringResource(id = R.string.about_license), R.drawable.ic_terms_service, onLicenseClick)
             }
 
             AboutSection(title = stringResource(id = R.string.about_connect)) {

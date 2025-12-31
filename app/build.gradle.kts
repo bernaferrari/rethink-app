@@ -1,11 +1,11 @@
 import java.util.Properties
 import java.io.FileInputStream
-import com.android.build.OutputFile
+
 
 plugins {
     alias(libs.plugins.android.application)
-    alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
+
     alias(libs.plugins.compose.compiler)
 }
 
@@ -15,9 +15,6 @@ java {
     }
 }
 
-kotlin {
-    jvmToolchain(17)
-}
 
 // apply Google Services and Firebase Crashlytics plugins conditionally
 val taskNames = gradle.startParameter.taskNames.joinToString(",").lowercase()
@@ -116,40 +113,13 @@ android {
         }
     }
 
-    val versionCodes = mapOf(
-        "armeabi" to 1,
-        "armeabi-v7a" to 2,
-        "arm64-v8a" to 3,
-        "x86" to 8,
-        "x86_64" to 9
-    )
 
-    applicationVariants.all {
-        val variant = this
-        println("variant name: ${variant.name}")
-        variant.outputs.all {
-            val output = this as? com.android.build.gradle.internal.api.ApkVariantOutputImpl
-            if (output != null) {
-                val abi = output.getFilter(OutputFile.ABI)
-                val baseAbiVersionCode = versionCodes[abi]
-                println("base version code: $baseAbiVersionCode")
-                if (abi != null && baseAbiVersionCode != null) {
-                    println("variant name: ${variant.name}, abi: $abi")
-                    val v = baseAbiVersionCode * 10000000 + variant.versionCode
-                    output.versionCodeOverride = v
-                    println("version code override: $v")
-                } else {
-                    println("no ABI filter applied for variant: ${variant.name}")
-                }
-            }
-        }
-    }
 
     buildTypes {
         getByName("release") {
             isMinifyEnabled = true
             isShrinkResources = true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             ndk {
                 debugSymbolLevel = "SYMBOL_TABLE"
                 abiFilters += listOf("arm64-v8a", "armeabi-v7a", "x86_64")
@@ -189,10 +159,7 @@ android {
         }
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-        freeCompilerArgs += listOf("-Xsuppress-warning=SENSELESS_COMPARISON")
-    }
+
 
     buildFeatures {
         viewBinding = true
@@ -252,9 +219,6 @@ fun firestackDependency(suffix: String = ":debug"): String {
 }
 
 dependencies {
-    val roomVersion = libs.versions.room.get()
-    val pagingVersion = libs.versions.paging.get()
-
     implementation(libs.guava)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
@@ -282,16 +246,21 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.gson)
 
-    implementation("androidx.room:room-runtime:$roomVersion")
-    ksp("androidx.room:room-compiler:$roomVersion")
-    implementation("androidx.room:room-ktx:$roomVersion")
-    implementation("androidx.room:room-paging:$roomVersion")
+    // Room
+    implementation(libs.androidx.room.runtime)
+    ksp(libs.androidx.room.compiler)
+    implementation(libs.androidx.room.ktx)
+    implementation(libs.androidx.room.paging)
 
     "fullImplementation"(libs.androidx.lifecycle.viewmodel.ktx)
     "fullImplementation"(libs.androidx.lifecycle.runtime.ktx)
 
-    implementation("androidx.paging:paging-runtime-ktx:$pagingVersion")
+    // Paging
+    implementation(libs.androidx.paging.runtime.ktx)
+    implementation(libs.androidx.paging.compose)
     "fullImplementation"(libs.androidx.fragment.ktx)
+
+
     implementation(libs.google.material)
     "fullImplementation"(libs.androidx.viewpager2)
 
@@ -387,4 +356,37 @@ dependencies {
     "playImplementation"(platform(libs.firebase.bom))
     "playImplementation"(libs.firebase.crashlytics)
     "playImplementation"(libs.firebase.crashlytics.ndk)
+}
+
+androidComponents {
+    onVariants { variant ->
+        val versionCodes = mapOf(
+            "armeabi" to 1,
+            "armeabi-v7a" to 2,
+            "arm64-v8a" to 3,
+            "x86" to 8,
+            "x86_64" to 9
+        )
+        val mainOutput = variant.outputs.singleOrNull {
+            it.filters.any { filter -> filter.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }
+        }
+        mainOutput?.let { output ->
+            val abi = output.filters.find { it.filterType == com.android.build.api.variant.FilterConfiguration.FilterType.ABI }?.identifier
+            val baseAbiVersionCode = versionCodes[abi]
+            if (baseAbiVersionCode != null) {
+                // Use map to calculate version code properly from the provider
+                val calculatedVersionCode = variant.outputs.first().versionCode.map { base ->
+                    ((baseAbiVersionCode * 10000000) + (base ?: 0)).toInt()
+                }
+                output.versionCode.set(calculatedVersionCode)
+            }
+        }
+    }
+}
+
+kotlin {
+    compilerOptions {
+        jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        freeCompilerArgs.add("-Xsuppress-warning=SENSELESS_COMPARISON")
+    }
 }
