@@ -16,18 +16,42 @@
 package com.celzero.bravedns.ui.bottomsheet
 
 import android.content.Context
-import android.content.res.ColorStateList
 import android.content.res.Configuration
-import android.util.TypedValue
-import android.view.LayoutInflater
-import android.view.ViewGroup
+import androidx.compose.foundation.background
+import androidx.compose.ui.draw.alpha
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
-import com.celzero.bravedns.databinding.BottomSheetDnsRecordTypesBinding
-import com.celzero.bravedns.databinding.ItemDnsRecordTypeBinding
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.ResourceRecordTypes
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
@@ -35,23 +59,22 @@ import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.button.MaterialButton
 
 class DnsRecordTypesDialog(
     private val context: Context,
     private val persistentState: PersistentState,
     private val onDismiss: () -> Unit
 ) {
-    private val binding =
-        BottomSheetDnsRecordTypesBinding.inflate(LayoutInflater.from(context))
     private val dialog = BottomSheetDialog(context, getThemeId())
 
-    private val manuallySelectedTypes = mutableSetOf<String>()
-    private lateinit var adapter: DnsRecordTypesAdapter
-    private var isAutoMode = true
-
     init {
-        dialog.setContentView(binding.root)
+        val composeView = ComposeView(context)
+        composeView.setContent {
+            RethinkTheme {
+                DnsRecordTypesContent()
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.setOnShowListener {
             dialog.useTransparentNoDimBackground()
             dialog.window?.let { window ->
@@ -63,8 +86,6 @@ class DnsRecordTypesDialog(
             }
         }
         dialog.setOnDismissListener { onDismiss() }
-        initView()
-        setupAutoModeCard()
     }
 
     fun show() {
@@ -78,198 +99,192 @@ class DnsRecordTypesDialog(
         return Themes.getBottomsheetCurrentTheme(isDark, persistentState.theme)
     }
 
-    private fun initView() {
-        isAutoMode = persistentState.dnsRecordTypesAutoMode
+    @Composable
+    private fun DnsRecordTypesContent() {
+        var isAutoMode by remember { mutableStateOf(persistentState.dnsRecordTypesAutoMode) }
+        val selected = remember {
+            mutableStateListOf<String>().apply {
+                addAll(getInitialSelection(persistentState.dnsRecordTypesAutoMode))
+            }
+        }
 
-        manuallySelectedTypes.clear()
-        if (!isAutoMode) {
-            manuallySelectedTypes.addAll(persistentState.getAllowedDnsRecordTypes())
-        } else {
-            val storedSelection = persistentState.allowedDnsRecordTypesString
-            if (storedSelection.isNotEmpty()) {
-                manuallySelectedTypes.addAll(storedSelection.split(",").filter { it.isNotEmpty() })
-            } else {
-                manuallySelectedTypes.addAll(
-                    setOf(
-                        ResourceRecordTypes.A.name,
-                        ResourceRecordTypes.AAAA.name,
-                        ResourceRecordTypes.CNAME.name,
-                        ResourceRecordTypes.HTTPS.name,
-                        ResourceRecordTypes.SVCB.name
-                    )
+        val allTypes = remember {
+            ResourceRecordTypes.entries.filter { it != ResourceRecordTypes.UNKNOWN }
+        }
+
+        val sortedTypes by remember(isAutoMode, selected) {
+            derivedStateOf {
+                allTypes.sortedWith(
+                    compareByDescending<ResourceRecordTypes> {
+                        if (isAutoMode) true else selected.contains(it.name)
+                    }.thenBy { it.name }
                 )
             }
         }
 
-        val allTypes = ResourceRecordTypes.entries.filter { it != ResourceRecordTypes.UNKNOWN }
-
-        val sortedTypes = allTypes.sortedWith(compareByDescending<ResourceRecordTypes> {
-            if (isAutoMode) true else manuallySelectedTypes.contains(it.name)
-        }.thenBy {
-            it.name
-        })
-
-        adapter = DnsRecordTypesAdapter(sortedTypes, manuallySelectedTypes, isAutoMode)
-        binding.drbsRecycler.layoutManager = LinearLayoutManager(context)
-        binding.drbsRecycler.adapter = adapter
-
-        updateAutoModeUI(isAutoMode, animate = false)
-    }
-
-    private fun setupAutoModeCard() {
-        if (isAutoMode) {
-            binding.drbsModeToggleGroup.check(binding.drbsAutoModeBtn.id)
-            selectToggleBtnUi(binding.drbsAutoModeBtn)
-            unselectToggleBtnUi(binding.drbsManualModeBtn)
-        } else {
-            binding.drbsModeToggleGroup.check(binding.drbsManualModeBtn.id)
-            selectToggleBtnUi(binding.drbsManualModeBtn)
-            unselectToggleBtnUi(binding.drbsAutoModeBtn)
-        }
-
-        binding.drbsModeToggleGroup.addOnButtonCheckedListener { _, checkedId, isChecked ->
-            if (!isChecked) return@addOnButtonCheckedListener
-
-            when (checkedId) {
-                binding.drbsAutoModeBtn.id -> {
-                    isAutoMode = true
-                    selectToggleBtnUi(binding.drbsAutoModeBtn)
-                    unselectToggleBtnUi(binding.drbsManualModeBtn)
-                    persistentState.dnsRecordTypesAutoMode = true
-                    updateAutoModeUI(true, animate = true)
-                    adapter.updateAutoMode(true)
-                    adapter.notifyDataSetChanged()
-                }
-                binding.drbsManualModeBtn.id -> {
-                    isAutoMode = false
-                    selectToggleBtnUi(binding.drbsManualModeBtn)
-                    unselectToggleBtnUi(binding.drbsAutoModeBtn)
-                    persistentState.dnsRecordTypesAutoMode = false
-                    updateAutoModeUI(false, animate = true)
-                    adapter.updateAutoMode(false)
-                    adapter.sortBySelection()
-                    adapter.notifyDataSetChanged()
-                }
-            }
-        }
-    }
-
-    private fun selectToggleBtnUi(b: MaterialButton) {
-        b.backgroundTintList =
-            ColorStateList.valueOf(fetchToggleBtnColors(context, R.color.accentGood))
-        b.setTextColor(UIUtils.fetchColor(context, R.attr.homeScreenHeaderTextColor))
-    }
-
-    private fun unselectToggleBtnUi(b: MaterialButton) {
-        b.backgroundTintList =
-            ColorStateList.valueOf(fetchToggleBtnColors(context, R.color.defaultToggleBtnBg))
-        b.setTextColor(UIUtils.fetchColor(context, R.attr.primaryTextColor))
-    }
-
-    private fun updateAutoModeUI(autoMode: Boolean, animate: Boolean) {
-        if (autoMode) {
-            if (animate) {
-                binding.drbsManualSection.animate()
-                    .alpha(0.4f)
-                    .setDuration(200)
-                    .start()
-            } else {
-                binding.drbsManualSection.alpha = 0.4f
-            }
-            binding.drbsManualSection.isEnabled = false
-        } else {
-            if (animate) {
-                binding.drbsManualSection.animate()
-                    .alpha(1f)
-                    .setDuration(200)
-                    .start()
-            } else {
-                binding.drbsManualSection.alpha = 1f
-            }
-            binding.drbsManualSection.isEnabled = true
-        }
-    }
-
-    inner class DnsRecordTypesAdapter(
-        private var types: List<ResourceRecordTypes>,
-        private val selected: MutableSet<String>,
-        private var autoMode: Boolean
-    ) : RecyclerView.Adapter<DnsRecordTypesAdapter.ViewHolder>() {
-
-        fun updateAutoMode(newAutoMode: Boolean) {
-            autoMode = newAutoMode
-            if (!newAutoMode) {
-                sortBySelection()
-            }
-        }
-
-        fun sortBySelection() {
-            types = types.sortedWith(compareByDescending<ResourceRecordTypes> {
-                selected.contains(it.name)
-            }.thenBy {
-                it.name
-            })
-        }
-
-        inner class ViewHolder(private val itemBinding: ItemDnsRecordTypeBinding) :
-            RecyclerView.ViewHolder(itemBinding.root) {
-
-            fun bind(type: ResourceRecordTypes, isLocked: Boolean) {
-                itemBinding.itemDnsRecordTypeName.text = type.name
-                itemBinding.itemDnsRecordTypeDesc.text = type.desc
-
-                if (isLocked) {
-                    itemBinding.itemDnsRecordTypeCheckbox.isChecked = true
-                    itemBinding.itemDnsRecordTypeCheckbox.isEnabled = false
-                    itemBinding.root.isClickable = false
-                    itemBinding.root.alpha = 0.6f
-                    itemBinding.root.background = null
-                } else {
-                    itemBinding.itemDnsRecordTypeCheckbox.isChecked = selected.contains(type.name)
-                    itemBinding.itemDnsRecordTypeCheckbox.isEnabled = true
-                    itemBinding.root.isClickable = true
-                    itemBinding.root.alpha = 1f
-
-                    val typedValue = TypedValue()
-                    itemBinding.root.context.theme.resolveAttribute(
-                        android.R.attr.selectableItemBackground,
-                        typedValue,
-                        true
-                    )
-                    itemBinding.root.setBackgroundResource(typedValue.resourceId)
-
-                    itemBinding.root.setOnClickListener {
-                        val isChecked = !itemBinding.itemDnsRecordTypeCheckbox.isChecked
-                        itemBinding.itemDnsRecordTypeCheckbox.isChecked = isChecked
-
-                        if (isChecked) {
-                            selected.add(type.name)
-                        } else {
-                            selected.remove(type.name)
-                        }
-
-                        persistentState.setAllowedDnsRecordTypes(selected)
-
-                        sortBySelection()
-                        notifyDataSetChanged()
-                    }
-                }
-            }
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val binding = ItemDnsRecordTypeBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
+        Column(modifier = Modifier.padding(16.dp)) {
+            Box(
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(3.dp)
+                    .background(Color(fetchToggleBtnColors(context, R.color.defaultToggleBtnBg)), RoundedCornerShape(4.dp))
+                    .align(androidx.compose.ui.Alignment.CenterHorizontally)
             )
-            return ViewHolder(binding)
-        }
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = context.getString(R.string.cd_allowed_dns_record_types_heading),
+                style = MaterialTheme.typography.titleLarge,
+                color = Color(UIUtils.fetchColor(context, R.attr.primaryLightColorText)),
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp)
+            )
+            Text(
+                text = context.getString(R.string.cd_allowed_dns_record_types_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = Color(UIUtils.fetchColor(context, R.attr.primaryLightColorText)),
+                modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+            )
 
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.bind(types[position], autoMode)
-        }
+            ModeToggleRow(
+                isAutoMode = isAutoMode,
+                onAutoSelected = {
+                    isAutoMode = true
+                    persistentState.dnsRecordTypesAutoMode = true
+                },
+                onManualSelected = {
+                    isAutoMode = false
+                    persistentState.dnsRecordTypesAutoMode = false
+                }
+            )
 
-        override fun getItemCount(): Int = types.size
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 40.dp)
+                    .background(Color.Transparent)
+            ) {
+                items(sortedTypes) { type ->
+                    RecordTypeRow(
+                        type = type,
+                        isAutoMode = isAutoMode,
+                        isSelected = if (isAutoMode) true else selected.contains(type.name),
+                        onToggle = {
+                            if (isAutoMode) return@RecordTypeRow
+                            if (selected.contains(type.name)) {
+                                selected.remove(type.name)
+                            } else {
+                                selected.add(type.name)
+                            }
+                            persistentState.setAllowedDnsRecordTypes(selected.toSet())
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun ModeToggleRow(
+        isAutoMode: Boolean,
+        onAutoSelected: () -> Unit,
+        onManualSelected: () -> Unit
+    ) {
+        val selectedBg = Color(fetchToggleBtnColors(context, R.color.accentGood))
+        val unselectedBg = Color(fetchToggleBtnColors(context, R.color.defaultToggleBtnBg))
+        val selectedText = Color(UIUtils.fetchColor(context, R.attr.homeScreenHeaderTextColor))
+        val unselectedText = Color(UIUtils.fetchColor(context, R.attr.primaryTextColor))
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextButton(
+                onClick = onAutoSelected,
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        if (isAutoMode) selectedBg else unselectedBg,
+                        RoundedCornerShape(16.dp)
+                    )
+            ) {
+                Text(
+                    text = context.getString(R.string.settings_ip_text_ipv46),
+                    color = if (isAutoMode) selectedText else unselectedText
+                )
+            }
+            TextButton(
+                onClick = onManualSelected,
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        if (!isAutoMode) selectedBg else unselectedBg,
+                        RoundedCornerShape(16.dp)
+                    )
+            ) {
+                Text(
+                    text = context.getString(R.string.lbl_manual),
+                    color = if (!isAutoMode) selectedText else unselectedText
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun RecordTypeRow(
+        type: ResourceRecordTypes,
+        isAutoMode: Boolean,
+        isSelected: Boolean,
+        onToggle: () -> Unit
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 6.dp)
+                .background(Color.Transparent)
+                .alpha(if (isAutoMode) 0.6f else 1f)
+                .clickable(enabled = !isAutoMode) { onToggle() }
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = type.name,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                    color = Color(UIUtils.fetchColor(context, R.attr.primaryTextColor)),
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+                Text(
+                    text = type.desc,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(UIUtils.fetchColor(context, R.attr.primaryLightColorText))
+                )
+            }
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = if (isAutoMode) null else { _ -> onToggle() },
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+        if (isAutoMode) {
+            Spacer(modifier = Modifier.height(2.dp))
+        }
+    }
+
+    private fun getInitialSelection(autoMode: Boolean): List<String> {
+        if (!autoMode) {
+            return persistentState.getAllowedDnsRecordTypes().toList()
+        }
+        val storedSelection = persistentState.allowedDnsRecordTypesString
+        if (storedSelection.isNotEmpty()) {
+            return storedSelection.split(",").filter { it.isNotEmpty() }
+        }
+        return listOf(
+            ResourceRecordTypes.A.name,
+            ResourceRecordTypes.AAAA.name,
+            ResourceRecordTypes.CNAME.name,
+            ResourceRecordTypes.HTTPS.name,
+            ResourceRecordTypes.SVCB.name
+        )
     }
 }

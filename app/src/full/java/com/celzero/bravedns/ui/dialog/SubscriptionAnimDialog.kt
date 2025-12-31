@@ -2,10 +2,18 @@ package com.celzero.bravedns.ui.dialog
 
 import android.app.Dialog
 import android.graphics.Color
-import android.view.LayoutInflater
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.FragmentActivity
-import com.celzero.bravedns.databinding.DialogSubscriptionAnimBinding
 import nl.dionsegijn.konfetti.core.Angle
 import nl.dionsegijn.konfetti.core.Party
 import nl.dionsegijn.konfetti.core.Position
@@ -13,10 +21,11 @@ import nl.dionsegijn.konfetti.core.Rotation
 import nl.dionsegijn.konfetti.core.emitter.Emitter
 import nl.dionsegijn.konfetti.core.models.Shape
 import nl.dionsegijn.konfetti.core.models.Size
+import nl.dionsegijn.konfetti.xml.KonfettiView
+import kotlinx.coroutines.delay
 import java.util.concurrent.TimeUnit
 
 class SubscriptionAnimDialog(private val activity: FragmentActivity) {
-    private val binding = DialogSubscriptionAnimBinding.inflate(LayoutInflater.from(activity))
     private val dialog = Dialog(activity)
 
     companion object {
@@ -43,17 +52,34 @@ class SubscriptionAnimDialog(private val activity: FragmentActivity) {
     }
 
     init {
-        dialog.setContentView(binding.root)
+        val composeView = ComposeView(activity)
+        composeView.setContent {
+            Box(modifier = Modifier.fillMaxSize()) {
+                var started by remember { mutableStateOf(false) }
+                AndroidView(
+                    factory = { KonfettiView(it) },
+                    update = { view ->
+                        if (!started) {
+                            view.start(festive())
+                            started = true
+                        }
+                    }
+                )
+                LaunchedEffect(Unit) {
+                    delay(DIALOG_DISPLAY_DURATION_MS)
+                    if (dialog.isShowing) {
+                        dialog.dismiss()
+                    }
+                }
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.window?.setBackgroundDrawable(Color.TRANSPARENT.toDrawable())
         dialog.setCancelable(true)
     }
 
     fun show() {
         dialog.show()
-        binding.konfettiView.start(festive())
-        binding.konfettiView.postDelayed({
-            dialog.dismiss()
-        }, DIALOG_DISPLAY_DURATION_MS)
     }
 
     private fun festive(): List<Party> {
