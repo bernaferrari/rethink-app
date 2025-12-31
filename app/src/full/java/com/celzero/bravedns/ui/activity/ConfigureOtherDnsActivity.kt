@@ -26,21 +26,44 @@ import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -61,7 +84,6 @@ import com.celzero.bravedns.database.ODoHEndpoint
 import com.celzero.bravedns.databinding.DialogSetCustomDohBinding
 import com.celzero.bravedns.databinding.DialogSetCustomOdohBinding
 import com.celzero.bravedns.databinding.DialogSetDnsCryptBinding
-import com.celzero.bravedns.databinding.DialogSetDnsProxyBinding
 import com.celzero.bravedns.databinding.FragmentDnsCryptListBinding
 import com.celzero.bravedns.databinding.FragmentDnsProxyListBinding
 import com.celzero.bravedns.databinding.FragmentDohListBinding
@@ -428,121 +450,188 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
     }
 
     private fun showAddDnsProxyDialog(appNames: List<String>, nextIndex: Int) {
-        val dialogBinding = DialogSetDnsProxyBinding.inflate(layoutInflater)
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+        val dialog = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).create()
         val lp = WindowManager.LayoutParams()
-        val dialog = builder.create()
+        dialog.show()
         lp.copyFrom(dialog.window?.attributes)
         lp.width = WindowManager.LayoutParams.MATCH_PARENT
         lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-
-        dialog.setCancelable(true)
         dialog.window?.attributes = lp
+        dialog.setCancelable(true)
 
-        val applyURLBtn = dialogBinding.dialogDnsProxyApplyBtn
-        val cancelURLBtn = dialogBinding.dialogDnsProxyCancelBtn
-        val lockdownDesc = dialogBinding.dialogDnsProxyLockdownDesc
-        val proxyNameEditText = dialogBinding.dialogDnsProxyEditName
-        val appNameSpinner = dialogBinding.dialogProxySpinnerAppname
-        val ipAddressEditText = dialogBinding.dialogDnsProxyEditIp
-        val portEditText = dialogBinding.dialogDnsProxyEditPort
-        val errorTxt = dialogBinding.dialogDnsProxyErrorText
-        val excludeAppCheckBox = dialogBinding.dialogDnsProxyExcludeAppsCheck
-
-        excludeAppCheckBox.isChecked = !persistentState.excludeAppsInProxy
-        excludeAppCheckBox.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.excludeAppsInProxy = !isChecked
-        }
-
-        lockdownDesc.visibility = if (VpnController.isVpnLockdown()) View.VISIBLE else View.GONE
-
-        val appNamesAdapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, appNames)
-        appNameSpinner.adapter = appNamesAdapter
-
-        excludeAppCheckBox.isEnabled = !VpnController.isVpnLockdown()
-        if (VpnController.isVpnLockdown()) {
-            excludeAppCheckBox.alpha = 0.5f
-        }
-        proxyNameEditText.setText(
-            getString(R.string.cd_custom_dns_proxy_name, nextIndex.toString()),
-            TextView.BufferType.EDITABLE
-        )
-        ipAddressEditText.setText(
-            getString(R.string.cd_custom_dns_proxy_default_ip),
-            TextView.BufferType.EDITABLE
-        )
-        portEditText.setText("")
-
-        lockdownDesc.setOnClickListener {
-            dialog.dismiss()
-            UIUtils.openVpnProfile(this)
-        }
-
-        applyURLBtn.setOnClickListener {
-            var port = 0
-            var isPortValid: Boolean
-            val name = proxyNameEditText.text.toString()
-            val mode = getString(R.string.cd_dns_proxy_mode_external)
-            val ipInput = ipAddressEditText.text.toString()
-
-            val appName = appNameSpinner.selectedItem.toString()
-
-            val ipAddresses = ipInput.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-            if (ipAddresses.isEmpty()) {
-                errorTxt.text = getString(R.string.cd_dns_proxy_error_text_1)
-                return@setOnClickListener
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                DnsProxyDialogContent(
+                    appNames = appNames,
+                    nextIndex = nextIndex,
+                    onDismiss = { dialog.dismiss() }
+                )
             }
+        }
+        dialog.setView(composeView)
+    }
 
-            val invalidIps = mutableListOf<String>()
-            val validIps = mutableListOf<String>()
-            for (ip in ipAddresses) {
-                if (IPAddressString(ip).isIPAddress) {
-                    validIps.add(ip)
-                } else {
-                    invalidIps.add(ip)
+    @Composable
+    private fun DnsProxyDialogContent(
+        appNames: List<String>,
+        nextIndex: Int,
+        onDismiss: () -> Unit
+    ) {
+        var selectedAppIndex by remember { mutableStateOf(0) }
+        var appMenuExpanded by remember { mutableStateOf(false) }
+        var proxyName by remember {
+            mutableStateOf(getString(R.string.cd_custom_dns_proxy_name, nextIndex.toString()))
+        }
+        var ipAddress by remember { mutableStateOf(getString(R.string.cd_custom_dns_proxy_default_ip)) }
+        var portText by remember { mutableStateOf("") }
+        var errorText by remember { mutableStateOf("") }
+        var excludeAppsChecked by remember { mutableStateOf(!persistentState.excludeAppsInProxy) }
+
+        val lockdown = VpnController.isVpnLockdown()
+
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = getString(R.string.dns_proxy_dialog_header_dns),
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            if (lockdown) {
+                TextButton(onClick = { onDismiss(); UIUtils.openVpnProfile(this@ConfigureOtherDnsActivity) }) {
+                    Text(text = getString(R.string.settings_lock_down_mode_desc))
                 }
             }
 
-            if (invalidIps.isNotEmpty()) {
-                errorTxt.text =
-                    getString(R.string.cd_dns_proxy_error_text_1) +
-                        ": ${invalidIps.joinToString(", ")}"
-                return@setOnClickListener
-            }
-
-            try {
-                port = portEditText.text.toString().toInt()
-                isPortValid = true
-                for (ip in validIps) {
-                    if (Utilities.isLanIpv4(ip)) {
-                        if (!Utilities.isValidLocalPort(port)) {
-                            isPortValid = false
-                            break
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = getString(R.string.settings_dns_proxy_dialog_app),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.weight(0.3f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(0.7f)) {
+                    TextButton(onClick = { appMenuExpanded = true }) {
+                        Text(text = appNames.getOrNull(selectedAppIndex) ?: "")
+                    }
+                    DropdownMenu(expanded = appMenuExpanded, onDismissRequest = { appMenuExpanded = false }) {
+                        appNames.forEachIndexed { index, name ->
+                            DropdownMenuItem(
+                                text = { Text(text = name) },
+                                onClick = {
+                                    selectedAppIndex = index
+                                    appMenuExpanded = false
+                                }
+                            )
                         }
                     }
                 }
-
-                if (!isPortValid) {
-                    errorTxt.text = getString(R.string.cd_dns_proxy_error_text_2)
-                }
-            } catch (e: NumberFormatException) {
-                errorTxt.text = getString(R.string.cd_dns_proxy_error_text_3)
-                isPortValid = false
             }
 
-            if (isPortValid && validIps.isNotEmpty()) {
-                val ipString = validIps.joinToString(",")
-                io {
-                    insertDNSProxyEndpointDB(mode, name, appName, ipString, port)
+            OutlinedTextField(
+                value = proxyName,
+                onValueChange = { proxyName = it },
+                label = { Text(text = getString(R.string.dns_proxy_name)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = ipAddress,
+                onValueChange = { ipAddress = it },
+                label = { Text(text = getString(R.string.dns_proxy_ip_address)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = portText,
+                onValueChange = { portText = it },
+                label = { Text(text = getString(R.string.dns_proxy_port)) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            if (errorText.isNotBlank()) {
+                Text(text = errorText, color = MaterialTheme.colorScheme.error)
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(text = getString(R.string.settings_exclude_proxy_apps_heading))
+                Checkbox(
+                    checked = excludeAppsChecked,
+                    onCheckedChange = { if (!lockdown) excludeAppsChecked = it },
+                    enabled = !lockdown
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = onDismiss) {
+                    Text(text = getString(R.string.lbl_cancel))
                 }
-                persistentState.excludeAppsInProxy = !excludeAppCheckBox.isChecked
-                dialog.dismiss()
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        val mode = getString(R.string.cd_dns_proxy_mode_external)
+                        val appName = appNames.getOrNull(selectedAppIndex).orEmpty()
+                        val ipAddresses =
+                            ipAddress.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                        if (ipAddresses.isEmpty()) {
+                            errorText = getString(R.string.cd_dns_proxy_error_text_1)
+                            return@Button
+                        }
+
+                        val invalidIps = mutableListOf<String>()
+                        val validIps = mutableListOf<String>()
+                        for (ip in ipAddresses) {
+                            if (IPAddressString(ip).isIPAddress) {
+                                validIps.add(ip)
+                            } else {
+                                invalidIps.add(ip)
+                            }
+                        }
+
+                        if (invalidIps.isNotEmpty()) {
+                            errorText =
+                                getString(R.string.cd_dns_proxy_error_text_1) +
+                                    ": ${invalidIps.joinToString(", ")}"
+                            return@Button
+                        }
+
+                        val port = portText.toIntOrNull()
+                        if (port == null) {
+                            errorText = getString(R.string.cd_dns_proxy_error_text_3)
+                            return@Button
+                        }
+
+                        var isPortValid = true
+                        for (ip in validIps) {
+                            if (Utilities.isLanIpv4(ip) && !Utilities.isValidLocalPort(port)) {
+                                isPortValid = false
+                                break
+                            }
+                        }
+
+                        if (!isPortValid) {
+                            errorText = getString(R.string.cd_dns_proxy_error_text_2)
+                            return@Button
+                        }
+
+                        val ipString = validIps.joinToString(",")
+                        io { insertDNSProxyEndpointDB(mode, proxyName, appName, ipString, port) }
+                        persistentState.excludeAppsInProxy = !excludeAppsChecked
+                        onDismiss()
+                    }
+                ) {
+                    Text(text = getString(R.string.lbl_add))
+                }
             }
         }
-
-        cancelURLBtn.setOnClickListener { dialog.dismiss() }
-        dialog.show()
     }
 
     private suspend fun insertDNSProxyEndpointDB(
