@@ -24,7 +24,21 @@ import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
 import android.provider.Settings
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.core.view.WindowInsetsControllerCompat
 import com.celzero.bravedns.R
@@ -42,12 +56,12 @@ import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.koin.android.ext.android.inject
 
 class NotificationHandlerActivity: AppCompatActivity() {
 
     private val persistentState by inject<PersistentState>()
+    private var dialogState by mutableStateOf<DialogConfig?>(null)
 
     companion object {
         private const val SCHEME_PACKAGE = "package"
@@ -78,7 +92,7 @@ class NotificationHandlerActivity: AppCompatActivity() {
         handleFrostEffectIfNeeded(persistentState.theme)
 
         // This is a trampoline activity that shows dialogs but no actual UI
-        setContentView(android.R.layout.activity_list_item)
+        setContent { NotificationHandlerContent() }
         window.decorView.alpha = 0f // Make it invisible
 
         if (isAtleastQ()) {
@@ -131,7 +145,7 @@ class NotificationHandlerActivity: AppCompatActivity() {
         Logger.i(LOG_TAG_UI, "act on notification, notification type: $trampolineType")
         when (trampolineType) {
             TrampolineType.ACCESSIBILITY_SERVICE_FAILURE_DIALOG -> {
-                handleAccessibilitySettings()
+                dialogState = DialogConfig(DialogType.ACCESSIBILITY, intent)
             }
             TrampolineType.NEW_APP_INSTALL_DIALOG -> {
                 // navigate to all apps screen
@@ -141,7 +155,7 @@ class NotificationHandlerActivity: AppCompatActivity() {
                 launchHomeScreenAndFinish()
             }
             TrampolineType.PAUSE_ACTIVITY -> {
-                showAppPauseDialog(trampolineType, intent)
+                dialogState = DialogConfig(DialogType.PAUSE, intent)
             }
             TrampolineType.WIREGUARD_ACTIVITY -> {
                 launchWireGuardActivityAndFinish()
@@ -198,20 +212,6 @@ class NotificationHandlerActivity: AppCompatActivity() {
         }
     }
 
-    private fun handleAccessibilitySettings() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.lbl_action_required)
-        builder.setMessage(R.string.alert_firewall_accessibility_regrant_explanation)
-        builder.setPositiveButton(getString(R.string.univ_accessibility_crash_dialog_positive)) {
-            _,
-            _ ->
-            openRethinkAppInfo(this)
-        }
-        builder.setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> finish() }
-        builder.setCancelable(false)
-        builder.create().show()
-    }
-
     private fun openRethinkAppInfo(context: Context) {
         val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
         val packageName = context.packageName
@@ -219,27 +219,86 @@ class NotificationHandlerActivity: AppCompatActivity() {
         startActivity(intent)
     }
 
-    private fun showAppPauseDialog(trampolineType: TrampolineType, intent: Intent) {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-
-        builder.setTitle(R.string.notif_dialog_pause_dialog_title)
-        builder.setMessage(R.string.notif_dialog_pause_dialog_message)
-
-        builder.setCancelable(false)
-        builder.setPositiveButton(R.string.notif_dialog_pause_dialog_positive) { _, _ ->
-            VpnController.resumeApp()
-
-            trampoline(trampolineType, intent)
+    @Composable
+    private fun NotificationHandlerContent() {
+        val currentDialog = dialogState
+        when (currentDialog?.type) {
+            DialogType.ACCESSIBILITY -> {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = getString(R.string.lbl_action_required)) },
+                    text = {
+                        Text(text = getString(R.string.alert_firewall_accessibility_regrant_explanation))
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                openRethinkAppInfo(this@NotificationHandlerActivity)
+                                dialogState = null
+                            }
+                        ) {
+                            Text(text = getString(R.string.univ_accessibility_crash_dialog_positive))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                dialogState = null
+                                finish()
+                            }
+                        ) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
+            DialogType.PAUSE -> {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = getString(R.string.notif_dialog_pause_dialog_title)) },
+                    text = { Text(text = getString(R.string.notif_dialog_pause_dialog_message)) },
+                    confirmButton = {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            TextButton(
+                                onClick = {
+                                    VpnController.resumeApp()
+                                    dialogState = null
+                                    trampoline(TrampolineType.PAUSE_ACTIVITY, currentDialog.intent)
+                                }
+                            ) {
+                                Text(text = getString(R.string.notif_dialog_pause_dialog_positive))
+                            }
+                            TextButton(
+                                onClick = {
+                                    dialogState = null
+                                    startActivity(
+                                        Intent().setClass(
+                                            this@NotificationHandlerActivity,
+                                            PauseActivity::class.java
+                                        )
+                                    )
+                                    finish()
+                                }
+                            ) {
+                                Text(text = getString(R.string.notif_dialog_pause_dialog_neutral))
+                            }
+                            TextButton(
+                                onClick = {
+                                    dialogState = null
+                                    finish()
+                                }
+                            ) {
+                                Text(text = getString(R.string.notif_dialog_pause_dialog_negative))
+                            }
+                        }
+                    }
+                )
+            }
+            null -> Unit
         }
-
-        builder.setNegativeButton(R.string.notif_dialog_pause_dialog_negative) { _, _ -> finish() }
-
-        builder.setNeutralButton(R.string.notif_dialog_pause_dialog_neutral) { _, _ ->
-            startActivity(Intent().setClass(this, PauseActivity::class.java))
-            finish()
-        }
-
-        builder.create().show()
     }
 
     /* checks if its accessibility failure intent sent from notification */
@@ -257,6 +316,13 @@ class NotificationHandlerActivity: AppCompatActivity() {
         val what = intent.extras?.getString(Constants.NOTIF_INTENT_EXTRA_NEW_APP_NAME)
         return Constants.NOTIF_INTENT_EXTRA_NEW_APP_VALUE == what
     }
+
+    private enum class DialogType {
+        ACCESSIBILITY,
+        PAUSE
+    }
+
+    private data class DialogConfig(val type: DialogType, val intent: Intent)
 
     private fun isWireGuardIntent(intent: Intent): Boolean {
         if (intent.extras == null) return false
