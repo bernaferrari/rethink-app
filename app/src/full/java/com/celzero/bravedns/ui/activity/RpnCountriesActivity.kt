@@ -14,39 +14,48 @@
  * limitations under the License.
  */
 package com.celzero.bravedns.ui.activity
-/*
 
-import Logger
-import Logger.LOG_TAG_UI
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
-import by.kirich1409.viewbindingdelegate.viewBinding
+import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.RpnCountriesAdapter
-import com.celzero.bravedns.databinding.ActivityRpnCountriesBinding
-import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities.isAtleastQ
-import androidx.core.graphics.drawable.toDrawable
+import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
-class RpnCountriesActivity: AppCompatActivity(R.layout.activity_rpn_countries) {
-    private val b by viewBinding(ActivityRpnCountriesBinding::bind)
+class RpnCountriesActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
 
-    //private val proxyCountriesAdapter = ProxyCountriesAdapter()
-    private val proxyCountries = mutableListOf<String>()
-    private val selectedCountries = mutableSetOf<String>()
+    private var countries by mutableStateOf<List<String>>(emptyList())
+    private var selectedCountries by mutableStateOf<Set<String>>(emptySet())
 
     companion object {
         private const val TAG = "RpncUi"
@@ -54,7 +63,7 @@ class RpnCountriesActivity: AppCompatActivity(R.layout.activity_rpn_countries) {
 
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                Configuration.UI_MODE_NIGHT_YES
+            Configuration.UI_MODE_NIGHT_YES
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,40 +77,31 @@ class RpnCountriesActivity: AppCompatActivity(R.layout.activity_rpn_countries) {
             controller.isAppearanceLightNavigationBars = false
             window.isNavigationBarContrastEnforced = false
         }
-        io {
+
+        lifecycleScope.launch {
             fetchProxyCountries()
-            uiCtx {
-                showProxyCountries()
+            if (countries.isEmpty()) {
+                showNoProxyCountriesDialog()
+            }
+        }
+
+        setContent {
+            RethinkTheme {
+                RpnCountriesScreen()
             }
         }
     }
 
     private suspend fun fetchProxyCountries() {
-        // TODO: fetch the proxy countries from win config
         val ccs = emptyList<String>()
-        Logger.v(LOG_TAG_UI, "$TAG fetch proxy countries: ${ccs.size}")
-        proxyCountries.addAll(ccs)
-        val selectedCCs = emptyList<String>()//RpnProxyManager.getSelectedCCs()
-        Logger.v(LOG_TAG_UI, "$TAG selected countries: ${selectedCCs.size}")
-        selectedCountries.addAll(selectedCCs)
-        Logger.i(LOG_TAG_UI, "$TAG total cc: ${ccs.size}, selected: ${selectedCCs.size}")
-    }
-
-    private fun showProxyCountries() {
-        if (proxyCountries.isEmpty()) {
-            Logger.v(LOG_TAG_UI, "$TAG no proxy countries available, show err dialog")
-            showNoProxyCountriesDialog()
-            return
+        val selectedCCs = emptyList<String>()
+        withContext(Dispatchers.Main) {
+            countries = ccs
+            selectedCountries = selectedCCs.toSet()
         }
-        // show proxy countries
-        val lst = proxyCountries.map { it }
-        b.rpncList.layoutManager = LinearLayoutManager(this)
-        val adapter = RpnCountriesAdapter(this, lst, selectedCountries)
-        b.rpncList.adapter = adapter
     }
 
     private fun showNoProxyCountriesDialog() {
-        // show alert dialog with no proxy countries
         val dialog = MaterialAlertDialogBuilder(this)
             .setTitle("No countries available")
             .setMessage("No countries available for RPN. Please try again later.")
@@ -113,12 +113,38 @@ class RpnCountriesActivity: AppCompatActivity(R.layout.activity_rpn_countries) {
         dialog.show()
     }
 
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
+    @Composable
+    private fun RpnCountriesScreen() {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Text(
+                text = stringResourceCompat(R.string.lbl_countries),
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            )
+            CountriesList()
+        }
     }
 
-    private fun io(f: suspend () -> Unit) {
-        lifecycleScope.launch(Dispatchers.IO) { f() }
+    @Composable
+    private fun CountriesList() {
+        val list = countries
+        val listAdapter = RpnCountriesAdapter(this, list, selectedCountries)
+        AndroidView(
+            factory = { ctx ->
+                RecyclerView(ctx).apply {
+                    layoutManager = LinearLayoutManager(ctx)
+                    adapter = listAdapter
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+
+    @Composable
+    private fun stringResourceCompat(id: Int): String {
+        val context = LocalContext.current
+        return context.getString(id)
     }
 }
-*/

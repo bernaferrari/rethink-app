@@ -56,6 +56,14 @@
     <string name="lbl_select_all" translatable="true">select all</string>
     <string name="lbl_active" translatable="true">Active</string>
     <string name="lbl_inactive" translatable="true">Inactive</string>
+    <string name="rpn_availability_title" translatable="true">RPN availability</string>
+    <string name="location_selector_title" translatable="true">All locations</string>
+    <string name="location_selector_max" translatable="true">(Max %1$d)</string>
+    <string name="location_selector_server" translatable="true">server</string>
+    <string name="location_selector_servers" translatable="true">servers</string>
+    <string name="location_selector_servers_available" translatable="true">%1$d servers available</string>
+    <string name="location_selector_max_toast" translatable="true">Maximum 5 servers can be selected</string>
+    <string name="location_selector_min_toast" translatable="true">At least one server should be selected</string>
     <string name="lbl_socks5" translatable="true">SOCKS5</string>
     <string name="lbl_http" translatable="true">HTTP</string>
     <string name="lbl_http_socks5" translatable="true">HTTPS &amp; SOCKS5</string>
@@ -67,6 +75,7 @@
     <string name="lbl_sec" translatable="true">sec</string>
     <string name="lbl_min" translatable="true">min</string>
     <string name="lbl_hour" translatable="true">hr</string>
+    <string name="lbl_countries" translatable="true">Countries</string>
     <string name="events_severity_low" translatable="true">Low</string>
     <string name="events_severity_medium" translatable="true">Medium</string>
     <string name="events_severity_high" translatable="true">High</string>
@@ -1314,6 +1323,7 @@
     <string name="notif_channel_desc_firewall_alerts" translatable="true">Alert on Firewall errors and anomalies</string>
     <string name="notif_channel_desc_proxy_failure" translatable="true">Alert on Proxy errors and anomalies</string>
     <string name="notif_channed_desc_download" translatable="true">Alert on Download Progress for On-device blocklists</string>
+    <string name="alerts_empty_state" translatable="true">Alerts are not available yet.</string>
 
     <!-- Category constants -->
     <string name="category_name_sys_components" translatable="true">System Components</string>

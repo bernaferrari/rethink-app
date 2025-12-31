@@ -15,21 +15,40 @@
  */
 package com.celzero.bravedns.ui.activity
 
+import android.content.Context
+import android.content.res.Configuration
 import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import com.celzero.bravedns.R
+import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
+import com.celzero.bravedns.util.Themes
+import com.celzero.bravedns.util.handleFrostEffectIfNeeded
+import org.koin.android.ext.android.inject
 
-class AlertsActivity : AppCompatActivity(R.layout.activity_alerts) {
+class AlertsActivity : AppCompatActivity() {
 
-    /*private val b by viewBinding(ActivityAlertsBinding::bind)
-    private var alertAdapter: AlertAdapter? = null
     private val persistentState by inject<PersistentState>()
-    private val alertsViewModel: AlertsViewModel by viewModel()
-    private val alerts: Array<AlertRegistry?> = Array(size = 3, init = { null })
 
     override fun onCreate(savedInstanceState: Bundle?) {
         theme.applyStyle(Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme), true)
         super.onCreate(savedInstanceState)
-        init()
+        handleFrostEffectIfNeeded(persistentState.theme)
+
+        setContent {
+            RethinkTheme {
+                AlertsScreen()
+            }
+        }
     }
 
     private fun Context.isDarkThemeOn(): Boolean {
@@ -37,133 +56,22 @@ class AlertsActivity : AppCompatActivity(R.layout.activity_alerts) {
             Configuration.UI_MODE_NIGHT_YES
     }
 
-    private fun init() {
-        observeIpBlock()
-        observeAppBlock()
-        observeDnsBlock()
-        setupRecyclerView()
-    }
-
-    private fun observeIpBlock() {
-        // observe top 3 blocked ip addresses from the database (ConnectionTrackerRepository)
-        // and display them in a recycler view
-        alertsViewModel.getBlockedIpLogList().observe(this) { process(it, AlertCategory.FIREWALL) }
-    }
-
-    private fun process(it: List<AppConnection>, category: AlertCategory) {
-        // process the list of AppConnection objects
-        // and convert them to AlertRegistry objects
-        // and add them to the alerts list
-        val pos =
-            when (category) {
-                AlertCategory.APP -> 0
-                AlertCategory.DNS -> 1
-                AlertCategory.FIREWALL -> 2
-                else -> 0
-            }
-        alerts[pos] = convertToAlert(it, category)
-        notifyDatasetChanged()
-    }
-
-    private fun convertToAlert(it: List<AppConnection>, category: AlertCategory): AlertRegistry {
-        // convert AppConnection to AlertRegistry
-        val type = AlertType.INFO.name
-        val title =
-            when (category) {
-                AlertCategory.FIREWALL -> "IP Block"
-                AlertCategory.APP -> "App Block"
-                AlertCategory.DNS -> "Domain Block"
-                else -> "Unknown"
-            }
-        var message = ""
-
-        when (category) {
-            AlertCategory.FIREWALL ->
-                it.forEach {
-                    message +=
-                        "Blocked ${it.ipAddress} from accessing the network for ${it.count} times. \n"
-                }
-            AlertCategory.APP ->
-                it.forEach {
-                    message +=
-                        "Blocked app ${it.appOrDnsName} tried accessing the network for ${it.count} times. \n"
-                }
-            AlertCategory.DNS ->
-                it.forEach {
-                    message +=
-                        "Blocked ${it.appOrDnsName} from accessing the network for ${it.count} times. \n"
-                }
-            else -> message = "Unknown"
-        }
-
-        val severity = AlertSeverity.LOW.name
-        val actions = "Check network logs to either allow or block the connection"
-        return AlertRegistry(
-            id = 0 */
-    /* id */
-    /*, // Room auto-increments id when its set to zero.
-    title,
-    type,
-    1,
-    System.currentTimeMillis(),
-    message,
-    category.name,
-    severity,
-    actions,
-    alertStatus = "" */
-    /* alertStatus */
-    /*,
-    alertSolution = "" */
-    /* alertSolution */
-    /*,
-    isRead = false */
-    /* isRead */
-    /*,
-    isDeleted = false */
-    /* isDeleted */
-    /*,
-    isCustom = false */
-    /* isCustom */
-    /*,
-    isNotified = false */
-    /* isNotified */
-    /*
-        )
-    }
-
-    private fun observeAppBlock() {
-        // observe top 3 blocked ip addresses from the database (ConnectionTrackerRepository)
-        // and display them in a recycler view
-        alertsViewModel.getBlockedAppsLogList().observe(this) { process(it, AlertCategory.APP) }
-    }
-
-    private fun observeDnsBlock() {
-        io {
-            val isAppBypassed = FirewallManager.isAnyAppBypassesDns()
-            uiCtx {
-                alertsViewModel.getBlockedDnsLogList(isAppBypassed).observe(this) {
-                    process(it, AlertCategory.DNS)
-                }
-            }
+    @Composable
+    private fun AlertsScreen() {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = stringResourceCompat(R.string.alerts_empty_state),
+                style = MaterialTheme.typography.bodyMedium
+            )
         }
     }
 
-    private fun setupRecyclerView() {
-        alertAdapter = AlertAdapter(this, alerts)
-        val layoutManager = LinearLayoutManager(this)
-        b.alertsRecyclerView.layoutManager = layoutManager
-        b.alertsRecyclerView.adapter = alertAdapter
+    @Composable
+    private fun stringResourceCompat(id: Int): String {
+        val context = LocalContext.current
+        return context.getString(id)
     }
-
-    private fun notifyDatasetChanged() {
-        alertAdapter?.notifyDataSetChanged()
-    }
-
-    private fun io(f: suspend () -> Unit) {
-        lifecycleScope.launch(Dispatchers.IO) { f() }
-    }
-
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
-    }*/
 }
