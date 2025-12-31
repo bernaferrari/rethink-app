@@ -15,22 +15,53 @@
  */
 package com.celzero.bravedns.adapter
 
-import android.animation.ObjectAnimator
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.view.animation.AccelerateDecelerateInterpolator
 import android.widget.Toast
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.Event
 import com.celzero.bravedns.database.Severity
-import com.celzero.bravedns.databinding.ItemEventBinding
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
+import com.celzero.bravedns.util.UIUtils
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -39,14 +70,18 @@ class EventsAdapter(private val context: Context) :
     PagingDataAdapter<Event, EventsAdapter.EventViewHolder>(EventDiffCallback()) {
 
     companion object {
-        private const val ANIMATION_DURATION = 300L
         private const val ROTATION_EXPANDED = 180f
         private const val ROTATION_COLLAPSED = 0f
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): EventViewHolder {
-        val binding = ItemEventBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return EventViewHolder(binding)
+        val composeView = ComposeView(parent.context)
+        composeView.layoutParams =
+            RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        return EventViewHolder(composeView)
     }
 
     override fun onBindViewHolder(holder: EventViewHolder, position: Int) {
@@ -56,124 +91,15 @@ class EventsAdapter(private val context: Context) :
         }
     }
 
-    inner class EventViewHolder(private val binding: ItemEventBinding) :
-        RecyclerView.ViewHolder(binding.root) {
-
-        private var isExpanded = false
+    inner class EventViewHolder(private val composeView: ComposeView) :
+        RecyclerView.ViewHolder(composeView) {
 
         fun bind(event: Event) {
-            // Set tag for scroll header
-            binding.root.tag = event.timestamp
-
-            // Reset expansion state for recycled views
-            isExpanded = false
-            binding.detailsContainer.visibility = View.GONE
-            binding.expandIcon.rotation = ROTATION_COLLAPSED
-
-            // Set severity indicator color and icon
-            setSeverityIndicator(event.severity)
-
-            // Set event type
-            binding.eventTypeChip.text = event.eventType.name.replace("_", " ")
-
-            // Set severity badge
-            binding.severityBadge.text = event.severity.name
-            setSeverityBadgeColor(event.severity)
-
-            // Set timestamp
-            binding.timestampText.text = formatTimestamp(event.timestamp)
-
-            // Set source
-            binding.sourceText.text = event.source.name
-
-            // Show user action indicator if applicable
-            binding.userActionIcon.visibility = if (event.userAction) View.VISIBLE else View.GONE
-
-            // Set message
-            binding.messageText.text = event.message
-
-            // Handle details
-            if (!event.details.isNullOrBlank()) {
-                binding.detailsText.text = event.details
-                // Make card clickable to expand
-                binding.root.setOnClickListener {
-                    toggleExpansion()
+            composeView.tag = event.timestamp
+            composeView.setContent {
+                RethinkTheme {
+                    EventCard(event = event, onCopy = { copyToClipboard(it) })
                 }
-            } else {
-                binding.root.setOnClickListener(null)
-                binding.expandIcon.visibility = View.GONE
-            }
-
-            // Long press to copy message
-            binding.root.setOnLongClickListener {
-                copyToClipboard(event.message)
-                true
-            }
-        }
-
-        private fun setSeverityIndicator(severity: Severity) {
-            val color = when (severity) {
-                Severity.LOW -> 0xFF4CAF50.toInt() // Green
-                Severity.MEDIUM -> 0xFFFFC107.toInt() // Amber/Yellow
-                Severity.HIGH -> 0xFFFF9800.toInt() // Orange
-                Severity.CRITICAL -> 0xFFF44336.toInt() // Red
-            }
-            binding.severityIndicator.setBackgroundColor(color)
-
-            val iconRes = when (severity) {
-                Severity.LOW -> R.drawable.ic_tick_normal
-                Severity.MEDIUM -> R.drawable.ic_app_info_accent
-                Severity.HIGH -> R.drawable.ic_block_accent
-                Severity.CRITICAL -> R.drawable.ic_block
-            }
-            binding.severityIcon.setImageResource(iconRes)
-            binding.severityIcon.setColorFilter(color)
-        }
-
-        private fun setSeverityBadgeColor(severity: Severity) {
-            val color = when (severity) {
-                Severity.LOW -> 0xFF4CAF50.toInt() // Green
-                Severity.MEDIUM -> 0xFFFFC107.toInt() // Amber/Yellow
-                Severity.HIGH -> 0xFFFF9800.toInt() // Orange
-                Severity.CRITICAL -> 0xFFF44336.toInt() // Red
-            }
-            binding.severityBadge.setBackgroundColor(color)
-        }
-
-        private fun formatTimestamp(timestamp: Long): String {
-            val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
-            return sdf.format(Date(timestamp))
-        }
-
-        private fun toggleExpansion() {
-            isExpanded = !isExpanded
-
-            // Animate expand icon rotation
-            val rotation = if (isExpanded) ROTATION_EXPANDED else ROTATION_COLLAPSED
-            ObjectAnimator.ofFloat(binding.expandIcon, "rotation", rotation).apply {
-                duration = ANIMATION_DURATION
-                interpolator = AccelerateDecelerateInterpolator()
-                start()
-            }
-
-            // Animate details container visibility
-            if (isExpanded) {
-                binding.detailsContainer.visibility = View.VISIBLE
-                binding.detailsContainer.alpha = 0f
-                binding.detailsContainer.animate()
-                    .alpha(1f)
-                    .setDuration(ANIMATION_DURATION)
-                    .setInterpolator(AccelerateDecelerateInterpolator())
-                    .start()
-            } else {
-                binding.detailsContainer.animate()
-                    .alpha(0f)
-                    .setDuration(ANIMATION_DURATION)
-                    .setInterpolator(AccelerateDecelerateInterpolator())
-                    .withEndAction {
-                        binding.detailsContainer.visibility = View.GONE
-                    }
-                    .start()
             }
         }
 
@@ -183,6 +109,145 @@ class EventsAdapter(private val context: Context) :
             clipboard.setPrimaryClip(clip)
             Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    @Composable
+    private fun EventCard(event: Event, onCopy: (String) -> Unit) {
+        val hasDetails = !event.details.isNullOrBlank()
+        var expanded by remember(event.id) { mutableStateOf(false) }
+        val rotation by animateFloatAsState(
+            targetValue = if (expanded) ROTATION_EXPANDED else ROTATION_COLLAPSED,
+            label = "event-expand"
+        )
+
+        val severityColor = Color(
+            when (event.severity) {
+                Severity.LOW -> 0xFF4CAF50.toInt()
+                Severity.MEDIUM -> 0xFFFFC107.toInt()
+                Severity.HIGH -> 0xFFFF9800.toInt()
+                Severity.CRITICAL -> 0xFFF44336.toInt()
+            }
+        )
+        val iconRes = when (event.severity) {
+            Severity.LOW -> R.drawable.ic_tick_normal
+            Severity.MEDIUM -> R.drawable.ic_app_info_accent
+            Severity.HIGH -> R.drawable.ic_block_accent
+            Severity.CRITICAL -> R.drawable.ic_block
+        }
+
+        Card(
+            modifier =
+                Modifier
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+                    .fillMaxWidth()
+                    .combinedClickable(
+                        onClick = { if (hasDetails) expanded = !expanded },
+                        onLongClick = { onCopy(event.message) }
+                    )
+        ) {
+            Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
+                Box(
+                    modifier =
+                        Modifier
+                            .width(2.dp)
+                            .fillMaxHeight()
+                            .background(severityColor)
+                )
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(12.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = iconRes),
+                            contentDescription = null,
+                            tint = severityColor,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = MaterialTheme.shapes.small
+                        ) {
+                            Text(
+                                text = event.eventType.name.replace("_", " "),
+                                style = MaterialTheme.typography.labelSmall,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Surface(
+                            color = severityColor,
+                            shape = MaterialTheme.shapes.small
+                        ) {
+                            Text(
+                                text = event.severity.name,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        if (hasDetails) {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_arrow_down),
+                                contentDescription = null,
+                                modifier = Modifier.rotate(rotation)
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = formatTimestamp(event.timestamp),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = event.source.name,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                        if (event.userAction) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_person),
+                                contentDescription = null,
+                                tint = Color(UIUtils.fetchColor(context, R.attr.accentGood)),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+
+                    Text(
+                        text = event.message,
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+
+                    AnimatedVisibility(visible = hasDetails && expanded) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = context.getString(R.string.event_details),
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                text = event.details.orEmpty(),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private fun formatTimestamp(timestamp: Long): String {
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault())
+        return sdf.format(Date(timestamp))
     }
 
     class EventDiffCallback : DiffUtil.ItemCallback<Event>() {
@@ -195,4 +260,3 @@ class EventsAdapter(private val context: Context) :
         }
     }
 }
-

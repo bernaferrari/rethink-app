@@ -16,18 +16,36 @@
 package com.celzero.bravedns.adapter
 
 import android.content.Context
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
-import androidx.cardview.widget.CardView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.RemoteBlocklistPacksMap
-import com.celzero.bravedns.databinding.ListItemRethinkBlocklistSimpleBinding
 import com.celzero.bravedns.service.RethinkBlocklistManager
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
@@ -61,13 +79,13 @@ class RemoteSimpleViewAdapter(val context: Context) :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RethinkSimpleViewHolder {
-        val itemBinding =
-            ListItemRethinkBlocklistSimpleBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
+        val composeView = ComposeView(parent.context)
+        composeView.layoutParams =
+            RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
             )
-        return RethinkSimpleViewHolder(itemBinding)
+        return RethinkSimpleViewHolder(composeView)
     }
 
     override fun onBindViewHolder(holder: RethinkSimpleViewHolder, position: Int) {
@@ -75,32 +93,21 @@ class RemoteSimpleViewAdapter(val context: Context) :
         holder.update(map, position)
     }
 
-    inner class RethinkSimpleViewHolder(private val b: ListItemRethinkBlocklistSimpleBinding) :
-        RecyclerView.ViewHolder(b.root) {
+    inner class RethinkSimpleViewHolder(private val composeView: ComposeView) :
+        RecyclerView.ViewHolder(composeView) {
 
         fun update(map: RemoteBlocklistPacksMap, position: Int) {
-            b.root.tag = getGroupName(map.group)
-            displayMetaData(map, position)
-            setupClickListener(map)
-        }
-
-        private fun setupClickListener(map: RemoteBlocklistPacksMap) {
-            b.crpCheckBox.setOnClickListener { toggleCheckbox(b.crpCheckBox.isChecked, map) }
-
-            b.crpCard.setOnClickListener { toggleCheckbox(!b.crpCheckBox.isChecked, map) }
-        }
-
-        private fun setCardBackground(card: CardView, isSelected: Boolean) {
-            if (isSelected) {
-                card.setCardBackgroundColor(fetchColor(context, R.attr.selectedCardBg))
-            } else {
-                card.setCardBackgroundColor(fetchColor(context, R.attr.background))
+            val showHeader = position == 0 || getItem(position - 1)?.group != map.group
+            composeView.setContent {
+                RethinkTheme {
+                    BlocklistRow(map = map, showHeader = showHeader) { isSelected ->
+                        toggleCheckbox(isSelected, map)
+                    }
+                }
             }
         }
 
         private fun toggleCheckbox(isSelected: Boolean, map: RemoteBlocklistPacksMap) {
-            b.crpCheckBox.isChecked = isSelected
-            setCardBackground(b.crpCard, isSelected)
             setFileTag(map.blocklistIds.toMutableList(), if (isSelected) 1 else 0)
         }
 
@@ -112,87 +119,126 @@ class RemoteSimpleViewAdapter(val context: Context) :
                 ui { notifyDataSetChanged() }
             }
         }
+    }
 
-        private fun displayMetaData(map: RemoteBlocklistPacksMap, position: Int) {
-            setCardBackground(b.crpCard, false)
-
-            // check to show the title and desc, as of now these values are predefined so checking
-            // with those pre defined values.
-            if (position == 0 || getItem(position - 1)?.group != map.group) {
-                b.crpTitleLl.visibility = View.VISIBLE
-                b.crpBlocktypeHeadingTv.text = getGroupName(map.group)
-                b.crpBlocktypeDescTv.text = getTitleDesc(map.group)
+    @Composable
+    private fun BlocklistRow(
+        map: RemoteBlocklistPacksMap,
+        showHeader: Boolean,
+        onToggle: (Boolean) -> Unit
+    ) {
+        val selectedTags = RethinkBlocklistState.getSelectedFileTags()
+        val isSelected = selectedTags.containsAll(map.blocklistIds)
+        val backgroundColor =
+            if (isSelected) {
+                Color(fetchColor(context, R.attr.selectedCardBg))
             } else {
-                b.crpTitleLl.visibility = View.GONE
+                Color(fetchColor(context, R.attr.background))
+            }
+        val indicatorColor = getLevelIndicatorColor(map.level)
+
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            if (showHeader) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = getGroupName(map.group),
+                        style = MaterialTheme.typography.titleMedium,
+                        color = Color(fetchColor(context, R.attr.accentBad))
+                    )
+                    Text(
+                        text = getTitleDesc(map.group),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color(fetchColor(context, R.attr.primaryLightColorText))
+                    )
+                }
             }
 
-            b.crpLabelTv.text = map.pack.replaceFirstChar(Char::titlecase)
-            b.crpDescGroupTv.text =
-                context.getString(
-                    R.string.rsv_blocklist_count_text,
-                    map.blocklistIds.size.toString()
-                )
-
-            val selectedTags = RethinkBlocklistState.getSelectedFileTags()
-            // enable the check box if the stamp contains all the values
-            b.crpCheckBox.isChecked = selectedTags.containsAll(map.blocklistIds)
-            setCardBackground(b.crpCard, b.crpCheckBox.isChecked)
-
-            // show level indicator
-            showLevelIndicator(b.crpLevelIndicator, map.level)
+            Card(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable { onToggle(!isSelected) },
+                colors = CardDefaults.cardColors(containerColor = backgroundColor)
+            ) {
+                Row(
+                    modifier = Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .width(2.5.dp)
+                                .fillMaxHeight()
+                                .background(indicatorColor)
+                    )
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = map.pack.replaceFirstChar(Char::titlecase),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text =
+                                context.getString(
+                                    R.string.rsv_blocklist_count_text,
+                                    map.blocklistIds.size.toString()
+                                ),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Checkbox(checked = isSelected, onCheckedChange = { onToggle(it) })
+                }
+            }
         }
+    }
 
-        private fun showLevelIndicator(mIconIndicator: TextView, level: Int) {
+    private fun getLevelIndicatorColor(level: Int): Color {
+        val resId =
             when (level) {
-                0 -> {
-                    val color = fetchToggleBtnColors(context, R.color.firewallNoRuleToggleBtnBg)
-                    mIconIndicator.setBackgroundColor(color)
-                }
-                1 -> {
-                    val color = fetchToggleBtnColors(context, R.color.firewallWhiteListToggleBtnTxt)
-                    mIconIndicator.setBackgroundColor(color)
-                }
-                2 -> {
-                    val color = fetchToggleBtnColors(context, R.color.firewallBlockToggleBtnTxt)
-                    mIconIndicator.setBackgroundColor(color)
-                }
-                else -> {
-                    /* no-op */
-                }
+                0 -> R.color.firewallNoRuleToggleBtnBg
+                1 -> R.color.firewallWhiteListToggleBtnTxt
+                2 -> R.color.firewallBlockToggleBtnTxt
+                else -> R.color.firewallNoRuleToggleBtnBg
             }
-        }
+        return Color(fetchToggleBtnColors(context, resId))
+    }
 
-        private fun getTitleDesc(title: String): String {
-            return if (title.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) {
-                context.getString(RethinkBlocklistManager.PARENTAL_CONTROL.desc)
-            } else if (title.equals(RethinkBlocklistManager.SECURITY.name, true)) {
-                context.getString(RethinkBlocklistManager.SECURITY.desc)
-            } else if (title.equals(RethinkBlocklistManager.PRIVACY.name, true)) {
-                context.getString(RethinkBlocklistManager.PRIVACY.desc)
-            } else {
-                ""
-            }
+    private fun getTitleDesc(title: String): String {
+        return if (title.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) {
+            context.getString(RethinkBlocklistManager.PARENTAL_CONTROL.desc)
+        } else if (title.equals(RethinkBlocklistManager.SECURITY.name, true)) {
+            context.getString(RethinkBlocklistManager.SECURITY.desc)
+        } else if (title.equals(RethinkBlocklistManager.PRIVACY.name, true)) {
+            context.getString(RethinkBlocklistManager.PRIVACY.desc)
+        } else {
+            ""
         }
+    }
 
-        // handle the group name (filetag.json)
-        private fun getGroupName(group: String): String {
-            return if (group.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) {
-                context.getString(RethinkBlocklistManager.PARENTAL_CONTROL.label)
-            } else if (group.equals(RethinkBlocklistManager.SECURITY.name, true)) {
-                context.getString(RethinkBlocklistManager.SECURITY.label)
-            } else if (group.equals(RethinkBlocklistManager.PRIVACY.name, true)) {
-                context.getString(RethinkBlocklistManager.PRIVACY.label)
-            } else {
-                ""
-            }
+    private fun getGroupName(group: String): String {
+        return if (group.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) {
+            context.getString(RethinkBlocklistManager.PARENTAL_CONTROL.label)
+        } else if (group.equals(RethinkBlocklistManager.SECURITY.name, true)) {
+            context.getString(RethinkBlocklistManager.SECURITY.label)
+        } else if (group.equals(RethinkBlocklistManager.PRIVACY.name, true)) {
+            context.getString(RethinkBlocklistManager.PRIVACY.label)
+        } else {
+            ""
         }
+    }
 
-        private fun io(f: suspend () -> Unit) {
-            CoroutineScope(Dispatchers.IO).launch { f() }
-        }
+    private fun io(f: suspend () -> Unit) {
+        CoroutineScope(Dispatchers.IO).launch { f() }
+    }
 
-        private fun ui(f: () -> Unit) {
-            CoroutineScope(Dispatchers.Main).launch { f() }
-        }
+    private fun ui(f: () -> Unit) {
+        CoroutineScope(Dispatchers.Main).launch { f() }
     }
 }

@@ -18,10 +18,29 @@ package com.celzero.bravedns.adapter
 
 import android.content.Context
 import android.content.DialogInterface
-import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.appcompat.content.res.AppCompatResources
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.PagingDataAdapter
@@ -30,8 +49,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.DnsProxyEndpoint
-import com.celzero.bravedns.databinding.DnsProxyListItemBinding
 import com.celzero.bravedns.service.FirewallManager
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.Utilities
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -41,7 +60,7 @@ import kotlinx.coroutines.withContext
 
 class DnsProxyEndpointAdapter(
     private val context: Context,
-    val lifecycleOwner: LifecycleOwner,
+    private val lifecycleOwner: LifecycleOwner,
     private val appConfig: AppConfig
 ) :
     PagingDataAdapter<DnsProxyEndpoint, DnsProxyEndpointAdapter.DnsProxyEndpointViewHolder>(
@@ -70,9 +89,13 @@ class DnsProxyEndpointAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DnsProxyEndpointViewHolder {
-        val itemBinding =
-            DnsProxyListItemBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return DnsProxyEndpointViewHolder(itemBinding)
+        val composeView = ComposeView(parent.context)
+        composeView.layoutParams =
+            RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        return DnsProxyEndpointViewHolder(composeView)
     }
 
     override fun onBindViewHolder(holder: DnsProxyEndpointViewHolder, position: Int) {
@@ -80,61 +103,65 @@ class DnsProxyEndpointAdapter(
         holder.update(dnsProxyEndpoint)
     }
 
-    inner class DnsProxyEndpointViewHolder(private val b: DnsProxyListItemBinding) :
-        RecyclerView.ViewHolder(b.root) {
+    inner class DnsProxyEndpointViewHolder(private val composeView: ComposeView) :
+        RecyclerView.ViewHolder(composeView) {
 
         fun update(endpoint: DnsProxyEndpoint) {
-            displayDetails(endpoint)
-            setupClickListeners(endpoint)
-        }
-
-        private fun setupClickListeners(endpoint: DnsProxyEndpoint) {
-            b.root.setOnClickListener { updateDnsProxyDetails(endpoint) }
-
-            b.dnsProxyListActionImage.setOnClickListener { promptUser(endpoint) }
-
-            b.dnsProxyListCheckImage.setOnClickListener { updateDnsProxyDetails(endpoint) }
-
-            b.root.setOnClickListener { updateDnsProxyDetails(endpoint) }
-
-            b.dnsProxyListActionImage.setOnClickListener { promptUser(endpoint) }
-
-            b.dnsProxyListCheckImage.setOnClickListener { updateDnsProxyDetails(endpoint) }
-        }
-
-        private fun displayDetails(endpoint: DnsProxyEndpoint) {
-            b.dnsProxyListUrlName.text = endpoint.proxyName
-            b.dnsProxyListCheckImage.isChecked = endpoint.isSelected
-
-            io {
-                val appInfo = FirewallManager.getAppInfoByPackage(endpoint.proxyAppName)
-                uiCtx {
-                    val appName =
-                        if (
-                            endpoint.proxyName !=
-                                context.getString(R.string.cd_custom_dns_proxy_default_app)
-                        ) {
-                            appInfo?.appName
-                                ?: context.getString(R.string.cd_custom_dns_proxy_default_app)
-                        } else {
-                            endpoint.proxyAppName
-                                ?: context.getString(R.string.cd_custom_dns_proxy_default_app)
-                        }
-
-                    b.dnsProxyListUrlExplanation.text =
-                        endpoint.getExplanationText(context, appName)
+            composeView.setContent {
+                RethinkTheme {
+                    DnsProxyEndpointRow(endpoint = endpoint)
                 }
             }
+        }
+    }
 
+    @Composable
+    private fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint) {
+        var explanation by remember(endpoint.id) { mutableStateOf("") }
+
+        LaunchedEffect(endpoint.id, endpoint.proxyName, endpoint.proxyAppName) {
+            val appName =
+                withContext(Dispatchers.IO) {
+                    FirewallManager.getAppInfoByPackage(endpoint.proxyAppName)?.appName
+                }
+            val defaultName = context.getString(R.string.cd_custom_dns_proxy_default_app)
+            val resolvedAppName =
+                if (endpoint.proxyName != defaultName) {
+                    appName ?: defaultName
+                } else {
+                    endpoint.proxyAppName ?: defaultName
+                }
+            explanation = endpoint.getExplanationText(context, resolvedAppName)
+        }
+
+        val infoIcon =
             if (endpoint.isDeletable()) {
-                b.dnsProxyListActionImage.setImageDrawable(
-                    AppCompatResources.getDrawable(context, R.drawable.ic_fab_uninstall)
-                )
+                R.drawable.ic_fab_uninstall
             } else {
-                b.dnsProxyListActionImage.setImageDrawable(
-                    AppCompatResources.getDrawable(context, R.drawable.ic_info)
-                )
+                R.drawable.ic_info
             }
+
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                    .clickable { updateDnsProxyDetails(endpoint) },
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = endpoint.proxyName, style = MaterialTheme.typography.bodyLarge)
+                if (explanation.isNotEmpty()) {
+                    Text(text = explanation, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            IconButton(onClick = { promptUser(endpoint) }) {
+                Icon(painter = painterResource(id = infoIcon), contentDescription = null)
+            }
+            Checkbox(
+                checked = endpoint.isSelected,
+                onCheckedChange = { updateDnsProxyDetails(endpoint) }
+            )
         }
     }
 
@@ -182,9 +209,6 @@ class DnsProxyEndpointAdapter(
                     context.getString(R.string.info_dialog_copy_toast_msg),
                     Toast.LENGTH_SHORT
                 )
-            } else {
-                // no op: Copy functionality is for the Ip of the endpoint, no operation needed
-                // when the ip is not available for endpoint.
             }
         }
         builder.create().show()
@@ -194,12 +218,10 @@ class DnsProxyEndpointAdapter(
         val builder = MaterialAlertDialogBuilder(context)
         builder.setTitle(R.string.dns_proxy_remove_dialog_title)
         builder.setMessage(R.string.dns_proxy_remove_dialog_message)
-
         builder.setCancelable(true)
         builder.setPositiveButton(context.getString(R.string.lbl_delete)) { _, _ ->
             deleteProxyEndpoint(dnsProxyEndpoint.id)
         }
-
         builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ -> }
         builder.create().show()
     }

@@ -28,15 +28,38 @@ import android.view.View
 import android.view.WindowManager
 import android.view.animation.Animation
 import android.view.animation.RotateAnimation
-import android.widget.ArrayAdapter
-import android.widget.CheckBox
 import android.widget.CompoundButton
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.Spinner
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -47,7 +70,6 @@ import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.ProxyEndpoint
 import com.celzero.bravedns.database.ProxyEndpoint.Companion.DEFAULT_PROXY_TYPE
 import com.celzero.bravedns.database.Severity
-import com.celzero.bravedns.databinding.DialogSetProxyBinding
 import com.celzero.bravedns.databinding.FragmentProxyConfigureBinding
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.EventLogger
@@ -77,6 +99,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.concurrent.TimeUnit
@@ -668,10 +691,10 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
         appNames: List<String>,
         appName: String
     ) {
-        val dialogBinding = DialogSetProxyBinding.inflate(layoutInflater)
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         val lp = WindowManager.LayoutParams()
         val dialog = builder.create()
+        dialog.show()
         lp.copyFrom(dialog.window?.attributes)
         lp.width = WindowManager.LayoutParams.MATCH_PARENT
         lp.height = WindowManager.LayoutParams.WRAP_CONTENT
@@ -679,154 +702,59 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
         dialog.setCancelable(false)
         dialog.window?.attributes = lp
 
-        val headerTxt: TextView = dialogBinding.dialogProxyHeader
-        val headerDesc: TextView = dialogBinding.dialogProxyHeaderDesc
-        val lockdownDesc: TextView = dialogBinding.dialogProxyHeaderLockdownDesc
-        val applyURLBtn = dialogBinding.dialogProxyApplyBtn
-        val cancelURLBtn = dialogBinding.dialogProxyCancelBtn
-        val appNameSpinner: Spinner = dialogBinding.dialogProxySpinnerAppname
-        val ipAddressEditText: EditText = dialogBinding.dialogProxyEditIp
-        val portEditText: EditText = dialogBinding.dialogProxyEditPort
-        val errorTxt: TextView = dialogBinding.dialogProxyErrorText
-        val userNameEditText: EditText = dialogBinding.dialogProxyEditUsername
-        val passwordEditText: EditText = dialogBinding.dialogProxyEditPassword
-        val udpBlockLayout: LinearLayout = dialogBinding.dialogProxyUdpHeader
-        val udpBlockCheckBox: CheckBox = dialogBinding.dialogProxyUdpCheck
-        val excludeAppLayout: LinearLayout = dialogBinding.dialogProxyExcludeAppsHeader
-        val excludeAppCheckBox: CheckBox = dialogBinding.dialogProxyExcludeAppsCheck
-
-        headerDesc.visibility = View.GONE
-        udpBlockCheckBox.isChecked = persistentState.getUdpBlocked()
-        excludeAppCheckBox.isChecked = !persistentState.excludeAppsInProxy
-        excludeAppCheckBox.isEnabled = !VpnController.isVpnLockdown()
-        lockdownDesc.visibility = if (VpnController.isVpnLockdown()) View.VISIBLE else View.GONE
-
-        if (VpnController.isVpnLockdown()) {
-            excludeAppCheckBox.alpha = 0.5f
-        }
-
-        val proxySpinnerAdapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, appNames)
-        appNameSpinner.adapter = proxySpinnerAdapter
-        if (!endpoint.proxyIP.isNullOrBlank()) {
-            ipAddressEditText.setText(endpoint.proxyIP, TextView.BufferType.EDITABLE)
-            portEditText.setText(endpoint.proxyPort.toString(), TextView.BufferType.EDITABLE)
-            userNameEditText.setText(endpoint.userName.toString(), TextView.BufferType.EDITABLE)
-            if (
-                !endpoint.proxyAppName.isNullOrBlank() &&
-                    endpoint.proxyAppName != getString(R.string.settings_app_list_default_app)
-            ) {
-
-                var position = 0
-                for ((i, item) in appNames.withIndex()) {
-                    if (item == appName) {
-                        position = i
-                    }
-                }
-                appNameSpinner.setSelection(position)
-            } else {
-                // no-op
-            }
-        } else {
-            ipAddressEditText.setText(Constants.SOCKS_DEFAULT_IP, TextView.BufferType.EDITABLE)
-            portEditText.setText(
-                Constants.SOCKS_DEFAULT_PORT.toString(),
-                TextView.BufferType.EDITABLE
-            )
-        }
-
-        headerTxt.text = getString(R.string.settings_dns_proxy_dialog_header)
-        headerDesc.text = getString(R.string.settings_dns_proxy_dialog_app_desc)
-
-        lockdownDesc.setOnClickListener {
-            dialog.dismiss()
-            UIUtils.openVpnProfile(this)
-        }
-
-        excludeAppLayout.setOnClickListener {
-            excludeAppCheckBox.isChecked = !excludeAppCheckBox.isChecked
-            logEvent(
-                "loopback proxy forwarder apps SOCKS5 Proxy toggled",
-                "loopback proxy forwarder apps in SOCKS5 proxy: ${excludeAppCheckBox.isChecked}"
-            )
-        }
-
-        udpBlockLayout.setOnClickListener {
-            udpBlockCheckBox.isChecked = !udpBlockCheckBox.isChecked
-            logEvent(
-                "UDP Block in SOCKS5 Proxy toggled",
-                "UDP block in SOCKS5 proxy: ${udpBlockCheckBox.isChecked}"
-            )
-        }
-
-        applyURLBtn.setOnClickListener {
-            var port: Int? = 0
-            var isValid: Boolean
-            var isIPValid = true
-            var isUDPBlock = false
-            val ip: String = ipAddressEditText.text.toString()
-
-            if (ip.isBlank()) {
-                isIPValid = false
-                errorTxt.text = getString(R.string.settings_http_proxy_error_text3)
-                errorTxt.visibility = View.VISIBLE
-            }
-
-            try {
-                port = portEditText.text.toString().toInt() // can cause NumberFormatException
-                isValid =
-                    if (Utilities.isLanIpv4(ip)) {
-                        Utilities.isValidLocalPort(port)
-                    } else {
-                        isValidPort(port)
-                    }
-                if (!isValid) {
-                    errorTxt.text = getString(R.string.settings_http_proxy_error_text1)
-                }
-            } catch (e: NumberFormatException) {
-                Logger.w(LOG_TAG_PROXY, "err: ${e.message}", e)
-                errorTxt.text = getString(R.string.settings_http_proxy_error_text2)
-                isValid = false
-            }
-            if (udpBlockCheckBox.isChecked) {
-                isUDPBlock = true
-            }
-
-            persistentState.excludeAppsInProxy = !excludeAppCheckBox.isChecked
-
-            val userName: String = userNameEditText.text.toString()
-            val password: String = passwordEditText.text.toString()
-            if (isValid && isIPValid) {
-                // Do the Socks5 Proxy setting there
-                persistentState.setUdpBlocked(udpBlockCheckBox.isChecked)
-                val app = appNameSpinner.selectedItem.toString()
-                insertSocks5Endpoint(endpoint.id, ip, port, app, userName, password, isUDPBlock)
-                if (app == getString(R.string.settings_app_list_default_app)) {
-                    b.settingsActivitySocks5Desc.text =
-                        getString(
-                            R.string.settings_socks_forwarding_desc_no_app,
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                Socks5ProxyDialogContent(
+                    endpoint = endpoint,
+                    appNames = appNames,
+                    appName = appName,
+                    onDismiss = { dialog.dismiss() },
+                    onApply = { selection, ip, port, userName, password, udpBlocked, excludeApps ->
+                        persistentState.excludeAppsInProxy = !excludeApps
+                        persistentState.setUdpBlocked(udpBlocked)
+                        insertSocks5Endpoint(
+                            endpoint.id,
                             ip,
-                            port.toString()
+                            port,
+                            selection,
+                            userName,
+                            password,
+                            udpBlocked
                         )
-                } else {
-                    b.settingsActivitySocks5Desc.text =
-                        getString(R.string.settings_socks_forwarding_desc, ip, port.toString(), app)
-                }
-                logEvent("Custom SOCKS5 Proxy set", "custom SOCKS5 proxy to $ip:$port, app: $app")
-                dialog.dismiss()
-            } else {
-                // no-op
+                        if (selection == getString(R.string.settings_app_list_default_app)) {
+                            b.settingsActivitySocks5Desc.text =
+                                getString(
+                                    R.string.settings_socks_forwarding_desc_no_app,
+                                    ip,
+                                    port.toString()
+                                )
+                        } else {
+                            b.settingsActivitySocks5Desc.text =
+                                getString(
+                                    R.string.settings_socks_forwarding_desc,
+                                    ip,
+                                    port.toString(),
+                                    selection
+                                )
+                        }
+                        logEvent(
+                            "Custom SOCKS5 Proxy set",
+                            "custom SOCKS5 proxy to $ip:$port, app: $selection"
+                        )
+                        dialog.dismiss()
+                    },
+                    onCancel = {
+                        b.settingsActivitySocks5Switch.isChecked = false
+                        appConfig.removeProxy(AppConfig.ProxyType.SOCKS5, AppConfig.ProxyProvider.CUSTOM)
+                        b.settingsActivitySocks5Desc.text =
+                            getString(R.string.settings_socks_forwarding_default_desc)
+                        dialog.dismiss()
+                    }
+                )
             }
         }
-
-        cancelURLBtn.setOnClickListener {
-            b.settingsActivitySocks5Switch.isChecked = false
-            appConfig.removeProxy(AppConfig.ProxyType.SOCKS5, AppConfig.ProxyProvider.CUSTOM)
-            b.settingsActivitySocks5Desc.text =
-                getString(R.string.settings_socks_forwarding_default_desc)
-            dialog.dismiss()
-        }
-        dialog.show()
+        dialog.setView(composeView)
     }
 
     private fun enableTcpProxy() {
@@ -871,9 +799,7 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
         appName: String?
     ) {
         val defaultHost = "http://127.0.0.1:8118"
-        var host: String
-        val dialogBinding = DialogSetProxyBinding.inflate(layoutInflater)
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         val lp = WindowManager.LayoutParams()
         val dialog = builder.create()
         dialog.show()
@@ -885,107 +811,372 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
         dialog.setCanceledOnTouchOutside(false)
         dialog.window?.attributes = lp
 
-        val headerTxt: TextView = dialogBinding.dialogProxyHeader
-        val headerDesc: TextView = dialogBinding.dialogProxyHeaderDesc
-        val lockdownDesc: TextView = dialogBinding.dialogProxyHeaderLockdownDesc
-        val applyURLBtn = dialogBinding.dialogProxyApplyBtn
-        val cancelURLBtn = dialogBinding.dialogProxyCancelBtn
-        val appNameSpinner: Spinner = dialogBinding.dialogProxySpinnerAppname
-        val ipAddressEditText: EditText = dialogBinding.dialogProxyEditIp
-        val portLl: LinearLayout = dialogBinding.dialogProxyPortHeader
-        val portEditText: EditText = dialogBinding.dialogProxyEditPort
-        val errorTxt: TextView = dialogBinding.dialogProxyErrorText
-        val userNameLl: LinearLayout = dialogBinding.dialogProxyUsernameHeader
-        val passwordLl: LinearLayout = dialogBinding.dialogProxyPasswordHeader
-        val udpBlockLl: LinearLayout = dialogBinding.dialogProxyUdpHeader
-        val excludeAppLayout: LinearLayout = dialogBinding.dialogProxyExcludeAppsHeader
-        val excludeAppCheckBox: CheckBox = dialogBinding.dialogProxyExcludeAppsCheck
-
-        // do not show the UDP block option for HTTP proxy
-        udpBlockLl.visibility = View.GONE
-        // do not show the port option for HTTP proxy
-        portLl.visibility = View.GONE
-        // do not show the username/password option for HTTP proxy
-        userNameLl.visibility = View.GONE
-        passwordLl.visibility = View.GONE
-        excludeAppCheckBox.isChecked = !persistentState.excludeAppsInProxy
-        excludeAppCheckBox.isEnabled = !VpnController.isVpnLockdown()
-        if (VpnController.isVpnLockdown()) {
-            excludeAppCheckBox.alpha = 0.5f
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                HttpProxyDialogContent(
+                    endpoint = endpoint,
+                    appNames = appNames,
+                    appName = appName,
+                    defaultHost = defaultHost,
+                    onDismiss = { dialog.dismiss() },
+                    onApply = { selection, host, excludeApps ->
+                        insertHttpProxyEndpointDB(endpoint.id, host, selection)
+                        dialog.dismiss()
+                        persistentState.excludeAppsInProxy = !excludeApps
+                        showToastUiCentered(
+                            this,
+                            getString(R.string.settings_http_proxy_toast_success),
+                            Toast.LENGTH_SHORT
+                        )
+                        if (b.settingsActivityHttpProxySwitch.isChecked) {
+                            b.settingsActivityHttpProxyDesc.text =
+                                getString(R.string.settings_http_proxy_desc, host)
+                        }
+                        logEvent(
+                            "Custom HTTP Proxy set",
+                            "custom HTTP proxy to $host, app: $selection"
+                        )
+                    },
+                    onCancel = {
+                        dialog.dismiss()
+                        appConfig.removeProxy(AppConfig.ProxyType.HTTP, AppConfig.ProxyProvider.CUSTOM)
+                        b.settingsActivityHttpProxyDesc.text = getString(R.string.settings_https_desc)
+                        b.settingsActivityHttpProxySwitch.isChecked = false
+                    }
+                )
+            }
         }
-        lockdownDesc.setOnClickListener {
-            dialog.dismiss()
-            UIUtils.openVpnProfile(this)
-        }
-        lockdownDesc.visibility = if (VpnController.isVpnLockdown()) View.VISIBLE else View.GONE
+        dialog.setView(composeView)
+    }
 
-        excludeAppLayout.setOnClickListener {
-            excludeAppCheckBox.isChecked = !excludeAppCheckBox.isChecked
-            logEvent(
-                "loopback proxy forwarder apps in HTTP Proxy toggled",
-                "loopback proxy forwarder apps in HTTP proxy: ${excludeAppCheckBox.isChecked}"
+    @Composable
+    private fun Socks5ProxyDialogContent(
+        endpoint: ProxyEndpoint,
+        appNames: List<String>,
+        appName: String,
+        onDismiss: () -> Unit,
+        onApply: (String, String, Int, String, String, Boolean, Boolean) -> Unit,
+        onCancel: () -> Unit
+    ) {
+        val lockdown = VpnController.isVpnLockdown()
+        var errorText by remember { mutableStateOf("") }
+        var selectedIndex by remember {
+            mutableStateOf(
+                if (
+                    !endpoint.proxyIP.isNullOrBlank() &&
+                        !endpoint.proxyAppName.isNullOrBlank() &&
+                        endpoint.proxyAppName != getString(R.string.settings_app_list_default_app)
+                ) {
+                    appNames.indexOf(appName).coerceAtLeast(0)
+                } else {
+                    0
+                }
             )
         }
+        var host by remember {
+            mutableStateOf(endpoint.proxyIP ?: Constants.SOCKS_DEFAULT_IP)
+        }
+        var portText by remember {
+            mutableStateOf(
+                if (!endpoint.proxyIP.isNullOrBlank()) {
+                    endpoint.proxyPort.toString()
+                } else {
+                    Constants.SOCKS_DEFAULT_PORT.toString()
+                }
+            )
+        }
+        var userName by remember { mutableStateOf(endpoint.userName ?: "") }
+        var password by remember { mutableStateOf(endpoint.password ?: "") }
+        var udpBlocked by remember { mutableStateOf(persistentState.getUdpBlocked()) }
+        var excludeApps by remember { mutableStateOf(!persistentState.excludeAppsInProxy) }
+        var appMenuExpanded by remember { mutableStateOf(false) }
 
-        val proxySpinnerAdapter =
-            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, appNames)
-        appNameSpinner.adapter = proxySpinnerAdapter
-        if (!endpoint.proxyIP.isNullOrBlank()) {
-            ipAddressEditText.setText(endpoint.proxyIP, TextView.BufferType.EDITABLE)
-            portEditText.setText(endpoint.proxyPort.toString(), TextView.BufferType.EDITABLE)
-            if (
-                !endpoint.proxyAppName.isNullOrBlank() &&
-                    endpoint.proxyAppName != getString(R.string.settings_app_list_default_app)
-            ) {
-                var position = 0
-                for ((i, item) in appNames.withIndex()) {
-                    if (item == appName) {
-                        position = i
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(text = getString(R.string.settings_dns_proxy_dialog_header), style = MaterialTheme.typography.titleMedium)
+
+            if (lockdown) {
+                TextButton(
+                    onClick = {
+                        onDismiss()
+                        UIUtils.openVpnProfile(this@ProxySettingsActivity)
+                    }
+                ) {
+                    Text(text = getString(R.string.settings_lock_down_mode_desc))
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = getString(R.string.settings_dns_proxy_dialog_app),
+                    modifier = Modifier.weight(0.3f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(0.7f)) {
+                    TextButton(onClick = { appMenuExpanded = true }) {
+                        Text(text = appNames.getOrNull(selectedIndex) ?: "")
+                    }
+                    DropdownMenu(expanded = appMenuExpanded, onDismissRequest = { appMenuExpanded = false }) {
+                        appNames.forEachIndexed { index, name ->
+                            DropdownMenuItem(
+                                text = { Text(text = name) },
+                                onClick = {
+                                    selectedIndex = index
+                                    appMenuExpanded = false
+                                }
+                            )
+                        }
                     }
                 }
-                appNameSpinner.setSelection(position)
-            } else {
-                // no-op
-            }
-        } else {
-            ipAddressEditText.setText(defaultHost, TextView.BufferType.EDITABLE)
-        }
-
-        headerTxt.text = getString(R.string.http_proxy_dialog_heading)
-        headerDesc.text = getString(R.string.http_proxy_dialog_desc)
-
-        applyURLBtn.setOnClickListener {
-            host = ipAddressEditText.text.toString()
-            var isHostValid = true
-
-            if (host.isBlank()) {
-                isHostValid = false
-                errorTxt.text = getString(R.string.settings_http_proxy_error_text3)
-                errorTxt.visibility = View.VISIBLE
             }
 
-            if (isHostValid) {
-                errorTxt.visibility = View.INVISIBLE
-                insertHttpProxyEndpointDB(endpoint.id, host, appNameSpinner.selectedItem.toString())
-                dialog.dismiss()
-                persistentState.excludeAppsInProxy = !excludeAppCheckBox.isChecked
-                showToastUiCentered(
-                    this,
-                    getString(R.string.settings_http_proxy_toast_success),
-                    Toast.LENGTH_SHORT
+            OutlinedTextField(
+                value = host,
+                onValueChange = { host = it },
+                label = { Text(text = getString(R.string.settings_dns_proxy_dialog_hostname)) },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
+            )
+
+            OutlinedTextField(
+                value = portText,
+                onValueChange = { portText = it },
+                label = { Text(text = getString(R.string.settings_dns_proxy_dialog_port_number)) },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+            )
+
+            OutlinedTextField(
+                value = userName,
+                onValueChange = { userName = it },
+                label = { Text(text = getString(R.string.settings_dns_proxy_dialog_username)) },
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text(text = getString(R.string.settings_dns_proxy_dialog_password)) },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(checked = udpBlocked, onCheckedChange = {
+                    udpBlocked = it
+                    logEvent(
+                        "UDP Block in SOCKS5 Proxy toggled",
+                        "UDP block in SOCKS5 proxy: $udpBlocked"
+                    )
+                })
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = getString(R.string.univ_firewall_rule_4))
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().alpha(if (lockdown) 0.5f else 1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = excludeApps,
+                    onCheckedChange = {
+                        if (!lockdown) {
+                            excludeApps = it
+                            logEvent(
+                                "loopback proxy forwarder apps SOCKS5 Proxy toggled",
+                                "loopback proxy forwarder apps in SOCKS5 proxy: $excludeApps"
+                            )
+                        }
+                    },
+                    enabled = !lockdown
                 )
-                if (b.settingsActivityHttpProxySwitch.isChecked) {
-                    b.settingsActivityHttpProxyDesc.text =
-                        getString(R.string.settings_http_proxy_desc, host)
+                Spacer(modifier = Modifier.width(6.dp))
+                Column {
+                    Text(text = getString(R.string.settings_exclude_proxy_apps_heading))
+                    Text(
+                        text = getString(R.string.settings_exclude_proxy_apps_desc),
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
-                logEvent("Custom HTTP Proxy set", "custom HTTP proxy to $host, app: ${appNameSpinner.selectedItem}" )
+            }
+
+            if (errorText.isNotBlank()) {
+                Text(text = errorText, color = MaterialTheme.colorScheme.error)
+            }
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onCancel) {
+                    Text(text = getString(R.string.lbl_cancel))
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        if (host.isBlank()) {
+                            errorText = getString(R.string.settings_http_proxy_error_text3)
+                            return@Button
+                        }
+                        val port = portText.toIntOrNull()
+                        if (port == null) {
+                            errorText = getString(R.string.settings_http_proxy_error_text2)
+                            return@Button
+                        }
+                        val isValid =
+                            if (Utilities.isLanIpv4(host)) {
+                                Utilities.isValidLocalPort(port)
+                            } else {
+                                isValidPort(port)
+                            }
+                        if (!isValid) {
+                            errorText = getString(R.string.settings_http_proxy_error_text1)
+                            return@Button
+                        }
+
+                        val selection = appNames.getOrNull(selectedIndex) ?: ""
+                        onApply(selection, host, port, userName, password, udpBlocked, excludeApps)
+                    }
+                ) {
+                    Text(text = getString(R.string.settings_dns_proxy_dialog_positive_btn))
+                }
             }
         }
-        cancelURLBtn.setOnClickListener {
-            dialog.dismiss()
-            appConfig.removeProxy(AppConfig.ProxyType.HTTP, AppConfig.ProxyProvider.CUSTOM)
-            b.settingsActivityHttpProxyDesc.text = getString(R.string.settings_https_desc)
-            b.settingsActivityHttpProxySwitch.isChecked = false
+    }
+
+    @Composable
+    private fun HttpProxyDialogContent(
+        endpoint: ProxyEndpoint,
+        appNames: List<String>,
+        appName: String?,
+        defaultHost: String,
+        onDismiss: () -> Unit,
+        onApply: (String, String, Boolean) -> Unit,
+        onCancel: () -> Unit
+    ) {
+        val lockdown = VpnController.isVpnLockdown()
+        var errorText by remember { mutableStateOf("") }
+        var selectedIndex by remember {
+            mutableStateOf(
+                if (
+                    !endpoint.proxyIP.isNullOrBlank() &&
+                        !endpoint.proxyAppName.isNullOrBlank() &&
+                        endpoint.proxyAppName != getString(R.string.settings_app_list_default_app)
+                ) {
+                    appNames.indexOf(appName).coerceAtLeast(0)
+                } else {
+                    0
+                }
+            )
+        }
+        var host by remember {
+            mutableStateOf(endpoint.proxyIP ?: defaultHost)
+        }
+        var excludeApps by remember { mutableStateOf(!persistentState.excludeAppsInProxy) }
+        var appMenuExpanded by remember { mutableStateOf(false) }
+
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(text = getString(R.string.http_proxy_dialog_heading), style = MaterialTheme.typography.titleMedium)
+            Text(text = getString(R.string.http_proxy_dialog_desc), style = MaterialTheme.typography.bodyMedium)
+
+            if (lockdown) {
+                TextButton(
+                    onClick = {
+                        onDismiss()
+                        UIUtils.openVpnProfile(this@ProxySettingsActivity)
+                    }
+                ) {
+                    Text(text = getString(R.string.settings_lock_down_mode_desc))
+                }
+            }
+
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = getString(R.string.settings_dns_proxy_dialog_app),
+                    modifier = Modifier.weight(0.3f)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(0.7f)) {
+                    TextButton(onClick = { appMenuExpanded = true }) {
+                        Text(text = appNames.getOrNull(selectedIndex) ?: "")
+                    }
+                    DropdownMenu(expanded = appMenuExpanded, onDismissRequest = { appMenuExpanded = false }) {
+                        appNames.forEachIndexed { index, name ->
+                            DropdownMenuItem(
+                                text = { Text(text = name) },
+                                onClick = {
+                                    selectedIndex = index
+                                    appMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+
+            OutlinedTextField(
+                value = host,
+                onValueChange = { host = it },
+                label = { Text(text = getString(R.string.settings_dns_proxy_dialog_hostname)) },
+                modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth().alpha(if (lockdown) 0.5f else 1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Checkbox(
+                    checked = excludeApps,
+                    onCheckedChange = {
+                        if (!lockdown) {
+                            excludeApps = it
+                            logEvent(
+                                "loopback proxy forwarder apps in HTTP Proxy toggled",
+                                "loopback proxy forwarder apps in HTTP proxy: $excludeApps"
+                            )
+                        }
+                    },
+                    enabled = !lockdown
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Column {
+                    Text(text = getString(R.string.settings_exclude_proxy_apps_heading))
+                    Text(
+                        text = getString(R.string.settings_exclude_proxy_apps_desc),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+            }
+
+            if (errorText.isNotBlank()) {
+                Text(text = errorText, color = MaterialTheme.colorScheme.error)
+            }
+
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onCancel) {
+                    Text(text = getString(R.string.lbl_cancel))
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        if (host.isBlank()) {
+                            errorText = getString(R.string.settings_http_proxy_error_text3)
+                            return@Button
+                        }
+                        val selection = appNames.getOrNull(selectedIndex) ?: ""
+                        onApply(selection, host, excludeApps)
+                    }
+                ) {
+                    Text(text = getString(R.string.settings_dns_proxy_dialog_positive_btn))
+                }
+            }
         }
     }
 

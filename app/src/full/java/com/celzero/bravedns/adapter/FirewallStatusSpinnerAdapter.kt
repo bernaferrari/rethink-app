@@ -16,17 +16,25 @@
 package com.celzero.bravedns.adapter
 
 import android.content.Context
-import android.view.LayoutInflater
+import android.util.TypedValue
+import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseAdapter
+import android.widget.LinearLayout
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.appcompat.widget.AppCompatTextView
 import com.celzero.bravedns.R
-import com.celzero.bravedns.databinding.SpinnerItemFirewallStatusBinding
+import com.celzero.bravedns.util.UIUtils
 
 class FirewallStatusSpinnerAdapter(val context: Context, private val spinnerLabels: Array<String>) :
     BaseAdapter() {
+
+    private data class Holder(
+        val root: LinearLayout,
+        val textView: AppCompatTextView,
+        val iconView: AppCompatImageView
+    )
 
     override fun getCount(): Int {
         return spinnerLabels.size
@@ -41,40 +49,58 @@ class FirewallStatusSpinnerAdapter(val context: Context, private val spinnerLabe
     }
 
     override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val itemBinding =
-            convertView
-                ?: SpinnerItemFirewallStatusBinding.inflate(
-                        LayoutInflater.from(parent.context),
-                        parent,
-                        false
-                    )
-                    .root
-
-        setItem(itemBinding, getItem(position))
-        return itemBinding
+        val holder = (convertView?.tag as? Holder) ?: createHolder(parent)
+        bind(holder, getItem(position))
+        return holder.root
     }
 
     override fun getDropDownView(position: Int, convertView: View?, parent: ViewGroup): View {
-        val itemBinding =
-            convertView
-                ?: SpinnerItemFirewallStatusBinding.inflate(
-                        LayoutInflater.from(parent.context),
-                        parent,
-                        false
-                    )
-                    .root
-
-        setItem(itemBinding, getItem(position))
-        return itemBinding
+        val holder = (convertView?.tag as? Holder) ?: createHolder(parent)
+        bind(holder, getItem(position))
+        return holder.root
     }
 
-    private fun setItem(view: View, status: String?) {
-        if (status == null) return
+    private fun createHolder(parent: ViewGroup): Holder {
+        val padding = dpToPx(5f)
+        val layout =
+            LinearLayout(parent.context).apply {
+                layoutParams =
+                    ViewGroup.LayoutParams(
+                        ViewGroup.LayoutParams.WRAP_CONTENT,
+                        ViewGroup.LayoutParams.WRAP_CONTENT
+                    )
+                orientation = LinearLayout.HORIZONTAL
+                setPadding(dpToPx(15f), padding, padding, padding)
+                gravity = Gravity.CENTER_VERTICAL
+            }
+        val tv =
+            AppCompatTextView(parent.context).apply {
+                setTextColor(UIUtils.fetchColor(context, R.attr.primaryTextColor))
+                setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                setPadding(dpToPx(10f), 0, dpToPx(10f), 0)
+            }
+        val iv =
+            AppCompatImageView(parent.context).apply {
+                setImageResource(R.drawable.ic_arrow_down)
+                visibility = View.INVISIBLE
+            }
+        layout.addView(tv)
+        layout.addView(iv)
+        val holder = Holder(layout, tv, iv)
+        layout.tag = holder
+        return holder
+    }
 
-        val tv = view.findViewById<AppCompatTextView>(R.id.spinner_text)
-        val iv = view.findViewById<AppCompatImageView>(R.id.spinner_icon)
-        tv.text = status
-        // do not show down arrow on drop down
-        iv.visibility = View.INVISIBLE
+    private fun bind(holder: Holder, status: String?) {
+        holder.textView.text = status.orEmpty()
+        holder.iconView.visibility = View.INVISIBLE
+    }
+
+    private fun dpToPx(dp: Float): Int {
+        return TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            dp,
+            context.resources.displayMetrics
+        ).toInt()
     }
 }

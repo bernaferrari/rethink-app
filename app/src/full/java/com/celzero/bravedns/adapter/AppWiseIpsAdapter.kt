@@ -15,25 +15,37 @@
  */
 package com.celzero.bravedns.adapter
 
-import Logger
-import Logger.LOG_TAG_UI
 import android.content.Context
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.fragment.app.FragmentActivity
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
-import com.celzero.bravedns.databinding.ListItemAppIpDetailsBinding
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.ui.bottomsheet.AppIpRulesDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
+import io.github.aakira.napier.Napier
 import kotlin.math.log2
 
 class AppWiseIpsAdapter(
@@ -57,20 +69,22 @@ class AppWiseIpsAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ConnectionDetailsViewHolder {
-        val itemBinding =
-            ListItemAppIpDetailsBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ConnectionDetailsViewHolder(itemBinding)
+        val composeView = ComposeView(parent.context)
+        composeView.layoutParams =
+            RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        return ConnectionDetailsViewHolder(composeView)
     }
 
     override fun onBindViewHolder(holder: ConnectionDetailsViewHolder, position: Int) {
         val appConnection: AppConnection = getItem(position) ?: return
-        // updates the app-wise connections from network log to AppInfo screen
         holder.update(appConnection)
     }
 
     private fun calculatePercentage(c: Double): Int {
         val value = (log2(c) * 100).toInt()
-        // maxValue will be based on the count returned by db query (order by count desc)
         if (value > maxValue) {
             maxValue = value
         }
@@ -78,7 +92,6 @@ class AppWiseIpsAdapter(
             0
         } else {
             val percentage = (value * 100 / maxValue)
-            // minPercentage is used to show the progress bar when the percentage is 0
             if (percentage < minPercentage && percentage != 0) {
                 minPercentage = percentage
             }
@@ -86,134 +99,121 @@ class AppWiseIpsAdapter(
         }
     }
 
-    inner class ConnectionDetailsViewHolder(private val b: ListItemAppIpDetailsBinding) :
-        RecyclerView.ViewHolder(b.root) {
+    inner class ConnectionDetailsViewHolder(private val composeView: ComposeView) :
+        RecyclerView.ViewHolder(composeView) {
         fun update(conn: AppConnection) {
-            displayTransactionDetails(conn)
-            setupClickListeners(conn)
-        }
-
-        private fun setupClickListeners(conn: AppConnection) {
-            b.acdContainer.setOnClickListener {
-                // open bottom sheet to apply domain/ip rules
-                openBottomSheet(conn)
-            }
-        }
-
-        private fun openBottomSheet(conn: AppConnection) {
-            if (context !is AppCompatActivity) {
-                Logger.w(LOG_TAG_UI, "$TAG err opening the app conn bottom sheet")
-                return
-            }
-
-            if (isAsn) {
-                return
-            }
-
-            Logger.vv(LOG_TAG_UI, "$TAG open bottom sheet for uid: $uid, ip: ${conn.ipAddress}, domain: ${conn.appOrDnsName}")
-            val currentPosition = absoluteAdapterPosition
-            val safePosition =
-                if (currentPosition != RecyclerView.NO_POSITION) currentPosition
-                else RecyclerView.NO_POSITION
-            if (safePosition == RecyclerView.NO_POSITION) {
-                Logger.w(LOG_TAG_UI, "$TAG invalid adapter position when opening dialog")
-            }
-            AppIpRulesDialog(
-                activity = context,
-                uid = uid,
-                ipAddress = conn.ipAddress,
-                domains = beautifyDomainString(conn.appOrDnsName ?: ""),
-                position = safePosition
-            ) { position ->
-                notifyDataset(position)
-            }.show()
-        }
-
-        private fun displayTransactionDetails(conn: AppConnection) {
-            b.acdCount.text = conn.count.toString()
-            if (isAsn) {
-                b.acdIpAddress.text = conn.appOrDnsName
-                b.acdDomainName.text = conn.ipAddress
-                // in case of ASN, flag consists of country code, extract flag from it
-                val cc = Utilities.getFlag(conn.flag)
-                if (cc.isEmpty()) {
-                    b.acdFlag.text = "--"
-                } else {
-                    b.acdFlag.text = cc
+            composeView.setContent {
+                RethinkTheme {
+                    IpRow(conn)
                 }
-                b.acdDownArrowIv.visibility = View.INVISIBLE
-            } else {
-                b.acdFlag.text = conn.flag
-                b.acdIpAddress.text = conn.ipAddress
-                if (!conn.appOrDnsName.isNullOrEmpty()) {
-                    b.acdDomainName.visibility = View.VISIBLE
-                    b.acdDomainName.text = beautifyDomainString(conn.appOrDnsName)
-                } else {
-                    b.acdDomainName.visibility = View.GONE
-                }
-                b.acdDownArrowIv.visibility = View.VISIBLE
-            }
-            updateStatusUi(conn)
-        }
-
-        private fun beautifyDomainString(d: String): String {
-            // replace two commas in the string to one
-            // add space after all the commas
-            return removeBeginningTrailingCommas(d).replace(",,", ",").replace(",", ", ")
-        }
-
-        private fun updateStatusUi(conn: AppConnection) {
-            val status = IpRulesManager.getMostSpecificRuleMatch(conn.uid, conn.ipAddress)
-            when (status) {
-                IpRulesManager.IpRuleStatus.NONE -> {
-                    b.progress.setIndicatorColor(
-                        UIUtils.fetchToggleBtnColors(context, R.color.chipTextNeutral)
-                    )
-                }
-                IpRulesManager.IpRuleStatus.BLOCK -> {
-                    b.progress.setIndicatorColor(
-                        UIUtils.fetchToggleBtnColors(context, R.color.accentBad)
-                    )
-                }
-                IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL -> {
-                    b.progress.setIndicatorColor(
-                        UIUtils.fetchToggleBtnColors(context, R.color.accentGood)
-                    )
-                }
-                IpRulesManager.IpRuleStatus.TRUST -> {
-                    b.progress.setIndicatorColor(
-                        UIUtils.fetchToggleBtnColors(context, R.color.accentGood)
-                    )
-                }
-            }
-
-            var p = calculatePercentage(conn.count.toDouble())
-            if (p == 0) {
-                p = minPercentage / 2
-            }
-
-            if (Utilities.isAtleastN()) {
-                b.progress.setProgress(p, true)
-            } else {
-                b.progress.progress = p
             }
         }
     }
 
+    @Composable
+    private fun IpRow(conn: AppConnection) {
+        val countText = conn.count.toString()
+        val flagText =
+            if (isAsn) {
+                val cc = Utilities.getFlag(conn.flag)
+                if (cc.isEmpty()) "--" else cc
+            } else {
+                conn.flag
+            }
+        val titleText = if (isAsn) conn.appOrDnsName else conn.ipAddress
+        val secondaryText =
+            if (isAsn) conn.ipAddress else conn.appOrDnsName?.let { beautifyDomainString(it) }
+
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { handleClick(conn) }
+                    .padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(text = flagText, style = MaterialTheme.typography.titleMedium)
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = titleText.orEmpty(), style = MaterialTheme.typography.titleMedium)
+                    if (!secondaryText.isNullOrEmpty()) {
+                        Text(text = secondaryText, style = MaterialTheme.typography.bodySmall)
+                    }
+                    if (!isAsn) {
+                        IpProgress(conn)
+                    }
+                }
+                Text(text = countText, style = MaterialTheme.typography.labelLarge)
+            }
+            Spacer(modifier = Modifier.fillMaxWidth())
+        }
+    }
+
+    @Composable
+    private fun IpProgress(conn: AppConnection) {
+        val status = IpRulesManager.getMostSpecificRuleMatch(conn.uid, conn.ipAddress)
+        val color =
+            when (status) {
+                IpRulesManager.IpRuleStatus.NONE ->
+                    UIUtils.fetchToggleBtnColors(context, R.color.chipTextNeutral)
+                IpRulesManager.IpRuleStatus.BLOCK ->
+                    UIUtils.fetchToggleBtnColors(context, R.color.accentBad)
+                IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL ->
+                    UIUtils.fetchToggleBtnColors(context, R.color.accentGood)
+                IpRulesManager.IpRuleStatus.TRUST ->
+                    UIUtils.fetchToggleBtnColors(context, R.color.accentGood)
+            }
+
+        var p = calculatePercentage(conn.count.toDouble())
+        if (p == 0) {
+            p = minPercentage / 2
+        }
+
+        LinearProgressIndicator(
+            progress = p / 100f,
+            color = Color(color),
+            trackColor = Color(UIUtils.fetchColor(context, R.attr.background)),
+            modifier = Modifier.fillMaxWidth()
+        )
+    }
+
+    private fun handleClick(conn: AppConnection) {
+        if (isAsn) return
+        openBottomSheet(conn)
+    }
+
+    private fun openBottomSheet(conn: AppConnection) {
+        if (isAsn) return
+        val activity = context as? FragmentActivity
+        if (activity == null) {
+            Napier.w("$TAG invalid context for app ip dialog")
+            return
+        }
+        AppIpRulesDialog(
+            activity = activity,
+            uid = uid,
+            ipAddress = conn.ipAddress,
+            domains = beautifyDomainString(conn.appOrDnsName ?: ""),
+            position = RecyclerView.NO_POSITION
+        ) { position ->
+            notifyDataset(position)
+        }.show()
+    }
+
+    private fun beautifyDomainString(d: String): String {
+        return removeBeginningTrailingCommas(d).replace(",,", ",").replace(",", ", ")
+    }
+
     private fun notifyDataset(position: Int) {
-        // Fix: IndexOutOfBoundsException - validate position before notifying
-        // PagingDataAdapter manages its own data, so we need to be careful with manual notifications
         try {
             if (position >= 0 && position < itemCount) {
                 notifyItemChanged(position)
             } else {
-                // Position is invalid, refresh the entire dataset instead
-                Logger.w(LOG_TAG_UI, "$TAG invalid position: $position, itemCount: $itemCount, refreshing adapter")
+                Napier.w("$TAG invalid position: $position, itemCount: $itemCount, refreshing adapter")
                 refresh()
             }
         } catch (e: Exception) {
-            // If notification fails, refresh the adapter to ensure consistency
-            Logger.e(LOG_TAG_UI, "$TAG error notifying position $position: ${e.message}", e)
+            Napier.e("$TAG error notifying position $position: ${e.message}", e)
             refresh()
         }
     }

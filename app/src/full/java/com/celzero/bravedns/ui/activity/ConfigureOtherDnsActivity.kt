@@ -23,7 +23,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.widget.ArrayAdapter
-import android.widget.TextView
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
@@ -82,8 +81,6 @@ import com.celzero.bravedns.database.DnsCryptEndpoint
 import com.celzero.bravedns.database.DnsCryptRelayEndpoint
 import com.celzero.bravedns.database.DnsProxyEndpoint
 import com.celzero.bravedns.database.ODoHEndpoint
-import com.celzero.bravedns.databinding.DialogSetCustomDohBinding
-import com.celzero.bravedns.databinding.DialogSetCustomOdohBinding
 import com.celzero.bravedns.databinding.FragmentDnsCryptListBinding
 import com.celzero.bravedns.databinding.FragmentDnsProxyListBinding
 import com.celzero.bravedns.databinding.FragmentDohListBinding
@@ -243,10 +240,10 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
     }
 
     private fun showAddCustomDohDialog() {
-        val dialogBinding = DialogSetCustomDohBinding.inflate(layoutInflater)
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         val lp = WindowManager.LayoutParams()
         val dialog = builder.create()
+        dialog.show()
         lp.copyFrom(dialog.window?.attributes)
         lp.width = WindowManager.LayoutParams.MATCH_PARENT
         lp.height = WindowManager.LayoutParams.WRAP_CONTENT
@@ -254,51 +251,35 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
         dialog.setCancelable(true)
         dialog.window?.attributes = lp
 
-        val heading = dialogBinding.dialogCustomUrlTop
-        val applyURLBtn = dialogBinding.dialogCustomUrlOkBtn
-        val cancelURLBtn = dialogBinding.dialogCustomUrlCancelBtn
-        val customName = dialogBinding.dialogCustomNameEditText
-        val customURL = dialogBinding.dialogCustomUrlEditText
-        val progressBar = dialogBinding.dialogCustomUrlLoading
-        val errorTxt = dialogBinding.dialogCustomUrlFailureText
-        val checkBox = dialogBinding.dialogSecureCheckbox
-
-        heading.text = getString(R.string.cd_doh_dialog_heading)
-
-        io {
-            val nextIndex = appConfig.getDohCount().plus(1)
-            uiCtx {
-                customName.setText(
-                    getString(R.string.cd_custom_doh_url_name, nextIndex.toString()),
-                    TextView.BufferType.EDITABLE
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                CustomDohDialogContent(
+                    title = getString(R.string.cd_doh_dialog_heading),
+                    nameLabel = getString(R.string.cd_doh_dialog_resolver_name),
+                    urlLabel = getString(R.string.cd_doh_dialog_resolver_url),
+                    defaultName = getString(R.string.cd_custom_doh_url_name_default),
+                    initialUrl = "https://",
+                    checkboxLabel = getString(R.string.cd_doh_dialog_checkbox_desc),
+                    loadNextIndex = { appConfig.getDohCount().plus(1) },
+                    nameForIndex = { index ->
+                        getString(R.string.cd_custom_doh_url_name, index.toString())
+                    },
+                    onSubmit = { name, url, isSecure ->
+                        if (checkUrl(url)) {
+                            insertDoHEndpoint(name, url, isSecure)
+                            dialog.dismiss()
+                            null
+                        } else {
+                            getString(R.string.custom_url_error_invalid_url)
+                        }
+                    },
+                    invalidUrlMessage = getString(R.string.custom_url_error_invalid_url),
+                    onDismiss = { dialog.dismiss() }
                 )
             }
         }
-
-        customURL.setText("")
-        customName.setText(
-            getString(R.string.cd_custom_doh_url_name_default),
-            TextView.BufferType.EDITABLE
-        )
-        applyURLBtn.setOnClickListener {
-            val url = customURL.text.toString()
-            val name = customName.text.toString()
-            val isSecure = !checkBox.isChecked
-
-            if (checkUrl(url)) {
-                insertDoHEndpoint(name, url, isSecure)
-                dialog.dismiss()
-            } else {
-                errorTxt.text = resources.getString(R.string.custom_url_error_invalid_url)
-                errorTxt.visibility = View.VISIBLE
-                cancelURLBtn.visibility = View.VISIBLE
-                applyURLBtn.visibility = View.VISIBLE
-                progressBar.visibility = View.INVISIBLE
-            }
-        }
-
-        cancelURLBtn.setOnClickListener { dialog.dismiss() }
-        dialog.show()
+        dialog.setView(composeView)
     }
 
     private fun insertDoHEndpoint(name: String, url: String, isSecure: Boolean) {
@@ -352,10 +333,9 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
     }
 
     private fun showAddDotDialog() {
-        val dialogBinding = DialogSetCustomDohBinding.inflate(layoutInflater)
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+        val dialog = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).create()
         val lp = WindowManager.LayoutParams()
-        val dialog = builder.create()
+        dialog.show()
         lp.copyFrom(dialog.window?.attributes)
         lp.width = WindowManager.LayoutParams.MATCH_PARENT
         lp.height = WindowManager.LayoutParams.WRAP_CONTENT
@@ -363,43 +343,36 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
         dialog.setCancelable(true)
         dialog.window?.attributes = lp
 
-        val heading = dialogBinding.dialogCustomUrlTop
-        val applyURLBtn = dialogBinding.dialogCustomUrlOkBtn
-        val cancelURLBtn = dialogBinding.dialogCustomUrlCancelBtn
-        val customName = dialogBinding.dialogCustomNameEditText
-        val customURL = dialogBinding.dialogCustomUrlEditText
-        val checkBox = dialogBinding.dialogSecureCheckbox
-
-        heading.text =
+        val title =
             getString(
                 R.string.two_argument_space,
                 getString(R.string.lbl_add).replaceFirstChar(Char::titlecase),
                 getString(R.string.lbl_dot)
             )
 
-        io {
-            val nextIndex = appConfig.getDoTCount().plus(1)
-            uiCtx {
-                customName.setText(
-                    getString(R.string.lbl_dot) + nextIndex.toString(),
-                    TextView.BufferType.EDITABLE
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                CustomDohDialogContent(
+                    title = title,
+                    nameLabel = getString(R.string.cd_doh_dialog_resolver_name),
+                    urlLabel = getString(R.string.cd_doh_dialog_resolver_url),
+                    defaultName = getString(R.string.lbl_dot),
+                    initialUrl = "",
+                    checkboxLabel = getString(R.string.cd_doh_dialog_checkbox_desc),
+                    loadNextIndex = { appConfig.getDoTCount().plus(1) },
+                    nameForIndex = { index -> getString(R.string.lbl_dot) + index.toString() },
+                    onSubmit = { name, url, isSecure ->
+                        insertDotEndpoint(name, url, isSecure)
+                        dialog.dismiss()
+                        null
+                    },
+                    invalidUrlMessage = "",
+                    onDismiss = { dialog.dismiss() }
                 )
             }
         }
-
-        customURL.setText("")
-        customName.setText(getString(R.string.lbl_dot), TextView.BufferType.EDITABLE)
-        applyURLBtn.setOnClickListener {
-            val url = customURL.text.toString()
-            val name = customName.text.toString()
-            val isSecure = !checkBox.isChecked
-
-            insertDotEndpoint(name, url, isSecure)
-            dialog.dismiss()
-        }
-
-        cancelURLBtn.setOnClickListener { dialog.dismiss() }
-        dialog.show()
+        dialog.setView(composeView)
     }
 
     private fun insertDotEndpoint(name: String, url: String, isSecure: Boolean) {
@@ -885,10 +858,8 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
     }
 
     private fun showAddOdohDialog() {
-        val dialogBinding = DialogSetCustomOdohBinding.inflate(layoutInflater)
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+        val dialog = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).create()
         val lp = WindowManager.LayoutParams()
-        val dialog = builder.create()
         dialog.show()
         lp.copyFrom(dialog.window?.attributes)
         lp.width = WindowManager.LayoutParams.MATCH_PARENT
@@ -897,54 +868,181 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
         dialog.setCancelable(true)
         dialog.window?.attributes = lp
 
-        val heading = dialogBinding.dialogCustomUrlTop
-        val applyURLBtn = dialogBinding.dialogCustomUrlOkBtn
-        val cancelURLBtn = dialogBinding.dialogCustomUrlCancelBtn
-        val customName = dialogBinding.dialogCustomNameEditText
-        val customProxy = dialogBinding.dialogCustomProxyEditText
-        val customResolver = dialogBinding.dialogCustomResolverEditText
-        val errorTxt = dialogBinding.dialogCustomUrlFailureText
-        val hintInputLayout = dialogBinding.textInputLayout1
-
         val title =
             getString(
                 R.string.two_argument_space,
                 getString(R.string.lbl_add).replaceFirstChar(Char::uppercase),
                 getString(R.string.lbl_odoh)
             )
-        heading.text = title
 
-        io {
-            val nextIndex = appConfig.getODoHCount().plus(1)
-            uiCtx {
-                customName.setText(
-                    getString(R.string.lbl_odoh) + nextIndex.toString(),
-                    TextView.BufferType.EDITABLE
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                CustomOdohDialogContent(
+                    title = title,
+                    nameLabel = getString(R.string.cd_doh_dialog_resolver_name),
+                    proxyLabel =
+                        getString(R.string.settings_proxy_header).replaceFirstChar(Char::uppercase) +
+                            getString(R.string.lbl_optional),
+                    resolverLabel = getString(R.string.cd_doh_dialog_resolver_url),
+                    defaultName = getString(R.string.lbl_odoh),
+                    initialResolver = "https://",
+                    loadNextIndex = { appConfig.getODoHCount().plus(1) },
+                    invalidUrlMessage = getString(R.string.custom_url_error_invalid_url),
+                    onSubmit = { name, proxy, resolver ->
+                        if (checkUrl(resolver)) {
+                            insertOdoh(name, proxy, resolver)
+                            dialog.dismiss()
+                            null
+                        } else {
+                            getString(R.string.custom_url_error_invalid_url)
+                        }
+                    },
+                    onDismiss = { dialog.dismiss() }
                 )
             }
         }
+        dialog.setView(composeView)
+    }
 
-        hintInputLayout.hint =
-            getString(R.string.settings_proxy_header).replaceFirstChar(Char::uppercase) +
-                getString(R.string.lbl_optional)
+    @Composable
+    private fun CustomDohDialogContent(
+        title: String,
+        nameLabel: String,
+        urlLabel: String,
+        defaultName: String,
+        initialUrl: String,
+        checkboxLabel: String,
+        loadNextIndex: suspend () -> Int,
+        nameForIndex: (Int) -> String,
+        onSubmit: (String, String, Boolean) -> String?,
+        invalidUrlMessage: String,
+        onDismiss: () -> Unit
+    ) {
+        var name by remember { mutableStateOf(defaultName) }
+        var url by remember { mutableStateOf(initialUrl) }
+        var insecureChecked by remember { mutableStateOf(false) }
+        var errorText by remember { mutableStateOf("") }
 
-        customName.setText(getString(R.string.lbl_odoh), TextView.BufferType.EDITABLE)
-        applyURLBtn.setOnClickListener {
-            val proxy = customProxy.text.toString()
-            val resolver = customResolver.text.toString()
-            val name = customName.text.toString()
-
-            if (checkUrl(resolver)) {
-                insertOdoh(name, proxy, resolver)
-                dialog.dismiss()
-            } else {
-                errorTxt.text = resources.getString(R.string.custom_url_error_invalid_url)
-                errorTxt.visibility = View.VISIBLE
-            }
+        LaunchedEffect(Unit) {
+            val nextIndex = withContext(Dispatchers.IO) { loadNextIndex() }
+            name = nameForIndex(nextIndex)
         }
 
-        cancelURLBtn.setOnClickListener { dialog.dismiss() }
-        dialog.show()
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(text = title, style = MaterialTheme.typography.titleMedium)
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text(text = nameLabel) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = url,
+                onValueChange = { url = it },
+                label = { Text(text = urlLabel) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                modifier = Modifier.fillMaxWidth()
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Checkbox(checked = insecureChecked, onCheckedChange = { insecureChecked = it })
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(text = checkboxLabel)
+            }
+            if (errorText.isNotBlank()) {
+                Text(text = errorText, color = MaterialTheme.colorScheme.error)
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onDismiss) {
+                    Text(text = getString(R.string.lbl_cancel))
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        val isSecure = !insecureChecked
+                        val error = onSubmit(name, url, isSecure)
+                        if (error != null) {
+                            errorText = error.ifBlank { invalidUrlMessage }
+                        }
+                    }
+                ) {
+                    Text(text = getString(R.string.lbl_add))
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun CustomOdohDialogContent(
+        title: String,
+        nameLabel: String,
+        proxyLabel: String,
+        resolverLabel: String,
+        defaultName: String,
+        initialResolver: String,
+        loadNextIndex: suspend () -> Int,
+        invalidUrlMessage: String,
+        onSubmit: (String, String, String) -> String?,
+        onDismiss: () -> Unit
+    ) {
+        var name by remember { mutableStateOf(defaultName) }
+        var proxy by remember { mutableStateOf("") }
+        var resolver by remember { mutableStateOf(initialResolver) }
+        var errorText by remember { mutableStateOf("") }
+
+        LaunchedEffect(Unit) {
+            val nextIndex = withContext(Dispatchers.IO) { loadNextIndex() }
+            name = getString(R.string.lbl_odoh) + nextIndex.toString()
+        }
+
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(text = title, style = MaterialTheme.typography.titleMedium)
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text(text = nameLabel) },
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = proxy,
+                onValueChange = { proxy = it },
+                label = { Text(text = proxyLabel) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                modifier = Modifier.fillMaxWidth()
+            )
+            OutlinedTextField(
+                value = resolver,
+                onValueChange = { resolver = it },
+                label = { Text(text = resolverLabel) },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri),
+                modifier = Modifier.fillMaxWidth()
+            )
+            if (errorText.isNotBlank()) {
+                Text(text = errorText, color = MaterialTheme.colorScheme.error)
+            }
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onDismiss) {
+                    Text(text = getString(R.string.lbl_cancel))
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                Button(
+                    onClick = {
+                        val error = onSubmit(name, proxy, resolver)
+                        if (error != null) {
+                            errorText = error.ifBlank { invalidUrlMessage }
+                        }
+                    }
+                ) {
+                    Text(text = getString(R.string.lbl_add))
+                }
+            }
+        }
     }
 
     private fun insertOdoh(name: String, proxy: String, resolver: String) {

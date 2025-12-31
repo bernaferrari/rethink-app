@@ -116,7 +116,7 @@
         android:paddingBottom="10dp"
         android:scrollbars="vertical"
         app:fastScrollThumbColor="?attr/homeScreenHeaderTextColor"
-        tools:listitem="@layout/item_event" />
+        />
 
     <!-- Empty State -->
     <LinearLayout
@@ -175,4 +175,3 @@
         tools:text="Today" />
 
 </RelativeLayout>
-

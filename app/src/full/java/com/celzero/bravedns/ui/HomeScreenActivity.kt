@@ -62,6 +62,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
@@ -739,7 +740,7 @@ class HomeScreenActivity : AppCompatActivity() {
 
     private fun showUpdateCompleteSnackbar() {
         try {
-            val container: View = findViewById(R.id.container)
+            val container: View = findViewById(android.R.id.content)
             val snack =
                 Snackbar.make(
                     container,
@@ -901,25 +902,26 @@ class HomeScreenActivity : AppCompatActivity() {
         val month = days / 30.0
         val amount = month * (0.60 + 0.20)
 
-        val alertBuilder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        val dialogView = layoutInflater.inflate(R.layout.dialog_sponsor_info, null)
-        alertBuilder.setView(dialogView)
-        alertBuilder.setCancelable(true)
-
-        val amountTxt = dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.dialog_sponsor_info_amount)
-        val usageTxt = dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.dialog_sponsor_info_usage)
-        val sponsorBtn = dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.dialog_sponsor_info_sponsor)
-
-        val dialog = alertBuilder.create()
-
         val msg = getString(R.string.sponser_dialog_usage_msg, days.toInt().toString(), "%.2f".format(amount))
-        amountTxt.text = getString(R.string.two_argument_no_space, getString(R.string.symbol_dollar), "%.2f".format(amount))
-        usageTxt.text = msg
+        val formattedAmount =
+            getString(R.string.two_argument_no_space, getString(R.string.symbol_dollar), "%.2f".format(amount))
 
-        sponsorBtn.setOnClickListener {
-            openUrl(this, RETHINKDNS_SPONSOR_LINK)
-        }
+        val alertBuilder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+        val dialog = alertBuilder.create()
+        dialog.setCancelable(true)
         dialog.show()
+
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                SponsorInfoDialogContent(
+                    amount = formattedAmount,
+                    usageMessage = msg,
+                    onSponsorClick = { openUrl(this, RETHINKDNS_SPONSOR_LINK) }
+                )
+            }
+        }
+        dialog.setView(composeView)
     }
 
     private fun handleMainScreenBtnClickEvent() {
@@ -1521,6 +1523,26 @@ class HomeScreenActivity : AppCompatActivity() {
                 text = getString(R.string.contributors_list),
                 textAlign = TextAlign.Center
             )
+        }
+    }
+
+    @Composable
+    private fun SponsorInfoDialogContent(
+        amount: String,
+        usageMessage: String,
+        onSponsorClick: () -> Unit
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(text = amount, style = MaterialTheme.typography.titleLarge)
+            Text(text = usageMessage, style = MaterialTheme.typography.bodyMedium)
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                TextButton(onClick = onSponsorClick) {
+                    Text(text = getString(R.string.about_sponsor_link_text))
+                }
+            }
         }
     }
 

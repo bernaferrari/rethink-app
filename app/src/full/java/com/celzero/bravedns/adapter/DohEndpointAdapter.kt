@@ -16,14 +16,31 @@ limitations under the License.
 
 package com.celzero.bravedns.adapter
 
-import Logger
-import Logger.LOG_TAG_DNS
 import android.content.Context
 import android.content.DialogInterface
-import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.content.ContextCompat
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -33,16 +50,17 @@ import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.DoHEndpoint
-import com.celzero.bravedns.databinding.ListItemEndpointBinding
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.UIUtils.getDnsStatusStringRes
 import com.celzero.bravedns.util.Utilities
 import com.celzero.firestack.backend.Backend
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -75,10 +93,14 @@ class DohEndpointAdapter(private val context: Context, private val appConfig: Ap
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DoHEndpointViewHolder {
-        val itemBinding =
-            ListItemEndpointBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        val composeView = ComposeView(parent.context)
+        composeView.layoutParams =
+            RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
         lifecycleOwner = parent.findViewTreeLifecycleOwner()
-        return DoHEndpointViewHolder(itemBinding)
+        return DoHEndpointViewHolder(composeView)
     }
 
     override fun onBindViewHolder(holder: DoHEndpointViewHolder, position: Int) {
@@ -86,182 +108,173 @@ class DohEndpointAdapter(private val context: Context, private val appConfig: Ap
         holder.update(doHEndpoint)
     }
 
-    inner class DoHEndpointViewHolder(private val b: ListItemEndpointBinding) :
-        RecyclerView.ViewHolder(b.root) {
-        private var statusCheckJob: Job? = null
+    inner class DoHEndpointViewHolder(private val composeView: ComposeView) :
+        RecyclerView.ViewHolder(composeView) {
 
         fun update(endpoint: DoHEndpoint) {
-            displayDetails(endpoint)
-            setupClickListeners(endpoint)
-        }
-
-        private fun setupClickListeners(endpoint: DoHEndpoint) {
-            b.root.setOnClickListener { updateConnection(endpoint) }
-            b.endpointInfoImg.setOnClickListener { showExplanationOnImageClick(endpoint) }
-            b.endpointCheck.setOnClickListener { updateConnection(endpoint) }
-        }
-
-        private fun displayDetails(endpoint: DoHEndpoint) {
-            if (endpoint.isSecure) {
-                b.endpointName.text = endpoint.dohName
-            } else {
-                b.endpointName.text =
-                    context.getString(
-                        R.string.ci_desc,
-                        endpoint.dohName,
-                        context.getString(R.string.lbl_insecure)
-                    )
+            composeView.setContent {
+                RethinkTheme {
+                    DoHEndpointRow(endpoint = endpoint)
+                }
             }
-            b.endpointCheck.isChecked = endpoint.isSelected
+        }
+    }
+
+    @Composable
+    private fun DoHEndpointRow(endpoint: DoHEndpoint) {
+        var explanation by remember(endpoint.id) { mutableStateOf("") }
+
+        LaunchedEffect(endpoint.id, endpoint.isSelected) {
             if (endpoint.isSelected && VpnController.hasTunnel() && !appConfig.isSmartDnsEnabled()) {
-                keepSelectedStatusUpdated()
-            } else if (endpoint.isSelected) {
-                b.endpointDesc.text = context.getString(R.string.rt_filter_parent_selected)
-            } else {
-                b.endpointDesc.text = ""
-            }
-
-            // Shows either the info/delete icon for the DoH entries.
-            showIcon(endpoint)
-        }
-
-        private fun keepSelectedStatusUpdated() {
-            statusCheckJob = ui {
-                while (true) {
-                    updateSelectedStatus()
+                while (isActive) {
+                    val status =
+                        withContext(Dispatchers.IO) {
+                            val state = VpnController.getDnsStatus(Backend.Preferred)
+                            getDnsStatusStringRes(state)
+                        }
+                    explanation = context.getString(status).replaceFirstChar(Char::titlecase)
                     delay(ONE_SEC)
                 }
-            }
-        }
-
-        private fun updateSelectedStatus() {
-            // if the view is not active then cancel the job
-            if (
-                lifecycleOwner
-                    ?.lifecycle
-                    ?.currentState
-                    ?.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED) == false ||
-                bindingAdapterPosition == RecyclerView.NO_POSITION
-            ) {
-                statusCheckJob?.cancel()
-                return
-            }
-
-            updateDnsStatus()
-        }
-
-        private fun updateDnsStatus() {
-            io {
-                // always use the id as Dnsx.Preffered as it is the primary dns id for now
-                val state = VpnController.getDnsStatus(Backend.Preferred)
-                val status = getDnsStatusStringRes(state)
-                uiCtx {
-                    b.endpointDesc.text =
-                        context.getString(status).replaceFirstChar(Char::titlecase)
-                }
-            }
-        }
-
-        private fun showIcon(endpoint: DoHEndpoint) {
-            if (endpoint.isDeletable()) {
-                b.endpointInfoImg.setImageDrawable(
-                    ContextCompat.getDrawable(context, R.drawable.ic_fab_uninstall)
-                )
+            } else if (endpoint.isSelected) {
+                explanation = context.getString(R.string.rt_filter_parent_selected)
             } else {
-                b.endpointInfoImg.setImageDrawable(
-                    ContextCompat.getDrawable(context, R.drawable.ic_info)
+                explanation = ""
+            }
+        }
+
+        val name =
+            if (endpoint.isSecure) {
+                endpoint.dohName
+            } else {
+                context.getString(
+                    R.string.ci_desc,
+                    endpoint.dohName,
+                    context.getString(R.string.lbl_insecure)
                 )
             }
-        }
-
-        private fun updateConnection(endpoint: DoHEndpoint) {
-            Logger.d(LOG_TAG_DNS, "$TAG update doh; ${endpoint.dohName}, ${endpoint.dohURL}, ${endpoint.isSelected}")
-            io {
-                endpoint.isSelected = true
-                appConfig.handleDoHChanges(endpoint)
+        val infoIcon =
+            if (endpoint.isDeletable()) {
+                R.drawable.ic_fab_uninstall
+            } else {
+                R.drawable.ic_info
             }
-        }
 
-        private fun deleteEndpoint(id: Int) {
-            io {
-                Logger.i(LOG_TAG_DNS, "$TAG delete endpoint; $id")
-                appConfig.deleteDohEndpoint(id)
-                uiCtx {
-                    Utilities.showToastUiCentered(
-                        context,
-                        context.getString(R.string.doh_custom_url_remove_success),
-                        Toast.LENGTH_SHORT
-                    )
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp, vertical = 6.dp)
+                    .clickable { updateConnection(endpoint) },
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = name, style = MaterialTheme.typography.bodyLarge)
+                if (explanation.isNotEmpty()) {
+                    Text(text = explanation, style = MaterialTheme.typography.bodySmall)
                 }
             }
-        }
-
-        private fun showExplanationOnImageClick(endpoint: DoHEndpoint) {
-            if (endpoint.isDeletable()) showDeleteDnsDialog(endpoint.id)
-            else showDohMetadataDialog(endpoint.dohName, endpoint.dohURL, endpoint.dohExplanation)
-        }
-
-        private fun showDohMetadataDialog(title: String, url: String, message: String?) {
-            val builder = MaterialAlertDialogBuilder(context)
-            builder.setTitle(title)
-            builder.setMessage(url + "\n\n" + getDnsDesc(message))
-            builder.setCancelable(true)
-            builder.setPositiveButton(context.getString(R.string.dns_info_positive)) { dialogInterface, _ ->
-                dialogInterface.dismiss()
+            IconButton(onClick = { showExplanationOnImageClick(endpoint) }) {
+                Icon(painter = painterResource(id = infoIcon), contentDescription = null)
             }
-            builder.setNeutralButton(context.getString(R.string.dns_info_neutral)) { _: DialogInterface, _: Int ->
-                clipboardCopy(context, url, context.getString(R.string.copy_clipboard_label))
+            Checkbox(
+                checked = endpoint.isSelected,
+                onCheckedChange = { updateConnection(endpoint) }
+            )
+        }
+    }
+
+    private fun updateConnection(endpoint: DoHEndpoint) {
+        Napier.d("$TAG update doh; ${endpoint.dohName}, ${endpoint.dohURL}, ${endpoint.isSelected}")
+        io {
+            endpoint.isSelected = true
+            appConfig.handleDoHChanges(endpoint)
+        }
+    }
+
+    private fun deleteEndpoint(id: Int) {
+        io {
+            Napier.i("$TAG delete endpoint; $id")
+            appConfig.deleteDohEndpoint(id)
+            uiCtx {
                 Utilities.showToastUiCentered(
                     context,
-                    context.getString(R.string.info_dialog_url_copy_toast_msg),
+                    context.getString(R.string.doh_custom_url_remove_success),
                     Toast.LENGTH_SHORT
                 )
             }
-            builder.create().show()
+        }
+    }
+
+    private fun showExplanationOnImageClick(endpoint: DoHEndpoint) {
+        if (endpoint.isDeletable()) showDeleteDnsDialog(endpoint.id)
+        else {
+            showDialogExplanation(
+                endpoint.dohName,
+                endpoint.dohURL,
+                endpoint.dohExplanation
+            )
+        }
+    }
+
+    private fun showDeleteDnsDialog(id: Int) {
+        val builder = MaterialAlertDialogBuilder(context)
+        builder.setTitle(R.string.doh_custom_url_remove_dialog_title)
+        builder.setMessage(R.string.doh_custom_url_remove_dialog_message)
+        builder.setCancelable(true)
+        builder.setPositiveButton(context.getString(R.string.lbl_delete)) { _, _ ->
+            deleteEndpoint(id)
+        }
+        builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ -> }
+        builder.create().show()
+    }
+
+    private fun showDialogExplanation(title: String, url: String, message: String?) {
+        val builder = MaterialAlertDialogBuilder(context)
+        builder.setTitle(title)
+        if (message == null) builder.setMessage(url)
+        else builder.setMessage(url + "\n\n" + dohDesc(message))
+        builder.setCancelable(true)
+        builder.setPositiveButton(context.getString(R.string.dns_info_positive)) {
+            dialogInterface,
+            _ ->
+            dialogInterface.dismiss()
         }
 
-        private fun getDnsDesc(message: String?): String {
-            if (message.isNullOrEmpty()) return ""
+        builder.setNeutralButton(context.getString(R.string.dns_info_neutral)) {
+            _: DialogInterface,
+            _: Int ->
+            clipboardCopy(context, url, context.getString(R.string.copy_clipboard_label))
+            Utilities.showToastUiCentered(
+                context,
+                context.getString(R.string.info_dialog_url_copy_toast_msg),
+                Toast.LENGTH_SHORT
+            )
+        }
+        builder.create().show()
+    }
 
-            return try {
-                if (message.contains("R.string.")) {
-                    val m = message.substringAfter("R.string.")
-                    val resId: Int =
-                        context.resources.getIdentifier(m, "string", context.packageName)
-                    context.getString(resId)
-                } else {
-                    message
-                }
-            } catch (_: Exception) {
-                ""
+    private fun dohDesc(message: String?): String {
+        if (message.isNullOrEmpty()) return ""
+
+        return try {
+            if (message.contains("R.string.")) {
+                val m = message.substringAfter("R.string.")
+                val resId: Int =
+                    context.resources.getIdentifier(m, "string", context.packageName)
+                context.getString(resId)
+            } else {
+                message
             }
+        } catch (_: Exception) {
+            ""
         }
+    }
 
-        private fun showDeleteDnsDialog(id: Int) {
-            val builder = MaterialAlertDialogBuilder(context)
-            builder.setTitle(R.string.doh_custom_url_remove_dialog_title)
-            builder.setMessage(R.string.doh_custom_url_remove_dialog_message)
-            builder.setCancelable(true)
-            builder.setPositiveButton(context.getString(R.string.lbl_delete)) { _, _ ->
-                deleteEndpoint(id)
-            }
+    private suspend fun uiCtx(f: suspend () -> Unit) {
+        withContext(Dispatchers.Main) { f() }
+    }
 
-            builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ ->
-                // no-op
-            }
-            builder.create().show()
-        }
-
-        private suspend fun uiCtx(f: suspend () -> Unit) {
-            withContext(Dispatchers.Main) { f() }
-        }
-
-        private fun ui(f: suspend () -> Unit): Job? {
-            return lifecycleOwner?.lifecycleScope?.launch { withContext(Dispatchers.Main) { f() } }
-        }
-
-        private fun io(f: suspend () -> Unit) {
-            lifecycleOwner?.lifecycleScope?.launch { withContext(Dispatchers.IO) { f() } }
-        }
+    private fun io(f: suspend () -> Unit) {
+        lifecycleOwner?.lifecycleScope?.launch(Dispatchers.IO) { f() }
     }
 }

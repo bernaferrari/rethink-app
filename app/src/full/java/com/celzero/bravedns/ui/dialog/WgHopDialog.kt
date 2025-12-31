@@ -22,11 +22,24 @@ import android.app.Dialog
 import android.os.Bundle
 import android.view.Window
 import android.view.WindowManager
-import android.view.animation.Animation
-import android.view.animation.RotateAnimation
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.WgHopAdapter
-import com.celzero.bravedns.databinding.DialogWgHopBinding
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.wireguard.Config
 import org.koin.core.component.KoinComponent
 
@@ -38,17 +51,9 @@ class WgHopDialog(
     private val selectedId: Int
 ) : Dialog(activity, themeID), KoinComponent {
 
-    private lateinit var b: DialogWgHopBinding
-    private lateinit var animation: Animation
     private lateinit var adapter: WgHopAdapter
 
     companion object {
-        private const val ANIMATION_DURATION = 750L
-        private const val ANIMATION_REPEAT_COUNT = -1
-        private const val ANIMATION_PIVOT_VALUE = 0.5f
-        private const val ANIMATION_START_DEGREE = 0.0f
-        private const val ANIMATION_END_DEGREE = 360.0f
-
         private const val TAG = "HopDlg"
     }
 
@@ -56,26 +61,15 @@ class WgHopDialog(
         super.onCreate(savedInstanceState)
 
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        b = DialogWgHopBinding.inflate(layoutInflater)
-        setContentView(b.root)
+        val composeView = ComposeView(context)
+        composeView.setContent {
+            RethinkTheme {
+                WgHopContent(onDismiss = { dismiss() })
+            }
+        }
+        setContentView(composeView)
         setCancelable(false)
-        addAnimation()
         init()
-        setupClickListeners()
-    }
-
-    private fun addAnimation() {
-        animation =
-            RotateAnimation(
-                ANIMATION_START_DEGREE,
-                ANIMATION_END_DEGREE,
-                Animation.RELATIVE_TO_SELF,
-                ANIMATION_PIVOT_VALUE,
-                Animation.RELATIVE_TO_SELF,
-                ANIMATION_PIVOT_VALUE
-            )
-        animation.repeatCount = ANIMATION_REPEAT_COUNT
-        animation.duration = ANIMATION_DURATION
     }
 
     private fun init() {
@@ -84,17 +78,38 @@ class WgHopDialog(
             WindowManager.LayoutParams.MATCH_PARENT
         )
         Logger.v(LOG_TAG_UI, "$TAG; init called")
-
-        val layoutManager = LinearLayoutManager(activity)
-        b.wgHopRecyclerView.layoutManager = layoutManager
         adapter = WgHopAdapter(activity, srcId, hopables, selectedId)
-        b.wgHopRecyclerView.adapter = adapter
     }
 
-    private fun setupClickListeners() {
-        b.wgHopDialogOkButton.setOnClickListener {
-            Logger.d(LOG_TAG_UI, "$TAG; dismiss hop dialog")
-            dismiss()
+    @Composable
+    private fun WgHopContent(onDismiss: () -> Unit) {
+        Column(
+            modifier = Modifier.fillMaxSize().padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = context.getString(R.string.hop_add_remove_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+            AndroidView(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                factory = { ctx ->
+                    RecyclerView(ctx).apply {
+                        layoutManager = LinearLayoutManager(ctx)
+                        adapter = this@WgHopDialog.adapter
+                    }
+                }
+            )
+            Button(
+                onClick = {
+                    Logger.d(LOG_TAG_UI, "$TAG; dismiss hop dialog")
+                    onDismiss()
+                },
+                modifier = Modifier.align(androidx.compose.ui.Alignment.End)
+            ) {
+                Text(text = context.getString(R.string.ada_noapp_dialog_positive))
+            }
         }
     }
 }

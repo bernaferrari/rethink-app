@@ -17,15 +17,32 @@ package com.celzero.bravedns.adapter
 
 import android.app.Activity
 import android.content.Context
-import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
-import com.celzero.bravedns.databinding.ListItemWgPeersBinding
 import com.celzero.bravedns.service.WireguardManager
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.dialog.WgAddPeerDialog
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
@@ -49,45 +66,117 @@ class WgPeersAdapter(
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WgPeersViewHolder {
-        val itemBinding =
-            ListItemWgPeersBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return WgPeersViewHolder(itemBinding)
+        val composeView = ComposeView(parent.context)
+        composeView.layoutParams =
+            RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        return WgPeersViewHolder(composeView)
     }
 
     override fun getItemCount(): Int {
         return peers.size
     }
 
-    inner class WgPeersViewHolder(private val b: ListItemWgPeersBinding) :
-        RecyclerView.ViewHolder(b.root) {
+    inner class WgPeersViewHolder(private val composeView: ComposeView) :
+        RecyclerView.ViewHolder(composeView) {
 
         fun update(wgPeer: Peer) {
-            if (wgPeer.getEndpoint().isPresent) {
-                b.endpointText.text = wgPeer.getEndpoint().get().toString()
-            } else {
-                b.endpointText.visibility = View.GONE
-                b.endpointLabel.visibility = View.GONE
+            composeView.setContent {
+                RethinkTheme {
+                    WgPeerRow(wgPeer)
+                }
             }
-            if (wgPeer.getAllowedIps().isNotEmpty()) {
-                b.allowedIpsText.text = wgPeer.getAllowedIps().joinToString { it.toString() }
-            } else {
-                b.allowedIpsText.visibility = View.GONE
-                b.allowedIpsLabel.visibility = View.GONE
-            }
-            if (wgPeer.persistentKeepalive.isPresent) {
-                b.persistentKeepaliveText.text =
-                    UIUtils.getDurationInHumanReadableFormat(
-                        context,
-                        wgPeer.persistentKeepalive.get()
-                    )
-            } else {
-                b.persistentKeepaliveText.visibility = View.GONE
-                b.persistentKeepaliveLabel.visibility = View.GONE
-            }
-            b.publicKeyText.text = wgPeer.getPublicKey().base64().tos()
+        }
+    }
 
-            b.peerEdit.setOnClickListener { openEditPeerDialog(wgPeer) }
-            b.peerDelete.setOnClickListener { showDeleteInterfaceDialog(wgPeer) }
+    @Composable
+    private fun WgPeerRow(wgPeer: Peer) {
+        val endpoint =
+            if (wgPeer.getEndpoint().isPresent) {
+                wgPeer.getEndpoint().get().toString()
+            } else {
+                null
+            }
+        val allowedIps =
+            if (wgPeer.getAllowedIps().isNotEmpty()) {
+                wgPeer.getAllowedIps().joinToString { it.toString() }
+            } else {
+                null
+            }
+        val keepAlive =
+            if (wgPeer.persistentKeepalive.isPresent) {
+                UIUtils.getDurationInHumanReadableFormat(
+                    context,
+                    wgPeer.persistentKeepalive.get()
+                )
+            } else {
+                null
+            }
+
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors()
+        ) {
+            Column(
+                modifier = Modifier.padding(start = 15.dp, end = 15.dp, top = 15.dp, bottom = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(id = R.string.lbl_peer),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.weight(1f))
+                    IconButton(onClick = { openEditPeerDialog(wgPeer) }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_edit_icon_grey),
+                            contentDescription = null
+                        )
+                    }
+                    IconButton(onClick = { showDeleteInterfaceDialog(wgPeer) }) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_delete),
+                            contentDescription = null
+                        )
+                    }
+                }
+
+                LabelValue(
+                    label = stringResource(id = R.string.lbl_public_key),
+                    value = wgPeer.getPublicKey().base64().tos().orEmpty()
+                )
+                if (!allowedIps.isNullOrEmpty()) {
+                    LabelValue(
+                        label = stringResource(id = R.string.lbl_allowed_ips),
+                        value = allowedIps
+                    )
+                }
+                if (!endpoint.isNullOrEmpty()) {
+                    LabelValue(
+                        label = stringResource(id = R.string.parse_error_inet_endpoint),
+                        value = endpoint
+                    )
+                }
+                if (!keepAlive.isNullOrEmpty()) {
+                    LabelValue(
+                        label = stringResource(id = R.string.lbl_persistent_keepalive),
+                        value = keepAlive
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun LabelValue(label: String, value: String) {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text(text = label, style = MaterialTheme.typography.bodyMedium)
+            Text(text = value, style = MaterialTheme.typography.bodySmall)
         }
     }
 
@@ -122,12 +211,8 @@ class WgPeersAdapter(
         builder.setTitle(delText)
         builder.setMessage(context.getString(R.string.config_delete_dialog_desc))
         builder.setCancelable(true)
-
         builder.setPositiveButton(delText) { _, _ -> deletePeer(wgPeer) }
-
-        builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ ->
-            // no-op
-        }
+        builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ -> }
         builder.create().show()
     }
 

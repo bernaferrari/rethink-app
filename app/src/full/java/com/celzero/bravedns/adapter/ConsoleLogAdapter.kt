@@ -15,21 +15,30 @@
  */
 package com.celzero.bravedns.adapter
 
-import Logger
-import Logger.LOG_TAG_UI
 import android.content.Context
-import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.database.ConsoleLog
-import com.celzero.bravedns.databinding.ListItemConsoleLogBinding
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.TIME_FORMAT_1
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
+import io.github.aakira.napier.Napier
 
 class ConsoleLogAdapter(private val context: Context) :
     PagingDataAdapter<ConsoleLog, ConsoleLogAdapter.ConsoleLogViewHolder>(DIFF_CALLBACK) {
@@ -48,75 +57,79 @@ class ConsoleLogAdapter(private val context: Context) :
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ConsoleLogViewHolder {
-        val itemBinding =
-            ListItemConsoleLogBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return ConsoleLogViewHolder(itemBinding)
+        val composeView = ComposeView(parent.context)
+        composeView.layoutParams =
+            RecyclerView.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            )
+        return ConsoleLogViewHolder(composeView)
     }
 
     override fun onBindViewHolder(holder: ConsoleLogViewHolder, position: Int) {
-        // Prevent IndexOutOfBoundsException
-        if (position < 0 || position >= itemCount) {
-            return
-        }
+        if (position < 0 || position >= itemCount) return
 
         try {
             val logInfo = getItem(position) ?: return
             holder.update(logInfo)
         } catch (e: IndexOutOfBoundsException) {
-            Logger.w(LOG_TAG_UI, "err invalid pos: $position, itemCount: $itemCount")
+            Napier.w("ConsoleLogAdapter err invalid pos: $position, itemCount: $itemCount")
         }
     }
 
-    inner class ConsoleLogViewHolder(private val b: ListItemConsoleLogBinding) :
-        RecyclerView.ViewHolder(b.root) {
+    inner class ConsoleLogViewHolder(private val composeView: ComposeView) :
+        RecyclerView.ViewHolder(composeView) {
 
         fun update(log: ConsoleLog) {
             try {
-                // SAFETY CHECK: Verify log data is valid
                 if (log.message.isEmpty()) return
-
-                // update the textview color with the first letter of the log level
-                val logLevel = log.message.firstOrNull() ?: 'V'
-                when (logLevel) {
-                    'V' ->
-                        b.logDetail.setTextColor(
-                            UIUtils.fetchColor(context, R.attr.primaryLightColorText)
-                        )
-
-                    'D' ->
-                        b.logDetail.setTextColor(
-                            UIUtils.fetchColor(context, R.attr.primaryLightColorText)
-                        )
-
-                    'I' ->
-                        b.logDetail.setTextColor(
-                            UIUtils.fetchColor(context, R.attr.defaultToggleBtnTxt)
-                        )
-
-                    'W' ->
-                        b.logDetail.setTextColor(
-                            UIUtils.fetchColor(context, R.attr.firewallWhiteListToggleBtnTxt)
-                        )
-
-                    'E' ->
-                        b.logDetail.setTextColor(
-                            UIUtils.fetchColor(context, R.attr.firewallBlockToggleBtnTxt)
-                        )
-
-                    else ->
-                        b.logDetail.setTextColor(
-                            UIUtils.fetchColor(context, R.attr.primaryLightColorText)
-                        )
-                }
-                b.logDetail.text = log.message
-                if (DEBUG) {
-                    b.logTimestamp.text = "${log.id}\n${Utilities.convertLongToTime(log.timestamp, TIME_FORMAT_1)}"
-                } else {
-                    b.logTimestamp.text = Utilities.convertLongToTime(log.timestamp, TIME_FORMAT_1)
+                composeView.setContent {
+                    RethinkTheme {
+                        ConsoleLogRow(log)
+                    }
                 }
             } catch (e: Exception) {
-                Logger.w("ConsoleLogAdapter", "Error updating view holder: ${e.message}")
+                Napier.w("ConsoleLogAdapter error updating view holder: ${e.message}")
             }
+        }
+    }
+
+    @Composable
+    private fun ConsoleLogRow(log: ConsoleLog) {
+        val logLevel = log.message.firstOrNull() ?: 'V'
+        val colorRes =
+            when (logLevel) {
+                'I' -> R.attr.defaultToggleBtnTxt
+                'W' -> R.attr.firewallWhiteListToggleBtnTxt
+                'E' -> R.attr.firewallBlockToggleBtnTxt
+                else -> R.attr.primaryLightColorText
+            }
+        val logColor = Color(UIUtils.fetchColor(context, colorRes))
+        val timestamp =
+            if (DEBUG) {
+                "${log.id}\n${Utilities.convertLongToTime(log.timestamp, TIME_FORMAT_1)}"
+            } else {
+                Utilities.convertLongToTime(log.timestamp, TIME_FORMAT_1)
+            }
+
+        Row(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 5.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Text(
+                text = timestamp,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color(UIUtils.fetchColor(context, R.attr.primaryLightColorText))
+            )
+            Text(
+                text = log.message,
+                style = MaterialTheme.typography.bodySmall,
+                color = logColor,
+                modifier = Modifier.weight(1f)
+            )
         }
     }
 }
