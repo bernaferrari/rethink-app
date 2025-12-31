@@ -16,39 +16,101 @@
 package com.celzero.bravedns.ui.activity
 
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.WindowManager
+import android.widget.ArrayAdapter
+import android.widget.TextView
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.painterResource
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.fragment.app.Fragment
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import by.kirich1409.viewbindingdelegate.viewBinding
+import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
-import com.celzero.bravedns.databinding.ActivityConfigureOtherDnsBinding
+import com.celzero.bravedns.adapter.DnsCryptEndpointAdapter
+import com.celzero.bravedns.adapter.DnsCryptRelayEndpointAdapter
+import com.celzero.bravedns.adapter.DnsProxyEndpointAdapter
+import com.celzero.bravedns.adapter.DoTEndpointAdapter
+import com.celzero.bravedns.adapter.DohEndpointAdapter
+import com.celzero.bravedns.adapter.ODoHEndpointAdapter
+import com.celzero.bravedns.data.AppConfig
+import com.celzero.bravedns.database.DoHEndpoint
+import com.celzero.bravedns.database.DoTEndpoint
+import com.celzero.bravedns.database.DnsCryptEndpoint
+import com.celzero.bravedns.database.DnsCryptRelayEndpoint
+import com.celzero.bravedns.database.DnsProxyEndpoint
+import com.celzero.bravedns.database.ODoHEndpoint
+import com.celzero.bravedns.databinding.DialogSetCustomDohBinding
+import com.celzero.bravedns.databinding.DialogSetCustomOdohBinding
+import com.celzero.bravedns.databinding.DialogSetDnsCryptBinding
+import com.celzero.bravedns.databinding.DialogSetDnsProxyBinding
+import com.celzero.bravedns.databinding.FragmentDnsCryptListBinding
+import com.celzero.bravedns.databinding.FragmentDnsProxyListBinding
+import com.celzero.bravedns.databinding.FragmentDohListBinding
+import com.celzero.bravedns.databinding.FragmentDotListBinding
+import com.celzero.bravedns.databinding.FragmentOdohListBinding
+import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.fragment.DnsCryptListFragment
-import com.celzero.bravedns.ui.fragment.DnsProxyListFragment
-import com.celzero.bravedns.ui.fragment.DoTListFragment
-import com.celzero.bravedns.ui.fragment.DohListFragment
-import com.celzero.bravedns.ui.fragment.ODoHListFragment
+import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
+import com.celzero.bravedns.ui.dialog.DnsCryptRelaysDialog
 import com.celzero.bravedns.util.Themes
+import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.isAtleastQ
+import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
-import com.google.android.material.tabs.TabLayoutMediator
+import com.celzero.bravedns.viewmodel.DoHEndpointViewModel
+import com.celzero.bravedns.viewmodel.DoTEndpointViewModel
+import com.celzero.bravedns.viewmodel.DnsCryptEndpointViewModel
+import com.celzero.bravedns.viewmodel.DnsCryptRelayEndpointViewModel
+import com.celzero.bravedns.viewmodel.DnsProxyEndpointViewModel
+import com.celzero.bravedns.viewmodel.ODoHEndpointViewModel
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import inet.ipaddr.IPAddressString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.net.MalformedURLException
+import java.net.URL
 
-class ConfigureOtherDnsActivity : AppCompatActivity(R.layout.activity_configure_other_dns) {
-    private val b by viewBinding(ActivityConfigureOtherDnsBinding::bind)
-
+class ConfigureOtherDnsActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
+    private val appConfig by inject<AppConfig>()
+
+    private val dohViewModel: DoHEndpointViewModel by viewModel()
+    private val dotViewModel: DoTEndpointViewModel by viewModel()
+    private val dnsProxyViewModel: DnsProxyEndpointViewModel by viewModel()
+    private val dnsCryptViewModel: DnsCryptEndpointViewModel by viewModel()
+    private val dnsCryptRelayViewModel: DnsCryptRelayEndpointViewModel by viewModel()
+    private val oDohViewModel: ODoHEndpointViewModel by viewModel()
 
     private var dnsType: Int = 0
 
     companion object {
         private const val DNS_TYPE = "dns_type"
 
-        fun getIntent(context: Context, dnsType: Int): android.content.Intent {
-            val intent = android.content.Intent(context, ConfigureOtherDnsActivity::class.java)
+        fun getIntent(context: Context, dnsType: Int): Intent {
+            val intent = Intent(context, ConfigureOtherDnsActivity::class.java)
             intent.putExtra(DNS_TYPE, dnsType)
             return intent
         }
@@ -62,10 +124,6 @@ class ConfigureOtherDnsActivity : AppCompatActivity(R.layout.activity_configure_
         ODOH(4);
 
         companion object {
-            fun getCount(): Int {
-                return entries.size
-            }
-
             fun getDnsType(index: Int): DnsScreen {
                 return when (index) {
                     DOH.index -> DOH
@@ -79,6 +137,12 @@ class ConfigureOtherDnsActivity : AppCompatActivity(R.layout.activity_configure_
         }
     }
 
+    private fun Context.isDarkThemeOn(): Boolean {
+        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         theme.applyStyle(Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme), true)
         super.onCreate(savedInstanceState)
@@ -90,38 +154,693 @@ class ConfigureOtherDnsActivity : AppCompatActivity(R.layout.activity_configure_
             controller.isAppearanceLightNavigationBars = false
             window.isNavigationBarContrastEnforced = false
         }
+
         dnsType = intent.getIntExtra(DNS_TYPE, dnsType)
-        init()
+
+        setContent {
+            RethinkTheme {
+                Scaffold(
+                    containerColor = MaterialTheme.colorScheme.background,
+                    topBar = {
+                        TopAppBar(
+                            title = { Text(text = getDnsTypeName(dnsType)) },
+                            navigationIcon = {
+                                    IconButton(onClick = { finish() }) {
+                                        Icon(
+                                        painter = painterResource(id = R.drawable.ic_arrow_back_24),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        )
+                    }
+                ) { padding ->
+                    OtherDnsListContent(
+                        dnsType = DnsScreen.getDnsType(dnsType),
+                        paddingValues = padding
+                    )
+                }
+            }
+        }
     }
 
-    private fun Context.isDarkThemeOn(): Boolean {
-        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-            Configuration.UI_MODE_NIGHT_YES
+    @Composable
+    private fun OtherDnsListContent(dnsType: DnsScreen, paddingValues: PaddingValues) {
+        val lifecycleOwner = LocalLifecycleOwner.current
+        androidx.compose.ui.viewinterop.AndroidView(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            factory = { context ->
+                when (dnsType) {
+                    DnsScreen.DOH -> createDohListView(context, lifecycleOwner)
+                    DnsScreen.DNS_PROXY -> createDnsProxyListView(context, lifecycleOwner)
+                    DnsScreen.DNS_CRYPT -> createDnsCryptListView(context, lifecycleOwner)
+                    DnsScreen.DOT -> createDotListView(context, lifecycleOwner)
+                    DnsScreen.ODOH -> createOdohListView(context, lifecycleOwner)
+                }
+            }
+        )
     }
 
-    private fun init() {
+    private fun createDohListView(context: Context, lifecycleOwner: LifecycleOwner): View {
+        val binding = FragmentDohListBinding.inflate(LayoutInflater.from(context))
+        val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        binding.recyclerDohConnections.layoutManager = layoutManager
 
-        b.dnsDetailActViewpager.adapter =
-            object : FragmentStateAdapter(this) {
-                override fun createFragment(position: Int): Fragment {
-                    return when (DnsScreen.getDnsType(dnsType)) {
-                        DnsScreen.DNS_CRYPT -> DnsCryptListFragment.newInstance()
-                        DnsScreen.DNS_PROXY -> DnsProxyListFragment.newInstance()
-                        DnsScreen.DOH -> DohListFragment.newInstance()
-                        DnsScreen.DOT -> DoTListFragment.newInstance()
-                        DnsScreen.ODOH -> ODoHListFragment.newInstance()
+        val adapter = DohEndpointAdapter(context, appConfig)
+        dohViewModel.dohEndpointList.observe(lifecycleOwner) {
+            adapter.submitData(lifecycleOwner.lifecycle, it)
+        }
+        binding.recyclerDohConnections.adapter = adapter
+
+        binding.dohFabAddServerIcon.bringToFront()
+        binding.dohFabAddServerIcon.setOnClickListener { showAddCustomDohDialog() }
+
+        return binding.root
+    }
+
+    private fun showAddCustomDohDialog() {
+        val dialogBinding = DialogSetCustomDohBinding.inflate(layoutInflater)
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+        val lp = WindowManager.LayoutParams()
+        val dialog = builder.create()
+        lp.copyFrom(dialog.window?.attributes)
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
+
+        dialog.setCancelable(true)
+        dialog.window?.attributes = lp
+
+        val heading = dialogBinding.dialogCustomUrlTop
+        val applyURLBtn = dialogBinding.dialogCustomUrlOkBtn
+        val cancelURLBtn = dialogBinding.dialogCustomUrlCancelBtn
+        val customName = dialogBinding.dialogCustomNameEditText
+        val customURL = dialogBinding.dialogCustomUrlEditText
+        val progressBar = dialogBinding.dialogCustomUrlLoading
+        val errorTxt = dialogBinding.dialogCustomUrlFailureText
+        val checkBox = dialogBinding.dialogSecureCheckbox
+
+        heading.text = getString(R.string.cd_doh_dialog_heading)
+
+        io {
+            val nextIndex = appConfig.getDohCount().plus(1)
+            uiCtx {
+                customName.setText(
+                    getString(R.string.cd_custom_doh_url_name, nextIndex.toString()),
+                    TextView.BufferType.EDITABLE
+                )
+            }
+        }
+
+        customURL.setText("")
+        customName.setText(
+            getString(R.string.cd_custom_doh_url_name_default),
+            TextView.BufferType.EDITABLE
+        )
+        applyURLBtn.setOnClickListener {
+            val url = customURL.text.toString()
+            val name = customName.text.toString()
+            val isSecure = !checkBox.isChecked
+
+            if (checkUrl(url)) {
+                insertDoHEndpoint(name, url, isSecure)
+                dialog.dismiss()
+            } else {
+                errorTxt.text = resources.getString(R.string.custom_url_error_invalid_url)
+                errorTxt.visibility = View.VISIBLE
+                cancelURLBtn.visibility = View.VISIBLE
+                applyURLBtn.visibility = View.VISIBLE
+                progressBar.visibility = View.INVISIBLE
+            }
+        }
+
+        cancelURLBtn.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    private fun insertDoHEndpoint(name: String, url: String, isSecure: Boolean) {
+        io {
+            var dohName: String = name
+            if (name.isBlank()) {
+                dohName = url
+            }
+            val doHEndpoint =
+                DoHEndpoint(
+                    id = 0,
+                    dohName,
+                    url,
+                    dohExplanation = "",
+                    isSelected = false,
+                    isCustom = true,
+                    isSecure = isSecure,
+                    modifiedDataTime = 0,
+                    latency = 0
+                )
+            appConfig.insertDohEndpoint(doHEndpoint)
+        }
+    }
+
+    private fun checkUrl(url: String): Boolean {
+        return try {
+            val parsed = URL(url)
+            parsed.protocol == "https" &&
+                parsed.host.isNotEmpty() &&
+                parsed.path.isNotEmpty() &&
+                parsed.query == null &&
+                parsed.ref == null
+        } catch (e: MalformedURLException) {
+            false
+        }
+    }
+
+    private fun createDotListView(context: Context, lifecycleOwner: LifecycleOwner): View {
+        val binding = FragmentDotListBinding.inflate(LayoutInflater.from(context))
+        val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        binding.recyclerDot.layoutManager = layoutManager
+
+        val adapter = DoTEndpointAdapter(context, appConfig)
+        dotViewModel.dohEndpointList.observe(lifecycleOwner) {
+            adapter.submitData(lifecycleOwner.lifecycle, it)
+        }
+        binding.recyclerDot.adapter = adapter
+
+        binding.dotFabAdd.setOnClickListener { showAddDotDialog() }
+        return binding.root
+    }
+
+    private fun showAddDotDialog() {
+        val dialogBinding = DialogSetCustomDohBinding.inflate(layoutInflater)
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+        val lp = WindowManager.LayoutParams()
+        val dialog = builder.create()
+        lp.copyFrom(dialog.window?.attributes)
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
+
+        dialog.setCancelable(true)
+        dialog.window?.attributes = lp
+
+        val heading = dialogBinding.dialogCustomUrlTop
+        val applyURLBtn = dialogBinding.dialogCustomUrlOkBtn
+        val cancelURLBtn = dialogBinding.dialogCustomUrlCancelBtn
+        val customName = dialogBinding.dialogCustomNameEditText
+        val customURL = dialogBinding.dialogCustomUrlEditText
+        val checkBox = dialogBinding.dialogSecureCheckbox
+
+        heading.text =
+            getString(
+                R.string.two_argument_space,
+                getString(R.string.lbl_add).replaceFirstChar(Char::titlecase),
+                getString(R.string.lbl_dot)
+            )
+
+        io {
+            val nextIndex = appConfig.getDoTCount().plus(1)
+            uiCtx {
+                customName.setText(
+                    getString(R.string.lbl_dot) + nextIndex.toString(),
+                    TextView.BufferType.EDITABLE
+                )
+            }
+        }
+
+        customURL.setText("")
+        customName.setText(getString(R.string.lbl_dot), TextView.BufferType.EDITABLE)
+        applyURLBtn.setOnClickListener {
+            val url = customURL.text.toString()
+            val name = customName.text.toString()
+            val isSecure = !checkBox.isChecked
+
+            insertDotEndpoint(name, url, isSecure)
+            dialog.dismiss()
+        }
+
+        cancelURLBtn.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    private fun insertDotEndpoint(name: String, url: String, isSecure: Boolean) {
+        io {
+            var dotName: String = name
+            if (name.isBlank()) {
+                dotName = url
+            }
+            val endpoint =
+                DoTEndpoint(
+                    id = 0,
+                    dotName,
+                    url,
+                    desc = "",
+                    isSelected = false,
+                    isCustom = true,
+                    isSecure = isSecure,
+                    modifiedDataTime = 0,
+                    latency = 0
+                )
+            appConfig.insertDoTEndpoint(endpoint)
+        }
+    }
+
+    private fun createDnsProxyListView(context: Context, lifecycleOwner: LifecycleOwner): View {
+        val binding = FragmentDnsProxyListBinding.inflate(LayoutInflater.from(context))
+        val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        binding.recyclerDnsProxyConnections.layoutManager = layoutManager
+
+        val adapter = DnsProxyEndpointAdapter(context, lifecycleOwner, appConfig)
+        dnsProxyViewModel.dnsProxyEndpointList.observe(lifecycleOwner) {
+            adapter.submitData(lifecycleOwner.lifecycle, it)
+        }
+        binding.recyclerDnsProxyConnections.adapter = adapter
+
+        binding.dohFabAddServerIcon.bringToFront()
+        binding.dohFabAddServerIcon.setOnClickListener {
+            io {
+                val appNames: MutableList<String> = ArrayList()
+                appNames.add(getString(R.string.settings_app_list_default_app))
+                appNames.addAll(FirewallManager.getAllAppNamesSortedByVpnPermission(this))
+                val nextIndex = appConfig.getDnsProxyCount().plus(1)
+                uiCtx { showAddDnsProxyDialog(appNames, nextIndex) }
+            }
+        }
+
+        return binding.root
+    }
+
+    private fun showAddDnsProxyDialog(appNames: List<String>, nextIndex: Int) {
+        val dialogBinding = DialogSetDnsProxyBinding.inflate(layoutInflater)
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+        val lp = WindowManager.LayoutParams()
+        val dialog = builder.create()
+        lp.copyFrom(dialog.window?.attributes)
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
+
+        dialog.setCancelable(true)
+        dialog.window?.attributes = lp
+
+        val applyURLBtn = dialogBinding.dialogDnsProxyApplyBtn
+        val cancelURLBtn = dialogBinding.dialogDnsProxyCancelBtn
+        val lockdownDesc = dialogBinding.dialogDnsProxyLockdownDesc
+        val proxyNameEditText = dialogBinding.dialogDnsProxyEditName
+        val appNameSpinner = dialogBinding.dialogProxySpinnerAppname
+        val ipAddressEditText = dialogBinding.dialogDnsProxyEditIp
+        val portEditText = dialogBinding.dialogDnsProxyEditPort
+        val errorTxt = dialogBinding.dialogDnsProxyErrorText
+        val excludeAppCheckBox = dialogBinding.dialogDnsProxyExcludeAppsCheck
+
+        excludeAppCheckBox.isChecked = !persistentState.excludeAppsInProxy
+        excludeAppCheckBox.setOnCheckedChangeListener { _, isChecked ->
+            persistentState.excludeAppsInProxy = !isChecked
+        }
+
+        lockdownDesc.visibility = if (VpnController.isVpnLockdown()) View.VISIBLE else View.GONE
+
+        val appNamesAdapter =
+            ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, appNames)
+        appNameSpinner.adapter = appNamesAdapter
+
+        excludeAppCheckBox.isEnabled = !VpnController.isVpnLockdown()
+        if (VpnController.isVpnLockdown()) {
+            excludeAppCheckBox.alpha = 0.5f
+        }
+        proxyNameEditText.setText(
+            getString(R.string.cd_custom_dns_proxy_name, nextIndex.toString()),
+            TextView.BufferType.EDITABLE
+        )
+        ipAddressEditText.setText(
+            getString(R.string.cd_custom_dns_proxy_default_ip),
+            TextView.BufferType.EDITABLE
+        )
+        portEditText.setText("")
+
+        lockdownDesc.setOnClickListener {
+            dialog.dismiss()
+            UIUtils.openVpnProfile(this)
+        }
+
+        applyURLBtn.setOnClickListener {
+            var port = 0
+            var isPortValid: Boolean
+            val name = proxyNameEditText.text.toString()
+            val mode = getString(R.string.cd_dns_proxy_mode_external)
+            val ipInput = ipAddressEditText.text.toString()
+
+            val appName = appNameSpinner.selectedItem.toString()
+
+            val ipAddresses = ipInput.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+            if (ipAddresses.isEmpty()) {
+                errorTxt.text = getString(R.string.cd_dns_proxy_error_text_1)
+                return@setOnClickListener
+            }
+
+            val invalidIps = mutableListOf<String>()
+            val validIps = mutableListOf<String>()
+            for (ip in ipAddresses) {
+                if (IPAddressString(ip).isIPAddress) {
+                    validIps.add(ip)
+                } else {
+                    invalidIps.add(ip)
+                }
+            }
+
+            if (invalidIps.isNotEmpty()) {
+                errorTxt.text =
+                    getString(R.string.cd_dns_proxy_error_text_1) +
+                        ": ${invalidIps.joinToString(", ")}"
+                return@setOnClickListener
+            }
+
+            try {
+                port = portEditText.text.toString().toInt()
+                isPortValid = true
+                for (ip in validIps) {
+                    if (Utilities.isLanIpv4(ip)) {
+                        if (!Utilities.isValidLocalPort(port)) {
+                            isPortValid = false
+                            break
+                        }
                     }
                 }
 
-                override fun getItemCount(): Int {
-                    return 1
+                if (!isPortValid) {
+                    errorTxt.text = getString(R.string.cd_dns_proxy_error_text_2)
                 }
+            } catch (e: NumberFormatException) {
+                errorTxt.text = getString(R.string.cd_dns_proxy_error_text_3)
+                isPortValid = false
             }
 
-        TabLayoutMediator(b.dnsDetailActTabLayout, b.dnsDetailActViewpager) { tab, _ ->
-                tab.text = getDnsTypeName(dnsType)
+            if (isPortValid && validIps.isNotEmpty()) {
+                val ipString = validIps.joinToString(",")
+                io {
+                    insertDNSProxyEndpointDB(mode, name, appName, ipString, port)
+                }
+                persistentState.excludeAppsInProxy = !excludeAppCheckBox.isChecked
+                dialog.dismiss()
             }
-            .attach()
+        }
+
+        cancelURLBtn.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    private suspend fun insertDNSProxyEndpointDB(
+        mode: String,
+        name: String,
+        appName: String?,
+        ip: String,
+        port: Int
+    ) {
+        if (appName == null) return
+
+        io {
+            val packageName =
+                if (appName == getString(R.string.settings_app_list_default_app)) {
+                    ""
+                } else {
+                    FirewallManager.getPackageNameByAppName(appName) ?: ""
+                }
+            var proxyName = name
+            if (proxyName.isBlank()) {
+                proxyName =
+                    if (mode == getString(R.string.cd_dns_proxy_mode_internal)) {
+                        appName
+                    } else ip
+            }
+            val endpoint =
+                DnsProxyEndpoint(
+                    id = 0,
+                    proxyName,
+                    mode,
+                    packageName,
+                    ip,
+                    port,
+                    isSelected = false,
+                    isCustom = true,
+                    modifiedDataTime = 0L,
+                    latency = 0
+                )
+            appConfig.insertDnsproxyEndpoint(endpoint)
+        }
+    }
+
+    private fun createDnsCryptListView(context: Context, lifecycleOwner: LifecycleOwner): View {
+        val binding = FragmentDnsCryptListBinding.inflate(LayoutInflater.from(context))
+        val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        binding.recyclerDnsCryptConnections.layoutManager = layoutManager
+
+        val adapter = DnsCryptEndpointAdapter(context, appConfig)
+        dnsCryptViewModel.dnsCryptEndpointList.observe(lifecycleOwner) {
+            adapter.submitData(lifecycleOwner.lifecycle, it)
+        }
+        binding.recyclerDnsCryptConnections.adapter = adapter
+
+        binding.addRelayBtn.setOnClickListener { openDnsCryptRelaysDialog(lifecycleOwner) }
+        binding.dohFabAddServerIcon.bringToFront()
+        binding.dohFabAddServerIcon.setOnClickListener { showAddDnsCryptDialog() }
+
+        return binding.root
+    }
+
+    private fun openDnsCryptRelaysDialog(lifecycleOwner: LifecycleOwner) {
+        val relayAdapter = DnsCryptRelayEndpointAdapter(this, lifecycleOwner, appConfig)
+        dnsCryptRelayViewModel.dnsCryptRelayEndpointList.observe(lifecycleOwner) {
+            relayAdapter.submitData(lifecycleOwner.lifecycle, it)
+        }
+
+        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
+        if (Themes.isFrostTheme(themeId)) {
+            themeId = R.style.App_Dialog_NoDim
+        }
+        val customDialog = DnsCryptRelaysDialog(this, relayAdapter, themeId)
+        customDialog.show()
+    }
+
+    private fun showAddDnsCryptDialog() {
+        val dialogBinding = DialogSetDnsCryptBinding.inflate(layoutInflater)
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+
+        val lp = WindowManager.LayoutParams()
+        val dialog = builder.create()
+        dialog.show()
+        lp.copyFrom(dialog.window?.attributes)
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
+
+        dialog.setCancelable(true)
+        dialog.window?.attributes = lp
+
+        val radioServer = dialogBinding.dialogDnsCryptRadioServer
+        val radioRelay = dialogBinding.dialogDnsCryptRadioRelay
+        val applyURLBtn = dialogBinding.dialogDnsCryptOkBtn
+        val cancelURLBtn = dialogBinding.dialogDnsCryptCancelBtn
+        val cryptNameEditText = dialogBinding.dialogDnsCryptName
+        val cryptURLEditText = dialogBinding.dialogDnsCryptUrl
+        val cryptDescEditText = dialogBinding.dialogDnsCryptDesc
+        val errorText = dialogBinding.dialogDnsCryptErrorTxt
+
+        radioServer.isChecked = true
+        var dnscryptNextIndex = 0
+        var relayNextIndex = 0
+
+        io {
+            dnscryptNextIndex = appConfig.getDnscryptCount().plus(1)
+            relayNextIndex = appConfig.getDnscryptRelayCount().plus(1)
+            uiCtx {
+                cryptNameEditText.setText(
+                    getString(R.string.cd_dns_crypt_name, dnscryptNextIndex.toString()),
+                    TextView.BufferType.EDITABLE
+                )
+            }
+        }
+
+        cryptNameEditText.setText(
+            getString(R.string.cd_dns_crypt_name_default),
+            TextView.BufferType.EDITABLE
+        )
+
+        radioServer.setOnCheckedChangeListener { _, isChecked ->
+            if (!isChecked) return@setOnCheckedChangeListener
+            cryptNameEditText.setText(
+                getString(R.string.cd_dns_crypt_name, dnscryptNextIndex.toString()),
+                TextView.BufferType.EDITABLE
+            )
+        }
+
+        radioRelay.setOnCheckedChangeListener { _, isChecked ->
+            if (!isChecked) return@setOnCheckedChangeListener
+            cryptNameEditText.setText(
+                getString(R.string.cd_dns_crypt_relay_name, relayNextIndex.toString()),
+                TextView.BufferType.EDITABLE
+            )
+        }
+
+        applyURLBtn.setOnClickListener {
+            val name = cryptNameEditText.text.toString()
+            val url = cryptURLEditText.text.toString()
+            val desc = cryptDescEditText.text.toString()
+
+            if (name.isBlank() || url.isBlank()) {
+                errorText.visibility = View.VISIBLE
+                errorText.text = getString(R.string.custom_url_error_invalid_url)
+                return@setOnClickListener
+            }
+
+            if (radioServer.isChecked) {
+                insertDnsCrypt(name, url, desc)
+            } else {
+                insertDnsCryptRelay(name, url, desc)
+            }
+            dialog.dismiss()
+        }
+
+        cancelURLBtn.setOnClickListener { dialog.dismiss() }
+    }
+
+    private fun insertDnsCrypt(name: String, url: String, desc: String) {
+        io {
+            var dnscryptName: String = name
+            if (name.isBlank()) {
+                dnscryptName = url
+            }
+            val endpoint =
+                DnsCryptEndpoint(
+                    id = 0,
+                    dnscryptName,
+                    url,
+                    desc,
+                    isSelected = false,
+                    isCustom = true,
+                    modifiedDataTime = 0,
+                    latency = 0
+                )
+            appConfig.insertDnscryptEndpoint(endpoint)
+        }
+    }
+
+    private fun insertDnsCryptRelay(name: String, url: String, desc: String) {
+        io {
+            var relayName: String = name
+            if (name.isBlank()) {
+                relayName = url
+            }
+            val endpoint =
+                DnsCryptRelayEndpoint(
+                    id = 0,
+                    relayName,
+                    url,
+                    desc,
+                    isSelected = false,
+                    isCustom = true,
+                    modifiedDataTime = 0,
+                    latency = 0
+                )
+            appConfig.insertDnscryptRelayEndpoint(endpoint)
+        }
+    }
+
+    private fun createOdohListView(context: Context, lifecycleOwner: LifecycleOwner): View {
+        val binding = FragmentOdohListBinding.inflate(LayoutInflater.from(context))
+        val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
+        binding.recyclerOdoh.layoutManager = layoutManager
+
+        val adapter = ODoHEndpointAdapter(context, appConfig)
+        oDohViewModel.dohEndpointList.observe(lifecycleOwner) {
+            adapter.submitData(lifecycleOwner.lifecycle, it)
+        }
+        binding.recyclerOdoh.adapter = adapter
+
+        binding.odohFabAdd.bringToFront()
+        binding.odohFabAdd.setOnClickListener { showAddOdohDialog() }
+
+        return binding.root
+    }
+
+    private fun showAddOdohDialog() {
+        val dialogBinding = DialogSetCustomOdohBinding.inflate(layoutInflater)
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+        val lp = WindowManager.LayoutParams()
+        val dialog = builder.create()
+        dialog.show()
+        lp.copyFrom(dialog.window?.attributes)
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
+
+        dialog.setCancelable(true)
+        dialog.window?.attributes = lp
+
+        val heading = dialogBinding.dialogCustomUrlTop
+        val applyURLBtn = dialogBinding.dialogCustomUrlOkBtn
+        val cancelURLBtn = dialogBinding.dialogCustomUrlCancelBtn
+        val customName = dialogBinding.dialogCustomNameEditText
+        val customProxy = dialogBinding.dialogCustomProxyEditText
+        val customResolver = dialogBinding.dialogCustomResolverEditText
+        val errorTxt = dialogBinding.dialogCustomUrlFailureText
+        val hintInputLayout = dialogBinding.textInputLayout1
+
+        val title =
+            getString(
+                R.string.two_argument_space,
+                getString(R.string.lbl_add).replaceFirstChar(Char::uppercase),
+                getString(R.string.lbl_odoh)
+            )
+        heading.text = title
+
+        io {
+            val nextIndex = appConfig.getODoHCount().plus(1)
+            uiCtx {
+                customName.setText(
+                    getString(R.string.lbl_odoh) + nextIndex.toString(),
+                    TextView.BufferType.EDITABLE
+                )
+            }
+        }
+
+        hintInputLayout.hint =
+            getString(R.string.settings_proxy_header).replaceFirstChar(Char::uppercase) +
+                getString(R.string.lbl_optional)
+
+        customName.setText(getString(R.string.lbl_odoh), TextView.BufferType.EDITABLE)
+        applyURLBtn.setOnClickListener {
+            val proxy = customProxy.text.toString()
+            val resolver = customResolver.text.toString()
+            val name = customName.text.toString()
+
+            if (checkUrl(resolver)) {
+                insertOdoh(name, proxy, resolver)
+                dialog.dismiss()
+            } else {
+                errorTxt.text = resources.getString(R.string.custom_url_error_invalid_url)
+                errorTxt.visibility = View.VISIBLE
+            }
+        }
+
+        cancelURLBtn.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    private fun insertOdoh(name: String, proxy: String, resolver: String) {
+        io {
+            var odohName: String = name
+            if (name.isBlank()) {
+                odohName = resolver
+            }
+            val endpoint =
+                ODoHEndpoint(
+                    id = 0,
+                    odohName,
+                    proxy,
+                    resolver,
+                    proxyIps = "",
+                    desc = "",
+                    isSelected = false,
+                    isCustom = true,
+                    modifiedDataTime = 0,
+                    latency = 0
+                )
+            appConfig.insertODoHEndpoint(endpoint)
+        }
     }
 
     private fun getDnsTypeName(type: Int): String {
@@ -132,5 +851,13 @@ class ConfigureOtherDnsActivity : AppCompatActivity(R.layout.activity_configure_
             DnsScreen.DOT -> getString(R.string.lbl_dot)
             DnsScreen.ODOH -> getString(R.string.lbl_odoh)
         }
+    }
+
+    private fun io(f: suspend () -> Unit) {
+        lifecycleScope.launch(Dispatchers.IO) { f() }
+    }
+
+    private suspend fun uiCtx(f: suspend () -> Unit) {
+        withContext(Dispatchers.Main) { f() }
     }
 }
