@@ -64,7 +64,7 @@ import com.celzero.bravedns.service.RethinkBlocklistManager.RethinkBlocklistType
 import com.celzero.bravedns.service.RethinkBlocklistManager.getStamp
 import com.celzero.bravedns.service.RethinkBlocklistManager.getTagsFromStamp
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.bottomsheet.RethinkPlusFilterBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.RethinkPlusFilterDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistFilterHost
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
@@ -837,8 +837,8 @@ class ConfigureRethinkBasicActivity : AppCompatActivity(), RethinkBlocklistFilte
 
     private fun openFilterBottomSheet() {
         io {
-            val bottomSheetFragment = RethinkPlusFilterBottomSheet.newInstance(this, getAllList())
-            uiCtx { bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag) }
+            val dialog = RethinkPlusFilterDialog(this@ConfigureRethinkBasicActivity, this@ConfigureRethinkBasicActivity, getAllList(), persistentState)
+            uiCtx { dialog.show() }
         }
     }
 
