@@ -42,7 +42,6 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.activity.ConfigureRethinkBasicActivity
-import com.celzero.bravedns.ui.fragment.DnsSettingsFragment
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.celzero.bravedns.util.Constants.Companion.LOCAL_BLOCKLIST_DOWNLOAD_FOLDER_NAME
@@ -89,7 +88,7 @@ class LocalBlocklistsBottomSheet : BottomSheetDialogFragment() {
         fun onBtmSheetDismiss()
     }
 
-    fun setDismissListener(listener: DnsSettingsFragment) {
+    fun setDismissListener(listener: OnBottomSheetDialogFragmentDismiss) {
         dismissListener = listener
     }
 

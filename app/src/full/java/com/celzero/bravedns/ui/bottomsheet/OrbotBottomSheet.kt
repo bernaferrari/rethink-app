@@ -591,7 +591,7 @@ class OrbotBottomSheet : BottomSheetDialogFragment() {
         val intent = Intent(requireContext(), DnsDetailActivity::class.java)
         intent.putExtra(
             Constants.VIEW_PAGER_SCREEN_TO_LOAD,
-            DnsDetailActivity.Tabs.CONFIGURE.screen
+            0
         )
         startActivity(intent)
     }

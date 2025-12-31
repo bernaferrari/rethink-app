@@ -15,41 +15,58 @@
  */
 package com.celzero.bravedns.ui.activity
 
+import Logger
+import Logger.LOG_TAG_DNS
 import android.content.Context
+import android.content.DialogInterface
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
+import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.fragment.app.Fragment
-import androidx.viewpager2.adapter.FragmentStateAdapter
-import by.kirich1409.viewbindingdelegate.viewBinding
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewModelScope
 import com.celzero.bravedns.R
-import com.celzero.bravedns.databinding.ActivityDnsDetailBinding
+import com.celzero.bravedns.data.AppConfig.Companion.DOH_INDEX
+import com.celzero.bravedns.data.AppConfig.Companion.DOT_INDEX
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.fragment.DnsSettingsFragment
-import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
+import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.bottomsheet.DnsRecordTypesBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.LocalBlocklistsBottomSheet
+import com.celzero.bravedns.ui.compose.dns.DnsSettingsScreen
+import com.celzero.bravedns.ui.compose.dns.DnsSettingsViewModel
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
+import com.celzero.bravedns.ui.activity.ConfigureRethinkBasicActivity
+import com.celzero.bravedns.ui.activity.DnsListActivity
+import com.celzero.bravedns.util.UIUtils
+import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
+import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
-import com.google.android.material.tabs.TabLayoutMediator
+import com.celzero.firestack.backend.Backend
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class DnsDetailActivity : AppCompatActivity(R.layout.activity_dns_detail) {
-    private val b by viewBinding(ActivityDnsDetailBinding::bind)
+class DnsDetailActivity : AppCompatActivity(),
+    LocalBlocklistsBottomSheet.OnBottomSheetDialogFragmentDismiss {
 
     private val persistentState by inject<PersistentState>()
+    private val viewModel: DnsSettingsViewModel by viewModel()
 
-    enum class Tabs(val screen: Int) {
-        CONFIGURE(0);
-
-        companion object {
-            fun getCount(): Int {
-                return entries.toTypedArray().count()
-            }
-        }
+    private fun Context.isDarkThemeOn(): Boolean {
+        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        theme.applyStyle(getCurrentTheme(isDarkThemeOn(), persistentState.theme), true)
+        theme.applyStyle(com.celzero.bravedns.util.Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme), true)
         super.onCreate(savedInstanceState)
 
         handleFrostEffectIfNeeded(persistentState.theme)
@@ -60,37 +77,153 @@ class DnsDetailActivity : AppCompatActivity(R.layout.activity_dns_detail) {
             window.isNavigationBarContrastEnforced = false
         }
 
-        init()
+        setContent {
+            RethinkTheme {
+                val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+                DnsSettingsScreen(
+                    uiState = uiState,
+                    onRefreshClick = { viewModel.refreshDns() },
+                    onSystemDnsClick = { viewModel.enableSystemDns() },
+                    onSystemDnsInfoClick = {
+                        viewModel.viewModelScope.launch(Dispatchers.IO) {
+                            val sysDns = VpnController.getSystemDns()
+                            withContext(Dispatchers.Main) {
+                                showSystemDnsDialog(sysDns)
+                            }
+                        }
+                    },
+                    onCustomDnsClick = { showCustomDns() },
+                    onRethinkPlusDnsClick = { invokeRethinkActivity(ConfigureRethinkBasicActivity.FragmentLoader.DB_LIST) },
+                    onSmartDnsClick = { viewModel.enableSmartDns() },
+                    onSmartDnsInfoClick = { showSmartDnsInfoDialog() },
+                    onLocalBlocklistClick = { openLocalBlocklist() },
+                    onCustomDownloaderChange = { viewModel.setUseCustomDownloadManager(it) },
+                    onPeriodicUpdateChange = { viewModel.setPeriodicallyCheckBlocklistUpdate(it) },
+                    onDnsAlgChange = { viewModel.setDnsAlgEnabled(it) },
+                    onSplitDnsChange = { viewModel.setSplitDns(it) },
+                    onBypassDnsBlockChange = { viewModel.setBypassBlockInDns(it) },
+                    onAllowedRecordTypesClick = { showDnsRecordTypesBottomSheet() },
+                    onFavIconChange = { viewModel.setFavIconEnabled(it) },
+                    onDnsCacheChange = { viewModel.setEnableDnsCache(it) },
+                    onProxyDnsChange = { viewModel.setProxyDns(it) },
+                    onUndelegatedDomainsChange = { viewModel.setUseSystemDnsForUndelegatedDomains(it) },
+                    onFallbackChange = { viewModel.setUseFallbackDnsToBypass(it) },
+                    onPreventLeaksChange = { viewModel.setPreventDnsLeaksEnabled(it) }
+                )
+            }
+        }
     }
 
-    private fun init() {
-
-        b.dnsDetailActViewpager.adapter =
-            object : FragmentStateAdapter(this) {
-                override fun createFragment(position: Int): Fragment {
-                    return when (position) {
-                        Tabs.CONFIGURE.screen -> DnsSettingsFragment.newInstance()
-                        else -> DnsSettingsFragment.newInstance()
-                    }
-                }
-
-                override fun getItemCount(): Int {
-                    return Tabs.getCount()
-                }
-            }
-
-        TabLayoutMediator(b.dnsDetailActTabLayout, b.dnsDetailActViewpager) { tab, position ->
-                tab.text =
-                    when (position) {
-                        Tabs.CONFIGURE.screen -> getString(R.string.dns_act_configure_tab)
-                        else -> getString(R.string.dns_act_configure_tab)
-                    }
-            }
-            .attach()
+    override fun onResume() {
+        super.onResume()
+        viewModel.updateUiState()
     }
 
-    private fun Context.isDarkThemeOn(): Boolean {
-        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-            Configuration.UI_MODE_NIGHT_YES
+    private fun showDnsRecordTypesBottomSheet() {
+        val bottomSheet = DnsRecordTypesBottomSheet()
+        supportFragmentManager.setFragmentResultListener("dns_record_types_updated", this) { _, _ ->
+            viewModel.updateUiState()
+        }
+        bottomSheet.show(supportFragmentManager, bottomSheet.tag)
+    }
+
+    private fun showSmartDnsInfoDialog() {
+        viewModel.viewModelScope.launch(Dispatchers.IO) {
+            val ids = VpnController.getPlusResolvers()
+            val dnsList: MutableList<String> = mutableListOf()
+            ids.forEach {
+                val index = it.substringAfter(Backend.Plus).getOrNull(0)
+                if (index == null) {
+                    Logger.w(LOG_TAG_DNS, "smart(plus) dns resolver id is empty: $it")
+                    return@forEach
+                }
+                if (index != DOH_INDEX && index != DOT_INDEX) {
+                    Logger.w(LOG_TAG_DNS, "smart(plus) dns resolver id is not doh or dot: $it")
+                    return@forEach
+                }
+                val transport = VpnController.getPlusTransportById(it)
+                val address = transport?.addr?.tos() ?: ""
+                if (address.isNotEmpty()) dnsList.add(address)
+            }
+
+            Logger.i(LOG_TAG_DNS, "smart(plus) dns list size: ${dnsList.size}")
+            withContext(Dispatchers.Main) {
+                val stringBuilder = StringBuilder()
+                val desc = getString(R.string.smart_dns_desc)
+                stringBuilder.append(desc).append("\n\n")
+                dnsList.forEach {
+                    val txt = getString(R.string.symbol_star) + " " + it
+                    stringBuilder.append(txt).append("\n")
+                }
+                val list = stringBuilder.toString()
+                val builder = MaterialAlertDialogBuilder(this@DnsDetailActivity, R.style.App_Dialog_NoDim)
+                    .setTitle(R.string.smart_dns)
+                    .setMessage(list)
+                    .setCancelable(true)
+                    .setPositiveButton(R.string.ada_noapp_dialog_positive) { di, _ ->
+                        di.dismiss()
+                    }.setNeutralButton(
+                        getString(R.string.dns_info_neutral)
+                    ) { _: DialogInterface, _: Int ->
+                        UIUtils.clipboardCopy(
+                            this@DnsDetailActivity,
+                            list,
+                            getString(R.string.copy_clipboard_label)
+                        )
+                        Utilities.showToastUiCentered(
+                            this@DnsDetailActivity,
+                            getString(R.string.info_dialog_url_copy_toast_msg),
+                            Toast.LENGTH_SHORT
+                        )
+                    }
+                val dialog = builder.create()
+                dialog.show()
+            }
+        }
+    }
+
+    private fun showSystemDnsDialog(dns: String) {
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+            .setTitle(R.string.network_dns)
+            .setMessage(dns)
+            .setCancelable(true)
+            .setPositiveButton(R.string.ada_noapp_dialog_positive) { di, _ ->
+                di.dismiss()
+            }
+            .setNeutralButton(getString(R.string.dns_info_neutral)) { _: DialogInterface, _: Int ->
+                UIUtils.clipboardCopy(
+                    this,
+                    dns,
+                    getString(R.string.copy_clipboard_label)
+                )
+                Utilities.showToastUiCentered(
+                    this,
+                    getString(R.string.info_dialog_url_copy_toast_msg),
+                    Toast.LENGTH_SHORT
+                )
+            }
+        val dialog = builder.create()
+        dialog.show()
+    }
+
+    private fun openLocalBlocklist() {
+        val bottomSheetFragment = LocalBlocklistsBottomSheet()
+        bottomSheetFragment.setDismissListener(this)
+        bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag)
+    }
+
+    private fun invokeRethinkActivity(type: ConfigureRethinkBasicActivity.FragmentLoader) {
+        val intent = Intent(this, ConfigureRethinkBasicActivity::class.java)
+        intent.putExtra(ConfigureRethinkBasicActivity.INTENT, type.ordinal)
+        startActivity(intent)
+    }
+
+    private fun showCustomDns() {
+        val intent = Intent(this, DnsListActivity::class.java)
+        startActivity(intent)
+    }
+
+    override fun onBtmSheetDismiss() {
+        viewModel.updateUiState()
     }
 }
