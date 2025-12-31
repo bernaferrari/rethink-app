@@ -29,7 +29,7 @@ import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.widget.addTextChangedListener
-import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.PagingDataAdapter
@@ -63,7 +63,7 @@ import java.net.URI
 
 class CustomDomainAdapter(
     val context: Context,
-    val fragment: Fragment,
+    val fragmentManager: FragmentManager,
     val rule: CustomRulesActivity.RULES,
     val eventLogger: EventLogger
 ) :
@@ -639,7 +639,7 @@ class CustomDomainAdapter(
 
     private fun showButtonsBottomSheet(customDomain: CustomDomain) {
         val bottomSheetFragment = CustomDomainRulesBtmSheet(customDomain)
-        bottomSheetFragment.show(fragment.parentFragmentManager, bottomSheetFragment.tag)
+        bottomSheetFragment.show(fragmentManager, bottomSheetFragment.tag)
     }
 
     private fun logEvent(details: String) {
@@ -654,4 +654,3 @@ class CustomDomainAdapter(
         withContext(Dispatchers.Main) { f() }
     }
 }
-
