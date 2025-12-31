@@ -19,41 +19,57 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
-import android.text.Html
-import android.text.Spanned
-import android.util.TypedValue
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.view.WindowManager
+import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.text.HtmlCompat
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.viewpager.widget.PagerAdapter
-import androidx.viewpager.widget.ViewPager
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
-import com.celzero.bravedns.databinding.ActivityWelcomeBinding
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.HomeScreenActivity
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
+import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
-class WelcomeActivity : AppCompatActivity(R.layout.activity_welcome) {
+class WelcomeActivity : AppCompatActivity() {
 
-    private val b by viewBinding(ActivityWelcomeBinding::bind)
-    private lateinit var dots: Array<androidx.appcompat.widget.AppCompatTextView?>
-    private val layouts: IntArray = intArrayOf(
-        R.layout.welcome_slide1,
-        R.layout.welcome_slide2,
-        R.layout.welcome_slide3,
-        R.layout.welcome_slide4
-    )
-    private var myPagerAdapter: MyPagerAdapter? = null
     private val persistentState by inject<PersistentState>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -68,108 +84,27 @@ class WelcomeActivity : AppCompatActivity(R.layout.activity_welcome) {
             window.isNavigationBarContrastEnforced = false
         }
 
-        // Add bottom dots
-        addBottomDots(0)
-
-        // Change status bar color
         changeStatusBarColor()
 
-        // Initialize adapter
-        myPagerAdapter = MyPagerAdapter()
-
-        // Set up ViewPager
-        b.viewPager.adapter = myPagerAdapter
-        b.viewPager.addOnPageChangeListener(
-            object : ViewPager.OnPageChangeListener {
-                override fun onPageScrollStateChanged(state: Int) {}
-
-                override fun onPageScrolled(
-                    position: Int,
-                    positionOffset: Float,
-                    positionOffsetPixels: Int
-                ) {
-                    // if the scroll is after the layout count then finish the activity
-                    if (position >= layouts.count() - 1 && positionOffset > 0) {
-                        launchHomeScreen()
-                    }
-                }
-
-                override fun onPageSelected(position: Int) {
-                    addBottomDots(position)
-
-                    // Change the next button text 'NEXT' / 'GOT IT'
-                    if (position >= layouts.count() - 1) {
-                        // Last page. Make button text to GOT IT
-                        b.btnNext.text = getString(R.string.finish)
-                        b.btnSkip.visibility = View.INVISIBLE
-                    } else {
-                        // Still pages are left
-                        b.btnNext.text = getString(R.string.next)
-                        b.btnSkip.visibility = View.VISIBLE
-                    }
-                }
-            }
-        )
-
-        // Set up button click listeners
-        b.btnSkip.setOnClickListener { launchHomeScreen() }
-        b.btnNext.setOnClickListener {
-            // Check if user is on last page, then go to home screen
-            val currentItem = getItem()
-            if (currentItem + 1 >= layouts.count()) {
-                launchHomeScreen()
-            } else {
-                // Otherwise go to next page
-                b.viewPager.currentItem = currentItem + 1
+        setContent {
+            RethinkTheme {
+                WelcomeContent()
             }
         }
 
-        // on back pressed, finish the activity and go to home screen
         onBackPressedDispatcher.addCallback(
             this,
-            object : androidx.activity.OnBackPressedCallback(true) {
+            object : OnBackPressedCallback(true) {
                 override fun handleOnBackPressed() {
                     launchHomeScreen()
                 }
-            })
+            }
+        )
     }
 
     private fun isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                Configuration.UI_MODE_NIGHT_YES
-    }
-
-    private fun addBottomDots(currentPage: Int) {
-        dots = arrayOfNulls(layouts.size)
-
-        val colorActive = resources.getIntArray(R.array.array_dot_active)
-        val colorInActive = resources.getIntArray(R.array.array_dot_inactive)
-
-        b.layoutDots.removeAllViews()
-
-        for (i in dots.indices) {
-            dots[i] = androidx.appcompat.widget.AppCompatTextView(this)
-            dots[i]?.text = updateHtmlEncodedText("&#8226;")
-            dots[i]?.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30F)
-            dots[i]?.setTextColor(colorInActive[currentPage])
-            b.layoutDots.addView(dots[i])
-        }
-
-        if (dots.isNotEmpty()) {
-            dots[currentPage]?.setTextColor(colorActive[currentPage])
-        }
-    }
-
-    fun updateHtmlEncodedText(text: String): Spanned {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY)
-        } else {
-            HtmlCompat.fromHtml(text, HtmlCompat.FROM_HTML_MODE_LEGACY)
-        }
-    }
-
-    private fun getItem(): Int {
-        return b.viewPager.currentItem
+            Configuration.UI_MODE_NIGHT_YES
     }
 
     private fun launchHomeScreen() {
@@ -186,25 +121,166 @@ class WelcomeActivity : AppCompatActivity(R.layout.activity_welcome) {
         window.statusBarColor = Color.TRANSPARENT
     }
 
-    // ViewPager adapter
-    inner class MyPagerAdapter : PagerAdapter() {
-        override fun isViewFromObject(view: View, `object`: Any): Boolean {
-            return view == `object`
+    @Composable
+    private fun WelcomeContent() {
+        val slides = remember {
+            listOf(
+                WelcomeSlide(
+                    image = R.drawable.ic_launcher,
+                    title = R.string.slide_2_title,
+                    desc = R.string.slide_2_desc,
+                    imageSize = 120.dp,
+                    topPadding = 80.dp,
+                    titleTopPadding = 50.dp
+                ),
+                WelcomeSlide(
+                    image = R.drawable.ic_wireguard_welcome,
+                    title = R.string.wireguard_title,
+                    desc = R.string.wireguard_desc,
+                    imageSize = 200.dp,
+                    topPadding = 60.dp,
+                    titleTopPadding = 30.dp
+                ),
+                WelcomeSlide(
+                    image = R.drawable.ic_firewall_welcome,
+                    title = R.string.firewall_title,
+                    desc = R.string.firewall_desc,
+                    imageSize = 200.dp,
+                    topPadding = 60.dp,
+                    titleTopPadding = 30.dp
+                ),
+                WelcomeSlide(
+                    image = R.drawable.ic_dns_welcome,
+                    title = R.string.dns_title,
+                    desc = R.string.dns_desc,
+                    imageSize = 200.dp,
+                    topPadding = 60.dp,
+                    titleTopPadding = 30.dp
+                )
+            )
         }
 
-        override fun getCount(): Int {
-            return layouts.count()
-        }
+        val pagerState = rememberPagerState { slides.size }
+        val scope = rememberCoroutineScope()
 
-        override fun instantiateItem(container: ViewGroup, position: Int): Any {
-            val layoutInflater = getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-            val view = layoutInflater.inflate(layouts[position], container, false)
-            container.addView(view)
-            return view
-        }
+        Box(modifier = Modifier.fillMaxSize()) {
+            Image(
+                painter = painterResource(id = R.drawable.welcome_gradient_bg),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize()
+            )
+            Column(
+                modifier = Modifier.fillMaxSize().padding(horizontal = 24.dp, vertical = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier.weight(1f)
+                ) { page ->
+                    WelcomeSlideContent(slides[page])
+                }
 
-        override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
-            container.removeView(`object` as View)
+                DotsIndicator(
+                    count = slides.size,
+                    currentIndex = pagerState.currentPage
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (pagerState.currentPage < slides.lastIndex) {
+                        TextButton(onClick = { launchHomeScreen() }) {
+                            Text(text = getString(R.string.skip))
+                        }
+                    } else {
+                        Spacer(modifier = Modifier.size(1.dp))
+                    }
+
+                    Button(
+                        onClick = {
+                            if (pagerState.currentPage >= slides.lastIndex) {
+                                launchHomeScreen()
+                            } else {
+                                scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                            }
+                        },
+                        shape = RoundedCornerShape(18.dp)
+                    ) {
+                        Text(
+                            text =
+                                if (pagerState.currentPage >= slides.lastIndex) {
+                                    getString(R.string.finish)
+                                } else {
+                                    getString(R.string.next)
+                                }
+                        )
+                    }
+                }
+            }
         }
     }
+
+    @Composable
+    private fun WelcomeSlideContent(slide: WelcomeSlide) {
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(slide.topPadding))
+            Image(
+                painter = painterResource(id = slide.image),
+                contentDescription = null,
+                modifier = Modifier.size(slide.imageSize)
+            )
+            Spacer(modifier = Modifier.height(slide.titleTopPadding))
+            Text(
+                text = getString(slide.title),
+                fontSize = 28.sp,
+                fontWeight = FontWeight.Bold,
+                color = androidx.compose.ui.graphics.Color(fetchColor(this@WelcomeActivity, R.attr.primaryTextColor))
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            Text(
+                text = getString(slide.desc),
+                fontSize = 16.sp,
+                textAlign = TextAlign.Center,
+                color = androidx.compose.ui.graphics.Color(fetchColor(this@WelcomeActivity, R.attr.primaryTextColor)),
+                modifier = Modifier.padding(horizontal = 32.dp)
+            )
+        }
+    }
+
+    @Composable
+    private fun DotsIndicator(count: Int, currentIndex: Int) {
+        val activeColors = resources.getIntArray(R.array.array_dot_active)
+        val inactiveColors = resources.getIntArray(R.array.array_dot_inactive)
+
+        Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+            repeat(count) { index ->
+                val color =
+                    if (index == currentIndex) activeColors[index] else inactiveColors[currentIndex]
+                Box(
+                    modifier =
+                        Modifier.padding(horizontal = 4.dp)
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(androidx.compose.ui.graphics.Color(color))
+                )
+            }
+        }
+    }
+
+    private data class WelcomeSlide(
+        val image: Int,
+        val title: Int,
+        val desc: Int,
+        val imageSize: androidx.compose.ui.unit.Dp,
+        val topPadding: androidx.compose.ui.unit.Dp,
+        val titleTopPadding: androidx.compose.ui.unit.Dp
+    )
 }
