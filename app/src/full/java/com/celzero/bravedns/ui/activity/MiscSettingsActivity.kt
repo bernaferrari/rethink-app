@@ -67,7 +67,7 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.LauncherSwitcher
 import com.celzero.bravedns.ui.activity.AppLockActivity.Companion.APP_LOCK_ALIAS
 import com.celzero.bravedns.ui.activity.AppLockActivity.Companion.HOME_ALIAS
-import com.celzero.bravedns.ui.bottomsheet.BackupRestoreBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.BackupRestoreDialog
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.FirebaseErrorReporting
 import com.celzero.bravedns.util.FirebaseErrorReporting.TOKEN_LENGTH
@@ -110,6 +110,9 @@ class MiscSettingsActivity : AppCompatActivity(R.layout.activity_misc_settings) 
     private var isThemeChanged: Boolean = false
     private lateinit var notificationPermissionResult: ActivityResultLauncher<String>
     private lateinit var bubbleSettingsResult: ActivityResultLauncher<Intent>
+    private lateinit var backupRestoreLauncher: ActivityResultLauncher<Intent>
+    private lateinit var restoreLauncher: ActivityResultLauncher<Intent>
+    private var backupRestoreDialog: BackupRestoreDialog? = null
 
     enum class BioMetricType(val action: Int, val mins: Long) {
         OFF(0, -1L),
@@ -909,8 +912,12 @@ class MiscSettingsActivity : AppCompatActivity(R.layout.activity_misc_settings) 
               return
           }
 
-          val bottomSheetFragment = BackupRestoreBottomSheet()
-          bottomSheetFragment.show(this.supportFragmentManager, bottomSheetFragment.tag)
+          if (backupRestoreDialog != null) return
+          backupRestoreDialog =
+              BackupRestoreDialog(this, backupRestoreLauncher, restoreLauncher) {
+                  backupRestoreDialog = null
+              }
+          backupRestoreDialog?.show()
       }
 
       private fun openConsoleLogActivity() {
@@ -1173,6 +1180,16 @@ class MiscSettingsActivity : AppCompatActivity(R.layout.activity_misc_settings) 
                 } catch (e: Exception) {
                     Logger.w(LOG_TAG_UI, "err after bubble settings return: ${e.message}")
                 }
+            }
+
+        backupRestoreLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                backupRestoreDialog?.handleBackupResult(result)
+            }
+
+        restoreLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                backupRestoreDialog?.handleRestoreResult(result)
             }
     }
 

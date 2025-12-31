@@ -58,7 +58,7 @@ import com.celzero.bravedns.service.TcpProxyHelper
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
-import com.celzero.bravedns.ui.bottomsheet.OrbotBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.OrbotDialog
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.OrbotHelper
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
@@ -70,6 +70,7 @@ import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.isValidPort
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
+import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.RouterStats
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -77,6 +78,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.concurrent.TimeUnit
 
 class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configure) {
@@ -86,6 +88,7 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
     private val appConfig by inject<AppConfig>()
     private val orbotHelper by inject<OrbotHelper>()
     private val eventLogger by inject<EventLogger>()
+    private val proxyAppsMappingViewModel: ProxyAppsMappingViewModel by viewModel()
     private lateinit var animation: Animation
 
     companion object {
@@ -397,8 +400,7 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
             return
         }
 
-        val bottomSheetFragment = OrbotBottomSheet()
-        bottomSheetFragment.show(this.supportFragmentManager, bottomSheetFragment.tag)
+        OrbotDialog(this, proxyAppsMappingViewModel).show()
     }
 
     private fun displayHttpProxyUi() {
