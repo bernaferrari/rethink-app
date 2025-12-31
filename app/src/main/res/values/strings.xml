@@ -64,6 +64,33 @@
     <string name="location_selector_servers_available" translatable="true">%1$d servers available</string>
     <string name="location_selector_max_toast" translatable="true">Maximum 5 servers can be selected</string>
     <string name="location_selector_min_toast" translatable="true">At least one server should be selected</string>
+    <string name="ping_ip_port_title" translatable="true">IP and port</string>
+    <string name="ping_host_port_title" translatable="true">Host and port</string>
+    <string name="ping_strength_title" translatable="true">Strength</string>
+    <string name="checkout_app_name" translatable="true">TCP Proxy</string>
+    <string name="checkout_proxy_desc" translatable="true">Fast proxy servers combined with affordability. Ideal solution for individuals. A reliable and secure way to access the internet anonymously.</string>
+    <string name="checkout_choose_plan" translatable="true">Choose a plan</string>
+    <string name="checkout_plan_1m_title" translatable="true">1 Month / 1.99</string>
+    <string name="checkout_plan_1m_subtitle" translatable="true">( 1.99 / month )</string>
+    <string name="checkout_plan_3m_title" translatable="true">3 Months / 3.99</string>
+    <string name="checkout_plan_3m_subtitle" translatable="true">( 1.33 / month )</string>
+    <string name="checkout_plan_6m_title" translatable="true">6 Months / 5.99</string>
+    <string name="checkout_plan_6m_subtitle" translatable="true">( 0.99 / month )</string>
+    <string name="checkout_purchase" translatable="true">purchase</string>
+    <string name="checkout_restore" translatable="true">Restore Purchase</string>
+    <string name="checkout_terms_title" translatable="true">Terms and Conditions</string>
+    <string name="checkout_terms_body" translatable="true">Rethink DNS + Firewall are anti-surveillance tools first and foremost: It is absolutely against our ethos, then, to track users of our apps and services, or sell any information whatsoever to any third-party in any form, pseudo-anonymized, de-anonymized, anonymized, aggregated, or otherwise. We do not collect, sell, license, share any data (personally identifiable or otherwise) from the Rethink DNS + Firewall Android app. The code is open source so you may inspect it yourself or deploy to your servers.\nPersonally identifiable information: Any data that can be traced back to the user including (but not limited to) a combination of IP addresses, name, device-id, advertisement-id, and location.\n\nNon personally identifiable information: Aggregated (summarized) data and anonymized data scrubbed off any personally identifiable information.\nCollect: Data stored by Rethink.\nSell: Data sold to third parties.\nLicense: Restricted access to data collected by Rethink to third parties.\nShare: Data shared with third parties.\nAggregate: Data combined with other data to form a summary of information.\nAnonymize: Data scrubbed off any personally identifiable information.\nDe-anonymize: Data scrubbed off any personally identifiable information.\nShare: Permanent access to data collected by Rethink to third parties.\n\nWe do not collect, sell, license, share any data (personally identifiable or otherwise) from the Rethink DNS + Firewall Android app. The code is open source so you may inspect it yourself or deploy to your servers.</string>
+    <string name="checkout_payment_success_title" translatable="true">Payment Successful</string>
+    <string name="checkout_payment_success_message" translatable="true">Your payment was successful. You can now enjoy the proxy features of Rethink.</string>
+    <string name="checkout_payment_success_button" translatable="true">continue</string>
+    <string name="checkout_payment_awaiting_title" translatable="true">Awaiting payment</string>
+    <string name="checkout_payment_awaiting_message" translatable="true">Please wait while we process your payment. This may take a few seconds.</string>
+    <string name="checkout_payment_failed_title" translatable="true">Payment Failed</string>
+    <string name="checkout_payment_failed_message" translatable="true">Your payment failed. Please try again.</string>
+    <string name="checkout_payment_failed_button" translatable="true">try again</string>
+    <string name="checkout_banner_icon_desc" translatable="true">TCP Proxy icon</string>
+    <string name="vpn_not_active_dialog_title" translatable="true">VPN not active</string>
+    <string name="vpn_not_active_dialog_desc" translatable="true">Rethink VPN is not active. Start it to run the test.</string>
     <string name="lbl_socks5" translatable="true">SOCKS5</string>
     <string name="lbl_http" translatable="true">HTTP</string>
     <string name="lbl_http_socks5" translatable="true">HTTPS &amp; SOCKS5</string>

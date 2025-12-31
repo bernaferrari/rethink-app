@@ -15,34 +15,55 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import Logger
-import Logger.LOG_TAG_FIREWALL
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.View
-import android.widget.CompoundButton
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
-import com.celzero.bravedns.databinding.ActivityAntiCensorshipBinding
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.isOsVersionAbove412
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.firestack.settings.Settings
+import io.github.aakira.napier.Napier
 import org.koin.android.ext.android.inject
 
-class AntiCensorshipActivity : AppCompatActivity(R.layout.activity_anti_censorship) {
-    val b by viewBinding(ActivityAntiCensorshipBinding::bind)
+class AntiCensorshipActivity : AppCompatActivity() {
 
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()
@@ -90,279 +111,245 @@ class AntiCensorshipActivity : AppCompatActivity(R.layout.activity_anti_censorsh
             controller.isAppearanceLightNavigationBars = false
             window.isNavigationBarContrastEnforced = false
         }
-        initView()
-        setupClickListeners()
-    }
+        val initialDial = resolveDialSelection(persistentState.dialStrategy)
+        val initialRetry = RetryStrategies.fromInt(persistentState.retryStrategy)
+            ?: RetryStrategies.RETRY_WITH_SPLIT
 
-    private fun initView() {
-        updateDialStrategy(persistentState.dialStrategy)
-        updateRetryStrategy(persistentState.retryStrategy)
+        val desyncSupported = isOsVersionAbove412(DESYNC_SUPPORTED_VERSION)
+        if (!desyncSupported && initialDial == DialStrategies.DESYNC) {
+            persistentState.dialStrategy = DialStrategies.SPLIT_AUTO.mode
+            Napier.i("Desync mode is not supported in Android 11 and below")
+        }
 
-        b.settingsActivityVpnHeadingText.text = getString(R.string.anti_censorship_title).lowercase()
-    }
-
-    private fun updateDialStrategy(selectedState: Int) {
-        if (!isOsVersionAbove412(DESYNC_SUPPORTED_VERSION)) {
-            // desync is not supported for os version below 4.12
-            // so reset the dial strategy to split auto if desync is selected
-            if (selectedState == DialStrategies.DESYNC.mode) {
-                persistentState.dialStrategy = DialStrategies.SPLIT_AUTO.mode
-                b.acRadioDesync.isChecked = false
-                b.acDesyncRl.visibility = View.GONE
-                b.acRadioSplitAuto.isChecked = true
-                Logger.i(LOG_TAG_FIREWALL, "Desync mode is not supported in Android 11 and below")
-                return
-            } else {
-                b.acRadioDesync.isEnabled = false
-                b.acDesyncRl.visibility = View.GONE
+        setContent {
+            RethinkTheme {
+                AntiCensorshipScreen(
+                    initialDial = if (!desyncSupported && initialDial == DialStrategies.DESYNC) {
+                        DialStrategies.SPLIT_AUTO
+                    } else {
+                        initialDial
+                    },
+                    initialRetry = initialRetry,
+                    desyncSupported = desyncSupported
+                )
             }
         }
-        when (selectedState) {
-            DialStrategies.NEVER_SPLIT.mode -> {
-                b.acRadioNeverSplit.isChecked = true
-            }
-            DialStrategies.SPLIT_AUTO.mode -> {
-                // both auto and tcp proxy use the same dial strategy from go(Settings.SplitAuto)
-                if (persistentState.autoProxyEnabled) {
-                    b.acRadioTcpProxy.isChecked = true
-                } else {
-                    b.acRadioSplitAuto.isChecked = true
+    }
+
+    private fun resolveDialSelection(mode: Int): DialStrategies {
+        val base = DialStrategies.fromInt(mode) ?: DialStrategies.SPLIT_AUTO
+        return if (base == DialStrategies.SPLIT_AUTO && persistentState.autoProxyEnabled) {
+            DialStrategies.TCP_PROXY
+        } else {
+            base
+        }
+    }
+
+    @Composable
+    private fun AntiCensorshipScreen(
+        initialDial: DialStrategies,
+        initialRetry: RetryStrategies,
+        desyncSupported: Boolean
+    ) {
+        var dialSelection by mutableStateOf(initialDial)
+        var retrySelection by mutableStateOf(initialRetry)
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp)
+        ) {
+            SectionHeader(
+                title = stringResourceCompat(R.string.anti_censorship_title).lowercase(),
+                description = stringResourceCompat(R.string.ac_desc)
+            )
+
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    DialStrategies.entries.forEach { strategy ->
+                        if (!desyncSupported && strategy == DialStrategies.DESYNC) return@forEach
+                        val titleRes = when (strategy) {
+                            DialStrategies.NEVER_SPLIT -> R.string.settings_app_list_default_app
+                            DialStrategies.SPLIT_AUTO -> R.string.settings_ip_text_ipv46
+                            DialStrategies.SPLIT_TCP -> R.string.ac_split_tcp
+                            DialStrategies.SPLIT_TCP_TLS -> R.string.ac_split_tls
+                            DialStrategies.DESYNC -> R.string.ac_desync
+                            DialStrategies.TCP_PROXY -> R.string.ac_tcp_proxy
+                        }
+                        val descRes = when (strategy) {
+                            DialStrategies.NEVER_SPLIT -> R.string.ac_never_split_desc
+                            DialStrategies.SPLIT_AUTO -> R.string.ac_split_auto_desc
+                            DialStrategies.SPLIT_TCP -> R.string.ac_split_tcp_desc
+                            DialStrategies.SPLIT_TCP_TLS -> R.string.ac_split_tls_desc
+                            DialStrategies.DESYNC -> R.string.ac_desync_desc
+                            DialStrategies.TCP_PROXY -> R.string.ac_tcp_proxy_desc
+                        }
+                        OptionRow(
+                            title = stringResourceCompat(titleRes),
+                            description = stringResourceCompat(descRes),
+                            selected = dialSelection == strategy,
+                            onClick = {
+                                if (dialSelection != strategy) {
+                                    dialSelection = strategy
+                                    handleDialSelection(strategy) { retry ->
+                                        retrySelection = retry
+                                    }
+                                }
+                            }
+                        )
+                    }
                 }
             }
-            DialStrategies.SPLIT_TCP.mode -> {
-                b.acRadioSplitTcp.isChecked = true
-            }
-            DialStrategies.SPLIT_TCP_TLS.mode -> {
-                b.acRadioSplitTls.isChecked = true
-            }
-            DialStrategies.DESYNC.mode -> {
-                b.acRadioDesync.isChecked = true
-            }
-        }
-    }
 
-    private fun updateRetryStrategy(selectedState: Int) {
-        when (selectedState) {
-            RetryStrategies.RETRY_WITH_SPLIT.mode -> {
-                b.acRadioRetryWithSplit.isChecked = true
-            }
-            RetryStrategies.RETRY_NEVER.mode -> {
-                b.acRadioNeverRetry.isChecked = true
-            }
-            RetryStrategies.RETRY_AFTER_SPLIT.mode -> {
-                b.acRadioRetryAfterSplit.isChecked = true
-            }
-        }
-    }
+            Spacer(modifier = Modifier.height(16.dp))
+            SectionHeader(
+                title = stringResourceCompat(R.string.ac_retry_options_title),
+                description = stringResourceCompat(R.string.ac_retry_options_desc)
+            )
 
-    private fun setupClickListeners() {
-
-        b.acRadioNeverSplit.setOnCheckedChangeListener { _: CompoundButton, isSelected: Boolean ->
-            handleAcMode(isSelected, DialStrategies.NEVER_SPLIT)
-        }
-
-        b.acNeverSplitRl.setOnClickListener {
-            // Only toggle if not already checked
-            if (!b.acRadioNeverSplit.isChecked) {
-                b.acRadioNeverSplit.isChecked = true
-            }
-        }
-
-        b.acRadioSplitAuto.setOnCheckedChangeListener { _: CompoundButton, isSelected: Boolean ->
-            handleAcMode(isSelected, DialStrategies.SPLIT_AUTO)
-        }
-
-        b.acRadioSplitTcp.setOnCheckedChangeListener { _: CompoundButton, isSelected: Boolean ->
-            handleAcMode(isSelected, DialStrategies.SPLIT_TCP)
-        }
-
-        b.acRadioSplitTls.setOnCheckedChangeListener { _: CompoundButton, isSelected: Boolean ->
-            handleAcMode(isSelected, DialStrategies.SPLIT_TCP_TLS)
-        }
-
-        b.acRadioDesync.setOnCheckedChangeListener { _: CompoundButton, isSelected: Boolean ->
-            handleAcMode(isSelected, DialStrategies.DESYNC)
-        }
-
-        b.acRadioTcpProxy.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
-            handleAcMode(isChecked, DialStrategies.TCP_PROXY)
-        }
-
-        b.acTcpProxyRl.setOnClickListener {
-            // Only toggle if not already checked
-            if (!b.acRadioTcpProxy.isChecked) {
-                b.acRadioTcpProxy.isChecked = true
-            }
-        }
-
-        b.acSplitAutoRl.setOnClickListener {
-            // Only toggle if not already checked
-            if (!b.acRadioSplitAuto.isChecked) {
-                b.acRadioSplitAuto.isChecked = true
-            }
-        }
-
-        b.acSplitTcpRl.setOnClickListener {
-            // Only toggle if not already checked
-            if (!b.acRadioSplitTcp.isChecked) {
-                b.acRadioSplitTcp.isChecked = true
-            }
-        }
-
-        b.acSplitTlsRl.setOnClickListener {
-            // Only toggle if not already checked
-            if (!b.acRadioSplitTls.isChecked) {
-                b.acRadioSplitTls.isChecked = true
-            }
-        }
-
-        b.acDesyncRl.setOnClickListener {
-            // Only toggle if not already checked
-            if (!b.acRadioDesync.isChecked) {
-                b.acRadioDesync.isChecked = true
-            }
-        }
-
-        b.acRadioRetryWithSplit.setOnCheckedChangeListener { _: CompoundButton, isSelected: Boolean ->
-            handleRetryMode(isSelected, RetryStrategies.RETRY_WITH_SPLIT.mode)
-        }
-
-        b.acRadioNeverRetry.setOnCheckedChangeListener { _: CompoundButton, isSelected: Boolean ->
-            handleRetryMode(isSelected, RetryStrategies.RETRY_NEVER.mode)
-        }
-
-        b.acRadioRetryAfterSplit.setOnCheckedChangeListener { _: CompoundButton, isSelected: Boolean ->
-            handleRetryMode(isSelected, RetryStrategies.RETRY_AFTER_SPLIT.mode)
-        }
-
-        b.acRetryWithSplitRl.setOnClickListener {
-            // Only toggle if not already checked
-            if (!b.acRadioRetryWithSplit.isChecked) {
-                b.acRadioRetryWithSplit.isChecked = true
-            }
-        }
-
-        b.acRetryNeverRl.setOnClickListener {
-            // Only toggle if not already checked
-            if (!b.acRadioNeverRetry.isChecked) {
-                b.acRadioNeverRetry.isChecked = true
-            }
-        }
-
-        b.acRetryAfterSplitRl.setOnClickListener {
-            // Only toggle if not already checked
-            if (!b.acRadioRetryAfterSplit.isChecked) {
-                b.acRadioRetryAfterSplit.isChecked = true
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+                    RetryStrategies.entries.forEach { strategy ->
+                        val titleRes = when (strategy) {
+                            RetryStrategies.RETRY_NEVER -> R.string.settings_app_list_default_app
+                            RetryStrategies.RETRY_WITH_SPLIT -> R.string.settings_ip_text_ipv46
+                            RetryStrategies.RETRY_AFTER_SPLIT -> R.string.lbl_always
+                        }
+                        val descRes = when (strategy) {
+                            RetryStrategies.RETRY_NEVER -> R.string.ac_retry_options_never_desc
+                            RetryStrategies.RETRY_WITH_SPLIT -> R.string.ac_retry_options_with_split_desc
+                            RetryStrategies.RETRY_AFTER_SPLIT -> R.string.ac_retry_options_after_split_desc
+                        }
+                        val enabled = dialSelection != DialStrategies.NEVER_SPLIT ||
+                            strategy == RetryStrategies.RETRY_NEVER
+                        val context = LocalContext.current
+                        OptionRow(
+                            title = stringResourceCompat(titleRes),
+                            description = stringResourceCompat(descRes),
+                            selected = retrySelection == strategy,
+                            enabled = enabled,
+                            onClick = {
+                                if (!enabled) {
+                                    Utilities.showToastUiCentered(
+                                        context,
+                                        getString(R.string.ac_toast_retry_disabled),
+                                        Toast.LENGTH_LONG
+                                    )
+                                    return@OptionRow
+                                }
+                                if (retrySelection != strategy) {
+                                    retrySelection = strategy
+                                    handleRetrySelection(strategy)
+                                }
+                            }
+                        )
+                    }
+                }
             }
         }
     }
 
-    private fun handleAcMode(isSelected: Boolean, ds: DialStrategies) {
-        if (isSelected) {
-            persistentState.dialStrategy = ds.mode
-            disableRadioButtons(ds)
-            if (ds == DialStrategies.NEVER_SPLIT) {
-                // disable retry radio buttons for never split
-                handleRetryMode(true, RetryStrategies.RETRY_NEVER.mode, showToast = false)
-            } else if (ds == DialStrategies.SPLIT_AUTO || ds == DialStrategies.TCP_PROXY) {
-                // set retry to retry with split for split auto and tcp proxy by default
-                handleRetryMode(true, RetryStrategies.RETRY_WITH_SPLIT.mode, showToast = false)
+    private fun handleDialSelection(
+        strategy: DialStrategies,
+        updateRetrySelection: (RetryStrategies) -> Unit
+    ) {
+        persistentState.dialStrategy = strategy.mode
+        persistentState.autoProxyEnabled = strategy == DialStrategies.TCP_PROXY
+        val nextRetry =
+            when (strategy) {
+                DialStrategies.NEVER_SPLIT -> RetryStrategies.RETRY_NEVER
+                DialStrategies.SPLIT_AUTO, DialStrategies.TCP_PROXY -> RetryStrategies.RETRY_WITH_SPLIT
+                else -> RetryStrategies.fromInt(persistentState.retryStrategy) ?: RetryStrategies.RETRY_WITH_SPLIT
             }
-            if (ds == DialStrategies.TCP_PROXY) {
-                persistentState.autoProxyEnabled = true
-            } else {
-                persistentState.autoProxyEnabled = false
-            }
-            logEvent("Anti-censorship dial strategy changed to ${ds.mode}")
+        persistentState.retryStrategy = nextRetry.mode
+        updateRetrySelection(nextRetry)
+        logEvent("Anti-censorship dial strategy changed to ${strategy.mode}")
+    }
+
+    private fun handleRetrySelection(strategy: RetryStrategies) {
+        var mode = strategy.mode
+        if (DialStrategies.NEVER_SPLIT.mode == persistentState.dialStrategy &&
+            strategy != RetryStrategies.RETRY_NEVER
+        ) {
+            mode = RetryStrategies.RETRY_NEVER.mode
+        }
+
+        persistentState.retryStrategy = mode
+        logEvent("Anti-censorship retry strategy changed to $mode")
+    }
+
+    @Composable
+    private fun SectionHeader(title: String, description: String) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+        )
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = 8.dp)
+        )
+    }
+
+    @Composable
+    private fun OptionRow(
+        title: String,
+        description: String,
+        selected: Boolean,
+        enabled: Boolean = true,
+        onClick: () -> Unit
+    ) {
+        val modifier = if (enabled) {
+            Modifier.clickable { onClick() }
         } else {
-            // no-op
+            Modifier
         }
-    }
-
-    private fun handleRetryMode(isSelected: Boolean, mode: Int, showToast: Boolean = true) {
-        var m = mode
-        var shouldShowToast = false
-        if (DialStrategies.NEVER_SPLIT.mode == persistentState.dialStrategy && mode != RetryStrategies.RETRY_NEVER.mode) {
-            m = RetryStrategies.RETRY_NEVER.mode
-            shouldShowToast = showToast && isSelected
-        }
-
-        if (isSelected) {
-            persistentState.retryStrategy = m
-            updateRetryStrategy(m)
-            disableRetryRadioButtons(m)
-            if (shouldShowToast) Utilities.showToastUiCentered(this, getString(R.string.ac_toast_retry_disabled), Toast.LENGTH_LONG)
-            logEvent("Anti-censorship retry strategy changed to $m")
-        } else {
-            // no-op
-        }
-    }
-
-    private fun disableRadioButtons(mode: DialStrategies) {
-        when (mode) {
-            DialStrategies.NEVER_SPLIT -> {
-                b.acRadioSplitAuto.isChecked = false
-                b.acRadioSplitTcp.isChecked = false
-                b.acRadioSplitTls.isChecked = false
-                b.acRadioDesync.isChecked = false
-                b.acRadioTcpProxy.isChecked = false
-            }
-            DialStrategies.SPLIT_AUTO -> {
-                b.acRadioNeverSplit.isChecked = false
-                b.acRadioSplitTcp.isChecked = false
-                b.acRadioSplitTls.isChecked = false
-                b.acRadioDesync.isChecked = false
-                b.acRadioTcpProxy.isChecked = false
-            }
-            DialStrategies.SPLIT_TCP -> {
-                b.acRadioNeverSplit.isChecked = false
-                b.acRadioSplitAuto.isChecked = false
-                b.acRadioSplitTls.isChecked = false
-                b.acRadioDesync.isChecked = false
-                b.acRadioTcpProxy.isChecked = false
-            }
-            DialStrategies.SPLIT_TCP_TLS -> {
-                b.acRadioNeverSplit.isChecked = false
-                b.acRadioSplitAuto.isChecked = false
-                b.acRadioSplitTcp.isChecked = false
-                b.acRadioDesync.isChecked = false
-                b.acRadioTcpProxy.isChecked = false
-            }
-            DialStrategies.DESYNC -> {
-                b.acRadioNeverSplit.isChecked = false
-                b.acRadioSplitAuto.isChecked = false
-                b.acRadioSplitTcp.isChecked = false
-                b.acRadioSplitTls.isChecked = false
-                b.acRadioTcpProxy.isChecked = false
-            }
-            DialStrategies.TCP_PROXY -> {
-                b.acRadioNeverSplit.isChecked = false
-                b.acRadioSplitAuto.isChecked = false
-                b.acRadioSplitTcp.isChecked = false
-                b.acRadioSplitTls.isChecked = false
-                b.acRadioDesync.isChecked = false
-            }
-        }
-    }
-
-    private fun disableRetryRadioButtons(mode: Int) {
-        when (mode) {
-            RetryStrategies.RETRY_WITH_SPLIT.mode -> {
-                b.acRadioNeverRetry.isChecked = false
-                b.acRadioRetryAfterSplit.isChecked = false
-            }
-            RetryStrategies.RETRY_NEVER.mode -> {
-                b.acRadioRetryWithSplit.isChecked = false
-                b.acRadioRetryAfterSplit.isChecked = false
-            }
-            RetryStrategies.RETRY_AFTER_SPLIT.mode -> {
-                b.acRadioRetryWithSplit.isChecked = false
-                b.acRadioNeverRetry.isChecked = false
+        Row(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(
+                selected = selected,
+                onClick = if (enabled) onClick else null
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = if (enabled) {
+                        MaterialTheme.colorScheme.onSurface
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
     }
 
     private fun logEvent(details: String) {
         eventLogger.log(EventType.UI_TOGGLE, Severity.LOW, "Anti-censorship UI", EventSource.UI, false, details)
+    }
+
+    @Composable
+    private fun stringResourceCompat(id: Int, vararg args: Any): String {
+        val context = LocalContext.current
+        return if (args.isNotEmpty()) {
+            context.getString(id, *args)
+        } else {
+            context.getString(id)
+        }
     }
 }
