@@ -15,55 +15,90 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import Logger
-import Logger.LOG_TAG_FIREWALL
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.provider.Settings
-import android.view.View
-import android.widget.CompoundButton
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ConnectionTracker
 import com.celzero.bravedns.database.ConnectionTrackerRepository
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
-import com.celzero.bravedns.databinding.ActivityUniversalFirewallSettingsBinding
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.BackgroundAccessibilityService
 import com.celzero.bravedns.util.Constants
-import com.celzero.bravedns.util.NewSettingsManager
 import com.celzero.bravedns.util.Themes
-import com.celzero.bravedns.util.UIUtils.setBadgeDotVisible
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
-class UniversalFirewallSettingsActivity :
-    AppCompatActivity(R.layout.activity_universal_firewall_settings) {
-    private val b by viewBinding(ActivityUniversalFirewallSettingsBinding::bind)
+class UniversalFirewallSettingsActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()
     private val connTrackerRepository by inject<ConnectionTrackerRepository>()
 
-    private var blockedUniversalRules : List<ConnectionTracker> = emptyList()
+    private var blockedUniversalRules: List<ConnectionTracker> = emptyList()
+    private var stats by mutableStateOf<List<StatEntry>>(emptyList())
+    private var isLoadingStats by mutableStateOf(true)
+
+    private var blockWhenDeviceLocked by mutableStateOf(false)
+    private var blockAppWhenBackground by mutableStateOf(false)
+    private var udpBlocked by mutableStateOf(false)
+    private var blockUnknownConnections by mutableStateOf(false)
+    private var disallowDnsBypass by mutableStateOf(false)
+    private var blockNewApp by mutableStateOf(false)
+    private var blockMeteredConnections by mutableStateOf(false)
+    private var blockHttpConnections by mutableStateOf(false)
+    private var universalLockdown by mutableStateOf(false)
+    private var showPermissionDialog by mutableStateOf(false)
 
     companion object {
         const val RULES_SEARCH_ID = "R:"
@@ -80,7 +115,14 @@ class UniversalFirewallSettingsActivity :
             controller.isAppearanceLightNavigationBars = false
             window.isNavigationBarContrastEnforced = false
         }
-        init()
+        syncToggleStates()
+        loadStats()
+
+        setContent {
+            RethinkTheme {
+                UniversalFirewallScreen()
+            }
+        }
     }
 
     private fun Context.isDarkThemeOn(): Boolean {
@@ -88,152 +130,67 @@ class UniversalFirewallSettingsActivity :
             Configuration.UI_MODE_NIGHT_YES
     }
 
-    private fun init() {
-        b.firewallAllAppsCheck.isChecked = persistentState.getBlockWhenDeviceLocked()
-        b.firewallBackgroundModeCheck.isChecked = persistentState.getBlockAppWhenBackground()
-        b.firewallUdpConnectionModeCheck.isChecked = persistentState.getUdpBlocked()
-        b.firewallUnknownConnectionModeCheck.isChecked =
-            persistentState.getBlockUnknownConnections()
-        b.firewallDisallowDnsBypassModeCheck.isChecked = persistentState.getDisallowDnsBypass()
-        b.firewallBlockNewAppCheck.isChecked = persistentState.getBlockNewlyInstalledApp()
-        b.firewallBlockMeteredCheck.isChecked = persistentState.getBlockMeteredConnections()
-        // now, the firewall rule (block ipv4 in ipv6) is hidden from user action.
-        // decide whether we need to add this back in universal settings
-        // uncomment the below code if enabled
-        // includeView.firewallCheckIpv4Check.isChecked = persistentState.filterIpv4inIpv6
-        b.firewallBlockHttpCheck.isChecked = persistentState.getBlockHttpConnections()
-        b.firewallUnivLockdownCheck.isChecked = persistentState.getUniversalLockdown()
-
-        setupClickListeners()
-        updateStats()
+    override fun onResume() {
+        super.onResume()
+        syncToggleStates()
+        checkAppNotInUseRule()
+        loadStats()
     }
 
-    private fun setupClickListeners() {
-        b.firewallAllAppsCheck.setOnCheckedChangeListener { _, checked ->
-            persistentState.setBlockWhenDeviceLocked(checked)
-            logEvent("Univ firewall device locked mode changed toggled to $checked")
-        }
-
-        b.firewallAllAppsTxt.setOnClickListener {
-            b.firewallAllAppsCheck.isChecked = !b.firewallAllAppsCheck.isChecked
-        }
-
-        b.firewallUnknownConnectionModeCheck.setOnCheckedChangeListener {
-            _: CompoundButton,
-            checked: Boolean ->
-            persistentState.setBlockUnknownConnections(checked)
-            logEvent("Univ firewall unknown connection mode changed toggled to $checked")
-        }
-
-        b.firewallUnknownConnectionModeTxt.setOnClickListener {
-            b.firewallUnknownConnectionModeCheck.isChecked =
-                !b.firewallUnknownConnectionModeCheck.isChecked
-        }
-
-        b.firewallUdpConnectionModeCheck.setOnCheckedChangeListener {
-            _: CompoundButton,
-            checked: Boolean ->
-            persistentState.setUdpBlocked(checked)
-            logEvent("Univ firewall UDP connection mode changed toggled to $checked")
-        }
-
-        b.firewallUdpConnectionModeTxt.setOnClickListener {
-            b.firewallUdpConnectionModeCheck.isChecked = !b.firewallUdpConnectionModeCheck.isChecked
-        }
-
-        // Background mode toggle
-        b.firewallBackgroundModeTxt.setOnClickListener {
-            recheckFirewallBackgroundMode(!b.firewallBackgroundModeCheck.isChecked)
-        }
-
-        b.firewallBackgroundModeCheck.setOnCheckedChangeListener(null)
-        b.firewallBackgroundModeCheck.setOnClickListener {
-            // In this case, the isChecked property of the switch would have already flipped.
-            recheckFirewallBackgroundMode(b.firewallBackgroundModeCheck.isChecked)
-        }
-
-        b.firewallDisallowDnsBypassModeCheck.setOnCheckedChangeListener { _, checked ->
-            persistentState.setDisallowDnsBypass(checked)
-            logEvent("Univ firewall DNS bypass mode changed toggled to $checked")
-        }
-
-        b.firewallDisallowDnsBypassModeTxt.setOnClickListener {
-            b.firewallDisallowDnsBypassModeCheck.isChecked =
-                !b.firewallDisallowDnsBypassModeCheck.isChecked
-        }
-
-        b.firewallBlockNewAppCheck.setOnCheckedChangeListener { _, checked ->
-            persistentState.setBlockNewlyInstalledApp(checked)
-            logEvent("Univ firewall new app block mode changed toggled to $checked")
-        }
-
-        b.firewallBlockNewAppTxt.setOnClickListener {
-            b.firewallBlockNewAppCheck.isChecked = !b.firewallBlockNewAppCheck.isChecked
-        }
-
-        // now, the firewall rule (block ipv4 in ipv6) is hidden from user action.
-        // decide whether we need to add this back in universal settings
-        // uncomment the below code if enabled
-
-        /* includeView.firewallCheckIpv4Check.setOnCheckedChangeListener { _, b ->
-            persistentState.filterIpv4inIpv6 = b
-        }
-
-        includeView.firewallCheckIpv4Txt.setOnClickListener {
-            toggle(includeView.firewallCheckIpv4Check, persistentState::filterIpv4inIpv6)
-        } */
-
-        b.firewallBlockHttpCheck.setOnCheckedChangeListener { _, checked ->
-            persistentState.setBlockHttpConnections(checked)
-            logEvent("Univ firewall HTTP block mode changed toggled to $checked")
-        }
-
-        b.firewallBlockHttpTxt.setOnClickListener {
-            b.firewallBlockHttpCheck.isChecked = !b.firewallBlockHttpCheck.isChecked
-        }
-
-        b.firewallBlockMeteredCheck.setOnCheckedChangeListener { _, b ->
-            persistentState.setBlockMeteredConnections(b)
-            logEvent("Univ firewall metered connection block mode changed toggled to $b")
-        }
-
-        b.firewallBlockMeteredTxt.setOnClickListener {
-            b.firewallBlockMeteredCheck.isChecked = !b.firewallBlockMeteredCheck.isChecked
-        }
-
-        b.firewallUnivLockdownCheck.setOnCheckedChangeListener { _, b ->
-            persistentState.setUniversalLockdown(b)
-            logEvent("Univ firewall universal lockdown mode changed toggled to $b")
-        }
-
-        b.firewallUnivLockdownTxt.setOnClickListener {
-            b.firewallUnivLockdownCheck.isChecked = !b.firewallUnivLockdownCheck.isChecked
-        }
-
-        // click listener for the stats
-        b.firewallDeviceLockedRl.setOnClickListener { startActivity(FirewallRuleset.RULE3.id) }
-
-        b.firewallNotInUseRl.setOnClickListener { startActivity(FirewallRuleset.RULE4.id) }
-
-        b.firewallUnknownRl.setOnClickListener { startActivity(FirewallRuleset.RULE5.id) }
-
-        b.firewallUdpRl.setOnClickListener { startActivity(FirewallRuleset.RULE6.id) }
-
-        b.firewallDnsBypassRl.setOnClickListener { startActivity(FirewallRuleset.RULE7.id) }
-
-        b.firewallNewAppRl.setOnClickListener { startActivity(FirewallRuleset.RULE1B.id) }
-
-        b.firewallMeteredRl.setOnClickListener { startActivity(FirewallRuleset.RULE1F.id) }
-
-        b.firewallHttpRl.setOnClickListener { startActivity(FirewallRuleset.RULE10.id) }
-
-        b.firewallLockdownRl.setOnClickListener { startActivity(FirewallRuleset.RULE11.id) }
+    private fun syncToggleStates() {
+        blockWhenDeviceLocked = persistentState.getBlockWhenDeviceLocked()
+        blockAppWhenBackground = persistentState.getBlockAppWhenBackground()
+        udpBlocked = persistentState.getUdpBlocked()
+        blockUnknownConnections = persistentState.getBlockUnknownConnections()
+        disallowDnsBypass = persistentState.getDisallowDnsBypass()
+        blockNewApp = persistentState.getBlockNewlyInstalledApp()
+        blockMeteredConnections = persistentState.getBlockMeteredConnections()
+        blockHttpConnections = persistentState.getBlockHttpConnections()
+        universalLockdown = persistentState.getUniversalLockdown()
     }
 
-    private fun recheckFirewallBackgroundMode(isChecked: Boolean) {
-        if (!isChecked) {
-            b.firewallBackgroundModeCheck.isChecked = false
+    private fun checkAppNotInUseRule() {
+        if (!persistentState.getBlockAppWhenBackground()) return
+
+        val isAccessibilityServiceRunning =
+            Utilities.isAccessibilityServiceEnabled(
+                this,
+                BackgroundAccessibilityService::class.java
+            )
+        val isAccessibilityServiceEnabled =
+            Utilities.isAccessibilityServiceEnabledViaSettingsSecure(
+                this,
+                BackgroundAccessibilityService::class.java
+            )
+
+        Napier.d(
+            "backgroundEnabled? ${persistentState.getBlockAppWhenBackground()}, isServiceEnabled? $isAccessibilityServiceEnabled, isServiceRunning? $isAccessibilityServiceRunning"
+        )
+        val isAccessibilityServiceFunctional =
+            isAccessibilityServiceRunning && isAccessibilityServiceEnabled
+
+        if (!isAccessibilityServiceFunctional) {
             persistentState.setBlockAppWhenBackground(false)
+            blockAppWhenBackground = false
+            Utilities.showToastUiCentered(
+                this,
+                getString(R.string.accessibility_failure_toast),
+                Toast.LENGTH_SHORT
+            )
+            return
+        }
+
+        if (isAccessibilityServiceRunning) {
+            blockAppWhenBackground = persistentState.getBlockAppWhenBackground()
+            return
+        }
+    }
+
+    private fun handleBackgroundToggle(enabled: Boolean) {
+        if (!enabled) {
+            blockAppWhenBackground = false
+            persistentState.setBlockAppWhenBackground(false)
+            logEvent("Univ firewall background mode changed toggled to false")
             return
         }
 
@@ -251,93 +208,16 @@ class UniversalFirewallSettingsActivity :
             isAccessibilityServiceRunning && isAccessibilityServiceEnabled
 
         if (isAccessibilityServiceFunctional) {
+            blockAppWhenBackground = true
             persistentState.setBlockAppWhenBackground(true)
-            logEvent("Univ firewall background mode changed toggled to $isChecked")
-            b.firewallBackgroundModeCheck.isChecked = true
+            logEvent("Univ firewall background mode changed toggled to true")
             return
         }
 
-        showPermissionAlert()
-        b.firewallBackgroundModeCheck.isChecked = false
+        showPermissionDialog = true
+        blockAppWhenBackground = false
         persistentState.setBlockAppWhenBackground(false)
-        logEvent("Univ firewall background mode change to $isChecked failed due to accessibility service not enabled")
-    }
-
-    override fun onResume() {
-        super.onResume()
-        updateUniversalFirewallPreferences()
-    }
-
-    private fun updateUniversalFirewallPreferences() {
-        b.firewallAllAppsCheck.isChecked = persistentState.getBlockWhenDeviceLocked()
-        b.firewallBackgroundModeCheck.isChecked = persistentState.getBlockAppWhenBackground()
-        b.firewallUdpConnectionModeCheck.isChecked = persistentState.getUdpBlocked()
-        b.firewallUnknownConnectionModeCheck.isChecked =
-            persistentState.getBlockUnknownConnections()
-        checkAppNotInUseRule()
-    }
-
-    private fun checkAppNotInUseRule() {
-        if (!persistentState.getBlockAppWhenBackground()) return
-
-        val isAccessibilityServiceRunning =
-            Utilities.isAccessibilityServiceEnabled(
-                this,
-                BackgroundAccessibilityService::class.java
-            )
-        val isAccessibilityServiceEnabled =
-            Utilities.isAccessibilityServiceEnabledViaSettingsSecure(
-                this,
-                BackgroundAccessibilityService::class.java
-            )
-
-        Logger.d(
-            LOG_TAG_FIREWALL,
-            "backgroundEnabled? ${persistentState.getBlockAppWhenBackground()}, isServiceEnabled? $isAccessibilityServiceEnabled, isServiceRunning? $isAccessibilityServiceRunning"
-        )
-        val isAccessibilityServiceFunctional =
-            isAccessibilityServiceRunning && isAccessibilityServiceEnabled
-
-        if (!isAccessibilityServiceFunctional) {
-            persistentState.setBlockAppWhenBackground(false)
-            b.firewallBackgroundModeCheck.isChecked = false
-            Utilities.showToastUiCentered(
-                this,
-                getString(R.string.accessibility_failure_toast),
-                Toast.LENGTH_SHORT
-            )
-            return
-        }
-
-        if (isAccessibilityServiceRunning) {
-            b.firewallBackgroundModeCheck.isChecked = persistentState.getBlockAppWhenBackground()
-            return
-        }
-    }
-
-    private var maxValue: Double = 0.0
-
-    private fun calculatePercentage(c: Double): Int {
-        if (maxValue == 0.0) return 0
-        if (c > maxValue) {
-            maxValue = c
-            return 100
-        }
-        val percentage = (c / maxValue) * 100
-        return percentage.toInt()
-    }
-
-    private fun showPermissionAlert() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.alert_permission_accessibility)
-        builder.setMessage(R.string.alert_firewall_accessibility_explanation)
-        builder.setPositiveButton(getString(R.string.univ_accessibility_dialog_positive)) { _, _ ->
-            openAccessibilitySettings()
-        }
-        builder.setNegativeButton(getString(R.string.univ_accessibility_dialog_negative)) { _, _ ->
-        }
-        builder.setCancelable(false)
-        builder.create().show()
+        logEvent("Univ firewall background mode change to true failed due to accessibility service not enabled")
     }
 
     private fun openAccessibilitySettings() {
@@ -350,11 +230,12 @@ class UniversalFirewallSettingsActivity :
                 getString(R.string.alert_firewall_accessibility_exception),
                 Toast.LENGTH_SHORT
             )
-            Logger.e(LOG_TAG_FIREWALL, "Failure accessing accessibility settings: ${e.message}", e)
+            Napier.e("Failure accessing accessibility settings: ${e.message}", e)
         }
     }
 
-    private fun updateStats() {
+    private fun loadStats() {
+        isLoadingStats = true
         io {
             // get stats for all the firewall rules
             // update the UI with the stats
@@ -400,48 +281,31 @@ class UniversalFirewallSettingsActivity :
                     universalLockdown.size
                 )
 
-            maxValue = blockedCountList.maxOrNull()?.toDouble() ?: 0.0
+            val maxValue = blockedCountList.maxOrNull()?.toDouble() ?: 0.0
+
+            val updatedStats = listOf(
+                StatEntry(FirewallRuleset.RULE3.id, deviceLocked.size, calculatePercentage(deviceLocked.size, maxValue)),
+                StatEntry(FirewallRuleset.RULE4.id, backgroundMode.size, calculatePercentage(backgroundMode.size, maxValue)),
+                StatEntry(FirewallRuleset.RULE5.id, unknown.size, calculatePercentage(unknown.size, maxValue)),
+                StatEntry(FirewallRuleset.RULE6.id, udp.size, calculatePercentage(udp.size, maxValue)),
+                StatEntry(FirewallRuleset.RULE7.id, dnsBypass.size, calculatePercentage(dnsBypass.size, maxValue)),
+                StatEntry(FirewallRuleset.RULE1B.id, newApp.size, calculatePercentage(newApp.size, maxValue)),
+                StatEntry(FirewallRuleset.RULE1F.id, metered.size, calculatePercentage(metered.size, maxValue)),
+                StatEntry(FirewallRuleset.RULE10.id, http.size, calculatePercentage(http.size, maxValue)),
+                StatEntry(FirewallRuleset.RULE11.id, universalLockdown.size, calculatePercentage(universalLockdown.size, maxValue))
+            )
 
             uiCtx {
-                b.firewallDeviceLockedShimmerLayout.postDelayed(
-                    {
-                        if (!canPerformUiAction()) return@postDelayed
-
-                        stopShimmer()
-                        hideShimmer()
-
-                        b.deviceLockedProgress.progress =
-                            calculatePercentage(blockedCountList[0].toDouble())
-                        b.notInUseProgress.progress =
-                            calculatePercentage(blockedCountList[1].toDouble())
-                        b.unknownProgress.progress =
-                            calculatePercentage(blockedCountList[2].toDouble())
-                        b.udpProgress.progress = calculatePercentage(blockedCountList[3].toDouble())
-                        b.dnsBypassProgress.progress =
-                            calculatePercentage(blockedCountList[4].toDouble())
-                        b.newAppProgress.progress =
-                            calculatePercentage(blockedCountList[5].toDouble())
-                        b.meteredProgress.progress =
-                            calculatePercentage(blockedCountList[6].toDouble())
-                        b.httpProgress.progress =
-                            calculatePercentage(blockedCountList[7].toDouble())
-                        b.lockdownProgress.progress =
-                            calculatePercentage(blockedCountList[8].toDouble())
-
-                        b.firewallDeviceLockedStats.text = deviceLocked.size.toString()
-                        b.firewallNotInUseStats.text = backgroundMode.size.toString()
-                        b.firewallUnknownStats.text = unknown.size.toString()
-                        b.firewallUdpStats.text = udp.size.toString()
-                        b.firewallDnsBypassStats.text = dnsBypass.size.toString()
-                        b.firewallNewAppStats.text = newApp.size.toString()
-                        b.firewallMeteredStats.text = metered.size.toString()
-                        b.firewallHttpStats.text = http.size.toString()
-                        b.firewallLockdownStats.text = universalLockdown.size.toString()
-                    },
-                    500
-                )
+                if (!canPerformUiAction()) return@uiCtx
+                stats = updatedStats
+                isLoadingStats = false
             }
         }
+    }
+
+    private fun calculatePercentage(count: Int, maxValue: Double): Int {
+        if (maxValue == 0.0) return 0
+        return ((count / maxValue) * 100).toInt()
     }
 
     private fun canPerformUiAction(): Boolean {
@@ -451,44 +315,11 @@ class UniversalFirewallSettingsActivity :
             !isChangingConfigurations
     }
 
-    override fun onPause() {
-        super.onPause()
-        stopShimmer()
-    }
-
-    private fun stopShimmer() {
-        if (!canPerformUiAction()) return
-
-        b.firewallUdpShimmerLayout.stopShimmer()
-        b.firewallDeviceLockedShimmerLayout.stopShimmer()
-        b.firewallNotInUseShimmerLayout.stopShimmer()
-        b.firewallUnknownShimmerLayout.stopShimmer()
-        b.firewallDnsBypassShimmerLayout.stopShimmer()
-        b.firewallNewAppShimmerLayout.stopShimmer()
-        b.firewallMeteredShimmerLayout.stopShimmer()
-        b.firewallHttpShimmerLayout.stopShimmer()
-        b.firewallLockdownShimmerLayout.stopShimmer()
-    }
-
-    private fun hideShimmer() {
-        if (!canPerformUiAction()) return
-
-        b.firewallUdpShimmerLayout.visibility = View.GONE
-        b.firewallDeviceLockedShimmerLayout.visibility = View.GONE
-        b.firewallNotInUseShimmerLayout.visibility = View.GONE
-        b.firewallUnknownShimmerLayout.visibility = View.GONE
-        b.firewallDnsBypassShimmerLayout.visibility = View.GONE
-        b.firewallNewAppShimmerLayout.visibility = View.GONE
-        b.firewallMeteredShimmerLayout.visibility = View.GONE
-        b.firewallHttpShimmerLayout.visibility = View.GONE
-        b.firewallLockdownShimmerLayout.visibility = View.GONE
-    }
-
     private fun startActivity(rule: String?) {
         if (rule.isNullOrEmpty()) return
 
         // if the rules are not blocked, then no need to start the activity
-        val size = blockedUniversalRules.filter { it.blockedByRule.contains(rule) }.size
+        val size = stats.firstOrNull { it.ruleId == rule }?.count ?: 0
         if (size == 0) return
 
         val intent = Intent(this, NetworkLogsActivity::class.java)
@@ -501,6 +332,260 @@ class UniversalFirewallSettingsActivity :
         eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, "Univ firewall setting", EventSource.UI, false, details)
     }
 
+    @Composable
+    private fun UniversalFirewallScreen() {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 16.dp)
+        ) {
+            SectionHeader(
+                title = stringResourceCompat(R.string.firewall_act_universal_tab),
+                description = stringResourceCompat(R.string.universal_firewall_explanation)
+            )
+            ToggleWithStats(
+                iconRes = R.drawable.ic_device_lock,
+                label = stringResourceCompat(R.string.univ_firewall_rule_1),
+                checked = blockWhenDeviceLocked,
+                onCheckedChange = {
+                    blockWhenDeviceLocked = it
+                    persistentState.setBlockWhenDeviceLocked(it)
+                    logEvent("Univ firewall device locked mode changed toggled to $it")
+                },
+                stats = statsFor(FirewallRuleset.RULE3.id),
+                loading = isLoadingStats,
+                onStatsClick = { startActivity(FirewallRuleset.RULE3.id) }
+            )
+            ToggleWithStats(
+                iconRes = R.drawable.ic_foreground,
+                label = stringResourceCompat(R.string.univ_firewall_rule_2),
+                checked = blockAppWhenBackground,
+                onCheckedChange = { handleBackgroundToggle(it) },
+                stats = statsFor(FirewallRuleset.RULE4.id),
+                loading = isLoadingStats,
+                onStatsClick = { startActivity(FirewallRuleset.RULE4.id) }
+            )
+            ToggleWithStats(
+                iconRes = R.drawable.ic_unknown_app,
+                label = stringResourceCompat(R.string.univ_firewall_rule_3),
+                checked = blockUnknownConnections,
+                onCheckedChange = {
+                    blockUnknownConnections = it
+                    persistentState.setBlockUnknownConnections(it)
+                    logEvent("Univ firewall unknown connection mode changed toggled to $it")
+                },
+                stats = statsFor(FirewallRuleset.RULE5.id),
+                loading = isLoadingStats,
+                onStatsClick = { startActivity(FirewallRuleset.RULE5.id) }
+            )
+            ToggleWithStats(
+                iconRes = R.drawable.ic_udp,
+                label = stringResourceCompat(R.string.univ_firewall_rule_4),
+                checked = udpBlocked,
+                onCheckedChange = {
+                    udpBlocked = it
+                    persistentState.setUdpBlocked(it)
+                    logEvent("Univ firewall UDP connection mode changed toggled to $it")
+                },
+                stats = statsFor(FirewallRuleset.RULE6.id),
+                loading = isLoadingStats,
+                onStatsClick = { startActivity(FirewallRuleset.RULE6.id) }
+            )
+            ToggleWithStats(
+                iconRes = R.drawable.ic_prevent_dns_leaks,
+                label = stringResourceCompat(R.string.univ_firewall_rule_5),
+                checked = disallowDnsBypass,
+                onCheckedChange = {
+                    disallowDnsBypass = it
+                    persistentState.setDisallowDnsBypass(it)
+                    logEvent("Univ firewall DNS bypass mode changed toggled to $it")
+                },
+                stats = statsFor(FirewallRuleset.RULE7.id),
+                loading = isLoadingStats,
+                onStatsClick = { startActivity(FirewallRuleset.RULE7.id) }
+            )
+            ToggleWithStats(
+                iconRes = R.drawable.ic_app_info,
+                label = stringResourceCompat(R.string.univ_firewall_rule_6),
+                checked = blockNewApp,
+                onCheckedChange = {
+                    blockNewApp = it
+                    persistentState.setBlockNewlyInstalledApp(it)
+                    logEvent("Univ firewall new app block mode changed toggled to $it")
+                },
+                stats = statsFor(FirewallRuleset.RULE1B.id),
+                loading = isLoadingStats,
+                onStatsClick = { startActivity(FirewallRuleset.RULE1B.id) }
+            )
+            ToggleWithStats(
+                iconRes = R.drawable.ic_univ_metered,
+                label = stringResourceCompat(R.string.univ_firewall_rule_9),
+                checked = blockMeteredConnections,
+                onCheckedChange = {
+                    blockMeteredConnections = it
+                    persistentState.setBlockMeteredConnections(it)
+                    logEvent("Univ firewall metered connection block mode changed toggled to $it")
+                },
+                stats = statsFor(FirewallRuleset.RULE1F.id),
+                loading = isLoadingStats,
+                onStatsClick = { startActivity(FirewallRuleset.RULE1F.id) }
+            )
+            ToggleWithStats(
+                iconRes = R.drawable.ic_http,
+                label = stringResourceCompat(R.string.univ_firewall_rule_8),
+                checked = blockHttpConnections,
+                onCheckedChange = {
+                    blockHttpConnections = it
+                    persistentState.setBlockHttpConnections(it)
+                    logEvent("Univ firewall HTTP block mode changed toggled to $it")
+                },
+                stats = statsFor(FirewallRuleset.RULE10.id),
+                loading = isLoadingStats,
+                onStatsClick = { startActivity(FirewallRuleset.RULE10.id) }
+            )
+            ToggleWithStats(
+                iconRes = R.drawable.ic_global_lockdown,
+                label = stringResourceCompat(R.string.univ_firewall_rule_10),
+                checked = universalLockdown,
+                onCheckedChange = {
+                    universalLockdown = it
+                    persistentState.setUniversalLockdown(it)
+                    logEvent("Univ firewall universal lockdown mode changed toggled to $it")
+                },
+                stats = statsFor(FirewallRuleset.RULE11.id),
+                loading = isLoadingStats,
+                onStatsClick = { startActivity(FirewallRuleset.RULE11.id) }
+            )
+        }
+
+        if (showPermissionDialog) {
+            AlertDialog(
+                onDismissRequest = { showPermissionDialog = false },
+                title = { Text(text = stringResourceCompat(R.string.alert_permission_accessibility)) },
+                text = { Text(text = stringResourceCompat(R.string.alert_firewall_accessibility_explanation)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showPermissionDialog = false
+                            openAccessibilitySettings()
+                        }
+                    ) {
+                        Text(text = stringResourceCompat(R.string.univ_accessibility_dialog_positive))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showPermissionDialog = false }) {
+                        Text(text = stringResourceCompat(R.string.univ_accessibility_dialog_negative))
+                    }
+                }
+            )
+        }
+    }
+
+    @Composable
+    private fun SectionHeader(title: String, description: String) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(start = 16.dp, top = 16.dp)
+        )
+        Text(
+            text = description,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+        )
+    }
+
+    @Composable
+    private fun ToggleWithStats(
+        iconRes: Int,
+        label: String,
+        checked: Boolean,
+        onCheckedChange: (Boolean) -> Unit,
+        stats: StatEntry?,
+        loading: Boolean,
+        onStatsClick: () -> Unit
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onCheckedChange(!checked) }
+                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(iconRes),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f)
+                )
+                Switch(
+                    checked = checked,
+                    onCheckedChange = { onCheckedChange(it) }
+                )
+            }
+            StatsRow(
+                stats = stats,
+                loading = loading,
+                onClick = onStatsClick
+            )
+        }
+    }
+
+    @Composable
+    private fun StatsRow(
+        stats: StatEntry?,
+        loading: Boolean,
+        onClick: () -> Unit
+    ) {
+        val countText = if (loading || stats == null) "-" else stats.count.toString()
+        val progressValue = if (loading || stats == null) 0.1f else stats.percent / 100f
+        val enabled = (stats?.count ?: 0) > 0
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 56.dp, end = 16.dp, bottom = 12.dp)
+                .clickable(enabled = enabled) { onClick() },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            LinearProgressIndicator(
+                progress = { progressValue },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(4.dp),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+            )
+            Text(
+                text = countText,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_right_arrow_white),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+
+    private fun statsFor(ruleId: String): StatEntry? {
+        return stats.firstOrNull { it.ruleId == ruleId }
+    }
+
     private fun io(f: suspend () -> Unit): Job {
         return lifecycleScope.launch(Dispatchers.IO) { f() }
     }
@@ -508,4 +593,20 @@ class UniversalFirewallSettingsActivity :
     private suspend fun uiCtx(f: suspend () -> Unit) {
         withContext(Dispatchers.Main) { f() }
     }
+
+    @Composable
+    private fun stringResourceCompat(id: Int, vararg args: Any): String {
+        val context = LocalContext.current
+        return if (args.isNotEmpty()) {
+            context.getString(id, *args)
+        } else {
+            context.getString(id)
+        }
+    }
+
+    private data class StatEntry(
+        val ruleId: String,
+        val count: Int,
+        val percent: Int
+    )
 }
