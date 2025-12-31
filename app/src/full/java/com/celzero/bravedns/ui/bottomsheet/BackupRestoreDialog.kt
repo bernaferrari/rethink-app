@@ -15,8 +15,6 @@
  */
 package com.celzero.bravedns.ui.bottomsheet
 
-import Logger
-import Logger.LOG_TAG_BACKUP_RESTORE
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -24,11 +22,38 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
-import android.view.LayoutInflater
-import android.view.View
 import android.widget.Toast
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.ActivityResultLauncher
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.work.BackoffPolicy
@@ -49,24 +74,22 @@ import com.celzero.bravedns.backup.BackupHelper.Companion.INTENT_RESTART_APP
 import com.celzero.bravedns.backup.BackupHelper.Companion.INTENT_TYPE_OCTET
 import com.celzero.bravedns.backup.BackupHelper.Companion.INTENT_TYPE_XZIP
 import com.celzero.bravedns.backup.RestoreAgent
-import com.celzero.bravedns.databinding.ActivityBackupRestoreBinding
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
+import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.delay
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import io.github.aakira.napier.Napier
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
 class BackupRestoreDialog(
     private val activity: androidx.fragment.app.FragmentActivity,
@@ -74,13 +97,24 @@ class BackupRestoreDialog(
     private val restoreLauncher: ActivityResultLauncher<Intent>,
     private val onDismiss: () -> Unit
 ) : KoinComponent {
-    private val b = ActivityBackupRestoreBinding.inflate(LayoutInflater.from(activity))
     private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
 
+    private var versionText by mutableStateOf("")
+    private var showBackupDialog by mutableStateOf(false)
+    private var showRestoreDialog by mutableStateOf(false)
+    private var showBackupFailureDialog by mutableStateOf(false)
+    private var showRestoreFailureDialog by mutableStateOf(false)
+
     init {
-        dialog.setContentView(b.root)
+        val composeView = ComposeView(activity)
+        composeView.setContent {
+            RethinkTheme {
+                BackupRestoreContent()
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.setOnShowListener {
             dialog.useTransparentNoDimBackground()
             dialog.window?.let { window ->
@@ -104,17 +138,14 @@ class BackupRestoreDialog(
             Activity.RESULT_OK -> {
                 var backupFileUri: Uri? = null
                 result.data?.also { uri -> backupFileUri = uri.data }
-                Logger.i(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "activity result for backup process with uri: $backupFileUri"
-                )
+                Napier.i("activity result for backup process with uri: $backupFileUri")
                 startBackupProcess(backupFileUri)
             }
             Activity.RESULT_CANCELED -> {
-                showBackupFailureDialog()
+                showBackupFailureDialog = true
             }
             else -> {
-                showBackupFailureDialog()
+                showBackupFailureDialog = true
             }
         }
     }
@@ -124,17 +155,14 @@ class BackupRestoreDialog(
             Activity.RESULT_OK -> {
                 var fileUri: Uri? = null
                 result.data?.also { uri -> fileUri = uri.data }
-                Logger.i(
-                    LOG_TAG_BACKUP_RESTORE,
-                    "activity result for restore process with uri: $fileUri"
-                )
+                Napier.i("activity result for restore process with uri: $fileUri")
                 startRestoreProcess(fileUri)
             }
             Activity.RESULT_CANCELED -> {
-                showRestoreFailureDialog()
+                showRestoreFailureDialog = true
             }
             else -> {
-                showRestoreFailureDialog()
+                showRestoreFailureDialog = true
             }
         }
     }
@@ -148,14 +176,191 @@ class BackupRestoreDialog(
 
     private fun init() {
         showVersion()
-        b.brbsBackup.setOnClickListener { showBackupDialog() }
-        b.brbsRestore.setOnClickListener { showRestoreDialog() }
+    }
+
+    @Composable
+    private fun BackupRestoreContent() {
+        val borderColor = Color(UIUtils.fetchColor(activity, R.attr.border))
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Box(
+                modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                        .width(60.dp)
+                        .height(3.dp)
+                        .background(borderColor, RoundedCornerShape(2.dp))
+            )
+
+            Text(
+                text = activity.getString(R.string.brbs_title),
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+
+            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+                ActionRow(
+                    icon = R.drawable.ic_backup,
+                    title = activity.getString(R.string.brbs_backup_title),
+                    description = activity.getString(R.string.brbs_backup_desc)
+                ) {
+                    showBackupDialog = true
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+                ActionRow(
+                    icon = R.drawable.ic_restore,
+                    title = activity.getString(R.string.brbs_restore_title),
+                    description = activity.getString(R.string.brbs_restore_desc)
+                ) {
+                    showRestoreDialog = true
+                }
+            }
+
+            Text(
+                text = activity.getString(R.string.brbs_backup_restore_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+            )
+
+            Text(
+                text = versionText,
+                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+            )
+        }
+
+        if (showBackupDialog) {
+            AlertDialog(
+                onDismissRequest = { showBackupDialog = false },
+                title = { Text(text = activity.getString(R.string.brbs_backup_dialog_title)) },
+                text = { Text(text = activity.getString(R.string.brbs_backup_dialog_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showBackupDialog = false
+                            backup()
+                        }
+                    ) {
+                        Text(text = activity.getString(R.string.brbs_backup_dialog_positive))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showBackupDialog = false }) {
+                        Text(text = activity.getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showRestoreDialog) {
+            AlertDialog(
+                onDismissRequest = { showRestoreDialog = false },
+                title = { Text(text = activity.getString(R.string.brbs_restore_dialog_title)) },
+                text = { Text(text = activity.getString(R.string.brbs_restore_dialog_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showRestoreDialog = false
+                            restore()
+                        }
+                    ) {
+                        Text(text = activity.getString(R.string.brbs_restore_dialog_positive))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRestoreDialog = false }) {
+                        Text(text = activity.getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showBackupFailureDialog) {
+            AlertDialog(
+                onDismissRequest = { showBackupFailureDialog = false },
+                title = { Text(text = activity.getString(R.string.brbs_backup_dialog_failure_title)) },
+                text = { Text(text = activity.getString(R.string.brbs_backup_dialog_failure_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showBackupFailureDialog = false
+                            backup()
+                        }
+                    ) {
+                        Text(text = activity.getString(R.string.brbs_backup_dialog_failure_positive))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showBackupFailureDialog = false }) {
+                        Text(text = activity.getString(R.string.lbl_dismiss))
+                    }
+                }
+            )
+        }
+
+        if (showRestoreFailureDialog) {
+            AlertDialog(
+                onDismissRequest = { showRestoreFailureDialog = false },
+                title = { Text(text = activity.getString(R.string.brbs_restore_dialog_failure_title)) },
+                text = { Text(text = activity.getString(R.string.brbs_restore_dialog_failure_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showRestoreFailureDialog = false
+                            restore()
+                        }
+                    ) {
+                        Text(text = activity.getString(R.string.brbs_restore_dialog_failure_positive))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRestoreFailureDialog = false }) {
+                        Text(text = activity.getString(R.string.lbl_dismiss))
+                    }
+                }
+            )
+        }
+    }
+
+    @Composable
+    private fun ActionRow(icon: Int, title: String, description: String, onClick: () -> Unit) {
+        Row(
+            modifier =
+                Modifier.fillMaxWidth().clickable { onClick() }.padding(vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                modifier = Modifier.size(32.dp).padding(4.dp)
+            )
+            Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
+                Text(text = title, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Image(
+                painter = painterResource(id = R.drawable.ic_right_arrow_white),
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+        }
     }
 
     private fun showVersion() {
         val version = getVersionName()
-        b.brbsAppVersion.text =
-            activity.getString(R.string.about_version_install_source, version, getDownloadSource())
+        versionText =
+            activity.getString(
+                R.string.about_version_install_source,
+                version,
+                getDownloadSource()
+            )
     }
 
     private fun getVersionName(): String {
@@ -186,7 +391,7 @@ class BackupRestoreDialog(
                 if (intent.resolveActivity(activity.packageManager) != null) {
                     backupLauncher.launch(intent)
                 } else {
-                    Logger.e(LOG_TAG_BACKUP_RESTORE, "No activity found to handle CREATE_DOCUMENT intent")
+                    Napier.e("No activity found to handle CREATE_DOCUMENT intent")
                     Utilities.showToastUiCentered(
                         activity,
                         activity.getString(R.string.brbs_backup_dialog_failure_message),
@@ -194,7 +399,7 @@ class BackupRestoreDialog(
                     )
                 }
             } catch (e: android.content.ActivityNotFoundException) {
-                Logger.e(LOG_TAG_BACKUP_RESTORE, "Activity not found for CREATE_DOCUMENT: ${e.message}")
+                Napier.e("Activity not found for CREATE_DOCUMENT: ${e.message}")
                 Utilities.showToastUiCentered(
                     activity,
                     activity.getString(R.string.brbs_backup_dialog_failure_message),
@@ -202,7 +407,7 @@ class BackupRestoreDialog(
                 )
             }
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_BACKUP_RESTORE, "err opening file picker for backup: ${e.message}")
+            Napier.e("err opening file picker for backup: ${e.message}")
             Utilities.showToastUiCentered(
                 activity,
                 activity.getString(R.string.brbs_backup_dialog_failure_message),
@@ -221,7 +426,7 @@ class BackupRestoreDialog(
 
             restoreLauncher.launch(intent)
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_BACKUP_RESTORE, "err opening file picker: ${e.message}")
+            Napier.e("err opening file picker: ${e.message}")
             Utilities.showToastUiCentered(
                 activity,
                 activity.getString(R.string.blocklist_update_check_failure),
@@ -232,12 +437,12 @@ class BackupRestoreDialog(
 
     private fun startRestoreProcess(fileUri: Uri?) {
         if (fileUri == null) {
-            Logger.w(LOG_TAG_BACKUP_RESTORE, "uri received from activity result is null, cancel restore process")
-            showRestoreFailureDialog()
+            Napier.w("uri received from activity result is null, cancel restore process")
+            showRestoreFailureDialog = true
             return
         }
 
-        Logger.i(LOG_TAG_BACKUP_RESTORE, "invoke worker to initiate the restore process")
+        Napier.i("invoke worker to initiate the restore process")
         val data = Data.Builder()
         data.putString(DATA_BUILDER_RESTORE_URI, fileUri.toString())
 
@@ -257,14 +462,14 @@ class BackupRestoreDialog(
 
     private fun startBackupProcess(backupUri: Uri?) {
         if (backupUri == null) {
-            Logger.w(LOG_TAG_BACKUP_RESTORE, "uri received from activity result is null, cancel backup process")
-            showBackupFailureDialog()
+            Napier.w("uri received from activity result is null, cancel backup process")
+            showBackupFailureDialog = true
             return
         }
 
         BackupHelper.stopVpn(activity)
 
-        Logger.i(LOG_TAG_BACKUP_RESTORE, "invoke worker to initiate the backup process")
+        Napier.i("invoke worker to initiate the backup process")
         val data = Data.Builder()
         data.putString(DATA_BUILDER_BACKUP_URI, backupUri.toString())
         val downloadWatcher =
@@ -287,17 +492,14 @@ class BackupRestoreDialog(
         workManager.getWorkInfosByTagLiveData(BackupAgent.TAG).observe(activity) { workInfoList ->
             val workInfo = workInfoList?.getOrNull(0) ?: return@observe
 
-            Logger.i(
-                LOG_TAG_BACKUP_RESTORE,
-                "WorkManager state: ${workInfo.state} for ${BackupAgent.TAG}"
-            )
+            Napier.i("WorkManager state: ${workInfo.state} for ${BackupAgent.TAG}")
             when (workInfo.state) {
                 WorkInfo.State.SUCCEEDED -> {
                     showBackupSuccessUi()
                     workManager.pruneWork()
                 }
                 WorkInfo.State.CANCELLED, WorkInfo.State.FAILED -> {
-                    showBackupFailureDialog()
+                    showBackupFailureDialog = true
                     workManager.pruneWork()
                     workManager.cancelAllWorkByTag(BackupAgent.TAG)
                 }
@@ -313,10 +515,7 @@ class BackupRestoreDialog(
 
         workManager.getWorkInfosByTagLiveData(RestoreAgent.TAG).observe(activity) { workInfoList ->
             val workInfo = workInfoList?.getOrNull(0) ?: return@observe
-            Logger.i(
-                LOG_TAG_BACKUP_RESTORE,
-                "WorkManager state: ${workInfo.state} for ${RestoreAgent.TAG}"
-            )
+            Napier.i("WorkManager state: ${workInfo.state} for ${RestoreAgent.TAG}")
             if (WorkInfo.State.SUCCEEDED == workInfo.state) {
                 showRestoreSuccessUi()
                 workManager.pruneWork()
@@ -324,28 +523,11 @@ class BackupRestoreDialog(
                 WorkInfo.State.CANCELLED == workInfo.state ||
                     WorkInfo.State.FAILED == workInfo.state
             ) {
-                showRestoreFailureDialog()
+                showRestoreFailureDialog = true
                 workManager.pruneWork()
                 workManager.cancelAllWorkByTag(RestoreAgent.TAG)
             }
         }
-    }
-
-    private fun showBackupFailureDialog() {
-        val builder = MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.brbs_backup_dialog_failure_title)
-        builder.setMessage(R.string.brbs_backup_dialog_failure_message)
-        builder.setPositiveButton(activity.getString(R.string.brbs_backup_dialog_failure_positive)) { _, _ ->
-            backup()
-            observeBackupWorker()
-        }
-
-        builder.setNegativeButton(activity.getString(R.string.lbl_dismiss)) { _, _ ->
-            // no-op
-        }
-
-        builder.setCancelable(true)
-        builder.create().show()
     }
 
     private fun showBackupSuccessUi() {
@@ -373,58 +555,5 @@ class BackupRestoreDialog(
         mainIntent.putExtra(INTENT_RESTART_APP, true)
         context.startActivity(mainIntent)
         Runtime.getRuntime().exit(0)
-    }
-
-    private fun showRestoreFailureDialog() {
-        val builder = MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.brbs_restore_dialog_failure_title)
-        builder.setMessage(R.string.brbs_restore_dialog_failure_message)
-        builder.setPositiveButton(activity.getString(R.string.brbs_restore_dialog_failure_positive)) {
-                _,
-                _ ->
-            restore()
-            observeRestoreWorker()
-        }
-
-        builder.setNegativeButton(activity.getString(R.string.lbl_dismiss)) { _, _ ->
-            // no-op
-        }
-
-        builder.setCancelable(true)
-        builder.create().show()
-    }
-
-    private fun showRestoreDialog() {
-        val builder = MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.brbs_restore_dialog_title)
-        builder.setMessage(R.string.brbs_restore_dialog_message)
-        builder.setPositiveButton(activity.getString(R.string.brbs_restore_dialog_positive)) { _, _ ->
-            restore()
-            observeRestoreWorker()
-        }
-
-        builder.setNegativeButton(activity.getString(R.string.lbl_cancel)) { _, _ ->
-            // no-op
-        }
-
-        builder.setCancelable(true)
-        builder.create().show()
-    }
-
-    private fun showBackupDialog() {
-        val builder = MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.brbs_backup_dialog_title)
-        builder.setMessage(R.string.brbs_backup_dialog_message)
-        builder.setPositiveButton(activity.getString(R.string.brbs_backup_dialog_positive)) { _, _ ->
-            backup()
-            observeBackupWorker()
-        }
-
-        builder.setNegativeButton(activity.getString(R.string.lbl_cancel)) { _, _ ->
-            // no-op
-        }
-
-        builder.setCancelable(true)
-        builder.create().show()
     }
 }
