@@ -49,7 +49,7 @@ import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.databinding.ActivityAppListBinding
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.bottomsheet.FirewallAppFilterBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.FirewallAppFilterDialog
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
@@ -826,8 +826,7 @@ class AppListActivity :
     }
 
     private fun openFilterBottomSheet() {
-        val bottomSheetFragment = FirewallAppFilterBottomSheet()
-        bottomSheetFragment.show(this.supportFragmentManager, bottomSheetFragment.tag)
+        FirewallAppFilterDialog(this).show()
     }
 
     private fun addAnimation() {

@@ -18,13 +18,12 @@ package com.celzero.bravedns.ui.bottomsheet
 import android.content.res.Configuration
 import android.graphics.PorterDuff
 import android.graphics.PorterDuffColorFilter
-import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import android.widget.CompoundButton
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
 import com.celzero.bravedns.databinding.BottomSheetFirewallSortFilterBinding
@@ -34,86 +33,81 @@ import com.celzero.bravedns.ui.activity.AppListActivity
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
-import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.chip.Chip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.android.ext.android.inject
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
 
-class FirewallAppFilterBottomSheet : BottomSheetDialogFragment() {
-    private var _binding: BottomSheetFirewallSortFilterBinding? = null
-
-    // This property is only valid between onCreateView and
-    // onDestroyView.
-    private val b
-        get() = _binding!!
+class FirewallAppFilterDialog(private val activity: FragmentActivity) : KoinComponent {
+    private val binding =
+        BottomSheetFirewallSortFilterBinding.inflate(LayoutInflater.from(activity))
+    private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
     private val filters = AppListActivity.Filters()
 
-    override fun getTheme(): Int =
-        Themes.getBottomsheetCurrentTheme(isDarkThemeOn(), persistentState.theme)
-
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        _binding = BottomSheetFirewallSortFilterBinding.inflate(inflater, container, false)
-        return b.root
-    }
-
-    override fun onStart() {
-        super.onStart()
-        dialog?.useTransparentNoDimBackground()
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        dialog?.window?.let { window ->
-            if (isAtleastQ()) {
-                val controller = WindowInsetsControllerCompat(window, window.decorView)
-                controller.isAppearanceLightNavigationBars = false
-                window.isNavigationBarContrastEnforced = false
+    init {
+        dialog.setContentView(binding.root)
+        dialog.setOnShowListener {
+            dialog.useTransparentNoDimBackground()
+            dialog.window?.let { window ->
+                if (isAtleastQ()) {
+                    val controller = WindowInsetsControllerCompat(window, window.decorView)
+                    controller.isAppearanceLightNavigationBars = false
+                    window.isNavigationBarContrastEnforced = false
+                }
             }
         }
         initView()
         initClickListeners()
     }
 
+    fun show() {
+        dialog.show()
+    }
+
+    private fun getThemeId(): Int {
+        val isDark =
+            activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+                Configuration.UI_MODE_NIGHT_YES
+        return Themes.getBottomsheetCurrentTheme(isDark, persistentState.theme)
+    }
+
     private fun initView() {
-        val f = AppListActivity.filters.value
+        val currentFilters = AppListActivity.filters.value
 
         remakeParentFilterChipsUi()
-        if (f == null) {
+        if (currentFilters == null) {
             applyParentFilter(AppListActivity.TopLevelFilter.ALL.id)
             return
-        } else {
-            this.filters.firewallFilter = f.firewallFilter
-            this.filters.categoryFilters.addAll(f.categoryFilters)
         }
 
-        applyParentFilter(f.topLevelFilter.id)
-        setFilter(f.topLevelFilter, f.categoryFilters)
+        filters.firewallFilter = currentFilters.firewallFilter
+        filters.categoryFilters.addAll(currentFilters.categoryFilters)
+
+        applyParentFilter(currentFilters.topLevelFilter.id)
+        setFilter(currentFilters.topLevelFilter, currentFilters.categoryFilters)
     }
 
     private fun initClickListeners() {
-        b.fsApply.setOnClickListener {
+        binding.fsApply.setOnClickListener {
             AppListActivity.filters.postValue(filters)
-            this.dismiss()
+            dialog.dismiss()
         }
 
-        b.fsClear.setOnClickListener {
-            val new = AppListActivity.filters.value
-            if (new == null) {
-                this.dismiss()
+        binding.fsClear.setOnClickListener {
+            val newFilters = AppListActivity.filters.value
+            if (newFilters == null) {
+                dialog.dismiss()
                 return@setOnClickListener
             }
-            new.categoryFilters.clear()
-            new.topLevelFilter = AppListActivity.TopLevelFilter.ALL
-            AppListActivity.filters.postValue(new)
-            this.dismiss()
+            newFilters.categoryFilters.clear()
+            newFilters.topLevelFilter = AppListActivity.TopLevelFilter.ALL
+            AppListActivity.filters.postValue(newFilters)
+            dialog.dismiss()
         }
     }
 
@@ -121,51 +115,48 @@ class FirewallAppFilterBottomSheet : BottomSheetDialogFragment() {
         topLevelFilter: AppListActivity.TopLevelFilter,
         categories: MutableSet<String>
     ) {
-        val topView: Chip = b.ffaParentChipGroup.findViewWithTag(topLevelFilter.id) ?: return
-        b.ffaParentChipGroup.check(topView.id)
+        val topView: Chip =
+            binding.ffaParentChipGroup.findViewWithTag(topLevelFilter.id) ?: return
+        binding.ffaParentChipGroup.check(topView.id)
         colorUpChipIcon(topView)
 
         categories.forEach {
-            val childCategory: Chip = b.ffaChipGroup.findViewWithTag(it) ?: return
-            b.ffaChipGroup.check(childCategory.id)
+            val childCategory: Chip = binding.ffaChipGroup.findViewWithTag(it) ?: return
+            binding.ffaChipGroup.check(childCategory.id)
         }
     }
 
-    private fun isDarkThemeOn(): Boolean {
-        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-            Configuration.UI_MODE_NIGHT_YES
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-    }
-
     private fun remakeParentFilterChipsUi() {
-        b.ffaParentChipGroup.removeAllViews()
+        binding.ffaParentChipGroup.removeAllViews()
 
         val all =
-            makeParentChip(AppListActivity.TopLevelFilter.ALL.id, getString(R.string.lbl_all), true)
-        val allowed =
+            makeParentChip(
+                AppListActivity.TopLevelFilter.ALL.id,
+                activity.getString(R.string.lbl_all),
+                true
+            )
+        val installed =
             makeParentChip(
                 AppListActivity.TopLevelFilter.INSTALLED.id,
-                getString(R.string.fapps_filter_parent_installed),
+                activity.getString(R.string.fapps_filter_parent_installed),
                 false
             )
-        val blocked =
+        val system =
             makeParentChip(
                 AppListActivity.TopLevelFilter.SYSTEM.id,
-                getString(R.string.fapps_filter_parent_system),
+                activity.getString(R.string.fapps_filter_parent_system),
                 false
             )
 
-        b.ffaParentChipGroup.addView(all)
-        b.ffaParentChipGroup.addView(allowed)
-        b.ffaParentChipGroup.addView(blocked)
+        binding.ffaParentChipGroup.addView(all)
+        binding.ffaParentChipGroup.addView(installed)
+        binding.ffaParentChipGroup.addView(system)
     }
 
     private fun makeParentChip(id: Int, label: String, checked: Boolean): Chip {
-        val chip = this.layoutInflater.inflate(R.layout.item_chip_filter, b.root, false) as Chip
+        val chip =
+            LayoutInflater.from(activity).inflate(R.layout.item_chip_filter, binding.root, false)
+                as Chip
         chip.tag = id
         chip.text = label
         chip.isChecked = checked
@@ -174,9 +165,6 @@ class FirewallAppFilterBottomSheet : BottomSheetDialogFragment() {
             if (isSelected) {
                 applyParentFilter(button.tag)
                 colorUpChipIcon(chip)
-            } else {
-                // no-op
-                // no action needed for checkState: false
             }
         }
 
@@ -186,7 +174,7 @@ class FirewallAppFilterBottomSheet : BottomSheetDialogFragment() {
     private fun colorUpChipIcon(chip: Chip) {
         val colorFilter =
             PorterDuffColorFilter(
-                ContextCompat.getColor(requireContext(), R.color.primaryText),
+                ContextCompat.getColor(activity, R.color.primaryText),
                 PorterDuff.Mode.SRC_IN
             )
         chip.checkedIcon?.colorFilter = colorFilter
@@ -220,19 +208,20 @@ class FirewallAppFilterBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun remakeChildFilterChipsUi(categories: List<String>) {
-        b.ffaChipGroup.removeAllViews()
+        binding.ffaChipGroup.removeAllViews()
         for (c in categories) {
             if (filters.categoryFilters.contains(c)) {
-                // if the category is already selected, check the chip
-                b.ffaChipGroup.addView(makeChildChip(c, true))
+                binding.ffaChipGroup.addView(makeChildChip(c, true))
             } else {
-                b.ffaChipGroup.addView(makeChildChip(c, false))
+                binding.ffaChipGroup.addView(makeChildChip(c, false))
             }
         }
     }
 
     private fun makeChildChip(title: String, checked: Boolean): Chip {
-        val chip = this.layoutInflater.inflate(R.layout.item_chip_filter, b.root, false) as Chip
+        val chip =
+            LayoutInflater.from(activity).inflate(R.layout.item_chip_filter, binding.root, false)
+                as Chip
         chip.text = title
         chip.tag = title
         chip.isChecked = checked
@@ -254,7 +243,7 @@ class FirewallAppFilterBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun io(f: suspend () -> Unit) {
-        lifecycleScope.launch(Dispatchers.IO) { f() }
+        activity.lifecycleScope.launch(Dispatchers.IO) { f() }
     }
 
     private suspend fun uiCtx(f: suspend () -> Unit) {

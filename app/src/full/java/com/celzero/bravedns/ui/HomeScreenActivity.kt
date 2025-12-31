@@ -100,7 +100,7 @@ import com.celzero.bravedns.ui.activity.ProxySettingsActivity
 import com.celzero.bravedns.ui.activity.TunnelSettingsActivity
 import com.celzero.bravedns.ui.activity.WelcomeActivity
 import com.celzero.bravedns.ui.activity.WgMainActivity
-import com.celzero.bravedns.ui.bottomsheet.BugReportFilesBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.BugReportFilesDialog
 import com.celzero.bravedns.ui.compose.navigation.HomeScreenRoot
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants
@@ -1427,8 +1427,7 @@ class HomeScreenActivity : AppCompatActivity() {
             return
         }
 
-        val bottomSheet = BugReportFilesBottomSheet()
-        bottomSheet.show(supportFragmentManager, "BugReportFilesBottomSheet")
+        BugReportFilesDialog(this).show()
     }
 
     private fun handleShowAppExitInfo() {
