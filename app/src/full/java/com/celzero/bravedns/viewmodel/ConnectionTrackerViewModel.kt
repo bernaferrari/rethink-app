@@ -27,7 +27,6 @@ import androidx.paging.cachedIn
 import androidx.paging.liveData
 import com.celzero.bravedns.database.ConnectionTracker
 import com.celzero.bravedns.database.ConnectionTrackerDAO
-import com.celzero.bravedns.ui.fragment.ConnectionTrackerFragment
 import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -35,6 +34,10 @@ import kotlinx.coroutines.launch
 
 class ConnectionTrackerViewModel(private val connectionTrackerDAO: ConnectionTrackerDAO) :
     ViewModel() {
+
+    companion object {
+        const val PROTOCOL_FILTER_PREFIX = "P:"
+    }
 
     private val _filterString = MutableLiveData<String>()
     private var filterString: LiveData<String> = _filterString
@@ -90,7 +93,7 @@ class ConnectionTrackerViewModel(private val connectionTrackerDAO: ConnectionTra
 
     private fun fetchNetworkLogs(input: String): LiveData<PagingData<ConnectionTracker>> {
         // spl case: treat input with P:UDP, P:TCP, P:ICMP as protocol filter
-        val protocolPrefix = ConnectionTrackerFragment.PROTOCOL_FILTER_PREFIX.lowercase()
+        val protocolPrefix = PROTOCOL_FILTER_PREFIX.lowercase()
         val s = input.trim().lowercase()
         if (s.startsWith(protocolPrefix)) {
             val protocol = s.substringAfter(protocolPrefix)

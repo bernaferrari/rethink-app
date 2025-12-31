@@ -27,14 +27,13 @@ import androidx.paging.cachedIn
 import androidx.paging.liveData
 import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.database.DnsLogDAO
-import com.celzero.bravedns.ui.fragment.DnsLogFragment
 import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
 import com.celzero.bravedns.util.ResourceRecordTypes.Companion.getHandledTypes
 
 class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
 
     private var filteredList: MutableLiveData<String> = MutableLiveData()
-    private var filterType = DnsLogFragment.DnsLogFilter.ALL
+    private var filterType = DnsLogFilter.ALL
     private val pagingConfig: PagingConfig
     private var isWireGuardLogs = false
     private var wgDnsId: String = ""
@@ -60,19 +59,19 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
             return getWgDnsLogs(wgDnsId)
         }
         return when (filterType) {
-            DnsLogFragment.DnsLogFilter.ALL -> {
+            DnsLogFilter.ALL -> {
                 getAllDnsLogs(filter)
             }
-            DnsLogFragment.DnsLogFilter.ALLOWED -> {
+            DnsLogFilter.ALLOWED -> {
                 getAllowedDnsLogs(filter)
             }
-            DnsLogFragment.DnsLogFilter.BLOCKED -> {
+            DnsLogFilter.BLOCKED -> {
                 getBlockedDnsLogs(filter)
             }
-            DnsLogFragment.DnsLogFilter.MAYBE_BLOCKED -> {
+            DnsLogFilter.MAYBE_BLOCKED -> {
                 getMaybeBlockedDnsLogs(filter)
             }
-            DnsLogFragment.DnsLogFilter.UNKNOWN_RECORDS -> {
+            DnsLogFilter.UNKNOWN_RECORDS -> {
                 getUnknownRecordDnsLogs(filter)
             }
         }
@@ -147,7 +146,7 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
             .cachedIn(viewModelScope)
     }
 
-    fun setFilter(searchString: String, type: DnsLogFragment.DnsLogFilter) {
+    fun setFilter(searchString: String, type: DnsLogFilter) {
         filterType = type
 
         if (searchString.isNotBlank()) filteredList.value = searchString
@@ -158,5 +157,13 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
         isWireGuardLogs = isWgLogs
         wgDnsId = "%$wgId%"
         filteredList.value = filteredList.value
+    }
+
+    enum class DnsLogFilter(val id: Int) {
+        ALL(0),
+        ALLOWED(1),
+        BLOCKED(2),
+        MAYBE_BLOCKED(3),
+        UNKNOWN_RECORDS(4)
     }
 }
