@@ -3,28 +3,51 @@ package com.celzero.bravedns.ui.bottomsheet
 import Logger
 import Logger.LOG_TAG_UI
 import android.content.res.Configuration
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.AppInfo
 import com.celzero.bravedns.database.CustomDomain
 import com.celzero.bravedns.database.CustomIp
 import com.celzero.bravedns.database.WgConfigFilesImmutable
-import com.celzero.bravedns.databinding.BottomSheetProxiesListBinding
-import com.celzero.bravedns.databinding.ListItemProxyCcWgBinding
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager.ID_WG_BASE
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes.Companion.getBottomsheetCurrentTheme
+import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
@@ -42,7 +65,6 @@ class WireguardListDialog(
     private val confs: List<WgConfigFilesImmutable?>,
     private val listener: WireguardDismissListener
 ) : KoinComponent {
-    private val b = BottomSheetProxiesListBinding.inflate(LayoutInflater.from(activity))
     private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
@@ -66,7 +88,13 @@ class WireguardListDialog(
     }
 
     init {
-        dialog.setContentView(b.root)
+        val composeView = ComposeView(activity)
+        composeView.setContent {
+            RethinkTheme {
+                WireguardListContent()
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.setOnShowListener {
             dialog.useTransparentNoDimBackground()
             dialog.window?.let { window ->
@@ -79,7 +107,6 @@ class WireguardListDialog(
         }
         dialog.setOnDismissListener { handleDismiss() }
         Logger.v(LOG_TAG_UI, "$TAG: view created")
-        init()
     }
 
     fun show() {
@@ -93,39 +120,97 @@ class WireguardListDialog(
         return getBottomsheetCurrentTheme(isDark, persistentState.theme)
     }
 
-    private fun init() {
-        when (type) {
-            InputType.DOMAIN -> {
-                b.ipDomainInfo.visibility = View.VISIBLE
-                b.ipDomainInfo.text = cd?.domain
-            }
-            InputType.IP -> {
-                b.ipDomainInfo.visibility = View.VISIBLE
-                b.ipDomainInfo.text = ci?.ipAddress
-            }
-            InputType.APP -> {
-                // no-op
-            }
-        }
-
-        val lst = confs.map { it }
-        b.recyclerView.layoutManager = LinearLayoutManager(activity)
-        val adapter = RecyclerViewAdapter(lst) { conf ->
-            Logger.v(LOG_TAG_UI, "$TAG: Item clicked: ${conf?.name ?: "None"}")
+    @Composable
+    private fun WireguardListContent() {
+        val borderColor = Color(UIUtils.fetchColor(activity, R.attr.border))
+        val infoText =
             when (type) {
-                InputType.DOMAIN -> {
-                    processDomain(conf)
-                }
-                InputType.IP -> {
-                    processIp(conf)
-                }
-                InputType.APP -> {
-                    // no-op
+                InputType.DOMAIN -> cd?.domain
+                InputType.IP -> ci?.ipAddress
+                InputType.APP -> null
+            }
+        var selectedProxyId by
+            remember {
+                mutableStateOf(
+                    when (type) {
+                        InputType.DOMAIN -> cd?.proxyId ?: ""
+                        InputType.IP -> ci?.proxyId ?: ""
+                        InputType.APP -> ""
+                    }
+                )
+            }
+
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                        .width(60.dp)
+                        .height(3.dp)
+                        .background(borderColor, RoundedCornerShape(2.dp))
+            )
+
+            infoText?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
+
+            LazyColumn {
+                items(confs, key = { it?.id ?: -1 }) { conf ->
+                    val proxyId = conf?.let { ID_WG_BASE + it.id } ?: ""
+                    val isSelected = selectedProxyId == proxyId
+                    val name =
+                        conf?.name
+                            ?: activity.getString(R.string.settings_app_list_default_app)
+                    val idSuffix = conf?.id?.toString()?.padStart(3, '0')
+                    val desc =
+                        if (conf == null) {
+                            activity.getString(R.string.settings_app_list_default_app)
+                        } else {
+                            activity.getString(R.string.settings_app_list_default_app) +
+                                " $idSuffix"
+                        }
+
+                    Row(
+                        modifier =
+                            Modifier.fillMaxWidth()
+                                .clickable {
+                                    selectedProxyId = proxyId
+                                    when (type) {
+                                        InputType.DOMAIN -> processDomain(conf)
+                                        InputType.IP -> processIp(conf)
+                                        InputType.APP -> {}
+                                    }
+                                }
+                                .padding(vertical = 8.dp, horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = ID_WG_BASE.uppercase(),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = name, style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                text = desc,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        RadioButton(selected = isSelected, onClick = null)
+                    }
                 }
             }
-        }
 
-        b.recyclerView.adapter = adapter
+            Spacer(modifier = Modifier.size(8.dp))
+        }
     }
 
     private fun processDomain(conf: WgConfigFilesImmutable?) {
@@ -178,65 +263,6 @@ class WireguardListDialog(
                 )
             }
         }
-    }
-
-    inner class RecyclerViewAdapter(
-        private val data: List<WgConfigFilesImmutable?>,
-        private val onItemClicked: (WgConfigFilesImmutable?) -> Unit
-    ) : RecyclerView.Adapter<RecyclerViewAdapter.ViewHolder>() {
-
-        inner class ViewHolder(private val bb: ListItemProxyCcWgBinding) :
-            RecyclerView.ViewHolder(bb.root) {
-            fun bind(conf: WgConfigFilesImmutable?) {
-                val idSuffix = conf?.id?.toString()?.padStart(3, '0')
-                val proxyId = conf?.let { ID_WG_BASE + it.id } ?: ""
-                bb.proxyIconCc.text = ID_WG_BASE.uppercase()
-                bb.proxyNameCc.text =
-                    conf?.name ?: activity.getString(R.string.settings_app_list_default_app)
-                bb.proxyDescCc.text =
-                    if (conf == null) {
-                        activity.getString(R.string.settings_app_list_default_app)
-                    } else {
-                        activity.getString(R.string.settings_app_list_default_app) + " $idSuffix"
-                    }
-                bb.proxyRadioCc.isChecked = false
-                when (type) {
-                    InputType.DOMAIN -> {
-                        bb.proxyRadioCc.isChecked = proxyId == cd?.proxyId
-                    }
-                    InputType.IP -> {
-                        bb.proxyRadioCc.isChecked = proxyId == ci?.proxyId
-                    }
-                    InputType.APP -> {
-                        // no-op
-                    }
-                }
-                bb.lipCcWgParent.setOnClickListener {
-                    onItemClicked(conf)
-                    notifyDataSetChanged()
-                }
-
-                bb.proxyRadioCc.setOnClickListener {
-                    onItemClicked(conf)
-                    notifyDataSetChanged()
-                }
-            }
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val binding = ListItemProxyCcWgBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
-            )
-            return ViewHolder(binding)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.bind(data[position])
-        }
-
-        override fun getItemCount(): Int = data.size
     }
 
     private fun handleDismiss() {

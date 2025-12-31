@@ -16,25 +16,46 @@ limitations under the License.
 package com.celzero.bravedns.ui.bottomsheet
 
 import android.content.res.Configuration
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
-import android.view.LayoutInflater
-import android.view.View
-import android.widget.CompoundButton
-import androidx.core.content.ContextCompat
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
-import com.celzero.bravedns.databinding.BottomSheetFirewallSortFilterBinding
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.activity.AppListActivity
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.chip.Chip
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -42,15 +63,20 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class FirewallAppFilterDialog(private val activity: FragmentActivity) : KoinComponent {
-    private val binding =
-        BottomSheetFirewallSortFilterBinding.inflate(LayoutInflater.from(activity))
     private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
-    private val filters = AppListActivity.Filters()
+    private val firewallFilter = AppListActivity.filters.value?.firewallFilter
+        ?: AppListActivity.FirewallFilter.ALL
 
     init {
-        dialog.setContentView(binding.root)
+        val composeView = ComposeView(activity)
+        composeView.setContent {
+            RethinkTheme {
+                FirewallAppFilterContent()
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.setOnShowListener {
             dialog.useTransparentNoDimBackground()
             dialog.window?.let { window ->
@@ -61,8 +87,6 @@ class FirewallAppFilterDialog(private val activity: FragmentActivity) : KoinComp
                 }
             }
         }
-        initView()
-        initClickListeners()
     }
 
     fun show() {
@@ -76,177 +100,159 @@ class FirewallAppFilterDialog(private val activity: FragmentActivity) : KoinComp
         return Themes.getBottomsheetCurrentTheme(isDark, persistentState.theme)
     }
 
-    private fun initView() {
-        val currentFilters = AppListActivity.filters.value
-
-        remakeParentFilterChipsUi()
-        if (currentFilters == null) {
-            applyParentFilter(AppListActivity.TopLevelFilter.ALL.id)
-            return
+    @Composable
+    private fun FirewallAppFilterContent() {
+        val scope = rememberCoroutineScope()
+        val initialFilters = AppListActivity.filters.value
+        var topFilter by remember {
+            mutableStateOf(initialFilters?.topLevelFilter ?: AppListActivity.TopLevelFilter.ALL)
         }
-
-        filters.firewallFilter = currentFilters.firewallFilter
-        filters.categoryFilters.addAll(currentFilters.categoryFilters)
-
-        applyParentFilter(currentFilters.topLevelFilter.id)
-        setFilter(currentFilters.topLevelFilter, currentFilters.categoryFilters)
-    }
-
-    private fun initClickListeners() {
-        binding.fsApply.setOnClickListener {
-            AppListActivity.filters.postValue(filters)
-            dialog.dismiss()
-        }
-
-        binding.fsClear.setOnClickListener {
-            val newFilters = AppListActivity.filters.value
-            if (newFilters == null) {
-                dialog.dismiss()
-                return@setOnClickListener
-            }
-            newFilters.categoryFilters.clear()
-            newFilters.topLevelFilter = AppListActivity.TopLevelFilter.ALL
-            AppListActivity.filters.postValue(newFilters)
-            dialog.dismiss()
-        }
-    }
-
-    private fun setFilter(
-        topLevelFilter: AppListActivity.TopLevelFilter,
-        categories: MutableSet<String>
-    ) {
-        val topView: Chip =
-            binding.ffaParentChipGroup.findViewWithTag(topLevelFilter.id) ?: return
-        binding.ffaParentChipGroup.check(topView.id)
-        colorUpChipIcon(topView)
-
-        categories.forEach {
-            val childCategory: Chip = binding.ffaChipGroup.findViewWithTag(it) ?: return
-            binding.ffaChipGroup.check(childCategory.id)
-        }
-    }
-
-    private fun remakeParentFilterChipsUi() {
-        binding.ffaParentChipGroup.removeAllViews()
-
-        val all =
-            makeParentChip(
-                AppListActivity.TopLevelFilter.ALL.id,
-                activity.getString(R.string.lbl_all),
-                true
-            )
-        val installed =
-            makeParentChip(
-                AppListActivity.TopLevelFilter.INSTALLED.id,
-                activity.getString(R.string.fapps_filter_parent_installed),
-                false
-            )
-        val system =
-            makeParentChip(
-                AppListActivity.TopLevelFilter.SYSTEM.id,
-                activity.getString(R.string.fapps_filter_parent_system),
-                false
-            )
-
-        binding.ffaParentChipGroup.addView(all)
-        binding.ffaParentChipGroup.addView(installed)
-        binding.ffaParentChipGroup.addView(system)
-    }
-
-    private fun makeParentChip(id: Int, label: String, checked: Boolean): Chip {
-        val chip =
-            LayoutInflater.from(activity).inflate(R.layout.item_chip_filter, binding.root, false)
-                as Chip
-        chip.tag = id
-        chip.text = label
-        chip.isChecked = checked
-
-        chip.setOnCheckedChangeListener { button: CompoundButton, isSelected: Boolean ->
-            if (isSelected) {
-                applyParentFilter(button.tag)
-                colorUpChipIcon(chip)
-            }
-        }
-
-        return chip
-    }
-
-    private fun colorUpChipIcon(chip: Chip) {
-        val colorFilter =
-            PorterDuffColorFilter(
-                ContextCompat.getColor(activity, R.color.primaryText),
-                PorterDuff.Mode.SRC_IN
-            )
-        chip.checkedIcon?.colorFilter = colorFilter
-        chip.chipIcon?.colorFilter = colorFilter
-    }
-
-    private fun applyParentFilter(tag: Any) {
-        when (tag) {
-            AppListActivity.TopLevelFilter.ALL.id -> {
-                filters.topLevelFilter = AppListActivity.TopLevelFilter.ALL
-                io {
-                    val categories = FirewallManager.getAllCategories()
-                    uiCtx { remakeChildFilterChipsUi(categories) }
+        val selectedCategories = remember {
+            mutableStateListOf<String>().apply {
+                if (initialFilters != null) {
+                    addAll(initialFilters.categoryFilters)
                 }
             }
-            AppListActivity.TopLevelFilter.INSTALLED.id -> {
-                filters.topLevelFilter = AppListActivity.TopLevelFilter.INSTALLED
-                io {
-                    val categories = FirewallManager.getCategoriesForInstalledApps()
-                    uiCtx { remakeChildFilterChipsUi(categories) }
+        }
+        val categories = remember { mutableStateListOf<String>() }
+
+        LaunchedEffect(topFilter) {
+            val result = fetchCategories(topFilter)
+            categories.clear()
+            categories.addAll(result)
+            selectedCategories.retainAll(result.toSet())
+        }
+
+        Column(modifier = Modifier.padding(16.dp)) {
+            Box(
+                modifier = Modifier
+                    .width(60.dp)
+                    .height(3.dp)
+                    .background(Color(fetchColor(activity, R.attr.border)), MaterialTheme.shapes.small)
+                    .align(androidx.compose.ui.Alignment.CenterHorizontally)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = activity.getString(R.string.fapps_filter_filter_heading),
+                style = MaterialTheme.typography.titleMedium,
+                color = Color(fetchColor(activity, R.attr.secondaryTextColor)),
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                TopFilterChip(
+                    label = activity.getString(R.string.lbl_all),
+                    selected = topFilter == AppListActivity.TopLevelFilter.ALL,
+                    onClick = { topFilter = AppListActivity.TopLevelFilter.ALL }
+                )
+                TopFilterChip(
+                    label = activity.getString(R.string.fapps_filter_parent_installed),
+                    selected = topFilter == AppListActivity.TopLevelFilter.INSTALLED,
+                    onClick = { topFilter = AppListActivity.TopLevelFilter.INSTALLED }
+                )
+                TopFilterChip(
+                    label = activity.getString(R.string.fapps_filter_parent_system),
+                    selected = topFilter == AppListActivity.TopLevelFilter.SYSTEM,
+                    onClick = { topFilter = AppListActivity.TopLevelFilter.SYSTEM }
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Text(
+                text = activity.getString(R.string.fapps_filter_categories_heading),
+                style = MaterialTheme.typography.titleMedium,
+                color = Color(fetchColor(activity, R.attr.secondaryTextColor)),
+                modifier = Modifier.padding(vertical = 4.dp)
+            )
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                categories.forEach { category ->
+                    FilterChip(
+                        selected = selectedCategories.contains(category),
+                        onClick = {
+                            if (selectedCategories.contains(category)) {
+                                selectedCategories.remove(category)
+                            } else {
+                                selectedCategories.add(category)
+                            }
+                        },
+                        label = { Text(text = category) }
+                    )
                 }
             }
-            AppListActivity.TopLevelFilter.SYSTEM.id -> {
-                filters.topLevelFilter = AppListActivity.TopLevelFilter.SYSTEM
-                io {
-                    val categories = FirewallManager.getCategoriesForSystemApps()
-                    uiCtx { remakeChildFilterChipsUi(categories) }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                TextButton(
+                    onClick = {
+                        selectedCategories.clear()
+                        topFilter = AppListActivity.TopLevelFilter.ALL
+                        val cleared = AppListActivity.Filters().apply {
+                            topLevelFilter = AppListActivity.TopLevelFilter.ALL
+                            firewallFilter = this@FirewallAppFilterDialog.firewallFilter
+                        }
+                        AppListActivity.filters.postValue(cleared)
+                        dialog.dismiss()
+                    }
+                ) {
+                    Text(text = activity.getString(R.string.fapps_filter_clear_btn))
+                }
+                TextButton(
+                    onClick = {
+                        val applied = AppListActivity.Filters().apply {
+                            topLevelFilter = topFilter
+                            firewallFilter = this@FirewallAppFilterDialog.firewallFilter
+                            categoryFilters = selectedCategories.toMutableSet()
+                        }
+                        AppListActivity.filters.postValue(applied)
+                        dialog.dismiss()
+                    }
+                ) {
+                    Text(text = activity.getString(R.string.lbl_apply))
                 }
             }
         }
     }
 
-    private fun remakeChildFilterChipsUi(categories: List<String>) {
-        binding.ffaChipGroup.removeAllViews()
-        for (c in categories) {
-            if (filters.categoryFilters.contains(c)) {
-                binding.ffaChipGroup.addView(makeChildChip(c, true))
-            } else {
-                binding.ffaChipGroup.addView(makeChildChip(c, false))
+    @Composable
+    private fun TopFilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
+        FilterChip(
+            selected = selected,
+            onClick = onClick,
+            label = {
+                Text(
+                    text = label,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal
+                )
+            }
+        )
+    }
+
+    private suspend fun fetchCategories(filter: AppListActivity.TopLevelFilter): List<String> {
+        return withContext(Dispatchers.IO) {
+            when (filter) {
+                AppListActivity.TopLevelFilter.ALL -> FirewallManager.getAllCategories()
+                AppListActivity.TopLevelFilter.INSTALLED -> FirewallManager.getCategoriesForInstalledApps()
+                AppListActivity.TopLevelFilter.SYSTEM -> FirewallManager.getCategoriesForSystemApps()
             }
         }
     }
 
-    private fun makeChildChip(title: String, checked: Boolean): Chip {
-        val chip =
-            LayoutInflater.from(activity).inflate(R.layout.item_chip_filter, binding.root, false)
-                as Chip
-        chip.text = title
-        chip.tag = title
-        chip.isChecked = checked
-        if (checked) colorUpChipIcon(chip)
-
-        chip.setOnCheckedChangeListener { compoundButton: CompoundButton, isSelected: Boolean ->
-            applyChildFilter(compoundButton.tag, isSelected)
-            colorUpChipIcon(chip)
-        }
-        return chip
-    }
-
-    private fun applyChildFilter(tag: Any, show: Boolean) {
-        if (show) {
-            filters.categoryFilters.add(tag.toString())
-        } else {
-            filters.categoryFilters.remove(tag.toString())
-        }
-    }
-
-    private fun io(f: suspend () -> Unit) {
-        activity.lifecycleScope.launch(Dispatchers.IO) { f() }
-    }
-
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
+    private fun fetchColor(context: FragmentActivity, attr: Int): Int {
+        return com.celzero.bravedns.util.UIUtils.fetchColor(context, attr)
     }
 }

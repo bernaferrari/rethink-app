@@ -17,23 +17,46 @@ package com.celzero.bravedns.ui.bottomsheet
 
 import android.content.Context
 import android.content.res.Configuration
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
-import android.view.LayoutInflater
-import android.widget.CompoundButton
-import androidx.core.content.ContextCompat
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.FileTag
-import com.celzero.bravedns.databinding.BottomSheetRethinkPlusFilterBinding
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistFilterHost
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
 import com.celzero.bravedns.util.Themes
+import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.chip.Chip
 
 class RethinkPlusFilterDialog(
     context: Context,
@@ -41,13 +64,18 @@ class RethinkPlusFilterDialog(
     private val fileTags: List<FileTag>,
     private val persistentState: PersistentState
 ) {
-    private val binding =
-        BottomSheetRethinkPlusFilterBinding.inflate(LayoutInflater.from(context))
     private val dialog = BottomSheetDialog(context, getThemeId(context))
     private var filters: RethinkBlocklistState.Filters? = null
 
     init {
-        dialog.setContentView(binding.root)
+        filters = filterHost?.filterObserver()?.value
+        val composeView = ComposeView(context)
+        composeView.setContent {
+            RethinkTheme {
+                RethinkPlusFilterContent()
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.setOnShowListener {
             dialog.useTransparentNoDimBackground()
             dialog.window?.let { window ->
@@ -58,8 +86,6 @@ class RethinkPlusFilterDialog(
                 }
             }
         }
-        initView()
-        initClickListeners()
     }
 
     fun show() {
@@ -73,76 +99,87 @@ class RethinkPlusFilterDialog(
         return Themes.getBottomsheetCurrentTheme(isDark, persistentState.theme)
     }
 
-    private fun initView() {
-        filters = filterHost?.filterObserver()?.value
-        makeChipSubGroup(fileTags)
-    }
-
-    private fun makeChipSubGroup(ft: List<FileTag>) {
-        binding.rpfFilterChipSubGroup.removeAllViews()
-        ft.distinctBy { it.subg }
-            .forEach {
-                if (it.subg.isBlank()) return@forEach
-
-                val checked = filters?.subGroups?.contains(it.subg) == true
-                binding.rpfFilterChipSubGroup.addView(remakeChipSubgroup(it.subg, checked))
+    @Composable
+    private fun RethinkPlusFilterContent() {
+        val subGroups =
+            remember(fileTags) {
+                fileTags.map { it.subg }.filter { it.isNotBlank() }.distinct()
             }
-    }
+        var selectedSubgroups by
+            remember { mutableStateOf(filters?.subGroups?.toSet() ?: emptySet()) }
+        val borderColor = Color(UIUtils.fetchColor(dialog.context, R.attr.border))
 
-    private fun initClickListeners() {
-        binding.rpfApply.setOnClickListener {
-            dialog.dismiss()
-            if (filters == null) return@setOnClickListener
-
-            filterHost?.filterObserver()?.postValue(filters)
-        }
-
-        binding.rpfClear.setOnClickListener {
-            filterHost?.filterObserver()?.postValue(RethinkBlocklistState.Filters())
-            dialog.dismiss()
-        }
-    }
-
-    private fun remakeChipSubgroup(label: String, checked: Boolean): Chip {
-        val chip =
-            LayoutInflater.from(binding.root.context)
-                .inflate(R.layout.item_chip_filter, binding.root, false) as Chip
-        chip.tag = label
-        chip.text = label
-        chip.isChecked = checked
-
-        chip.setOnCheckedChangeListener { button: CompoundButton, isSelected: Boolean ->
-            if (isSelected) {
-                applySubgroupFilter(button.tag as String)
-                colorUpChipIcon(chip)
-            } else {
-                removeSubgroupFilter(button.tag as String)
-            }
-        }
-
-        return chip
-    }
-
-    private fun colorUpChipIcon(chip: Chip) {
-        val colorFilter =
-            PorterDuffColorFilter(
-                ContextCompat.getColor(binding.root.context, R.color.primaryText),
-                PorterDuff.Mode.SRC_IN
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                        .width(60.dp)
+                        .height(3.dp)
+                        .background(borderColor, RoundedCornerShape(2.dp))
             )
-        chip.checkedIcon?.colorFilter = colorFilter
-        chip.chipIcon?.colorFilter = colorFilter
-    }
 
-    private fun applySubgroupFilter(tag: String) {
-        if (filters == null) {
-            filters = RethinkBlocklistState.Filters()
+            Text(
+                text = dialog.context.getString(R.string.bsrf_sub_group_heading),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(start = 5.dp, end = 5.dp)
+            )
+
+            FlowRow(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                subGroups.forEach { label ->
+                    val selected = selectedSubgroups.contains(label)
+                    FilterChip(
+                        selected = selected,
+                        onClick = {
+                            selectedSubgroups =
+                                if (selected) {
+                                    selectedSubgroups - label
+                                } else {
+                                    selectedSubgroups + label
+                                }
+                        },
+                        label = { Text(text = label) }
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                TextButton(
+                    onClick = {
+                        filterHost?.filterObserver()?.postValue(RethinkBlocklistState.Filters())
+                        dialog.dismiss()
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(text = dialog.context.getString(R.string.bsrf_clear_filter))
+                }
+
+                Button(
+                    onClick = {
+                        val updated = filters ?: RethinkBlocklistState.Filters()
+                        updated.subGroups.clear()
+                        updated.subGroups.addAll(selectedSubgroups)
+                        filterHost?.filterObserver()?.postValue(updated)
+                        dialog.dismiss()
+                    },
+                    modifier = Modifier.weight(2f)
+                ) {
+                    Text(text = dialog.context.getString(R.string.lbl_apply))
+                }
+            }
+
+            Spacer(modifier = Modifier.size(8.dp))
         }
-        filters!!.subGroups.add(tag)
-    }
-
-    private fun removeSubgroupFilter(tag: String) {
-        if (filters == null) return
-
-        filters!!.subGroups.remove(tag)
     }
 }

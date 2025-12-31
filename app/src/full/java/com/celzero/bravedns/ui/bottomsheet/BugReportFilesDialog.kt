@@ -19,29 +19,62 @@ import Logger
 import Logger.LOG_TAG_UI
 import android.content.Intent
 import android.content.res.Configuration
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.net.Uri
 import android.widget.Toast
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
-import com.celzero.bravedns.databinding.BottomSheetBugReportFilesBinding
-import com.celzero.bravedns.databinding.ItemBugReportFileBinding
 import com.celzero.bravedns.scheduler.BugReportZipper
 import com.celzero.bravedns.scheduler.EnhancedBugReport
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastO
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.bravedns.util.useTransparentNoDimBackground
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -58,16 +91,23 @@ import java.util.zip.ZipFile
 import java.util.zip.ZipOutputStream
 
 class BugReportFilesDialog(private val activity: FragmentActivity) : KoinComponent {
-    private val binding = BottomSheetBugReportFilesBinding.inflate(LayoutInflater.from(activity))
     private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
 
-    private val bugReportFiles = mutableListOf<BugReportFile>()
-    private val adapter = BugReportFilesAdapter(bugReportFiles)
+    private val bugReportFiles = mutableStateListOf<BugReportFile>()
+    private var isSending by mutableStateOf(false)
+    private var progressText by mutableStateOf("")
+    private var pendingDelete by mutableStateOf<BugReportFile?>(null)
 
     init {
-        dialog.setContentView(binding.root)
+        val composeView = ComposeView(activity)
+        composeView.setContent {
+            RethinkTheme {
+                BugReportFilesContent()
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.setOnShowListener {
             dialog.useTransparentNoDimBackground()
             dialog.window?.let { window ->
@@ -78,7 +118,6 @@ class BugReportFilesDialog(private val activity: FragmentActivity) : KoinCompone
                 }
             }
         }
-        initView()
         loadBugReportFiles()
     }
 
@@ -93,23 +132,6 @@ class BugReportFilesDialog(private val activity: FragmentActivity) : KoinCompone
         return Themes.getBottomsheetCurrentTheme(isDark, persistentState.theme)
     }
 
-    private fun initView() {
-        binding.brbsRecycler.layoutManager = LinearLayoutManager(activity)
-        binding.brbsRecycler.adapter = adapter
-
-        binding.brbsSelectAllCheckbox.setOnCheckedChangeListener { _, isChecked ->
-            updateSelectAllState(isChecked)
-        }
-
-        binding.brbsSelectAllText.setOnClickListener {
-            binding.brbsSelectAllCheckbox.toggle()
-        }
-
-        binding.brbsSendButton.setOnClickListener {
-            sendBugReport()
-        }
-    }
-
     private fun loadBugReportFiles() {
         activity.lifecycleScope.launch {
             try {
@@ -119,10 +141,6 @@ class BugReportFilesDialog(private val activity: FragmentActivity) : KoinCompone
 
                 bugReportFiles.clear()
                 bugReportFiles.addAll(files)
-                adapter.notifyDataSetChanged()
-
-                updateTotalSize()
-                updateSendButtonState()
             } catch (e: Exception) {
                 Logger.e(LOG_TAG_UI, "err loading bug report: ${e.message}", e)
                 showToastUiCentered(
@@ -209,31 +227,170 @@ class BugReportFilesDialog(private val activity: FragmentActivity) : KoinCompone
         }
     }
 
-    private fun updateSelectAllState(isChecked: Boolean) {
-        bugReportFiles.forEach { it.isSelected = isChecked }
-        adapter.notifyDataSetChanged()
-        updateTotalSize()
-        updateSendButtonState()
+    @Composable
+    private fun BugReportFilesContent() {
+        val scope = rememberCoroutineScope()
+        val totalSize = bugReportFiles.filter { it.isSelected }.sumOf { it.file.length() }
+        val hasSelection = bugReportFiles.any { it.isSelected }
+        val allSelected = bugReportFiles.isNotEmpty() && bugReportFiles.all { it.isSelected }
 
-        binding.brbsSelectAllText.text = if (isChecked) {
-            activity.getString(R.string.bug_report_deselect_all)
-        } else {
-            activity.getString(R.string.lbl_select_all).replaceFirstChar(Char::titlecase)
+        Column(modifier = Modifier.padding(16.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(
+                        checked = allSelected,
+                        onCheckedChange = { checked ->
+                            bugReportFiles.forEach { it.isSelected = checked }
+                        }
+                    )
+                    Text(
+                        text =
+                            if (allSelected) {
+                                activity.getString(R.string.bug_report_deselect_all)
+                            } else {
+                                activity.getString(R.string.lbl_select_all)
+                                    .replaceFirstChar(Char::titlecase)
+                            },
+                        modifier = Modifier.clickable {
+                            bugReportFiles.forEach { it.isSelected = !allSelected }
+                        }
+                    )
+                }
+                Text(
+                    text = formatFileSize(totalSize),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            if (bugReportFiles.isEmpty()) {
+                Text(text = activity.getString(R.string.bug_report_no_files_available))
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false)
+                ) {
+                    items(bugReportFiles, key = { it.file.absolutePath }) { item ->
+                        BugReportFileRow(item)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (isSending) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        CircularProgressIndicator(modifier = Modifier.size(20.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = progressText)
+                    }
+                }
+                Spacer(modifier = Modifier.weight(1f))
+                TextButton(
+                    onClick = {
+                        if (!isSending) {
+                            scope.launch { sendBugReport() }
+                        }
+                    },
+                    enabled = hasSelection && !isSending
+                ) {
+                    Text(text = activity.getString(R.string.about_bug_report_dialog_positive_btn))
+                }
+            }
+        }
+
+        pendingDelete?.let { fileItem ->
+            AlertDialog(
+                onDismissRequest = { pendingDelete = null },
+                title = { Text(text = activity.getString(R.string.lbl_delete)) },
+                text = {
+                    Text(
+                        text =
+                            activity.getString(
+                                R.string.bug_report_delete_confirmation,
+                                fileItem.name
+                            )
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            pendingDelete = null
+                            deleteFile(fileItem)
+                        }
+                    ) {
+                        Text(text = activity.getString(R.string.lbl_delete))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingDelete = null }) {
+                        Text(text = activity.getString(R.string.lbl_cancel))
+                    }
+                }
+            )
         }
     }
 
-    private fun updateTotalSize() {
-        val totalSize = bugReportFiles.filter { it.isSelected }.sumOf { it.file.length() }
-        binding.brbsTotalSize.text = formatFileSize(totalSize)
+    @Composable
+    private fun BugReportFileRow(fileItem: BugReportFile) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp)
+                .background(
+                    MaterialTheme.colorScheme.surfaceVariant,
+                    RoundedCornerShape(12.dp)
+                )
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Checkbox(
+                checked = fileItem.isSelected,
+                onCheckedChange = { checked ->
+                    fileItem.isSelected = checked
+                }
+            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = fileItem.name,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium)
+                )
+                Text(
+                    text =
+                        "${formatFileSize(fileItem.file.length())} - ${formatDate(fileItem.file.lastModified())}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            IconButton(onClick = { openFile(fileItem.file) }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_share),
+                    contentDescription = null
+                )
+            }
+            IconButton(onClick = { pendingDelete = fileItem }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_delete),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            }
+        }
     }
 
-    private fun updateSendButtonState() {
-        val hasSelection = bugReportFiles.any { it.isSelected }
-        binding.brbsSendButton.isEnabled = hasSelection
-        binding.brbsSendButton.alpha = if (hasSelection) ALPHA_ENABLED else ALPHA_DISABLED
-    }
-
-    private fun sendBugReport() {
+    private suspend fun sendBugReport() {
         val selectedFiles = bugReportFiles.filter { it.isSelected }.map { it.file }
 
         if (selectedFiles.isEmpty()) {
@@ -245,60 +402,57 @@ class BugReportFilesDialog(private val activity: FragmentActivity) : KoinCompone
             return
         }
 
-        binding.brbsProgressLayout.visibility = View.VISIBLE
-        binding.brbsSendButton.isEnabled = false
+        isSending = true
+        progressText = activity.getString(R.string.bug_report_creating_zip)
 
-        activity.lifecycleScope.launch {
-            try {
-                val attachmentUri = withContext(Dispatchers.IO) {
-                    if (selectedFiles.size == 1) {
-                        getFileUri(selectedFiles[0])
-                    } else {
-                        binding.brbsProgressText.text = activity.getString(R.string.bug_report_creating_zip)
-                        createCombinedZip(selectedFiles)
-                    }
-                }
-
-                if (attachmentUri != null) {
-                    val emailIntent = Intent(Intent.ACTION_SEND).apply {
-                        type = "text/plain"
-                        putExtra(Intent.EXTRA_EMAIL, arrayOf(activity.getString(R.string.about_mail_to)))
-                        putExtra(
-                            Intent.EXTRA_SUBJECT,
-                            activity.getString(R.string.about_mail_bugreport_subject)
-                        )
-                        putExtra(Intent.EXTRA_STREAM, attachmentUri)
-                        flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                    }
-                    activity.startActivity(
-                        Intent.createChooser(
-                            emailIntent,
-                            activity.getString(R.string.about_mail_bugreport_share_title)
-                        )
-                    )
-                    dialog.dismiss()
+        try {
+            val attachmentUri = withContext(Dispatchers.IO) {
+                if (selectedFiles.size == 1) {
+                    getFileUri(selectedFiles[0])
                 } else {
-                    showToastUiCentered(
-                        activity,
-                        activity.getString(R.string.error_loading_log_file),
-                        Toast.LENGTH_SHORT
-                    )
+                    createCombinedZip(selectedFiles)
                 }
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_UI, "err sending bug report: ${e.message}", e)
+            }
+
+            if (attachmentUri != null) {
+                val emailIntent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_EMAIL, arrayOf(activity.getString(R.string.about_mail_to)))
+                    putExtra(
+                        Intent.EXTRA_SUBJECT,
+                        activity.getString(R.string.about_mail_bugreport_subject)
+                    )
+                    putExtra(Intent.EXTRA_STREAM, attachmentUri)
+                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                }
+                activity.startActivity(
+                    Intent.createChooser(
+                        emailIntent,
+                        activity.getString(R.string.about_mail_bugreport_share_title)
+                    )
+                )
+                dialog.dismiss()
+            } else {
                 showToastUiCentered(
                     activity,
                     activity.getString(R.string.error_loading_log_file),
                     Toast.LENGTH_SHORT
                 )
-            } finally {
-                binding.brbsProgressLayout.visibility = View.GONE
-                binding.brbsSendButton.isEnabled = true
             }
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_UI, "err sending bug report: ${e.message}", e)
+            showToastUiCentered(
+                activity,
+                activity.getString(R.string.error_loading_log_file),
+                Toast.LENGTH_SHORT
+            )
+        } finally {
+            isSending = false
+            progressText = ""
         }
     }
 
-    private fun createCombinedZip(files: List<File>): android.net.Uri? {
+    private fun createCombinedZip(files: List<File>): Uri? {
         val tempDir = activity.cacheDir
         val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.US).format(Date())
         val zipFile = File(tempDir, "rethinkdns_bugreport_$timestamp.zip")
@@ -348,7 +502,7 @@ class BugReportFilesDialog(private val activity: FragmentActivity) : KoinCompone
         }
     }
 
-    private fun getFileUri(file: File): android.net.Uri? {
+    private fun getFileUri(file: File): Uri? {
         return try {
             FileProvider.getUriForFile(
                 activity,
@@ -373,94 +527,6 @@ class BugReportFilesDialog(private val activity: FragmentActivity) : KoinCompone
         return SimpleDateFormat("MMM d, yyyy HH:mm", Locale.US).format(Date(timestamp))
     }
 
-    inner class BugReportFilesAdapter(
-        private val files: List<BugReportFile>
-    ) : RecyclerView.Adapter<BugReportFilesAdapter.ViewHolder>() {
-
-        inner class ViewHolder(private val itemBinding: ItemBugReportFileBinding) :
-            RecyclerView.ViewHolder(itemBinding.root) {
-
-            fun bind(fileItem: BugReportFile) {
-                itemBinding.itemFileName.text = fileItem.name
-                itemBinding.itemFileDetails.text =
-                    "${formatFileSize(fileItem.file.length())} - ${formatDate(fileItem.file.lastModified())}"
-                itemBinding.itemFileCheckbox.isChecked = fileItem.isSelected
-
-                val iconRes = when (fileItem.type) {
-                    FileType.ZIP -> R.drawable.ic_backup
-                    FileType.TEXT -> R.drawable.ic_logs
-                }
-                itemBinding.itemFileIcon.setImageResource(iconRes)
-
-                itemBinding.itemFileCheckbox.setOnCheckedChangeListener { _, isChecked ->
-                    fileItem.isSelected = isChecked
-                    updateSelectAllCheckboxState()
-                    updateTotalSize()
-                    updateSendButtonState()
-                }
-
-                itemBinding.root.setOnClickListener {
-                    itemBinding.itemFileCheckbox.toggle()
-                }
-
-                itemBinding.itemFileViewBtn.setOnClickListener {
-                    openFile(fileItem.file)
-                }
-
-                itemBinding.itemFileDeleteBtn.setOnClickListener {
-                    showDeleteConfirmationDialog(fileItem)
-                }
-            }
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val binding = ItemBugReportFileBinding.inflate(
-                LayoutInflater.from(parent.context),
-                parent,
-                false
-            )
-            return ViewHolder(binding)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.bind(files[position])
-        }
-
-        override fun getItemCount(): Int = files.size
-
-        private fun updateSelectAllCheckboxState() {
-            val allSelected = files.all { it.isSelected }
-
-            binding.brbsSelectAllCheckbox.setOnCheckedChangeListener(null)
-            binding.brbsSelectAllCheckbox.isChecked = allSelected
-            binding.brbsSelectAllCheckbox.setOnCheckedChangeListener { _, isChecked ->
-                updateSelectAllState(isChecked)
-            }
-
-            binding.brbsSelectAllText.text = if (allSelected) {
-                activity.getString(R.string.bug_report_deselect_all)
-            } else {
-                activity.getString(R.string.lbl_select_all).replaceFirstChar(Char::titlecase)
-            }
-        }
-    }
-
-    private fun showDeleteConfirmationDialog(fileItem: BugReportFile) {
-        val confirmDialog =
-            MaterialAlertDialogBuilder(activity)
-                .setTitle(activity.getString(R.string.lbl_delete))
-                .setMessage(activity.getString(R.string.bug_report_delete_confirmation, fileItem.name))
-                .setPositiveButton(activity.getString(R.string.lbl_delete)) { _, _ ->
-                    deleteFile(fileItem)
-                }
-                .setNegativeButton(activity.getString(R.string.lbl_cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                }
-                .create()
-
-        confirmDialog.show()
-    }
-
     private fun deleteFile(fileItem: BugReportFile) {
         activity.lifecycleScope.launch {
             try {
@@ -470,9 +536,6 @@ class BugReportFilesDialog(private val activity: FragmentActivity) : KoinCompone
 
                 if (deleted) {
                     bugReportFiles.remove(fileItem)
-                    adapter.notifyDataSetChanged()
-                    updateTotalSize()
-                    updateSendButtonState()
 
                     showToastUiCentered(
                         activity,
@@ -546,8 +609,6 @@ class BugReportFilesDialog(private val activity: FragmentActivity) : KoinCompone
     }
 
     companion object {
-        private const val ALPHA_ENABLED = 1.0f
-        private const val ALPHA_DISABLED = 0.5f
         private const val BYTES_IN_KB = 1024L
         private const val BYTES_IN_MB = 1024L * 1024L
         private const val MB_DIVISOR = 1024.0 * 1024.0

@@ -19,10 +19,36 @@ import Logger
 import Logger.LOG_TAG_FIREWALL
 import Logger.LOG_TAG_UI
 import android.content.res.Configuration
-import android.view.LayoutInflater
-import android.view.View
-import android.widget.Toast
-import androidx.core.content.ContextCompat
+import android.graphics.drawable.Drawable
+import android.widget.ImageView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
@@ -32,15 +58,15 @@ import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.database.WgConfigFilesImmutable
-import com.celzero.bravedns.databinding.BottomSheetAppConnectionsBinding
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.WireguardManager
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Themes.Companion.getBottomsheetCurrentTheme
-import com.celzero.bravedns.util.UIUtils.htmlToSpannedText
+import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
@@ -58,21 +84,28 @@ class AppDomainRulesDialog(
     private val position: Int,
     private val onDismiss: (Int) -> Unit
 ) : KoinComponent, WireguardListDialog.WireguardDismissListener {
-    private val b = BottomSheetAppConnectionsBinding.inflate(LayoutInflater.from(activity))
     private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()
 
-    private var domainRule: DomainRulesManager.Status = DomainRulesManager.Status.NONE
+    private var domainRule by mutableStateOf(DomainRulesManager.Status.NONE)
     private var cd: CustomDomain? = null
+    private var appName by mutableStateOf<String?>(null)
+    private var appIcon by mutableStateOf<Drawable?>(null)
 
     companion object {
         private const val TAG = "AppDomainBtmSht"
     }
 
     init {
-        dialog.setContentView(b.root)
+        val composeView = ComposeView(activity)
+        composeView.setContent {
+            RethinkTheme {
+                AppDomainRulesContent()
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.setOnShowListener {
             dialog.useTransparentNoDimBackground()
             dialog.window?.let { window ->
@@ -85,8 +118,7 @@ class AppDomainRulesDialog(
         }
         dialog.setOnDismissListener { onDismiss(position) }
 
-        init()
-        initializeClickListeners()
+        initData()
         setRulesUi()
     }
 
@@ -101,7 +133,7 @@ class AppDomainRulesDialog(
         return getBottomsheetCurrentTheme(isDark, persistentState.theme)
     }
 
-    private fun init() {
+    private fun initData() {
         if (uid == INVALID_UID) {
             dialog.dismiss()
             return
@@ -113,11 +145,113 @@ class AppDomainRulesDialog(
             }
         }
         updateAppDetails()
-        b.bsacIpAddressTv.text = domain
-        b.bsacIpRuleTxt.text = htmlToSpannedText(activity.getString(R.string.bsct_block_domain))
+    }
 
-        b.bsacDomainRuleTxt.visibility = View.GONE
-        b.bsacDomainLl.visibility = View.GONE
+    @Composable
+    private fun AppDomainRulesContent() {
+        val borderColor = Color(UIUtils.fetchColor(activity, R.attr.border))
+        val trustIcon =
+            if (domainRule == DomainRulesManager.Status.TRUST) {
+                R.drawable.ic_trust_accent
+            } else {
+                R.drawable.ic_trust
+            }
+        val blockIcon =
+            if (domainRule == DomainRulesManager.Status.BLOCK) {
+                R.drawable.ic_block_accent
+            } else {
+                R.drawable.ic_block
+            }
+
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 60.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                        .width(60.dp)
+                        .height(3.dp)
+                        .background(borderColor, RoundedCornerShape(2.dp))
+            )
+
+            if (appName != null) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).background(Color.Transparent),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    appIcon?.let { icon ->
+                        AndroidView(
+                            factory = { ctx -> ImageView(ctx) },
+                            update = { view ->
+                                view.setImageDrawable(icon)
+                            },
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(10.dp))
+                    }
+                    Text(
+                        text = appName.orEmpty(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            Text(
+                text = activity.getString(R.string.bsct_block_domain),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                SelectionContainer(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = domain,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                Spacer(modifier = Modifier.width(16.dp))
+                Icon(
+                    painter = painterResource(id = trustIcon),
+                    contentDescription = null,
+                    modifier =
+                        Modifier.size(28.dp).clickable {
+                            if (domainRule == DomainRulesManager.Status.TRUST) {
+                                applyDomainRule(DomainRulesManager.Status.NONE)
+                            } else {
+                                applyDomainRule(DomainRulesManager.Status.TRUST)
+                            }
+                        }
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Icon(
+                    painter = painterResource(id = blockIcon),
+                    contentDescription = null,
+                    modifier =
+                        Modifier.size(28.dp).clickable {
+                            if (domainRule == DomainRulesManager.Status.BLOCK) {
+                                applyDomainRule(DomainRulesManager.Status.NONE)
+                            } else {
+                                applyDomainRule(DomainRulesManager.Status.BLOCK)
+                            }
+                        }
+                )
+            }
+
+            Text(
+                text = activity.getString(R.string.bsac_title_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
+            )
+        }
     }
 
     private fun updateAppDetails() {
@@ -126,7 +260,10 @@ class AppDomainRulesDialog(
         io {
             val appNames = FirewallManager.getAppNamesByUid(uid)
             if (appNames.isEmpty()) {
-                uiCtx { handleNonApp() }
+                uiCtx {
+                    appName = null
+                    appIcon = null
+                }
                 return@io
             }
             val pkgName = FirewallManager.getPackageNameByAppName(appNames[0])
@@ -134,7 +271,7 @@ class AppDomainRulesDialog(
             val appCount = appNames.count()
             uiCtx {
                 if (appCount >= 1) {
-                    b.bsacAppName.text =
+                    appName =
                         if (appCount >= 2) {
                             activity.getString(
                                 R.string.ctbs_app_other_apps,
@@ -144,76 +281,21 @@ class AppDomainRulesDialog(
                         } else {
                             appNames[0]
                         }
-                    if (pkgName == null) return@uiCtx
-                    b.bsacAppIcon.setImageDrawable(Utilities.getIcon(activity, pkgName))
+                    if (pkgName != null) {
+                        appIcon = Utilities.getIcon(activity, pkgName)
+                    }
                 } else {
-                    handleNonApp()
+                    appName = null
+                    appIcon = null
                 }
             }
         }
-    }
-
-    private fun handleNonApp() {
-        b.bsacAppName.visibility = View.GONE
-        b.bsacAppIcon.visibility = View.GONE
     }
 
     private fun setRulesUi() {
         io {
             domainRule = DomainRulesManager.status(domain, uid)
             Logger.d(LOG_TAG_FIREWALL, "$TAG set selection of ip: $domain, ${domainRule.id}")
-            uiCtx {
-                when (domainRule) {
-                    DomainRulesManager.Status.TRUST -> enableTrustUi()
-                    DomainRulesManager.Status.BLOCK -> enableBlockUi()
-                    DomainRulesManager.Status.NONE -> noRuleUi()
-                }
-            }
-        }
-    }
-
-    private fun initializeClickListeners() {
-        b.blockIcon.setOnClickListener {
-            if (domainRule == DomainRulesManager.Status.BLOCK) {
-                applyDomainRule(DomainRulesManager.Status.NONE)
-                noRuleUi()
-            } else {
-                applyDomainRule(DomainRulesManager.Status.BLOCK)
-                enableBlockUi()
-            }
-        }
-
-        b.trustIcon.setOnClickListener {
-            if (domainRule == DomainRulesManager.Status.TRUST) {
-                applyDomainRule(DomainRulesManager.Status.NONE)
-                noRuleUi()
-            } else {
-                applyDomainRule(DomainRulesManager.Status.TRUST)
-                enableTrustUi()
-            }
-        }
-
-        b.chooseProxyRl.setOnClickListener {
-            val v: MutableList<WgConfigFilesImmutable?> = mutableListOf()
-            io {
-                v.add(null)
-                v.addAll(WireguardManager.getAllMappings())
-                if (v.isEmpty()) {
-                    Logger.v(LOG_TAG_UI, "$TAG no wireguard configs found")
-                    uiCtx {
-                        Utilities.showToastUiCentered(
-                            activity,
-                            activity.getString(R.string.wireguard_no_config_msg),
-                            Toast.LENGTH_SHORT
-                        )
-                    }
-                    return@io
-                }
-                uiCtx {
-                    Logger.v(LOG_TAG_UI, "$TAG show wg list(${v.size} for ${cd?.domain}, $uid")
-                    showWgListDialog(v)
-                }
-            }
         }
     }
 
@@ -242,33 +324,6 @@ class AppDomainRulesDialog(
             )
         }
         logEvent("Domain rule applied: $domain, $uid, ${status.name}")
-    }
-
-    private fun enableTrustUi() {
-        b.trustIcon.setImageDrawable(
-            ContextCompat.getDrawable(activity, R.drawable.ic_trust_accent)
-        )
-        b.blockIcon.setImageDrawable(
-            ContextCompat.getDrawable(activity, R.drawable.ic_block)
-        )
-    }
-
-    private fun enableBlockUi() {
-        b.trustIcon.setImageDrawable(
-            ContextCompat.getDrawable(activity, R.drawable.ic_trust)
-        )
-        b.blockIcon.setImageDrawable(
-            ContextCompat.getDrawable(activity, R.drawable.ic_block_accent)
-        )
-    }
-
-    private fun noRuleUi() {
-        b.trustIcon.setImageDrawable(
-            ContextCompat.getDrawable(activity, R.drawable.ic_trust)
-        )
-        b.blockIcon.setImageDrawable(
-            ContextCompat.getDrawable(activity, R.drawable.ic_block)
-        )
     }
 
     private fun logEvent(details: String) {
