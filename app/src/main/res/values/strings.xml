@@ -67,6 +67,11 @@
     <string name="lbl_sec" translatable="true">sec</string>
     <string name="lbl_min" translatable="true">min</string>
     <string name="lbl_hour" translatable="true">hr</string>
+    <string name="events_severity_low" translatable="true">Low</string>
+    <string name="events_severity_medium" translatable="true">Medium</string>
+    <string name="events_severity_high" translatable="true">High</string>
+    <string name="events_severity_critical" translatable="true">Critical</string>
+    <string name="events_filter_source" translatable="true">Source</string>
     <string name="lbl_day" translatable="true">day</string>
     <string name="lbl_preshared_key" translatable="true">Preshared key</string>
     <string name="lbl_insecure" translatable="true"> (insecure)</string>

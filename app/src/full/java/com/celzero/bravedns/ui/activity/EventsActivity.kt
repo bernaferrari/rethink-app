@@ -15,28 +15,53 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import Logger
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.View
 import android.view.inputmethod.InputMethodManager
-import android.widget.CompoundButton
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.EventsAdapter
 import com.celzero.bravedns.database.EventDao
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.Severity
-import com.celzero.bravedns.databinding.ActivityEventsBinding
-import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils.formatToRelativeTime
 import com.celzero.bravedns.util.Utilities.isAtleastQ
@@ -44,8 +69,7 @@ import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.util.restoreFrost
 import com.celzero.bravedns.viewmodel.EventsViewModel
 import com.celzero.bravedns.viewmodel.EventsViewModel.TopLevelFilter
-import com.google.android.material.chip.Chip
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,34 +79,36 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class EventsActivity : AppCompatActivity(R.layout.activity_events), SearchView.OnQueryTextListener {
-    private val b by viewBinding(ActivityEventsBinding::bind)
-    private val persistentState by inject<PersistentState>()
+class EventsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
+    private val persistentState by inject<com.celzero.bravedns.service.PersistentState>()
     private val viewModel: EventsViewModel by viewModel()
     private val eventDao by inject<EventDao>()
 
     private var layoutManager: RecyclerView.LayoutManager? = null
+    private var recyclerAdapter: EventsAdapter? = null
+    private var recyclerViewRef: FastScrollRecyclerView? = null
+    private var searchViewRef: SearchView? = null
+
     private var filterQuery: String = ""
-    private var filterSources: MutableSet<EventSource> = mutableSetOf()
-    private var filterSeverity: Severity? = null
-    private var filterType: TopLevelFilter = TopLevelFilter.ALL
+    private val searchQuery = MutableStateFlow("")
+    private var filterSources by mutableStateOf(setOf<EventSource>())
+    private var filterSeverity by mutableStateOf<Severity?>(null)
+    private var filterType by mutableStateOf(TopLevelFilter.ALL)
+
+    private var showSeverityChips by mutableStateOf(false)
+    private var showSourceChips by mutableStateOf(false)
+    private var showEmptyState by mutableStateOf(false)
+    private var scrollHeaderText by mutableStateOf("")
+    private var scrollHeaderVisible by mutableStateOf(false)
 
     companion object {
         private const val TAG = "EventsActivity"
         private const val QUERY_TEXT_DELAY: Long = 1000
-
-        // Severity chip tag constants
-        private const val CHIP_TAG_ALL = "ALL"
-        private const val CHIP_TAG_LOW = "LOW"
-        private const val CHIP_TAG_MEDIUM = "MEDIUM"
-        private const val CHIP_TAG_HIGH = "HIGH"
-        private const val CHIP_TAG_CRITICAL = "CRITICAL"
-        private const val CHIP_TAG_SOURCE = "SOURCE"
     }
 
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                Configuration.UI_MODE_NIGHT_YES
+            Configuration.UI_MODE_NIGHT_YES
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -98,6 +124,12 @@ class EventsActivity : AppCompatActivity(R.layout.activity_events), SearchView.O
         }
 
         initView()
+
+        setContent {
+            RethinkTheme {
+                EventsScreen()
+            }
+        }
     }
 
     override fun onResume() {
@@ -105,289 +137,48 @@ class EventsActivity : AppCompatActivity(R.layout.activity_events), SearchView.O
         val themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
         restoreFrost(themeId)
 
-        // Fix for keyboard issues
-        b.eventsSearch.clearFocus()
+        searchViewRef?.clearFocus()
         val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.restartInput(b.eventsSearch)
-        b.eventsListRl.requestFocus()
+        searchViewRef?.let { imm.restartInput(it) }
+        recyclerViewRef?.requestFocus()
     }
 
     private fun initView() {
-        setupSearchView()
         setupRecyclerView()
-        setupClickListeners()
-        remakeSeverityFilterChipsUi()
-        remakeSourceFilterChipsUi()
         setQueryFilter()
     }
 
-    private fun setupSearchView() {
-        b.eventsSearch.setOnQueryTextListener(this)
-
-        b.eventsSearch.setOnClickListener {
-            showSeverityChipsUi()
-            showSourceChipsIfNeeded()
-            b.eventsSearch.requestFocus()
-            b.eventsSearch.onActionViewExpanded()
-        }
-    }
-
-    private fun setupClickListeners() {
-        b.eventsFilterIcon.setOnClickListener { toggleSeverityChipsUi() }
-        b.eventsRefreshIcon.setOnClickListener { refreshEvents() }
-        b.eventsDeleteIcon.setOnClickListener { showDeleteDialog() }
-    }
-
     private fun setupRecyclerView() {
-        b.eventsRecyclerView.setHasFixedSize(true)
         layoutManager = LinearLayoutManager(this)
-        b.eventsRecyclerView.layoutManager = layoutManager
-
-        val recyclerAdapter = EventsAdapter(this)
-        recyclerAdapter.stateRestorationPolicy =
-            RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-
-        b.eventsRecyclerView.adapter = recyclerAdapter
+        val adapter = EventsAdapter(this)
+        recyclerAdapter = adapter
 
         viewModel.eventsList.observe(this) { pagingData ->
-            recyclerAdapter.submitData(lifecycle, pagingData)
+            adapter.submitData(lifecycle, pagingData)
         }
 
-        recyclerAdapter.addLoadStateListener { loadState ->
-            val isEmpty = recyclerAdapter.itemCount < 1
+        adapter.addLoadStateListener { loadState ->
+            val isEmpty = adapter.itemCount < 1
             if (loadState.append.endOfPaginationReached && isEmpty) {
-                b.emptyStateContainer.visibility = View.VISIBLE
-                b.eventsRecyclerView.visibility = View.GONE
+                showEmptyState = true
             } else {
-                b.emptyStateContainer.visibility = View.GONE
-                if (!b.eventsRecyclerView.isVisible) b.eventsRecyclerView.visibility = View.VISIBLE
+                showEmptyState = false
             }
         }
-
-        b.eventsRecyclerView.post {
-            try {
-                if (recyclerAdapter.itemCount > 0) {
-                    recyclerAdapter.stateRestorationPolicy =
-                        RecyclerView.Adapter.StateRestorationPolicy.ALLOW
-                }
-            } catch (_: Exception) {
-                Logger.e(Logger.LOG_TAG_UI, "$TAG; err in setting recycler restoration policy")
-            }
-        }
-
-        setupRecyclerScrollListener()
     }
 
     private fun setupRecyclerScrollListener() {
-        val scrollListener =
+        recyclerViewRef?.addOnScrollListener(
             object : RecyclerView.OnScrollListener() {
                 override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
                     super.onScrolled(recyclerView, dx, dy)
-
-                    val firstChild = recyclerView.getChildAt(0)
-                    if (firstChild == null) {
-                        Logger.v(Logger.LOG_TAG_UI, "$TAG; err; no child views found")
-                        return
-                    }
-
-                    val tag = firstChild.tag as? Long
-                    if (tag == null) {
-                        Logger.v(Logger.LOG_TAG_UI, "$TAG; err; tag is null for first child")
-                        return
-                    }
-
-                    b.eventsListScrollHeader.text = formatToRelativeTime(this@EventsActivity, tag)
-                    b.eventsListScrollHeader.visibility = View.VISIBLE
-                }
-
-                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    super.onScrollStateChanged(recyclerView, newState)
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                        b.eventsListScrollHeader.visibility = View.GONE
-                    }
+                    val firstChild = recyclerView.getChildAt(0) ?: return
+                    val tag = firstChild.tag as? Long ?: return
+                    scrollHeaderText = formatToRelativeTime(this@EventsActivity, tag)
+                    scrollHeaderVisible = true
                 }
             }
-        b.eventsRecyclerView.addOnScrollListener(scrollListener)
-    }
-
-    private fun toggleSeverityChipsUi() {
-        if (b.filterChipSeverityGroup.isVisible) {
-            hideSeverityChipsUi()
-            hideSourceChipsUi()
-        } else {
-            showSeverityChipsUi()
-            showSourceChipsIfNeeded()
-        }
-    }
-
-    private fun showSeverityChipsUi() {
-        b.filterChipSeverityGroup.visibility = View.VISIBLE
-    }
-
-    private fun hideSeverityChipsUi() {
-        b.filterChipSeverityGroup.visibility = View.GONE
-    }
-
-    private fun showSourceChipsUi() {
-        b.filterChipSourceGroup.visibility = View.VISIBLE
-    }
-
-    private fun hideSourceChipsUi() {
-        b.filterChipSourceGroup.visibility = View.GONE
-    }
-
-    private fun showSourceChipsIfNeeded() {
-        when (filterType) {
-            TopLevelFilter.ALL -> {
-                hideSourceChipsUi()
-            }
-            TopLevelFilter.SEVERITY -> {
-                hideSourceChipsUi()
-            }
-            TopLevelFilter.SOURCE -> {
-                showSourceChipsUi()
-            }
-        }
-    }
-
-    private fun remakeSeverityFilterChipsUi() {
-        b.filterChipSeverityGroup.removeAllViews()
-
-        val all = makeSeverityChip(CHIP_TAG_ALL, getString(R.string.lbl_all), true)
-        val low = makeSeverityChip(CHIP_TAG_LOW, CHIP_TAG_LOW, false)
-        val medium = makeSeverityChip(CHIP_TAG_MEDIUM, CHIP_TAG_MEDIUM, false)
-        val high = makeSeverityChip(CHIP_TAG_HIGH, CHIP_TAG_HIGH, false)
-        val critical = makeSeverityChip(CHIP_TAG_CRITICAL, CHIP_TAG_CRITICAL, false)
-        val source = makeSeverityChip(CHIP_TAG_SOURCE, "Source", false)
-
-        b.filterChipSeverityGroup.addView(all)
-        b.filterChipSeverityGroup.addView(low)
-        b.filterChipSeverityGroup.addView(medium)
-        b.filterChipSeverityGroup.addView(high)
-        b.filterChipSeverityGroup.addView(critical)
-        b.filterChipSeverityGroup.addView(source)
-    }
-
-    private fun makeSeverityChip(tag: String, label: String, checked: Boolean): Chip {
-        val chip = this.layoutInflater.inflate(R.layout.item_chip_filter, b.root, false) as Chip
-        chip.tag = tag
-        chip.text = label.lowercase().replaceFirstChar(Char::titlecase)
-        chip.isChecked = checked
-
-        chip.setOnCheckedChangeListener { button: CompoundButton, isSelected: Boolean ->
-            if (isSelected) {
-                applySeverityFilter(button.tag)
-            } else {
-                // Only auto-select "ALL" if this chip was unchecked without another chip being selected
-                // This prevents the issue where switching from one severity to another triggers both
-                // the uncheck of the old chip and the check of the new chip
-                val hasAnyChecked = (0 until b.filterChipSeverityGroup.childCount).any { i ->
-                    (b.filterChipSeverityGroup.getChildAt(i) as? Chip)?.isChecked == true
-                }
-                if (!hasAnyChecked) {
-                    unselectSeverityChipsUi(button.tag)
-                }
-            }
-        }
-
-        return chip
-    }
-
-    private fun makeSourceChip(source: EventSource): Chip {
-        val chip = this.layoutInflater.inflate(R.layout.item_chip_filter, b.root, false) as Chip
-        // Format source name for better readability
-        chip.text = when (source) {
-            EventSource.UI -> "UI"
-            EventSource.VPN -> "VPN"
-            EventSource.DNS -> "DNS"
-            EventSource.FIREWALL -> "Firewall"
-            EventSource.SYSTEM -> "System"
-            EventSource.SERVICE -> "Service"
-            EventSource.WORKER -> "Worker"
-            EventSource.MANAGER -> "Manager"
-        }
-        chip.isCheckedIconVisible = true
-        chip.tag = source
-
-        chip.setOnCheckedChangeListener { compoundButton: CompoundButton, isSelected: Boolean ->
-            applySourceFilter(compoundButton.tag as EventSource, isSelected)
-        }
-        return chip
-    }
-
-    private fun applySeverityFilter(tag: Any) {
-        val tagString = tag as String
-        if (tagString == CHIP_TAG_ALL) {
-            filterSeverity = null
-            filterSources.clear()
-            filterType = TopLevelFilter.ALL
-            viewModel.setFilter(filterQuery, emptySet(), null)
-            hideSourceChipsUi()
-        } else if (tagString == CHIP_TAG_SOURCE) {
-            filterSeverity = null
-            filterType = TopLevelFilter.SOURCE
-            showSourceChipsUi()
-            // Don't clear sources or update filter yet - let user select sources first
-            if (filterSources.isEmpty()) {
-                viewModel.setFilter(filterQuery, emptySet(), null)
-            } else {
-                viewModel.setFilter(filterQuery, filterSources, null)
-            }
-        } else {
-            filterSeverity = when (tagString) {
-                CHIP_TAG_LOW -> Severity.LOW
-                CHIP_TAG_MEDIUM -> Severity.MEDIUM
-                CHIP_TAG_HIGH -> Severity.HIGH
-                CHIP_TAG_CRITICAL -> Severity.CRITICAL
-                else -> null
-            }
-            filterSources.clear()
-            filterType = TopLevelFilter.SEVERITY
-            viewModel.setFilter(filterQuery, emptySet(), filterSeverity)
-            hideSourceChipsUi()
-        }
-    }
-
-    private fun unselectSeverityChipsUi(tag: Any) {
-        val chipCount = b.filterChipSeverityGroup.childCount
-        val tagString = tag as String
-        for (i in 0 until chipCount) {
-            val chip = b.filterChipSeverityGroup.getChildAt(i) as Chip
-            if (chip.tag != tagString && chip.tag == CHIP_TAG_ALL) {
-                chip.isChecked = true
-                return
-            }
-        }
-    }
-
-    private fun remakeSourceFilterChipsUi() {
-        b.filterChipSourceGroup.removeAllViews()
-
-        EventSource.entries.forEach { source ->
-            val chip = makeSourceChip(source)
-            if (filterSources.contains(source)) {
-                chip.isChecked = true
-            }
-            b.filterChipSourceGroup.addView(chip)
-        }
-    }
-
-    private fun applySourceFilter(source: EventSource, isSelected: Boolean) {
-        if (isSelected) {
-            filterSources.add(source)
-        } else {
-            filterSources.remove(source)
-        }
-
-        if (filterSources.isEmpty()) {
-            filterType = TopLevelFilter.ALL
-            filterSeverity = null
-            viewModel.setFilter(filterQuery, emptySet(), null)
-        } else {
-            filterType = TopLevelFilter.SOURCE
-            filterSeverity = null
-            viewModel.setFilter(filterQuery, filterSources, null)
-        }
+        )
     }
 
     @OptIn(FlowPreview::class)
@@ -403,7 +194,79 @@ class EventsActivity : AppCompatActivity(R.layout.activity_events), SearchView.O
         }
     }
 
-    val searchQuery = MutableStateFlow("")
+    private fun refreshEvents() {
+        viewModel.setFilter(filterQuery, filterSources, filterSeverity)
+    }
+
+    private fun showDeleteDialog() {
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+            .setTitle(R.string.ada_delete_logs_dialog_title)
+            .setMessage(R.string.ada_delete_logs_dialog_desc)
+            .setCancelable(true)
+            .setPositiveButton(getString(R.string.lbl_delete)) { _, _ ->
+                lifecycleScope.launch(Dispatchers.IO) { eventDao.deleteAll() }
+                refreshEvents()
+            }
+            .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
+            .create()
+            .show()
+    }
+
+    private fun applyFilter(tag: TopLevelFilter) {
+        filterType = tag
+        when (tag) {
+            TopLevelFilter.ALL -> {
+                filterSeverity = null
+                filterSources = emptySet()
+                viewModel.setFilter(filterQuery, emptySet(), null)
+            }
+            TopLevelFilter.SOURCE -> {
+                filterSeverity = null
+                if (filterSources.isEmpty()) {
+                    viewModel.setFilter(filterQuery, emptySet(), null)
+                } else {
+                    viewModel.setFilter(filterQuery, filterSources, null)
+                }
+            }
+            TopLevelFilter.SEVERITY -> {
+                filterSources = emptySet()
+                viewModel.setFilter(filterQuery, emptySet(), filterSeverity)
+            }
+        }
+    }
+
+    private fun onSeveritySelected(severity: Severity?) {
+        if (severity == null) {
+            filterSeverity = null
+            filterSources = emptySet()
+            filterType = TopLevelFilter.ALL
+            viewModel.setFilter(filterQuery, emptySet(), null)
+            return
+        }
+        filterSeverity = severity
+        filterSources = emptySet()
+        filterType = TopLevelFilter.SEVERITY
+        viewModel.setFilter(filterQuery, emptySet(), filterSeverity)
+    }
+
+    private fun toggleSource(source: EventSource) {
+        filterSources =
+            if (filterSources.contains(source)) {
+                filterSources - source
+            } else {
+                filterSources + source
+            }
+
+        if (filterSources.isEmpty()) {
+            filterType = TopLevelFilter.ALL
+            filterSeverity = null
+            viewModel.setFilter(filterQuery, emptySet(), null)
+        } else {
+            filterType = TopLevelFilter.SOURCE
+            filterSeverity = null
+            viewModel.setFilter(filterQuery, filterSources, null)
+        }
+    }
 
     override fun onQueryTextSubmit(query: String): Boolean {
         searchQuery.value = query
@@ -415,26 +278,247 @@ class EventsActivity : AppCompatActivity(R.layout.activity_events), SearchView.O
         return true
     }
 
-    private fun refreshEvents() {
-        viewModel.setFilter(filterQuery, filterSources, filterSeverity)
-    }
+    @Composable
+    private fun EventsScreen() {
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(modifier = Modifier.fillMaxSize()) {
+                SearchRow(
+                    onFilterClick = {
+                        showSeverityChips = !showSeverityChips
+                        if (!showSeverityChips) {
+                            showSourceChips = false
+                        }
+                    },
+                    onRefreshClick = { refreshEvents() },
+                    onDeleteClick = { showDeleteDialog() }
+                )
 
-    private fun showDeleteDialog() {
-        MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-            .setTitle(R.string.delete_all_events)
-            .setMessage(R.string.delete_all_events_confirmation)
-            .setCancelable(true)
-            .setPositiveButton(getString(R.string.lbl_delete)) { _, _ ->
-                io { eventDao.deleteAll() }
-                refreshEvents()
+                if (showSeverityChips) {
+                    SeverityChips()
+                    if (showSourceChips) {
+                        SourceChips()
+                    }
+                }
+
+                EventsList()
             }
-            .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
-            .create()
-            .show()
+
+            if (showEmptyState) {
+                EmptyState()
+            }
+
+            if (scrollHeaderVisible) {
+                Text(
+                    text = scrollHeaderText,
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(top = 100.dp)
+                    .background(MaterialTheme.colorScheme.surface)
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                style = MaterialTheme.typography.bodySmall
+            )
+            }
+        }
     }
 
-    private fun io(f: suspend () -> Unit) {
-        lifecycleScope.launch(Dispatchers.IO) { f() }
+    @Composable
+    private fun SearchRow(
+        onFilterClick: () -> Unit,
+        onRefreshClick: () -> Unit,
+        onDeleteClick: () -> Unit
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            AndroidView(
+                factory = { ctx ->
+                    SearchView(ctx).apply {
+                        isIconified = false
+                        queryHint = ctx.getString(R.string.search_event_logs)
+                        setOnQueryTextListener(this@EventsActivity)
+                        setOnSearchClickListener {
+                            showSeverityChips = true
+                        }
+                        searchViewRef = this
+                    }
+                },
+                modifier = Modifier.weight(1f)
+            )
+
+            IconButton(onClick = onFilterClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_filter),
+                    contentDescription = null
+                )
+            }
+
+            IconButton(onClick = onRefreshClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_refresh_white),
+                    contentDescription = null
+                )
+            }
+
+            IconButton(onClick = onDeleteClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_delete),
+                    contentDescription = null
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun SeverityChips() {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp)
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FilterChip(
+                label = stringResourceCompat(R.string.lbl_all),
+                selected = filterType == TopLevelFilter.ALL,
+                onClick = {
+                    showSourceChips = false
+                    applyFilter(TopLevelFilter.ALL)
+                }
+            )
+            FilterChip(
+                label = stringResourceCompat(R.string.events_severity_low),
+                selected = filterSeverity == Severity.LOW,
+                onClick = {
+                    showSourceChips = false
+                    onSeveritySelected(Severity.LOW)
+                }
+            )
+            FilterChip(
+                label = stringResourceCompat(R.string.events_severity_medium),
+                selected = filterSeverity == Severity.MEDIUM,
+                onClick = {
+                    showSourceChips = false
+                    onSeveritySelected(Severity.MEDIUM)
+                }
+            )
+            FilterChip(
+                label = stringResourceCompat(R.string.events_severity_high),
+                selected = filterSeverity == Severity.HIGH,
+                onClick = {
+                    showSourceChips = false
+                    onSeveritySelected(Severity.HIGH)
+                }
+            )
+            FilterChip(
+                label = stringResourceCompat(R.string.events_severity_critical),
+                selected = filterSeverity == Severity.CRITICAL,
+                onClick = {
+                    showSourceChips = false
+                    onSeveritySelected(Severity.CRITICAL)
+                }
+            )
+            FilterChip(
+                label = stringResourceCompat(R.string.events_filter_source),
+                selected = filterType == TopLevelFilter.SOURCE,
+                onClick = {
+                    showSourceChips = true
+                    applyFilter(TopLevelFilter.SOURCE)
+                }
+            )
+        }
+    }
+
+    @Composable
+    private fun SourceChips() {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 4.dp)
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            EventSource.entries.forEach { source ->
+                FilterChip(
+                    label = sourceLabel(source),
+                    selected = filterSources.contains(source),
+                    onClick = { toggleSource(source) }
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
+        FilterChip(
+            selected = selected,
+            onClick = onClick,
+            label = { Text(text = label) },
+            modifier = Modifier.padding(vertical = 2.dp)
+        )
+    }
+
+    @Composable
+    private fun EventsList() {
+        val adapter = recyclerAdapter
+        if (adapter == null) return
+        AndroidView(
+            factory = { ctx ->
+                FastScrollRecyclerView(ctx).apply {
+                    layoutManager = this@EventsActivity.layoutManager
+                    this.adapter = adapter
+                    if (recyclerViewRef == null) {
+                        recyclerViewRef = this
+                        setupRecyclerScrollListener()
+                    }
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+
+    @Composable
+    private fun EmptyState() {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_event_note),
+                contentDescription = null,
+                modifier = Modifier.size(120.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = stringResourceCompat(R.string.no_events_recorded),
+                style = MaterialTheme.typography.headlineSmall,
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(
+                text = stringResourceCompat(R.string.no_events_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+
+    @Composable
+    private fun stringResourceCompat(id: Int): String {
+        val context = LocalContext.current
+        return context.getString(id)
+    }
+
+    private fun sourceLabel(source: EventSource): String {
+        val text = source.name.lowercase().replace('_', ' ')
+        return text.replaceFirstChar { it.titlecase() }
     }
 }
-
