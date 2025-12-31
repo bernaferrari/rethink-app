@@ -35,7 +35,7 @@ import com.celzero.bravedns.data.AppConfig.Companion.DOT_INDEX
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.bottomsheet.DnsRecordTypesDialog
-import com.celzero.bravedns.ui.bottomsheet.LocalBlocklistsBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.LocalBlocklistsDialog
 import com.celzero.bravedns.ui.compose.dns.DnsSettingsScreen
 import com.celzero.bravedns.ui.compose.dns.DnsSettingsViewModel
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
@@ -54,8 +54,7 @@ import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class DnsDetailActivity : AppCompatActivity(),
-    LocalBlocklistsBottomSheet.OnBottomSheetDialogFragmentDismiss {
+class DnsDetailActivity : AppCompatActivity() {
 
     private val persistentState by inject<PersistentState>()
     private val viewModel: DnsSettingsViewModel by viewModel()
@@ -206,9 +205,9 @@ class DnsDetailActivity : AppCompatActivity(),
     }
 
     private fun openLocalBlocklist() {
-        val bottomSheetFragment = LocalBlocklistsBottomSheet()
-        bottomSheetFragment.setDismissListener(this)
-        bottomSheetFragment.show(supportFragmentManager, bottomSheetFragment.tag)
+        LocalBlocklistsDialog(this) {
+            viewModel.updateUiState()
+        }.show()
     }
 
     private fun invokeRethinkActivity(type: ConfigureRethinkBasicActivity.FragmentLoader) {
@@ -222,7 +221,4 @@ class DnsDetailActivity : AppCompatActivity(),
         startActivity(intent)
     }
 
-    override fun onBtmSheetDismiss() {
-        viewModel.updateUiState()
-    }
 }
