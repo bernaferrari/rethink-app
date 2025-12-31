@@ -44,7 +44,7 @@ import com.celzero.bravedns.databinding.ListItemDnsLogBinding
 import com.celzero.bravedns.glide.FavIconDownloader
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.ProxyManager
-import com.celzero.bravedns.ui.bottomsheet.DnsBlocklistBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.DnsBlocklistDialog
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.UIUtils.fetchColor
@@ -125,11 +125,8 @@ class DnsLogAdapter(val context: Context, val loadFavIcon: Boolean, val isRethin
                 return
             }
 
-            val bottomSheetFragment = DnsBlocklistBottomSheet()
-            val bundle = Bundle()
-            bundle.putString(DnsBlocklistBottomSheet.INSTANCE_STATE_DNSLOGS, Gson().toJson(log))
-            bottomSheetFragment.arguments = bundle
-            bottomSheetFragment.show(context.supportFragmentManager, bottomSheetFragment.tag)
+            val dialog = DnsBlocklistDialog(context, log)
+            dialog.show()
         }
 
 

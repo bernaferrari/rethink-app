@@ -34,7 +34,7 @@ import com.celzero.bravedns.data.AppConfig.Companion.DOH_INDEX
 import com.celzero.bravedns.data.AppConfig.Companion.DOT_INDEX
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.bottomsheet.DnsRecordTypesBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.DnsRecordTypesDialog
 import com.celzero.bravedns.ui.bottomsheet.LocalBlocklistsBottomSheet
 import com.celzero.bravedns.ui.compose.dns.DnsSettingsScreen
 import com.celzero.bravedns.ui.compose.dns.DnsSettingsViewModel
@@ -120,11 +120,10 @@ class DnsDetailActivity : AppCompatActivity(),
     }
 
     private fun showDnsRecordTypesBottomSheet() {
-        val bottomSheet = DnsRecordTypesBottomSheet()
-        supportFragmentManager.setFragmentResultListener("dns_record_types_updated", this) { _, _ ->
+        val dialog = DnsRecordTypesDialog(this, persistentState) {
             viewModel.updateUiState()
         }
-        bottomSheet.show(supportFragmentManager, bottomSheet.tag)
+        dialog.show()
     }
 
     private fun showSmartDnsInfoDialog() {
