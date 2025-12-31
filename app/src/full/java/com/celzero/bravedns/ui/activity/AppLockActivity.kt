@@ -15,8 +15,6 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import Logger
-import Logger.LOG_TAG_UI
 import android.app.ComponentCaller
 import android.app.UiModeManager
 import android.content.Context
@@ -26,25 +24,39 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
 import android.os.SystemClock
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.ui.LauncherSwitcher
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
+import io.github.aakira.napier.Napier
 import org.koin.android.ext.android.inject
 import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
-class AppLockActivity : AppCompatActivity(R.layout.activity_app_lock) {
+class AppLockActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
 
     private lateinit var executor: Executor
@@ -59,7 +71,7 @@ class AppLockActivity : AppCompatActivity(R.layout.activity_app_lock) {
     // TODO - #324 - Usage of isDarkTheme() in all activities.
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                UI_MODE_NIGHT_YES
+            UI_MODE_NIGHT_YES
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,17 +86,21 @@ class AppLockActivity : AppCompatActivity(R.layout.activity_app_lock) {
             window.isNavigationBarContrastEnforced = false
         }
 
-        if (!isBiometricEnabled() || isAppRunningOnTv()) {
-            Logger.v(LOG_TAG_UI, "$TAG biometric authentication disabled or running on TV")
+        setContent {
+            RethinkTheme {
+                AppLockContent()
+            }
+        }
 
-            // if the app lock alias is enabled, switch to home alias
+        if (!isBiometricEnabled() || isAppRunningOnTv()) {
+            Napier.v("$TAG biometric authentication disabled or running on TV")
+
             if (!LauncherSwitcher.isAliasEnabled(applicationContext, APP_LOCK_ALIAS)) {
-                Logger.v(LOG_TAG_UI, "$TAG switching launcher alias to home")
+                Napier.v("$TAG switching launcher alias to home")
                 startHomeActivity()
                 return
             }
 
-            // if the app lock alias is not enabled, switch to home alias
             LauncherSwitcher.switchLauncherAlias(applicationContext, HOME_ALIAS, APP_LOCK_ALIAS)
 
             startHomeActivity()
@@ -92,22 +108,20 @@ class AppLockActivity : AppCompatActivity(R.layout.activity_app_lock) {
         }
 
         val lastAuthTime = persistentState.biometricAuthTime
+        var delay =
+            MiscSettingsActivity.BioMetricType.fromValue(persistentState.biometricAuthType).mins
 
-        // if the biometric authentication is already done in the last configured mins, then skip
-        var delay = MiscSettingsActivity.BioMetricType.fromValue(persistentState.biometricAuthType).mins
-
-        // this is for backward compatibility with older versions
-        // if enabled and lastUnlockTime is -1, then set it to 15 mins(maximum value)
-        delay = if (delay == -1L) {
+        delay =
+            if (delay == -1L) {
                 MiscSettingsActivity.BioMetricType.FIFTEEN_MIN.mins
             } else {
                 delay
             }
 
-        Logger.d(LOG_TAG_UI, "$TAG timeout: $delay, last auth: $lastAuthTime")
+        Napier.d("$TAG timeout: $delay, last auth: $lastAuthTime")
         val timeSinceLastAuth = abs(SystemClock.elapsedRealtime() - lastAuthTime)
         if (timeSinceLastAuth < TimeUnit.MINUTES.toMillis(delay)) {
-            Logger.i(LOG_TAG_UI, "$TAG biometric auth skipped, time since last auth: $timeSinceLastAuth")
+            Napier.i("$TAG biometric auth skipped, time since last auth: $timeSinceLastAuth")
             startHomeActivity()
             return
         }
@@ -121,29 +135,37 @@ class AppLockActivity : AppCompatActivity(R.layout.activity_app_lock) {
     }
 
     private fun showBiometricPrompt() {
-        Logger.v(LOG_TAG_UI, "$TAG showing biometric prompt")
+        Napier.v("$TAG showing biometric prompt")
         executor = ContextCompat.getMainExecutor(this)
-        biometricPrompt = BiometricPrompt(this, executor,
-            object : BiometricPrompt.AuthenticationCallback() {
-                override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
-                    super.onAuthenticationError(errorCode, errString)
-                    Logger.i(LOG_TAG_UI, "$TAG auth error(code: $errorCode): $errString")
-                    Logger.v(LOG_TAG_UI, "$TAG biometric auth err, finishing activity")
-                    showToastUiCentered(this@AppLockActivity, errString.toString(), Toast.LENGTH_SHORT)
-                    finishAffinity()
-                }
+        biometricPrompt =
+            BiometricPrompt(
+                this,
+                executor,
+                object : BiometricPrompt.AuthenticationCallback() {
+                    override fun onAuthenticationError(errorCode: Int, errString: CharSequence) {
+                        super.onAuthenticationError(errorCode, errString)
+                        Napier.i("$TAG auth error(code: $errorCode): $errString")
+                        Napier.v("$TAG biometric auth err, finishing activity")
+                        showToastUiCentered(
+                            this@AppLockActivity,
+                            errString.toString(),
+                            Toast.LENGTH_SHORT
+                        )
+                        finishAffinity()
+                    }
 
-                override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
-                    super.onAuthenticationSucceeded(result)
-                    persistentState.biometricAuthTime = SystemClock.elapsedRealtime()
-                    startHomeActivity()
-                }
+                    override fun onAuthenticationSucceeded(result: BiometricPrompt.AuthenticationResult) {
+                        super.onAuthenticationSucceeded(result)
+                        persistentState.biometricAuthTime = SystemClock.elapsedRealtime()
+                        startHomeActivity()
+                    }
 
-                override fun onAuthenticationFailed() {
-                    super.onAuthenticationFailed()
-                    Logger.i(LOG_TAG_UI, "$TAG biometric authentication failed")
+                    override fun onAuthenticationFailed() {
+                        super.onAuthenticationFailed()
+                        Napier.i("$TAG biometric authentication failed")
+                    }
                 }
-            })
+            )
 
         val promptInfo =
             BiometricPrompt.PromptInfo.Builder()
@@ -151,7 +173,7 @@ class AppLockActivity : AppCompatActivity(R.layout.activity_app_lock) {
                 .setSubtitle(getString(R.string.hs_biometeric_desc))
                 .setAllowedAuthenticators(
                     BiometricManager.Authenticators.BIOMETRIC_WEAK or
-                            BiometricManager.Authenticators.DEVICE_CREDENTIAL
+                        BiometricManager.Authenticators.DEVICE_CREDENTIAL
                 )
                 .setConfirmationRequired(false)
                 .build()
@@ -160,7 +182,7 @@ class AppLockActivity : AppCompatActivity(R.layout.activity_app_lock) {
     }
 
     private fun startHomeActivity() {
-        Logger.v(LOG_TAG_UI, "$TAG starting home activity")
+        Napier.v("$TAG starting home activity")
         val intent = Intent(this, HomeScreenActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
         }
@@ -170,17 +192,29 @@ class AppLockActivity : AppCompatActivity(R.layout.activity_app_lock) {
 
     private fun isBiometricEnabled(): Boolean {
         val type = MiscSettingsActivity.BioMetricType.fromValue(persistentState.biometricAuthType)
-        // use the biometricAuth flag for backward compatibility with older version
         return type.enabled()
     }
 
-    // check if app running on TV
     private fun isAppRunningOnTv(): Boolean {
         return try {
             val uiModeManager: UiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
             uiModeManager.currentModeType == Configuration.UI_MODE_TYPE_TELEVISION
         } catch (_: Exception) {
             false
+        }
+    }
+
+    @Composable
+    private fun AppLockContent() {
+        Box(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_launcher),
+                contentDescription = getString(R.string.app_name),
+                modifier = Modifier.size(120.dp)
+            )
         }
     }
 }
