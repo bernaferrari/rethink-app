@@ -15,46 +15,75 @@
  */
 package com.celzero.bravedns.ui.bottomsheet
 
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
-import android.content.res.Resources
-import android.util.TypedValue
-import android.view.LayoutInflater
-import android.view.View
-import android.view.WindowManager
-import android.view.animation.AccelerateInterpolator
-import android.view.animation.Animation
+import android.widget.TextView
 import android.widget.Toast
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.WgIncludeAppsAdapter
-import com.celzero.bravedns.animation.Rotate3dAnimation
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
-import com.celzero.bravedns.databinding.BottomSheetOrbotBinding
-import com.celzero.bravedns.databinding.DialogInfoRulesLayoutBinding
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.activity.DnsDetailActivity
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.OrbotHelper
 import com.celzero.bravedns.util.Themes
+import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
 import com.google.android.material.bottomsheet.BottomSheetDialog
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -65,7 +94,6 @@ class OrbotDialog(
     private val activity: FragmentActivity,
     private val mappingViewModel: ProxyAppsMappingViewModel
 ) : KoinComponent {
-    private val b = BottomSheetOrbotBinding.inflate(LayoutInflater.from(activity))
     private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
@@ -73,18 +101,22 @@ class OrbotDialog(
     private val orbotHelper by inject<OrbotHelper>()
     private val eventLogger by inject<EventLogger>()
 
-    companion object {
-        private const val ROTATION_START_DEGREES = 0.0f
-        private const val ROTATION_END_DEGREES = 360.0f
-        private const val ROTATION_MULTIPLIER = 4f
-        private const val ROTATION_Z_DEPTH = 20f
-        private const val ANIMATION_DURATION_SECONDS = 2L
-        private const val ANIMATION_DURATION_MS_MULTIPLIER = 1000L
-        private const val ORBOT_ICON_WIDTH_DIP = 40f
-    }
+    private var isConnecting by mutableStateOf(false)
+    private var includeAppsLabel by mutableStateOf("")
+    private var statusText by mutableStateOf("")
+    private var selectedType by mutableStateOf(AppConfig.ProxyType.NONE.name)
+    private var showInfoDialog by mutableStateOf(false)
+    private var showStopDialog by mutableStateOf(false)
+    private var isOrbotDns by mutableStateOf(false)
 
     init {
-        dialog.setContentView(b.root)
+        val composeView = ComposeView(activity)
+        composeView.setContent {
+            RethinkTheme {
+                OrbotContent()
+            }
+        }
+        dialog.setContentView(composeView)
         dialog.setOnShowListener {
             dialog.useTransparentNoDimBackground()
             dialog.window?.let { window ->
@@ -97,7 +129,6 @@ class OrbotDialog(
         }
         initView()
         observeApps()
-        setupClickListeners()
     }
 
     fun show() {
@@ -112,220 +143,259 @@ class OrbotDialog(
     }
 
     private fun initView() {
-        io {
-            val isOrbotDns = appConfig.isOrbotDns()
-            uiCtx { updateUi(isOrbotDns) }
+        persistentState.orbotConnectionStatus.observe(activity) {
+            isConnecting = it == true
+            if (!isConnecting) {
+                io {
+                    isOrbotDns = appConfig.isOrbotDns()
+                    withContext(Dispatchers.Main) { updateUi(isOrbotDns) }
+                }
+            }
         }
-        handleHttpUI()
+        io {
+            isOrbotDns = appConfig.isOrbotDns()
+            withContext(Dispatchers.Main) { updateUi(isOrbotDns) }
+        }
     }
 
     private fun observeApps() {
         mappingViewModel.getAppCountById(ProxyManager.ID_ORBOT_BASE).observe(activity) {
-            b.includeApplications.text = activity.getString(R.string.add_remove_apps, it.toString())
+            includeAppsLabel = activity.getString(R.string.add_remove_apps, it.toString())
         }
     }
 
-    private fun handleHttpUI() {
-        if (!isAtleastQ()) {
-            b.bsOrbotHttpRl.visibility = View.GONE
-            b.bsOrbotBothRl.visibility = View.GONE
-        }
-    }
+    @Composable
+    private fun OrbotContent() {
+        val borderColor = Color(UIUtils.fetchColor(activity, R.attr.border))
+        val hasHttpSupport = isAtleastQ()
+        val transition = rememberInfiniteTransition(label = "orbot-rotation")
+        val rotation by
+            transition.animateFloat(
+                initialValue = 0f,
+                targetValue = 360f,
+                animationSpec = infiniteRepeatable(tween(2000, easing = LinearEasing)),
+                label = "rotation"
+            )
 
-    private fun setupClickListeners() {
-        b.bsOrbotApp.setOnClickListener { orbotHelper.openOrbotApp() }
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                        .width(60.dp)
+                        .height(3.dp)
+                        .background(borderColor, RoundedCornerShape(2.dp))
+            )
 
-        b.bsOrbotRadioNone.setOnCheckedChangeListener(null)
-        b.bsOrbotRadioNone.setOnClickListener {
-            if (b.bsOrbotRadioNone.isChecked) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Image(
+                    painter =
+                        painterResource(
+                            id =
+                                if (selectedType == AppConfig.ProxyType.NONE.name) {
+                                    R.drawable.orbot_disabled
+                                } else {
+                                    R.drawable.orbot_enabled
+                                }
+                        ),
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp).rotate(if (isConnecting) rotation else 0f)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = activity.getString(R.string.orbot_title),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = statusText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Image(
+                    painter = painterResource(id = R.drawable.ic_info_white),
+                    contentDescription = activity.getString(R.string.orbot_explanation),
+                    modifier = Modifier.size(22.dp).clickable { showInfoDialog = true }
+                )
+            }
+
+            OrbotOptionRow(
+                label = activity.getString(R.string.orbot_none),
+                description = activity.getString(R.string.orbot_none_desc),
+                selected = selectedType == AppConfig.ProxyType.NONE.name
+            ) {
                 handleOrbotStop()
             }
-        }
 
-        b.bsOrbotNoneRl.setOnClickListener {
-            if (!b.bsOrbotRadioNone.isChecked) {
-                handleOrbotStop()
+            OrbotOptionRow(
+                label = activity.getString(R.string.orbot_socks5),
+                description = activity.getString(R.string.orbot_socks5_desc),
+                selected = selectedType == AppConfig.ProxyType.SOCKS5.name
+            ) {
+                enableProxy(AppConfig.ProxyType.SOCKS5.name)
             }
-        }
 
-        b.bsOrbotRadioSocks5.setOnCheckedChangeListener(null)
-        b.bsOrbotRadioSocks5.setOnClickListener {
-            io {
-                val isSelected = isAnyAppSelected()
-                uiCtx {
-                    if (!isSelected) {
-                        Utilities.showToastUiCentered(
-                            activity,
-                            activity.getString(R.string.orbot_no_app_toast),
-                            Toast.LENGTH_SHORT
-                        )
-                        b.bsOrbotRadioNone.isChecked = true
-                        b.bsOrbotRadioSocks5.isChecked = false
-                        return@uiCtx
-                    }
-                    if (!b.bsOrbotRadioSocks5.isSelected) {
-                        persistentState.orbotConnectionStatus.postValue(true)
-                        enableSocks5Orbot()
-                    }
+            if (hasHttpSupport) {
+                OrbotOptionRow(
+                    label = activity.getString(R.string.orbot_http),
+                    description = activity.getString(R.string.orbot_http_desc),
+                    selected = selectedType == AppConfig.ProxyType.HTTP.name
+                ) {
+                    enableProxy(AppConfig.ProxyType.HTTP.name)
+                }
+                OrbotOptionRow(
+                    label = activity.getString(R.string.orbot_both),
+                    description = activity.getString(R.string.orbot_both_desc),
+                    selected = selectedType == AppConfig.ProxyType.HTTP_SOCKS5.name
+                ) {
+                    enableProxy(AppConfig.ProxyType.HTTP_SOCKS5.name)
                 }
             }
-        }
 
-        b.bsSocks5OrbotRl.setOnClickListener {
-            io {
-                val isSelected = isAnyAppSelected()
-                uiCtx {
-                    if (!isSelected) {
-                        Utilities.showToastUiCentered(
-                            activity,
-                            activity.getString(R.string.orbot_no_app_toast),
-                            Toast.LENGTH_SHORT
-                        )
-                        b.bsOrbotRadioNone.isChecked = true
-                        b.bsOrbotRadioSocks5.isChecked = false
-                        return@uiCtx
-                    }
-                    if (!b.bsOrbotRadioSocks5.isChecked) {
-                        b.bsOrbotRadioSocks5.isChecked = true
-                        persistentState.orbotConnectionStatus.postValue(true)
-                        enableSocks5Orbot()
-                    }
-                }
+            TextButton(onClick = { orbotHelper.openOrbotApp() }) {
+                Text(text = activity.getString(R.string.settings_orbot_header))
+            }
+
+            TextButton(onClick = { openAppsDialog() }) {
+                Text(text = includeAppsLabel)
             }
         }
 
-        b.bsOrbotRadioHttp.setOnCheckedChangeListener(null)
-        b.bsOrbotRadioHttp.setOnClickListener {
-            io {
-                val isSelected = isAnyAppSelected()
-                uiCtx {
-                    if (!isSelected) {
-                        Utilities.showToastUiCentered(
-                            activity,
-                            activity.getString(R.string.orbot_no_app_toast),
-                            Toast.LENGTH_SHORT
-                        )
-                        b.bsOrbotRadioNone.isChecked = true
-                        b.bsOrbotRadioHttp.isChecked = false
-                        return@uiCtx
-                    }
-                    if (!b.bsOrbotRadioHttp.isSelected) {
-                        persistentState.orbotConnectionStatus.postValue(true)
-                        enableHttpOrbot()
+        if (showInfoDialog) {
+            AlertDialog(
+                onDismissRequest = { showInfoDialog = false },
+                title = { Text(text = activity.getString(R.string.orbot_title)) },
+                text = { HtmlText(activity.getString(R.string.orbot_explanation)) },
+                confirmButton = {
+                    TextButton(onClick = { showInfoDialog = false }) {
+                        Text(text = activity.getString(R.string.lbl_dismiss))
                     }
                 }
-            }
+            )
         }
 
-        b.bsOrbotHttpRl.setOnClickListener {
-            io {
-                val isSelected = isAnyAppSelected()
-                uiCtx {
-                    if (!isSelected) {
-                        Utilities.showToastUiCentered(
-                            activity,
-                            activity.getString(R.string.orbot_no_app_toast),
-                            Toast.LENGTH_SHORT
-                        )
-                        b.bsOrbotRadioNone.isChecked = true
-                        b.bsOrbotRadioHttp.isChecked = false
-                        return@uiCtx
-                    }
-                    if (!b.bsOrbotRadioHttp.isChecked) {
-                        persistentState.orbotConnectionStatus.postValue(true)
-                        b.bsOrbotRadioHttp.isChecked = true
-                        enableHttpOrbot()
+        if (showStopDialog) {
+            AlertDialog(
+                onDismissRequest = { showStopDialog = false },
+                title = { Text(text = activity.getString(R.string.orbot_stop_dialog_title)) },
+                text = { Text(text = stopDialogMessage()) },
+                confirmButton = {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(onClick = { showStopDialog = false }) {
+                            Text(text = activity.getString(R.string.lbl_dismiss))
+                        }
+                        TextButton(
+                            onClick = {
+                                showStopDialog = false
+                                orbotHelper.openOrbotApp()
+                            }
+                        ) {
+                            Text(text = activity.getString(R.string.orbot_stop_dialog_negative))
+                        }
+                        if (isOrbotDns) {
+                            TextButton(
+                                onClick = {
+                                    showStopDialog = false
+                                    gotoDnsConfigureScreen()
+                                }
+                            ) {
+                                Text(text = activity.getString(R.string.orbot_stop_dialog_neutral))
+                            }
+                        }
                     }
                 }
-            }
+            )
         }
-
-        b.bsOrbotRadioBoth.setOnCheckedChangeListener(null)
-        b.bsOrbotRadioBoth.setOnClickListener {
-            io {
-                val isSelected = isAnyAppSelected()
-                uiCtx {
-                    if (!isSelected) {
-                        Utilities.showToastUiCentered(
-                            activity,
-                            activity.getString(R.string.orbot_no_app_toast),
-                            Toast.LENGTH_SHORT
-                        )
-                        b.bsOrbotRadioNone.isChecked = true
-                        b.bsOrbotRadioBoth.isChecked = false
-                        return@uiCtx
-                    }
-                    if (!b.bsOrbotRadioBoth.isSelected) {
-                        persistentState.orbotConnectionStatus.postValue(true)
-                        enableSocks5HttpOrbot()
-                    }
-                }
-            }
-        }
-
-        b.bsOrbotBothRl.setOnClickListener {
-            io {
-                val isSelected = isAnyAppSelected()
-                uiCtx {
-                    if (!isSelected) {
-                        Utilities.showToastUiCentered(
-                            activity,
-                            activity.getString(R.string.orbot_no_app_toast),
-                            Toast.LENGTH_SHORT
-                        )
-                        b.bsOrbotRadioNone.isChecked = true
-                        b.bsOrbotRadioBoth.isChecked = false
-                        return@uiCtx
-                    }
-                    if (!b.bsOrbotRadioBoth.isChecked) {
-                        persistentState.orbotConnectionStatus.postValue(true)
-                        b.bsOrbotRadioBoth.isChecked = true
-                        enableSocks5HttpOrbot()
-                    }
-                }
-            }
-        }
-
-        b.orbotInfoIcon.setOnClickListener { showDialogForInfo() }
-
-        persistentState.orbotConnectionStatus.observe(activity) {
-            if (it) {
-                b.orbotIcon.setImageResource(R.drawable.orbot_disabled)
-                enableLoading()
-            } else {
-                disableLoading()
-                io {
-                    val isOrbotDns = appConfig.isOrbotDns()
-                    uiCtx { updateUi(isOrbotDns) }
-                }
-            }
-        }
-
-        b.includeApplications.setOnClickListener { openAppsDialog() }
     }
 
-    private suspend fun isAnyAppSelected(): Boolean {
-        return ProxyManager.isAnyAppSelected(ProxyManager.ID_ORBOT_BASE)
+    @Composable
+    private fun OrbotOptionRow(
+        label: String,
+        description: String,
+        selected: Boolean,
+        onClick: () -> Unit
+    ) {
+        Row(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .clickable(enabled = !isConnecting) { onClick() }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            RadioButton(selected = selected, onClick = null, enabled = !isConnecting)
+            Column {
+                Text(text = label, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun HtmlText(html: String) {
+        AndroidView(
+            factory = { ctx ->
+                TextView(ctx).apply {
+                    text = HtmlCompat.fromHtml(html.replace("\n", "<br /><br />"), HtmlCompat.FROM_HTML_MODE_LEGACY)
+                }
+            },
+            update = { view ->
+                view.text =
+                    HtmlCompat.fromHtml(
+                        html.replace("\n", "<br /><br />"),
+                        HtmlCompat.FROM_HTML_MODE_LEGACY
+                    )
+            }
+        )
+    }
+
+    private fun enableProxy(type: String) {
+        io {
+            val isSelected = ProxyManager.isAnyAppSelected(ProxyManager.ID_ORBOT_BASE)
+            withContext(Dispatchers.Main) {
+                if (!isSelected) {
+                    Utilities.showToastUiCentered(
+                        activity,
+                        activity.getString(R.string.orbot_no_app_toast),
+                        Toast.LENGTH_SHORT
+                    )
+                    updateUi(isOrbotDns)
+                    return@withContext
+                }
+                if (type == selectedType) return@withContext
+                persistentState.orbotConnectionStatus.postValue(true)
+                startOrbot(type)
+            }
+        }
     }
 
     private fun handleOrbotStop() {
         stopOrbot()
         io {
-            val isOrbotDns = appConfig.isOrbotDns()
-            uiCtx { showStopOrbotDialog(isOrbotDns) }
-            logEvent(
-                "Orbot Stopped",
-                "User stopped Orbot from Orbot Bottom Sheet"
-            )
+            isOrbotDns = appConfig.isOrbotDns()
+            withContext(Dispatchers.Main) {
+                showStopDialog = true
+            }
+            logEvent("Orbot Stopped", "User stopped Orbot from Orbot Bottom Sheet")
         }
     }
 
     private fun updateUi(isOrbotDns: Boolean) {
-        when (OrbotHelper.selectedProxyType) {
-            AppConfig.ProxyType.SOCKS5.name -> {
-                b.bsOrbotRadioSocks5.isChecked = true
-                b.orbotIcon.setImageResource(R.drawable.orbot_enabled)
-                b.orbotStatus.text =
+        selectedType = OrbotHelper.selectedProxyType
+        statusText =
+            when (selectedType) {
+                AppConfig.ProxyType.SOCKS5.name -> {
                     if (isOrbotDns) {
                         activity.getString(
                             R.string.orbot_bs_status_1,
@@ -337,16 +407,11 @@ class OrbotDialog(
                             activity.getString(R.string.orbot_status_arg_2)
                         )
                     }
-            }
-            AppConfig.ProxyType.HTTP.name -> {
-                b.bsOrbotRadioHttp.isChecked = true
-                b.orbotIcon.setImageResource(R.drawable.orbot_enabled)
-                b.orbotStatus.text = activity.getString(R.string.orbot_bs_status_2)
-            }
-            AppConfig.ProxyType.HTTP_SOCKS5.name -> {
-                b.bsOrbotRadioBoth.isChecked = true
-                b.orbotIcon.setImageResource(R.drawable.orbot_enabled)
-                b.orbotStatus.text =
+                }
+                AppConfig.ProxyType.HTTP.name -> {
+                    activity.getString(R.string.orbot_bs_status_2)
+                }
+                AppConfig.ProxyType.HTTP_SOCKS5.name -> {
                     if (isOrbotDns) {
                         activity.getString(
                             R.string.orbot_bs_status_3,
@@ -358,14 +423,9 @@ class OrbotDialog(
                             activity.getString(R.string.orbot_status_arg_2)
                         )
                     }
+                }
+                else -> activity.getString(R.string.orbot_bs_status_4)
             }
-            AppConfig.ProxyType.NONE.name -> {
-                updateOrbotNone()
-            }
-            else -> {
-                updateOrbotNone()
-            }
-        }
     }
 
     private fun openAppsDialog() {
@@ -395,105 +455,18 @@ class OrbotDialog(
         includeAppsDialog.show()
     }
 
-    private fun updateOrbotNone() {
-        b.bsOrbotRadioNone.isChecked = true
-        b.bsOrbotRadioSocks5.isChecked = false
-        b.bsOrbotRadioHttp.isChecked = false
-        b.bsOrbotRadioBoth.isChecked = false
-        b.orbotIcon.setImageResource(R.drawable.orbot_disabled)
-        b.orbotStatus.text = activity.getString(R.string.orbot_bs_status_4)
-    }
-
-    private fun enableLoading() {
-        b.bsSocks5OrbotRl.isClickable = false
-        b.bsOrbotBothRl.isClickable = false
-        b.bsOrbotHttpRl.isClickable = false
-        b.bsOrbotNoneRl.isClickable = false
-        b.bsOrbotRadioGroup.isClickable = false
-        b.bsOrbotRadioSocks5.isClickable = false
-        b.bsOrbotRadioHttp.isClickable = false
-        b.bsOrbotRadioBoth.isClickable = false
-        b.bsOrbotRadioNone.isClickable = false
-        b.orbotStatus.text = activity.getString(R.string.orbot_bs_status_trying_connect)
-        animateOrbotIcon()
-    }
-
-    private fun animateOrbotIcon() {
-        var width = b.orbotIcon.measuredWidth
-        if (width == 0) {
-            width = getCalculatedWidth()
-        }
-        val rotation =
-            Rotate3dAnimation(
-                ROTATION_START_DEGREES,
-                ROTATION_END_DEGREES * ROTATION_MULTIPLIER,
-                width / 2f,
-                width / 2f,
-                ROTATION_Z_DEPTH,
-                true
-            )
-        rotation.fillAfter = true
-        rotation.interpolator = AccelerateInterpolator()
-        rotation.duration = ANIMATION_DURATION_SECONDS * ANIMATION_DURATION_MS_MULTIPLIER
-        rotation.repeatCount = Animation.INFINITE
-        b.orbotIcon.startAnimation(rotation)
-    }
-
-    private fun getCalculatedWidth(): Int {
-        val r: Resources = activity.resources
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, ORBOT_ICON_WIDTH_DIP, r.displayMetrics).toInt()
-    }
-
-    private fun disableLoading() {
-        b.bsSocks5OrbotRl.isClickable = true
-        b.bsOrbotBothRl.isClickable = true
-        b.bsOrbotHttpRl.isClickable = true
-        b.bsOrbotNoneRl.isClickable = true
-        b.bsOrbotRadioGroup.isClickable = true
-        b.bsOrbotRadioSocks5.isClickable = true
-        b.bsOrbotRadioHttp.isClickable = true
-        b.bsOrbotRadioBoth.isClickable = true
-        b.bsOrbotRadioNone.isClickable = true
-        b.orbotIcon.clearAnimation()
-    }
-
     private fun stopOrbot() {
         appConfig.removeAllProxies()
-        b.bsOrbotRadioSocks5.isChecked = false
-        b.bsOrbotRadioHttp.isChecked = false
-        b.bsOrbotRadioBoth.isChecked = false
-        b.bsOrbotRadioNone.isChecked = true
-        b.orbotIcon.setImageResource(R.drawable.orbot_disabled)
+        selectedType = AppConfig.ProxyType.NONE.name
         orbotHelper.stopOrbot(isInteractive = true)
-    }
-
-    private fun enableSocks5Orbot() {
-        b.bsOrbotRadioNone.isChecked = false
-        b.bsOrbotRadioHttp.isChecked = false
-        b.bsOrbotRadioBoth.isChecked = false
-        startOrbot(AppConfig.ProxyType.SOCKS5.name)
-    }
-
-    private fun enableHttpOrbot() {
-        b.bsOrbotRadioNone.isChecked = false
-        b.bsOrbotRadioSocks5.isChecked = false
-        b.bsOrbotRadioBoth.isChecked = false
-        startOrbot(AppConfig.ProxyType.HTTP.name)
-    }
-
-    private fun enableSocks5HttpOrbot() {
-        b.bsOrbotRadioNone.isChecked = false
-        b.bsOrbotRadioSocks5.isChecked = false
-        b.bsOrbotRadioHttp.isChecked = false
-        startOrbot(AppConfig.ProxyType.HTTP_SOCKS5.name)
     }
 
     private fun startOrbot(type: String) {
         io {
             val isOrbotInstalled = FirewallManager.isOrbotInstalled()
-            uiCtx {
+            withContext(Dispatchers.Main) {
                 if (!isOrbotInstalled) {
-                    return@uiCtx
+                    return@withContext
                 }
 
                 if (VpnController.hasTunnel()) {
@@ -502,6 +475,7 @@ class OrbotDialog(
                         "Orbot Started with type: $type",
                         "User started Orbot from Orbot Bottom Sheet with type: $type"
                     )
+                    selectedType = type
                 } else {
                     Utilities.showToastUiCentered(
                         activity,
@@ -513,38 +487,16 @@ class OrbotDialog(
         }
     }
 
-    private fun showStopOrbotDialog(isOrbotDns: Boolean) {
-        val builder = MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim)
-        builder.setTitle(activity.getString(R.string.orbot_stop_dialog_title))
-
-        builder.setCancelable(true)
-        builder.setPositiveButton(activity.getString(R.string.lbl_dismiss)) { dialogInterface, _ ->
-            dialogInterface.dismiss()
-        }
-        builder.setNegativeButton(activity.getString(R.string.orbot_stop_dialog_negative)) {
-                dialogInterface: DialogInterface,
-                _: Int ->
-            dialogInterface.dismiss()
-            orbotHelper.openOrbotApp()
-        }
-        if (isOrbotDns) {
-            builder.setMessage(
-                activity.getString(
-                    R.string.orbot_stop_dialog_message_combo,
-                    activity.getString(R.string.orbot_stop_dialog_message),
-                    activity.getString(R.string.orbot_stop_dialog_dns_message)
-                )
+    private fun stopDialogMessage(): String {
+        return if (isOrbotDns) {
+            activity.getString(
+                R.string.orbot_stop_dialog_message_combo,
+                activity.getString(R.string.orbot_stop_dialog_message),
+                activity.getString(R.string.orbot_stop_dialog_dns_message)
             )
-            builder.setNeutralButton(activity.getString(R.string.orbot_stop_dialog_neutral)) {
-                    dialogInterface,
-                    _ ->
-                dialogInterface.dismiss()
-                gotoDnsConfigureScreen()
-            }
         } else {
-            builder.setMessage(activity.getString(R.string.orbot_stop_dialog_message))
+            activity.getString(R.string.orbot_stop_dialog_message)
         }
-        builder.create().show()
     }
 
     private fun gotoDnsConfigureScreen() {
@@ -554,35 +506,6 @@ class OrbotDialog(
         activity.startActivity(intent)
     }
 
-    private fun showDialogForInfo() {
-        val dialogBinding = DialogInfoRulesLayoutBinding.inflate(LayoutInflater.from(activity))
-
-        val builder = MaterialAlertDialogBuilder(activity).setView(dialogBinding.root)
-        val lp = WindowManager.LayoutParams()
-        val infoDialog = builder.create()
-        infoDialog.show()
-        lp.copyFrom(infoDialog.window?.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-
-        infoDialog.setCancelable(true)
-        infoDialog.window?.attributes = lp
-
-        val okBtn = dialogBinding.infoRulesDialogCancelImg
-        val descText = dialogBinding.infoRulesDialogRulesDesc
-        val titleText = dialogBinding.infoRulesDialogRulesTitle
-
-        var text = activity.getString(R.string.orbot_explanation)
-        text = text.replace("\n", "<br /><br />")
-        val styledText = HtmlCompat.fromHtml(text, HtmlCompat.FROM_HTML_MODE_LEGACY)
-        descText.text = styledText
-        titleText.text = activity.getString(R.string.orbot_title)
-        titleText.setCompoundDrawablesRelative(null, null, null, null)
-
-        okBtn.setOnClickListener { infoDialog.dismiss() }
-        infoDialog.show()
-    }
-
     private fun logEvent(msg: String, details: String) {
         eventLogger.log(EventType.PROXY_SWITCH, Severity.LOW, msg, EventSource.UI, false, details)
     }
@@ -590,10 +513,6 @@ class OrbotDialog(
     private fun isDarkThemeOn(): Boolean {
         return activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
             Configuration.UI_MODE_NIGHT_YES
-    }
-
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
     }
 
     private fun io(f: suspend () -> Unit) {
