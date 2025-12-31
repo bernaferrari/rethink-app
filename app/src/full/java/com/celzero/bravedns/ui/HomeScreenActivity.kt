@@ -20,29 +20,38 @@ import Logger.LOG_TAG_APP_UPDATE
 import Logger.LOG_TAG_BACKUP_RESTORE
 import Logger.LOG_TAG_DOWNLOAD
 import Logger.LOG_TAG_UI
+import Logger.LOG_TAG_VPN
+import android.Manifest
 import android.app.UiModeManager
+import android.app.Activity
 import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.DialogInterface
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
+import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.net.VpnService
 import android.net.Uri
 import android.os.Bundle
 import android.os.SystemClock
+import android.provider.Settings
+import android.view.Gravity
 import android.view.View
+import android.view.WindowManager
 import android.widget.Toast
-import androidx.activity.OnBackPressedCallback
+import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.runtime.getValue
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.updatePadding
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.navigation.NavOptions
-import androidx.navigation.fragment.NavHostFragment
 import androidx.work.BackoffPolicy
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
@@ -59,25 +68,56 @@ import com.celzero.bravedns.backup.BackupHelper.Companion.INTENT_RESTART_APP
 import com.celzero.bravedns.backup.BackupHelper.Companion.INTENT_SCHEME
 import com.celzero.bravedns.backup.RestoreAgent
 import com.celzero.bravedns.data.AppConfig
+import com.celzero.bravedns.data.SummaryStatisticsType
+import com.celzero.bravedns.database.AppDatabase
 import com.celzero.bravedns.database.AppInfoRepository
 import com.celzero.bravedns.database.RefreshDatabase
+import com.celzero.bravedns.databinding.DialogInfoRulesLayoutBinding
+import com.celzero.bravedns.databinding.DialogWhatsnewBinding
+import com.celzero.bravedns.scheduler.BugReportZipper
+import com.celzero.bravedns.scheduler.EnhancedBugReport
+import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.AppUpdater
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
+import com.celzero.bravedns.ui.activity.AdvancedSettingActivity
+import com.celzero.bravedns.ui.activity.AlertsActivity
+import com.celzero.bravedns.ui.activity.AntiCensorshipActivity
+import com.celzero.bravedns.ui.activity.AppListActivity
+import com.celzero.bravedns.ui.activity.ConfigureRethinkBasicActivity
+import com.celzero.bravedns.ui.activity.CustomRulesActivity
+import com.celzero.bravedns.ui.activity.DetailedStatisticsActivity
+import com.celzero.bravedns.ui.activity.DnsDetailActivity
+import com.celzero.bravedns.ui.activity.EventsActivity
+import com.celzero.bravedns.ui.activity.FirewallActivity
 import com.celzero.bravedns.ui.activity.MiscSettingsActivity
+import com.celzero.bravedns.ui.activity.NetworkLogsActivity
 import com.celzero.bravedns.ui.activity.PauseActivity
+import com.celzero.bravedns.ui.activity.ProxySettingsActivity
+import com.celzero.bravedns.ui.activity.TunnelSettingsActivity
 import com.celzero.bravedns.ui.activity.WelcomeActivity
+import com.celzero.bravedns.ui.activity.WgMainActivity
+import com.celzero.bravedns.ui.bottomsheet.BugReportFilesBottomSheet
+import com.celzero.bravedns.ui.compose.navigation.HomeScreenRoot
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.Constants.Companion.PKG_NAME_PLAY_STORE
+import com.celzero.bravedns.util.Constants.Companion.RETHINKDNS_SPONSOR_LINK
 import com.celzero.bravedns.util.FirebaseErrorReporting
 import com.celzero.bravedns.util.FirebaseErrorReporting.TOKEN_LENGTH
 import com.celzero.bravedns.util.FirebaseErrorReporting.TOKEN_REGENERATION_PERIOD_DAYS
 import com.celzero.bravedns.util.NewSettingsManager
 import com.celzero.bravedns.util.RemoteFileTagUtil
+import com.celzero.bravedns.util.UIUtils
+import com.celzero.bravedns.util.UIUtils.openAppInfo
+import com.celzero.bravedns.util.UIUtils.openNetworkSettings
+import com.celzero.bravedns.util.UIUtils.openUrl
+import com.celzero.bravedns.util.UIUtils.openVpnProfile
+import com.celzero.bravedns.util.UIUtils.sendEmailIntent
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getPackageMetadata
@@ -87,27 +127,39 @@ import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.isPlayStoreFlavour
 import com.celzero.bravedns.util.Utilities.isWebsiteFlavour
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
+import com.celzero.bravedns.util.disableFrostTemporarily
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.get
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
-class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
+class HomeScreenActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
     private val appInfoDb by inject<AppInfoRepository>()
     private val appUpdateManager by inject<AppUpdater>()
     private val rdb by inject<RefreshDatabase>()
     private val appConfig by inject<AppConfig>()
+    private val workScheduler by inject<WorkScheduler>()
+    private val appDatabase by inject<AppDatabase>()
+
+    private val homeViewModel by viewModel<com.celzero.bravedns.ui.compose.home.HomeScreenViewModel>()
+    private val summaryViewModel by viewModel<com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel>()
+    private val aboutViewModel by viewModel<com.celzero.bravedns.ui.compose.about.AboutViewModel>()
 
     // TODO: see if this can be replaced with a more robust solution
     // keep track of when app went to background
     private var appInBackground = false
+
+    private lateinit var startForResult: androidx.activity.result.ActivityResultLauncher<Intent>
+    private lateinit var notificationPermissionResult: androidx.activity.result.ActivityResultLauncher<String>
+    private lateinit var miscSettingsResultLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
 
     // TODO - #324 - Usage of isDarkTheme() in all activities.
     private fun Context.isDarkThemeOn(): Boolean {
@@ -118,16 +170,6 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
     override fun onCreate(savedInstanceState: Bundle?) {
         theme.applyStyle(getCurrentTheme(isDarkThemeOn(), persistentState.theme), true)
         super.onCreate(savedInstanceState)
-
-        if (isAtleastO_MR1()) {
-            Logger.vv(LOG_TAG_UI, "Setting up window insets for Android 27+")
-            ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.nav_view)) { view, insets ->
-                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-                view.updatePadding(bottom = systemBars.bottom) // Add bottom padding to keep icons visible
-                insets
-                WindowInsetsCompat.CONSUMED
-            }
-        }
 
         if (isAtleastQ()) {
             val controller = WindowInsetsControllerCompat(window, window.decorView)
@@ -143,9 +185,9 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
 
         handleFrostEffectIfNeeded(persistentState.theme)
 
-        updateNewVersion()
+        registerForActivityResult()
 
-        setupNavigationItemSelectedListener()
+        updateNewVersion()
 
         // handle intent receiver for backup/restore
         handleIntent()
@@ -154,11 +196,77 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
 
         observeAppState()
 
-        handleOnBackPressed()
-
         NewSettingsManager.handleNewSettings()
 
         regenerateFirebaseTokenIfNeeded()
+
+        appConfig.getBraveModeObservable().postValue(appConfig.getBraveMode().mode)
+
+        setContent {
+            RethinkTheme {
+                val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
+                val aboutState by aboutViewModel.uiState.collectAsStateWithLifecycle()
+                HomeScreenRoot(
+                    homeUiState = homeState,
+                    onHomeStartStopClick = { handleMainScreenBtnClickEvent() },
+                    onHomeDnsClick = { startDnsActivity(DnsDetailActivity.Tabs.CONFIGURE.screen) },
+                    onHomeFirewallClick = { startFirewallActivity(FirewallActivity.Tabs.UNIVERSAL.screen) },
+                    onHomeProxyClick = {
+                        if (appConfig.isWireGuardEnabled()) {
+                            startActivity(ScreenType.PROXY_WIREGUARD)
+                        } else {
+                            startActivity(ScreenType.PROXY)
+                        }
+                    },
+                    onHomeLogsClick = { startActivity(ScreenType.LOGS, NetworkLogsActivity.Tabs.NETWORK_LOGS.screen) },
+                    onHomeAppsClick = { startAppsActivity() },
+                    onHomeSponsorClick = { promptForAppSponsorship() },
+                    summaryViewModel = summaryViewModel,
+                    onOpenDetailedStats = { type -> openDetailedStatsUi(type) },
+                    isDebug = DEBUG,
+                    onConfigureAppsClick = { startActivity(ConfigureScreenType.APPS) },
+                    onConfigureDnsClick = { startActivity(ConfigureScreenType.DNS) },
+                    onConfigureFirewallClick = { startActivity(ConfigureScreenType.FIREWALL) },
+                    onConfigureProxyClick = { startActivity(ConfigureScreenType.PROXY) },
+                    onConfigureNetworkClick = { startActivity(ConfigureScreenType.VPN) },
+                    onConfigureOthersClick = { startActivity(ConfigureScreenType.OTHERS) },
+                    onConfigureLogsClick = { startActivity(ConfigureScreenType.LOGS) },
+                    onConfigureAntiCensorshipClick = { startActivity(ConfigureScreenType.ANTI_CENSORSHIP) },
+                    onConfigureAdvancedClick = { startActivity(ConfigureScreenType.ADVANCED) },
+                    aboutUiState = aboutState,
+                    onSponsorClick = { openUrl(this, RETHINKDNS_SPONSOR_LINK) },
+                    onTelegramClick = { openUrl(this, getString(R.string.about_telegram_link)) },
+                    onBugReportClick = { aboutViewModel.triggerBugReport() },
+                    onWhatsNewClick = { showNewFeaturesDialog() },
+                    onAppUpdateClick = { checkForUpdate(AppUpdater.UserPresent.INTERACTIVE) },
+                    onContributorsClick = { showContributors() },
+                    onTranslateClick = { openUrl(this, getString(R.string.about_translate_link)) },
+                    onWebsiteClick = { openUrl(this, getString(R.string.about_website_link)) },
+                    onGithubClick = { openUrl(this, getString(R.string.about_github_link)) },
+                    onFaqClick = { openUrl(this, getString(R.string.about_faq_link)) },
+                    onDocsClick = { openUrl(this, getString(R.string.about_docs_link)) },
+                    onPrivacyPolicyClick = { openUrl(this, getString(R.string.about_privacy_policy_link)) },
+                    onTermsOfServiceClick = { openUrl(this, getString(R.string.about_terms_link)) },
+                    onLicenseClick = { openUrl(this, getString(R.string.about_license_link)) },
+                    onTwitterClick = { openUrl(this, getString(R.string.about_twitter_handle)) },
+                    onEmailClick = { disableFrostTemporarily(); sendEmailIntent(this) },
+                    onRedditClick = { openUrl(this, getString(R.string.about_reddit_handle)) },
+                    onElementClick = { openUrl(this, getString(R.string.about_matrix_handle)) },
+                    onMastodonClick = { openUrl(this, getString(R.string.about_mastodom_handle)) },
+                    onAppInfoClick = { openAppInfo(this) },
+                    onVpnProfileClick = { openVpnProfile(this) },
+                    onNotificationClick = { openNotificationSettings() },
+                    onStatsClick = { openStatsDialog() },
+                    onDbStatsClick = { openDatabaseDumpDialog() },
+                    onFlightRecordClick = { initiateFlightRecord() },
+                    onEventLogsClick = { openEventLogs() },
+                    onTokenClick = { copyTokenToClipboard() },
+                    onTokenDoubleTap = { aboutViewModel.generateNewToken() },
+                    onFossClick = { openUrl(this, getString(R.string.about_foss_link)) },
+                    onFlossFundsClick = { openUrl(this, getString(R.string.about_floss_fund_link)) }
+                )
+            }
+        }
 
         // enable in-app messaging, will be used to show in-app messages in case of billing issues
         //enableInAppMessaging()
@@ -731,112 +839,650 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
         Logger.v(LOG_TAG_UI, "home screen activity is stopped, app going to background")
     }
 
-    private fun handleOnBackPressed() {
-        onBackPressedDispatcher.addCallback(
-            this,
-            object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    val navHostFragment =
-                        supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
-                    val navController = navHostFragment?.navController
-                    val homeId = R.id.homeScreenFragment
-                    if (navController?.currentDestination?.id != homeId) {
-                        val btmNavView = findViewById<BottomNavigationView>(R.id.nav_view)
-                        btmNavView.selectedItemId = homeId
-                        navController?.navigate(
-                            homeId,
-                            null,
-                            NavOptions.Builder().setPopUpTo(homeId, true).build()
+    enum class ScreenType {
+        DNS,
+        FIREWALL,
+        LOGS,
+        RULES,
+        PROXY,
+        ALERTS,
+        RETHINK,
+        PROXY_WIREGUARD
+    }
+
+    enum class ConfigureScreenType {
+        APPS,
+        DNS,
+        FIREWALL,
+        PROXY,
+        VPN,
+        OTHERS,
+        LOGS,
+        ANTI_CENSORSHIP,
+        ADVANCED
+    }
+
+    private fun openDetailedStatsUi(type: SummaryStatisticsType) {
+        val timeCategory = summaryViewModel.uiState.value.timeCategory.value
+        val intent = Intent(this, DetailedStatisticsActivity::class.java)
+        intent.putExtra(DetailedStatisticsActivity.INTENT_TYPE, type.tid)
+        intent.putExtra(DetailedStatisticsActivity.INTENT_TIME_CATEGORY, timeCategory)
+        startActivity(intent)
+    }
+
+    private fun promptForAppSponsorship() {
+        val installTime = packageManager.getPackageInfo(packageName, 0).firstInstallTime
+        val timeDiff = System.currentTimeMillis() - installTime
+        val days = (timeDiff / (1000L * 60L * 60L * 24L)).toDouble()
+        val month = days / 30.0
+        val amount = month * (0.60 + 0.20)
+
+        val alertBuilder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+        val dialogView = layoutInflater.inflate(R.layout.dialog_sponsor_info, null)
+        alertBuilder.setView(dialogView)
+        alertBuilder.setCancelable(true)
+
+        val amountTxt = dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.dialog_sponsor_info_amount)
+        val usageTxt = dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.dialog_sponsor_info_usage)
+        val sponsorBtn = dialogView.findViewById<androidx.appcompat.widget.AppCompatTextView>(R.id.dialog_sponsor_info_sponsor)
+
+        val dialog = alertBuilder.create()
+
+        val msg = getString(R.string.sponser_dialog_usage_msg, days.toInt().toString(), "%.2f".format(amount))
+        amountTxt.text = getString(R.string.two_argument_no_space, getString(R.string.symbol_dollar), "%.2f".format(amount))
+        usageTxt.text = msg
+
+        sponsorBtn.setOnClickListener {
+            openUrl(this, RETHINKDNS_SPONSOR_LINK)
+        }
+        dialog.show()
+    }
+
+    private fun handleMainScreenBtnClickEvent() {
+        Utilities.delay(TimeUnit.MILLISECONDS.toMillis(500L), lifecycleScope) { }
+        handleVpnActivation()
+    }
+
+    private fun handleVpnActivation() {
+        if (handleAlwaysOnVpn()) return
+
+        if (VpnController.isOn()) {
+            stopVpnService()
+        } else {
+            prepareAndStartVpn()
+        }
+    }
+
+    private fun handleAlwaysOnVpn(): Boolean {
+        if (Utilities.isOtherVpnHasAlwaysOn(this)) {
+            showAlwaysOnDisableDialog()
+            return true
+        }
+
+        if (VpnController.isAlwaysOn(this) && VpnController.isOn()) {
+            showAlwaysOnStopDialog()
+            return true
+        }
+
+        return false
+    }
+
+    private fun showAlwaysOnStopDialog() {
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+        builder.setTitle(R.string.always_on_dialog_stop_heading)
+        if (VpnController.isVpnLockdown()) {
+            builder.setMessage(UIUtils.htmlToSpannedText(getString(R.string.always_on_dialog_lockdown_stop_message)))
+        } else {
+            builder.setMessage(R.string.always_on_dialog_stop_message)
+        }
+        builder.setCancelable(false)
+        builder.setPositiveButton(R.string.always_on_dialog_positive) { _, _ -> stopVpnService() }
+        builder.setNegativeButton(R.string.lbl_cancel) { _, _ -> }
+        builder.setNeutralButton(R.string.always_on_dialog_neutral) { _, _ -> openVpnProfile(this) }
+        builder.create().show()
+    }
+
+    private fun showAlwaysOnDisableDialog() {
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+        builder.setTitle(R.string.always_on_dialog_heading)
+        builder.setMessage(R.string.always_on_dialog)
+        builder.setCancelable(false)
+        builder.setPositiveButton(R.string.always_on_dialog_positive_btn) { _, _ -> openVpnProfile(this) }
+        builder.setNegativeButton(R.string.lbl_cancel) { _, _ -> }
+        builder.create().show()
+    }
+
+    private fun startDnsActivity(screenToLoad: Int) {
+        if (Utilities.isPrivateDnsActive(this)) {
+            showPrivateDnsDialog()
+            return
+        }
+
+        if (canStartRethinkActivity()) {
+            startActivity(ScreenType.RETHINK, screenToLoad)
+            return
+        }
+
+        startActivity(ScreenType.DNS, screenToLoad)
+    }
+
+    private fun canStartRethinkActivity(): Boolean {
+        val dns = appConfig.getDnsType()
+        return dns.isRethinkRemote() && !WireguardManager.oneWireGuardEnabled()
+    }
+
+    private fun showPrivateDnsDialog() {
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+        builder.setTitle(R.string.private_dns_dialog_heading)
+        builder.setMessage(R.string.private_dns_dialog_desc)
+        builder.setCancelable(false)
+        builder.setPositiveButton(R.string.private_dns_dialog_positive) { _, _ ->
+            openNetworkSettings(this, Settings.ACTION_WIRELESS_SETTINGS)
+        }
+
+        builder.setNegativeButton(R.string.lbl_dismiss) { _, _ -> }
+        builder.create().show()
+    }
+
+    private fun startFirewallActivity(screenToLoad: Int) {
+        startActivity(ScreenType.FIREWALL, screenToLoad)
+    }
+
+    private fun startAppsActivity() {
+        val intent = Intent(this, AppListActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun startActivity(type: ScreenType, screenToLoad: Int = 0) {
+        val intent =
+            when (type) {
+                ScreenType.DNS -> Intent(this, DnsDetailActivity::class.java)
+                ScreenType.FIREWALL -> Intent(this, FirewallActivity::class.java)
+                ScreenType.LOGS -> Intent(this, NetworkLogsActivity::class.java)
+                ScreenType.RULES -> Intent(this, CustomRulesActivity::class.java)
+                ScreenType.PROXY -> Intent(this, ProxySettingsActivity::class.java)
+                ScreenType.ALERTS -> Intent(this, AlertsActivity::class.java)
+                ScreenType.RETHINK -> Intent(this, ConfigureRethinkBasicActivity::class.java)
+                ScreenType.PROXY_WIREGUARD -> Intent(this, WgMainActivity::class.java)
+            }
+        if (type == ScreenType.RETHINK) {
+            io {
+                val endpoint = appConfig.getRemoteRethinkEndpoint()
+                val url = endpoint?.url
+                val name = endpoint?.name
+                intent.putExtra(ConfigureRethinkBasicActivity.RETHINK_BLOCKLIST_NAME, name)
+                intent.putExtra(ConfigureRethinkBasicActivity.RETHINK_BLOCKLIST_URL, url)
+                uiCtx { startActivity(intent) }
+            }
+        } else {
+            intent.putExtra(Constants.VIEW_PAGER_SCREEN_TO_LOAD, screenToLoad)
+            startActivity(intent)
+        }
+    }
+
+    private fun startActivity(type: ConfigureScreenType) {
+        val intent =
+            when (type) {
+                ConfigureScreenType.APPS -> Intent(this, AppListActivity::class.java)
+                ConfigureScreenType.DNS -> Intent(this, DnsDetailActivity::class.java)
+                ConfigureScreenType.FIREWALL -> Intent(this, FirewallActivity::class.java)
+                ConfigureScreenType.PROXY -> Intent(this, ProxySettingsActivity::class.java)
+                ConfigureScreenType.VPN -> Intent(this, TunnelSettingsActivity::class.java)
+                ConfigureScreenType.OTHERS -> Intent(this, MiscSettingsActivity::class.java)
+                ConfigureScreenType.LOGS -> Intent(this, NetworkLogsActivity::class.java)
+                ConfigureScreenType.ANTI_CENSORSHIP -> Intent(this, AntiCensorshipActivity::class.java)
+                ConfigureScreenType.ADVANCED -> Intent(this, AdvancedSettingActivity::class.java)
+            }
+
+        if (type == ConfigureScreenType.OTHERS) {
+            miscSettingsResultLauncher.launch(intent)
+        } else {
+            startActivity(intent)
+        }
+    }
+
+    private fun prepareAndStartVpn() {
+        if (prepareVpnService()) {
+            startVpnService()
+        }
+    }
+
+    private fun stopVpnService() {
+        VpnController.stop("home", this)
+    }
+
+    private fun startVpnService() {
+        getNotificationPermissionIfNeeded()
+        VpnController.start(this, true)
+    }
+
+    private fun getNotificationPermissionIfNeeded() {
+        if (!Utilities.isAtleastT()) {
+            return
+        }
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            return
+        }
+
+        if (!persistentState.shouldRequestNotificationPermission) {
+            Logger.w(LOG_TAG_VPN, "User rejected notification permission for the app")
+            return
+        }
+
+        notificationPermissionResult.launch(Manifest.permission.POST_NOTIFICATIONS)
+    }
+
+    @Throws(ActivityNotFoundException::class)
+    private fun prepareVpnService(): Boolean {
+        val prepareVpnIntent: Intent? =
+            try {
+                Logger.i(LOG_TAG_VPN, "Preparing VPN service")
+                VpnService.prepare(this)
+            } catch (e: NullPointerException) {
+                Logger.e(LOG_TAG_VPN, "Device does not support system-wide VPN mode.", e)
+                return false
+            }
+        if (prepareVpnIntent != null) {
+            Logger.i(LOG_TAG_VPN, "VPN service is prepared")
+            showFirstTimeVpnDialog(prepareVpnIntent)
+            return false
+        }
+        Logger.i(LOG_TAG_VPN, "VPN service is prepared, starting VPN service")
+        return true
+    }
+
+    private fun showFirstTimeVpnDialog(prepareVpnIntent: Intent) {
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+        builder.setTitle(R.string.hsf_vpn_dialog_header)
+        builder.setMessage(R.string.hsf_vpn_dialog_message)
+        builder.setCancelable(false)
+        builder.setPositiveButton(R.string.lbl_proceed) { _, _ ->
+            try {
+                startForResult.launch(prepareVpnIntent)
+            } catch (e: ActivityNotFoundException) {
+                Logger.e(LOG_TAG_VPN, "Activity not found to start VPN service", e)
+                showToastUiCentered(
+                    this,
+                    getString(R.string.hsf_vpn_prepare_failure),
+                    Toast.LENGTH_LONG
+                )
+            }
+        }
+
+        builder.setNegativeButton(R.string.lbl_cancel) { _, _ -> }
+        builder.create().show()
+    }
+
+    private fun registerForActivityResult() {
+        startForResult =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                when (result.resultCode) {
+                    Activity.RESULT_OK -> {
+                        startVpnService()
+                    }
+                    Activity.RESULT_CANCELED -> {
+                        showToastUiCentered(
+                            this,
+                            getString(R.string.hsf_vpn_prepare_failure),
+                            Toast.LENGTH_LONG
                         )
-                    } else {
-                        finish()
+                    }
+                    else -> {
+                        stopVpnService()
                     }
                 }
             }
-        )
+
+        notificationPermissionResult =
+            registerForActivityResult(ActivityResultContracts.RequestPermission()) {
+                persistentState.shouldRequestNotificationPermission = it
+                if (it) {
+                    Logger.i(LOG_TAG_UI, "User accepted notification permission")
+                } else {
+                    Logger.w(LOG_TAG_UI, "User rejected notification permission")
+                    Snackbar.make(
+                        findViewById<View>(android.R.id.content).rootView,
+                        getString(R.string.hsf_notification_permission_failure),
+                        Snackbar.LENGTH_LONG
+                    ).show()
+                }
+            }
+
+        miscSettingsResultLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == MiscSettingsActivity.THEME_CHANGED_RESULT) {
+                    recreate()
+                }
+            }
     }
 
-    /*private fun updateRethinkPlusHighlight() {
-        val btmNavView = findViewById<BottomNavigationView>(R.id.nav_view)
-        val rethinkPlusItem = btmNavView.menu.findItem(R.id.rethinkPlus)
-        rethinkPlusItem.setIcon(R.drawable.ic_rethink_plus_sparkle)
-        btmNavView.removeBadge(R.id.rethinkPlus)
-    }*/
+    private fun copyTokenToClipboard() {
+        val text = persistentState.firebaseUserToken
+        val clipboard = ContextCompat.getSystemService(this, ClipboardManager::class.java)
+        val clip = ClipData.newPlainText("token", text)
+        clipboard?.setPrimaryClip(clip)
+        Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show()
+    }
 
-    private fun setupNavigationItemSelectedListener() {
-        val btmNavView = findViewById<BottomNavigationView>(R.id.nav_view)
-        val navHostFragment =
-            supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
-        val navController = navHostFragment?.navController
+    private fun initiateFlightRecord() {
+        io { VpnController.performFlightRecording() }
+        Toast.makeText(this, "Flight recording started", Toast.LENGTH_SHORT).show()
+    }
 
-        btmNavView.setOnItemSelectedListener { item ->
-            val homeId = R.id.homeScreenFragment
+    private fun openEventLogs() {
+        val intent = Intent(this, EventsActivity::class.java)
+        startActivity(intent)
+    }
 
-            when (item.itemId) {
-                R.id.rethinkPlus -> {
-                    showToastUiCentered(this, "Coming soon!", Toast.LENGTH_SHORT)
-                    true
-                    /*if (RpnProxyManager.hasValidSubscription()) {
-                        // Navigate to rethinkPlusDashboardFragment
-                        if (navController?.currentDestination?.id != R.id.rethinkPlusDashboardFragment) {
-                            navController?.navigate(
-                                R.id.rethinkPlusDashboardFragment,
-                                null,
-                                NavOptions.Builder().setPopUpTo(homeId, false).build()
-                            )
-                        }
-                        btmNavView.menu.findItem(R.id.rethinkPlus)?.isChecked = true
-                        true
-                    } else {
-                        // Navigate to rethinkPlus fragment
-                        if (navController?.currentDestination?.id != R.id.rethinkPlus) {
-                            navController?.navigate(
-                                R.id.rethinkPlus,
-                                null,
-                                NavOptions.Builder().setPopUpTo(homeId, false).build()
-                            )
-                        }
-                        btmNavView.menu.findItem(R.id.rethinkPlus)?.isChecked = true
-                        true
-                    }*/
+    private fun getVersionName(): String {
+        return Utilities.getPackageMetadata(packageManager, packageName)?.versionName ?: ""
+    }
+
+    private fun openStatsDialog() {
+        io {
+            val stat = VpnController.getNetStat()
+            val formatedStat = UIUtils.formatNetStat(stat)
+            val vpnStats = VpnController.vpnStats()
+            val stats = formatedStat + vpnStats
+            uiCtx {
+                val tv = android.widget.TextView(this@HomeScreenActivity)
+                val pad = resources.getDimensionPixelSize(R.dimen.dots_margin_bottom)
+                tv.setPadding(pad, pad, pad, pad)
+                if (formatedStat == null) {
+                    tv.text = "No Stats"
+                } else {
+                    tv.text = stats
                 }
-
-                homeId -> {
-                    if (navController != null && navController.currentDestination?.id != homeId) {
-                        navController.navigate(
-                            homeId,
-                            null,
-                            NavOptions.Builder().setPopUpTo(homeId, true).build()
+                tv.setTextIsSelectable(true)
+                tv.typeface = android.graphics.Typeface.MONOSPACE
+                val scroll = android.widget.ScrollView(this@HomeScreenActivity)
+                scroll.addView(tv)
+                MaterialAlertDialogBuilder(this@HomeScreenActivity, R.style.App_Dialog_NoDim)
+                    .setTitle(getString(R.string.title_statistics))
+                    .setView(scroll)
+                    .setPositiveButton(R.string.fapps_info_dialog_positive_btn) { d, _ -> d.dismiss() }
+                    .setNeutralButton(R.string.dns_info_neutral) { _, _ ->
+                        copyToClipboard("stats_dump", stats)
+                        showToastUiCentered(
+                            this@HomeScreenActivity,
+                            getString(R.string.copied_clipboard),
+                            Toast.LENGTH_SHORT
                         )
-                        true
-                    } else {
-                        false
-                    }
-                }
+                    }.create()
+                    .show()
+            }
+        }
+    }
 
-                else -> {
-                    if (navController != null && navController.currentDestination?.id != item.itemId) {
-                        navController.navigate(
-                            item.itemId,
-                            null,
-                            NavOptions.Builder().setPopUpTo(homeId, false).build()
-                        )
-                        true
-                    } else {
-                        false
+    private fun copyToClipboard(label: String, text: String): ClipboardManager? {
+        val clipboard = ContextCompat.getSystemService(this, ClipboardManager::class.java)
+        clipboard?.setPrimaryClip(ClipData.newPlainText(label, text))
+        return clipboard
+    }
+
+    private fun openDatabaseDumpDialog() {
+        io {
+            val tables = getDatabaseTables()
+            if (tables.isEmpty()) {
+                uiCtx { showNoLogDialog() }
+                return@io
+            }
+
+            val items = tables.toTypedArray()
+            uiCtx {
+                MaterialAlertDialogBuilder(this@HomeScreenActivity, R.style.App_Dialog_NoDim)
+                    .setTitle(R.string.title_database_dump)
+                    .setItems(items) { _, which ->
+                        val table = items[which]
+                        io {
+                            val dump = buildTableDump(table)
+                            uiCtx {
+                                val tv = android.widget.TextView(this@HomeScreenActivity)
+                                tv.setPadding(20, 20, 20, 20)
+                                tv.text = dump
+                                tv.setTextIsSelectable(true)
+                                tv.typeface = android.graphics.Typeface.MONOSPACE
+                                val scroll = android.widget.ScrollView(this@HomeScreenActivity)
+                                scroll.addView(tv)
+                                MaterialAlertDialogBuilder(this@HomeScreenActivity, R.style.App_Dialog_NoDim)
+                                    .setTitle(table)
+                                    .setView(scroll)
+                                    .setPositiveButton(R.string.fapps_info_dialog_positive_btn) { d, _ -> d.dismiss() }
+                                    .setNeutralButton(R.string.dns_info_neutral) { _, _ ->
+                                        copyToClipboard("db_dump", dump)
+                                        showToastUiCentered(
+                                            this@HomeScreenActivity,
+                                            getString(R.string.copied_clipboard),
+                                            Toast.LENGTH_SHORT
+                                        )
+                                    }.create()
+                                    .show()
+                            }
+                        }
                     }
+                    .setPositiveButton(R.string.lbl_cancel) { d, _ -> d.dismiss() }
+                    .show()
+            }
+        }
+    }
+
+    private fun getDatabaseTables(): List<String> {
+        val db = appDatabase.openHelper.readableDatabase
+        val cursor = db.query("SELECT name FROM sqlite_master WHERE type='table'")
+        val tables = mutableListOf<String>()
+        while (cursor.moveToNext()) {
+            val tableName = cursor.getString(0)
+            if (tableName != "android_metadata" && tableName != "room_master_table") {
+                tables.add(tableName)
+            }
+        }
+        cursor.close()
+        return tables
+    }
+
+    private fun buildTableDump(table: String): String {
+        val db = appDatabase.openHelper.readableDatabase
+        val cursor = db.query("SELECT * FROM $table")
+        val columnNames = cursor.columnNames
+        val result = StringBuilder()
+        result.append("Table: $table\n")
+        result.append(columnNames.joinToString(separator = "\t"))
+        result.append("\n")
+        while (cursor.moveToNext()) {
+            for (i in columnNames.indices) {
+                result.append(cursor.getString(i)).append("\t")
+            }
+            result.append("\n")
+        }
+        cursor.close()
+        return result.toString()
+    }
+
+    private fun hasAnyLogsAvailable(): Boolean {
+        val dir = filesDir
+        val bugReportDir = java.io.File(dir, BugReportZipper.BUG_REPORT_DIR_NAME)
+        if (bugReportDir.exists() && bugReportDir.isDirectory) {
+            val bugReportFiles = bugReportDir.listFiles()
+            if (bugReportFiles != null && bugReportFiles.any { it.isFile && it.length() > 0 }) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    private fun showNoLogDialog() {
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+        builder.setTitle(R.string.about_bug_no_log_dialog_title)
+        builder.setMessage(R.string.about_bug_no_log_dialog_message)
+        builder.setPositiveButton(getString(R.string.about_bug_no_log_dialog_positive_btn)) { _, _ ->
+            sendEmailIntent(this)
+        }
+        builder.setNegativeButton(getString(R.string.lbl_cancel)) { dialog, _ -> dialog.dismiss() }
+        builder.create().show()
+    }
+
+    private fun openNotificationSettings() {
+        val packageName = packageName
+        try {
+            val intent = Intent()
+            if (Utilities.isAtleastO()) {
+                intent.action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                intent.putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+            } else {
+                intent.action = Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+                intent.addCategory(Intent.CATEGORY_DEFAULT)
+                intent.data = android.net.Uri.fromParts("package", packageName, null)
+            }
+            startActivity(intent)
+        } catch (e: ActivityNotFoundException) {
+            showToastUiCentered(
+                this,
+                getString(R.string.notification_screen_error),
+                Toast.LENGTH_SHORT
+            )
+            Logger.w(LOG_TAG_UI, "activity not found ${e.message}", e)
+        }
+    }
+
+    private fun showNewFeaturesDialog() {
+        val binding = DialogWhatsnewBinding.inflate(layoutInflater, null, false)
+        binding.desc.movementMethod = android.text.method.LinkMovementMethod.getInstance()
+        binding.desc.text = UIUtils.htmlToSpannedText(getString(R.string.whats_new_version_update))
+        val v = getVersionName().slice(0..6)
+        val title = getString(R.string.about_whats_new, v)
+        MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+            .setView(binding.root)
+            .setTitle(title)
+            .setPositiveButton(getString(R.string.about_dialog_positive_button)) { dialogInterface, _ ->
+                dialogInterface.dismiss()
+            }
+            .setNeutralButton(getString(R.string.about_dialog_neutral_button)) { _: DialogInterface, _: Int ->
+                sendEmailIntent(this)
+            }
+            .setCancelable(true)
+            .create()
+            .show()
+    }
+
+    private fun showContributors() {
+        val dialogBinding = DialogInfoRulesLayoutBinding.inflate(layoutInflater)
+        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
+        val lp = WindowManager.LayoutParams()
+        val dialog = builder.create()
+        lp.copyFrom(dialog.window?.attributes)
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
+
+        dialog.setCancelable(true)
+        dialog.window?.attributes = lp
+
+        val heading = dialogBinding.infoRulesDialogRulesTitle
+        val okBtn = dialogBinding.infoRulesDialogCancelImg
+        val descText = dialogBinding.infoRulesDialogRulesDesc
+        dialogBinding.infoRulesDialogRulesIcon.visibility = View.GONE
+
+        heading.text = getString(R.string.contributors_dialog_title)
+        heading.setCompoundDrawablesWithIntrinsicBounds(
+            ContextCompat.getDrawable(this, R.drawable.ic_authors),
+            null,
+            null,
+            null
+        )
+
+        heading.gravity = Gravity.CENTER
+        descText.gravity = Gravity.CENTER
+
+        descText.movementMethod = android.text.method.LinkMovementMethod.getInstance()
+        descText.text = UIUtils.htmlToSpannedText(getString(R.string.contributors_list))
+
+        okBtn.setOnClickListener { dialog.dismiss() }
+        dialog.show()
+    }
+
+    private fun promptCrashLogAction() {
+        if (Utilities.isAtleastO()) {
+            io {
+                try {
+                    EnhancedBugReport.addLogsToZipFile(this@HomeScreenActivity)
+                } catch (e: Exception) {
+                    Logger.w(LOG_TAG_UI, "err adding tombstone to zip: ${e.message}", e)
                 }
             }
         }
 
-        // Optionally sync the bottom nav highlight with nav changes
-        /*navController?.addOnDestinationChangedListener { _, destination, _ ->
-            // Update Rethink Plus badge or icon here if needed
-            updateRethinkPlusHighlight()
-        }*/
+        val dir = filesDir
+        val zipPath = BugReportZipper.getZipFileName(dir)
+        val zipFile = java.io.File(zipPath)
+
+        if (!zipFile.exists() || zipFile.length() <= 0) {
+            showToastUiCentered(
+                this,
+                getString(R.string.log_file_not_available),
+                Toast.LENGTH_SHORT
+            )
+            return
+        }
+
+        val bottomSheet = BugReportFilesBottomSheet()
+        bottomSheet.show(supportFragmentManager, "BugReportFilesBottomSheet")
+    }
+
+    private fun handleShowAppExitInfo() {
+        if (WorkScheduler.isWorkRunning(this, WorkScheduler.APP_EXIT_INFO_JOB_TAG)) return
+
+        workScheduler.scheduleOneTimeWorkForAppExitInfo()
+
+        val workManager = WorkManager.getInstance(applicationContext)
+        workManager.getWorkInfosByTagLiveData(WorkScheduler.APP_EXIT_INFO_ONE_TIME_JOB_TAG).observe(
+            this
+        ) { workInfoList ->
+            val workInfo = workInfoList?.getOrNull(0) ?: return@observe
+            Logger.i(
+                Logger.LOG_TAG_SCHEDULER,
+                "WorkManager state: ${workInfo.state} for ${WorkScheduler.APP_EXIT_INFO_ONE_TIME_JOB_TAG}"
+            )
+            if (WorkInfo.State.SUCCEEDED == workInfo.state) {
+                onAppExitInfoSuccess()
+                workManager.pruneWork()
+            } else if (
+                WorkInfo.State.CANCELLED == workInfo.state ||
+                WorkInfo.State.FAILED == workInfo.state
+            ) {
+                onAppExitInfoFailure()
+                workManager.pruneWork()
+                workManager.cancelAllWorkByTag(WorkScheduler.APP_EXIT_INFO_ONE_TIME_JOB_TAG)
+            } else {
+                // no-op
+            }
+        }
+    }
+
+    private fun onAppExitInfoFailure() {
+        showToastUiCentered(
+            this,
+            getString(R.string.log_file_not_available),
+            Toast.LENGTH_SHORT
+        )
+        hideBugReportProgressUi()
+    }
+
+    private fun onAppExitInfoSuccess() {
+        promptCrashLogAction()
+    }
+
+    private fun hideBugReportProgressUi() {
+        aboutViewModel.setBugReportRunning(false)
     }
 
     private fun io(f: suspend () -> Unit) {
         lifecycleScope.launch(Dispatchers.IO) { f() }
+    }
+
+    private suspend fun uiCtx(f: suspend () -> Unit) {
+        withContext(Dispatchers.Main) { f() }
     }
 }
