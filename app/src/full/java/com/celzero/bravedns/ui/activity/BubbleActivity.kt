@@ -15,72 +15,91 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import Logger
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.view.View
 import androidx.activity.addCallback
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
+import androidx.paging.LoadState
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.recyclerview.widget.LinearLayoutManager
-import by.kirich1409.viewbindingdelegate.viewBinding
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.BubbleAllowedAppsAdapter
-import com.celzero.bravedns.adapter.BubbleBlockedAppsAdapter
 import com.celzero.bravedns.data.AllowedAppInfo
-import com.celzero.bravedns.viewmodel.AllowedAppsBubbleViewModel
 import com.celzero.bravedns.data.BlockedAppInfo
-import com.celzero.bravedns.viewmodel.BlockedAppsBubbleViewModel
 import com.celzero.bravedns.database.AppInfoRepository
 import com.celzero.bravedns.database.ConnectionTrackerDAO
 import com.celzero.bravedns.database.DnsLogDAO
-import com.celzero.bravedns.databinding.ActivityBubbleBinding
 import com.celzero.bravedns.service.FirewallManager
-import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
-import kotlinx.coroutines.CancellationException
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
+import com.celzero.bravedns.util.UIUtils.fetchColor
+import com.celzero.bravedns.viewmodel.AllowedAppsBubbleViewModel
+import com.celzero.bravedns.viewmodel.BlockedAppsBubbleViewModel
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 /**
- * BubbleActivity - Content activity for Android Bubble notifications
- *
- * This activity is launched by Android's Bubble API (Android 10+) when a user
- * interacts with a bubble notification. It displays recently blocked apps with
- * quick actions to temporarily allow them.
- *
- * The bubble is created via NotificationCompat.BubbleMetadata in BubbleHelper.
- * This activity provides the content that appears when the bubble is expanded.
- *
- * Based on: https://developer.android.com/develop/ui/views/notifications/bubbles
- *
- * Key features:
- * - Shows list of recently blocked apps
- * - Quick action to temporarily allow apps for 15 minutes
- * - Material Design 3 UI
- * - Works with Android's system bubble framework (not custom overlays)
+ * BubbleActivity - Content activity for Android Bubble notifications.
  */
-class BubbleActivity : AppCompatActivity(R.layout.activity_bubble) {
-    private val b by viewBinding(ActivityBubbleBinding::bind)
-
-    private val persistentState by inject<PersistentState>()
+class BubbleActivity : AppCompatActivity() {
     private val connectionTrackerDAO by inject<ConnectionTrackerDAO>()
     private val appInfoRepository by inject<AppInfoRepository>()
     private val dnsLogDAO by inject<DnsLogDAO>()
 
-    private lateinit var blockedAdapter: BubbleBlockedAppsAdapter
-    private lateinit var allowedAdapter: BubbleAllowedAppsAdapter
-
-    private var blockedCollectJob: kotlinx.coroutines.Job? = null
-    private var allowedCollectJob: kotlinx.coroutines.Job? = null
-
-    private var recyclerDecorationsAdded: Boolean = false
+    private var vpnOn by mutableStateOf(false)
+    private var refreshKey by mutableIntStateOf(0)
 
     companion object {
         private const val TAG = "BubbleActivity"
@@ -88,323 +107,452 @@ class BubbleActivity : AppCompatActivity(R.layout.activity_bubble) {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        theme.applyStyle(getCurrentTheme(isDarkThemeOn(), persistentState.theme), true)
         super.onCreate(savedInstanceState)
 
-        Logger.d(TAG, "BubbleActivity onCreate, taskId: $taskId")
+        Napier.d("$TAG onCreate, taskId: $taskId")
 
-        // Handle back button press - minimize instead of close
-        onBackPressedDispatcher.addCallback(this) {
-            // Move to background, don't finish the activity
-            moveTaskToBack(true)
+        setContent {
+            RethinkTheme {
+                BubbleContent()
+            }
         }
+
+        onBackPressedDispatcher.addCallback(this) { moveTaskToBack(true) }
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Logger.d(TAG, "BubbleActivity onNewIntent - bubble clicked again")
-        // Don't do anything special - just let onResume handle the refresh
+        Napier.d("$TAG onNewIntent - bubble clicked again")
     }
 
     override fun onResume() {
         super.onResume()
-
-        // If VPN is off, don't load anything / don't start collectors.
-        if (!VpnController.hasTunnel()) {
-            Logger.i(TAG, "VPN is off; not loading bubble lists")
-            stopCollectors()
-            showVpnOffState()
-            return
-        }
-
-        showContentState()
-        setupRecyclerViews()
-        setupLoadStateListeners()
-
-        // Start collectors once per resume; cancel previous collectors if any.
-        startAllowedCollector()
-        startBlockedCollector()
-    }
-
-    override fun onStop() {
-        super.onStop()
-        // Don't stop the service when activity is minimized
-        // The bubble notification should remain visible
-        Logger.d(TAG, "BubbleActivity stopped (minimized)")
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        // Don't stop the service when activity is destroyed
-        // The service manages its own lifecycle based on the toggle setting
-        Logger.d(TAG, "BubbleActivity destroyed")
-    }
-
-
-    private fun isDarkThemeOn(): Boolean {
-        return resources.configuration.uiMode and
-                android.content.res.Configuration.UI_MODE_NIGHT_MASK ==
-                android.content.res.Configuration.UI_MODE_NIGHT_YES
-    }
-
-
-    private fun startAllowedCollector() {
-        allowedCollectJob?.cancel()
-        allowedCollectJob = lifecycleScope.launch {
-            try {
-                val now = System.currentTimeMillis()
-
-                val allowedAppsPager = Pager(
-                    config = PagingConfig(
-                        pageSize = PAGE_SIZE,
-                        enablePlaceholders = false
-                    ),
-                    pagingSourceFactory = {
-                        AllowedAppsBubbleViewModel(appInfoRepository, now)
-                    }
-                ).flow.cachedIn(lifecycleScope)
-
-                allowedAppsPager.collect { pagingData ->
-                    if (!isFinishing && !isDestroyed) {
-                        allowedAdapter.submitData(pagingData)
-                    }
-                }
-            } catch (_: CancellationException) {
-                Logger.d(TAG, "Allowed apps loading cancelled (activity destroyed)")
-            } catch (e: Exception) {
-                Logger.e(TAG, "err loading allowed apps: ${e.message}", e)
-                if (!isFinishing && !isDestroyed) {
-                    b.bubbleAllowedAppsLl.visibility = View.GONE
-                }
-            }
+        vpnOn = VpnController.hasTunnel()
+        refreshKey++
+        if (!vpnOn) {
+            Napier.i("$TAG VPN is off; showing empty state")
         }
     }
 
-    private fun startBlockedCollector() {
-        blockedCollectJob?.cancel()
-        blockedCollectJob = lifecycleScope.launch {
-            try {
-                val now = System.currentTimeMillis()
-                val last15Mins = now - (15 * 60 * 1000)
-
-                val tempAllowedApps = withContext(Dispatchers.IO) {
-                    appInfoRepository.getAllTempAllowedApps(now)
-                }
-                val tempAllowedUids = tempAllowedApps.map { it.uid }.toSet()
-
-                val blockedAppsPager = Pager(
-                    config = PagingConfig(
-                        pageSize = PAGE_SIZE,
-                        enablePlaceholders = false
-                    ),
-                    pagingSourceFactory = {
-                        BlockedAppsBubbleViewModel(
-                            connectionTrackerDAO,
-                            dnsLogDAO,
-                            appInfoRepository,
-                            last15Mins,
-                            tempAllowedUids
-                        )
-                    }
-                ).flow.cachedIn(lifecycleScope)
-
-                blockedAppsPager.collect { pagingData ->
-                    if (!isFinishing && !isDestroyed) {
-                        blockedAdapter.submitData(pagingData)
-                    }
-                }
-
-            } catch (_: CancellationException) {
-                Logger.d(TAG, "Blocked apps loading cancelled (activity destroyed)")
-            } catch (e: Exception) {
-                Logger.e(TAG, "err loading blocked apps: ${e.message}", e)
-                if (!isFinishing && !isDestroyed) {
-                    b.bubbleProgressCard.visibility = View.GONE
-                    b.bubbleProgressBar.visibility = View.GONE
-                    b.bubbleEmptyState.visibility = View.VISIBLE
-                    b.bubbleRecyclerView.visibility = View.GONE
-                }
-            }
-        }
-    }
-
-    private fun allowApp(blockedApp: BlockedAppInfo) {
-        // Optimistic UI update: remove right away from blocked list for fast feedback.
-        // PagingDataAdapter doesn't support direct removal; we force a refresh after DB update,
-        // but also hide the row by refreshing immediately.
+    private fun allowApp(blockedApp: BlockedAppInfo, onRefresh: () -> Unit) {
         lifecycleScope.launch {
             try {
-                Logger.i(TAG, "Temporarily allowing app for 15 minutes: ${blockedApp.appName} (uid: ${blockedApp.uid})")
+                Napier.i("Temporarily allowing app for 15 minutes: ${blockedApp.appName} (uid: ${blockedApp.uid})")
 
-                withContext<Unit>(Dispatchers.IO) {
+                withContext(Dispatchers.IO) {
                     FirewallManager.updateTempAllow(blockedApp.uid, true)
                 }
 
-                if (!isFinishing && !isDestroyed) {
-                    // Refresh BOTH lists: remove from blocked and show in allowed.
-                    blockedAdapter.refresh()
-                    allowedAdapter.refresh()
-                }
-
-                Logger.i(TAG, "App temporarily allowed successfully for 15 minutes")
+                onRefresh()
+                Napier.i("App temporarily allowed successfully for 15 minutes")
             } catch (e: Exception) {
-                Logger.e(TAG, "err allowing app: ${e.message}", e)
+                Napier.e("err allowing app: ${e.message}")
             }
         }
     }
 
-    private fun removeAllowedApp(allowedApp: AllowedAppInfo) {
+    private fun removeAllowedApp(allowedApp: AllowedAppInfo, onRefresh: () -> Unit) {
         lifecycleScope.launch {
             try {
-                Logger.i(TAG, "Removing temp allow for app: ${allowedApp.appName} (uid: ${allowedApp.uid})")
+                Napier.i("Removing temp allow for app: ${allowedApp.appName} (uid: ${allowedApp.uid})")
 
                 withContext(Dispatchers.IO) {
-                    // Clear temp allow status
                     appInfoRepository.clearTempAllowByUid(allowedApp.uid)
                 }
 
-                if (!isFinishing && !isDestroyed) {
-                    // Refresh BOTH lists: remove from allowed and allow it to appear again in blocked.
-                    allowedAdapter.refresh()
-                    blockedAdapter.refresh()
-                }
-
-                Logger.i(TAG, "Temp allow removed successfully")
+                onRefresh()
+                Napier.i("Temp allow removed successfully")
             } catch (e: Exception) {
-                Logger.e(TAG, "err removing allowed app: ${e.message}", e)
+                Napier.e("err removing allowed app: ${e.message}")
             }
         }
     }
 
-    private fun setupRecyclerViews() {
-        // Setup blocked apps RecyclerView
-        blockedAdapter = BubbleBlockedAppsAdapter { blockedApp ->
-            allowApp(blockedApp)
-        }
-        b.bubbleRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@BubbleActivity)
-            adapter = blockedAdapter
-            if (!recyclerDecorationsAdded) {
-                // Smaller spacing; item XML already has margins.
-                addItemDecoration(object : androidx.recyclerview.widget.RecyclerView.ItemDecoration() {
-                    override fun getItemOffsets(
-                        outRect: android.graphics.Rect,
-                        view: View,
-                        parent: androidx.recyclerview.widget.RecyclerView,
-                        state: androidx.recyclerview.widget.RecyclerView.State
-                    ) {
-                        outRect.bottom = 4 // 4dp
-                    }
-                })
+    @Composable
+    private fun BubbleContent() {
+        val allowedFlow = remember(vpnOn, refreshKey) { allowedAppsFlow() }
+        val blockedFlow = remember(vpnOn, refreshKey) { blockedAppsFlow() }
+        val allowedItems = allowedFlow.collectAsLazyPagingItems()
+        val blockedItems = blockedFlow.collectAsLazyPagingItems()
+
+        val allowedLoaded = allowedItems.loadState.refresh is LoadState.NotLoading
+        val allowedCount = allowedItems.itemCount
+        val showAllowedSection = vpnOn && allowedLoaded && allowedCount > 0
+
+        val blockedLoading = blockedItems.loadState.refresh is LoadState.Loading
+        val blockedError = blockedItems.loadState.refresh is LoadState.Error
+        val blockedLoaded = blockedItems.loadState.refresh is LoadState.NotLoading
+        val blockedEmpty = blockedLoaded && blockedItems.itemCount == 0
+
+        val showEmptyState = !vpnOn || blockedError || blockedEmpty
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                horizontal = 12.dp,
+                vertical = 12.dp
+            ),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            item {
+                HeaderSection()
             }
-        }
 
-        // Setup allowed apps RecyclerView
-        allowedAdapter = BubbleAllowedAppsAdapter { allowedApp ->
-            removeAllowedApp(allowedApp)
-        }
-        b.bubbleAllowedRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@BubbleActivity)
-            adapter = allowedAdapter
-            if (!recyclerDecorationsAdded) {
-                addItemDecoration(object : androidx.recyclerview.widget.RecyclerView.ItemDecoration() {
-                    override fun getItemOffsets(
-                        outRect: android.graphics.Rect,
-                        view: View,
-                        parent: androidx.recyclerview.widget.RecyclerView,
-                        state: androidx.recyclerview.widget.RecyclerView.State
-                    ) {
-                        outRect.bottom = 4 // 4dp
-                    }
-                })
-                recyclerDecorationsAdded = true
-            }
-        }
-    }
-
-    private fun setupLoadStateListeners() {
-        // Set up load state listener for allowed apps
-        allowedAdapter.addLoadStateListener { loadState ->
-            if (!isFinishing && !isDestroyed) {
-                // Check if data is loaded (not loading and no errors)
-                val isLoaded = loadState.refresh is androidx.paging.LoadState.NotLoading
-
-                if (isLoaded) {
-                    // Show/hide allowed apps card based on item count
-                    val itemCount = allowedAdapter.itemCount
-                    if (itemCount == 0) {
-                        b.bubbleAllowedAppsLl.visibility = View.GONE
-                    } else {
-                        b.bubbleAllowedAppsLl.visibility = View.VISIBLE
-                        b.bubbleAllowedCount.text = itemCount.toString()
-                    }
+            if (showAllowedSection) {
+                item {
+                    AllowedHeader(count = allowedCount)
                 }
-            }
-        }
-
-        // Set up load state listener for blocked apps
-        blockedAdapter.addLoadStateListener { loadState ->
-            if (!isFinishing && !isDestroyed) {
-                val isLoading = loadState.refresh is androidx.paging.LoadState.Loading
-                val isError = loadState.refresh is androidx.paging.LoadState.Error
-                val isLoaded = loadState.refresh is androidx.paging.LoadState.NotLoading
-
-                when {
-                    isLoading -> {
-                        // Show loading state
-                        b.bubbleProgressCard.visibility = View.VISIBLE
-                        b.bubbleProgressBar.visibility = View.VISIBLE
-                        b.bubbleEmptyState.visibility = View.GONE
-                        b.bubbleRecyclerView.visibility = View.GONE
-                    }
-                    isError -> {
-                        // Show error/empty state
-                        b.bubbleProgressCard.visibility = View.GONE
-                        b.bubbleProgressBar.visibility = View.GONE
-                        b.bubbleEmptyState.visibility = View.VISIBLE
-                        b.bubbleRecyclerView.visibility = View.GONE
-                    }
-                    isLoaded -> {
-                        // Hide loading, show content or empty state based on item count
-                        b.bubbleProgressCard.visibility = View.GONE
-                        b.bubbleProgressBar.visibility = View.GONE
-
-                        val itemCount = blockedAdapter.itemCount
-                        if (itemCount == 0) {
-                            b.bubbleEmptyState.visibility = View.VISIBLE
-                            b.bubbleRecyclerView.visibility = View.GONE
-                        } else {
-                            b.bubbleEmptyState.visibility = View.GONE
-                            b.bubbleRecyclerView.visibility = View.VISIBLE
+                itemsIndexed(
+                    items = List(allowedItems.itemCount) { it },
+                    key = { index, _ -> allowedItems[index]?.uid ?: index }
+                ) { index, _ ->
+                    val app = allowedItems[index] ?: return@itemsIndexed
+                    AllowedAppRow(
+                        app = app,
+                        onRemove = {
+                            removeAllowedApp(app) {
+                                allowedItems.refresh()
+                                blockedItems.refresh()
+                            }
                         }
+                    )
+                }
+            }
+
+            item {
+                BlockedHeader()
+            }
+
+            when {
+                blockedLoading -> {
+                    item { LoadingCard() }
+                }
+                showEmptyState -> {
+                    item { EmptyState() }
+                }
+                else -> {
+                    itemsIndexed(
+                        items = List(blockedItems.itemCount) { it },
+                        key = { index, _ -> blockedItems[index]?.uid ?: index }
+                    ) { index, _ ->
+                        val app = blockedItems[index] ?: return@itemsIndexed
+                        BlockedAppRow(
+                            app = app,
+                            onAllow = {
+                                allowApp(app) {
+                                    blockedItems.refresh()
+                                    allowedItems.refresh()
+                                }
+                            }
+                        )
                     }
                 }
             }
         }
     }
 
-    private fun showVpnOffState() {
-        // Avoid loading spinners if VPN isn't running.
-        runCatching {
-            b.bubbleProgressCard.visibility = View.GONE
-            b.bubbleProgressBar.visibility = View.GONE
-            b.bubbleAllowedAppsLl.visibility = View.GONE
-            b.bubbleRecyclerView.visibility = View.GONE
-            b.bubbleEmptyState.visibility = View.VISIBLE
-            b.bubbleEmptyTitle.setText(R.string.bubble_empty_state_title)
+    private fun allowedAppsFlow(): kotlinx.coroutines.flow.Flow<PagingData<AllowedAppInfo>> {
+        if (!vpnOn) return kotlinx.coroutines.flow.flowOf(PagingData.empty())
+        val now = System.currentTimeMillis()
+        return Pager(
+            config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
+            pagingSourceFactory = { AllowedAppsBubbleViewModel(appInfoRepository, now) }
+        ).flow.cachedIn(lifecycleScope)
+    }
+
+    private fun blockedAppsFlow(): kotlinx.coroutines.flow.Flow<PagingData<BlockedAppInfo>> {
+        if (!vpnOn) return kotlinx.coroutines.flow.flowOf(PagingData.empty())
+        val now = System.currentTimeMillis()
+        val last15Mins = now - (15 * 60 * 1000)
+        return Pager(
+            config = PagingConfig(pageSize = PAGE_SIZE, enablePlaceholders = false),
+            pagingSourceFactory = {
+                BlockedAppsBubbleViewModel(
+                    connectionTrackerDAO,
+                    dnsLogDAO,
+                    appInfoRepository,
+                    last15Mins,
+                    emptySet()
+                )
+            }
+        ).flow.cachedIn(lifecycleScope)
+    }
+
+    @Composable
+    private fun HeaderSection() {
+        Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)) {
+            Text(
+                text = getString(R.string.firewall_bubble_title),
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = getString(R.string.firewall_bubble_subtitle),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 
-    private fun showContentState() {
-        runCatching {
-            b.bubbleEmptyState.visibility = View.GONE
+    @Composable
+    private fun AllowedHeader(count: Int) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = getString(R.string.bubble_allowed_title),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            Surface(
+                color = MaterialTheme.colorScheme.surfaceVariant,
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text(
+                    text = count.toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                )
+            }
         }
     }
 
-    private fun stopCollectors() {
-        blockedCollectJob?.cancel()
-        blockedCollectJob = null
-        allowedCollectJob?.cancel()
-        allowedCollectJob = null
+    @Composable
+    private fun BlockedHeader() {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = getString(R.string.bubble_activity_title),
+                style = MaterialTheme.typography.titleSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+
+    @Composable
+    private fun LoadingCard() {
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                CircularProgressIndicator(modifier = Modifier.size(36.dp))
+                Spacer(modifier = Modifier.height(10.dp))
+                Text(
+                    text = getString(R.string.bubble_loading),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun EmptyState() {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.ic_firewall_shield),
+                contentDescription = null,
+                modifier = Modifier.size(44.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = getString(R.string.bubble_empty_state_title),
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = getString(R.string.bubble_empty_state_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 24.dp),
+                overflow = TextOverflow.Visible
+            )
+        }
+    }
+
+    @Composable
+    private fun AllowedAppRow(app: AllowedAppInfo, onRemove: () -> Unit) {
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AppIcon(packageName = app.packageName)
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = app.appName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = allowedTimeRemaining(app),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                TextButton(onClick = onRemove) {
+                    Text(
+                        text = getString(R.string.lbl_remove),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun BlockedAppRow(app: BlockedAppInfo, onAllow: () -> Unit) {
+        Card(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 6.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                AppIcon(packageName = app.packageName)
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = app.appName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = app.packageName,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = getString(R.string.bubble_blocked_count, app.count),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color(fetchColor(this@BubbleActivity, R.attr.accentBad))
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = timeAgo(app.lastBlocked),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+                Button(onClick = onAllow) {
+                    Text(text = getString(R.string.bubble_allow_btn))
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun AppIcon(packageName: String) {
+        val context = LocalContext.current
+        val icon = remember(packageName) { loadAppIcon(context, packageName) }
+        Box(
+            modifier =
+                Modifier.size(44.dp)
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(22.dp)
+                    ),
+            contentAlignment = Alignment.Center
+        ) {
+            AndroidView(
+                factory = { ctx ->
+                    androidx.appcompat.widget.AppCompatImageView(ctx).apply {
+                        layoutParams =
+                            android.view.ViewGroup.LayoutParams(
+                                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
+                            )
+                    }
+                },
+                update = { imageView -> imageView.setImageDrawable(icon) },
+                modifier = Modifier.size(28.dp)
+            )
+        }
+    }
+
+    private fun loadAppIcon(context: android.content.Context, packageName: String): Drawable {
+        return try {
+            if (packageName != "Unknown") {
+                context.packageManager.getApplicationIcon(packageName)
+            } else {
+                ContextCompat.getDrawable(context, R.drawable.ic_launcher_foreground)!!
+            }
+        } catch (_: Exception) {
+            Napier.e("$TAG App icon not found for $packageName")
+            ContextCompat.getDrawable(context, R.drawable.ic_launcher_foreground)!!
+        }
+    }
+
+    private fun allowedTimeRemaining(app: AllowedAppInfo): String {
+        val now = System.currentTimeMillis()
+        val expiresAt = app.allowedAt + (15 * 60 * 1000)
+        val remaining = (expiresAt - now) / 1000 / 60
+        return if (remaining > 0) {
+            "$remaining min${if (remaining != 1L) "s" else ""} remaining"
+        } else {
+            "Expired"
+        }
+    }
+
+    private fun timeAgo(timestamp: Long): String {
+        val now = System.currentTimeMillis()
+        val diff = now - timestamp
+        return when {
+            diff < TimeUnit.MINUTES.toMillis(1) -> {
+                getString(R.string.bubble_time_just_now)
+            }
+            diff < TimeUnit.HOURS.toMillis(1) -> {
+                val minutes = TimeUnit.MILLISECONDS.toMinutes(diff)
+                getString(R.string.bubble_time_minutes_ago, minutes)
+            }
+            diff < TimeUnit.DAYS.toMillis(1) -> {
+                val hours = TimeUnit.MILLISECONDS.toHours(diff)
+                getString(R.string.bubble_time_hours_ago, hours)
+            }
+            else -> {
+                val dateFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
+                dateFormat.format(Date(timestamp))
+            }
+        }
     }
 }
