@@ -46,7 +46,32 @@ import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.WindowInsetsControllerCompat
@@ -72,8 +97,6 @@ import com.celzero.bravedns.data.SummaryStatisticsType
 import com.celzero.bravedns.database.AppDatabase
 import com.celzero.bravedns.database.AppInfoRepository
 import com.celzero.bravedns.database.RefreshDatabase
-import com.celzero.bravedns.databinding.DialogInfoRulesLayoutBinding
-import com.celzero.bravedns.databinding.DialogWhatsnewBinding
 import com.celzero.bravedns.scheduler.BugReportZipper
 import com.celzero.bravedns.scheduler.EnhancedBugReport
 import com.celzero.bravedns.scheduler.WorkScheduler
@@ -113,6 +136,7 @@ import com.celzero.bravedns.util.FirebaseErrorReporting.TOKEN_REGENERATION_PERIO
 import com.celzero.bravedns.util.NewSettingsManager
 import com.celzero.bravedns.util.RemoteFileTagUtil
 import com.celzero.bravedns.util.UIUtils
+import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.openAppInfo
 import com.celzero.bravedns.util.UIUtils.openNetworkSettings
 import com.celzero.bravedns.util.UIUtils.openUrl
@@ -1349,13 +1373,16 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun showNewFeaturesDialog() {
-        val binding = DialogWhatsnewBinding.inflate(layoutInflater, null, false)
-        binding.desc.movementMethod = android.text.method.LinkMovementMethod.getInstance()
-        binding.desc.text = UIUtils.htmlToSpannedText(getString(R.string.whats_new_version_update))
         val v = getVersionName().slice(0..6)
         val title = getString(R.string.about_whats_new, v)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                WhatsNewDialogContent()
+            }
+        }
         MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-            .setView(binding.root)
+            .setView(composeView)
             .setTitle(title)
             .setPositiveButton(getString(R.string.about_dialog_positive_button)) { dialogInterface, _ ->
                 dialogInterface.dismiss()
@@ -1369,37 +1396,15 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun showContributors() {
-        val dialogBinding = DialogInfoRulesLayoutBinding.inflate(layoutInflater)
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(dialogBinding.root)
-        val lp = WindowManager.LayoutParams()
-        val dialog = builder.create()
-        lp.copyFrom(dialog.window?.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-
+        val dialog = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).create()
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                ContributorsDialogContent(onDismiss = { dialog.dismiss() })
+            }
+        }
+        dialog.setView(composeView)
         dialog.setCancelable(true)
-        dialog.window?.attributes = lp
-
-        val heading = dialogBinding.infoRulesDialogRulesTitle
-        val okBtn = dialogBinding.infoRulesDialogCancelImg
-        val descText = dialogBinding.infoRulesDialogRulesDesc
-        dialogBinding.infoRulesDialogRulesIcon.visibility = View.GONE
-
-        heading.text = getString(R.string.contributors_dialog_title)
-        heading.setCompoundDrawablesWithIntrinsicBounds(
-            ContextCompat.getDrawable(this, R.drawable.ic_authors),
-            null,
-            null,
-            null
-        )
-
-        heading.gravity = Gravity.CENTER
-        descText.gravity = Gravity.CENTER
-
-        descText.movementMethod = android.text.method.LinkMovementMethod.getInstance()
-        descText.text = UIUtils.htmlToSpannedText(getString(R.string.contributors_list))
-
-        okBtn.setOnClickListener { dialog.dismiss() }
         dialog.show()
     }
 
@@ -1458,6 +1463,90 @@ class HomeScreenActivity : AppCompatActivity() {
                 // no-op
             }
         }
+    }
+
+    @Composable
+    private fun WhatsNewDialogContent() {
+        Column(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(15.dp)
+                    .verticalScroll(rememberScrollState())
+        ) {
+            HtmlText(
+                text = getString(R.string.whats_new_version_update),
+                textAlign = TextAlign.Start
+            )
+        }
+    }
+
+    @Composable
+    private fun ContributorsDialogContent(onDismiss: () -> Unit) {
+        Column(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(20.dp)
+                    .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                IconButton(onClick = onDismiss, modifier = Modifier.align(Alignment.TopEnd)) {
+                    Image(
+                        painter = painterResource(id = android.R.drawable.ic_menu_close_clear_cancel),
+                        contentDescription = getString(R.string.lbl_dismiss)
+                    )
+                }
+                Row(
+                    modifier = Modifier.align(Alignment.Center),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_authors),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = getString(R.string.contributors_dialog_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            HtmlText(
+                text = getString(R.string.contributors_list),
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+
+    @Composable
+    private fun HtmlText(text: String, textAlign: TextAlign) {
+        val spanned = remember(text) { UIUtils.htmlToSpannedText(text) }
+        AndroidView(
+            modifier = Modifier.fillMaxWidth(),
+            factory = { context ->
+                android.widget.TextView(context).apply {
+                    movementMethod = android.text.method.LinkMovementMethod.getInstance()
+                    setTextColor(fetchColor(this@HomeScreenActivity, R.attr.primaryTextColor))
+                    val size = resources.getDimension(R.dimen.large_font_text_view)
+                    setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, size)
+                    gravity =
+                        if (textAlign == TextAlign.Center) {
+                            android.view.Gravity.CENTER
+                        } else {
+                            android.view.Gravity.START
+                        }
+                }
+            },
+            update = { textView ->
+                textView.text = spanned
+            }
+        )
     }
 
     private fun onAppExitInfoFailure() {
