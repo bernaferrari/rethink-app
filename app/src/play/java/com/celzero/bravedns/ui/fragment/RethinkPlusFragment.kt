@@ -504,10 +504,10 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus), Subscripti
         ui {
             if (!isAdded) return@ui
             try {
-                val btmNavView = activity?.findViewById<BottomNavigationView>(R.id.nav_view)
-                val homeId = R.id.homeScreenFragment
-                btmNavView?.selectedItemId = homeId
-                findNavController().navigate(R.id.action_switch_to_homeScreenFragment)
+                val intent = Intent(requireContext(), HomeScreenActivity::class.java)
+                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                startActivity(intent)
+                activity?.finish()
             } catch (e: Exception) {
                 Logger.e(LOG_IAB, "Navigation failed: ${e.message}")
             }
