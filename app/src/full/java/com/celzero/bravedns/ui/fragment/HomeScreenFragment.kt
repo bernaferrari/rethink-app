@@ -123,20 +123,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.celzero.bravedns.ui.compose.home.HomeScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreenUiState
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
+import com.celzero.bravedns.ui.compose.home.HomeScreenViewModel
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class HomeScreenFragment : Fragment() {
-    // private val b by viewBinding(FragmentHomeScreenBinding::bind)
-    private val uiState = mutableStateOf(HomeScreenUiState())
+    private val viewModel: HomeScreenViewModel by viewModel()
 
     private val persistentState by inject<PersistentState>()
     private val appConfig by inject<AppConfig>()
     private val workScheduler by inject<WorkScheduler>()
     private val eventLogger by inject<EventLogger>()
-
-    private var isVpnActivated: Boolean = false
 
     private lateinit var themeNames: Array<String>
     private lateinit var startForResult: ActivityResultLauncher<Intent>
@@ -219,7 +219,7 @@ class HomeScreenFragment : Fragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 RethinkTheme {
-                    val state by remember { uiState }
+                    val state by viewModel.uiState.collectAsStateWithLifecycle()
                     HomeScreen(
                         uiState = state,
                         onStartStopClick = { handleMainScreenBtnClickEvent() },
@@ -244,39 +244,7 @@ class HomeScreenFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         Logger.v(LOG_TAG_UI, "$TAG: init view in home screen fragment")
-        // initializeValues()
-        // initializeClickListeners()
-        setupObservers()
         appConfig.getBraveModeObservable().postValue(appConfig.getBraveMode().mode)
-        observeVpnState()
-    }
-
-    private fun setupObservers() {
-        appConfig.getBraveModeObservable().observe(viewLifecycleOwner) {
-            Logger.v(LOG_TAG_UI, "$TAG: brave mode changed to $it")
-            updateCardsUi()
-            syncDnsStatus()
-        }
-    }
-
-    private fun initializeValues() {
-        themeNames = arrayOf(
-                getString(R.string.settings_theme_dialog_themes_1),
-                getString(R.string.settings_theme_dialog_themes_2),
-                getString(R.string.settings_theme_dialog_themes_3),
-                getString(R.string.settings_theme_dialog_themes_4)
-            )
-        appConfig.getBraveModeObservable().postValue(appConfig.getBraveMode().mode)
-    }
-
-    private fun initializeClickListeners() {
-        // Handled by Compose
-    }
-
-    private fun logEvent(type: EventType, msg: String, details: String) {
-        io {
-            eventLogger.log(type, Severity.LOW, msg, EventSource.UI, true, details)
-        }
     }
 
     private fun promptForAppSponsorship() {
@@ -285,12 +253,10 @@ class HomeScreenFragment : Fragment() {
             0
         ).firstInstallTime
         val timeDiff = System.currentTimeMillis() - installTime
-        // convert it to month
         val days = (timeDiff / (MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY)).toDouble()
         val month = days / DAYS_PER_MONTH
-        // multiply the month with 0.60$ + 0.20$ for every month
         val amount = month * (BASE_AMOUNT_PER_MONTH + ADDITIONAL_AMOUNT_PER_MONTH)
-        Logger.d(LOG_TAG_UI, "Sponsor: $installTime, days/month: $days/$month, amount: $amount")
+        
         val alertBuilder = MaterialAlertDialogBuilder(requireContext(), R.style.App_Dialog_NoDim)
         val inflater = LayoutInflater.from(requireContext())
         val dialogView = inflater.inflate(R.layout.dialog_sponsor_info, null)
@@ -313,612 +279,21 @@ class HomeScreenFragment : Fragment() {
         dialog.show()
     }
 
-    private fun handlePause() {
-        if (!VpnController.hasTunnel()) {
-            showToastUiCentered(
-                requireContext(),
-                requireContext().getString(R.string.hsf_pause_vpn_failure),
-                Toast.LENGTH_SHORT
-            )
-            return
-        }
-
-        VpnController.pauseApp()
-        persistentState.notificationActionType = NotificationActionType.PAUSE_STOP.action
-        openPauseActivity()
-    }
-
-    private fun openPauseActivity() {
-        val intent = Intent()
-        intent.setClass(requireContext(), PauseActivity::class.java)
-        startActivity(intent)
-        requireActivity().finish()
-    }
-
-    private fun updateCardsUi() {
-        if (isVpnActivated) {
-            showActiveCards()
-        } else {
-            showDisabledCards()
-        }
-    }
-
-    private fun observeVpnState() {
-        persistentState.vpnEnabledLiveData.observe(viewLifecycleOwner) {
-            isVpnActivated = it
-            uiState.value = uiState.value.copy(isVpnActive = it)
-            // updateMainButtonUi() // Handled by State
-            updateCardsUi()
-            syncDnsStatus()
-        }
-
-        VpnController.connectionStatus.observe(viewLifecycleOwner) {
-            if (VpnController.isAppPaused()) return@observe
-            syncDnsStatus()
-        }
-    }
-
-    private fun updateMainButtonUi() {
-        // Handled by Compose State
-    }
-
-    private fun showDisabledCards() {
-        disableFirewallCard()
-        disabledDnsCard()
-        disableAppsCard()
-        disableProxyCard()
-        disableLogsCard()
-    }
-
-    private fun showActiveCards() {
-        enableFirewallCardIfNeeded()
-        enableDnsCardIfNeeded()
-        enableAppsCardIfNeeded()
-        enableProxyCardIfNeeded()
-        enableLogsCardIfNeeded()
-        // comment out the below code to disable the alerts card (v0.5.5b)
-        // enableAlertsCardIfNeeded()
-    }
-
-    private fun enableFirewallCardIfNeeded() {
-        if (appConfig.getBraveMode().isFirewallActive()) {
-            uiState.value = uiState.value.copy(
-                firewallUniversalRules = persistentState.getUniversalRulesCount()
-            )
-            observeUniversalStates()
-            observeCustomRulesCount()
-        } else {
-            disableFirewallCard()
-            unobserveUniversalStates()
-            unObserveCustomRulesCount()
-        }
-    }
-
-    private fun enableAppsCardIfNeeded() {
-        // apps screen can be accessible on all app modes.
-        if (isVpnActivated) {
-            observeAppStates()
-        } else {
-            disableAppsCard()
-            unobserveAppStates()
-        }
-    }
-
-    private fun enableDnsCardIfNeeded() {
-        if (appConfig.getBraveMode().isDnsActive()) {
-            observeDnsStates()
-        } else {
-            disabledDnsCard()
-            unobserveDnsStates()
-        }
-    }
-
-    private fun enableProxyCardIfNeeded() {
-        if (isVpnActivated && !appConfig.getBraveMode().isDnsMode()) {
-            val isAnyProxyEnabled = appConfig.isProxyEnabled()
-            if (isAnyProxyEnabled) {
-                observeProxyStates()
-            } else {
-                disableProxyCard()
-            }
-        } else {
-            disableProxyCard()
-        }
-    }
-
-    private fun enableLogsCardIfNeeded() {
-        if (isVpnActivated) {
-            observeLogsCount()
-        } else {
-            disableLogsCard()
-            unObserveLogsCount()
-        }
-    }
-
-    // comment out the below code to disable the alerts card (v0.5.5b)
-    /* private fun enableAlertsCardIfNeeded() {
-        if (isVpnActivated) {
-            // Alerts Card Logic removed for Compose Migration
-        }
-    } */
-    private var proxyStateListenerJob: Job? = null
-
-    private fun observeProxyStates() {
-        persistentState.getProxyStatus().distinctUntilChanged().observe(viewLifecycleOwner) {
-            Logger.vv(LOG_TAG_UI, "$TAG proxy state changed to $it")
-            if (it != -1) {
-                if (proxyStateListenerJob?.isActive == true) {
-                    proxyStateListenerJob?.cancel()
-                    proxyStateListenerJob = null
-                }
-                proxyStateListenerJob = ui("proxyStates") {
-                    while (isVisible && isAdded) {
-                        updateUiWithProxyStates(it)
-                        kotlinx.coroutines.delay(1500L)
-                    }
-                    proxyStateListenerJob?.cancel()
-                }
-            } else {
-                uiState.value = uiState.value.copy(proxyStatus = getString(R.string.lbl_inactive))
-            }
-        }
-    }
-
-    private fun updateUiWithProxyStates(resId: Int) {
-        // ... (truncated checks)
-        if (!isVpnActivated) {
-            disableProxyCard()
-            return
-        }
-
-        val proxyType = AppConfig.ProxyType.of(appConfig.getProxyType())
-
-        if (proxyType.isProxyTypeWireguard()) {
-            io {
-                val proxies = WireguardManager.getActiveConfigs()
-                var active = 0
-                var failing = 0
-                var idle = 0
-                val now = System.currentTimeMillis()
-                
-                if (proxies.isEmpty()) {
-                    uiCtx {
-                        if (!isVisible || !isAdded) return@uiCtx
-                        uiState.value = uiState.value.copy(proxyStatus = getString(resId))
-                    }
-                    return@io
-                }
-                
-                proxies.forEach {
-                    val proxyId = "${ProxyManager.ID_WG_BASE}${it.getId()}"
-                    Logger.vv(LOG_TAG_UI, "$TAG init stats check for $proxyId")
-                    val stats = VpnController.getProxyStats(proxyId)
-                    val statusPair = VpnController.getProxyStatusById(proxyId)
-                    val status = UIUtils.ProxyStatus.entries.find { s -> s.id == statusPair.first }
-
-                    val dnsStats = if (isSplitDns()) {
-                        VpnController.getDnsStatus(proxyId)
-                    } else {
-                        null
-                    }
-
-                    if (status == UIUtils.ProxyStatus.TPU) {
-                        idle++
-                        return@forEach
-                    }
-
-                    if (dnsStats != null && isDnsError(dnsStats)) {
-                        failing++
-                        return@forEach
-                    }
-
-                    if (stats == null) {
-                        failing++
-                        return@forEach
-                    }
-
-                    val lastOk = stats.lastOK
-                    val since = stats.since
-
-                    if (now - since > WG_UPTIME_THRESHOLD && lastOk == 0L) {
-                        failing++
-                        return@forEach
-                    }
-                    
-                    if (status != null) {
-                        when (status) {
-                            UIUtils.ProxyStatus.TOK -> {
-                                if (lastOk > 0L && (now - lastOk < WG_HANDSHAKE_TIMEOUT)) {
-                                    active++
-                                } else if (lastOk > 0L) {
-                                    idle++
-                                } else if (now - since < WG_UPTIME_THRESHOLD) {
-                                    active++
-                                } else {
-                                    failing++
-                                }
-                            }
-                            UIUtils.ProxyStatus.TUP -> active++
-                            UIUtils.ProxyStatus.TZZ -> {
-                                if (lastOk > 0L) {
-                                    idle++
-                                } else if (now - since < WG_UPTIME_THRESHOLD) {
-                                    idle++
-                                } else {
-                                    failing++
-                                }
-                            }
-                            UIUtils.ProxyStatus.TNT -> idle++
-                            UIUtils.ProxyStatus.TPU -> idle++
-                            else -> failing++
-                        }
-                    } else {
-                        failing++
-                    }
-                }
-                uiCtx {
-                    if (!isVisible || !isAdded) return@uiCtx
-                    var text = ""
-                    if (active > 0) {
-                        text = getString(R.string.two_argument_space, active.toString(), getString(R.string.lbl_active))
-                    }
-                    if (failing > 0) {
-                        val prefix = if (text.isNotEmpty()) "\n" else ""
-                        text += prefix + getString(R.string.two_argument_space, failing.toString(), getString(R.string.status_failing).replaceFirstChar(Char::titlecase))
-                    }
-                    if (idle > 0) {
-                        val prefix = if (text.isNotEmpty()) "\n" else ""
-                        text += prefix + getString(R.string.two_argument_space, idle.toString(), getString(R.string.lbl_idle).replaceFirstChar(Char::titlecase))
-                    }
-                    
-                    if (text.isEmpty() && proxies.isNotEmpty()) {
-                        uiState.value = uiState.value.copy(proxyStatus = getString(R.string.lbl_active))
-                    } else if (text.isEmpty()) {
-                        uiState.value = uiState.value.copy(proxyStatus = getString(R.string.lbl_inactive))
-                    } else {
-                        uiState.value = uiState.value.copy(proxyStatus = text)
-                    }
-                }
-            }
-        } else {
-             if (appConfig.isProxyEnabled()) {
-                uiState.value = uiState.value.copy(proxyStatus = getString(R.string.lbl_active))
-            } else {
-                uiState.value = uiState.value.copy(proxyStatus = getString(R.string.lbl_inactive))
-            }
-        }
-    }
-
-    private fun isSplitDns(): Boolean {
-        // by default, the split dns is enabled for android R and above, as we know the app
-        // which sends dns queries
-        if (isAtleastR()) return true
-
-        return persistentState.splitDns
-    }
-
-    private fun isDnsError(statusId: Long?): Boolean {
-        if (statusId == null) return true
-
-        val s = Transaction.Status.fromId(statusId)
-        return s == Transaction.Status.BAD_QUERY || s == Transaction.Status.BAD_RESPONSE || s == Transaction.Status.NO_RESPONSE || s == Transaction.Status.SEND_FAIL || s == Transaction.Status.CLIENT_ERROR || s == Transaction.Status.INTERNAL_ERROR || s == Transaction.Status.TRANSPORT_ERROR
-    }
-
-
-    private fun unobserveProxyStates() {
-        persistentState.getProxyStatus().removeObservers(viewLifecycleOwner)
-    }
-
-    private fun disableLogsCard() {
-        uiState.value = uiState.value.copy(networkLogsCount = 0, dnsLogsCount = 0)
-    }
-
-    private fun disableProxyCard() {
-        proxyStateListenerJob?.cancel()
-        uiState.value = uiState.value.copy(proxyStatus = getString(R.string.lbl_inactive))
-    }
-
-    private fun disableFirewallCard() {
-        uiState.value = uiState.value.copy(firewallUniversalRules = 0, firewallIpRules = 0, firewallDomainRules = 0)
-    }
-
-    private fun disabledDnsCard() {
-        uiState.value = uiState.value.copy(dnsConnectedName = getString(R.string.lbl_disabled), dnsLatency = "-- ms")
-    }
-
-    private fun disableAppsCard() {
-        uiState.value = uiState.value.copy(appsAllowed = 0, appsBlocked = 0, appsBypassed = 0, appsExcluded = 0, appsIsolated = 0)
-    }
-
-    /**
-     * The observers are for the DNS cards, when the mode is set to DNS/DNS+Firewall. The observers
-     * are register to update the UI in the home screen
-     */
-    private fun observeDnsStates() {
-        io {
-            val dnsId = if (WireguardManager.oneWireGuardEnabled()) {
-                val id = WireguardManager.getOneWireGuardProxyId()
-                if (id == null) {
-                    if (appConfig.isSmartDnsEnabled()) {
-                        Backend.Plus
-                    } else {
-                        Backend.Preferred
-                    }
-                } else {
-                    "${ProxyManager.ID_WG_BASE}${id}"
-                }
-            } else {
-                if (appConfig.isSmartDnsEnabled()) {
-                    Backend.Plus
-                } else {
-                    Backend.Preferred
-                }
-            }
-            val p50 = VpnController.p50(dnsId)
-            uiCtx {
-                if (!isVisible || !isAdded) return@uiCtx
-                val latencyText = when (p50) {
-                    in 0L..LATENCY_VERY_FAST_MAX -> getString(R.string.ci_desc, getString(R.string.lbl_very), getString(R.string.lbl_fast)).replaceFirstChar(Char::titlecase)
-                    in LATENCY_FAST_MIN..LATENCY_FAST_MAX -> getString(R.string.lbl_fast).replaceFirstChar(Char::titlecase)
-                    in LATENCY_SLOW_MIN..LATENCY_SLOW_MAX -> getString(R.string.lbl_slow).replaceFirstChar(Char::titlecase)
-                    else -> getString(R.string.ci_desc, getString(R.string.lbl_very), getString(R.string.lbl_slow)).replaceFirstChar(Char::titlecase)
-                }
-                uiState.value = uiState.value.copy(dnsLatency = latencyText)
-            }
-        }
-
-        appConfig.getConnectedDnsObservable().observe(viewLifecycleOwner) {
-            updateUiWithDnsStates(it)
-        }
-
-        VpnController.getRegionLiveData().distinctUntilChanged().observe(viewLifecycleOwner) {
-            // Region update handled elsewhere if needed, or add to State
-        }
-    }
-
-    private fun updateUiWithDnsStates(dnsName: String) {
-        var dns = dnsName
-        val preferredId = if (appConfig.isSystemDns()) {
-            Backend.System
-        } else if (appConfig.isSmartDnsEnabled()) {
-            Backend.Plus
-        } else {
-            Backend.Preferred
-        }
-        val id = if (WireguardManager.oneWireGuardEnabled()) {
-            val id = WireguardManager.getOneWireGuardProxyId()
-            if (id == null) preferredId else "${ProxyManager.ID_WG_BASE}${id}"
-        } else {
-            preferredId
-        }
-
-        @Suppress("DEPRECATION")
-        if (VpnController.isOn()) {
-            io {
-                var failing = false
-                repeat(5) {
-                    val status = VpnController.getDnsStatus(id)
-                    if (status != null) {
-                        failing = false
-                        uiCtx {
-                            if (isAdded) {
-                                // Success - no op, latency handles it
-                            }
-                        }
-                        return@io
-                    }
-                    kotlinx.coroutines.delay(1000L)
-                    failing = true
-                }
-                uiCtx {
-                    if (failing && isAdded) {
-                         uiState.value = uiState.value.copy(dnsConnectedName = getString(R.string.failed_using_default))
-                    }
-                }
-            }
-        }
-        uiState.value = uiState.value.copy(dnsConnectedName = dns)
-    }
-
-    private fun observeLogsCount() {
-        appConfig.dnsLogsCount.observe(viewLifecycleOwner) {
-            uiState.value = uiState.value.copy(dnsLogsCount = it ?: 0L)
-        }
-
-        appConfig.networkLogsCount.observe(viewLifecycleOwner) {
-            uiState.value = uiState.value.copy(networkLogsCount = it ?: 0L)
-        }
-    }
-
-    private fun formatDecimal(i: Long?): String {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            CompactDecimalFormat.getInstance(Locale.US, CompactDecimalFormat.CompactStyle.SHORT)
-                .format(i)
-        } else {
-            i.toString()
-        }
-    }
-
-    // unregister all dns related observers
-    private fun unobserveDnsStates() {
-        appConfig.getConnectedDnsObservable().removeObservers(viewLifecycleOwner)
-        VpnController.getRegionLiveData().removeObservers(viewLifecycleOwner)
-    }
-
-    private fun observeUniversalStates() {
-        persistentState.universalRulesCount.observe(viewLifecycleOwner) {
-            uiState.value = uiState.value.copy(firewallUniversalRules = it)
-        }
-    }
-
-    private fun observeCustomRulesCount() {
-        IpRulesManager.getCustomIpsLiveData().observe(viewLifecycleOwner) {
-            uiState.value = uiState.value.copy(firewallIpRules = it)
-        }
-
-        DomainRulesManager.getUniversalCustomDomainCount().observe(viewLifecycleOwner) {
-            uiState.value = uiState.value.copy(firewallDomainRules = it)
-        }
-    }
-
-    private fun unObserveLogsCount() {
-        appConfig.dnsLogsCount.removeObservers(viewLifecycleOwner)
-        appConfig.networkLogsCount.removeObservers(viewLifecycleOwner)
-    }
-
-    private fun unObserveCustomRulesCount() {
-        DomainRulesManager.getUniversalCustomDomainCount().removeObservers(viewLifecycleOwner)
-        IpRulesManager.getCustomIpsLiveData().removeObservers(viewLifecycleOwner)
-    }
-
-    // remove firewall card related observers
-    private fun unobserveUniversalStates() {
-        persistentState.universalRulesCount.removeObservers(viewLifecycleOwner)
-    }
-
-    /**
-     * The observers for the firewall card in the home screen, will be calling this method when the
-     * VPN is active and the mode is set to either Firewall or DNS+Firewall.
-     */
-    private fun observeAppStates() {
-        FirewallManager.getApplistObserver().observe(viewLifecycleOwner) {
-            try {
-                val copy: Collection<AppInfo>
-                synchronized(it) { copy = mutableListOf<AppInfo>().apply { addAll(it) }.toList() }
-                val blockedCount = copy.count { a -> a.connectionStatus != FirewallManager.ConnectionStatus.ALLOW.id }
-                val bypassCount = copy.count { a -> a.firewallStatus == FirewallManager.FirewallStatus.BYPASS_UNIVERSAL.id || a.firewallStatus == FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL.id }
-                val excludedCount = copy.count { a -> a.firewallStatus == FirewallManager.FirewallStatus.EXCLUDE.id }
-                val isolatedCount = copy.count { a -> a.firewallStatus == FirewallManager.FirewallStatus.ISOLATE.id }
-                val allApps = copy.count()
-                val allowedApps = allApps - (blockedCount + bypassCount + excludedCount + isolatedCount)
-                
-                uiState.value = uiState.value.copy(
-                    appsAllowed = allowedApps,
-                    appsTotal = allApps,
-                    appsBlocked = blockedCount,
-                    appsBypassed = bypassCount,
-                    appsExcluded = excludedCount,
-                    appsIsolated = isolatedCount
-                )
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_VPN, "error retrieving value from appInfos observer ${e.message}", e)
-            }
-        }
-    }
-
-    // unregister all firewall related observers
-    private fun unobserveAppStates() {
-        FirewallManager.getApplistObserver().removeObservers(viewLifecycleOwner)
-    }
-
     private fun handleMainScreenBtnClickEvent() {
-        // b.fhsDnsOnOffBtn.isEnabled = false
         delay(TimeUnit.MILLISECONDS.toMillis(UI_DELAY_MS), lifecycleScope) {
-            if (isAdded) {
-                // b.fhsDnsOnOffBtn.isEnabled = true
-            }
+            // isAdded check
         }
-
-        // prompt user to disable battery optimization and restrict background data
-        // disabled the battery optimization check as its confusing for users
-        if (false && isRestrictBackgroundActive(requireContext()) && batteryOptimizationActive(requireContext()) && !isVpnActivated) {
-            showBatteryOptimizationDialog()
-        }
-
         handleVpnActivation()
     }
 
     private fun handleVpnActivation() {
         if (handleAlwaysOnVpn()) return
 
-        if (isVpnActivated) {
+        if (VpnController.isOn()) {
             stopVpnService()
         } else {
             prepareAndStartVpn()
         }
-    }
-
-    private fun batteryOptimizationActive(context: Context): Boolean {
-        // check whether or not Battery Permission is Available for Device
-        val bph = batteryPermissionHelper.isBatterySaverPermissionAvailable(context = context, onlyIfSupported = true)
-        Logger.d(LOG_TAG_UI, "battery optimization available: $bph")
-        return bph
-    }
-
-    private fun showBatteryOptimizationDialog() {
-        if (!isAtleastN()) return
-
-        val builder = MaterialAlertDialogBuilder(requireContext(), R.style.App_Dialog_NoDim)
-        val title =
-            getString(
-                R.string.battery_optimization_dialog_heading,
-                getString(R.string.lbl_battery_optimization)
-            )
-        val msg =
-            getString(
-                R.string.restrict_dialog_message,
-                getString(R.string.lbl_battery_optimization)
-            )
-        builder.setTitle(title)
-        builder.setMessage(msg)
-        builder.setCancelable(false)
-        builder.setPositiveButton(R.string.lbl_proceed) { _, _ ->
-            Logger.v(LOG_TAG_UI, "launch battery optimization settings")
-            batteryPermissionHelper.getPermission(requireContext(), open = true, newTask = true)
-        }
-
-        builder.setNegativeButton(R.string.lbl_dismiss) { _, _ ->
-            // no-op
-        }
-        builder.create().show()
-    }
-
-    private fun isRestrictBackgroundActive(context: Context): Boolean {
-        if (!isAtleastN()) return false
-
-        val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val isBackgroundRestricted = cm.restrictBackgroundStatus
-        Logger.d(LOG_TAG_UI, "restrict background status: $isBackgroundRestricted")
-
-        return if (isAtleastP()) {
-            val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
-            Logger.d(LOG_TAG_UI, "above P, background restricted: ${am.isBackgroundRestricted}")
-            am.isBackgroundRestricted ||
-                    isBackgroundRestricted == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED
-        } else {
-            isBackgroundRestricted == ConnectivityManager.RESTRICT_BACKGROUND_STATUS_ENABLED
-        }
-    }
-
-    private fun showAlwaysOnStopDialog() {
-        val builder = MaterialAlertDialogBuilder(requireContext(), R.style.App_Dialog_NoDim)
-
-        builder.setTitle(R.string.always_on_dialog_stop_heading)
-        if (VpnController.isVpnLockdown()) {
-            builder.setMessage(
-                htmlToSpannedText(getString(R.string.always_on_dialog_lockdown_stop_message))
-            )
-        } else {
-            builder.setMessage(R.string.always_on_dialog_stop_message)
-        }
-
-        builder.setCancelable(false)
-        builder.setPositiveButton(R.string.always_on_dialog_positive) { _, _ -> stopVpnService() }
-
-        builder.setNegativeButton(R.string.lbl_cancel) { _, _ ->
-            // no-op
-        }
-
-        builder.setNeutralButton(R.string.always_on_dialog_neutral) { _, _ ->
-            openVpnProfile(requireContext())
-        }
-
-        builder.create().show()
-    }
-
-    private fun openBottomSheet() {
-        val bottomSheetFragment = HomeScreenSettingBottomSheet()
-        bottomSheetFragment.show(parentFragmentManager, bottomSheetFragment.tag)
     }
 
     private fun handleAlwaysOnVpn(): Boolean {
@@ -927,8 +302,7 @@ class HomeScreenFragment : Fragment() {
             return true
         }
 
-        // if always-on is enabled and vpn is activated, show the dialog to stop the vpn #799
-        if (VpnController.isAlwaysOn(requireContext()) && isVpnActivated) {
+        if (VpnController.isAlwaysOn(requireContext()) && VpnController.isOn()) {
             showAlwaysOnStopDialog()
             return true
         }
@@ -936,135 +310,62 @@ class HomeScreenFragment : Fragment() {
         return false
     }
 
+    private fun showAlwaysOnStopDialog() {
+        val builder = MaterialAlertDialogBuilder(requireContext(), R.style.App_Dialog_NoDim)
+        builder.setTitle(R.string.always_on_dialog_stop_heading)
+        if (VpnController.isVpnLockdown()) {
+            builder.setMessage(htmlToSpannedText(getString(R.string.always_on_dialog_lockdown_stop_message)))
+        } else {
+            builder.setMessage(R.string.always_on_dialog_stop_message)
+        }
+        builder.setCancelable(false)
+        builder.setPositiveButton(R.string.always_on_dialog_positive) { _, _ -> stopVpnService() }
+        builder.setNegativeButton(R.string.lbl_cancel) { _, _ -> }
+        builder.setNeutralButton(R.string.always_on_dialog_neutral) { _, _ -> openVpnProfile(requireContext()) }
+        builder.create().show()
+    }
+
     private fun showAlwaysOnDisableDialog() {
         val builder = MaterialAlertDialogBuilder(requireContext(), R.style.App_Dialog_NoDim)
         builder.setTitle(R.string.always_on_dialog_heading)
         builder.setMessage(R.string.always_on_dialog)
         builder.setCancelable(false)
-        builder.setPositiveButton(R.string.always_on_dialog_positive_btn) { _, _ ->
-            openVpnProfile(requireContext())
-        }
-
-        builder.setNegativeButton(R.string.lbl_cancel) { _, _ ->
-            // no-op
-        }
-
+        builder.setPositiveButton(R.string.always_on_dialog_positive_btn) { _, _ -> openVpnProfile(requireContext()) }
+        builder.setNegativeButton(R.string.lbl_cancel) { _, _ -> }
         builder.create().show()
     }
 
-    override fun onResume() {
-        super.onResume()
-        isVpnActivated = VpnController.state().activationRequested
-        // handleShimmer()
-        maybeAutoStartVpn()
-        updateCardsUi()
-        syncDnsStatus()
-        handleLockdownModeIfNeeded()
-        // startTrafficStats() // Disabled for Compose migration
-        //maybeShowGracePeriodDialog()
-        // b.fhsSponsorBottom.bringToFront()
+    private fun stopVpnService() {
+        VpnController.stop("home", requireContext())
     }
 
-    private lateinit var trafficStatsTicker: Job
-
-    private fun startTrafficStats() {
-        trafficStatsTicker =
-            ui("trafficStatsTicker") {
-                var counter = 0
-                while (true) {
-                    // make it as 3 options and add the protos
-                    if (!isAdded) return@ui
-
-                    if (counter % TRAFFIC_DISPLAY_CYCLE_MODULO == TRAFFIC_DISPLAY_STATS_RATE) {
-                        displayTrafficStatsRate()
-                    } else if (counter % TRAFFIC_DISPLAY_CYCLE_MODULO == TRAFFIC_DISPLAY_BANDWIDTH) {
-                        displayTrafficStatsBW()
-                    } else {
-                        displayProtos()
-                    }
-                    // show protos
-                    kotlinx.coroutines.delay(TRAFFIC_DISPLAY_DELAY_MS)
-                    counter++
-                }
-            }
+    private fun startVpnService() {
+        getNotificationPermissionIfNeeded()
+        VpnController.start(requireContext(), true)
     }
 
-    private fun displayProtos() {
-        // Disabled
-    }
-
-    private fun displayTrafficStatsBW() {
-         // Disabled
-    }
-
-    private fun stopTrafficStats() {
-        try {
-            trafficStatsTicker.cancel()
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_VPN, "error stopping traffic stats ticker", e)
-        }
-    }
-
-    data class TxRx(
-        val tx: Long = TrafficStats.getTotalTxBytes(),
-        val rx: Long = TrafficStats.getTotalRxBytes(),
-        val time: Long = SystemClock.elapsedRealtime()
-    )
-
-    private var txRx = TxRx()
-
-    private fun displayTrafficStatsRate() {
-        val curr = TxRx()
-        if (txRx.time <= 0L) {
-            txRx = curr
-            return
-        }
-    }
-
-    /**
-     * Issue fix - https://github.com/celzero/rethink-app/issues/57 When the application
-     * crashes/updates it goes into red waiting state. This causes confusion to the users also
-     * requires click of START button twice to start the app. FIX : The check for the controller
-     * state. If persistence state has vpn enabled and the VPN is not connected then the start will
-     * be initiated.
-     */
     @Suppress("DEPRECATION")
     private fun maybeAutoStartVpn() {
-        if (isVpnActivated && !VpnController.isOn()) {
-            // this case will happen when the app is updated or crashed
-            // generate the bug report and start the vpn
-            triggerBugReport()
+        if (VpnController.state().activationRequested && !VpnController.isOn()) {
             Logger.i(LOG_TAG_VPN, "start VPN (previous state)")
             prepareAndStartVpn()
         }
     }
 
-    private fun triggerBugReport() {
-        if (WorkScheduler.isWorkRunning(requireContext(), WorkScheduler.APP_EXIT_INFO_JOB_TAG)) {
-            Logger.v(LOG_TAG_VPN, "bug report already triggered")
-            return
-        }
-
-        Logger.v(LOG_TAG_VPN, "trigger bug report")
-        workScheduler.scheduleOneTimeWorkForAppExitInfo()
-    }
-
-    // set the app mode to dns+firewall mode when vpn in lockdown state
     private fun handleLockdownModeIfNeeded() {
         if (VpnController.isVpnLockdown() && !appConfig.getBraveMode().isDnsFirewallMode()) {
-            io { appConfig.changeBraveMode(AppConfig.BraveMode.DNS_FIREWALL.mode) }
+            lifecycleScope.launch(Dispatchers.IO) { appConfig.changeBraveMode(AppConfig.BraveMode.DNS_FIREWALL.mode) }
         }
     }
 
-    private fun handleShimmer() {
-        // Handled by Compose
+    override fun onResume() {
+        super.onResume()
+        maybeAutoStartVpn()
+        handleLockdownModeIfNeeded()
     }
-
+    
     override fun onPause() {
         super.onPause()
-        // stopShimmer()
-        // stopTrafficStats()
-        proxyStateListenerJob?.cancel()
     }
 
     private fun startDnsActivity(screenToLoad: Int) {
@@ -1109,7 +410,7 @@ class HomeScreenFragment : Fragment() {
     }
 
     private fun startAppsActivity() {
-        Logger.d(LOG_TAG_VPN, "Status : $isVpnActivated , BraveMode: ${appConfig.getBraveMode()}")
+        Logger.d(LOG_TAG_VPN, "Status : ${VpnController.isOn()} , BraveMode: ${appConfig.getBraveMode()}")
 
         // no need to check for app modes to open this activity
         // one use case: https://github.com/celzero/rethink-app/issues/611
@@ -1365,199 +666,6 @@ class HomeScreenFragment : Fragment() {
                         .show()
                 }
             }
-    }
-
-    // Sets the UI DNS status on/off.
-    private fun syncDnsStatus() {
-        val vpnState = VpnController.state()
-        val isEch = vpnState.serverName?.contains(DnsLogTracker.ECH, true) == true
-
-        // Change status and explanation text
-        var statusId: Int
-        var isFailing = false
-        val privateDnsMode: Utilities.PrivateDnsMode = getPrivateDnsMode(requireContext())
-
-        if (appConfig.getBraveMode().isFirewallMode()) {
-            vpnState.connectionState = BraveVPNService.State.WORKING
-        }
-        if (vpnState.on) {
-            statusId =
-                when {
-                    vpnState.connectionState == null -> {
-                        // app's waiting here, but such a status is a cause for confusion
-                        // R.string.status_waiting
-                        R.string.status_no_internet
-                    }
-                    vpnState.connectionState === BraveVPNService.State.NEW -> {
-                        // app's starting here, but such a status confuses users
-                        // R.string.status_starting
-                        R.string.status_protected
-                    }
-                    vpnState.connectionState === BraveVPNService.State.WORKING -> {
-                        R.string.status_protected
-                    }
-                    vpnState.connectionState === BraveVPNService.State.APP_ERROR -> {
-                        isFailing = true
-                        R.string.status_app_error
-                    }
-                    vpnState.connectionState === BraveVPNService.State.DNS_ERROR -> {
-                        isFailing = true
-                        R.string.status_dns_error
-                    }
-                    vpnState.connectionState === BraveVPNService.State.DNS_SERVER_DOWN -> {
-                        isFailing = true
-                        R.string.status_dns_server_down
-                    }
-                    vpnState.connectionState === BraveVPNService.State.NO_INTERNET -> {
-                        isFailing = true
-                        R.string.status_no_internet
-                    }
-                    else -> {
-                        isFailing = true
-                        R.string.status_failing
-                    }
-                }
-        } else if (isVpnActivated) {
-            isFailing = true
-            statusId = R.string.status_waiting
-        } else if (isAnotherVpnActive()) {
-            isFailing = true
-            statusId = R.string.status_exposed
-        } else {
-            isFailing = true
-            statusId =
-                when (privateDnsMode) {
-                    Utilities.PrivateDnsMode.STRICT -> R.string.status_strict
-                    else -> R.string.status_exposed
-                }
-        }
-
-        if (statusId == R.string.status_protected) {
-            if (appConfig.getBraveMode().isDnsMode() && isPrivateDnsActive(requireContext())) {
-                statusId = R.string.status_protected_with_private_dns
-            } else if (appConfig.getBraveMode().isDnsMode()) {
-                statusId = R.string.status_protected
-            } else if (appConfig.isOrbotProxyEnabled() && isPrivateDnsActive(requireContext())) {
-                statusId = R.string.status_protected_with_tor_private_dns
-            } else if (appConfig.isOrbotProxyEnabled()) {
-                statusId = R.string.status_protected_with_tor
-            } else if (
-                (appConfig.isCustomSocks5Enabled() && appConfig.isCustomHttpProxyEnabled()) &&
-                isPrivateDnsActive(requireContext())
-            ) { // SOCKS5 + Http + PrivateDns
-                statusId = R.string.status_protected_with_proxy_private_dns
-            } else if (appConfig.isCustomSocks5Enabled() && appConfig.isCustomHttpProxyEnabled()) {
-                statusId = R.string.status_protected_with_proxy
-            } else if (appConfig.isCustomSocks5Enabled() && isPrivateDnsActive(requireContext())) {
-                statusId = R.string.status_protected_with_socks5_private_dns
-            } else if (
-                appConfig.isCustomHttpProxyEnabled() && isPrivateDnsActive(requireContext())
-            ) {
-                statusId = R.string.status_protected_with_http_private_dns
-            } else if (appConfig.isCustomHttpProxyEnabled()) {
-                statusId = R.string.status_protected_with_http
-            } else if (appConfig.isCustomSocks5Enabled()) {
-                statusId = R.string.status_protected_with_socks5
-            } else if (isPrivateDnsActive(requireContext())) {
-                statusId = R.string.status_protected_with_private_dns
-            } else if (appConfig.isWireGuardEnabled() && isPrivateDnsActive(requireContext())) {
-                statusId = R.string.status_protected_with_wg_private_dns
-            } else if (appConfig.isWireGuardEnabled()) {
-                statusId = R.string.status_protected_with_wg
-            }
-        }
-
-        var statusString = ""
-        
-        if (statusId == R.string.status_no_internet || statusId == R.string.status_failing) {
-            val message = getString(statusId)
-            isFailing = true
-            if (appConfig.isCustomSocks5Enabled() && appConfig.isCustomHttpProxyEnabled()) {
-                statusId = R.string.status_protected_with_proxy
-            } else if (appConfig.isCustomSocks5Enabled()) {
-                statusId = R.string.status_protected_with_socks5
-            } else if (appConfig.isCustomHttpProxyEnabled()) {
-                statusId = R.string.status_protected_with_http
-            } else if (appConfig.isWireGuardEnabled()) {
-                statusId = R.string.status_protected_with_wg
-            } else if (isPrivateDnsActive(requireContext())) {
-                statusId = R.string.status_protected_with_private_dns
-            }
-            // replace the string "protected" with appropriate string
-            statusString =
-                getString(statusId)
-                    .replaceFirst(getString(R.string.status_protected), message, true)
-        } else {
-            if (isEch) {
-                val stat = getString(statusId)
-                statusString = stat.replaceFirst(getString(R.string.status_protected), getString(R.string.lbl_ultra_secure), true)
-            } else {
-                statusString = getString(statusId)
-            }
-        }
-        val isUnderlyingVpnNwEmpty = VpnController.isUnderlyingVpnNetworkEmpty()
-        if (isUnderlyingVpnNwEmpty) {
-            isFailing = true
-            statusString = getString(R.string.status_no_network)
-        }
-        
-        uiState.value = uiState.value.copy(protectionStatus = statusString, isProtectionFailing = isFailing)
-    }
-
-    private fun isAnotherVpnActive(): Boolean {
-        return try {
-            val connectivityManager =
-                requireContext().getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-            val activeNetwork = connectivityManager.activeNetwork ?: return false
-            val capabilities =
-                connectivityManager.getNetworkCapabilities(activeNetwork)
-                    ?: // It's not clear when this can happen, but it has occurred for at least one
-                    // user.
-                    return false
-            capabilities.hasTransport(NetworkCapabilities.TRANSPORT_VPN)
-        } catch (e: SecurityException) {
-            // Fix: Handle SecurityException that can occur when calling getNetworkCapabilities()
-            // on certain devices/Android versions or when app lacks proper permissions
-            Logger.e(LOG_TAG_VPN, "SecurityException checking VPN status: ${e.message}", e)
-            false
-        } catch (e: Exception) {
-            // Catch any other unexpected exceptions
-            Logger.e(LOG_TAG_VPN, "err checking VPN status: ${e.message}", e)
-            false
-        }
-    }
-
-    private fun fetchTextColor(attr: Int): Int {
-        val attributeFetch =
-            when (attr) {
-                R.color.accentGood -> {
-                    R.attr.accentGood
-                }
-                R.color.accentBad -> {
-                    R.attr.accentBad
-                }
-                R.color.primaryLightColorText -> {
-                    R.attr.primaryLightColorText
-                }
-                R.color.secondaryText -> {
-                    R.attr.invertedPrimaryTextColor
-                }
-                R.color.primaryText -> {
-                    R.attr.primaryTextColor
-                }
-                R.color.primaryTextLight -> {
-                    R.attr.primaryTextColor
-                }
-                else -> {
-                    R.attr.accentGood
-                }
-            }
-        val typedValue = TypedValue()
-        val a: TypedArray =
-            requireContext().obtainStyledAttributes(typedValue.data, intArrayOf(attributeFetch))
-        val color = a.getColor(0, 0)
-        a.recycle()
-        return color
     }
 
     private fun io(f: suspend () -> Unit) {

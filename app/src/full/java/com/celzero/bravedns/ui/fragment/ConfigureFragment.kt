@@ -20,10 +20,8 @@ import android.os.Bundle
 import android.view.View
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
-import com.celzero.bravedns.databinding.FragmentConfigureBinding
 import com.celzero.bravedns.ui.activity.AdvancedSettingActivity
 import com.celzero.bravedns.ui.activity.AntiCensorshipActivity
 import com.celzero.bravedns.ui.activity.AppListActivity
@@ -33,10 +31,12 @@ import com.celzero.bravedns.ui.activity.MiscSettingsActivity
 import com.celzero.bravedns.ui.activity.NetworkLogsActivity
 import com.celzero.bravedns.ui.activity.ProxySettingsActivity
 import com.celzero.bravedns.ui.activity.TunnelSettingsActivity
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import com.celzero.bravedns.ui.compose.configure.ConfigureScreen
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 
-class ConfigureFragment : Fragment(R.layout.fragment_configure) {
-
-    private val b by viewBinding(FragmentConfigureBinding::bind)
+class ConfigureFragment : Fragment() {
 
     private val miscSettingsResultLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -57,69 +57,29 @@ class ConfigureFragment : Fragment(R.layout.fragment_configure) {
         ADVANCED
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        initView()
-        setupClickListeners()
-    }
-
-    private fun initView() {
-        if (DEBUG) {
-            b.fsAdvancedCard.visibility = View.VISIBLE
-            b.fsAdvancedTv.text = getString(R.string.lbl_advanced).replaceFirstChar(Char::titlecase)
-        } else {
-            b.fsAdvancedCard.visibility = View.GONE
-        }
-        b.fsNetworkTv.text = getString(R.string.lbl_network).replaceFirstChar(Char::titlecase)
-        b.fsLogsTv.text = getString(R.string.lbl_logs).replaceFirstChar(Char::titlecase)
-        b.fsAntiCensorshipTv.text =
-            getString(R.string.anti_censorship_title).replaceFirstChar(Char::titlecase)
-    }
-
-    private fun setupClickListeners() {
-        b.fsAppsCard.setOnClickListener {
-            // open apps configuration
-            startActivity(ScreenType.APPS)
-        }
-
-        b.fsDnsCard.setOnClickListener {
-            // open dns configuration
-            startActivity(ScreenType.DNS)
-        }
-
-        b.fsFirewallCard.setOnClickListener {
-            // open firewall configuration
-            startActivity(ScreenType.FIREWALL)
-        }
-
-        b.fsProxyCard.setOnClickListener {
-            // open proxy configuration
-            startActivity(ScreenType.PROXY)
-        }
-
-        b.fsNetworkCard.setOnClickListener {
-            // open vpn configuration
-            startActivity(ScreenType.VPN)
-        }
-
-        b.fsOthersCard.setOnClickListener {
-            // open others configuration
-            startActivity(ScreenType.OTHERS)
-        }
-
-        b.fsLogsCard.setOnClickListener {
-            // open logs configuration
-            startActivity(ScreenType.LOGS)
-        }
-
-        b.fsAntiCensorshipCard.setOnClickListener {
-            // open developer options configuration
-            startActivity(ScreenType.ANTI_CENSORSHIP)
-        }
-
-        b.fsAdvancedCard.setOnClickListener {
-            // open developer options configuration
-            startActivity(ScreenType.ADVANCED)
+    override fun onCreateView(
+        inflater: android.view.LayoutInflater,
+        container: android.view.ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                RethinkTheme {
+                    ConfigureScreen(
+                        isDebug = DEBUG,
+                        onAppsClick = { startActivity(ScreenType.APPS) },
+                        onDnsClick = { startActivity(ScreenType.DNS) },
+                        onFirewallClick = { startActivity(ScreenType.FIREWALL) },
+                        onProxyClick = { startActivity(ScreenType.PROXY) },
+                        onNetworkClick = { startActivity(ScreenType.VPN) },
+                        onOthersClick = { startActivity(ScreenType.OTHERS) },
+                        onLogsClick = { startActivity(ScreenType.LOGS) },
+                        onAntiCensorshipClick = { startActivity(ScreenType.ANTI_CENSORSHIP) },
+                        onAdvancedClick = { startActivity(ScreenType.ADVANCED) }
+                    )
+                }
+            }
         }
     }
 

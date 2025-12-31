@@ -15,11 +15,17 @@
  */
 package com.celzero.bravedns.viewmodel
 
+import com.celzero.bravedns.ui.compose.home.HomeScreenViewModel
+import com.celzero.bravedns.ui.compose.dns.DnsSettingsViewModel
+import com.celzero.bravedns.ui.compose.about.AboutViewModel
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 object ViewModelModule {
     private val viewModelModule = module {
+        viewModel { HomeScreenViewModel(get(), get()) }
+        viewModel { DnsSettingsViewModel(get(), get()) }
+        viewModel { AboutViewModel(get(), get(), get()) }
         viewModel { ConnectionTrackerViewModel(get()) }
         viewModel { DnsCryptEndpointViewModel(get()) }
         viewModel { DnsCryptRelayEndpointViewModel(get()) }

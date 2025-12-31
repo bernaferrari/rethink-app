@@ -15,10 +15,6 @@
  */
 package com.celzero.bravedns.ui.fragment
 
-import Logger
-import Logger.LOG_TAG_UI
-import android.annotation.SuppressLint
-import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.DialogInterface
@@ -27,16 +23,17 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.SystemClock
-import android.provider.Settings
-import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 import android.text.method.LinkMovementMethod
-import android.view.GestureDetector
 import android.view.Gravity
 import android.view.LayoutInflater
-import android.view.MotionEvent
 import android.view.View
+import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.core.content.ContextCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.net.toUri
@@ -44,13 +41,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
-import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.database.AppDatabase
 import com.celzero.bravedns.databinding.DialogInfoRulesLayoutBinding
 import com.celzero.bravedns.databinding.DialogWhatsnewBinding
-import com.celzero.bravedns.databinding.FragmentAboutBinding
 import com.celzero.bravedns.scheduler.BugReportZipper
 import com.celzero.bravedns.scheduler.BugReportZipper.getZipFileName
 import com.celzero.bravedns.scheduler.EnhancedBugReport
@@ -60,11 +54,10 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.ui.bottomsheet.BugReportFilesBottomSheet
-import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
+import com.celzero.bravedns.ui.compose.about.AboutScreen
+import com.celzero.bravedns.ui.compose.about.AboutViewModel
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.RETHINKDNS_SPONSOR_LINK
-import com.celzero.bravedns.util.Constants.Companion.TIME_FORMAT_4
-import com.celzero.bravedns.util.FirebaseErrorReporting.TOKEN_LENGTH
-import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.htmlToSpannedText
 import com.celzero.bravedns.util.UIUtils.openAppInfo
@@ -73,339 +66,87 @@ import com.celzero.bravedns.util.UIUtils.openVpnProfile
 import com.celzero.bravedns.util.UIUtils.sendEmailIntent
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getPackageMetadata
-import com.celzero.bravedns.util.Utilities.getRandomString
 import com.celzero.bravedns.util.Utilities.isAtleastO
-import com.celzero.bravedns.util.Utilities.isFdroidFlavour
-import com.celzero.bravedns.util.Utilities.isPlayStoreFlavour
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.bravedns.util.disableFrostTemporarily
-import com.celzero.bravedns.util.restoreFrost
-import com.celzero.firestack.intra.Intra
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import org.koin.core.component.KoinComponent
 import java.io.File
 import java.util.concurrent.TimeUnit
-import kotlin.jvm.java
+import android.provider.Settings
+import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
+import Logger
+import Logger.LOG_TAG_UI
 
-class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, KoinComponent {
-    private val b by viewBinding(FragmentAboutBinding::bind)
+class AboutFragment : Fragment(), KoinComponent {
+    private val viewModel: AboutViewModel by viewModel()
 
-    private var lastAppExitInfoDialogInvokeTime = INIT_TIME_MS
     private val workScheduler by inject<WorkScheduler>()
     private val appDatabase by inject<AppDatabase>()
     private val persistentState by inject<PersistentState>()
 
-    companion object {
-        private const val SCHEME_PACKAGE = "package"
-
-        // Version string constants
-        private const val VERSION_SLICE_END_INDEX = 6
-
-        // Time calculation constants (same as HomeScreenFragment for consistency)
-        private const val MILLISECONDS_PER_SECOND = 1000L
-        private const val SECONDS_PER_MINUTE = 60L
-        private const val MINUTES_PER_HOUR = 60L
-        private const val HOURS_PER_DAY = 24L
-        private const val DAYS_PER_MONTH = 30.0
-
-        // Sponsorship calculation constants
-        private const val BASE_AMOUNT_PER_MONTH = 0.60
-        private const val ADDITIONAL_AMOUNT_PER_MONTH = 0.20
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        initView()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        val themeId = Themes.getTheme(persistentState.theme)
-        restoreFrost(themeId)
-    }
-
-    @SuppressLint("ClickableViewAccessibility")
-    private fun initView() {
-        if (isFdroidFlavour()) {
-            b.aboutAppUpdate.visibility = View.GONE
-        }
-        updateVersionInfo()
-        updateSponsorInfo()
-        updateTokenUi(persistentState.firebaseUserToken)
-
-        b.titleStats.text = getString(R.string.title_statistics).lowercase()
-        b.aboutStats.text = getString(R.string.settings_general_header).replaceFirstChar(Char::titlecase)
-
-        if (DEBUG) {
-            b.aboutFlightRecord.visibility = View.VISIBLE
-        } else {
-            b.aboutFlightRecord.visibility = View.GONE
-        }
-
-        b.aboutSponsor.setOnClickListener(this)
-        b.aboutWebsite.setOnClickListener(this)
-        b.aboutTwitter.setOnClickListener(this)
-        b.aboutGithub.setOnClickListener(this)
-        b.aboutBlog.setOnClickListener(this)
-        b.aboutPrivacyPolicy.setOnClickListener(this)
-        b.aboutTermsOfService.setOnClickListener(this)
-        b.aboutLicense.setOnClickListener(this)
-        b.aboutMail.setOnClickListener(this)
-        b.aboutTelegram.setOnClickListener(this)
-        b.aboutReddit.setOnClickListener(this)
-        b.aboutMastodon.setOnClickListener(this)
-        b.aboutElement.setOnClickListener(this)
-        b.aboutFaq.setOnClickListener(this)
-        b.mozillaImg.setOnClickListener(this)
-        b.fossImg.setOnClickListener(this)
-        b.aboutAppUpdate.setOnClickListener(this)
-        b.aboutWhatsNew.setOnClickListener(this)
-        b.aboutAppInfo.setOnClickListener(this)
-        b.aboutAppNotification.setOnClickListener(this)
-        b.aboutVpnProfile.setOnClickListener(this)
-        b.aboutCrashLog.setOnClickListener(this)
-        b.aboutAppVersion.setOnClickListener(this)
-        b.aboutAppContributors.setOnClickListener(this)
-        b.aboutAppTranslate.setOnClickListener(this)
-        b.aboutStats.setOnClickListener(this)
-        b.aboutDbStats.setOnClickListener(this)
-        b.tokenTextView.setOnClickListener(this)
-        b.aboutFlightRecord.setOnClickListener(this)
-        b.aboutEventLogs.setOnClickListener(this)
-
-        val gestureDetector = GestureDetector(
-            requireContext(),
-            object : GestureDetector.SimpleOnGestureListener() {
-                override fun onSingleTapConfirmed(e: MotionEvent): Boolean {
-                    val text = persistentState.firebaseUserToken
-                    val clipboard =
-                        getSystemService(requireContext(), ClipboardManager::class.java)
-                    val clip = ClipData.newPlainText("token", text)
-                    clipboard?.setPrimaryClip(clip)
-
-                    Toast.makeText(requireContext(), "Copied to clipboard", Toast.LENGTH_SHORT)
-                        .show()
-                    return true
-                }
-
-                override fun onDoubleTap(e: MotionEvent): Boolean {
-                    if (isFdroidFlavour()) return true
-
-                    val newToken = generateNewToken()
-                    b.tokenTextView.text = newToken
-                    Toast.makeText(
-                        requireContext(),
-                        getString(R.string.config_add_success_toast),
-                        Toast.LENGTH_SHORT
-                    ).show()
-                    return true
-                }
-            })
-
-        // suppress the warning about setting a touch listener
-        b.tokenTextView.setOnTouchListener { v, event ->
-            if (gestureDetector.onTouchEvent(event)) {
-                v.performClick() // important to call this
-                true
-            } else {
-                false // allow text selection
-            }
-        }
-    }
-
-    private fun updateVersionInfo() {
-        try {
-            val version = getVersionName()
-            // take first 7 characters of the version name, as the version has build number
-            // appended to it, which is not required for the user to see.
-            val slicedVersion = version.slice(0..VERSION_SLICE_END_INDEX)
-            b.aboutWhatsNew.text = getString(R.string.about_whats_new, slicedVersion)
-
-            // complete version name along with the source of installation
-            val v = getString(R.string.about_version_install_source, version, getDownloadSource())
-
-            val build = Intra.build(false)
-            val updatedTs = getLastUpdatedTs()
-            b.aboutAppVersion.text = "$v\n$build\n$updatedTs"
-
-        } catch (e: PackageManager.NameNotFoundException) {
-            Logger.w(LOG_TAG_UI, "err-version-info; pkg name not found: ${e.message}", e)
-        }
-    }
-
-    fun updateTokenUi(token: String) {
-        if (isFdroidFlavour() || !persistentState.firebaseErrorReportingEnabled) {
-            b.tokenTextView.visibility = View.GONE
-            return
-        }
-        b.tokenTextView.text = token
-    }
-
-    private fun getLastUpdatedTs(): String {
-        val pInfo: PackageInfo? = getPackageMetadata(requireContext().packageManager, requireContext().packageName)
-        // TODO: modify this to use the latest version code api
-        val updatedTs = pInfo?.lastUpdateTime ?: return ""
-        return if (updatedTs > 0) {
-            val updatedDate = Utilities.convertLongToTime(updatedTs, TIME_FORMAT_4)
-            updatedDate
-        } else {
-            ""
-        }
-    }
-
-    private fun updateSponsorInfo() {
-        /*if (RpnProxyManager.isRpnEnabled()) {
-            b.sponsorInfoUsage.visibility = View.GONE
-            b.aboutSponsor.visibility = View.GONE
-            return
-        }*/
-
-        b.sponsorInfoUsage.text = getSponsorInfo()
-    }
-
-    private fun getVersionName(): String {
-        val pInfo: PackageInfo? =
-            Utilities.getPackageMetadata(
-                requireContext().packageManager,
-                requireContext().packageName
-            )
-        return pInfo?.versionName ?: ""
-    }
-
-    private fun getSponsorInfo(): String {
-        val installTime = requireContext().packageManager.getPackageInfo(
-            requireContext().packageName,
-            0
-        ).firstInstallTime
-        val timeDiff = System.currentTimeMillis() - installTime
-        val days = (timeDiff / (MILLISECONDS_PER_SECOND * SECONDS_PER_MINUTE * MINUTES_PER_HOUR * HOURS_PER_DAY)).toDouble()
-        val month = days / DAYS_PER_MONTH
-        val amount = month * (BASE_AMOUNT_PER_MONTH + ADDITIONAL_AMOUNT_PER_MONTH)
-        val msg = getString(
-            R.string.sponser_dialog_usage_msg,
-            days.toInt().toString(),
-            "%.2f".format(amount)
-        )
-        return msg
-    }
-
-    private fun getDownloadSource(): String {
-        if (isFdroidFlavour()) return getString(R.string.build__flavor_fdroid)
-
-        if (isPlayStoreFlavour()) return getString(R.string.build__flavor_play_store)
-
-        return getString(R.string.build__flavor_website)
-    }
-
-    override fun onClick(view: View?) {
-        when (view) {
-            b.aboutTelegram -> {
-                openUrl(requireContext(), getString(R.string.about_telegram_link))
-            }
-            b.aboutBlog -> {
-                openUrl(requireContext(), getString(R.string.about_docs_link))
-            }
-            b.aboutFaq -> {
-                openUrl(requireContext(), getString(R.string.about_faq_link))
-            }
-            b.aboutGithub -> {
-                openUrl(requireContext(), getString(R.string.about_github_link))
-            }
-            b.aboutCrashLog -> {
-                if (isAtleastO()) {
-                    handleShowAppExitInfo()
-                } else {
-                    if (hasAnyLogsAvailable()) {
-                        promptCrashLogAction()
-                    } else {
-                        showNoLogDialog()
-                    }
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ): View {
+        return ComposeView(requireContext()).apply {
+            setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+            setContent {
+                RethinkTheme {
+                    val uiState by viewModel.uiState.collectAsState()
+                    AboutScreen(
+                        uiState = uiState,
+                        onSponsorClick = { openUrl(requireContext(), RETHINKDNS_SPONSOR_LINK) },
+                        onTelegramClick = { openUrl(requireContext(), getString(R.string.about_telegram_link)) },
+                        onBugReportClick = { viewModel.triggerBugReport() },
+                        onWhatsNewClick = { showNewFeaturesDialog() },
+                        onAppUpdateClick = { (requireContext() as HomeScreenActivity).checkForUpdate(AppUpdater.UserPresent.INTERACTIVE) },
+                        onContributorsClick = { showContributors() },
+                        onTranslateClick = { openUrl(requireContext(), getString(R.string.about_translate_link)) },
+                        onWebsiteClick = { openUrl(requireContext(), getString(R.string.about_website_link)) },
+                        onGithubClick = { openUrl(requireContext(), getString(R.string.about_github_link)) },
+                        onFaqClick = { openUrl(requireContext(), getString(R.string.about_faq_link)) },
+                        onDocsClick = { openUrl(requireContext(), getString(R.string.about_docs_link)) },
+                        onPrivacyPolicyClick = { openUrl(requireContext(), getString(R.string.about_privacy_policy_link)) },
+                        onTermsOfServiceClick = { openUrl(requireContext(), getString(R.string.about_terms_link)) },
+                        onLicenseClick = { openUrl(requireContext(), getString(R.string.about_license_link)) },
+                        onTwitterClick = { openUrl(requireContext(), getString(R.string.about_twitter_handle)) },
+                        onEmailClick = { disableFrostTemporarily(); sendEmailIntent(requireContext()) },
+                        onRedditClick = { openUrl(requireContext(), getString(R.string.about_reddit_handle)) },
+                        onElementClick = { openUrl(requireContext(), getString(R.string.about_matrix_handle)) },
+                        onMastodonClick = { openUrl(requireContext(), getString(R.string.about_mastodom_handle)) },
+                        onAppInfoClick = { openAppInfo(requireContext()) },
+                        onVpnProfileClick = { openVpnProfile(requireContext()) },
+                        onNotificationClick = { openNotificationSettings() },
+                        onStatsClick = { openStatsDialog() },
+                        onDbStatsClick = { openDatabaseDumpDialog() },
+                        onFlightRecordClick = { initiateFlightRecord() },
+                        onEventLogsClick = { openEventLogs() },
+                        onTokenClick = { copyTokenToClipboard() },
+                        onTokenDoubleTap = { viewModel.generateNewToken() },
+                        onFossClick = { openUrl(requireContext(), getString(R.string.about_foss_link)) },
+                        onFlossFundsClick = { openUrl(requireContext(), getString(R.string.about_floss_fund_link)) }
+                    )
                 }
             }
-            b.aboutMail -> {
-                disableFrostTemporarily()
-                sendEmailIntent(requireContext())
-            }
-            b.aboutTwitter -> {
-                openUrl(requireContext(), getString(R.string.about_twitter_handle))
-            }
-            b.aboutWebsite -> {
-                openUrl(requireContext(), getString(R.string.about_website_link))
-            }
-            b.aboutSponsor -> {
-                openUrl(requireContext(), RETHINKDNS_SPONSOR_LINK)
-            }
-            b.mozillaImg -> {
-                // no-link, no action
-            }
-            b.fossImg -> {
-                openUrl(requireContext(), getString(R.string.about_foss_link))
-            }
-            b.flossFundsImg -> {
-                openUrl(requireContext(), getString(R.string.about_floss_fund_link))
-            }
-            b.aboutAppUpdate -> {
-                (requireContext() as HomeScreenActivity).checkForUpdate(
-                    AppUpdater.UserPresent.INTERACTIVE
-                )
-            }
-            b.aboutWhatsNew -> {
-                showNewFeaturesDialog()
-            }
-            b.aboutAppInfo -> {
-                openAppInfo(requireContext())
-            }
-            b.aboutVpnProfile -> {
-                openVpnProfile(requireContext())
-            }
-            b.aboutAppNotification -> {
-                openNotificationSettings()
-            }
-            b.aboutAppContributors -> {
-                showContributors()
-            }
-            b.aboutAppTranslate -> {
-                openUrl(requireContext(), getString(R.string.about_translate_link))
-            }
-            b.aboutPrivacyPolicy -> {
-                openUrl(requireContext(), getString(R.string.about_privacy_policy_link))
-            }
-            b.aboutTermsOfService -> {
-                openUrl(requireContext(), getString(R.string.about_terms_link))
-            }
-            b.aboutLicense -> {
-                openUrl(requireContext(), getString(R.string.about_license_link))
-            }
-            b.aboutReddit -> {
-                openUrl(requireContext(), getString(R.string.about_reddit_handle))
-            }
-            b.aboutMastodon -> {
-                openUrl(requireContext(), getString(R.string.about_mastodom_handle))
-            }
-            b.aboutElement -> {
-                openUrl(requireContext(), getString(R.string.about_matrix_handle))
-            }
-            b.aboutStats -> {
-                openStatsDialog()
-            }
-            b.aboutDbStats -> {
-                openDatabaseDumpDialog()
-            }
-            b.tokenTextView -> {
-                // click is handled in gesture detector
-            }
-            b.aboutFlightRecord -> {
-                initiateFlightRecord()
-            }
-            b.aboutEventLogs -> {
-                openEventLogs()
-            }
         }
     }
+
+    private fun copyTokenToClipboard() {
+        val text = persistentState.firebaseUserToken
+        val clipboard = getSystemService(requireContext(), ClipboardManager::class.java)
+        val clip = ClipData.newPlainText("token", text)
+        clipboard?.setPrimaryClip(clip)
+        Toast.makeText(requireContext(), "Copied to clipboard", Toast.LENGTH_SHORT).show()
+    }
+
 
     private fun initiateFlightRecord() {
         io { VpnController.performFlightRecording() }
@@ -417,15 +158,10 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         startActivity(intent)
     }
 
-    private fun generateNewToken(): String {
-        if (isFdroidFlavour()) return ""
-
-        val newToken = getRandomString(TOKEN_LENGTH)
-        persistentState.firebaseUserToken = newToken
-        persistentState.firebaseUserTokenTimestamp = System.currentTimeMillis()
-        updateTokenUi(newToken)
-        return newToken
+    private fun getVersionName(): String {
+        return Utilities.getPackageMetadata(requireContext().packageManager, requireContext().packageName)?.versionName ?: ""
     }
+
 
     private fun openStatsDialog() {
         io {
@@ -803,7 +539,6 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
             return
 
         workScheduler.scheduleOneTimeWorkForAppExitInfo()
-        showBugReportProgressUi()
 
         val workManager = WorkManager.getInstance(requireContext().applicationContext)
         workManager.getWorkInfosByTagLiveData(WorkScheduler.APP_EXIT_INFO_ONE_TIME_JOB_TAG).observe(
@@ -839,27 +574,8 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         hideBugReportProgressUi()
     }
 
-    private fun showBugReportProgressUi() {
-        b.progressLayout.visibility = View.VISIBLE
-        b.aboutCrashLog.visibility = View.GONE
-    }
-
-    private fun hideBugReportProgressUi() {
-        b.progressLayout.visibility = View.GONE
-        b.aboutCrashLog.visibility = View.VISIBLE
-    }
 
     private fun onAppExitInfoSuccess() {
-        // refrain from calling promptCrashLogAction multiple times
-        if (
-            SystemClock.elapsedRealtime() - lastAppExitInfoDialogInvokeTime <
-            TimeUnit.SECONDS.toMillis(1L)
-        ) {
-            return
-        }
-
-        lastAppExitInfoDialogInvokeTime = SystemClock.elapsedRealtime()
-        hideBugReportProgressUi()
         promptCrashLogAction()
     }
 
