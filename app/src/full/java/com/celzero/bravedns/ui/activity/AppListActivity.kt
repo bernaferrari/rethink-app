@@ -17,57 +17,63 @@ package com.celzero.bravedns.ui.activity
 
 import android.content.Context
 import android.content.res.Configuration
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
-import android.graphics.Rect
 import android.os.Bundle
 import android.util.TypedValue
-import android.view.View
+import androidx.activity.compose.setContent
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import android.view.ViewTreeObserver
-import android.view.animation.Animation
-import android.view.animation.RotateAnimation
-import android.widget.CompoundButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
-import androidx.appcompat.widget.TooltipCompat
-import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.FirewallAppListAdapter
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.RefreshDatabase
 import com.celzero.bravedns.database.Severity
-import com.celzero.bravedns.databinding.ActivityAppListBinding
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.bottomsheet.FirewallAppFilterDialog
@@ -79,7 +85,6 @@ import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.AppInfoViewModel
-import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -91,29 +96,34 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AppListActivity :
-    AppCompatActivity(R.layout.activity_app_list), SearchView.OnQueryTextListener {
+    AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()
-    private val b by viewBinding(ActivityAppListBinding::bind)
 
     private val appInfoViewModel: AppInfoViewModel by viewModel()
     private val refreshDatabase by inject<RefreshDatabase>()
 
     private var layoutManager: RecyclerView.LayoutManager? = null
+    private var listAdapter: FirewallAppListAdapter? = null
 
     private var showBypassToolTip = true
 
-    private lateinit var animation: Animation
+    private var queryText by mutableStateOf("")
+    private var filterLabelText by mutableStateOf<CharSequence>("")
+    private var selectedFirewallFilter by mutableStateOf(FirewallFilter.ALL)
+    private var isRefreshing by mutableStateOf(false)
+
+    private var bulkWifi by mutableStateOf(false)
+    private var bulkMobile by mutableStateOf(false)
+    private var bulkBypass by mutableStateOf(false)
+    private var bulkBypassDns by mutableStateOf(false)
+    private var bulkExclude by mutableStateOf(false)
+    private var bulkLockdown by mutableStateOf(false)
 
     companion object {
         val filters = MutableLiveData<Filters>()
 
         private const val ANIMATION_DURATION = 750L
-        private const val ANIMATION_REPEAT_COUNT = -1
-        private const val ANIMATION_PIVOT_VALUE = 0.5f
-        private const val ANIMATION_START_DEGREE = 0.0f
-        private const val ANIMATION_END_DEGREE = 360.0f
-
         private const val REFRESH_TIMEOUT: Long = 4000
         private const val QUERY_TEXT_DELAY: Long = 1000
     }
@@ -242,16 +252,20 @@ class AppListActivity :
         }
 
         filters.value = Filters()
-        initView()
         initObserver()
-        setupClickListener()
+        initListAdapter()
+        setQueryFilter()
+
+        setContent {
+            RethinkTheme {
+                AppListScreen()
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        setFirewallFilter(filters.value?.firewallFilter)
         filters.value = filters.value ?: Filters()
-        b.ffaAppList.requestFocus()
     }
 
     private fun initObserver() {
@@ -260,6 +274,8 @@ class AppListActivity :
 
             appInfoViewModel.setFilter(it)
             updateFilterText(it)
+            selectedFirewallFilter = it.firewallFilter
+            queryText = it.searchString
         }
     }
 
@@ -267,14 +283,14 @@ class AppListActivity :
         val filterLabel = filter.topLevelFilter.getLabel(this)
         val firewallLabel = filter.firewallFilter.getLabel(this)
         if (filter.categoryFilters.isEmpty()) {
-            b.firewallAppLabelTv.text =
+            filterLabelText =
                 UIUtils.htmlToSpannedText(
                     getString(
                         R.string.fapps_firewall_filter_desc,
                         firewallLabel.lowercase(),
                         filterLabel))
         } else {
-            b.firewallAppLabelTv.text =
+            filterLabelText =
                 UIUtils.htmlToSpannedText(
                     getString(
                         R.string.fapps_firewall_filter_desc_category,
@@ -282,27 +298,9 @@ class AppListActivity :
                         filterLabel,
                         filter.categoryFilters))
         }
-        b.firewallAppLabelTv.isSelected = true
-    }
-
-    override fun onPause() {
-        b.ffaSearch.clearFocus()
-        b.ffaAppList.requestFocus()
-        super.onPause()
     }
 
     val searchQuery = MutableStateFlow("")
-
-    override fun onQueryTextSubmit(query: String): Boolean {
-        searchQuery.value = query
-        b.ffaSearch.clearFocus()
-        return true
-    }
-
-    override fun onQueryTextChange(query: String): Boolean {
-        searchQuery.value = query
-        return true
-    }
 
     @OptIn(FlowPreview::class)
     private fun setQueryFilter() {
@@ -328,120 +326,45 @@ class AppListActivity :
         filters.postValue(filters.value)
     }
 
-    private fun setupClickListener() {
-        b.ffaFilterIcon.setOnClickListener { openFilterBottomSheet() }
-
-        b.ffaRefreshList.setOnClickListener {
-            b.ffaRefreshList.isEnabled = false
-            b.ffaRefreshList.animation = animation
-            b.ffaRefreshList.startAnimation(animation)
-            refreshDatabase()
-            Utilities.delay(REFRESH_TIMEOUT, lifecycleScope) {
-                if (!this.isFinishing) {
-                    b.ffaRefreshList.isEnabled = true
-                    b.ffaRefreshList.clearAnimation()
-                    Utilities.showToastUiCentered(
-                        this, getString(R.string.refresh_complete), Toast.LENGTH_SHORT)
-                }
-            }
-        }
-
-        b.ffaToggleAllWifi.setOnClickListener {
-            showBulkRulesUpdateDialog(
-                getBulkActionDialogTitle(BlockType.UNMETER),
-                getBulkActionDialogMessage(BlockType.UNMETER),
-                BlockType.UNMETER)
-        }
-
-        b.ffaToggleAllMobileData.setOnClickListener {
-            showBulkRulesUpdateDialog(
-                getBulkActionDialogTitle(BlockType.METER),
-                getBulkActionDialogMessage(BlockType.METER),
-                BlockType.METER)
-        }
-
-        b.ffaToggleAllLockdown.setOnClickListener {
-            showBulkRulesUpdateDialog(
-                getBulkActionDialogTitle(BlockType.LOCKDOWN),
-                getBulkActionDialogMessage(BlockType.LOCKDOWN),
-                BlockType.LOCKDOWN)
-        }
-
-        TooltipCompat.setTooltipText(
-            b.ffaToggleAllBypassDnsFirewall,
-            getString(
-                R.string.bypass_dns_firewall_tooltip, getString(R.string.bypass_dns_firewall)))
-
-        b.ffaToggleAllBypassDnsFirewall.setOnClickListener {
-            // show tooltip once the user clicks on the button
-            if (showBypassToolTip) {
-                showBypassToolTip = false
-                b.ffaToggleAllBypassDnsFirewall.performLongClick()
-                return@setOnClickListener
-            }
-
-            showBulkRulesUpdateDialog(
-                getBulkActionDialogTitle(BlockType.BYPASS_DNS_FIREWALL),
-                getBulkActionDialogMessage(BlockType.BYPASS_DNS_FIREWALL),
-                BlockType.BYPASS_DNS_FIREWALL)
-        }
-
-        b.ffaToggleAllBypass.setOnClickListener {
-            showBulkRulesUpdateDialog(
-                getBulkActionDialogTitle(BlockType.BYPASS),
-                getBulkActionDialogMessage(BlockType.BYPASS),
-                BlockType.BYPASS)
-        }
-
-        b.ffaToggleAllExclude.setOnClickListener {
-            showBulkRulesUpdateDialog(
-                getBulkActionDialogTitle(BlockType.EXCLUDE),
-                getBulkActionDialogMessage(BlockType.EXCLUDE),
-                BlockType.EXCLUDE)
-        }
-
-        b.ffaAppInfoIcon.setOnClickListener { showInfoDialog() }
-    }
-
     private fun getBulkActionDialogTitle(type: BlockType): String {
         return when (type) {
             BlockType.UNMETER -> {
-                if (isInitTag(b.ffaToggleAllWifi)) {
+                if (!bulkWifi) {
                     getString(R.string.fapps_unmetered_block_dialog_title)
                 } else {
                     getString(R.string.fapps_unmetered_unblock_dialog_title)
                 }
             }
             BlockType.METER -> {
-                if (isInitTag(b.ffaToggleAllMobileData)) {
+                if (!bulkMobile) {
                     getString(R.string.fapps_metered_block_dialog_title)
                 } else {
                     getString(R.string.fapps_metered_unblock_dialog_title)
                 }
             }
             BlockType.LOCKDOWN -> {
-                if (isInitTag(b.ffaToggleAllLockdown)) {
+                if (!bulkLockdown) {
                     getString(R.string.fapps_isolate_block_dialog_title)
                 } else {
                     getString(R.string.fapps_unblock_dialog_title)
                 }
             }
             BlockType.BYPASS -> {
-                if (isInitTag(b.ffaToggleAllBypass)) {
+                if (!bulkBypass) {
                     getString(R.string.fapps_bypass_block_dialog_title)
                 } else {
                     getString(R.string.fapps_unblock_dialog_title)
                 }
             }
             BlockType.EXCLUDE -> {
-                if (isInitTag(b.ffaToggleAllExclude)) {
+                if (!bulkExclude) {
                     getString(R.string.fapps_exclude_block_dialog_title)
                 } else {
                     getString(R.string.fapps_unblock_dialog_title)
                 }
             }
             BlockType.BYPASS_DNS_FIREWALL -> {
-                if (isInitTag(b.ffaToggleAllBypassDnsFirewall)) {
+                if (!bulkBypassDns) {
                     getString(R.string.fapps_bypass_dns_firewall_dialog_title)
                 } else {
                     getString(R.string.fapps_unblock_dialog_title)
@@ -453,42 +376,42 @@ class AppListActivity :
     private fun getBulkActionDialogMessage(type: BlockType): String {
         return when (type) {
             BlockType.UNMETER -> {
-                if (isInitTag(b.ffaToggleAllWifi)) {
+                if (!bulkWifi) {
                     getString(R.string.fapps_unmetered_block_dialog_message)
                 } else {
                     getString(R.string.fapps_unmetered_unblock_dialog_message)
                 }
             }
             BlockType.METER -> {
-                if (isInitTag(b.ffaToggleAllMobileData)) {
+                if (!bulkMobile) {
                     getString(R.string.fapps_metered_block_dialog_message)
                 } else {
                     getString(R.string.fapps_metered_unblock_dialog_message)
                 }
             }
             BlockType.LOCKDOWN -> {
-                if (isInitTag(b.ffaToggleAllLockdown)) {
+                if (!bulkLockdown) {
                     getString(R.string.fapps_isolate_block_dialog_message)
                 } else {
                     getString(R.string.fapps_unblock_dialog_message)
                 }
             }
             BlockType.BYPASS -> {
-                if (isInitTag(b.ffaToggleAllBypass)) {
+                if (!bulkBypass) {
                     getString(R.string.fapps_bypass_block_dialog_message)
                 } else {
                     getString(R.string.fapps_unblock_dialog_message)
                 }
             }
             BlockType.BYPASS_DNS_FIREWALL -> {
-                if (isInitTag(b.ffaToggleAllBypassDnsFirewall)) {
+                if (!bulkBypassDns) {
                     getString(R.string.fapps_bypass_dns_firewall_dialog_message)
                 } else {
                     getString(R.string.fapps_unblock_dialog_message)
                 }
             }
             BlockType.EXCLUDE -> {
-                if (isInitTag(b.ffaToggleAllExclude)) {
+                if (!bulkExclude) {
                     getString(R.string.fapps_exclude_block_dialog_message)
                 } else {
                     getString(R.string.fapps_unblock_dialog_message)
@@ -618,84 +541,7 @@ class AppListActivity :
         }
     }
 
-    private fun setFirewallFilter(firewallFilter: FirewallFilter?) {
-        if (firewallFilter == null) return
-
-        val view: Chip = b.ffaFirewallChipGroup.findViewWithTag(firewallFilter.id)
-        b.ffaFirewallChipGroup.check(view.id)
-        colorUpChipIcon(view)
-    }
-
-    private fun remakeFirewallChipsUi() {
-        b.ffaFirewallChipGroup.removeAllViews()
-
-        val none = makeFirewallChip(FirewallFilter.ALL.id, getString(R.string.lbl_all), true)
-        val allowed =
-            makeFirewallChip(FirewallFilter.ALLOWED.id, getString(R.string.lbl_allowed), false)
-        val blocked =
-            makeFirewallChip(FirewallFilter.BLOCKED.id, getString(R.string.lbl_blocked), false)
-        val blockedWifiTxt = getString(
-            R.string.two_argument_colon,
-            getString(R.string.lbl_blocked),
-            getString(R.string.firewall_rule_block_unmetered)
-        )
-        val blockedWifi =
-            makeFirewallChip(FirewallFilter.BLOCKED_WIFI.id, blockedWifiTxt, false)
-        val blockedMobileDataTxt = getString(
-            R.string.two_argument_colon,
-            getString(R.string.lbl_blocked),
-            getString(R.string.firewall_rule_block_metered)
-        )
-        val blockedMobileData =
-            makeFirewallChip(FirewallFilter.BLOCKED_MOBILE_DATA.id, blockedMobileDataTxt, false)
-
-        val bypassUniversal =
-            makeFirewallChip(
-                FirewallFilter.BYPASS.id,
-                getString(R.string.fapps_firewall_filter_bypass_universal),
-                false)
-        val excluded =
-            makeFirewallChip(
-                FirewallFilter.EXCLUDED.id,
-                getString(R.string.fapps_firewall_filter_excluded),
-                false)
-        val lockdown =
-            makeFirewallChip(
-                FirewallFilter.LOCKDOWN.id,
-                getString(R.string.fapps_firewall_filter_isolate),
-                false)
-
-        b.ffaFirewallChipGroup.addView(none)
-        b.ffaFirewallChipGroup.addView(allowed)
-        b.ffaFirewallChipGroup.addView(blocked)
-        b.ffaFirewallChipGroup.addView(blockedWifi)
-        b.ffaFirewallChipGroup.addView(blockedMobileData)
-        b.ffaFirewallChipGroup.addView(bypassUniversal)
-        b.ffaFirewallChipGroup.addView(excluded)
-        b.ffaFirewallChipGroup.addView(lockdown)
-    }
-
-    private fun makeFirewallChip(id: Int, label: String, checked: Boolean): Chip {
-        val chip = this.layoutInflater.inflate(R.layout.item_chip_filter, b.root, false) as Chip
-        chip.tag = id
-        chip.text = label
-        chip.isChecked = checked
-
-        chip.setOnCheckedChangeListener { button: CompoundButton, isSelected: Boolean ->
-            if (isSelected) {
-                applyFirewallFilter(button.tag)
-                colorUpChipIcon(chip)
-            } else {
-                // no-op
-                // no action needed for checkState: false
-            }
-        }
-
-        return chip
-    }
-
-    private fun applyFirewallFilter(tag: Any) {
-        val firewallFilter = FirewallFilter.filter(tag as Int)
+    private fun applyFirewallFilter(firewallFilter: FirewallFilter) {
         if (filters.value == null) {
             val f = Filters()
             f.firewallFilter = firewallFilter
@@ -707,237 +553,114 @@ class AppListActivity :
         filters.postValue(filters.value)
     }
 
-    private fun colorUpChipIcon(chip: Chip) {
-        val colorFilter =
-            PorterDuffColorFilter(
-                ContextCompat.getColor(this, R.color.primaryText), PorterDuff.Mode.SRC_IN)
-        chip.checkedIcon?.colorFilter = colorFilter
-        chip.chipIcon?.colorFilter = colorFilter
-    }
-
-    private fun resetFirewallIcons(type: BlockType) {
-        // reset all icons to default state based on selection
-        when (type) {
-            BlockType.UNMETER -> {
-                b.ffaToggleAllMobileData.setImageResource(R.drawable.ic_firewall_data_on_grey)
-                b.ffaToggleAllExclude.setImageResource(R.drawable.ic_firewall_exclude_off)
-                b.ffaToggleAllBypass.setImageResource(R.drawable.ic_firewall_bypass_off)
-                b.ffaToggleAllLockdown.setImageResource(R.drawable.ic_firewall_lockdown_off)
-                b.ffaToggleAllBypassDnsFirewall.setImageResource(
-                    R.drawable.ic_bypass_dns_firewall_off)
-            }
-            BlockType.METER -> {
-                b.ffaToggleAllWifi.setImageResource(R.drawable.ic_firewall_wifi_on_grey)
-                b.ffaToggleAllExclude.setImageResource(R.drawable.ic_firewall_exclude_off)
-                b.ffaToggleAllBypass.setImageResource(R.drawable.ic_firewall_bypass_off)
-                b.ffaToggleAllLockdown.setImageResource(R.drawable.ic_firewall_lockdown_off)
-                b.ffaToggleAllBypassDnsFirewall.setImageResource(
-                    R.drawable.ic_bypass_dns_firewall_off)
-            }
-            BlockType.LOCKDOWN -> {
-                b.ffaToggleAllMobileData.setImageResource(R.drawable.ic_firewall_data_on_grey)
-                b.ffaToggleAllWifi.setImageResource(R.drawable.ic_firewall_wifi_on_grey)
-                b.ffaToggleAllExclude.setImageResource(R.drawable.ic_firewall_exclude_off)
-                b.ffaToggleAllBypass.setImageResource(R.drawable.ic_firewall_bypass_off)
-                b.ffaToggleAllBypassDnsFirewall.setImageResource(
-                    R.drawable.ic_bypass_dns_firewall_off)
-            }
-            BlockType.BYPASS -> {
-                b.ffaToggleAllMobileData.setImageResource(R.drawable.ic_firewall_data_on_grey)
-                b.ffaToggleAllWifi.setImageResource(R.drawable.ic_firewall_wifi_on_grey)
-                b.ffaToggleAllExclude.setImageResource(R.drawable.ic_firewall_exclude_off)
-                b.ffaToggleAllLockdown.setImageResource(R.drawable.ic_firewall_lockdown_off)
-                b.ffaToggleAllBypassDnsFirewall.setImageResource(
-                    R.drawable.ic_bypass_dns_firewall_off)
-            }
-            BlockType.BYPASS_DNS_FIREWALL -> {
-                b.ffaToggleAllMobileData.setImageResource(R.drawable.ic_firewall_data_on_grey)
-                b.ffaToggleAllWifi.setImageResource(R.drawable.ic_firewall_wifi_on_grey)
-                b.ffaToggleAllExclude.setImageResource(R.drawable.ic_firewall_exclude_off)
-                b.ffaToggleAllLockdown.setImageResource(R.drawable.ic_firewall_lockdown_off)
-                b.ffaToggleAllBypass.setImageResource(R.drawable.ic_firewall_bypass_off)
-            }
-            BlockType.EXCLUDE -> {
-                b.ffaToggleAllMobileData.setImageResource(R.drawable.ic_firewall_data_on_grey)
-                b.ffaToggleAllWifi.setImageResource(R.drawable.ic_firewall_wifi_on_grey)
-                b.ffaToggleAllBypass.setImageResource(R.drawable.ic_firewall_bypass_off)
-                b.ffaToggleAllLockdown.setImageResource(R.drawable.ic_firewall_lockdown_off)
-                b.ffaToggleAllBypassDnsFirewall.setImageResource(
-                    R.drawable.ic_bypass_dns_firewall_off)
-            }
-        }
-    }
-
     private fun updateMeteredBulk() {
-        val metered = isInitTag(b.ffaToggleAllMobileData)
-        if (metered) {
-            b.ffaToggleAllMobileData.tag = 1
-            b.ffaToggleAllMobileData.setImageResource(R.drawable.ic_firewall_data_off)
-            io { appInfoViewModel.updateMeteredStatus(true) }
-        } else {
-            b.ffaToggleAllMobileData.tag = 0
-            b.ffaToggleAllMobileData.setImageResource(R.drawable.ic_firewall_data_on)
-            io { appInfoViewModel.updateMeteredStatus(false) }
-        }
-        resetFirewallIcons(BlockType.METER)
+        val metered = !bulkMobile
+        bulkMobile = metered
+        resetBulkStates(BlockType.METER)
+        io { appInfoViewModel.updateMeteredStatus(metered) }
         logEvent("Bulk metered rule update performed, isMetered: $metered")
     }
 
     private fun updateUnmeteredBulk() {
-        val unmeter = isInitTag(b.ffaToggleAllWifi)
-        if (unmeter) {
-            b.ffaToggleAllWifi.tag = 1
-            b.ffaToggleAllWifi.setImageResource(R.drawable.ic_firewall_wifi_off)
-            io { appInfoViewModel.updateUnmeteredStatus(true) }
-        } else {
-            b.ffaToggleAllWifi.tag = 0
-            b.ffaToggleAllWifi.setImageResource(R.drawable.ic_firewall_wifi_on)
-            io { appInfoViewModel.updateUnmeteredStatus(false) }
-        }
-        resetFirewallIcons(BlockType.UNMETER)
+        val unmeter = !bulkWifi
+        bulkWifi = unmeter
+        resetBulkStates(BlockType.UNMETER)
+        io { appInfoViewModel.updateUnmeteredStatus(unmeter) }
         logEvent("Bulk unmetered rule update performed, isUnmetered: $unmeter")
     }
 
     private fun updateBypassBulk() {
-        val bypass = isInitTag(b.ffaToggleAllBypass)
-        if (bypass) {
-            b.ffaToggleAllBypass.tag = 1
-            b.ffaToggleAllBypass.setImageResource(R.drawable.ic_firewall_bypass_on)
-            io { appInfoViewModel.updateBypassStatus(true) }
-        } else {
-            b.ffaToggleAllBypass.tag = 0
-            b.ffaToggleAllBypass.setImageResource(R.drawable.ic_firewall_bypass_off)
-            io { appInfoViewModel.updateBypassStatus(false) }
-        }
-        resetFirewallIcons(BlockType.BYPASS)
+        val bypass = !bulkBypass
+        bulkBypass = bypass
+        resetBulkStates(BlockType.BYPASS)
+        io { appInfoViewModel.updateBypassStatus(bypass) }
         logEvent("Bulk bypass rule update performed, isBypass: $bypass")
     }
 
     private fun updateBypassDnsFirewallBulk() {
-        val bypassDnsFirewall = isInitTag(b.ffaToggleAllBypassDnsFirewall)
-        if (bypassDnsFirewall) {
-            b.ffaToggleAllBypassDnsFirewall.tag = 1
-            b.ffaToggleAllBypassDnsFirewall.setImageResource(R.drawable.ic_bypass_dns_firewall_on)
-            io { appInfoViewModel.updateBypassDnsFirewall(true) }
-        } else {
-            b.ffaToggleAllBypassDnsFirewall.tag = 0
-            b.ffaToggleAllBypassDnsFirewall.setImageResource(R.drawable.ic_bypass_dns_firewall_off)
-            io { appInfoViewModel.updateBypassDnsFirewall(false) }
-        }
-        resetFirewallIcons(BlockType.BYPASS_DNS_FIREWALL)
+        val bypassDnsFirewall = !bulkBypassDns
+        bulkBypassDns = bypassDnsFirewall
+        resetBulkStates(BlockType.BYPASS_DNS_FIREWALL)
+        io { appInfoViewModel.updateBypassDnsFirewall(bypassDnsFirewall) }
         logEvent("Bulk bypass DNS firewall rule update performed, isBypassDnsFirewall: $bypassDnsFirewall")
     }
 
     private fun updateExcludedBulk() {
-        val exclude = isInitTag(b.ffaToggleAllExclude)
-        if (exclude) {
-            b.ffaToggleAllExclude.tag = 1
-            b.ffaToggleAllExclude.setImageResource(R.drawable.ic_firewall_exclude_on)
-            io { appInfoViewModel.updateExcludeStatus(true) }
-        } else {
-            b.ffaToggleAllExclude.tag = 0
-            b.ffaToggleAllExclude.setImageResource(R.drawable.ic_firewall_exclude_off)
-            io { appInfoViewModel.updateExcludeStatus(false) }
-        }
-        resetFirewallIcons(BlockType.EXCLUDE)
+        val exclude = !bulkExclude
+        bulkExclude = exclude
+        resetBulkStates(BlockType.EXCLUDE)
+        io { appInfoViewModel.updateExcludeStatus(exclude) }
         logEvent("Bulk exclude rule update performed, isExclude: $exclude")
     }
 
     private fun updateLockdownBulk() {
-        val lockdown = isInitTag(b.ffaToggleAllLockdown)
-        if (lockdown) {
-            b.ffaToggleAllLockdown.tag = 1
-            b.ffaToggleAllLockdown.setImageResource(R.drawable.ic_firewall_lockdown_on)
-            io { appInfoViewModel.updateLockdownStatus(true) }
-        } else {
-            b.ffaToggleAllLockdown.tag = 0
-            b.ffaToggleAllLockdown.setImageResource(R.drawable.ic_firewall_lockdown_off)
-            io { appInfoViewModel.updateLockdownStatus(false) }
-        }
-        resetFirewallIcons(BlockType.LOCKDOWN)
+        val lockdown = !bulkLockdown
+        bulkLockdown = lockdown
+        resetBulkStates(BlockType.LOCKDOWN)
+        io { appInfoViewModel.updateLockdownStatus(lockdown) }
         logEvent("Bulk lockdown rule update performed, isLockdown: $lockdown")
     }
 
-    private fun isInitTag(view: View): Boolean {
-        return view.tag.equals("0") || view.tag == 0
-    }
-
-    private fun initView() {
-        initListAdapter()
-        b.ffaSearch.setOnQueryTextListener(this)
-        addAnimation()
-        remakeFirewallChipsUi()
-        handleKeyboardEvent()
-    }
-
-    private fun handleKeyboardEvent() {
-        // ref: stackoverflow.com/a/36259261
-        val rootView = findViewById<View>(android.R.id.content)
-
-        rootView.viewTreeObserver.addOnGlobalLayoutListener(object :
-            ViewTreeObserver.OnGlobalLayoutListener {
-            private var alreadyOpen = false
-            private val defaultKeyboardHeightDP = 100
-            private val EstimatedKeyboardDP = defaultKeyboardHeightDP + 48
-            private val rect = Rect()
-
-            override fun onGlobalLayout() {
-                val estimatedKeyboardHeight = TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP,
-                    EstimatedKeyboardDP.toFloat(),
-                    rootView.resources.displayMetrics
-                ).toInt()
-                rootView.getWindowVisibleDisplayFrame(rect)
-                val heightDiff = rootView.rootView.height - (rect.bottom - rect.top)
-                val isShown = heightDiff >= estimatedKeyboardHeight
-
-                if (isShown == alreadyOpen) {
-                    return // nothing to do
-                }
-
-                alreadyOpen = isShown
-
-                if (!isShown) {
-                    if (b.ffaSearch.hasFocus()) {
-                        // clear focus from search view when keyboard is closed
-                        b.ffaSearch.clearFocus()
-                    }
-                }
+    private fun resetBulkStates(type: BlockType) {
+        when (type) {
+            BlockType.UNMETER -> {
+                bulkMobile = false
+                bulkBypass = false
+                bulkBypassDns = false
+                bulkExclude = false
+                bulkLockdown = false
             }
-        })
+            BlockType.METER -> {
+                bulkWifi = false
+                bulkBypass = false
+                bulkBypassDns = false
+                bulkExclude = false
+                bulkLockdown = false
+            }
+            BlockType.LOCKDOWN -> {
+                bulkWifi = false
+                bulkMobile = false
+                bulkBypass = false
+                bulkBypassDns = false
+                bulkExclude = false
+            }
+            BlockType.BYPASS -> {
+                bulkWifi = false
+                bulkMobile = false
+                bulkBypassDns = false
+                bulkExclude = false
+                bulkLockdown = false
+            }
+            BlockType.BYPASS_DNS_FIREWALL -> {
+                bulkWifi = false
+                bulkMobile = false
+                bulkBypass = false
+                bulkExclude = false
+                bulkLockdown = false
+            }
+            BlockType.EXCLUDE -> {
+                bulkWifi = false
+                bulkMobile = false
+                bulkBypass = false
+                bulkBypassDns = false
+                bulkLockdown = false
+            }
+        }
     }
 
     private fun initListAdapter() {
-        val recyclerAdapter = FirewallAppListAdapter(this, this, eventLogger)
-        b.ffaAppList.setHasFixedSize(true)
-        layoutManager = LinearLayoutManager(this)
-        b.ffaAppList.layoutManager = layoutManager
-        recyclerAdapter.stateRestorationPolicy =
+        listAdapter = FirewallAppListAdapter(this, this, eventLogger).apply {
+            stateRestorationPolicy =
             RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-
-        appInfoViewModel.appInfo.observe(this) {
-            b.ffaAppList.post { recyclerAdapter.submitData(lifecycle, it) }
         }
 
-        b.ffaAppList.adapter = recyclerAdapter
-        setQueryFilter()
+        appInfoViewModel.appInfo.observe(this) {
+            listAdapter?.submitData(lifecycle, it)
+        }
     }
 
     private fun openFilterBottomSheet() {
         FirewallAppFilterDialog(this).show()
-    }
-
-    private fun addAnimation() {
-        animation =
-            RotateAnimation(
-                ANIMATION_START_DEGREE,
-                ANIMATION_END_DEGREE,
-                Animation.RELATIVE_TO_SELF,
-                ANIMATION_PIVOT_VALUE,
-                Animation.RELATIVE_TO_SELF,
-                ANIMATION_PIVOT_VALUE)
-        animation.repeatCount = ANIMATION_REPEAT_COUNT
-        animation.duration = ANIMATION_DURATION
     }
 
     private fun refreshDatabase() {
@@ -950,5 +673,246 @@ class AppListActivity :
 
     private fun io(f: suspend () -> Unit) {
         lifecycleScope.launch(Dispatchers.IO) { f() }
+    }
+
+    @Composable
+    private fun AppListScreen() {
+        val refreshRotation = rememberInfiniteTransition(label = "refresh").animateFloat(
+            initialValue = 0f,
+            targetValue = if (isRefreshing) 360f else 0f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = ANIMATION_DURATION.toInt(), easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            ),
+            label = "refreshRotation"
+        )
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            Card(modifier = Modifier.fillMaxWidth()) {
+                Column(modifier = Modifier.padding(12.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = queryText,
+                            onValueChange = {
+                                queryText = it
+                                searchQuery.value = it
+                            },
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
+                            placeholder = { Text(text = stringResourceCompat(R.string.search_firewall_all_apps)) }
+                        )
+                        IconButton(
+                            onClick = { refreshAppList() },
+                            enabled = !isRefreshing
+                        ) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_refresh_white),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .rotate(if (isRefreshing) refreshRotation.value else 0f)
+                            )
+                        }
+                        IconButton(onClick = { openFilterBottomSheet() }) {
+                            Image(
+                                painter = painterResource(R.drawable.ic_filter),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    ) {
+                        items(FirewallFilter.entries.size) { index ->
+                            val filter = FirewallFilter.entries[index]
+                            val label = filter.getLabel(this@AppListActivity)
+                            if (label.isNotEmpty()) {
+                                FilterChip(
+                                    selected = selectedFirewallFilter == filter,
+                                    onClick = { applyFirewallFilter(filter) },
+                                    label = label
+                                )
+                            }
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(4.dp))
+                    FilterLabelText()
+                }
+            }
+            BulkToggleRow()
+            AppListRecycler()
+        }
+    }
+
+    @Composable
+    private fun FilterLabelText() {
+        val context = LocalContext.current
+        androidx.compose.ui.viewinterop.AndroidView(
+            factory = { ctx ->
+                android.widget.TextView(ctx).apply {
+                    isSelected = true
+                    setTextColor(fetchColor(ctx, R.attr.primaryTextColor))
+                }
+            },
+            update = { view ->
+                view.text = filterLabelText
+                view.setTextSize(
+                    TypedValue.COMPLEX_UNIT_PX,
+                    context.resources.getDimension(R.dimen.default_font_text_view)
+                )
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp)
+        )
+    }
+
+    @Composable
+    private fun BulkToggleRow() {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = { showInfoDialog() }) {
+                Image(
+                    painter = painterResource(R.drawable.ic_info_white),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(6.dp))
+            BulkIconButton(
+                icon = if (bulkLockdown) R.drawable.ic_firewall_lockdown_on else R.drawable.ic_firewall_lockdown_off,
+                onClick = {
+                    showBulkRulesUpdateDialog(
+                        getBulkActionDialogTitle(BlockType.LOCKDOWN),
+                        getBulkActionDialogMessage(BlockType.LOCKDOWN),
+                        BlockType.LOCKDOWN
+                    )
+                }
+            )
+            BulkIconButton(
+                icon = if (bulkExclude) R.drawable.ic_firewall_exclude_on else R.drawable.ic_firewall_exclude_off,
+                onClick = {
+                    showBulkRulesUpdateDialog(
+                        getBulkActionDialogTitle(BlockType.EXCLUDE),
+                        getBulkActionDialogMessage(BlockType.EXCLUDE),
+                        BlockType.EXCLUDE
+                    )
+                }
+            )
+            BulkIconButton(
+                icon = if (bulkBypass) R.drawable.ic_firewall_bypass_on else R.drawable.ic_firewall_bypass_off,
+                onClick = {
+                    showBulkRulesUpdateDialog(
+                        getBulkActionDialogTitle(BlockType.BYPASS),
+                        getBulkActionDialogMessage(BlockType.BYPASS),
+                        BlockType.BYPASS
+                    )
+                }
+            )
+            BulkIconButton(
+                icon = if (bulkBypassDns) R.drawable.ic_bypass_dns_firewall_on else R.drawable.ic_bypass_dns_firewall_off,
+                onClick = {
+                    if (showBypassToolTip) {
+                        showBypassToolTip = false
+                        Utilities.showToastUiCentered(
+                            this@AppListActivity,
+                            getString(R.string.bypass_dns_firewall_tooltip, getString(R.string.bypass_dns_firewall)),
+                            Toast.LENGTH_SHORT
+                        )
+                        return@BulkIconButton
+                    }
+                    showBulkRulesUpdateDialog(
+                        getBulkActionDialogTitle(BlockType.BYPASS_DNS_FIREWALL),
+                        getBulkActionDialogMessage(BlockType.BYPASS_DNS_FIREWALL),
+                        BlockType.BYPASS_DNS_FIREWALL
+                    )
+                }
+            )
+            BulkIconButton(
+                icon = if (bulkWifi) R.drawable.ic_firewall_wifi_off else R.drawable.ic_firewall_wifi_on_grey,
+                onClick = {
+                    showBulkRulesUpdateDialog(
+                        getBulkActionDialogTitle(BlockType.UNMETER),
+                        getBulkActionDialogMessage(BlockType.UNMETER),
+                        BlockType.UNMETER
+                    )
+                }
+            )
+            BulkIconButton(
+                icon = if (bulkMobile) R.drawable.ic_firewall_data_off else R.drawable.ic_firewall_data_on_grey,
+                onClick = {
+                    showBulkRulesUpdateDialog(
+                        getBulkActionDialogTitle(BlockType.METER),
+                        getBulkActionDialogMessage(BlockType.METER),
+                        BlockType.METER
+                    )
+                }
+            )
+        }
+    }
+
+    @Composable
+    private fun BulkIconButton(icon: Int, onClick: () -> Unit) {
+        IconButton(onClick = onClick) {
+            Image(
+                painter = painterResource(icon),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
+
+    @Composable
+    private fun AppListRecycler() {
+        androidx.compose.ui.viewinterop.AndroidView(
+            factory = { ctx ->
+                RecyclerView(ctx).apply {
+                    setHasFixedSize(true)
+                    layoutManager = LinearLayoutManager(ctx)
+                    adapter = listAdapter
+                }
+            },
+            modifier = Modifier.fillMaxSize()
+        )
+    }
+
+    private fun refreshAppList() {
+        isRefreshing = true
+        refreshDatabase()
+        Utilities.delay(REFRESH_TIMEOUT, lifecycleScope) {
+            if (!this.isFinishing) {
+                isRefreshing = false
+                Utilities.showToastUiCentered(
+                    this, getString(R.string.refresh_complete), Toast.LENGTH_SHORT)
+            }
+        }
+    }
+
+    @Composable
+    private fun FilterChip(selected: Boolean, onClick: () -> Unit, label: String) {
+        androidx.compose.material3.FilterChip(
+            selected = selected,
+            onClick = onClick,
+            label = { Text(text = label) }
+        )
+    }
+
+    @Composable
+    private fun stringResourceCompat(id: Int): String {
+        val context = LocalContext.current
+        return context.getString(id)
     }
 }
