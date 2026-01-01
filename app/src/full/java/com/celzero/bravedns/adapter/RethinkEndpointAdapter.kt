@@ -17,7 +17,6 @@
 package com.celzero.bravedns.adapter
 
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.clickable
@@ -26,11 +25,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,7 +52,6 @@ import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.Utilities
 import com.celzero.firestack.backend.Backend
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -63,11 +63,16 @@ import kotlinx.coroutines.withContext
 private const val ONE_SEC = 1000L
 private const val TAG = "RethinkEndpointAdapter"
 
+private sealed class RethinkDialogState {
+    data class Info(val endpoint: RethinkDnsEndpoint) : RethinkDialogState()
+}
+
 @Composable
 fun RethinkEndpointRow(endpoint: RethinkDnsEndpoint, appConfig: AppConfig) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var explanation by remember(endpoint.url) { mutableStateOf("") }
+    var dialogState by remember(endpoint.url) { mutableStateOf<RethinkDialogState?>(null) }
 
     LaunchedEffect(endpoint.url, endpoint.isActive, endpoint.blocklistCount) {
         if (endpoint.isActive && VpnController.hasTunnel() && !appConfig.isSmartDnsEnabled()) {
@@ -118,12 +123,58 @@ fun RethinkEndpointRow(endpoint: RethinkDnsEndpoint, appConfig: AppConfig) {
                 Text(text = explanation, style = MaterialTheme.typography.bodySmall)
             }
         }
-        IconButton(onClick = { showDohMetadataDialog(context, endpoint) }) {
+        IconButton(onClick = { dialogState = RethinkDialogState.Info(endpoint) }) {
             Icon(painter = painterResource(id = infoIcon), contentDescription = null)
         }
         Checkbox(
             checked = endpoint.isActive,
             onCheckedChange = { updateConnection(scope, endpoint, appConfig) }
+        )
+    }
+
+    dialogState?.let { state ->
+        val info = state as RethinkDialogState.Info
+        val editEnabled = info.endpoint.isEditable(context)
+        val positiveText =
+            if (editEnabled) {
+                context.getString(R.string.rt_edit_dialog_positive)
+            } else {
+                context.getString(R.string.dns_info_positive)
+            }
+        AlertDialog(
+            onDismissRequest = { dialogState = null },
+            title = { Text(text = info.endpoint.name) },
+            text = { Text(text = info.endpoint.url + "\n\n" + info.endpoint.desc) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        dialogState = null
+                        if (editEnabled) {
+                            openEditConfiguration(context, info.endpoint)
+                        }
+                    }
+                ) {
+                    Text(text = positiveText)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        clipboardCopy(
+                            context,
+                            info.endpoint.url,
+                            context.getString(R.string.copy_clipboard_label)
+                        )
+                        Utilities.showToastUiCentered(
+                            context,
+                            context.getString(R.string.info_dialog_url_copy_toast_msg),
+                            Toast.LENGTH_SHORT
+                        )
+                    }
+                ) {
+                    Text(text = context.getString(R.string.dns_info_neutral))
+                }
+            }
         )
     }
 }
@@ -138,31 +189,6 @@ private fun updateConnection(
         endpoint.isActive = true
         appConfig.handleRethinkChanges(endpoint)
     }
-}
-
-private fun showDohMetadataDialog(context: Context, endpoint: RethinkDnsEndpoint) {
-    val builder = MaterialAlertDialogBuilder(context, R.style.App_Dialog_NoDim)
-    builder.setTitle(endpoint.name)
-    builder.setMessage(endpoint.url + "\n\n" + endpoint.desc)
-    builder.setCancelable(true)
-    if (endpoint.isEditable(context)) {
-        builder.setPositiveButton(context.getString(R.string.rt_edit_dialog_positive)) { _, _ ->
-            openEditConfiguration(context, endpoint)
-        }
-    } else {
-        builder.setPositiveButton(context.getString(R.string.dns_info_positive)) { dialogInterface, _ ->
-            dialogInterface.dismiss()
-        }
-    }
-    builder.setNeutralButton(context.getString(R.string.dns_info_neutral)) { _: DialogInterface, _: Int ->
-        clipboardCopy(context, endpoint.url, context.getString(R.string.copy_clipboard_label))
-        Utilities.showToastUiCentered(
-            context,
-            context.getString(R.string.info_dialog_url_copy_toast_msg),
-            Toast.LENGTH_SHORT
-        )
-    }
-    builder.create().show()
 }
 
 private fun openEditConfiguration(context: Context, endpoint: RethinkDnsEndpoint) {

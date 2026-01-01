@@ -32,11 +32,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.Image
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -70,7 +72,6 @@ import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
@@ -185,17 +186,6 @@ class AppWiseIpLogsActivity : AppCompatActivity() {
         searchHint = hint
     }
 
-    private fun showDeleteConnectionsDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.ada_delete_logs_dialog_title)
-        builder.setMessage(R.string.ada_delete_logs_dialog_desc)
-        builder.setCancelable(true)
-        builder.setPositiveButton(getString(R.string.lbl_proceed)) { _, _ -> deleteAppLogs() }
-
-        builder.setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
-        builder.create().show()
-    }
-
     private fun deleteAppLogs() {
         io {
             networkLogsViewModel.deleteLogs(uid)
@@ -210,13 +200,38 @@ class AppWiseIpLogsActivity : AppCompatActivity() {
         withContext(Dispatchers.Main) { f() }
     }
 
+
     @Composable
     private fun AppWiseIpLogsScreen() {
+        var showDeleteDialog by remember { mutableStateOf(false) }
         Column(modifier = Modifier.fillMaxSize()) {
             ToggleRow()
             Spacer(modifier = Modifier.height(8.dp))
-            HeaderRow()
+            HeaderRow(onDeleteClick = { showDeleteDialog = true })
             AppWiseIpList()
+        }
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text(text = stringResourceCompat(R.string.ada_delete_logs_dialog_title)) },
+                text = { Text(text = stringResourceCompat(R.string.ada_delete_logs_dialog_desc)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            deleteAppLogs()
+                        }
+                    ) {
+                        Text(text = stringResourceCompat(R.string.lbl_proceed))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text(text = stringResourceCompat(R.string.lbl_cancel))
+                    }
+                }
+            )
         }
     }
 
@@ -280,7 +295,7 @@ class AppWiseIpLogsActivity : AppCompatActivity() {
 
     @OptIn(FlowPreview::class)
     @Composable
-    private fun HeaderRow() {
+    private fun HeaderRow(onDeleteClick: () -> Unit) {
         var query by remember { mutableStateOf("") }
         LaunchedEffect(Unit) {
             snapshotFlow { query }
@@ -326,7 +341,7 @@ class AppWiseIpLogsActivity : AppCompatActivity() {
             )
 
             if (showDeleteIcon) {
-                IconButton(onClick = { showDeleteConnectionsDialog() }) {
+                IconButton(onClick = onDeleteClick) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_delete),
                         contentDescription = null,
