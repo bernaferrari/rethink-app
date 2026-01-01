@@ -45,7 +45,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
 import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ConnectionTracker
@@ -53,7 +52,6 @@ import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.bottomsheet.ConnTrackerDialog
 import com.celzero.bravedns.util.Constants.Companion.TIME_FORMAT_1
 import com.celzero.bravedns.util.KnownPorts
 import com.celzero.bravedns.util.Protocol
@@ -67,7 +65,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
-class ConnectionTrackerAdapter(private val context: Context) {
+class ConnectionTrackerAdapter(
+    private val context: Context,
+    private val onShowConnTracker: (ConnectionTracker) -> Unit
+) {
 
     companion object {
         private const val MAX_BYTES = 500000 // 500 KB
@@ -395,10 +396,6 @@ class ConnectionTrackerAdapter(private val context: Context) {
     }
 
     private fun openBottomSheet(ct: ConnectionTracker) {
-        if (context !is FragmentActivity) {
-            Napier.w("$TAG err opening the connection tracker bottomsheet")
-            return
-        }
-        ConnTrackerDialog(context, ct).show()
+        onShowConnTracker(ct)
     }
 }

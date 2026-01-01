@@ -97,8 +97,8 @@ import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.bottomsheet.CustomDomainRulesDialog
-import com.celzero.bravedns.ui.bottomsheet.CustomIpRulesDialog
+import com.celzero.bravedns.ui.bottomsheet.CustomDomainRulesSheet
+import com.celzero.bravedns.ui.bottomsheet.CustomIpRulesSheet
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
@@ -227,6 +227,7 @@ class CustomRulesActivity : AppCompatActivity() {
         var showAddDialog by remember { mutableStateOf(false) }
         var showDeleteDialog by remember { mutableStateOf(false) }
         var editDomain by remember { mutableStateOf<CustomDomain?>(null) }
+        var selectedDomain by remember { mutableStateOf<CustomDomain?>(null) }
         val selectedItems = remember { mutableStateListOf<CustomDomain>() }
         val selectionMode by remember { derivedStateOf { selectedItems.isNotEmpty() } }
 
@@ -306,9 +307,7 @@ class CustomRulesActivity : AppCompatActivity() {
                             if (selectionMode) {
                                 toggleSelection(selectedItems, item)
                             } else {
-                                (context as? CustomRulesActivity)?.let { activity ->
-                                    CustomDomainRulesDialog(activity, item).show()
-                                }
+                                selectedDomain = item
                             }
                         },
                         onItemLongClick = { item ->
@@ -324,6 +323,15 @@ class CustomRulesActivity : AppCompatActivity() {
                     )
                 }
             }
+        }
+
+        selectedDomain?.let { domain ->
+            CustomDomainRulesSheet(
+                customDomain = domain,
+                eventLogger = eventLogger,
+                onDismiss = { selectedDomain = null },
+                onDeleted = { selectedDomain = null }
+            )
         }
 
         if (showAddDialog) {
@@ -400,6 +408,7 @@ class CustomRulesActivity : AppCompatActivity() {
         var showAddDialog by remember { mutableStateOf(false) }
         var showDeleteDialog by remember { mutableStateOf(false) }
         var editIp by remember { mutableStateOf<CustomIp?>(null) }
+        var selectedIp by remember { mutableStateOf<CustomIp?>(null) }
         val selectedItems = remember { mutableStateListOf<CustomIp>() }
         val selectionMode by remember { derivedStateOf { selectedItems.isNotEmpty() } }
 
@@ -479,9 +488,7 @@ class CustomRulesActivity : AppCompatActivity() {
                             if (selectionMode) {
                                 toggleSelection(selectedItems, item)
                             } else {
-                                (context as? CustomRulesActivity)?.let { activity ->
-                                    CustomIpRulesDialog(activity, item).show()
-                                }
+                                selectedIp = item
                             }
                         },
                         onItemLongClick = { item ->
@@ -497,6 +504,15 @@ class CustomRulesActivity : AppCompatActivity() {
                     )
                 }
             }
+        }
+
+        selectedIp?.let { ip ->
+            CustomIpRulesSheet(
+                customIp = ip,
+                eventLogger = eventLogger,
+                onDismiss = { selectedIp = null },
+                onDeleted = { selectedIp = null }
+            )
         }
 
         if (showAddDialog) {

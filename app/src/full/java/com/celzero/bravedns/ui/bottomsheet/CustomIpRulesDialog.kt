@@ -1,6 +1,5 @@
 package com.celzero.bravedns.ui.bottomsheet
 
-import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
 import android.widget.Toast
@@ -20,24 +19,25 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CustomIp
 import com.celzero.bravedns.database.EventSource
@@ -47,116 +47,62 @@ import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.service.IpRulesManager.IpRuleStatus
-import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
-import com.celzero.bravedns.util.Themes.Companion.getBottomsheetCurrentTheme
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
-import com.celzero.bravedns.util.Utilities.isAtleastQ
-import com.celzero.bravedns.util.useTransparentNoDimBackground
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
-class CustomIpRulesDialog(
-    private val activity: FragmentActivity,
-    private var ci: CustomIp
-) : KoinComponent {
-    private val dialog = BottomSheetDialog(activity, getThemeId())
+private const val TAG = "CIRDialog"
 
-    private val persistentState by inject<PersistentState>()
-    private val eventLogger by inject<EventLogger>()
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomIpRulesSheet(
+    customIp: CustomIp,
+    eventLogger: EventLogger,
+    onDismiss: () -> Unit,
+    onDeleted: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var appName by remember { mutableStateOf("") }
+    var appIcon by remember { mutableStateOf<Drawable?>(null) }
+    var status by remember { mutableStateOf(IpRuleStatus.getStatus(customIp.status)) }
+    var statusText by remember { mutableStateOf("") }
+    var showDeleteDialog by remember { mutableStateOf(false) }
 
-    private var appName by mutableStateOf("")
-    private var appIcon by mutableStateOf<Drawable?>(null)
-    private var status by mutableStateOf(IpRuleStatus.getStatus(ci.status))
-    private var statusText by mutableStateOf("")
-    private var showDeleteDialog by mutableStateOf(false)
-
-    companion object {
-        private const val TAG = "CIRDialog"
-    }
-
-    init {
-        val composeView = ComposeView(activity)
-        composeView.setContent {
-            RethinkTheme {
-                CustomIpRulesContent()
-            }
+    LaunchedEffect(customIp.uid, customIp.ipAddress) {
+        val uid = customIp.uid
+        if (uid == UID_EVERYBODY) {
+            appName =
+                context.getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
+            appIcon = null
+        } else {
+            val appNames = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(uid) }
+            val name = getAppName(context, uid, appNames)
+            val appInfo = withContext(Dispatchers.IO) { FirewallManager.getAppInfoByUid(uid) }
+            appName = name
+            appIcon =
+                Utilities.getIcon(
+                    context,
+                    appInfo?.packageName ?: "",
+                    appInfo?.appName ?: ""
+                )
         }
-        dialog.setContentView(composeView)
-        dialog.setOnShowListener {
-            dialog.useTransparentNoDimBackground()
-            dialog.window?.let { window ->
-                if (isAtleastQ()) {
-                    val controller = WindowInsetsControllerCompat(window, window.decorView)
-                    controller.isAppearanceLightNavigationBars = false
-                    window.isNavigationBarContrastEnforced = false
-                }
-            }
-        }
-        dialog.setOnDismissListener {
-            Napier.v("$TAG onDismiss; ip: ${ci.ipAddress}")
-        }
-
-        Napier.v("$TAG view created for ${ci.ipAddress}")
-        initData()
+        status = IpRuleStatus.getStatus(customIp.status)
+        statusText = buildStatusText(context, status, customIp.modifiedDateTime)
     }
 
-    fun show() {
-        dialog.show()
-    }
-
-    private fun getThemeId(): Int {
-        val isDark =
-            activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                Configuration.UI_MODE_NIGHT_YES
-        return getBottomsheetCurrentTheme(isDark, persistentState.theme)
-    }
-
-    private fun initData() {
-        val uid = ci.uid
-        io {
-            if (uid == UID_EVERYBODY) {
-                uiCtx {
-                    appName =
-                        activity.getString(R.string.firewall_act_universal_tab)
-                            .replaceFirstChar(Char::titlecase)
-                    appIcon = null
-                }
-            } else {
-                val appNames = FirewallManager.getAppNamesByUid(ci.uid)
-                val name = getAppName(ci.uid, appNames)
-                val appInfo = FirewallManager.getAppInfoByUid(ci.uid)
-                uiCtx {
-                    appName = name
-                    appIcon =
-                        Utilities.getIcon(
-                            activity,
-                            appInfo?.packageName ?: "",
-                            appInfo?.appName ?: ""
-                        )
-                }
-            }
-        }
-        status = IpRuleStatus.getStatus(ci.status)
-        statusText = buildStatusText(status, ci.modifiedDateTime)
-    }
-
-    @Composable
-    private fun CustomIpRulesContent() {
-        val borderColor = Color(UIUtils.fetchColor(activity, R.attr.border))
-        val neutralText = Color(UIUtils.fetchColor(activity, R.attr.chipTextNeutral))
-        val neutralBg = Color(UIUtils.fetchColor(activity, R.attr.chipBgColorNeutral))
-        val negativeText = Color(UIUtils.fetchColor(activity, R.attr.chipTextNegative))
-        val negativeBg = Color(UIUtils.fetchColor(activity, R.attr.chipBgColorNegative))
-        val positiveText = Color(UIUtils.fetchColor(activity, R.attr.chipTextPositive))
-        val positiveBg = Color(UIUtils.fetchColor(activity, R.attr.chipBgColorPositive))
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        val borderColor = Color(UIUtils.fetchColor(context, R.attr.border))
+        val neutralText = Color(UIUtils.fetchColor(context, R.attr.chipTextNeutral))
+        val neutralBg = Color(UIUtils.fetchColor(context, R.attr.chipBgColorNeutral))
+        val negativeText = Color(UIUtils.fetchColor(context, R.attr.chipTextNegative))
+        val negativeBg = Color(UIUtils.fetchColor(context, R.attr.chipBgColorNegative))
+        val positiveText = Color(UIUtils.fetchColor(context, R.attr.chipTextPositive))
+        val positiveBg = Color(UIUtils.fetchColor(context, R.attr.chipBgColorPositive))
 
         Column(
             modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
@@ -174,12 +120,12 @@ class CustomIpRulesDialog(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                val deleteText = Color(UIUtils.fetchColor(activity, R.attr.chipTextNegative))
+                val deleteText = Color(UIUtils.fetchColor(context, R.attr.chipTextNegative))
                 TextButton(
                     onClick = { showDeleteDialog = true },
                     colors = ButtonDefaults.textButtonColors(contentColor = deleteText)
                 ) {
-                    Text(text = activity.getString(R.string.lbl_delete))
+                    Text(text = context.getString(R.string.lbl_delete))
                 }
             }
 
@@ -207,7 +153,7 @@ class CustomIpRulesDialog(
 
             SelectionContainer(modifier = Modifier.fillMaxWidth()) {
                 Text(
-                    text = ci.ipAddress,
+                    text = customIp.ipAddress,
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onSurface,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
@@ -226,38 +172,50 @@ class CustomIpRulesDialog(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 RuleChip(
-                    label = activity.getString(R.string.ci_no_rule),
+                    label = context.getString(R.string.ci_no_rule),
                     selected = status == IpRuleStatus.NONE,
                     selectedText = neutralText,
                     selectedContainer = neutralBg
                 ) {
-                    updateRule(IpRuleStatus.NONE)
+                    updateRule(customIp, IpRuleStatus.NONE, scope, eventLogger) { newStatus ->
+                        status = newStatus
+                        statusText = buildStatusText(context, newStatus, customIp.modifiedDateTime)
+                    }
                 }
                 RuleChip(
-                    label = activity.getString(R.string.ci_block),
+                    label = context.getString(R.string.ci_block),
                     selected = status == IpRuleStatus.BLOCK,
                     selectedText = negativeText,
                     selectedContainer = negativeBg
                 ) {
-                    updateRule(IpRuleStatus.BLOCK)
+                    updateRule(customIp, IpRuleStatus.BLOCK, scope, eventLogger) { newStatus ->
+                        status = newStatus
+                        statusText = buildStatusText(context, newStatus, customIp.modifiedDateTime)
+                    }
                 }
-                if (ci.uid == UID_EVERYBODY) {
+                if (customIp.uid == UID_EVERYBODY) {
                     RuleChip(
-                        label = activity.getString(R.string.ci_bypass_universal),
+                        label = context.getString(R.string.ci_bypass_universal),
                         selected = status == IpRuleStatus.BYPASS_UNIVERSAL,
                         selectedText = positiveText,
                         selectedContainer = positiveBg
                     ) {
-                        updateRule(IpRuleStatus.BYPASS_UNIVERSAL)
+                        updateRule(customIp, IpRuleStatus.BYPASS_UNIVERSAL, scope, eventLogger) { newStatus ->
+                            status = newStatus
+                            statusText = buildStatusText(context, newStatus, customIp.modifiedDateTime)
+                        }
                     }
                 } else {
                     RuleChip(
-                        label = activity.getString(R.string.ci_trust_rule),
+                        label = context.getString(R.string.ci_trust_rule),
                         selected = status == IpRuleStatus.TRUST,
                         selectedText = positiveText,
                         selectedContainer = positiveBg
                     ) {
-                        updateRule(IpRuleStatus.TRUST)
+                        updateRule(customIp, IpRuleStatus.TRUST, scope, eventLogger) { newStatus ->
+                            status = newStatus
+                            statusText = buildStatusText(context, newStatus, customIp.modifiedDateTime)
+                        }
                     }
                 }
             }
@@ -266,166 +224,165 @@ class CustomIpRulesDialog(
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text(text = activity.getString(R.string.univ_firewall_dialog_title)) },
-                text = { Text(text = activity.getString(R.string.univ_firewall_dialog_message)) },
+                title = { Text(text = context.getString(R.string.univ_firewall_dialog_title)) },
+                text = { Text(text = context.getString(R.string.univ_firewall_dialog_message)) },
                 confirmButton = {
                     Button(
                         onClick = {
                             showDeleteDialog = false
-                            io { IpRulesManager.removeIpRule(ci.uid, ci.ipAddress, ci.port) }
-                            Utilities.showToastUiCentered(
-                                activity,
-                                activity.getString(
-                                    R.string.univ_ip_delete_individual_toast,
-                                    ci.ipAddress
-                                ),
-                                Toast.LENGTH_SHORT
-                            )
-                            dialog.dismiss()
-                            logEvent("Deleted custom IP rule for ${ci.ipAddress}")
+                            scope.launch(Dispatchers.IO) {
+                                IpRulesManager.removeIpRule(customIp.uid, customIp.ipAddress, customIp.port)
+                                withContext(Dispatchers.Main) {
+                                    Utilities.showToastUiCentered(
+                                        context,
+                                        context.getString(
+                                            R.string.univ_ip_delete_individual_toast,
+                                            customIp.ipAddress
+                                        ),
+                                        Toast.LENGTH_SHORT
+                                    )
+                                }
+                            }
+                            logEvent(eventLogger, "Deleted custom IP rule for ${customIp.ipAddress}")
+                            onDeleted()
+                            onDismiss()
                         }
                     ) {
-                        Text(text = activity.getString(R.string.lbl_delete))
+                        Text(text = context.getString(R.string.lbl_delete))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteDialog = false }) {
-                        Text(text = activity.getString(R.string.lbl_cancel))
+                        Text(text = context.getString(R.string.lbl_cancel))
                     }
                 }
             )
         }
     }
+}
 
-    @Composable
-    private fun RuleChip(
-        label: String,
-        selected: Boolean,
-        selectedText: Color,
-        selectedContainer: Color,
-        onClick: () -> Unit
-    ) {
-        FilterChip(
-            selected = selected,
-            onClick = onClick,
-            label = { Text(text = label) },
-            colors =
-                androidx.compose.material3.FilterChipDefaults.filterChipColors(
-                    selectedLabelColor = selectedText,
-                    selectedContainerColor = selectedContainer
-                )
-        )
-    }
-
-    private fun updateRule(rule: IpRuleStatus) {
-        if (rule == status) return
-        io {
-            val updated =
-                when (rule) {
-                    IpRuleStatus.NONE -> noRuleIp(ci)
-                    IpRuleStatus.BLOCK -> blockIp(ci)
-                    IpRuleStatus.BYPASS_UNIVERSAL -> byPassUniversal(ci)
-                    IpRuleStatus.TRUST -> byPassAppRule(ci)
-                }
-            ci = updated
-            status = rule
-            statusText = buildStatusText(rule, ci.modifiedDateTime)
-            Napier.v("$TAG changeIpStatus: ${ci.ipAddress}, status: ${rule.name}")
-        }
-    }
-
-    private fun buildStatusText(status: IpRuleStatus, modifiedTs: Long): String {
-        val now = System.currentTimeMillis()
-        val uptime = System.currentTimeMillis() - modifiedTs
-        val time =
-            DateUtils.getRelativeTimeSpanString(
-                now - uptime,
-                now,
-                DateUtils.MINUTE_IN_MILLIS,
-                DateUtils.FORMAT_ABBREV_RELATIVE
+@Composable
+private fun RuleChip(
+    label: String,
+    selected: Boolean,
+    selectedText: Color,
+    selectedContainer: Color,
+    onClick: () -> Unit
+) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = { Text(text = label) },
+        colors =
+            androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                selectedLabelColor = selectedText,
+                selectedContainerColor = selectedContainer
             )
-        val label =
-            when (status) {
-                IpRuleStatus.TRUST -> activity.getString(R.string.ci_trust_txt)
-                IpRuleStatus.BLOCK -> activity.getString(R.string.lbl_blocked)
-                IpRuleStatus.NONE -> activity.getString(R.string.cd_no_rule_txt)
-                IpRuleStatus.BYPASS_UNIVERSAL ->
-                    activity.getString(R.string.ci_bypass_universal_txt)
+    )
+}
+
+private fun updateRule(
+    customIp: CustomIp,
+    rule: IpRuleStatus,
+    scope: kotlinx.coroutines.CoroutineScope,
+    eventLogger: EventLogger,
+    onUpdated: (IpRuleStatus) -> Unit
+) {
+    scope.launch(Dispatchers.IO) {
+        val updated =
+            when (rule) {
+                IpRuleStatus.NONE -> noRuleIp(customIp, eventLogger)
+                IpRuleStatus.BLOCK -> blockIp(customIp, eventLogger)
+                IpRuleStatus.BYPASS_UNIVERSAL -> byPassUniversal(customIp, eventLogger)
+                IpRuleStatus.TRUST -> byPassAppRule(customIp, eventLogger)
             }
-        return activity.getString(R.string.ci_desc, label, time)
+        onUpdated(rule)
+        Napier.v("$TAG changeIpStatus: ${updated.ipAddress}, status: ${rule.name}")
     }
+}
 
-    private fun getAppName(uid: Int, appNames: List<String>): String {
-        if (uid == UID_EVERYBODY) {
-            return activity.getString(R.string.firewall_act_universal_tab)
-                .replaceFirstChar(Char::titlecase)
-        }
-
-        if (appNames.isEmpty()) {
-            return activity.getString(R.string.network_log_app_name_unknown) + " ($uid)"
-        }
-
-        val packageCount = appNames.count()
-        return if (packageCount >= 2) {
-            activity.getString(
-                R.string.ctbs_app_other_apps,
-                appNames[0],
-                packageCount.minus(1).toString()
-            )
-        } else {
-            appNames[0]
-        }
-    }
-
-    private suspend fun byPassUniversal(orig: CustomIp): CustomIp {
-        Napier.i("$TAG set ${orig.ipAddress} to bypass universal")
-        val copy = orig.deepCopy()
-        IpRulesManager.updateBypass(copy)
-        logEvent("Set IP ${copy.ipAddress} to bypass universal")
-        return copy
-    }
-
-    private suspend fun byPassAppRule(orig: CustomIp): CustomIp {
-        Napier.i("$TAG set ${orig.ipAddress} to bypass app")
-        val copy = orig.deepCopy()
-        IpRulesManager.updateTrust(copy)
-        logEvent("Set IP ${copy.ipAddress} to trust")
-        return copy
-    }
-
-    private suspend fun blockIp(orig: CustomIp): CustomIp {
-        Napier.i("$TAG block ${orig.ipAddress}")
-        val copy = orig.deepCopy()
-        IpRulesManager.updateBlock(copy)
-        logEvent("Blocked IP ${copy.ipAddress}")
-        return copy
-    }
-
-    private suspend fun noRuleIp(orig: CustomIp): CustomIp {
-        Napier.i("$TAG no rule for ${orig.ipAddress}")
-        val copy = orig.deepCopy()
-        IpRulesManager.updateNoRule(copy)
-        logEvent("Set no rule for IP ${copy.ipAddress}")
-        return copy
-    }
-
-    private fun logEvent(details: String) {
-        eventLogger.log(
-            EventType.FW_RULE_MODIFIED,
-            Severity.LOW,
-            "Custom IP",
-            EventSource.UI,
-            false,
-            details
+private fun buildStatusText(context: android.content.Context, status: IpRuleStatus, modifiedTs: Long): String {
+    val now = System.currentTimeMillis()
+    val uptime = System.currentTimeMillis() - modifiedTs
+    val time =
+        DateUtils.getRelativeTimeSpanString(
+            now - uptime,
+            now,
+            DateUtils.MINUTE_IN_MILLIS,
+            DateUtils.FORMAT_ABBREV_RELATIVE
         )
+    val label =
+        when (status) {
+            IpRuleStatus.TRUST -> context.getString(R.string.ci_trust_txt)
+            IpRuleStatus.BLOCK -> context.getString(R.string.lbl_blocked)
+            IpRuleStatus.NONE -> context.getString(R.string.cd_no_rule_txt)
+            IpRuleStatus.BYPASS_UNIVERSAL ->
+                context.getString(R.string.ci_bypass_universal_txt)
+        }
+    return context.getString(R.string.ci_desc, label, time)
+}
+
+private fun getAppName(context: android.content.Context, uid: Int, appNames: List<String>): String {
+    if (uid == UID_EVERYBODY) {
+        return context.getString(R.string.firewall_act_universal_tab)
+            .replaceFirstChar(Char::titlecase)
     }
 
-    private fun io(f: suspend () -> Unit) {
-        activity.lifecycleScope.launch(Dispatchers.IO) { f() }
+    if (appNames.isEmpty()) {
+        return context.getString(R.string.network_log_app_name_unknown) + " ($uid)"
     }
 
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
+    val packageCount = appNames.count()
+    return if (packageCount >= 2) {
+        context.getString(
+            R.string.ctbs_app_other_apps,
+            appNames[0],
+            packageCount.minus(1).toString()
+        )
+    } else {
+        appNames[0]
     }
+}
 
+private suspend fun byPassUniversal(orig: CustomIp, eventLogger: EventLogger): CustomIp {
+    Napier.i("$TAG set ${orig.ipAddress} to bypass universal")
+    val copy = orig.deepCopy()
+    IpRulesManager.updateBypass(copy)
+    logEvent(eventLogger, "Set IP ${copy.ipAddress} to bypass universal")
+    return copy
+}
+
+private suspend fun byPassAppRule(orig: CustomIp, eventLogger: EventLogger): CustomIp {
+    Napier.i("$TAG set ${orig.ipAddress} to bypass app")
+    val copy = orig.deepCopy()
+    IpRulesManager.updateTrust(copy)
+    logEvent(eventLogger, "Set IP ${copy.ipAddress} to trust")
+    return copy
+}
+
+private suspend fun blockIp(orig: CustomIp, eventLogger: EventLogger): CustomIp {
+    Napier.i("$TAG block ${orig.ipAddress}")
+    val copy = orig.deepCopy()
+    IpRulesManager.updateBlock(copy)
+    logEvent(eventLogger, "Blocked IP ${copy.ipAddress}")
+    return copy
+}
+
+private suspend fun noRuleIp(orig: CustomIp, eventLogger: EventLogger): CustomIp {
+    Napier.i("$TAG no rule for ${orig.ipAddress}")
+    val copy = orig.deepCopy()
+    IpRulesManager.updateNoRule(copy)
+    logEvent(eventLogger, "Set no rule for IP ${copy.ipAddress}")
+    return copy
+}
+
+private fun logEvent(eventLogger: EventLogger, details: String) {
+    eventLogger.log(
+        EventType.FW_RULE_MODIFIED,
+        Severity.LOW,
+        "Custom IP",
+        EventSource.UI,
+        false,
+        details
+    )
 }

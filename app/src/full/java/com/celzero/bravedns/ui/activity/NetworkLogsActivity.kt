@@ -98,6 +98,7 @@ import com.celzero.bravedns.adapter.RethinkLogAdapter
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.data.DataUsageSummary
 import com.celzero.bravedns.database.ConnectionTrackerRepository
+import com.celzero.bravedns.database.ConnectionTracker
 import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.database.DnsLogRepository
 import com.celzero.bravedns.database.RethinkLogRepository
@@ -113,6 +114,7 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.activity.DomainConnectionsActivity
+import com.celzero.bravedns.ui.bottomsheet.ConnTrackerSheet
 import com.celzero.bravedns.ui.compose.statistics.StatisticsSummaryItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants
@@ -228,6 +230,7 @@ class NetworkLogsActivity : AppCompatActivity() {
     @Composable
     private fun NetworkLogsScreen(initialTab: Int) {
         val selectedTab = remember { mutableIntStateOf(initialTab.coerceIn(0, tabs.size - 1)) }
+        val selectedConn = remember { mutableStateOf<ConnectionTracker?>(null) }
 
         Scaffold(
             topBar = {
@@ -260,19 +263,30 @@ class NetworkLogsActivity : AppCompatActivity() {
                 }
 
                 when (tabs[selectedTab.intValue].tab) {
-                    LogTab.CONNECTION -> ConnectionLogsContent()
+                    LogTab.CONNECTION -> ConnectionLogsContent { selectedConn.value = it }
                     LogTab.DNS -> DnsLogsContent()
-                    LogTab.RETHINK -> RethinkLogsContent()
+                    LogTab.RETHINK -> RethinkLogsContent { selectedConn.value = it }
                     LogTab.WG_STATS -> WgStatsContent()
                 }
             }
+        }
+
+        val activeConn = selectedConn.value
+        if (activeConn != null) {
+            ConnTrackerSheet(
+                activity = this@NetworkLogsActivity,
+                info = activeConn,
+                persistentState = persistentState,
+                eventLogger = eventLogger,
+                onDismiss = { selectedConn.value = null }
+            )
         }
     }
 
     @OptIn(FlowPreview::class)
     @Composable
-    private fun ConnectionLogsContent() {
-        val adapter = remember { ConnectionTrackerAdapter(this) }
+    private fun ConnectionLogsContent(onShowConnTracker: (ConnectionTracker) -> Unit) {
+        val adapter = remember { ConnectionTrackerAdapter(this, onShowConnTracker) }
         val items = connectionTrackerViewModel.connectionTrackerList.asFlow().collectAsLazyPagingItems()
         var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -570,8 +584,8 @@ class NetworkLogsActivity : AppCompatActivity() {
 
     @OptIn(FlowPreview::class)
     @Composable
-    private fun RethinkLogsContent() {
-        val adapter = remember { RethinkLogAdapter(this) }
+    private fun RethinkLogsContent(onShowConnTracker: (ConnectionTracker) -> Unit) {
+        val adapter = remember { RethinkLogAdapter(this, onShowConnTracker) }
         val items = rethinkLogViewModel.rlogList.asFlow().collectAsLazyPagingItems()
         var query by remember { mutableStateOf("") }
         var showDeleteDialog by remember { mutableStateOf(false) }

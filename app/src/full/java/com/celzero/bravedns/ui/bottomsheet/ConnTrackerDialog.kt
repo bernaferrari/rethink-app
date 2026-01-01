@@ -17,7 +17,6 @@ package com.celzero.bravedns.ui.bottomsheet
 
 import Logger
 import android.content.Intent
-import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.text.Spanned
 import android.text.TextUtils
@@ -45,31 +44,33 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ConnectionTracker
 import com.celzero.bravedns.database.EventSource
@@ -85,547 +86,121 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager.isNotLocalAndRpnProxy
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.activity.AppInfoActivity
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
-import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Protocol
-import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.htmlToSpannedText
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getIcon
-import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
-import com.celzero.bravedns.util.useTransparentNoDimBackground
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 import java.util.Locale
 
-class ConnTrackerDialog(
-    private val activity: FragmentActivity,
-    private val info: ConnectionTracker
-) : KoinComponent {
-    private val dialog = BottomSheetDialog(activity, getThemeId())
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ConnTrackerSheet(
+    activity: FragmentActivity,
+    info: ConnectionTracker,
+    persistentState: PersistentState,
+    eventLogger: EventLogger,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    private val persistentState by inject<PersistentState>()
-    private val eventLogger by inject<EventLogger>()
+    val firewallLabels = remember { FirewallManager.getLabel(activity).toList() }
+    val ipRuleLabels = remember { IpRulesManager.IpRuleStatus.getLabel(activity).toList() }
+    val domainRuleLabels = remember { DomainRulesManager.Status.getLabel(activity).toList() }
+    val blockAppText = remember { htmlToSpannedText(activity.getString(R.string.bsct_block)) }
+    val blockIpText = remember { htmlToSpannedText(activity.getString(R.string.bsct_block_ip)) }
+    val blockDomainText = remember { htmlToSpannedText(activity.getString(R.string.bsct_block_domain)) }
 
-    private val firewallLabels = FirewallManager.getLabel(activity).toList()
-    private val ipRuleLabels = IpRulesManager.IpRuleStatus.getLabel(activity).toList()
-    private val domainRuleLabels = DomainRulesManager.Status.getLabel(activity).toList()
-    private val blockAppText = htmlToSpannedText(activity.getString(R.string.bsct_block))
-    private val blockIpText = htmlToSpannedText(activity.getString(R.string.bsct_block_ip))
-    private val blockDomainText = htmlToSpannedText(activity.getString(R.string.bsct_block_domain))
+    var portDetailText by remember { mutableStateOf("") }
+    var appInfoText by remember { mutableStateOf("") }
+    var appInfoIconRes by remember { mutableIntStateOf(0) }
+    var appInfoNegative by remember { mutableStateOf(false) }
+    var appName by remember { mutableStateOf("") }
+    var appIcon by remember { mutableStateOf<Drawable?>(null) }
+    var showFirewallRule by remember { mutableStateOf(true) }
+    var showUnknownAppSwitch by remember { mutableStateOf(false) }
+    var unknownAppChecked by remember { mutableStateOf(false) }
+    var connectionFlag by remember { mutableStateOf("") }
+    var connectionHeading by remember { mutableStateOf("") }
+    var dnsCacheText by remember { mutableStateOf("") }
+    var showDnsCacheText by remember { mutableStateOf(false) }
+    var showDomainRule by remember { mutableStateOf(true) }
+    var connDurationText by remember { mutableStateOf("") }
+    var connUploadText by remember { mutableStateOf("") }
+    var connDownloadText by remember { mutableStateOf("") }
+    var connTypeText by remember { mutableStateOf("") }
+    var showSummaryDetails by remember { mutableStateOf(true) }
+    var connTypeSecondaryText by remember { mutableStateOf("") }
+    var showConnTypeSecondary by remember { mutableStateOf(false) }
+    var connectionMessageText by remember { mutableStateOf("") }
+    var showConnectionMessage by remember { mutableStateOf(false) }
+    var firewallSelection by remember { mutableIntStateOf(0) }
+    var ipRuleSelection by remember { mutableIntStateOf(0) }
+    var domainRuleSelection by remember { mutableIntStateOf(0) }
+    var showRulesDialog by remember { mutableStateOf(false) }
+    var rulesDialogTitle by remember { mutableStateOf("") }
+    var rulesDialogDesc by remember { mutableStateOf<Spanned?>(null) }
+    var rulesDialogIconRes by remember { mutableIntStateOf(0) }
 
-    private var portDetailText by mutableStateOf("")
-    private var appInfoText by mutableStateOf("")
-    private var appInfoIconRes by mutableIntStateOf(0)
-    private var appInfoNegative by mutableStateOf(false)
-
-    private var appName by mutableStateOf("")
-    private var appIcon by mutableStateOf<Drawable?>(null)
-    private var showFirewallRule by mutableStateOf(true)
-    private var showUnknownAppSwitch by mutableStateOf(false)
-    private var unknownAppChecked by mutableStateOf(false)
-
-    private var connectionFlag by mutableStateOf("")
-    private var connectionHeading by mutableStateOf("")
-    private var dnsCacheText by mutableStateOf("")
-    private var showDnsCacheText by mutableStateOf(false)
-    private var showDomainRule by mutableStateOf(true)
-
-    private var connDurationText by mutableStateOf("")
-    private var connUploadText by mutableStateOf("")
-    private var connDownloadText by mutableStateOf("")
-    private var connTypeText by mutableStateOf("")
-    private var showSummaryDetails by mutableStateOf(true)
-    private var connTypeSecondaryText by mutableStateOf("")
-    private var showConnTypeSecondary by mutableStateOf(false)
-
-    private var connectionMessageText by mutableStateOf("")
-    private var showConnectionMessage by mutableStateOf(false)
-
-    private var firewallSelection by mutableIntStateOf(0)
-    private var ipRuleSelection by mutableIntStateOf(0)
-    private var domainRuleSelection by mutableIntStateOf(0)
-
-    private var showRulesDialog by mutableStateOf(false)
-    private var rulesDialogTitle by mutableStateOf("")
-    private var rulesDialogDesc by mutableStateOf<Spanned?>(null)
-    private var rulesDialogIconRes by mutableIntStateOf(0)
-
-    init {
-        val composeView = ComposeView(activity)
-        composeView.setContent {
-            RethinkTheme {
-                ConnTrackerContent()
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.setOnShowListener {
-            dialog.useTransparentNoDimBackground()
-            dialog.window?.let { window ->
-                if (isAtleastQ()) {
-                    val controller = WindowInsetsControllerCompat(window, window.decorView)
-                    controller.isAppearanceLightNavigationBars = false
-                    window.isNavigationBarContrastEnforced = false
-                }
-            }
-        }
-        initView()
-        refreshFirewallRulesUi()
-    }
-
-    fun show() {
-        dialog.show()
-        refreshFirewallRulesUi()
-    }
-
-    private fun getThemeId(): Int {
-        val isDark =
-            activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                Configuration.UI_MODE_NIGHT_YES
-        return Themes.getBottomsheetCurrentTheme(isDark, persistentState.theme)
-    }
-
-    private fun initView() {
+    LaunchedEffect(info) {
         connectionHeading = info.ipAddress
         connectionFlag = info.flag
-
-        updateAppDetails()
-        updateConnDetailsChip()
-        updateBlockedRulesChip()
-        displaySummaryDetails()
-        updateIpRulesUi(info.uid, info.ipAddress)
-        updateDnsIfAvailable()
+        updateAppDetails(
+            activity,
+            info,
+            persistentState,
+            onUnknownSwitch = { showUnknownAppSwitch = it },
+            onShowFirewall = { showFirewallRule = it },
+            onUnknownChecked = { unknownAppChecked = it },
+            onAppName = { appName = it },
+            onAppIcon = { appIcon = it },
+            scope = scope
+        )
+        updateConnDetailsChip(activity, info) { portDetailText = it }
+        updateBlockedRulesChip(
+            activity,
+            info,
+            persistentState,
+            onText = { appInfoText = it },
+            onIcon = { appInfoIconRes = it },
+            onNegative = { appInfoNegative = it }
+        )
+        displaySummaryDetails(
+            activity,
+            info,
+            persistentState,
+            onMessage = { connectionMessageText = it },
+            onShowMessage = { showConnectionMessage = it },
+            onDuration = { connDurationText = it },
+            onConnType = { connTypeText = it },
+            onUpload = { connUploadText = it },
+            onDownload = { connDownloadText = it },
+            onShowSummary = { showSummaryDetails = it },
+            onShowSecondary = { showConnTypeSecondary = it },
+            onSecondaryText = { connTypeSecondaryText = it }
+        )
+        updateIpRulesUi(info.uid, info.ipAddress, scope) { ipRuleSelection = it }
+        updateDnsIfAvailable(
+            activity,
+            info,
+            onShowDns = { showDnsCacheText = it },
+            onDnsText = { dnsCacheText = it },
+            onDomainRule = { showDomainRule = it },
+            onDomainRuleSelection = { domainRuleSelection = it }
+        )
+        refreshFirewallRulesUi(info, scope) { firewallSelection = it }
     }
 
-    private fun refreshFirewallRulesUi() {
-        val uid = info.uid
-        io {
-            val appStatus = FirewallManager.appStatus(uid)
-            val connStatus = FirewallManager.connectionStatus(uid)
-            uiCtx { updateFirewallRulesUi(appStatus, connStatus) }
-        }
-    }
-
-    private fun updateDnsIfAvailable() {
-        val domain = info.dnsQuery
-        val uid = info.uid
-        val flag = info.flag
-
-        if (domain.isNullOrEmpty()) {
-            showDnsCacheText = true
-            dnsCacheText = UIUtils.getCountryNameFromFlag(flag)
-            showDomainRule = false
-            return
-        }
-
-        val status = DomainRulesManager.getDomainRule(domain, uid)
-        domainRuleSelection = status.id
-        showDnsCacheText = true
-        showDomainRule = true
-        dnsCacheText =
-            activity.getString(R.string.two_argument, UIUtils.getCountryNameFromFlag(flag), domain)
-    }
-
-    private fun updateConnDetailsChip() {
-        val protocol = Protocol.getProtocolName(info.protocol).name
-        val time =
-            DateUtils.getRelativeTimeSpanString(
-                info.timeStamp,
-                System.currentTimeMillis(),
-                DateUtils.MINUTE_IN_MILLIS,
-                DateUtils.FORMAT_ABBREV_RELATIVE
-            )
-        val protocolDetails = "$protocol/${info.port}"
-        portDetailText =
-            if (info.isBlocked) {
-                activity.getString(R.string.bsct_conn_desc_blocked, protocolDetails, time)
-            } else {
-                activity.getString(R.string.bsct_conn_desc_allowed, protocolDetails, time)
-            }
-    }
-
-    private fun updateBlockedRulesChip() {
-        if (info.blockedByRule.isBlank()) {
-            appInfoText = activity.getString(R.string.firewall_rule_no_rule)
-        } else {
-            val rule = info.blockedByRule
-            val isIpnProxy = isNotLocalAndRpnProxy(info.proxyDetails)
-            if (rule.contains(FirewallRuleset.RULE2G.id)) {
-                appInfoText =
-                    getFirewallRule(FirewallRuleset.RULE2G.id)?.title?.let { activity.getString(it) }
-                        ?: activity.getString(R.string.firewall_rule_no_rule)
-            } else if (info.proxyDetails.isNotEmpty() && isIpnProxy) {
-                appInfoText =
-                    activity.getString(
-                        R.string.two_argument_colon,
-                        activity.getString(FirewallRuleset.RULE12.title),
-                        info.proxyDetails
-                    )
-            } else {
-                appInfoText =
-                    if (isInvalidProxyDetails()) {
-                        activity.getString(
-                            getFirewallRule(FirewallRuleset.RULE18.id)?.title
-                                ?: R.string.firewall_rule_no_rule
-                        )
-                    } else {
-                        getFirewallRule(rule)?.title?.let { activity.getString(it) }
-                            ?: activity.getString(R.string.firewall_rule_no_rule)
-                    }
-            }
-        }
-        appInfoIconRes = FirewallRuleset.getRulesIcon(info.blockedByRule)
-        appInfoNegative = info.isBlocked || isInvalidProxyDetails()
-    }
-
-    private fun isInvalidProxyDetails(): Boolean {
-        val isIpnProxy = isNotLocalAndRpnProxy(info.proxyDetails)
-        val rule = info.blockedByRule
-        val isRuleAddedAsProxy = getFirewallRule(rule)?.id == FirewallRuleset.RULE12.id
-        if (isRuleAddedAsProxy && (info.proxyDetails.isEmpty() || !isIpnProxy)) {
-            return true
-        }
-        return false
-    }
-
-    private fun updateAppDetails() {
-        io {
-            val appNames = FirewallManager.getAppNamesByUid(info.uid)
-            if (appNames.isEmpty()) {
-                uiCtx { handleNonApp() }
-                return@io
-            }
-            val pkgName = FirewallManager.getPackageNameByAppName(appNames[0])
-            val appCount = appNames.count()
-            uiCtx {
-                showFirewallRule = true
-                showUnknownAppSwitch = false
-                appName =
-                    if (appCount >= 2) {
-                        activity.getString(
-                            R.string.ctbs_app_other_apps,
-                            appNames[0],
-                            appCount.minus(1).toString()
-                        ) + "  ❯"
-                    } else {
-                        appNames[0] + "  ❯"
-                    }
-                if (pkgName != null) {
-                    appIcon = getIcon(activity, pkgName, info.appName)
-                } else {
-                    appIcon = ContextCompat.getDrawable(activity, R.drawable.default_app_icon)
-                }
-            }
-        }
-    }
-
-    private fun displaySummaryDetails() {
-        connectionMessageText =
-            if (
-                Logger.LoggerLevel.fromId(persistentState.goLoggerLevel.toInt())
-                    .isLessThan(Logger.LoggerLevel.DEBUG)
-            ) {
-                "${info.proxyDetails}; ${info.rpid}; ${info.connId}; ${info.message}; ${info.synack}"
-            } else {
-                info.message
-            }
-
-        showConnectionMessage = connectionMessageText.isNotBlank()
-
-        if (VpnController.hasCid(info.connId, info.uid)) {
-            connDurationText =
-                activity.getString(
-                    R.string.two_argument_space,
-                    activity.getString(R.string.lbl_active),
-                    activity.getString(R.string.symbol_green_circle)
-                )
-        } else {
-            connDurationText =
-                activity.getString(
-                    R.string.two_argument_space,
-                    activity.getString(R.string.symbol_hyphen),
-                    activity.getString(R.string.symbol_clock)
-                )
-        }
-
-        val connType = ConnectionTracker.ConnType.get(info.connType)
-        connTypeText =
-            if (connType.isMetered()) {
-                activity.getString(
-                    R.string.two_argument_space,
-                    activity.getString(R.string.ada_app_metered),
-                    activity.getString(R.string.symbol_currency)
-                )
-            } else {
-                activity.getString(
-                    R.string.two_argument_space,
-                    activity.getString(R.string.ada_app_unmetered),
-                    activity.getString(R.string.symbol_global)
-                )
-            }
-
-        if (
-            info.message.isEmpty() && info.duration == 0 && info.downloadBytes == 0L &&
-                info.uploadBytes == 0L
-        ) {
-            showSummaryDetails = false
-            showConnTypeSecondary = true
-            connTypeSecondaryText = connTypeText
-            return
-        }
-
-        showSummaryDetails = true
-        showConnTypeSecondary = false
-        val downloadBytes =
-            activity.getString(
-                R.string.symbol_download,
-                Utilities.humanReadableByteCount(info.downloadBytes, true)
-            )
-        val uploadBytes =
-            activity.getString(
-                R.string.symbol_upload,
-                Utilities.humanReadableByteCount(info.uploadBytes, true)
-            )
-        connUploadText = uploadBytes
-        connDownloadText = downloadBytes
-        val duration = UIUtils.getDurationInHumanReadableFormat(activity, info.duration)
-        connDurationText =
-            activity.getString(R.string.two_argument_space, duration, activity.getString(R.string.symbol_clock))
-    }
-
-    private fun handleNonApp() {
-        showFirewallRule = false
-        showUnknownAppSwitch = true
-        unknownAppChecked = persistentState.getBlockUnknownConnections()
-        appName = info.appName
-        appIcon = ContextCompat.getDrawable(activity, R.drawable.default_app_icon)
-    }
-
-    private fun openAppDetailActivity(uid: Int) {
-        dialog.dismiss()
-        val intent = Intent(activity, AppInfoActivity::class.java)
-        intent.putExtra(AppInfoActivity.INTENT_UID, uid)
-        activity.startActivity(intent)
-    }
-
-    private fun updateFirewallRulesUi(
-        firewallStatus: FirewallManager.FirewallStatus,
-        connStatus: FirewallManager.ConnectionStatus
-    ) {
-        if (firewallStatus.isUntracked()) return
-
-        firewallSelection =
-            when (firewallStatus) {
-                FirewallManager.FirewallStatus.NONE -> {
-                    when (connStatus) {
-                        FirewallManager.ConnectionStatus.ALLOW -> 0
-                        FirewallManager.ConnectionStatus.BOTH -> 1
-                        FirewallManager.ConnectionStatus.UNMETERED -> 2
-                        FirewallManager.ConnectionStatus.METERED -> 3
-                    }
-                }
-                FirewallManager.FirewallStatus.ISOLATE -> 4
-                FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL -> 5
-                FirewallManager.FirewallStatus.BYPASS_UNIVERSAL -> 6
-                FirewallManager.FirewallStatus.EXCLUDE -> 7
-                else -> firewallSelection
-            }
-    }
-
-    private fun updateIpRulesUi(uid: Int, ipAddress: String) {
-        io {
-            val rule = IpRulesManager.getMostSpecificRuleMatch(uid, ipAddress)
-            uiCtx { ipRuleSelection = rule.id }
-        }
-    }
-
-    private fun onFirewallSelected(position: Int) {
-        val fStatus = FirewallManager.FirewallStatus.getStatusByLabel(position)
-        val connStatus = FirewallManager.ConnectionStatus.getStatusByLabel(position)
-        val uid = info.uid
-        io {
-            val a = FirewallManager.appStatus(uid)
-            val c = FirewallManager.connectionStatus(uid)
-            if (a == fStatus && c == connStatus) return@io
-
-            if (VpnController.isVpnLockdown() && fStatus.isExclude()) {
-                uiCtx {
-                    updateFirewallRulesUi(a, c)
-                    showToastUiCentered(
-                        activity,
-                        activity.getString(R.string.hsf_exclude_error),
-                        Toast.LENGTH_LONG
-                    )
-                }
-                return@io
-            }
-
-            if (FirewallManager.isUnknownPackage(uid) && fStatus.isExclude()) {
-                uiCtx {
-                    updateFirewallRulesUi(a, c)
-                    showToastUiCentered(
-                        activity,
-                        activity.getString(R.string.exclude_no_package_err_toast),
-                        Toast.LENGTH_LONG
-                    )
-                }
-                return@io
-            }
-
-            Napier.i(
-                "Change in firewall rule for app uid: ${info.uid}, firewall status: $fStatus, conn status: $connStatus"
-            )
-            applyFirewallRule(fStatus, connStatus)
-        }
-    }
-
-    private fun applyIpRule(ipRuleStatus: IpRulesManager.IpRuleStatus) {
-        io {
-            if (IpRulesManager.getMostSpecificRuleMatch(info.uid, info.ipAddress) == ipRuleStatus) {
-                return@io
-            }
-            val ipPair = IpRulesManager.getIpNetPort(info.ipAddress)
-            val ip = ipPair.first ?: return@io
-            IpRulesManager.addIpRule(
-                info.uid,
-                ip,
-                /*wildcard-port*/ 0,
-                ipRuleStatus,
-                proxyId = "",
-                proxyCC = ""
-            )
-            Napier.i("apply ip-rule for ${info.uid}, $ip, ${ipRuleStatus.name}")
-            logEvent(
-                "IP rule changed",
-                "UID: ${info.uid}, IP: $ip, IpRuleStatus: ${ipRuleStatus.name}"
-            )
-        }
-    }
-
-    private fun applyDomainRule(domainRuleStatus: DomainRulesManager.Status) {
-        val dnsQuery = info.dnsQuery ?: return
-        Napier.i("Apply domain rule for $dnsQuery, ${domainRuleStatus.name}")
-        io {
-            DomainRulesManager.addDomainRule(
-                dnsQuery,
-                domainRuleStatus,
-                DomainRulesManager.DomainType.DOMAIN,
-                info.uid
-            )
-            logEvent(
-                "Domain rule changed",
-                "Domain: $dnsQuery, UID: ${info.uid}, DomainRuleStatus: ${domainRuleStatus.name}"
-            )
-        }
-    }
-
-    private fun showFirewallRulesDialog(blockedRule: String) {
-        val iconRes = FirewallRuleset.getRulesIcon(blockedRule)
-        var headingText: String
-        var descText: Spanned
-
-        if (blockedRule.contains(FirewallRuleset.RULE2G.id)) {
-            val group: Multimap<String, String> = HashMultimap.create()
-            val blocklists =
-                if (info.blocklists.isEmpty()) {
-                    val startIndex = blockedRule.indexOfFirst { it == '|' }
-                    blockedRule.substring(startIndex + 1).split(",")
-                } else {
-                    info.blocklists.split(",")
-                }
-
-            blocklists.forEach {
-                val items = it.split(":")
-                if (items.count() <= 1) return@forEach
-                group.put(items[0], items[1])
-            }
-            descText = formatText(group)
-            val groupCount = group.keys().distinct().count()
-            headingText =
-                if (groupCount > 1) {
-                    "${group.keys().firstOrNull()} +${groupCount - 1}"
-                } else if (groupCount == 1) {
-                    group.keys().firstOrNull() ?: activity.getString(R.string.firewall_rule_no_rule)
-                } else {
-                    val tempDesc =
-                        getFirewallRule(FirewallRuleset.RULE2G.id)?.let { activity.getString(it.desc) }
-                            ?: activity.getString(R.string.firewall_rule_no_rule_desc)
-                    descText = htmlToSpannedText(tempDesc)
-                    getFirewallRule(FirewallRuleset.RULE2G.id)?.let { activity.getString(it.title) }
-                        ?: activity.getString(R.string.firewall_rule_no_rule)
-                }
-        } else {
-            headingText =
-                getFirewallRule(blockedRule)?.let { activity.getString(it.title) }
-                    ?: activity.getString(R.string.firewall_rule_no_rule)
-            val tempDesc =
-                getFirewallRule(blockedRule)?.let { activity.getString(it.desc) }
-                    ?: activity.getString(R.string.firewall_rule_no_rule_desc)
-            descText = htmlToSpannedText(tempDesc)
-        }
-
-        rulesDialogTitle = headingText
-        rulesDialogDesc = descText
-        rulesDialogIconRes = iconRes
-        showRulesDialog = true
-    }
-
-    private fun formatText(groupNames: Multimap<String, String>): Spanned {
-        var text = ""
-        groupNames.keys().distinct().forEach {
-            val heading =
-                it.replaceFirstChar { a ->
-                    if (a.isLowerCase()) a.titlecase(Locale.getDefault()) else a.toString()
-                }
-            text +=
-                activity.getString(
-                    R.string.dns_btm_sheet_dialog_message,
-                    heading,
-                    groupNames.get(it).count().toString(),
-                    TextUtils.join(", ", groupNames.get(it))
-                )
-        }
-        text = text.replace(",", ", ")
-        return htmlToSpannedText(text)
-    }
-
-    private suspend fun applyFirewallRule(
-        firewallStatus: FirewallManager.FirewallStatus,
-        connStatus: FirewallManager.ConnectionStatus
-    ) {
-        val uid = info.uid
-        uiCtx {
-            io {
-                FirewallManager.updateFirewallStatus(uid, firewallStatus, connStatus)
-                logEvent(
-                    "Firewall rule changed",
-                    "UID: $uid, FirewallStatus: ${firewallStatus.name}, ConnectionStatus: ${connStatus.name}"
-                )
-            }
-            updateFirewallRulesUi(firewallStatus, connStatus)
-        }
-    }
-
-    private fun logEvent(msg: String, details: String) {
-        eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, msg, EventSource.UI, false, details)
-    }
-
-    private fun io(f: suspend () -> Unit) = activity.lifecycleScope.launch(Dispatchers.IO) { f() }
-
-    private suspend fun uiCtx(f: suspend () -> Unit) = withContext(Dispatchers.Main) { f() }
-
-    @Composable
-    private fun ConnTrackerContent() {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
         val borderColor = Color(fetchColor(activity, R.attr.border))
         val chipTextColor =
             if (appInfoNegative) {
@@ -671,7 +246,15 @@ class ConnTrackerDialog(
                 AssistChip(
                     onClick = {
                         if (info.blockedByRule.isNotBlank()) {
-                            showFirewallRulesDialog(info.blockedByRule)
+                            val result =
+                                showFirewallRulesDialog(
+                                    activity,
+                                    info
+                                )
+                            rulesDialogTitle = result.title
+                            rulesDialogDesc = result.desc
+                            rulesDialogIconRes = result.icon
+                            showRulesDialog = true
                         }
                     },
                     label = { Text(text = appInfoText, color = chipTextColor) },
@@ -695,7 +278,12 @@ class ConnTrackerDialog(
             Row(
                 modifier =
                     Modifier.fillMaxWidth()
-                        .clickable { openAppDetailActivity(info.uid) }
+                        .clickable {
+                            onDismiss()
+                            val intent = Intent(activity, AppInfoActivity::class.java)
+                            intent.putExtra(AppInfoActivity.INTENT_UID, info.uid)
+                            activity.startActivity(intent)
+                        }
                         .padding(horizontal = 20.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
@@ -711,7 +299,8 @@ class ConnTrackerDialog(
                         }
                     },
                     update = { imageView ->
-                        val icon = appIcon ?: ContextCompat.getDrawable(activity, R.drawable.default_app_icon)
+                        val icon =
+                            appIcon ?: ContextCompat.getDrawable(activity, R.drawable.default_app_icon)
                         imageView.setImageDrawable(icon)
                     },
                     modifier = Modifier.size(30.dp)
@@ -816,7 +405,7 @@ class ConnTrackerDialog(
                     label = { HtmlText(blockAppText) },
                     labels = firewallLabels,
                     selectedIndex = firewallSelection,
-                    onSelect = { onFirewallSelected(it) }
+                    onSelect = { onFirewallSelected(info, it, persistentState, activity, eventLogger, scope) }
                 )
             }
 
@@ -840,6 +429,7 @@ class ConnTrackerDialog(
                             )
                             persistentState.setBlockUnknownConnections(unknownAppChecked)
                             logEvent(
+                                eventLogger,
                                 "Universal firewall setting changed",
                                 "Block unknown apps: $unknownAppChecked"
                             )
@@ -854,7 +444,7 @@ class ConnTrackerDialog(
                 selectedIndex = ipRuleSelection,
                 onSelect = {
                     ipRuleSelection = it
-                    applyIpRule(IpRulesManager.IpRuleStatus.getStatus(it))
+                    applyIpRule(info, IpRulesManager.IpRuleStatus.getStatus(it), eventLogger, scope)
                 }
             )
 
@@ -874,7 +464,7 @@ class ConnTrackerDialog(
                             return@SelectionRow
                         }
                         domainRuleSelection = it
-                        applyDomainRule(fid)
+                        applyDomainRule(info, fid, eventLogger, scope)
                     }
                 )
             }
@@ -918,53 +508,518 @@ class ConnTrackerDialog(
             )
         }
     }
+}
 
-    @Composable
-    private fun SelectionRow(
-        label: @Composable () -> Unit,
-        labels: List<String>,
-        selectedIndex: Int,
-        onSelect: (Int) -> Unit
-    ) {
-        var expanded by remember { mutableStateOf(false) }
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(modifier = Modifier.weight(0.6f)) { label() }
-            Box(modifier = Modifier.weight(0.4f), contentAlignment = Alignment.CenterEnd) {
-                TextButton(onClick = { expanded = true }) {
-                    Text(text = labels.getOrNull(selectedIndex) ?: "")
+private fun updateConnDetailsChip(
+    activity: FragmentActivity,
+    info: ConnectionTracker,
+    onText: (String) -> Unit
+) {
+    val protocol = Protocol.getProtocolName(info.protocol).name
+    val time =
+        DateUtils.getRelativeTimeSpanString(
+            info.timeStamp,
+            System.currentTimeMillis(),
+            DateUtils.MINUTE_IN_MILLIS,
+            DateUtils.FORMAT_ABBREV_RELATIVE
+        )
+    val protocolDetails = "$protocol/${info.port}"
+    val text =
+        if (info.isBlocked) {
+            activity.getString(R.string.bsct_conn_desc_blocked, protocolDetails, time)
+        } else {
+            activity.getString(R.string.bsct_conn_desc_allowed, protocolDetails, time)
+        }
+    onText(text)
+}
+
+private fun updateBlockedRulesChip(
+    activity: FragmentActivity,
+    info: ConnectionTracker,
+    persistentState: PersistentState,
+    onText: (String) -> Unit,
+    onIcon: (Int) -> Unit,
+    onNegative: (Boolean) -> Unit
+) {
+    val text =
+        if (info.blockedByRule.isBlank()) {
+            activity.getString(R.string.firewall_rule_no_rule)
+        } else {
+            val rule = info.blockedByRule
+            val isIpnProxy = isNotLocalAndRpnProxy(info.proxyDetails)
+            if (rule.contains(FirewallRuleset.RULE2G.id)) {
+                getFirewallRule(FirewallRuleset.RULE2G.id)?.title?.let { activity.getString(it) }
+                    ?: activity.getString(R.string.firewall_rule_no_rule)
+            } else if (info.proxyDetails.isNotEmpty() && isIpnProxy) {
+                activity.getString(
+                    R.string.two_argument_colon,
+                    activity.getString(FirewallRuleset.RULE12.title),
+                    info.proxyDetails
+                )
+            } else {
+                if (isInvalidProxyDetails(info)) {
+                    activity.getString(
+                        getFirewallRule(FirewallRuleset.RULE18.id)?.title
+                            ?: R.string.firewall_rule_no_rule
+                    )
+                } else {
+                    getFirewallRule(rule)?.title?.let { activity.getString(it) }
+                        ?: activity.getString(R.string.firewall_rule_no_rule)
                 }
-                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                    labels.forEachIndexed { index, item ->
-                        DropdownMenuItem(
-                            text = { Text(text = item) },
-                            onClick = {
-                                expanded = false
-                                onSelect(index)
-                            }
-                        )
+            }
+        }
+    onText(text)
+    onIcon(FirewallRuleset.getRulesIcon(info.blockedByRule))
+    onNegative(info.isBlocked || isInvalidProxyDetails(info))
+}
+
+private fun isInvalidProxyDetails(info: ConnectionTracker): Boolean {
+    val isIpnProxy = isNotLocalAndRpnProxy(info.proxyDetails)
+    val rule = info.blockedByRule
+    val isRuleAddedAsProxy = getFirewallRule(rule)?.id == FirewallRuleset.RULE12.id
+    return isRuleAddedAsProxy && (info.proxyDetails.isEmpty() || !isIpnProxy)
+}
+
+private fun updateAppDetails(
+    activity: FragmentActivity,
+    info: ConnectionTracker,
+    persistentState: PersistentState,
+    onUnknownSwitch: (Boolean) -> Unit,
+    onShowFirewall: (Boolean) -> Unit,
+    onUnknownChecked: (Boolean) -> Unit,
+    onAppName: (String) -> Unit,
+    onAppIcon: (Drawable?) -> Unit,
+    scope: kotlinx.coroutines.CoroutineScope
+) {
+    scope.launch(Dispatchers.IO) {
+        val appNames = FirewallManager.getAppNamesByUid(info.uid)
+        if (appNames.isEmpty()) {
+            withContext(Dispatchers.Main) {
+                onShowFirewall(false)
+                onUnknownSwitch(true)
+                onUnknownChecked(persistentState.getBlockUnknownConnections())
+                onAppName(info.appName)
+                onAppIcon(ContextCompat.getDrawable(activity, R.drawable.default_app_icon))
+            }
+            return@launch
+        }
+        val pkgName = FirewallManager.getPackageNameByAppName(appNames[0])
+        val appCount = appNames.count()
+        withContext(Dispatchers.Main) {
+            onShowFirewall(true)
+            onUnknownSwitch(false)
+            onAppName(
+                if (appCount >= 2) {
+                    activity.getString(
+                        R.string.ctbs_app_other_apps,
+                        appNames[0],
+                        appCount.minus(1).toString()
+                    ) + "  ❯"
+                } else {
+                    appNames[0] + "  ❯"
+                }
+            )
+            val icon =
+                if (pkgName != null) {
+                    getIcon(activity, pkgName, info.appName)
+                } else {
+                    ContextCompat.getDrawable(activity, R.drawable.default_app_icon)
+                }
+            onAppIcon(icon)
+        }
+    }
+}
+
+private fun displaySummaryDetails(
+    activity: FragmentActivity,
+    info: ConnectionTracker,
+    persistentState: PersistentState,
+    onMessage: (String) -> Unit,
+    onShowMessage: (Boolean) -> Unit,
+    onDuration: (String) -> Unit,
+    onConnType: (String) -> Unit,
+    onUpload: (String) -> Unit,
+    onDownload: (String) -> Unit,
+    onShowSummary: (Boolean) -> Unit,
+    onShowSecondary: (Boolean) -> Unit,
+    onSecondaryText: (String) -> Unit
+) {
+    val connectionMessageText =
+        if (
+            Logger.LoggerLevel.fromId(persistentState.goLoggerLevel.toInt())
+                .isLessThan(Logger.LoggerLevel.DEBUG)
+        ) {
+            "${info.proxyDetails}; ${info.rpid}; ${info.connId}; ${info.message}; ${info.synack}"
+        } else {
+            info.message
+        }
+    onMessage(connectionMessageText)
+    onShowMessage(connectionMessageText.isNotBlank())
+
+    val durationText =
+        if (VpnController.hasCid(info.connId, info.uid)) {
+            activity.getString(
+                R.string.two_argument_space,
+                activity.getString(R.string.lbl_active),
+                activity.getString(R.string.symbol_green_circle)
+            )
+        } else {
+            activity.getString(
+                R.string.two_argument_space,
+                activity.getString(R.string.symbol_hyphen),
+                activity.getString(R.string.symbol_clock)
+            )
+        }
+    onDuration(durationText)
+
+    val connType = ConnectionTracker.ConnType.get(info.connType)
+    val connTypeText =
+        if (connType.isMetered()) {
+            activity.getString(
+                R.string.two_argument_space,
+                activity.getString(R.string.ada_app_metered),
+                activity.getString(R.string.symbol_currency)
+            )
+        } else {
+            activity.getString(
+                R.string.two_argument_space,
+                activity.getString(R.string.ada_app_unmetered),
+                activity.getString(R.string.symbol_global)
+            )
+        }
+    onConnType(connTypeText)
+
+    if (info.message.isEmpty() && info.duration == 0 && info.downloadBytes == 0L &&
+        info.uploadBytes == 0L
+    ) {
+        onShowSummary(false)
+        onShowSecondary(true)
+        onSecondaryText(connTypeText)
+        return
+    }
+
+    onShowSummary(true)
+    onShowSecondary(false)
+    val downloadBytes =
+        activity.getString(
+            R.string.symbol_download,
+            Utilities.humanReadableByteCount(info.downloadBytes, true)
+        )
+    val uploadBytes =
+        activity.getString(
+            R.string.symbol_upload,
+            Utilities.humanReadableByteCount(info.uploadBytes, true)
+        )
+    onUpload(uploadBytes)
+    onDownload(downloadBytes)
+    val duration = UIUtils.getDurationInHumanReadableFormat(activity, info.duration)
+    onDuration(activity.getString(R.string.two_argument_space, duration, activity.getString(R.string.symbol_clock)))
+}
+
+private fun updateDnsIfAvailable(
+    activity: FragmentActivity,
+    info: ConnectionTracker,
+    onShowDns: (Boolean) -> Unit,
+    onDnsText: (String) -> Unit,
+    onDomainRule: (Boolean) -> Unit,
+    onDomainRuleSelection: (Int) -> Unit
+) {
+    val domain = info.dnsQuery
+    val uid = info.uid
+    val flag = info.flag
+
+    if (domain.isNullOrEmpty()) {
+        onShowDns(true)
+        onDnsText(UIUtils.getCountryNameFromFlag(flag))
+        onDomainRule(false)
+        return
+    }
+
+    val status = DomainRulesManager.getDomainRule(domain, uid)
+    onDomainRuleSelection(status.id)
+    onShowDns(true)
+    onDomainRule(true)
+    onDnsText(
+        activity.getString(
+            R.string.two_argument,
+            UIUtils.getCountryNameFromFlag(flag),
+            domain
+        )
+    )
+}
+
+private fun refreshFirewallRulesUi(
+    info: ConnectionTracker,
+    scope: kotlinx.coroutines.CoroutineScope,
+    onSelection: (Int) -> Unit
+) {
+    scope.launch(Dispatchers.IO) {
+        val appStatus = FirewallManager.appStatus(info.uid)
+        val connStatus = FirewallManager.connectionStatus(info.uid)
+        val selection =
+            when (appStatus) {
+                FirewallManager.FirewallStatus.NONE -> {
+                    when (connStatus) {
+                        FirewallManager.ConnectionStatus.ALLOW -> 0
+                        FirewallManager.ConnectionStatus.BOTH -> 1
+                        FirewallManager.ConnectionStatus.UNMETERED -> 2
+                        FirewallManager.ConnectionStatus.METERED -> 3
                     }
+                }
+                FirewallManager.FirewallStatus.ISOLATE -> 4
+                FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL -> 5
+                FirewallManager.FirewallStatus.BYPASS_UNIVERSAL -> 6
+                FirewallManager.FirewallStatus.EXCLUDE -> 7
+                else -> 0
+            }
+        withContext(Dispatchers.Main) { onSelection(selection) }
+    }
+}
+
+private fun updateIpRulesUi(
+    uid: Int,
+    ipAddress: String,
+    scope: kotlinx.coroutines.CoroutineScope,
+    onSelection: (Int) -> Unit
+) {
+    scope.launch(Dispatchers.IO) {
+        val rule = IpRulesManager.getMostSpecificRuleMatch(uid, ipAddress)
+        withContext(Dispatchers.Main) { onSelection(rule.id) }
+    }
+}
+
+private fun onFirewallSelected(
+    info: ConnectionTracker,
+    position: Int,
+    persistentState: PersistentState,
+    activity: FragmentActivity,
+    eventLogger: EventLogger,
+    scope: kotlinx.coroutines.CoroutineScope
+) {
+    val fStatus = FirewallManager.FirewallStatus.getStatusByLabel(position)
+    val connStatus = FirewallManager.ConnectionStatus.getStatusByLabel(position)
+    val uid = info.uid
+    scope.launch(Dispatchers.IO) {
+        val a = FirewallManager.appStatus(uid)
+        val c = FirewallManager.connectionStatus(uid)
+        if (a == fStatus && c == connStatus) return@launch
+
+        if (VpnController.isVpnLockdown() && fStatus.isExclude()) {
+            withContext(Dispatchers.Main) {
+                showToastUiCentered(
+                    activity,
+                    activity.getString(R.string.hsf_exclude_error),
+                    Toast.LENGTH_LONG
+                )
+            }
+            return@launch
+        }
+
+        if (FirewallManager.isUnknownPackage(uid) && fStatus.isExclude()) {
+            withContext(Dispatchers.Main) {
+                showToastUiCentered(
+                    activity,
+                    activity.getString(R.string.exclude_no_package_err_toast),
+                    Toast.LENGTH_LONG
+                )
+            }
+            return@launch
+        }
+
+        Napier.i(
+            "Change in firewall rule for app uid: ${info.uid}, firewall status: $fStatus, conn status: $connStatus"
+        )
+        FirewallManager.updateFirewallStatus(uid, fStatus, connStatus)
+        logEvent(
+            eventLogger,
+            "Firewall rule changed",
+            "UID: $uid, FirewallStatus: ${fStatus.name}, ConnectionStatus: ${connStatus.name}"
+        )
+    }
+}
+
+private fun applyIpRule(
+    info: ConnectionTracker,
+    ipRuleStatus: IpRulesManager.IpRuleStatus,
+    eventLogger: EventLogger,
+    scope: kotlinx.coroutines.CoroutineScope
+) {
+    scope.launch(Dispatchers.IO) {
+        if (IpRulesManager.getMostSpecificRuleMatch(info.uid, info.ipAddress) == ipRuleStatus) {
+            return@launch
+        }
+        val ipPair = IpRulesManager.getIpNetPort(info.ipAddress)
+        val ip = ipPair.first ?: return@launch
+        IpRulesManager.addIpRule(
+            info.uid,
+            ip,
+            /*wildcard-port*/ 0,
+            ipRuleStatus,
+            proxyId = "",
+            proxyCC = ""
+        )
+        Napier.i("apply ip-rule for ${info.uid}, $ip, ${ipRuleStatus.name}")
+        logEvent(
+            eventLogger,
+            "IP rule changed",
+            "UID: ${info.uid}, IP: $ip, IpRuleStatus: ${ipRuleStatus.name}"
+        )
+    }
+}
+
+private fun applyDomainRule(
+    info: ConnectionTracker,
+    domainRuleStatus: DomainRulesManager.Status,
+    eventLogger: EventLogger,
+    scope: kotlinx.coroutines.CoroutineScope
+) {
+    val dnsQuery = info.dnsQuery ?: return
+    Napier.i("Apply domain rule for $dnsQuery, ${domainRuleStatus.name}")
+    scope.launch(Dispatchers.IO) {
+        DomainRulesManager.addDomainRule(
+            dnsQuery,
+            domainRuleStatus,
+            DomainRulesManager.DomainType.DOMAIN,
+            info.uid
+        )
+        logEvent(
+            eventLogger,
+            "Domain rule changed",
+            "Domain: $dnsQuery, UID: ${info.uid}, DomainRuleStatus: ${domainRuleStatus.name}"
+        )
+    }
+}
+
+private data class RulesDialogContent(
+    val title: String,
+    val desc: Spanned,
+    val icon: Int
+)
+
+private fun showFirewallRulesDialog(
+    activity: FragmentActivity,
+    info: ConnectionTracker
+): RulesDialogContent {
+    val blockedRule = info.blockedByRule
+    val iconRes = FirewallRuleset.getRulesIcon(blockedRule)
+    val headingText: String
+    val descText: Spanned
+
+    if (blockedRule.contains(FirewallRuleset.RULE2G.id)) {
+        val group: Multimap<String, String> = HashMultimap.create()
+        val blocklists =
+            if (info.blocklists.isEmpty()) {
+                val startIndex = blockedRule.indexOfFirst { it == '|' }
+                blockedRule.substring(startIndex + 1).split(",")
+            } else {
+                info.blocklists.split(",")
+            }
+
+        blocklists.forEach {
+            val items = it.split(":")
+            if (items.count() <= 1) return@forEach
+            group.put(items[0], items[1])
+        }
+        descText = formatText(activity, group)
+        val groupCount = group.keys().distinct().count()
+        headingText =
+            if (groupCount > 1) {
+                "${group.keys().firstOrNull()} +${groupCount - 1}"
+            } else if (groupCount == 1) {
+                group.keys().firstOrNull() ?: activity.getString(R.string.firewall_rule_no_rule)
+            } else {
+                val tempDesc =
+                    getFirewallRule(FirewallRuleset.RULE2G.id)?.let { activity.getString(it.desc) }
+                        ?: activity.getString(R.string.firewall_rule_no_rule_desc)
+                htmlToSpannedText(tempDesc)
+                getFirewallRule(FirewallRuleset.RULE2G.id)?.let { activity.getString(it.title) }
+                    ?: activity.getString(R.string.firewall_rule_no_rule)
+            }
+    } else {
+        headingText =
+            getFirewallRule(blockedRule)?.let { activity.getString(it.title) }
+                ?: activity.getString(R.string.firewall_rule_no_rule)
+        val tempDesc =
+            getFirewallRule(blockedRule)?.let { activity.getString(it.desc) }
+                ?: activity.getString(R.string.firewall_rule_no_rule_desc)
+        descText = htmlToSpannedText(tempDesc)
+    }
+    return RulesDialogContent(headingText, descText, iconRes)
+}
+
+private fun formatText(activity: FragmentActivity, groupNames: Multimap<String, String>): Spanned {
+    var text = ""
+    groupNames.keys().distinct().forEach {
+        val heading =
+            it.replaceFirstChar { a ->
+                if (a.isLowerCase()) a.titlecase(Locale.getDefault()) else a.toString()
+            }
+        text +=
+            activity.getString(
+                R.string.dns_btm_sheet_dialog_message,
+                heading,
+                groupNames.get(it).count().toString(),
+                TextUtils.join(", ", groupNames.get(it))
+            )
+    }
+    text = text.replace(",", ", ")
+    return htmlToSpannedText(text)
+}
+
+private fun logEvent(
+    eventLogger: EventLogger,
+    msg: String,
+    details: String
+) {
+    eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, msg, EventSource.UI, false, details)
+}
+
+@Composable
+private fun SelectionRow(
+    label: @Composable () -> Unit,
+    labels: List<String>,
+    selectedIndex: Int,
+    onSelect: (Int) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(modifier = Modifier.weight(0.6f)) { label() }
+        Box(modifier = Modifier.weight(0.4f), contentAlignment = Alignment.CenterEnd) {
+            TextButton(onClick = { expanded = true }) {
+                Text(text = labels.getOrNull(selectedIndex) ?: "")
+            }
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                labels.forEachIndexed { index, item ->
+                    DropdownMenuItem(
+                        text = { Text(text = item) },
+                        onClick = {
+                            expanded = false
+                            onSelect(index)
+                        }
+                    )
                 }
             }
         }
     }
+}
 
-    @Composable
-    private fun HtmlText(spanned: Spanned, modifier: Modifier = Modifier) {
-        AndroidView(
-            modifier = modifier.fillMaxWidth(),
-            factory = { context ->
-                TextView(context).apply {
-                    setTextColor(fetchColor(activity, R.attr.primaryTextColor))
-                    val size = activity.resources.getDimension(R.dimen.large_font_text_view)
-                    setTextSize(TypedValue.COMPLEX_UNIT_PX, size)
-                }
-            },
-            update = { textView ->
-                textView.text = spanned
+@Composable
+private fun HtmlText(spanned: Spanned, modifier: Modifier = Modifier) {
+    val context = LocalContext.current
+    AndroidView(
+        modifier = modifier.fillMaxWidth(),
+        factory = {
+            TextView(it).apply {
+                setTextColor(fetchColor(context, R.attr.primaryTextColor))
+                val size = context.resources.getDimension(R.dimen.large_font_text_view)
+                setTextSize(TypedValue.COMPLEX_UNIT_PX, size)
             }
-        )
-    }
+        },
+        update = { textView ->
+            textView.text = spanned
+        }
+    )
 }

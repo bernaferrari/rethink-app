@@ -62,9 +62,11 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.AppWiseDomainsAdapter
 import com.celzero.bravedns.database.AppInfo
+import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.bottomsheet.AppDomainRulesSheet
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Themes
@@ -85,6 +87,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AppWiseDomainLogsActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
+    private val eventLogger by inject<EventLogger>()
     private val networkLogsViewModel: AppConnectionsViewModel by viewModel()
     private var uid: Int = INVALID_UID
     private lateinit var appInfo: AppInfo
@@ -358,16 +361,31 @@ class AppWiseDomainLogsActivity : AppCompatActivity() {
 
     @Composable
     private fun AppWiseDomainList() {
+        var showDomainRulesSheet by remember { mutableStateOf(false) }
+        var selectedDomain by remember { mutableStateOf("") }
         val adapter =
             remember {
                 AppWiseDomainsAdapter(
                     this@AppWiseDomainLogsActivity,
                     this@AppWiseDomainLogsActivity,
                     uid,
-                    isActiveConns
+                    isActiveConns,
+                    onShowDomainRules = { domain ->
+                        selectedDomain = domain
+                        showDomainRulesSheet = true
+                    }
                 )
             }
         adapter.CloseDialogHost()
+        if (showDomainRulesSheet && selectedDomain.isNotEmpty()) {
+            AppDomainRulesSheet(
+                uid = uid,
+                domain = selectedDomain,
+                eventLogger = eventLogger,
+                onDismiss = { showDomainRulesSheet = false },
+                onUpdated = { adapter.notifyRulesChanged() }
+            )
+        }
         if (!isRethinkApp) {
             networkLogsViewModel.setUid(uid)
         }

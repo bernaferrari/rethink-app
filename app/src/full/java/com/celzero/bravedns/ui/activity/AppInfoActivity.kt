@@ -69,6 +69,8 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.ProxyManager.ID_NONE
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.bottomsheet.AppDomainRulesSheet
+import com.celzero.bravedns.ui.bottomsheet.AppIpRulesSheet
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Constants.Companion.RETHINK_PACKAGE
@@ -143,9 +145,47 @@ class AppInfoActivity : AppCompatActivity() {
     @Composable
     private fun AppInfoContent() {
         val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
-        val domainAdapter = remember { AppWiseDomainsAdapter(this, lifecycleOwner, uid) }
-        val ipAdapter = remember { AppWiseIpsAdapter(this, lifecycleOwner, uid) }
-        val activeAdapter = remember { AppWiseDomainsAdapter(this, lifecycleOwner, uid, isActiveConn = true) }
+        var showDomainRulesSheet by remember { mutableStateOf(false) }
+        var selectedDomain by remember { mutableStateOf("") }
+        var showIpRulesSheet by remember { mutableStateOf(false) }
+        var selectedIp by remember { mutableStateOf("") }
+        var selectedDomains by remember { mutableStateOf("") }
+
+        val domainAdapter =
+            remember {
+                AppWiseDomainsAdapter(
+                    this,
+                    lifecycleOwner,
+                    uid,
+                    onShowDomainRules = { domain ->
+                        selectedDomain = domain
+                        showDomainRulesSheet = true
+                    }
+                )
+            }
+        val ipAdapter =
+            remember {
+                AppWiseIpsAdapter(
+                    this,
+                    lifecycleOwner,
+                    uid,
+                    onShowIpRules = { ip, domains ->
+                        selectedIp = ip
+                        selectedDomains = domains
+                        showIpRulesSheet = true
+                    }
+                )
+            }
+        val activeAdapter =
+            remember {
+                AppWiseDomainsAdapter(
+                    this,
+                    lifecycleOwner,
+                    uid,
+                    isActiveConn = true,
+                    onShowDomainRules = { }
+                )
+            }
 
         val isRethink = appInfo?.packageName == RETHINK_PACKAGE
         val uptime = VpnController.uptimeMs()
@@ -174,6 +214,26 @@ class AppInfoActivity : AppCompatActivity() {
         }
 
         activeAdapter.CloseDialogHost()
+
+        if (showDomainRulesSheet && selectedDomain.isNotEmpty()) {
+            AppDomainRulesSheet(
+                uid = uid,
+                domain = selectedDomain,
+                eventLogger = eventLogger,
+                onDismiss = { showDomainRulesSheet = false },
+                onUpdated = { domainAdapter.notifyRulesChanged() }
+            )
+        }
+        if (showIpRulesSheet && selectedIp.isNotEmpty()) {
+            AppIpRulesSheet(
+                uid = uid,
+                ipAddress = selectedIp,
+                domains = selectedDomains,
+                eventLogger = eventLogger,
+                onDismiss = { showIpRulesSheet = false },
+                onUpdated = { ipAdapter.notifyRulesChanged() }
+            )
+        }
 
         Column(
             modifier = Modifier.fillMaxSize().padding(12.dp),

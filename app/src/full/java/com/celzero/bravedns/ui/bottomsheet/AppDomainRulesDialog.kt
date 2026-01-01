@@ -15,13 +15,8 @@
  */
 package com.celzero.bravedns.ui.bottomsheet
 
-import Logger
-import Logger.LOG_TAG_FIREWALL
-import Logger.LOG_TAG_UI
-import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.widget.Toast
-import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -36,29 +31,26 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.ExperimentalMaterial3Api
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CustomDomain
 import com.celzero.bravedns.database.EventSource
@@ -68,97 +60,81 @@ import com.celzero.bravedns.database.WgConfigFilesImmutable
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
-import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager.ID_WG_BASE
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
-import com.celzero.bravedns.util.Themes.Companion.getBottomsheetCurrentTheme
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
-import com.celzero.bravedns.util.Utilities.isAtleastQ
-import com.celzero.bravedns.util.useTransparentNoDimBackground
-import com.google.android.material.bottomsheet.BottomSheetDialog
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 
-class AppDomainRulesDialog(
-    private val activity: FragmentActivity,
-    private val uid: Int,
-    private val domain: String,
-    private val position: Int,
-    private val onDismiss: (Int) -> Unit
-) : KoinComponent {
-    private val dialog = BottomSheetDialog(activity, getThemeId())
+private const val TAG = "AppDomainBtmSht"
 
-    private val persistentState by inject<PersistentState>()
-    private val eventLogger by inject<EventLogger>()
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppDomainRulesSheet(
+    uid: Int,
+    domain: String,
+    eventLogger: EventLogger,
+    onDismiss: () -> Unit,
+    onUpdated: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    private var domainRule by mutableStateOf(DomainRulesManager.Status.NONE)
-    private var cd: CustomDomain? = null
-    private var appName by mutableStateOf<String?>(null)
-    private var appIcon by mutableStateOf<Drawable?>(null)
-    private var showWgSheet by mutableStateOf(false)
-    private var wgConfigs by mutableStateOf<List<WgConfigFilesImmutable?>>(emptyList())
+    var domainRule by remember { mutableStateOf(DomainRulesManager.Status.NONE) }
+    var customDomain by remember { mutableStateOf<CustomDomain?>(null) }
+    var appName by remember { mutableStateOf<String?>(null) }
+    var appIcon by remember { mutableStateOf<Drawable?>(null) }
+    var showWgSheet by remember { mutableStateOf(false) }
+    var wgConfigs by remember { mutableStateOf<List<WgConfigFilesImmutable?>>(emptyList()) }
 
-    companion object {
-        private const val TAG = "AppDomainBtmSht"
-    }
-
-    init {
-        val composeView = ComposeView(activity)
-        composeView.setContent {
-            RethinkTheme {
-                AppDomainRulesContent()
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.setOnShowListener {
-            dialog.useTransparentNoDimBackground()
-            dialog.window?.let { window ->
-                if (isAtleastQ()) {
-                    val controller = WindowInsetsControllerCompat(window, window.decorView)
-                    controller.isAppearanceLightNavigationBars = false
-                    window.isNavigationBarContrastEnforced = false
-                }
-            }
-        }
-        dialog.setOnDismissListener { onDismiss(position) }
-
-        initData()
-        setRulesUi()
-    }
-
-    fun show() {
-        dialog.show()
-    }
-
-    private fun getThemeId(): Int {
-        val isDark =
-            activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                Configuration.UI_MODE_NIGHT_YES
-        return getBottomsheetCurrentTheme(isDark, persistentState.theme)
-    }
-
-    private fun initData() {
+    LaunchedEffect(uid, domain) {
         if (uid == INVALID_UID) {
-            dialog.dismiss()
-            return
+            onDismiss()
+            return@LaunchedEffect
         }
-        io {
-            cd = DomainRulesManager.getObj(uid, domain)
-            if (cd == null) {
-                cd = DomainRulesManager.makeCustomDomain(uid, domain)
+        val appNames = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(uid) }
+        val appCount = appNames.count()
+        val pkgName =
+            if (appNames.isNotEmpty()) {
+                FirewallManager.getPackageNameByAppName(appNames[0])
+            } else {
+                null
             }
-        }
-        updateAppDetails()
+        appName =
+            if (appCount >= 1) {
+                if (appCount >= 2) {
+                    context.getString(
+                        R.string.ctbs_app_other_apps,
+                        appNames[0],
+                        appCount.minus(1).toString()
+                    )
+                } else {
+                    appNames[0]
+                }
+            } else {
+                null
+            }
+        appIcon =
+            if (pkgName != null) {
+                Utilities.getIcon(context, pkgName)
+            } else {
+                null
+            }
+        domainRule = withContext(Dispatchers.IO) { DomainRulesManager.status(domain, uid) }
+        customDomain =
+            withContext(Dispatchers.IO) {
+                DomainRulesManager.getObj(uid, domain) ?: DomainRulesManager.makeCustomDomain(uid, domain)
+            }
     }
 
-    @Composable
-    private fun AppDomainRulesContent() {
-        val borderColor = Color(UIUtils.fetchColor(activity, R.attr.border))
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        val borderColor = Color(UIUtils.fetchColor(context, R.attr.border))
         val trustIcon =
             if (domainRule == DomainRulesManager.Status.TRUST) {
                 R.drawable.ic_trust_accent
@@ -186,13 +162,16 @@ class AppDomainRulesDialog(
 
             if (appName != null) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp).background(Color.Transparent),
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .padding(horizontal = 20.dp)
+                            .background(Color.Transparent),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     appIcon?.let { icon ->
                         AndroidView(
-                            factory = { ctx -> ImageView(ctx) },
+                            factory = { ctx -> android.widget.ImageView(ctx) },
                             update = { view ->
                                 view.setImageDrawable(icon)
                             },
@@ -209,7 +188,7 @@ class AppDomainRulesDialog(
             }
 
             Text(
-                text = activity.getString(R.string.bsct_block_domain),
+                text = context.getString(R.string.bsct_block_domain),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
@@ -232,11 +211,20 @@ class AppDomainRulesDialog(
                     contentDescription = null,
                     modifier =
                         Modifier.size(28.dp).clickable {
-                            if (domainRule == DomainRulesManager.Status.TRUST) {
-                                applyDomainRule(DomainRulesManager.Status.NONE)
-                            } else {
-                                applyDomainRule(DomainRulesManager.Status.TRUST)
-                            }
+                            val target =
+                                if (domainRule == DomainRulesManager.Status.TRUST) {
+                                    DomainRulesManager.Status.NONE
+                                } else {
+                                    DomainRulesManager.Status.TRUST
+                                }
+                            applyDomainRule(
+                                domain,
+                                uid,
+                                target,
+                                scope,
+                                eventLogger,
+                                onUpdated
+                            ) { domainRule = it }
                         }
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -245,17 +233,26 @@ class AppDomainRulesDialog(
                     contentDescription = null,
                     modifier =
                         Modifier.size(28.dp).clickable {
-                            if (domainRule == DomainRulesManager.Status.BLOCK) {
-                                applyDomainRule(DomainRulesManager.Status.NONE)
-                            } else {
-                                applyDomainRule(DomainRulesManager.Status.BLOCK)
-                            }
+                            val target =
+                                if (domainRule == DomainRulesManager.Status.BLOCK) {
+                                    DomainRulesManager.Status.NONE
+                                } else {
+                                    DomainRulesManager.Status.BLOCK
+                                }
+                            applyDomainRule(
+                                domain,
+                                uid,
+                                target,
+                                scope,
+                                eventLogger,
+                                onUpdated
+                            ) { domainRule = it }
                         }
                 )
             }
 
             Text(
-                text = activity.getString(R.string.bsac_title_desc),
+                text = context.getString(R.string.bsac_title_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
@@ -264,204 +261,149 @@ class AppDomainRulesDialog(
 
         if (showWgSheet) {
             WireguardListSheet(
-                inputLabel = cd?.domain,
-                selectedProxyId = cd?.proxyId.orEmpty(),
-                onDismiss = { showWgSheet = false }
-            )
-        }
-    }
-
-    private fun updateAppDetails() {
-        if (uid == -1) return
-
-        io {
-            val appNames = FirewallManager.getAppNamesByUid(uid)
-            if (appNames.isEmpty()) {
-                uiCtx {
-                    appName = null
-                    appIcon = null
-                }
-                return@io
-            }
-            val pkgName = FirewallManager.getPackageNameByAppName(appNames[0])
-
-            val appCount = appNames.count()
-            uiCtx {
-                if (appCount >= 1) {
-                    appName =
-                        if (appCount >= 2) {
-                            activity.getString(
-                                R.string.ctbs_app_other_apps,
-                                appNames[0],
-                                appCount.minus(1).toString()
-                            )
-                        } else {
-                            appNames[0]
+                inputLabel = customDomain?.domain,
+                selectedProxyId = customDomain?.proxyId.orEmpty(),
+                wgConfigs = wgConfigs,
+                onDismiss = { showWgSheet = false },
+                onSelected = { conf ->
+                    scope.launch(Dispatchers.IO) {
+                        val current = customDomain
+                        if (current == null) {
+                            Napier.w("$TAG: Custom domain is null")
+                            return@launch
                         }
-                    if (pkgName != null) {
-                        appIcon = Utilities.getIcon(activity, pkgName)
-                    }
-                } else {
-                    appName = null
-                    appIcon = null
-                }
-            }
-        }
-
-    }
-
-    private fun setRulesUi() {
-        io {
-            domainRule = DomainRulesManager.status(domain, uid)
-            Logger.d(LOG_TAG_FIREWALL, "$TAG set selection of ip: $domain, ${domainRule.id}")
-        }
-    }
-
-    private fun showWgListDialog(data: List<WgConfigFilesImmutable?>) {
-        Logger.v(LOG_TAG_UI, "$TAG show wg list(${data.size} for ${cd?.domain}, uid: $uid")
-        wgConfigs = data
-        showWgSheet = true
-    }
-
-    private fun applyDomainRule(status: DomainRulesManager.Status) {
-        Logger.i(LOG_TAG_FIREWALL, "$TAG domain rule for uid: $uid:$domain (${status.name})")
-        domainRule = status
-
-        io {
-            DomainRulesManager.changeStatus(
-                domain,
-                uid,
-                "",
-                DomainRulesManager.DomainType.DOMAIN,
-                status
-            )
-        }
-        logEvent("Domain rule applied: $domain, $uid, ${status.name}")
-    }
-
-    private fun logEvent(details: String) {
-        eventLogger.log(
-            EventType.FW_RULE_MODIFIED,
-            Severity.LOW,
-            "App domain rule",
-            EventSource.UI,
-            false,
-            details
-        )
-    }
-
-    private fun io(f: suspend () -> Unit) {
-        activity.lifecycleScope.launch(Dispatchers.IO) { f() }
-    }
-
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    private fun WireguardListSheet(
-        inputLabel: String?,
-        selectedProxyId: String,
-        onDismiss: () -> Unit
-    ) {
-        var currentProxyId by remember(inputLabel, selectedProxyId) { mutableStateOf(selectedProxyId) }
-        val borderColor = Color(UIUtils.fetchColor(activity, R.attr.border))
-
-        ModalBottomSheet(onDismissRequest = onDismiss) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Box(
-                    modifier =
-                        Modifier.align(Alignment.CenterHorizontally)
-                            .width(60.dp)
-                            .height(3.dp)
-                            .background(borderColor, RoundedCornerShape(2.dp))
-                )
-
-                inputLabel?.let {
-                    Text(
-                        text = it,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier.fillMaxWidth(),
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-
-                LazyColumn {
-                    items(wgConfigs, key = { it?.id ?: -1 }) { conf ->
-                        val proxyId = conf?.let { ID_WG_BASE + it.id } ?: ""
-                        val isSelected = currentProxyId == proxyId
-                        val name =
-                            conf?.name ?: activity.getString(R.string.settings_app_list_default_app)
-                        val idSuffix = conf?.id?.toString()?.padStart(3, '0')
-                        val desc =
+                        val id =
                             if (conf == null) {
-                                activity.getString(R.string.settings_app_list_default_app)
+                                ""
                             } else {
-                                activity.getString(R.string.settings_app_list_default_app) +
-                                    " $idSuffix"
+                                ID_WG_BASE + conf.id
                             }
-
-                        Row(
-                            modifier =
-                                Modifier.fillMaxWidth()
-                                    .clickable {
-                                        currentProxyId = proxyId
-                                        processDomain(conf)
-                                        onDismiss()
-                                    }
-                                    .padding(vertical = 8.dp, horizontal = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Text(
-                                text = ID_WG_BASE.uppercase(),
-                                style = MaterialTheme.typography.titleMedium
+                        DomainRulesManager.setProxyId(current, id)
+                        current.proxyId = id
+                        withContext(Dispatchers.Main) {
+                            Utilities.showToastUiCentered(
+                                context,
+                                context.getString(R.string.config_add_success_toast),
+                                Toast.LENGTH_SHORT
                             )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(text = name, style = MaterialTheme.typography.bodyLarge)
-                                Text(
-                                    text = desc,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            RadioButton(selected = isSelected, onClick = null)
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.size(8.dp))
-            }
+            )
         }
     }
+}
 
-    private fun processDomain(conf: WgConfigFilesImmutable?) {
-        io {
-            val domain = cd ?: run {
-                Logger.w(LOG_TAG_UI, "$TAG: Custom domain is null")
-                return@io
-            }
-            if (conf == null) {
-                DomainRulesManager.setProxyId(domain, "")
-                domain.proxyId = ""
-            } else {
-                val id = ID_WG_BASE + conf.id
-                DomainRulesManager.setProxyId(domain, id)
-                domain.proxyId = id
-            }
-            val name = conf?.name ?: activity.getString(R.string.settings_app_list_default_app)
-            Logger.v(LOG_TAG_UI, "$TAG: wg-endpoint set to $name for ${domain.domain}")
-            uiCtx {
-                Utilities.showToastUiCentered(
-                    activity,
-                    activity.getString(R.string.config_add_success_toast),
-                    Toast.LENGTH_SHORT
+private fun applyDomainRule(
+    domain: String,
+    uid: Int,
+    status: DomainRulesManager.Status,
+    scope: CoroutineScope,
+    eventLogger: EventLogger,
+    onUpdated: () -> Unit,
+    onSetStatus: (DomainRulesManager.Status) -> Unit
+) {
+    onSetStatus(status)
+    val details = "Domain rule applied: $domain, $uid, ${status.name}"
+    eventLogger.log(
+        EventType.FW_RULE_MODIFIED,
+        Severity.LOW,
+        "App domain rule",
+        EventSource.UI,
+        false,
+        details
+    )
+    scope.launch(Dispatchers.IO) {
+        DomainRulesManager.changeStatus(
+            domain,
+            uid,
+            "",
+            DomainRulesManager.DomainType.DOMAIN,
+            status
+        )
+        withContext(Dispatchers.Main) { onUpdated() }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun WireguardListSheet(
+    inputLabel: String?,
+    selectedProxyId: String,
+    wgConfigs: List<WgConfigFilesImmutable?>,
+    onDismiss: () -> Unit,
+    onSelected: (WgConfigFilesImmutable?) -> Unit
+) {
+    val context = LocalContext.current
+    var currentProxyId by remember(inputLabel, selectedProxyId) { mutableStateOf(selectedProxyId) }
+    val borderColor = Color(UIUtils.fetchColor(context, R.attr.border))
+
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                        .width(60.dp)
+                        .height(3.dp)
+                        .background(borderColor, RoundedCornerShape(2.dp))
+            )
+
+            inputLabel?.let {
+                Text(
+                    text = it,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.onSurface
                 )
             }
+
+            LazyColumn {
+                items(wgConfigs, key = { it?.id ?: -1 }) { conf ->
+                    val proxyId = conf?.let { ID_WG_BASE + it.id } ?: ""
+                    val isSelected = currentProxyId == proxyId
+                    val name =
+                        conf?.name ?: context.getString(R.string.settings_app_list_default_app)
+                    val idSuffix = conf?.id?.toString()?.padStart(3, '0')
+                    val desc =
+                        if (conf == null) {
+                            context.getString(R.string.settings_app_list_default_app)
+                        } else {
+                            context.getString(R.string.settings_app_list_default_app) + " $idSuffix"
+                        }
+
+                    Row(
+                        modifier =
+                            Modifier.fillMaxWidth()
+                                .clickable {
+                                    currentProxyId = proxyId
+                                    onSelected(conf)
+                                    onDismiss()
+                                }
+                                .padding(vertical = 8.dp, horizontal = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = ID_WG_BASE.uppercase(),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(text = name, style = MaterialTheme.typography.bodyLarge)
+                            Text(
+                                text = desc,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        RadioButton(selected = isSelected, onClick = null)
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.size(8.dp))
         }
     }
 }

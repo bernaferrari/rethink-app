@@ -20,8 +20,6 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -51,7 +49,7 @@ import com.celzero.bravedns.database.RefreshDatabase
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.bottomsheet.BackupRestoreDialog
+import com.celzero.bravedns.ui.bottomsheet.BackupRestoreSheet
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils.openUrl
@@ -66,8 +64,6 @@ class MiscSettingsActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
     private val rdb by inject<RefreshDatabase>()
     private val eventLogger by inject<EventLogger>()
-    private lateinit var backupLauncher: ActivityResultLauncher<Intent>
-    private lateinit var restoreLauncher: ActivityResultLauncher<Intent>
 
     enum class BioMetricType(val action: Int, val mins: Long) {
         OFF(0, -1L),
@@ -102,11 +98,6 @@ class MiscSettingsActivity : AppCompatActivity() {
             window.isNavigationBarContrastEnforced = false
         }
 
-        backupLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { /* no-op */ }
-        restoreLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { /* no-op */ }
-
         setContent {
             RethinkTheme {
                 MiscSettingsContent()
@@ -126,6 +117,7 @@ class MiscSettingsActivity : AppCompatActivity() {
         var firebaseEnabled by mutableStateOf(persistentState.firebaseErrorReportingEnabled)
         var ipInfoEnabled by mutableStateOf(persistentState.downloadIpInfo)
         var customDownloadEnabled by mutableStateOf(persistentState.useCustomDownloadManager)
+        var showBackupSheet by mutableStateOf(false)
 
         Column(
             modifier = Modifier.fillMaxSize().padding(12.dp),
@@ -211,7 +203,7 @@ class MiscSettingsActivity : AppCompatActivity() {
             Card(colors = CardDefaults.cardColors()) {
                 Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(text = stringResource(id = R.string.brbs_backup_restore_desc), style = MaterialTheme.typography.titleMedium)
-                    Button(onClick = { openBackupRestoreDialog() }) {
+                    Button(onClick = { showBackupSheet = true }) {
                         Text(text = stringResource(id = R.string.brbs_backup_title))
                     }
                     Button(onClick = { refreshDatabase() }) {
@@ -225,17 +217,12 @@ class MiscSettingsActivity : AppCompatActivity() {
                 Text(text = stringResource(id = R.string.about_website))
             }
         }
-    }
 
-    private fun openBackupRestoreDialog() {
-        val dialog =
-            BackupRestoreDialog(
-                activity = this,
-                backupLauncher = backupLauncher,
-                restoreLauncher = restoreLauncher,
-                onDismiss = {}
+        if (showBackupSheet) {
+            BackupRestoreSheet(
+                onDismiss = { showBackupSheet = false }
             )
-        dialog.show()
+        }
     }
 
     private fun refreshDatabase() {

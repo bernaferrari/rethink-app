@@ -34,13 +34,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.bottomsheet.AppDomainRulesDialog
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
@@ -51,7 +49,8 @@ class AppWiseDomainsAdapter(
     val context: Context,
     val lifecycleOwner: LifecycleOwner,
     val uid: Int,
-    val isActiveConn: Boolean = false
+    val isActiveConn: Boolean = false,
+    val onShowDomainRules: (String) -> Unit
 ) {
 
     private var maxValue: Int = 0
@@ -204,25 +203,15 @@ class AppWiseDomainsAdapter(
             Napier.w("$TAG missing domain for uid: $uid, ip: ${appConn.ipAddress}")
             return
         }
-
-        val activity = context as? FragmentActivity
-        if (activity == null) {
-            Napier.w("$TAG invalid context for app domain dialog")
-            return
-        }
-        AppDomainRulesDialog(
-            activity,
-            uid,
-            domain,
-            -1
-        ) { _ ->
-            refreshToken.value = refreshToken.value + 1
-        }
-            .show()
+        onShowDomainRules(domain)
     }
 
     private fun beautifyIpString(d: String): String {
         return removeBeginningTrailingCommas(d).replace(",,", ",").replace(",", ", ")
+    }
+
+    fun notifyRulesChanged() {
+        refreshToken.value = refreshToken.value + 1
     }
 
 }

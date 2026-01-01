@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 RethinkDNS and its authors
+ * Copyright 2024 RethinkDNS and its authors
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,7 @@
  */
 package com.celzero.bravedns.ui.bottomsheet
 
-import android.content.res.Configuration
 import android.graphics.drawable.Drawable
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -34,133 +32,105 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.view.WindowInsetsControllerCompat
-import androidx.fragment.app.FragmentActivity
-import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
-import com.celzero.bravedns.database.CustomIp
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
-import com.celzero.bravedns.database.WgConfigFilesImmutable
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.IpRulesManager
-import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.service.ProxyManager.ID_WG_BASE
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
-import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
-import com.celzero.bravedns.util.Themes.Companion.getBottomsheetCurrentTheme
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
-import com.celzero.bravedns.util.Utilities.isAtleastQ
-import com.celzero.bravedns.util.useTransparentNoDimBackground
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import io.github.aakira.napier.Napier
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import org.koin.core.component.KoinComponent
-import org.koin.core.component.inject
 
-class AppIpRulesDialog(
-    private val activity: FragmentActivity,
-    private val uid: Int,
-    private val ipAddress: String,
-    private val domains: String,
-    private val position: Int,
-    private val onDismiss: (Int) -> Unit
-) : KoinComponent {
-    private val dialog = BottomSheetDialog(activity, getThemeId())
+private const val TAG = "AppIpBtmSht"
 
-    private val persistentState by inject<PersistentState>()
-    private val eventLogger by inject<EventLogger>()
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AppIpRulesSheet(
+    uid: Int,
+    ipAddress: String,
+    domains: String,
+    eventLogger: EventLogger,
+    onDismiss: () -> Unit,
+    onUpdated: () -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
 
-    private var ci: CustomIp? = null
-    private var ipRule by mutableStateOf(IpRulesManager.IpRuleStatus.NONE)
-    private var appName by mutableStateOf<String?>(null)
-    private var appIcon by mutableStateOf<Drawable?>(null)
-    private var showWgSheet by mutableStateOf(false)
-    private var wgConfigs by mutableStateOf<List<WgConfigFilesImmutable?>>(emptyList())
+    var ipRule by remember { mutableStateOf(IpRulesManager.IpRuleStatus.NONE) }
+    var appName by remember { mutableStateOf<String?>(null) }
+    var appIcon by remember { mutableStateOf<Drawable?>(null) }
+    val domainList = remember(domains) { domains.split(",").map { it.trim() }.filter { it.isNotEmpty() } }
+    val domainRules = remember { mutableStateMapOf<String, DomainRulesManager.Status>() }
 
-    companion object {
-        private const val TAG = "AppIpRulesBtmSht"
-    }
-
-    init {
-        val composeView = ComposeView(activity)
-        composeView.setContent {
-            RethinkTheme {
-                AppIpRulesContent()
+    LaunchedEffect(uid, ipAddress, domains) {
+        val appNames = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(uid) }
+        val appCount = appNames.count()
+        val pkgName =
+            if (appNames.isNotEmpty()) {
+                FirewallManager.getPackageNameByAppName(appNames[0])
+            } else {
+                null
             }
-        }
-        dialog.setContentView(composeView)
-        dialog.setOnShowListener {
-            dialog.useTransparentNoDimBackground()
-            dialog.window?.let { window ->
-                if (isAtleastQ()) {
-                    val controller = WindowInsetsControllerCompat(window, window.decorView)
-                    controller.isAppearanceLightNavigationBars = false
-                    window.isNavigationBarContrastEnforced = false
+        appName =
+            if (appCount >= 1) {
+                if (appCount >= 2) {
+                    context.getString(
+                        R.string.ctbs_app_other_apps,
+                        appNames[0],
+                        appCount.minus(1).toString()
+                    )
+                } else {
+                    appNames[0]
                 }
+            } else {
+                null
             }
-        }
-        dialog.setOnDismissListener { onDismiss(position) }
-
-        initData()
-        setRulesUi()
-    }
-
-    fun show() {
-        dialog.show()
-    }
-
-    private fun getThemeId(): Int {
-        val isDark =
-            activity.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                Configuration.UI_MODE_NIGHT_YES
-        return getBottomsheetCurrentTheme(isDark, persistentState.theme)
-    }
-
-    private fun initData() {
-        if (uid == INVALID_UID) {
-            dialog.dismiss()
-            return
-        }
-
-        io {
-            ci = IpRulesManager.getObj(uid, ipAddress)
-            if (ci == null) {
-                ci = IpRulesManager.mkCustomIp(uid, ipAddress)
+        appIcon =
+            if (pkgName != null) {
+                Utilities.getIcon(context, pkgName)
+            } else {
+                null
             }
+        ipRule = withContext(Dispatchers.IO) {
+            IpRulesManager.getMostSpecificRuleMatch(uid, ipAddress)
         }
-        updateAppDetails()
+        val statuses =
+            withContext(Dispatchers.IO) {
+                domainList.associateWith { DomainRulesManager.getDomainRule(it, uid) }
+            }
+        domainRules.clear()
+        domainRules.putAll(statuses)
     }
 
-    @Composable
-    private fun AppIpRulesContent() {
-        val borderColor = Color(UIUtils.fetchColor(activity, R.attr.border))
+    ModalBottomSheet(onDismissRequest = onDismiss) {
+        val borderColor = Color(UIUtils.fetchColor(context, R.attr.border))
         val trustIcon =
             if (ipRule == IpRulesManager.IpRuleStatus.TRUST) {
                 R.drawable.ic_trust_accent
@@ -173,17 +143,6 @@ class AppIpRulesDialog(
             } else {
                 R.drawable.ic_block
             }
-        val domainList =
-            remember(domains) { domains.split(",").map { it.trim() }.filter { it.isNotEmpty() } }
-        val domainRules = remember { mutableStateMapOf<String, DomainRulesManager.Status>() }
-
-        LaunchedEffect(domainList) {
-            val statuses =
-                withContext(Dispatchers.IO) {
-                    domainList.associateWith { DomainRulesManager.getDomainRule(it, uid) }
-                }
-            domainRules.putAll(statuses)
-        }
 
         Column(
             modifier = Modifier.fillMaxWidth().padding(bottom = 60.dp),
@@ -220,7 +179,7 @@ class AppIpRulesDialog(
             }
 
             Text(
-                text = activity.getString(R.string.bsct_block_ip),
+                text = context.getString(R.string.bsct_block_ip),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
@@ -243,11 +202,20 @@ class AppIpRulesDialog(
                     contentDescription = null,
                     modifier =
                         Modifier.size(28.dp).clickable {
-                            if (ipRule == IpRulesManager.IpRuleStatus.TRUST) {
-                                applyIpRule(IpRulesManager.IpRuleStatus.NONE)
-                            } else {
-                                applyIpRule(IpRulesManager.IpRuleStatus.TRUST)
-                            }
+                            val target =
+                                if (ipRule == IpRulesManager.IpRuleStatus.TRUST) {
+                                    IpRulesManager.IpRuleStatus.NONE
+                                } else {
+                                    IpRulesManager.IpRuleStatus.TRUST
+                                }
+                            applyIpRule(
+                                uid,
+                                ipAddress,
+                                target,
+                                scope,
+                                eventLogger,
+                                onUpdated
+                            ) { ipRule = it }
                         }
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -256,25 +224,32 @@ class AppIpRulesDialog(
                     contentDescription = null,
                     modifier =
                         Modifier.size(28.dp).clickable {
-                            if (ipRule == IpRulesManager.IpRuleStatus.BLOCK) {
-                                applyIpRule(IpRulesManager.IpRuleStatus.NONE)
-                            } else {
-                                applyIpRule(IpRulesManager.IpRuleStatus.BLOCK)
-                            }
+                            val target =
+                                if (ipRule == IpRulesManager.IpRuleStatus.BLOCK) {
+                                    IpRulesManager.IpRuleStatus.NONE
+                                } else {
+                                    IpRulesManager.IpRuleStatus.BLOCK
+                                }
+                            applyIpRule(
+                                uid,
+                                ipAddress,
+                                target,
+                                scope,
+                                eventLogger,
+                                onUpdated
+                            ) { ipRule = it }
                         }
                 )
             }
 
             if (domainList.isNotEmpty()) {
                 Text(
-                    text = activity.getString(R.string.bsct_block_domain),
+                    text = context.getString(R.string.bsct_block_domain),
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
                 )
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
-                ) {
+                LazyColumn(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)) {
                     items(domainList, key = { it }) { domain ->
                         val status = domainRules[domain] ?: DomainRulesManager.Status.NONE
                         DomainRuleRow(
@@ -282,7 +257,7 @@ class AppIpRulesDialog(
                             status = status,
                             onUpdate = { newStatus ->
                                 domainRules[domain] = newStatus
-                                applyDomainRule(domain, newStatus)
+                                applyDomainRule(domain, uid, newStatus, scope)
                             }
                         )
                     }
@@ -290,260 +265,113 @@ class AppIpRulesDialog(
             }
 
             Text(
-                text = activity.getString(R.string.bsac_title_desc),
+                text = context.getString(R.string.bsac_title_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
             )
         }
-
     }
+}
 
-    @Composable
-    private fun DomainRuleRow(
-        domain: String,
-        status: DomainRulesManager.Status,
-        onUpdate: (DomainRulesManager.Status) -> Unit
+@Composable
+private fun DomainRuleRow(
+    domain: String,
+    status: DomainRulesManager.Status,
+    onUpdate: (DomainRulesManager.Status) -> Unit
+) {
+    val trustIcon =
+        if (status == DomainRulesManager.Status.TRUST) {
+            R.drawable.ic_trust_accent
+        } else {
+            R.drawable.ic_trust
+        }
+    val blockIcon =
+        if (status == DomainRulesManager.Status.BLOCK) {
+            R.drawable.ic_block_accent
+        } else {
+            R.drawable.ic_block
+        }
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically
     ) {
-        val trustIcon =
-            if (status == DomainRulesManager.Status.TRUST) {
-                R.drawable.ic_trust_accent
-            } else {
-                R.drawable.ic_trust
-            }
-        val blockIcon =
-            if (status == DomainRulesManager.Status.BLOCK) {
-                R.drawable.ic_block_accent
-            } else {
-                R.drawable.ic_block
-            }
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Text(
-                text = domain,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f)
-            )
-            Icon(
-                painter = painterResource(id = trustIcon),
-                contentDescription = null,
-                modifier =
-                    Modifier.size(24.dp).clickable {
-                        if (status == DomainRulesManager.Status.TRUST) {
-                            onUpdate(DomainRulesManager.Status.NONE)
-                        } else {
-                            onUpdate(DomainRulesManager.Status.TRUST)
-                        }
+        Text(
+            text = domain,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
+        )
+        Icon(
+            painter = painterResource(id = trustIcon),
+            contentDescription = null,
+            modifier =
+                Modifier.size(24.dp).clickable {
+                    if (status == DomainRulesManager.Status.TRUST) {
+                        onUpdate(DomainRulesManager.Status.NONE)
+                    } else {
+                        onUpdate(DomainRulesManager.Status.TRUST)
                     }
-            )
-            Spacer(modifier = Modifier.width(10.dp))
-            Icon(
-                painter = painterResource(id = blockIcon),
-                contentDescription = null,
-                modifier =
-                    Modifier.size(24.dp).clickable {
-                        if (status == DomainRulesManager.Status.BLOCK) {
-                            onUpdate(DomainRulesManager.Status.NONE)
-                        } else {
-                            onUpdate(DomainRulesManager.Status.BLOCK)
-                        }
-                    }
-            )
-        }
-    }
-
-    private fun updateAppDetails() {
-        if (uid == -1) return
-
-        io {
-            val appNames = FirewallManager.getAppNamesByUid(uid)
-            if (appNames.isEmpty()) {
-                uiCtx {
-                    appName = null
-                    appIcon = null
                 }
-                return@io
-            }
-            val pkgName = FirewallManager.getPackageNameByAppName(appNames[0])
-
-            val appCount = appNames.count()
-            uiCtx {
-                if (appCount >= 1) {
-                    appName =
-                        if (appCount >= 2) {
-                            activity.getString(
-                                R.string.ctbs_app_other_apps,
-                                appNames[0],
-                                appCount.minus(1).toString()
-                            )
-                        } else {
-                            appNames[0]
-                        }
-                    if (pkgName != null) {
-                        appIcon = Utilities.getIcon(activity, pkgName)
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Icon(
+            painter = painterResource(id = blockIcon),
+            contentDescription = null,
+            modifier =
+                Modifier.size(24.dp).clickable {
+                    if (status == DomainRulesManager.Status.BLOCK) {
+                        onUpdate(DomainRulesManager.Status.NONE)
+                    } else {
+                        onUpdate(DomainRulesManager.Status.BLOCK)
                     }
-                } else {
-                    appName = null
-                    appIcon = null
                 }
-            }
-        }
-
-    }
-
-    private fun setRulesUi() {
-        io {
-            ipRule = IpRulesManager.getMostSpecificRuleMatch(uid, ipAddress)
-            Napier.d("$TAG set selection of ip: $ipAddress, ${ipRule.id}")
-        }
-    }
-
-    private fun applyDomainRule(domain: String, status: DomainRulesManager.Status) {
-        Napier.i("Apply domain rule for $domain, ${status.name}")
-        io {
-            DomainRulesManager.addDomainRule(
-                domain.trim(),
-                status,
-                DomainRulesManager.DomainType.DOMAIN,
-                uid,
-            )
-        }
-    }
-
-    private fun applyIpRule(status: IpRulesManager.IpRuleStatus) {
-        Napier.i("$TAG ip rule for uid: $uid, ip: $ipAddress (${status.name})")
-        ipRule = status
-        val ipPair = IpRulesManager.getIpNetPort(ipAddress)
-        val ip = ipPair.first ?: return
-
-        io { IpRulesManager.addIpRule(uid, ip, null, status, proxyId = "", proxyCC = "") }
-        logEvent("IP Rule set to ${status.name} for IP: $ipAddress, UID: $uid")
-    }
-
-    private fun logEvent(details: String) {
-        eventLogger.log(
-            EventType.FW_RULE_MODIFIED,
-            Severity.LOW,
-            "App IP rule",
-            EventSource.UI,
-            false,
-            details
         )
     }
+}
 
-    private fun io(f: suspend () -> Unit) {
-        activity.lifecycleScope.launch(Dispatchers.IO) { f() }
+private fun applyDomainRule(
+    domain: String,
+    uid: Int,
+    status: DomainRulesManager.Status,
+    scope: CoroutineScope
+) {
+    scope.launch(Dispatchers.IO) {
+        DomainRulesManager.addDomainRule(
+            domain.trim(),
+            status,
+            DomainRulesManager.DomainType.DOMAIN,
+            uid
+        )
     }
+}
 
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
-    }
-
-    @OptIn(ExperimentalMaterial3Api::class)
-    @Composable
-    private fun WireguardListSheet(
-        inputLabel: String,
-        selectedProxyId: String,
-        onDismiss: () -> Unit
-    ) {
-        var currentProxyId by remember(inputLabel, selectedProxyId) { mutableStateOf(selectedProxyId) }
-        val borderColor = Color(UIUtils.fetchColor(activity, R.attr.border))
-
-        ModalBottomSheet(onDismissRequest = onDismiss) {
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Box(
-                    modifier =
-                        Modifier.align(Alignment.CenterHorizontally)
-                            .width(60.dp)
-                            .height(3.dp)
-                            .background(borderColor, RoundedCornerShape(2.dp))
-                )
-
-                Text(
-                    text = inputLabel,
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-
-                LazyColumn {
-                    items(wgConfigs, key = { it?.id ?: -1 }) { conf ->
-                        val proxyId = conf?.let { ID_WG_BASE + it.id } ?: ""
-                        val isSelected = currentProxyId == proxyId
-                        val name =
-                            conf?.name ?: activity.getString(R.string.settings_app_list_default_app)
-                        val idSuffix = conf?.id?.toString()?.padStart(3, '0')
-                        val desc =
-                            if (conf == null) {
-                                activity.getString(R.string.settings_app_list_default_app)
-                            } else {
-                                activity.getString(R.string.settings_app_list_default_app) +
-                                    " $idSuffix"
-                            }
-
-                        Row(
-                            modifier =
-                                Modifier.fillMaxWidth()
-                                    .clickable {
-                                        currentProxyId = proxyId
-                                        processIp(conf)
-                                        onDismiss()
-                                    }
-                                    .padding(vertical = 8.dp, horizontal = 4.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            Text(
-                                text = ID_WG_BASE.uppercase(),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(text = name, style = MaterialTheme.typography.bodyLarge)
-                                Text(
-                                    text = desc,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                            RadioButton(selected = isSelected, onClick = null)
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.size(8.dp))
-            }
+private fun applyIpRule(
+    uid: Int,
+    ipAddress: String,
+    status: IpRulesManager.IpRuleStatus,
+    scope: CoroutineScope,
+    eventLogger: EventLogger,
+    onUpdated: () -> Unit,
+    onSetStatus: (IpRulesManager.IpRuleStatus) -> Unit
+) {
+    onSetStatus(status)
+    val details = "IP Rule set to ${status.name} for IP: $ipAddress, UID: $uid"
+    eventLogger.log(
+        EventType.FW_RULE_MODIFIED,
+        Severity.LOW,
+        "Custom IP",
+        EventSource.UI,
+        false,
+        details
+    )
+    scope.launch(Dispatchers.IO) {
+        val ipPair = IpRulesManager.getIpNetPort(ipAddress)
+        val ip = ipPair.first ?: run {
+            Napier.w("$TAG invalid ip for $ipAddress")
+            return@launch
         }
-    }
-
-    private fun processIp(conf: WgConfigFilesImmutable?) {
-        io {
-            val ip = ci ?: run {
-                Napier.w("$TAG: Custom IP is null")
-                return@io
-            }
-            if (conf == null) {
-                IpRulesManager.updateProxyId(ip, "")
-                ip.proxyId = ""
-            } else {
-                val id = ID_WG_BASE + conf.id
-                IpRulesManager.updateProxyId(ip, id)
-                ip.proxyId = id
-            }
-            val name = conf?.name ?: activity.getString(R.string.settings_app_list_default_app)
-            Napier.v("$TAG: wg-endpoint set to $name for ${ip.ipAddress}")
-            uiCtx {
-                Utilities.showToastUiCentered(
-                    activity,
-                    activity.getString(R.string.config_add_success_toast),
-                    Toast.LENGTH_SHORT
-                )
-            }
-        }
+        IpRulesManager.addIpRule(uid, ip, null, status, proxyId = "", proxyCC = "")
+        withContext(Dispatchers.Main) { onUpdated() }
     }
 }
