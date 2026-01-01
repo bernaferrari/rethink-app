@@ -18,7 +18,6 @@ package com.celzero.bravedns.adapter
 import android.content.Context
 import android.content.Intent
 import android.text.format.DateUtils
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
@@ -45,15 +44,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
@@ -72,7 +67,6 @@ import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
 import com.celzero.bravedns.ui.activity.WgConfigDetailActivity
 import com.celzero.bravedns.ui.activity.WgConfigDetailActivity.Companion.INTENT_EXTRA_WG_TYPE
 import com.celzero.bravedns.ui.activity.WgConfigEditorActivity.Companion.INTENT_EXTRA_WG_ID
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities
@@ -90,54 +84,11 @@ class WgConfigAdapter(
     private val listener: OneWgConfigAdapter.DnsStatusListener,
     private val splitDns: Boolean,
     private val eventLogger: EventLogger
-) : PagingDataAdapter<WgConfigFiles, WgConfigAdapter.WgInterfaceViewHolder>(DIFF_CALLBACK) {
+) {
 
     companion object {
         private const val DELAY_MS = 1500L
         private const val TAG = "WgConfigAdapter"
-        private val DIFF_CALLBACK =
-            object : DiffUtil.ItemCallback<WgConfigFiles>() {
-
-                override fun areItemsTheSame(
-                    oldConnection: WgConfigFiles,
-                    newConnection: WgConfigFiles
-                ): Boolean {
-                    return oldConnection == newConnection
-                }
-
-                override fun areContentsTheSame(
-                    oldConnection: WgConfigFiles,
-                    newConnection: WgConfigFiles
-                ): Boolean {
-                    return oldConnection == newConnection
-                }
-            }
-    }
-
-    override fun onBindViewHolder(holder: WgInterfaceViewHolder, position: Int) {
-        val wgConfigFiles: WgConfigFiles = getItem(position) ?: return
-        holder.update(wgConfigFiles)
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WgInterfaceViewHolder {
-        val composeView = ComposeView(parent.context)
-        composeView.layoutParams =
-            RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        return WgInterfaceViewHolder(composeView)
-    }
-
-    inner class WgInterfaceViewHolder(private val composeView: ComposeView) :
-        RecyclerView.ViewHolder(composeView) {
-        fun update(config: WgConfigFiles) {
-            composeView.setContent {
-                RethinkTheme {
-                    ConfigRow(config)
-                }
-            }
-        }
     }
 
     @Composable
