@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.activity
 
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -44,6 +45,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material.icons.Icons
@@ -56,6 +58,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -113,7 +116,6 @@ import com.celzero.bravedns.viewmodel.RemoteBlocklistPacksMapViewModel
 import com.celzero.bravedns.viewmodel.RethinkEndpointViewModel
 import com.celzero.bravedns.viewmodel.RethinkLocalFileTagViewModel
 import com.celzero.bravedns.viewmodel.RethinkRemoteFileTagViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -692,19 +694,41 @@ class ConfigureRethinkBasicActivity : AppCompatActivity(), RethinkBlocklistFilte
     }
 
     private fun showLockdownDownloadDialog(type: RethinkBlocklistManager.RethinkBlocklistType) {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.lockdown_download_enable_inapp)
-        builder.setMessage(R.string.lockdown_download_message)
-        builder.setCancelable(true)
-        builder.setPositiveButton(R.string.lockdown_download_enable_inapp) { _, _ ->
-            persistentState.useCustomDownloadManager = true
-            downloadBlocklist(type)
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = getString(R.string.lockdown_download_enable_inapp)) },
+                    text = { Text(text = getString(R.string.lockdown_download_message)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                persistentState.useCustomDownloadManager = true
+                                downloadBlocklist(type)
+                            }
+                        ) {
+                            Text(text = getString(R.string.lockdown_download_enable_inapp))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                proceedWithBlocklistDownload(type)
+                            }
+                        ) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
         }
-        builder.setNegativeButton(R.string.lbl_cancel) { dialog, _ ->
-            dialog.dismiss()
-            proceedWithBlocklistDownload(type)
-        }
-        builder.create().show()
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun proceedWithBlocklistDownload(type: RethinkBlocklistManager.RethinkBlocklistType) {
@@ -781,21 +805,46 @@ class ConfigureRethinkBasicActivity : AppCompatActivity(), RethinkBlocklistFilte
     }
 
     private fun showApplyChangesDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(getString(R.string.rt_dialog_title))
-        builder.setMessage(getString(R.string.rt_dialog_message))
-        builder.setCancelable(true)
-        builder.setPositiveButton(getString(R.string.lbl_apply)) { _, _ ->
-            setStamp(modifiedStamp)
-            finish()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = getString(R.string.rt_dialog_title)) },
+                    text = { Text(text = getString(R.string.rt_dialog_message)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                setStamp(modifiedStamp)
+                                finish()
+                            }
+                        ) {
+                            Text(text = getString(R.string.lbl_apply))
+                        }
+                    },
+                    dismissButton = {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(onClick = { dialog.dismiss() }) {
+                                Text(text = getString(R.string.rt_dialog_neutral))
+                            }
+                            TextButton(
+                                onClick = {
+                                    dialog.dismiss()
+                                    finish()
+                                }
+                            ) {
+                                Text(text = getString(R.string.notif_dialog_pause_dialog_negative))
+                            }
+                        }
+                    }
+                )
+            }
         }
-        builder.setNeutralButton(getString(R.string.rt_dialog_neutral)) { _, _ ->
-            // no-op
-        }
-        builder.setNegativeButton(getString(R.string.notif_dialog_pause_dialog_negative)) { _, _ ->
-            finish()
-        }
-        builder.create().show()
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun applyChangesAndFinish() {
