@@ -24,18 +24,23 @@ import android.widget.Toast
 import androidx.activity.addCallback
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,6 +49,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -57,6 +63,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -93,7 +101,6 @@ import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.RethinkBlocklistManager.getStamp
 import com.celzero.bravedns.service.RethinkBlocklistManager.getTagsFromStamp
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.bottomsheet.RethinkPlusFilterDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistFilterHost
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
@@ -155,6 +162,8 @@ class ConfigureRethinkBasicActivity : AppCompatActivity(), RethinkBlocklistFilte
     private var updateInProgress by mutableStateOf(false)
     private var isMax by mutableStateOf(false)
     private var filterLabelText by mutableStateOf("")
+    private var showPlusFilterSheet by mutableStateOf(false)
+    private var plusFilterTags by mutableStateOf<List<FileTag>>(emptyList())
 
     private var uid: Int = Constants.MISSING_UID
 
@@ -213,6 +222,12 @@ class ConfigureRethinkBasicActivity : AppCompatActivity(), RethinkBlocklistFilte
         setContent {
             RethinkTheme {
                 RethinkBasicContent(screen)
+                if (showPlusFilterSheet) {
+                    RethinkPlusFilterSheet(
+                        fileTags = plusFilterTags,
+                        onDismiss = { showPlusFilterSheet = false }
+                    )
+                }
             }
         }
     }
@@ -964,15 +979,100 @@ class ConfigureRethinkBasicActivity : AppCompatActivity(), RethinkBlocklistFilte
     }
 
     private fun openFilterBottomSheet() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            val dialog =
-                RethinkPlusFilterDialog(
-                    this@ConfigureRethinkBasicActivity,
-                    this@ConfigureRethinkBasicActivity,
-                    getAllList(),
-                    persistentState
+        lifecycleScope.launch {
+            plusFilterTags = withContext(Dispatchers.IO) { getAllList() }
+            showPlusFilterSheet = true
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun RethinkPlusFilterSheet(
+        fileTags: List<FileTag>,
+        onDismiss: () -> Unit
+    ) {
+        val subGroups =
+            remember(fileTags) {
+                fileTags.map { it.subg }.filter { it.isNotBlank() }.distinct()
+            }
+        val initialFilters = filters.value
+        var selectedSubgroups by
+            remember { mutableStateOf(initialFilters?.subGroups?.toSet() ?: emptySet()) }
+        val borderColor = Color(fetchColor(this@ConfigureRethinkBasicActivity, R.attr.border))
+
+        ModalBottomSheet(onDismissRequest = onDismiss) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier =
+                        Modifier.align(Alignment.CenterHorizontally)
+                            .width(60.dp)
+                            .height(3.dp)
+                            .background(borderColor, RoundedCornerShape(2.dp))
                 )
-            launch(Dispatchers.Main) { dialog.show() }
+
+                Text(
+                    text = getString(R.string.bsrf_sub_group_heading),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 5.dp, end = 5.dp)
+                )
+
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    subGroups.forEach { label ->
+                        val selected = selectedSubgroups.contains(label)
+                        FilterChip(
+                            selected = selected,
+                            onClick = {
+                                selectedSubgroups =
+                                    if (selected) {
+                                        selectedSubgroups - label
+                                    } else {
+                                        selectedSubgroups + label
+                                    }
+                            },
+                            label = { Text(text = label) }
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    TextButton(
+                        onClick = {
+                            filters.postValue(RethinkBlocklistState.Filters())
+                            onDismiss()
+                        },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(text = getString(R.string.bsrf_clear_filter))
+                    }
+
+                    Button(
+                        onClick = {
+                            val updated = initialFilters ?: RethinkBlocklistState.Filters()
+                            updated.subGroups.clear()
+                            updated.subGroups.addAll(selectedSubgroups)
+                            filters.postValue(updated)
+                            onDismiss()
+                        },
+                        modifier = Modifier.weight(2f)
+                    ) {
+                        Text(text = getString(R.string.lbl_apply))
+                    }
+                }
+
+                Spacer(modifier = Modifier.size(8.dp))
+            }
         }
     }
 
