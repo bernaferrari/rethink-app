@@ -18,7 +18,6 @@ package com.celzero.bravedns.ui.activity
 import Logger
 import Logger.LOG_TAG_BUG_REPORT
 import Logger.LOG_TAG_UI
-import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
@@ -58,9 +57,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowInsetsControllerCompat
@@ -103,6 +102,8 @@ class ConsoleLogActivity : AppCompatActivity() {
 
     private var infoText by mutableStateOf("")
     private var progressVisible by mutableStateOf(false)
+    private var showFilterDialog by mutableStateOf(false)
+    private var selectedLogLevel by mutableStateOf(Logger.uiLogLevel.toInt())
 
     companion object {
         private const val FILE_NAME = "rethink_app_logs_"
@@ -156,70 +157,8 @@ class ConsoleLogActivity : AppCompatActivity() {
     }
 
     private fun showFilterDialog() {
-        val items = arrayOf(
-            getString(R.string.settings_gologger_dialog_option_0),
-            getString(R.string.settings_gologger_dialog_option_1),
-            getString(R.string.settings_gologger_dialog_option_2),
-            getString(R.string.settings_gologger_dialog_option_3),
-            getString(R.string.settings_gologger_dialog_option_4),
-            getString(R.string.settings_gologger_dialog_option_5),
-            getString(R.string.settings_gologger_dialog_option_6),
-            getString(R.string.settings_gologger_dialog_option_7)
-        )
-        val checkedItem = Logger.uiLogLevel.toInt()
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                var selectedIndex by remember { mutableStateOf(checkedItem) }
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.console_log_title)) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            items.forEachIndexed { index, label ->
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    RadioButton(
-                                        selected = selectedIndex == index,
-                                        onClick = {
-                                            selectedIndex = index
-                                            Logger.uiLogLevel = index.toLong()
-                                            GoVpnAdapter.setLogLevel(
-                                                persistentState.goLoggerLevel.toInt(),
-                                                Logger.uiLogLevel.toInt()
-                                            )
-                                            viewModel.setLogLevel(index.toLong())
-                                            if (index < Logger.LoggerLevel.ERROR.id) {
-                                                consoleLogRepository.setStartTimestamp(System.currentTimeMillis())
-                                            }
-                                            Logger.i(LOG_TAG_BUG_REPORT, "Log level set to ${items[index]}")
-                                        }
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text = label, style = MaterialTheme.typography.bodyMedium)
-                                }
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        selectedLogLevel = Logger.uiLogLevel.toInt()
+        showFilterDialog = true
     }
 
     private fun handleShareLogs(filePath: String) {
@@ -333,6 +272,63 @@ class ConsoleLogActivity : AppCompatActivity() {
     @Composable
     private fun ConsoleLogScreen() {
         var query by remember { mutableStateOf("") }
+        val filterOptions = listOf(
+            stringResource(R.string.settings_gologger_dialog_option_0),
+            stringResource(R.string.settings_gologger_dialog_option_1),
+            stringResource(R.string.settings_gologger_dialog_option_2),
+            stringResource(R.string.settings_gologger_dialog_option_3),
+            stringResource(R.string.settings_gologger_dialog_option_4),
+            stringResource(R.string.settings_gologger_dialog_option_5),
+            stringResource(R.string.settings_gologger_dialog_option_6),
+            stringResource(R.string.settings_gologger_dialog_option_7)
+        )
+
+        if (showFilterDialog) {
+            AlertDialog(
+                onDismissRequest = { showFilterDialog = false },
+                title = { Text(text = getString(R.string.console_log_title)) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        filterOptions.forEachIndexed { index, label ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                RadioButton(
+                                    selected = selectedLogLevel == index,
+                                    onClick = {
+                                        selectedLogLevel = index
+                                        Logger.uiLogLevel = index.toLong()
+                                        GoVpnAdapter.setLogLevel(
+                                            persistentState.goLoggerLevel.toInt(),
+                                            Logger.uiLogLevel.toInt()
+                                        )
+                                        viewModel.setLogLevel(index.toLong())
+                                        if (index < Logger.LoggerLevel.ERROR.id) {
+                                            consoleLogRepository.setStartTimestamp(System.currentTimeMillis())
+                                        }
+                                        Logger.i(LOG_TAG_BUG_REPORT, "Log level set to $label")
+                                    }
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text = label, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(onClick = { showFilterDialog = false }) {
+                        Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showFilterDialog = false }) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
         LaunchedEffect(Unit) {
             viewModel.setLogLevel(Logger.uiLogLevel)
             snapshotFlow { query }

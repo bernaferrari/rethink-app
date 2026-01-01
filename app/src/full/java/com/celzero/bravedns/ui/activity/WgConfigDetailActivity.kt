@@ -15,7 +15,6 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -53,7 +52,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
@@ -120,6 +118,9 @@ class WgConfigDetailActivity : AppCompatActivity() {
     private var useMobileEnabled by mutableStateOf(false)
     private var ssidEnabled by mutableStateOf(false)
     private var ssids by mutableStateOf<List<SsidItem>>(emptyList())
+    private var showInvalidConfigDialog by mutableStateOf(false)
+    private var showDeleteInterfaceDialog by mutableStateOf(false)
+    private var showSsidPermissionDialog by mutableStateOf(false)
 
     companion object {
         private const val CLIPBOARD_PUBLIC_KEY_LBL = "Public Key"
@@ -186,6 +187,107 @@ class WgConfigDetailActivity : AppCompatActivity() {
             updateStatusUi(configId)
         }
 
+        if (showInvalidConfigDialog) {
+            AlertDialog(
+                onDismissRequest = {},
+                title = { Text(text = getString(R.string.lbl_wireguard)) },
+                text = { Text(text = getString(R.string.config_invalid_desc)) },
+                confirmButton = {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(
+                            onClick = {
+                                showInvalidConfigDialog = false
+                                finish()
+                            }
+                        ) {
+                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                        }
+                        TextButton(
+                            onClick = {
+                                showInvalidConfigDialog = false
+                                WireguardManager.deleteConfig(configId)
+                            }
+                        ) {
+                            Text(text = getString(R.string.lbl_delete))
+                        }
+                    }
+                }
+            )
+        }
+
+        if (showDeleteInterfaceDialog) {
+            val delText =
+                getString(
+                    R.string.two_argument_space,
+                    getString(R.string.config_delete_dialog_title),
+                    getString(R.string.lbl_wireguard)
+                )
+            AlertDialog(
+                onDismissRequest = { showDeleteInterfaceDialog = false },
+                title = { Text(text = delText) },
+                text = { Text(text = getString(R.string.config_delete_dialog_desc)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteInterfaceDialog = false
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                WireguardManager.deleteConfig(configId)
+                                withContext(Dispatchers.Main) {
+                                    Utilities.showToastUiCentered(
+                                        this@WgConfigDetailActivity,
+                                        getString(R.string.config_add_success_toast),
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    finish()
+                                }
+                                logEvent(
+                                    "Delete WireGuard config",
+                                    "User deleted WireGuard config with id $configId"
+                                )
+                            }
+                        }
+                    ) {
+                        Text(text = delText)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteInterfaceDialog = false }) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showSsidPermissionDialog) {
+            AlertDialog(
+                onDismissRequest = { showSsidPermissionDialog = false },
+                title = { Text(text = getString(R.string.lbl_ssid)) },
+                text = { Text(text = SsidPermissionManager.getPermissionExplanation(this@WgConfigDetailActivity)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showSsidPermissionDialog = false
+                            SsidPermissionManager.requestSsidPermissions(this@WgConfigDetailActivity)
+                        }
+                    ) {
+                        Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showSsidPermissionDialog = false
+                            lifecycleScope.launch(Dispatchers.IO) {
+                                WireguardManager.updateSsidEnabled(configId, false)
+                            }
+                        }
+                    ) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
         Column(
             modifier = Modifier.fillMaxSize().padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -215,7 +317,7 @@ class WgConfigDetailActivity : AppCompatActivity() {
                 Button(onClick = { openAddPeerDialog() }) {
                     Text(text = stringResource(id = R.string.lbl_add))
                 }
-                Button(onClick = { showDeleteInterfaceDialog() }) {
+                Button(onClick = { showDeleteInterfaceDialog = true }) {
                     Text(text = stringResource(id = R.string.lbl_delete))
                 }
                 Button(onClick = { openEditConfig() }) {
@@ -294,7 +396,7 @@ class WgConfigDetailActivity : AppCompatActivity() {
         val cfg = WireguardManager.getConfigById(configId)
         val mapping = WireguardManager.getConfigFilesById(configId)
         if (cfg == null || mapping == null) {
-            showInvalidConfigDialog()
+            showInvalidConfigDialog = true
             return
         }
         config = cfg
@@ -413,43 +515,6 @@ class WgConfigDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun showInvalidConfigDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(false)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = {},
-                    title = { Text(text = getString(R.string.lbl_wireguard)) },
-                    text = { Text(text = getString(R.string.config_invalid_desc)) },
-                    confirmButton = {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(
-                                onClick = {
-                                    dialog.dismiss()
-                                    finish()
-                                }
-                            ) {
-                                Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                            }
-                            TextButton(
-                                onClick = {
-                                    WireguardManager.deleteConfig(configId)
-                                    dialog.dismiss()
-                                }
-                            ) {
-                                Text(text = getString(R.string.lbl_delete))
-                            }
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
-    }
-
     private fun updateUseOnMobileNetwork(enabled: Boolean) {
         useMobileEnabled = enabled
         lifecycleScope.launch(Dispatchers.IO) {
@@ -525,7 +590,7 @@ class WgConfigDetailActivity : AppCompatActivity() {
         ssidEnabled = enabled
         if (!SsidPermissionManager.hasRequiredPermissions(this) || !SsidPermissionManager.isLocationEnabled(this)) {
             ssidEnabled = false
-            showSsidPermissionExplanationDialog()
+            showSsidPermissionDialog = true
             return
         }
         lifecycleScope.launch(Dispatchers.IO) {
@@ -570,58 +635,6 @@ class WgConfigDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun showDeleteInterfaceDialog() {
-        val delText =
-            getString(
-                R.string.two_argument_space,
-                getString(R.string.config_delete_dialog_title),
-                getString(R.string.lbl_wireguard)
-            )
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = delText) },
-                    text = { Text(text = getString(R.string.config_delete_dialog_desc)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                lifecycleScope.launch(Dispatchers.IO) {
-                                    WireguardManager.deleteConfig(configId)
-                                    withContext(Dispatchers.Main) {
-                                        Utilities.showToastUiCentered(
-                                            this@WgConfigDetailActivity,
-                                            getString(R.string.config_add_success_toast),
-                                            Toast.LENGTH_SHORT
-                                        )
-                                        finish()
-                                    }
-                                    logEvent(
-                                        "Delete WireGuard config",
-                                        "User deleted WireGuard config with id $configId"
-                                    )
-                                }
-                            }
-                        ) {
-                            Text(text = delText)
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
-    }
-
     private fun openAddPeerDialog() {
         var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
         if (Themes.isFrostTheme(themeId)) {
@@ -659,45 +672,6 @@ class WgConfigDetailActivity : AppCompatActivity() {
         }
         ssidDialog.setCanceledOnTouchOutside(false)
         ssidDialog.show()
-    }
-
-    private fun showSsidPermissionExplanationDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.lbl_ssid)) },
-                    text = { Text(text = SsidPermissionManager.getPermissionExplanation(this@WgConfigDetailActivity)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                SsidPermissionManager.requestSsidPermissions(this@WgConfigDetailActivity)
-                            }
-                        ) {
-                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                lifecycleScope.launch(Dispatchers.IO) {
-                                    WireguardManager.updateSsidEnabled(configId, false)
-                                }
-                            }
-                        ) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
     }
 
     private fun logEvent(msg: String, details: String) {

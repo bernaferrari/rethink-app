@@ -15,7 +15,6 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
@@ -53,7 +52,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -98,6 +96,7 @@ class EventsActivity : AppCompatActivity() {
 
     private var showSeverityChips by mutableStateOf(false)
     private var showSourceChips by mutableStateOf(false)
+    private var showDeleteDialog by mutableStateOf(false)
 
     companion object {
         private const val TAG = "EventsActivity"
@@ -145,36 +144,7 @@ class EventsActivity : AppCompatActivity() {
     }
 
     private fun showDeleteDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.ada_delete_logs_dialog_title)) },
-                    text = { Text(text = getString(R.string.ada_delete_logs_dialog_desc)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                lifecycleScope.launch(Dispatchers.IO) { eventDao.deleteAll() }
-                                refreshEvents()
-                            }
-                        ) {
-                            Text(text = getString(R.string.lbl_delete))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        showDeleteDialog = true
     }
 
     private fun applyFilter(tag: TopLevelFilter) {
@@ -238,6 +208,30 @@ class EventsActivity : AppCompatActivity() {
     private fun EventsScreen() {
         var query by remember { mutableStateOf("") }
         val items = viewModel.eventsList.asFlow().collectAsLazyPagingItems()
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text(text = getString(R.string.ada_delete_logs_dialog_title)) },
+                text = { Text(text = getString(R.string.ada_delete_logs_dialog_desc)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            lifecycleScope.launch(Dispatchers.IO) { eventDao.deleteAll() }
+                            refreshEvents()
+                        }
+                    ) {
+                        Text(text = getString(R.string.lbl_delete))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
         LaunchedEffect(Unit) {
             snapshotFlow { query }
                 .debounce(QUERY_TEXT_DELAY)

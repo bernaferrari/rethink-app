@@ -15,7 +15,6 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
@@ -58,7 +57,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
@@ -171,6 +169,10 @@ class TunnelSettingsActivity : AppCompatActivity() {
         var connectivityChecks by remember { mutableStateOf(persistentState.connectivityChecks) }
         var showCustomLanIpSheet by remember { mutableStateOf(false) }
         var showReachabilitySheet by remember { mutableStateOf(false) }
+        var showDefaultDnsDialog by remember { mutableStateOf(false) }
+        var showVpnPolicyDialog by remember { mutableStateOf(false) }
+        var showIpDialog by remember { mutableStateOf(false) }
+        var showConnectivityChecksDialog by remember { mutableStateOf(false) }
 
         val canModify = !isLockdown
         val showPtrans = internetProtocol == InternetProtocol.IPv6.id
@@ -197,6 +199,285 @@ class TunnelSettingsActivity : AppCompatActivity() {
             }
 
         val dialTimeoutDesc = formatTimeShort(dialTimeoutMin * SECONDS_PER_MINUTE)
+
+        if (showDefaultDnsDialog) {
+            val options = Constants.DEFAULT_DNS_LIST
+            val checkedItem =
+                options.firstOrNull { it.url == persistentState.defaultDnsUrl }
+                    ?.let { options.indexOf(it) } ?: 0
+            var selectedIndex by remember(showDefaultDnsDialog) { mutableStateOf(checkedItem) }
+            AlertDialog(
+                onDismissRequest = { showDefaultDnsDialog = false },
+                title = { Text(text = getString(R.string.settings_default_dns_heading)) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        options.forEachIndexed { index, item ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                RadioButton(
+                                    selected = selectedIndex == index,
+                                    onClick = { selectedIndex = index }
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text = item.name, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val chosen = options[selectedIndex]
+                            persistentState.defaultDnsUrl = chosen.url
+                            logEvent("default dns changed", "Default DNS changed to: ${chosen.name}")
+                            showDefaultDnsDialog = false
+                        }
+                    ) {
+                        Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDefaultDnsDialog = false }) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showVpnPolicyDialog) {
+            val conservativeTxt = getString(
+                R.string.two_argument_space,
+                getString(R.string.vpn_policy_fixed),
+                getString(R.string.lbl_experimental)
+            )
+            val options = listOf(
+                NetworkPolicyOption(
+                    getString(R.string.settings_ip_text_ipv46),
+                    getString(R.string.vpn_policy_auto_desc)
+                ),
+                NetworkPolicyOption(
+                    getString(R.string.vpn_policy_sensitive),
+                    getString(R.string.vpn_policy_sensitive_desc)
+                ),
+                NetworkPolicyOption(
+                    getString(R.string.vpn_policy_relaxed),
+                    getString(R.string.vpn_policy_relaxed_desc)
+                ),
+                NetworkPolicyOption(conservativeTxt, getString(R.string.vpn_policy_fixed_desc))
+            )
+            var selectedIndex by remember(showVpnPolicyDialog) {
+                mutableStateOf(persistentState.vpnBuilderPolicy)
+            }
+            AlertDialog(
+                onDismissRequest = { showVpnPolicyDialog = false },
+                title = { Text(text = getString(R.string.vpn_policy_title)) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        options.forEachIndexed { index, option ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                RadioButton(
+                                    selected = selectedIndex == index,
+                                    onClick = { selectedIndex = index }
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Column {
+                                    Text(text = option.title, style = MaterialTheme.typography.bodyMedium)
+                                    Text(text = option.description, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            if (selectedIndex == POLICY_FIXED) {
+                                persistentState.enableStabilityDependentSettings(this@TunnelSettingsActivity)
+                                persistentState.useMaxMtu = true
+                                useMaxMtu = true
+                                persistentState.internetProtocolType = InternetProtocol.ALWAYSv46.id
+                                internetProtocol = InternetProtocol.ALWAYSv46.id
+                            }
+                            persistentState.vpnBuilderPolicy = selectedIndex
+                            vpnPolicy = selectedIndex
+                            logEvent(
+                                "vpn builder network policy changed",
+                                "VPN builder network policy changed to index: $selectedIndex"
+                            )
+                            showVpnPolicyDialog = false
+                        }
+                    ) {
+                        Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showVpnPolicyDialog = false }) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showIpDialog) {
+            val alwaysv46Txt =
+                getString(R.string.settings_ip_text_ipv4) + " & " +
+                    getString(R.string.settings_ip_text_ipv6) + " " +
+                    getString(R.string.lbl_experimental)
+            val items =
+                listOf(
+                    getString(R.string.settings_ip_dialog_ipv4),
+                    getString(R.string.settings_ip_dialog_ipv6),
+                    alwaysv46Txt,
+                    getString(R.string.settings_ip_dialog_ipv46)
+                )
+            val chosenProtocol = persistentState.internetProtocolType
+            val checkedItem =
+                when (chosenProtocol) {
+                    InternetProtocol.ALWAYSv46.id -> IP_DIALOG_POS_ALWAYS_V46
+                    InternetProtocol.IPv46.id -> IP_DIALOG_POS_V46
+                    InternetProtocol.IPv4.id -> IP_DIALOG_POS_IPV4
+                    InternetProtocol.IPv6.id -> IP_DIALOG_POS_IPV6
+                    else -> IP_DIALOG_POS_IPV4
+                }
+            var selectedIndex by remember(showIpDialog) { mutableStateOf(checkedItem) }
+            AlertDialog(
+                onDismissRequest = { showIpDialog = false },
+                title = { Text(text = getString(R.string.settings_ip_dialog_title)) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items.forEachIndexed { index, label ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                RadioButton(
+                                    selected = selectedIndex == index,
+                                    onClick = { selectedIndex = index }
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text = label, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val selectedItem =
+                                when (selectedIndex) {
+                                    IP_DIALOG_POS_V46 -> InternetProtocol.IPv46.id
+                                    IP_DIALOG_POS_ALWAYS_V46 -> InternetProtocol.ALWAYSv46.id
+                                    else -> selectedIndex
+                                }
+                            if (persistentState.internetProtocolType != selectedItem) {
+                                val protocolType = InternetProtocol.getInternetProtocol(selectedItem)
+                                persistentState.internetProtocolType = protocolType.id
+                                if (protocolType.id == InternetProtocol.IPv6.id ||
+                                    protocolType.id == InternetProtocol.IPv46.id ||
+                                    protocolType.id == InternetProtocol.ALWAYSv46.id
+                                ) {
+                                    persistentState.enableStabilityDependentSettings(this@TunnelSettingsActivity)
+                                }
+                                internetProtocol = protocolType.id
+                                logEvent(
+                                    "internet protocol changed",
+                                    "Internet protocol changed to: ${protocolType.name}"
+                                )
+                            }
+                            showIpDialog = false
+                        }
+                    ) {
+                        Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showIpDialog = false }) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showConnectivityChecksDialog) {
+            val items = listOf(
+                getString(R.string.settings_app_list_default_app),
+                getString(R.string.settings_ip_text_ipv46),
+                getString(R.string.lbl_manual)
+            )
+            val type = persistentState.performAutoNetworkConnectivityChecks
+            val enabled = persistentState.connectivityChecks
+            val checkedItem =
+                if (!enabled) {
+                    0
+                } else {
+                    when (type) {
+                        true -> 1
+                        false -> 2
+                    }
+                }
+            var selectedIndex by remember(showConnectivityChecksDialog) { mutableStateOf(checkedItem) }
+            AlertDialog(
+                onDismissRequest = { showConnectivityChecksDialog = false },
+                title = { Text(text = getString(R.string.settings_connectivity_checks)) },
+                text = {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        items.forEachIndexed { index, label ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                RadioButton(
+                                    selected = selectedIndex == index,
+                                    onClick = { selectedIndex = index }
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(text = label, style = MaterialTheme.typography.bodyMedium)
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            when (selectedIndex) {
+                                0 -> {
+                                    persistentState.performAutoNetworkConnectivityChecks = true
+                                    persistentState.connectivityChecks = false
+                                    connectivityChecks = false
+                                }
+                                1 -> {
+                                    persistentState.performAutoNetworkConnectivityChecks = true
+                                    persistentState.connectivityChecks = true
+                                    connectivityChecks = true
+                                }
+                                2 -> {
+                                    persistentState.performAutoNetworkConnectivityChecks = false
+                                    persistentState.connectivityChecks = true
+                                    connectivityChecks = true
+                                }
+                            }
+                            logEvent(
+                                "connectivity checks changed",
+                                "Connectivity checks changed to option index: $selectedIndex"
+                            )
+                            showConnectivityChecksDialog = false
+                        }
+                    ) {
+                        Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showConnectivityChecksDialog = false }) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
 
         Scaffold(
             topBar = {
@@ -333,22 +614,14 @@ class TunnelSettingsActivity : AppCompatActivity() {
                             icon = Icons.Filled.Settings,
                             title = getString(R.string.settings_default_dns_heading),
                             description = getString(R.string.settings_default_dns_desc),
-                            onClick = { showDefaultDnsDialog() }
+                            onClick = { showDefaultDnsDialog = true }
                         )
 
                         SettingActionRow(
                             icon = Icons.Filled.Settings,
                             title = getString(R.string.vpn_policy_title),
                             description = vpnPolicyDesc,
-                            onClick = { showTunNetworkPolicyDialog { policy ->
-                                vpnPolicy = policy
-                                if (policy == POLICY_FIXED) {
-                                    persistentState.useMaxMtu = true
-                                    useMaxMtu = true
-                                    persistentState.internetProtocolType = InternetProtocol.ALWAYSv46.id
-                                    internetProtocol = InternetProtocol.ALWAYSv46.id
-                                }
-                            } }
+                            onClick = { showVpnPolicyDialog = true }
                         )
 
                         SettingActionRow(
@@ -356,9 +629,7 @@ class TunnelSettingsActivity : AppCompatActivity() {
                             title = getString(R.string.settings_ip_dialog_title),
                             description = getString(R.string.settings_selected_ip_desc, ipDesc),
                             enabled = vpnPolicy != POLICY_FIXED,
-                            onClick = { showIpDialog { protocol ->
-                                internetProtocol = protocol
-                            } }
+                            onClick = { showIpDialog = true }
                         )
 
                         SettingActionRow(
@@ -367,11 +638,7 @@ class TunnelSettingsActivity : AppCompatActivity() {
                             description = getString(R.string.settings_connectivity_checks_desc),
                             enabled = showConnectivityChecks,
                             onClick = {
-                                showConnectivityChecksOptionsDialog { enabled, auto ->
-                                    connectivityChecks = enabled
-                                    persistentState.performAutoNetworkConnectivityChecks = auto
-                                    persistentState.connectivityChecks = enabled
-                                }
+                                showConnectivityChecksDialog = true
                             }
                         )
 
@@ -597,313 +864,7 @@ class TunnelSettingsActivity : AppCompatActivity() {
         }
     }
 
-    private fun showDefaultDnsDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        val options = Constants.DEFAULT_DNS_LIST
-        val checkedItem =
-            options.firstOrNull { it.url == persistentState.defaultDnsUrl }
-                ?.let { options.indexOf(it) } ?: 0
-        composeView.setContent {
-            RethinkTheme {
-                var selectedIndex by remember { mutableStateOf(checkedItem) }
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.settings_default_dns_heading)) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            options.forEachIndexed { index, item ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    RadioButton(
-                                        selected = selectedIndex == index,
-                                        onClick = { selectedIndex = index }
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text = item.name, style = MaterialTheme.typography.bodyMedium)
-                                }
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                val chosen = options[selectedIndex]
-                                persistentState.defaultDnsUrl = chosen.url
-                                logEvent(
-                                    "default dns changed",
-                                    "Default DNS changed to: ${chosen.name}"
-                                )
-                                dialog.dismiss()
-                            }
-                        ) {
-                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
-    }
-
     data class NetworkPolicyOption(val title: String, val description: String)
-
-    private fun showTunNetworkPolicyDialog(onSelected: (Int) -> Unit) {
-        val conservativeTxt = getString(
-            R.string.two_argument_space,
-            getString(R.string.vpn_policy_fixed),
-            getString(R.string.lbl_experimental)
-        )
-        val options = listOf(
-            NetworkPolicyOption(getString(R.string.settings_ip_text_ipv46), getString(R.string.vpn_policy_auto_desc)),
-            NetworkPolicyOption(getString(R.string.vpn_policy_sensitive), getString(R.string.vpn_policy_sensitive_desc)),
-            NetworkPolicyOption(getString(R.string.vpn_policy_relaxed), getString(R.string.vpn_policy_relaxed_desc)),
-            NetworkPolicyOption(conservativeTxt, getString(R.string.vpn_policy_fixed_desc))
-        )
-        var currentSelection = persistentState.vpnBuilderPolicy
-
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                var selectedIndex by remember { mutableStateOf(currentSelection) }
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.vpn_policy_title)) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            options.forEachIndexed { index, option ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    RadioButton(
-                                        selected = selectedIndex == index,
-                                        onClick = { selectedIndex = index }
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Column {
-                                        Text(text = option.title, style = MaterialTheme.typography.bodyMedium)
-                                        Text(text = option.description, style = MaterialTheme.typography.bodySmall)
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                currentSelection = selectedIndex
-                                if (currentSelection == POLICY_FIXED) {
-                                    persistentState.enableStabilityDependentSettings(this@TunnelSettingsActivity)
-                                }
-                                persistentState.vpnBuilderPolicy = currentSelection
-                                onSelected(currentSelection)
-                                logEvent(
-                                    "vpn builder network policy changed",
-                                    "VPN builder network policy changed to index: $currentSelection"
-                                )
-                                dialog.dismiss()
-                            }
-                        ) {
-                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
-    }
-
-    private fun showIpDialog(onSelected: (Int) -> Unit) {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val alwaysv46Txt =
-            getString(R.string.settings_ip_text_ipv4) + " & " +
-                getString(R.string.settings_ip_text_ipv6) + " " +
-                getString(R.string.lbl_experimental)
-        val items =
-            listOf(
-                getString(R.string.settings_ip_dialog_ipv4),
-                getString(R.string.settings_ip_dialog_ipv6),
-                alwaysv46Txt,
-                getString(R.string.settings_ip_dialog_ipv46)
-            )
-        val chosenProtocol = persistentState.internetProtocolType
-        val checkedItem =
-            when (chosenProtocol) {
-                InternetProtocol.ALWAYSv46.id -> IP_DIALOG_POS_ALWAYS_V46
-                InternetProtocol.IPv46.id -> IP_DIALOG_POS_V46
-                InternetProtocol.IPv4.id -> IP_DIALOG_POS_IPV4
-                InternetProtocol.IPv6.id -> IP_DIALOG_POS_IPV6
-                else -> IP_DIALOG_POS_IPV4
-            }
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                var selectedIndex by remember { mutableStateOf(checkedItem) }
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.settings_ip_dialog_title)) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            items.forEachIndexed { index, label ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    RadioButton(
-                                        selected = selectedIndex == index,
-                                        onClick = { selectedIndex = index }
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text = label, style = MaterialTheme.typography.bodyMedium)
-                                }
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                val selectedItem =
-                                    when (selectedIndex) {
-                                        IP_DIALOG_POS_V46 -> InternetProtocol.IPv46.id
-                                        IP_DIALOG_POS_ALWAYS_V46 -> InternetProtocol.ALWAYSv46.id
-                                        else -> selectedIndex
-                                    }
-                                if (persistentState.internetProtocolType != selectedItem) {
-                                    val protocolType = InternetProtocol.getInternetProtocol(selectedItem)
-                                    persistentState.internetProtocolType = protocolType.id
-                                    if (protocolType.id == InternetProtocol.IPv6.id ||
-                                        protocolType.id == InternetProtocol.IPv46.id ||
-                                        protocolType.id == InternetProtocol.ALWAYSv46.id
-                                    ) {
-                                        persistentState.enableStabilityDependentSettings(this@TunnelSettingsActivity)
-                                    }
-                                    onSelected(protocolType.id)
-                                    logEvent(
-                                        "internet protocol changed",
-                                        "Internet protocol changed to: ${protocolType.name}"
-                                    )
-                                }
-                                dialog.dismiss()
-                            }
-                        ) {
-                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
-    }
-
-    private fun showConnectivityChecksOptionsDialog(onSelected: (Boolean, Boolean) -> Unit) {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val items = listOf(
-            getString(R.string.settings_app_list_default_app),
-            getString(R.string.settings_ip_text_ipv46),
-            getString(R.string.lbl_manual)
-        )
-        val type = persistentState.performAutoNetworkConnectivityChecks
-        val enabled = persistentState.connectivityChecks
-        val checkedItem =
-            if (!enabled) {
-                0
-            } else {
-                when (type) {
-                    true -> 1
-                    false -> 2
-                }
-            }
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                var selectedIndex by remember { mutableStateOf(checkedItem) }
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.settings_connectivity_checks)) },
-                    text = {
-                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                            items.forEachIndexed { index, label ->
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    RadioButton(
-                                        selected = selectedIndex == index,
-                                        onClick = { selectedIndex = index }
-                                    )
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text = label, style = MaterialTheme.typography.bodyMedium)
-                                }
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                when (selectedIndex) {
-                                    0 -> {
-                                        persistentState.performAutoNetworkConnectivityChecks = true
-                                        persistentState.connectivityChecks = false
-                                        onSelected(false, true)
-                                    }
-                                    1 -> {
-                                        persistentState.performAutoNetworkConnectivityChecks = true
-                                        persistentState.connectivityChecks = true
-                                        onSelected(true, true)
-                                    }
-                                    2 -> {
-                                        persistentState.performAutoNetworkConnectivityChecks = false
-                                        persistentState.connectivityChecks = true
-                                        onSelected(true, false)
-                                    }
-                                }
-                                logEvent(
-                                    "connectivity checks changed",
-                                    "Connectivity checks changed to option index: $selectedIndex"
-                                )
-                                dialog.dismiss()
-                            }
-                        ) {
-                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
-    }
 
     private fun logEvent(msg: String, details: String) {
         eventLogger.log(EventType.TUN_ESTABLISHED, Severity.LOW, msg, EventSource.UI, false, details)

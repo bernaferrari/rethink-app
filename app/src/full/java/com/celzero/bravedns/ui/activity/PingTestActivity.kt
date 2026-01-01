@@ -15,7 +15,6 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
@@ -49,7 +48,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -88,6 +86,7 @@ class PingTestActivity : AppCompatActivity() {
     private var host3Status by mutableStateOf<PingStatus>(PingStatus.Idle)
 
     private var strength by mutableStateOf<Int?>(null)
+    private var showStartVpnDialog by mutableStateOf(false)
 
     private val proxiesStatus = mutableListOf<Boolean>()
 
@@ -115,8 +114,7 @@ class PingTestActivity : AppCompatActivity() {
         }
 
         if (!VpnController.hasTunnel()) {
-            showStartVpnDialog()
-            return
+            showStartVpnDialog = true
         }
 
         setContent {
@@ -131,30 +129,21 @@ class PingTestActivity : AppCompatActivity() {
             Configuration.UI_MODE_NIGHT_YES
     }
 
-    private fun showStartVpnDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(false)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = {},
-                    title = { Text(text = getString(R.string.vpn_not_active_dialog_title)) },
-                    text = { Text(text = getString(R.string.vpn_not_active_dialog_desc)) },
-                    confirmButton = {
-                        TextButton(onClick = { finish() }) {
-                            Text(text = getString(R.string.dns_info_positive))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
-    }
-
     @Composable
     private fun PingTestScreen() {
+        if (showStartVpnDialog) {
+            AlertDialog(
+                onDismissRequest = {},
+                title = { Text(text = getString(R.string.vpn_not_active_dialog_title)) },
+                text = { Text(text = getString(R.string.vpn_not_active_dialog_desc)) },
+                confirmButton = {
+                    TextButton(onClick = { finish() }) {
+                        Text(text = getString(R.string.dns_info_positive))
+                    }
+                }
+            )
+        }
+
         Column(
             modifier = Modifier
                 .fillMaxSize()

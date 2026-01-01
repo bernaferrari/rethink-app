@@ -15,7 +15,6 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
@@ -46,7 +45,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -79,6 +77,7 @@ class RpnWinProxyDetailsActivity : AppCompatActivity() {
     private var domainsCount by mutableStateOf("-")
     private var ipsCount by mutableStateOf("-")
     private var proxyError by mutableStateOf("")
+    private var showNoProxyFoundDialog by mutableStateOf(false)
 
     companion object {
         const val TAG = "WinDetAct"
@@ -116,8 +115,7 @@ class RpnWinProxyDetailsActivity : AppCompatActivity() {
         Napier.v(tag = TAG, message = "initViews: country code from intent: $cc")
         if (!::cc.isInitialized || cc.isEmpty()) {
             Napier.w(tag = TAG, message = "empty country code, finishing activity")
-            showNoProxyFoundDialog()
-            finish()
+            showNoProxyFoundDialog = true
             return
         }
         io {
@@ -133,32 +131,6 @@ class RpnWinProxyDetailsActivity : AppCompatActivity() {
         }
     }
 
-    private fun showNoProxyFoundDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(false)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = {},
-                    title = { Text(text = "No proxy found") },
-                    text = {
-                        Text(
-                            text = "Proxy information is missing for this proxy id. Please ensure that the proxy is configured correctly and try again."
-                        )
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { finish() }) {
-                            Text(text = getString(R.string.ada_noapp_dialog_positive))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
-    }
-
     private fun io(f: suspend () -> Unit) {
         this.lifecycleScope.launch(Dispatchers.IO) { f() }
     }
@@ -169,6 +141,22 @@ class RpnWinProxyDetailsActivity : AppCompatActivity() {
 
     @Composable
     private fun ProxyDetailsScreen() {
+        if (showNoProxyFoundDialog) {
+            AlertDialog(
+                onDismissRequest = {},
+                title = { Text(text = "No proxy found") },
+                text = {
+                    Text(
+                        text = "Proxy information is missing for this proxy id. Please ensure that the proxy is configured correctly and try again."
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = { finish() }) {
+                        Text(text = getString(R.string.ada_noapp_dialog_positive))
+                    }
+                }
+            )
+        }
         Column(modifier = Modifier.fillMaxWidth()) {
             StatsRow()
             Spacer(modifier = Modifier.height(12.dp))

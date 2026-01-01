@@ -15,7 +15,6 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
@@ -64,7 +63,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -127,6 +125,11 @@ class AppListActivity :
     private var bulkBypassDns by mutableStateOf(false)
     private var bulkExclude by mutableStateOf(false)
     private var bulkLockdown by mutableStateOf(false)
+    private var showBulkUpdateDialog by mutableStateOf(false)
+    private var bulkDialogTitle by mutableStateOf("")
+    private var bulkDialogMessage by mutableStateOf("")
+    private var bulkDialogType by mutableStateOf<BlockType?>(null)
+    private var showInfoDialog by mutableStateOf(false)
 
     companion object {
         val filters = MutableLiveData<Filters>()
@@ -428,35 +431,10 @@ class AppListActivity :
     }
 
     private fun showBulkRulesUpdateDialog(title: String, message: String, type: BlockType) {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = title) },
-                    text = { Text(text = message) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                updateBulkRules(type)
-                            }
-                        ) {
-                            Text(text = getString(R.string.lbl_apply))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        bulkDialogTitle = title
+        bulkDialogMessage = message
+        bulkDialogType = type
+        showBulkUpdateDialog = true
     }
 
     private fun updateBulkRules(type: BlockType) {
@@ -483,24 +461,7 @@ class AppListActivity :
     }
 
     private fun showInfoDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    text = { FirewallInfoDialogContent() },
-                    confirmButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        showInfoDialog = true
     }
 
     @Composable
@@ -720,6 +681,51 @@ class AppListActivity :
                 onClear = { cleared ->
                     filters.postValue(cleared)
                     showFilterSheet = false
+                }
+            )
+        }
+
+        if (showBulkUpdateDialog && bulkDialogType != null) {
+            AlertDialog(
+                onDismissRequest = {
+                    showBulkUpdateDialog = false
+                    bulkDialogType = null
+                },
+                title = { Text(text = bulkDialogTitle) },
+                text = { Text(text = bulkDialogMessage) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            val type = bulkDialogType ?: return@TextButton
+                            showBulkUpdateDialog = false
+                            bulkDialogType = null
+                            updateBulkRules(type)
+                        }
+                    ) {
+                        Text(text = getString(R.string.lbl_apply))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showBulkUpdateDialog = false
+                            bulkDialogType = null
+                        }
+                    ) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showInfoDialog) {
+            AlertDialog(
+                onDismissRequest = { showInfoDialog = false },
+                text = { FirewallInfoDialogContent() },
+                confirmButton = {
+                    TextButton(onClick = { showInfoDialog = false }) {
+                        Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                    }
                 }
             )
         }

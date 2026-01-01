@@ -15,7 +15,6 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -66,7 +65,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -163,6 +161,9 @@ class ConfigureRethinkBasicActivity : AppCompatActivity(), RethinkBlocklistFilte
     private var isMax by mutableStateOf(false)
     private var filterLabelText by mutableStateOf("")
     private var showPlusFilterSheet by mutableStateOf(false)
+    private var showLockdownDialog by mutableStateOf(false)
+    private var lockdownDialogType by mutableStateOf<RethinkBlocklistManager.RethinkBlocklistType?>(null)
+    private var showApplyChangesDialog by mutableStateOf(false)
     private var plusFilterTags by mutableStateOf<List<FileTag>>(emptyList())
 
     private var uid: Int = Constants.MISSING_UID
@@ -215,12 +216,75 @@ class ConfigureRethinkBasicActivity : AppCompatActivity(), RethinkBlocklistFilte
                     finish()
                     return@addCallback
                 }
-                showApplyChangesDialog()
+                showApplyChangesDialog = true
             }
         }
 
         setContent {
             RethinkTheme {
+                if (showLockdownDialog && lockdownDialogType != null) {
+                    val type = lockdownDialogType ?: return@RethinkTheme
+                    AlertDialog(
+                        onDismissRequest = { showLockdownDialog = false },
+                        title = { Text(text = getString(R.string.lockdown_download_enable_inapp)) },
+                        text = { Text(text = getString(R.string.lockdown_download_message)) },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showLockdownDialog = false
+                                    persistentState.useCustomDownloadManager = true
+                                    downloadBlocklist(type)
+                                }
+                            ) {
+                                Text(text = getString(R.string.lockdown_download_enable_inapp))
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(
+                                onClick = {
+                                    showLockdownDialog = false
+                                    proceedWithBlocklistDownload(type)
+                                }
+                            ) {
+                                Text(text = getString(R.string.lbl_cancel))
+                            }
+                        }
+                    )
+                }
+
+                if (showApplyChangesDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showApplyChangesDialog = false },
+                        title = { Text(text = getString(R.string.rt_dialog_title)) },
+                        text = { Text(text = getString(R.string.rt_dialog_message)) },
+                        confirmButton = {
+                            TextButton(
+                                onClick = {
+                                    showApplyChangesDialog = false
+                                    setStamp(modifiedStamp)
+                                    finish()
+                                }
+                            ) {
+                                Text(text = getString(R.string.lbl_apply))
+                            }
+                        },
+                        dismissButton = {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton(onClick = { showApplyChangesDialog = false }) {
+                                    Text(text = getString(R.string.rt_dialog_neutral))
+                                }
+                                TextButton(
+                                    onClick = {
+                                        showApplyChangesDialog = false
+                                        finish()
+                                    }
+                                ) {
+                                    Text(text = getString(R.string.notif_dialog_pause_dialog_negative))
+                                }
+                            }
+                        }
+                    )
+                }
                 RethinkBasicContent(screen)
                 if (showPlusFilterSheet) {
                     RethinkPlusFilterSheet(
@@ -709,41 +773,8 @@ class ConfigureRethinkBasicActivity : AppCompatActivity(), RethinkBlocklistFilte
     }
 
     private fun showLockdownDownloadDialog(type: RethinkBlocklistManager.RethinkBlocklistType) {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.lockdown_download_enable_inapp)) },
-                    text = { Text(text = getString(R.string.lockdown_download_message)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                persistentState.useCustomDownloadManager = true
-                                downloadBlocklist(type)
-                            }
-                        ) {
-                            Text(text = getString(R.string.lockdown_download_enable_inapp))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                proceedWithBlocklistDownload(type)
-                            }
-                        ) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        lockdownDialogType = type
+        showLockdownDialog = true
     }
 
     private fun proceedWithBlocklistDownload(type: RethinkBlocklistManager.RethinkBlocklistType) {
@@ -820,46 +851,7 @@ class ConfigureRethinkBasicActivity : AppCompatActivity(), RethinkBlocklistFilte
     }
 
     private fun showApplyChangesDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.rt_dialog_title)) },
-                    text = { Text(text = getString(R.string.rt_dialog_message)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                setStamp(modifiedStamp)
-                                finish()
-                            }
-                        ) {
-                            Text(text = getString(R.string.lbl_apply))
-                        }
-                    },
-                    dismissButton = {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = { dialog.dismiss() }) {
-                                Text(text = getString(R.string.rt_dialog_neutral))
-                            }
-                            TextButton(
-                                onClick = {
-                                    dialog.dismiss()
-                                    finish()
-                                }
-                            ) {
-                                Text(text = getString(R.string.notif_dialog_pause_dialog_negative))
-                            }
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        showApplyChangesDialog = true
     }
 
     private fun applyChangesAndFinish() {

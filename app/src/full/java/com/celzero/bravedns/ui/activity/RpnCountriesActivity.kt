@@ -15,7 +15,6 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
@@ -36,7 +35,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
@@ -58,10 +56,7 @@ class RpnCountriesActivity : AppCompatActivity() {
 
     private var countries by mutableStateOf<List<String>>(emptyList())
     private var selectedCountries by mutableStateOf<Set<String>>(emptySet())
-
-    companion object {
-        private const val TAG = "RpncUi"
-    }
+    private var showNoCountriesDialog by mutableStateOf(false)
 
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
@@ -83,7 +78,7 @@ class RpnCountriesActivity : AppCompatActivity() {
         lifecycleScope.launch {
             fetchProxyCountries()
             if (countries.isEmpty()) {
-                showNoProxyCountriesDialog()
+                showNoCountriesDialog = true
             }
         }
 
@@ -103,12 +98,10 @@ class RpnCountriesActivity : AppCompatActivity() {
         }
     }
 
-    private fun showNoProxyCountriesDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(false)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
+    @Composable
+    private fun RpnCountriesScreen() {
+        Column(modifier = Modifier.fillMaxSize()) {
+            if (showNoCountriesDialog) {
                 AlertDialog(
                     onDismissRequest = {},
                     title = { Text(text = "No countries available") },
@@ -120,14 +113,6 @@ class RpnCountriesActivity : AppCompatActivity() {
                     }
                 )
             }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
-    }
-
-    @Composable
-    private fun RpnCountriesScreen() {
-        Column(modifier = Modifier.fillMaxSize()) {
             Text(
                 text = stringResourceCompat(R.string.lbl_countries),
                 style = MaterialTheme.typography.titleMedium,

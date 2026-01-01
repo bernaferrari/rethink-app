@@ -15,7 +15,6 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -49,7 +48,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
@@ -107,6 +105,7 @@ class AppInfoActivity : AppCompatActivity() {
     private var isTempAllowed by mutableStateOf(false)
     private var tempAllowExpiryTime by mutableStateOf(0L)
     private var proxyDetails by mutableStateOf("")
+    private var showNoAppFoundDialog by mutableStateOf(false)
 
     companion object {
         const val INTENT_UID = "UID"
@@ -214,6 +213,24 @@ class AppInfoActivity : AppCompatActivity() {
         }
 
         activeAdapter.CloseDialogHost()
+
+        if (showNoAppFoundDialog) {
+            AlertDialog(
+                onDismissRequest = { showNoAppFoundDialog = false },
+                title = { Text(text = getString(R.string.ada_noapp_dialog_title)) },
+                text = { Text(text = getString(R.string.ada_noapp_dialog_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showNoAppFoundDialog = false
+                            finish()
+                        }
+                    ) {
+                        Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                    }
+                }
+            )
+        }
 
         if (showDomainRulesSheet && selectedDomain.isNotEmpty()) {
             AppDomainRulesSheet(
@@ -347,7 +364,7 @@ class AppInfoActivity : AppCompatActivity() {
     private suspend fun loadAppInfo() {
         val info = withContext(Dispatchers.IO) { FirewallManager.getAppInfoByUid(uid) }
         if (info == null || uid == INVALID_UID || info.tombstoneTs > 0) {
-            showNoAppFoundDialog()
+            showNoAppFoundDialog = true
             return
         }
         val status = FirewallManager.appStatus(info.uid)
@@ -499,33 +516,6 @@ class AppInfoActivity : AppCompatActivity() {
                 getString(R.string.ada_app_status_bypass_dns_firewall)
             FirewallManager.FirewallStatus.UNTRACKED -> getString(R.string.ada_app_status_unknown)
         }
-    }
-
-    private fun showNoAppFoundDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.ada_noapp_dialog_title)) },
-                    text = { Text(text = getString(R.string.ada_noapp_dialog_message)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                finish()
-                            }
-                        ) {
-                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
     }
 
     private fun logEvent(msg: String, details: String) {
