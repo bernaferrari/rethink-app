@@ -74,11 +74,11 @@ import androidx.lifecycle.asFlow
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.DnsCryptEndpointAdapter
-import com.celzero.bravedns.adapter.DnsProxyEndpointAdapter
-import com.celzero.bravedns.adapter.DoTEndpointAdapter
-import com.celzero.bravedns.adapter.DohEndpointAdapter
-import com.celzero.bravedns.adapter.ODoHEndpointAdapter
+import com.celzero.bravedns.adapter.DnsCryptRow
+import com.celzero.bravedns.adapter.DnsProxyEndpointRow
+import com.celzero.bravedns.adapter.DoHEndpointRow
+import com.celzero.bravedns.adapter.DoTEndpointRow
+import com.celzero.bravedns.adapter.ODoHEndpointRow
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.DoHEndpoint
 import com.celzero.bravedns.database.DoTEndpoint
@@ -246,16 +246,13 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
 
     @Composable
     private fun DohListContent(paddingValues: PaddingValues) {
-        val lifecycleOwner = LocalLifecycleOwner.current
-        val adapter = remember { DohEndpointAdapter(this@ConfigureOtherDnsActivity, appConfig) }
-        adapter.lifecycleOwner = lifecycleOwner
         val items = dohViewModel.dohEndpointList.asFlow().collectAsLazyPagingItems()
         DnsEndpointListWithFab(
             paddingValues = paddingValues,
             items = items,
             onFabClick = { showAddCustomDohDialog() }
         ) { endpoint ->
-            adapter.DoHEndpointRow(endpoint)
+            DoHEndpointRow(endpoint, appConfig)
         }
     }
 
@@ -339,16 +336,13 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
 
     @Composable
     private fun DotListContent(paddingValues: PaddingValues) {
-        val lifecycleOwner = LocalLifecycleOwner.current
-        val adapter = remember { DoTEndpointAdapter(this@ConfigureOtherDnsActivity, appConfig) }
-        adapter.lifecycleOwner = lifecycleOwner
         val items = dotViewModel.dohEndpointList.asFlow().collectAsLazyPagingItems()
         DnsEndpointListWithFab(
             paddingValues = paddingValues,
             items = items,
             onFabClick = { showAddDotDialog() }
         ) { endpoint ->
-            adapter.DoTEndpointRow(endpoint)
+            DoTEndpointRow(endpoint, appConfig)
         }
     }
 
@@ -419,11 +413,6 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
 
     @Composable
     private fun DnsProxyListContent(paddingValues: PaddingValues) {
-        val lifecycleOwner = LocalLifecycleOwner.current
-        val adapter =
-            remember(lifecycleOwner) {
-                DnsProxyEndpointAdapter(this@ConfigureOtherDnsActivity, lifecycleOwner, appConfig)
-            }
         val items = dnsProxyViewModel.dnsProxyEndpointList.asFlow().collectAsLazyPagingItems()
         DnsEndpointListWithFab(
             paddingValues = paddingValues,
@@ -438,7 +427,7 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
                 }
             }
         ) { endpoint ->
-            adapter.DnsProxyEndpointRow(endpoint)
+            DnsProxyEndpointRow(endpoint, appConfig)
         }
     }
 
@@ -669,9 +658,6 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
 
     @Composable
     private fun DnsCryptListContent(paddingValues: PaddingValues) {
-        val lifecycleOwner = LocalLifecycleOwner.current
-        val adapter = remember { DnsCryptEndpointAdapter(this@ConfigureOtherDnsActivity, appConfig) }
-        adapter.lifecycleOwner = lifecycleOwner
         val items = dnsCryptViewModel.dnsCryptEndpointList.asFlow().collectAsLazyPagingItems()
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
@@ -703,7 +689,7 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
                 items = items,
                 onFabClick = { showAddDnsCryptDialog() }
             ) { endpoint ->
-                adapter.DnsCryptRow(endpoint)
+                DnsCryptRow(endpoint, appConfig)
             }
         }
     }
@@ -886,16 +872,13 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
 
     @Composable
     private fun OdohListContent(paddingValues: PaddingValues) {
-        val lifecycleOwner = LocalLifecycleOwner.current
-        val adapter = remember { ODoHEndpointAdapter(this@ConfigureOtherDnsActivity, appConfig) }
-        adapter.lifecycleOwner = lifecycleOwner
         val items = oDohViewModel.dohEndpointList.asFlow().collectAsLazyPagingItems()
         DnsEndpointListWithFab(
             paddingValues = paddingValues,
             items = items,
             onFabClick = { showAddOdohDialog() }
         ) { endpoint ->
-            adapter.ODoHEndpointRow(endpoint)
+            ODoHEndpointRow(endpoint, appConfig)
         }
     }
 

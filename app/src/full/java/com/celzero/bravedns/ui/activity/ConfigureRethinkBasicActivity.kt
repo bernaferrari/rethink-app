@@ -73,7 +73,7 @@ import com.celzero.bravedns.adapter.LocalAdvancedViewAdapter
 import com.celzero.bravedns.adapter.LocalSimpleViewAdapter
 import com.celzero.bravedns.adapter.RemoteAdvancedViewAdapter
 import com.celzero.bravedns.adapter.RemoteSimpleViewAdapter
-import com.celzero.bravedns.adapter.RethinkEndpointAdapter
+import com.celzero.bravedns.adapter.RethinkEndpointRow
 import com.celzero.bravedns.customdownloader.LocalBlocklistCoordinator.Companion.CUSTOM_DOWNLOAD
 import com.celzero.bravedns.customdownloader.RemoteBlocklistCoordinator
 import com.celzero.bravedns.data.AppConfig
@@ -232,7 +232,6 @@ class ConfigureRethinkBasicActivity : AppCompatActivity(), RethinkBlocklistFilte
 
     @Composable
     private fun RethinkListContent(lifecycleOwner: androidx.lifecycle.LifecycleOwner) {
-        val adapter = remember { RethinkEndpointAdapter(this, appConfig) }
         val pagingItems = rethinkEndpointViewModel.rethinkEndpointList.asFlow().collectAsLazyPagingItems()
         val workInfos by
             WorkManager.getInstance(applicationContext)
@@ -377,7 +376,7 @@ class ConfigureRethinkBasicActivity : AppCompatActivity(), RethinkBlocklistFilte
             ) {
                 items(count = pagingItems.itemCount) { index ->
                     val item = pagingItems[index] ?: return@items
-                    adapter.RethinkEndpointRow(endpoint = item)
+                    RethinkEndpointRow(endpoint = item, appConfig = appConfig)
                 }
             }
         }
