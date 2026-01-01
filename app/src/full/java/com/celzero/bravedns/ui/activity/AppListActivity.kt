@@ -70,7 +70,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.lifecycle.asFlow
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.FirewallAppListAdapter
+import com.celzero.bravedns.adapter.FirewallAppRow
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.RefreshDatabase
@@ -857,12 +857,11 @@ class AppListActivity :
 
     @Composable
     private fun AppListRecycler() {
-        val adapter = remember { FirewallAppListAdapter(this@AppListActivity, this@AppListActivity, eventLogger) }
         val items = appInfoViewModel.appInfo.asFlow().collectAsLazyPagingItems()
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(items.itemCount) { index ->
                 val item = items[index] ?: return@items
-                adapter.FirewallAppRow(item)
+                FirewallAppRow(item, eventLogger)
             }
         }
     }
