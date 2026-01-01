@@ -108,8 +108,6 @@ import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.RouterStats
-import android.widget.TextView
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.text.HtmlCompat
 import com.celzero.bravedns.adapter.WgIncludeAppsAdapter
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
@@ -1065,19 +1063,19 @@ class ProxySettingsActivity : AppCompatActivity() {
 
     @Composable
     private fun HtmlText(html: String) {
-        AndroidView(
-            factory = { ctx ->
-                TextView(ctx).apply {
-                    text = HtmlCompat.fromHtml(html.replace("\n", "<br /><br />"), HtmlCompat.FROM_HTML_MODE_LEGACY)
-                }
-            },
-            update = { view ->
-                view.text =
-                    HtmlCompat.fromHtml(
-                        html.replace("\n", "<br /><br />"),
-                        HtmlCompat.FROM_HTML_MODE_LEGACY
-                    )
+        val textValue =
+            remember(html) {
+                HtmlCompat.fromHtml(
+                    html.replace("\n", "<br /><br />"),
+                    HtmlCompat.FROM_HTML_MODE_LEGACY
+                ).toString()
             }
+        Text(
+            text = textValue,
+            style =
+                MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
         )
     }
 

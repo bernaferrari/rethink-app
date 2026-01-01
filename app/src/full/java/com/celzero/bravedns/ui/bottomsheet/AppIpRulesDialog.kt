@@ -16,6 +16,7 @@
 package com.celzero.bravedns.ui.bottomsheet
 
 import android.graphics.drawable.Drawable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -51,7 +52,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
@@ -62,6 +62,7 @@ import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -163,12 +164,15 @@ fun AppIpRulesSheet(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     appIcon?.let { icon ->
-                        AndroidView(
-                            factory = { ctx -> androidx.appcompat.widget.AppCompatImageView(ctx) },
-                            update = { view -> view.setImageDrawable(icon) },
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
+                        val painter = rememberDrawablePainter(icon)
+                        painter?.let {
+                            Image(
+                                painter = it,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                        }
                     }
                     Text(
                         text = appName.orEmpty(),

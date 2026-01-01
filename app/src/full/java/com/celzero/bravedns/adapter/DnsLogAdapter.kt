@@ -18,9 +18,9 @@ package com.celzero.bravedns.adapter
 
 import android.content.Context
 import android.graphics.drawable.Drawable
-import androidx.appcompat.widget.AppCompatImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,12 +45,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
-import com.bumptech.glide.request.target.CustomViewTarget
+import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.bumptech.glide.request.transition.Transition
 import com.celzero.bravedns.R
@@ -63,6 +62,7 @@ import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities.getDefaultIcon
 import com.celzero.bravedns.util.Utilities.getIcon
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.celzero.firestack.backend.Backend
 import io.github.aakira.napier.Napier
 
@@ -125,26 +125,27 @@ class DnsLogAdapter(
                             .background(indicatorColor ?: Color.Transparent)
                 )
                 if (showFavIcon && favIconDrawable != null) {
-                    AndroidView(
-                        factory = { ctx -> AppCompatImageView(ctx) },
-                        update = { imageView ->
-                            imageView.setImageDrawable(favIconDrawable)
-                        },
-                        modifier = Modifier.size(32.dp)
-                    )
+                    val favPainter = rememberDrawablePainter(favIconDrawable)
+                    favPainter?.let { painter ->
+                        Image(
+                            painter = painter,
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 } else {
                     Text(text = log.flag, style = MaterialTheme.typography.titleMedium)
                 }
-                AndroidView(
-                    factory = { ctx -> AppCompatImageView(ctx) },
-                    update = { imageView ->
-                        Glide.with(imageView)
-                            .load(appIcon)
-                            .error(getDefaultIcon(context))
-                            .into(imageView)
-                    },
-                    modifier = Modifier.size(24.dp)
-                )
+                val appPainter =
+                    rememberDrawablePainter(appIcon)
+                        ?: rememberDrawablePainter(getDefaultIcon(context))
+                appPainter?.let { painter ->
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
                 Column(modifier = Modifier.weight(1f)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -194,23 +195,17 @@ class DnsLogAdapter(
             }
         }
 
-        if (loadFavIcon && !log.groundedQuery()) {
-            AndroidView(
-                modifier = Modifier.size(0.dp),
-                factory = { ctx -> AppCompatImageView(ctx) },
-                update = { imageView ->
-                    displayFavIcon(
-                        log,
-                        imageView,
-                        onShowFlag = {
-                            showFavIcon = false
-                            favIconDrawable = null
-                        },
-                        onShowFav = { drawable ->
-                            showFavIcon = true
-                            favIconDrawable = drawable
-                        }
-                    )
+        LaunchedEffect(log.queryStr, loadFavIcon, log.groundedQuery()) {
+            if (!loadFavIcon || log.groundedQuery()) return@LaunchedEffect
+            displayFavIcon(
+                log,
+                onShowFlag = {
+                    showFavIcon = false
+                    favIconDrawable = null
+                },
+                onShowFav = { drawable ->
+                    showFavIcon = true
+                    favIconDrawable = drawable
                 }
             )
         }
@@ -381,7 +376,6 @@ class DnsLogAdapter(
 
     private fun displayFavIcon(
         log: DnsLog,
-        imageView: AppCompatImageView,
         onShowFlag: () -> Unit,
         onShowFav: (Drawable) -> Unit
     ) {
@@ -395,12 +389,11 @@ class DnsLogAdapter(
             return
         }
 
-        displayNextDnsFavIcon(log, imageView, onShowFlag, onShowFav)
+        displayNextDnsFavIcon(log, onShowFlag, onShowFav)
     }
 
     private fun displayNextDnsFavIcon(
         log: DnsLog,
-        imageView: AppCompatImageView,
         onShowFlag: () -> Unit,
         onShowFav: (Drawable) -> Unit
     ) {
@@ -416,12 +409,11 @@ class DnsLogAdapter(
                 .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
                 .transition(withCrossFade(factory))
                 .into(
-                    object : CustomViewTarget<AppCompatImageView, Drawable>(imageView) {
+                    object : CustomTarget<Drawable>() {
                         override fun onLoadFailed(errorDrawable: Drawable?) {
                             displayDuckduckgoFavIcon(
                                 duckduckGoUrl,
                                 duckduckgoDomainURL,
-                                imageView,
                                 onShowFlag,
                                 onShowFav
                             )
@@ -434,7 +426,7 @@ class DnsLogAdapter(
                             onShowFav(resource)
                         }
 
-                        override fun onResourceCleared(placeholder: Drawable?) {
+                        override fun onLoadCleared(placeholder: Drawable?) {
                             onShowFlag()
                         }
                     }
@@ -444,7 +436,6 @@ class DnsLogAdapter(
             displayDuckduckgoFavIcon(
                 duckduckGoUrl,
                 duckduckgoDomainURL,
-                imageView,
                 onShowFlag,
                 onShowFav
             )
@@ -454,7 +445,6 @@ class DnsLogAdapter(
     private fun displayDuckduckgoFavIcon(
         url: String,
         subDomainURL: String,
-        imageView: AppCompatImageView,
         onShowFlag: () -> Unit,
         onShowFav: (Drawable) -> Unit
     ) {
@@ -471,7 +461,7 @@ class DnsLogAdapter(
                 )
                 .transition(withCrossFade(factory))
                 .into(
-                    object : CustomViewTarget<AppCompatImageView, Drawable>(imageView) {
+                    object : CustomTarget<Drawable>() {
                         override fun onLoadFailed(errorDrawable: Drawable?) {
                             onShowFlag()
                         }
@@ -483,7 +473,7 @@ class DnsLogAdapter(
                             onShowFav(resource)
                         }
 
-                        override fun onResourceCleared(placeholder: Drawable?) {
+                        override fun onLoadCleared(placeholder: Drawable?) {
                             onShowFlag()
                         }
                     }

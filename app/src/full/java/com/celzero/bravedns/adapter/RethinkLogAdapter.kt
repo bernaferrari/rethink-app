@@ -18,7 +18,7 @@ package com.celzero.bravedns.adapter
 
 import android.content.Context
 import android.graphics.drawable.Drawable
-import androidx.appcompat.widget.AppCompatImageView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -43,9 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ConnectionTracker
 import com.celzero.bravedns.database.RethinkLog
@@ -60,6 +58,7 @@ import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.getDurationInHumanReadableFormat
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getIcon
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -142,16 +141,15 @@ class RethinkLogAdapter(
                             .fillMaxHeight()
                             .background(indicatorColor ?: Color.Transparent)
                 )
-                AndroidView(
-                    factory = { ctx -> AppCompatImageView(ctx) },
-                    update = { imageView ->
-                        Glide.with(imageView)
-                            .load(appIcon)
-                            .error(Utilities.getDefaultIcon(context))
-                            .into(imageView)
-                    },
-                    modifier = Modifier.size(32.dp)
-                )
+                val iconDrawable = appIcon ?: Utilities.getDefaultIcon(context)
+                val iconPainter = rememberDrawablePainter(iconDrawable)
+                iconPainter?.let { painter ->
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
                 Column(modifier = Modifier.weight(1f)) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),

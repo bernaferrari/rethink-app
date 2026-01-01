@@ -19,7 +19,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
-import androidx.appcompat.widget.AppCompatImageView
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -48,9 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.compose.ui.platform.LocalContext
-import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.AppInfo
 import com.celzero.bravedns.database.EventSource
@@ -65,6 +63,7 @@ import com.celzero.bravedns.ui.activity.AppInfoActivity
 import com.celzero.bravedns.ui.activity.AppInfoActivity.Companion.INTENT_UID
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getIcon
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -122,16 +121,16 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            AndroidView(
-                factory = { ctx -> AppCompatImageView(ctx) },
-                update = { imageView ->
-                    Glide.with(imageView)
-                        .load(appIcon)
-                        .error(Utilities.getDefaultIcon(context))
-                        .into(imageView)
-                },
-                modifier = Modifier.size(32.dp)
-            )
+            val iconPainter =
+                rememberDrawablePainter(appIcon)
+                    ?: rememberDrawablePainter(Utilities.getDefaultIcon(context))
+            iconPainter?.let { painter ->
+                Image(
+                    painter = painter,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp)
+                )
+            }
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = appInfo.appName + if (proxyEnabled) context.getString(R.string.symbol_key) else "",

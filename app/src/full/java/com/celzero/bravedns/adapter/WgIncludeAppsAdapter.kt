@@ -19,7 +19,6 @@ import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.widget.Toast
-import androidx.appcompat.widget.AppCompatImageView
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -28,6 +27,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.Image
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -48,8 +48,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ProxyApplicationMapping
 import com.celzero.bravedns.service.FirewallManager
@@ -58,6 +56,7 @@ import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.getDefaultIcon
 import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -186,16 +185,16 @@ class WgIncludeAppsAdapter(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                AndroidView(
-                    factory = { ctx -> AppCompatImageView(ctx) },
-                    update = { imageView ->
-                        Glide.with(imageView)
-                            .load(iconDrawable)
-                            .error(getDefaultIcon(context))
-                            .into(imageView)
-                    },
-                    modifier = Modifier.size(45.dp)
-                )
+                val iconPainter =
+                    rememberDrawablePainter(iconDrawable)
+                        ?: rememberDrawablePainter(getDefaultIcon(context))
+                iconPainter?.let { painter ->
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier.size(45.dp)
+                    )
+                }
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(4.dp)

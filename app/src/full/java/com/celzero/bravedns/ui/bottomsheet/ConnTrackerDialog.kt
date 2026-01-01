@@ -21,8 +21,6 @@ import android.graphics.drawable.Drawable
 import android.text.Spanned
 import android.text.TextUtils
 import android.text.format.DateUtils
-import android.util.TypedValue
-import android.widget.TextView
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -68,7 +66,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.celzero.bravedns.R
@@ -93,6 +90,7 @@ import com.celzero.bravedns.util.UIUtils.htmlToSpannedText
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import io.github.aakira.napier.Napier
@@ -288,23 +286,18 @@ fun ConnTrackerSheet(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
-                AndroidView(
-                    factory = { context ->
-                        androidx.appcompat.widget.AppCompatImageView(context).apply {
-                            layoutParams =
-                                android.view.ViewGroup.LayoutParams(
-                                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-                                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-                                )
-                        }
-                    },
-                    update = { imageView ->
-                        val icon =
-                            appIcon ?: ContextCompat.getDrawable(activity, R.drawable.default_app_icon)
-                        imageView.setImageDrawable(icon)
-                    },
-                    modifier = Modifier.size(30.dp)
-                )
+                val iconDrawable =
+                    appIcon ?: ContextCompat.getDrawable(activity, R.drawable.default_app_icon)
+                iconDrawable?.let { drawable ->
+                    val painter = rememberDrawablePainter(drawable)
+                    painter?.let {
+                        Image(
+                            painter = it,
+                            contentDescription = null,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+                }
                 Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = appName,
@@ -1009,17 +1002,10 @@ private fun SelectionRow(
 @Composable
 private fun HtmlText(spanned: Spanned, modifier: Modifier = Modifier) {
     val context = LocalContext.current
-    AndroidView(
-        modifier = modifier.fillMaxWidth(),
-        factory = {
-            TextView(it).apply {
-                setTextColor(fetchColor(context, R.attr.primaryTextColor))
-                val size = context.resources.getDimension(R.dimen.large_font_text_view)
-                setTextSize(TypedValue.COMPLEX_UNIT_PX, size)
-            }
-        },
-        update = { textView ->
-            textView.text = spanned
-        }
+    Text(
+        text = spanned.toString(),
+        style = MaterialTheme.typography.bodyLarge,
+        color = Color(fetchColor(context, R.attr.primaryTextColor)),
+        modifier = modifier.fillMaxWidth()
     )
 }

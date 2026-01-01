@@ -3,6 +3,7 @@ package com.celzero.bravedns.ui.bottomsheet
 import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -38,7 +39,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CustomDomain
 import com.celzero.bravedns.database.EventSource
@@ -50,6 +50,7 @@ import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -138,12 +139,15 @@ fun CustomDomainRulesSheet(
                     horizontalArrangement = Arrangement.Center
                 ) {
                     appIcon?.let { icon ->
-                        AndroidView(
-                            factory = { ctx -> androidx.appcompat.widget.AppCompatImageView(ctx) },
-                            update = { view -> view.setImageDrawable(icon) },
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Spacer(modifier = Modifier.width(10.dp))
+                        val painter = rememberDrawablePainter(icon)
+                        painter?.let {
+                            Image(
+                                painter = it,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                        }
                     }
                     Text(
                         text = appName,

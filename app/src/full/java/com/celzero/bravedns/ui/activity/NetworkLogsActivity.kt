@@ -21,13 +21,11 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.view.View
 import android.view.WindowManager
-import android.widget.ImageView
 import android.widget.Toast
-import android.widget.TextView
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -65,6 +63,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -78,9 +77,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.isVisible
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
@@ -88,7 +85,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
-import com.bumptech.glide.request.target.CustomViewTarget
+import com.bumptech.glide.request.target.CustomTarget
 import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
 import com.bumptech.glide.request.transition.Transition
 import com.celzero.bravedns.R
@@ -118,6 +115,7 @@ import com.celzero.bravedns.ui.bottomsheet.ConnTrackerSheet
 import com.celzero.bravedns.ui.compose.statistics.StatisticsSummaryItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.UIUtils
@@ -888,16 +886,18 @@ class NetworkLogsActivity : AppCompatActivity() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (persistentState.fetchFavIcon) {
-                        AndroidView(
-                            factory = { ctx ->
-                                ImageView(ctx).apply {
-                                    visibility = View.GONE
-                                }
-                            },
-                            update = { view -> loadFavIcon(view, log) },
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
+                        val favIcon = rememberFavIcon(log)
+                        if (favIcon != null) {
+                            val favPainter = rememberDrawablePainter(favIcon)
+                            favPainter?.let { painter ->
+                                Image(
+                                    painter = painter,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(32.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
+                        }
                     }
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
@@ -1072,19 +1072,21 @@ class NetworkLogsActivity : AppCompatActivity() {
 
     @Composable
     private fun HtmlText(html: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
-        AndroidView(
-            factory = { ctx ->
-                TextView(ctx).apply {
-                    text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY)
-                }
-            },
-            update = { view ->
-                view.text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY)
-                view.setOnClickListener {
-                    onClick?.invoke()
-                }
-            },
-            modifier = modifier
+        val textValue =
+            remember(html) { HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY).toString() }
+        val clickableModifier =
+            if (onClick != null) {
+                modifier.clickable { onClick() }
+            } else {
+                modifier
+            }
+        Text(
+            text = textValue,
+            modifier = clickableModifier,
+            style =
+                MaterialTheme.typography.bodySmall.copy(
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
         )
     }
 
@@ -1132,15 +1134,20 @@ class NetworkLogsActivity : AppCompatActivity() {
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AndroidView(
-                factory = { ctx -> ImageView(ctx) },
-                update = { view ->
-                    view.setImageDrawable(
-                        getIcon(this@NetworkLogsActivity, log.packageName, log.appName)
+            val icon =
+                remember(log.packageName, log.appName) {
+                    getIcon(this@NetworkLogsActivity, log.packageName, log.appName)
+                }
+            icon?.let { drawable ->
+                val painter = rememberDrawablePainter(drawable)
+                painter?.let {
+                    Image(
+                        painter = it,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
                     )
-                },
-                modifier = Modifier.size(24.dp)
-            )
+                }
+            }
             Spacer(modifier = Modifier.width(8.dp))
             Text(text = log.appName, style = MaterialTheme.typography.bodyMedium)
         }
@@ -1180,28 +1187,61 @@ class NetworkLogsActivity : AppCompatActivity() {
         }
     }
 
-    private fun loadFavIcon(view: ImageView, log: DnsLog) {
+    @Composable
+    private fun rememberFavIcon(log: DnsLog): Drawable? {
+        var drawable by
+            remember(log.queryStr, persistentState.fetchFavIcon) { mutableStateOf<Drawable?>(null) }
+        DisposableEffect(log.queryStr, persistentState.fetchFavIcon) {
+            drawable = null
+            val target = loadFavIcon(log) { loaded ->
+                drawable = loaded
+            }
+            onDispose {
+                target?.let { Glide.with(applicationContext).clear(it) }
+            }
+        }
+        return drawable
+    }
+
+    private fun loadFavIcon(log: DnsLog, onResult: (Drawable?) -> Unit): CustomTarget<Drawable>? {
         if (!persistentState.fetchFavIcon) {
-            view.visibility = View.GONE
-            return
+            onResult(null)
+            return null
         }
 
         val domain = log.queryStr
         if (domain.isEmpty()) {
-            view.visibility = View.GONE
-            return
+            onResult(null)
+            return null
         }
 
         val trim = domain.dropLastWhile { it == '.' }
         if (FavIconDownloader.isUrlAvailableInFailedCache(trim) != null) {
-            view.visibility = View.GONE
-            return
+            onResult(null)
+            return null
         }
 
         val factory = DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()
         val nextDnsUrl = FavIconDownloader.constructFavIcoUrlNextDns(trim)
         val duckduckGoUrl = FavIconDownloader.constructFavUrlDuckDuckGo(trim)
         val duckduckgoDomainUrl = FavIconDownloader.getDomainUrlFromFdqnDuckduckgo(trim)
+        val target =
+            object : CustomTarget<Drawable>() {
+                override fun onLoadFailed(errorDrawable: Drawable?) {
+                    onResult(null)
+                }
+
+                override fun onLoadCleared(placeholder: Drawable?) {
+                    onResult(null)
+                }
+
+                override fun onResourceReady(
+                    resource: Drawable,
+                    transition: Transition<in Drawable>?
+                ) {
+                    onResult(resource)
+                }
+            }
 
         Glide.with(applicationContext)
             .load(nextDnsUrl)
@@ -1220,26 +1260,8 @@ class NetworkLogsActivity : AppCompatActivity() {
                     )
             )
             .transition(DrawableTransitionOptions.withCrossFade(factory))
-            .into(
-                object : CustomViewTarget<ImageView, Drawable>(view) {
-                    override fun onLoadFailed(errorDrawable: Drawable?) {
-                        view.isVisible = false
-                    }
-
-                    override fun onResourceCleared(placeholder: Drawable?) {
-                        view.isVisible = false
-                        view.setImageDrawable(null)
-                    }
-
-                    override fun onResourceReady(
-                        resource: Drawable,
-                        transition: Transition<in Drawable>?
-                    ) {
-                        view.isVisible = true
-                        view.setImageDrawable(resource)
-                    }
-                }
-            )
+            .into(target)
+        return target
     }
 
     private fun applyDomainRule(

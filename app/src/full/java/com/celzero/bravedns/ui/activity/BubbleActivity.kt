@@ -59,7 +59,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.LoadState
@@ -80,6 +79,7 @@ import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.viewmodel.AllowedAppsBubbleViewModel
 import com.celzero.bravedns.viewmodel.BlockedAppsBubbleViewModel
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -494,19 +494,14 @@ class BubbleActivity : AppCompatActivity() {
                     ),
             contentAlignment = Alignment.Center
         ) {
-            AndroidView(
-                factory = { ctx ->
-                    androidx.appcompat.widget.AppCompatImageView(ctx).apply {
-                        layoutParams =
-                            android.view.ViewGroup.LayoutParams(
-                                android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
-                                android.view.ViewGroup.LayoutParams.WRAP_CONTENT
-                            )
-                    }
-                },
-                update = { imageView -> imageView.setImageDrawable(icon) },
-                modifier = Modifier.size(28.dp)
-            )
+            val painter = rememberDrawablePainter(icon)
+            painter?.let {
+                Image(
+                    painter = it,
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp)
+                )
+            }
         }
     }
 

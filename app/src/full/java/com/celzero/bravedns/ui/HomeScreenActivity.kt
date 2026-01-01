@@ -84,13 +84,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.core.net.toUri
@@ -2262,26 +2262,15 @@ class HomeScreenActivity : AppCompatActivity() {
 
     @Composable
     private fun HtmlText(text: String, textAlign: TextAlign) {
-        val spanned = remember(text) { UIUtils.htmlToSpannedText(text) }
-        AndroidView(
+        val textValue = remember(text) { UIUtils.htmlToSpannedText(text).toString() }
+        Text(
+            text = textValue,
             modifier = Modifier.fillMaxWidth(),
-            factory = { context ->
-                android.widget.TextView(context).apply {
-                    movementMethod = android.text.method.LinkMovementMethod.getInstance()
-                    setTextColor(fetchColor(this@HomeScreenActivity, R.attr.primaryTextColor))
-                    val size = resources.getDimension(R.dimen.large_font_text_view)
-                    setTextSize(android.util.TypedValue.COMPLEX_UNIT_PX, size)
-                    gravity =
-                        if (textAlign == TextAlign.Center) {
-                            android.view.Gravity.CENTER
-                        } else {
-                            android.view.Gravity.START
-                        }
-                }
-            },
-            update = { textView ->
-                textView.text = spanned
-            }
+            style =
+                MaterialTheme.typography.bodyLarge.copy(
+                    color = Color(fetchColor(this@HomeScreenActivity, R.attr.primaryTextColor)),
+                    textAlign = textAlign
+                )
         )
     }
 
