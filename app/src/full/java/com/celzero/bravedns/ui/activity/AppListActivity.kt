@@ -66,8 +66,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.lifecycle.asFlow
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.FirewallAppListAdapter
 import com.celzero.bravedns.database.EventSource
@@ -103,8 +104,6 @@ class AppListActivity :
     private val appInfoViewModel: AppInfoViewModel by viewModel()
     private val refreshDatabase by inject<RefreshDatabase>()
 
-    private var layoutManager: RecyclerView.LayoutManager? = null
-    private var listAdapter: FirewallAppListAdapter? = null
 
     private var showBypassToolTip = true
 
@@ -253,7 +252,6 @@ class AppListActivity :
 
         filters.value = Filters()
         initObserver()
-        initListAdapter()
         setQueryFilter()
 
         setContent {
@@ -648,17 +646,6 @@ class AppListActivity :
         }
     }
 
-    private fun initListAdapter() {
-        listAdapter = FirewallAppListAdapter(this, this, eventLogger).apply {
-            stateRestorationPolicy =
-            RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-        }
-
-        appInfoViewModel.appInfo.observe(this) {
-            listAdapter?.submitData(lifecycle, it)
-        }
-    }
-
     private fun openFilterBottomSheet() {
         FirewallAppFilterDialog(this).show()
     }
@@ -877,16 +864,14 @@ class AppListActivity :
 
     @Composable
     private fun AppListRecycler() {
-        androidx.compose.ui.viewinterop.AndroidView(
-            factory = { ctx ->
-                RecyclerView(ctx).apply {
-                    setHasFixedSize(true)
-                    layoutManager = LinearLayoutManager(ctx)
-                    adapter = listAdapter
-                }
-            },
-            modifier = Modifier.fillMaxSize()
-        )
+        val adapter = remember { FirewallAppListAdapter(this@AppListActivity, this@AppListActivity, eventLogger) }
+        val items = appInfoViewModel.appInfo.asFlow().collectAsLazyPagingItems()
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(items.itemCount) { index ->
+                val item = items[index] ?: return@items
+                adapter.FirewallAppRow(item)
+            }
+        }
     }
 
     private fun refreshAppList() {

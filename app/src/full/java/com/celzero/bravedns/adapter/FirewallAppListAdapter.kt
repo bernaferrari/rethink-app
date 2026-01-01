@@ -143,7 +143,7 @@ class FirewallAppListAdapter(
     }
 
     @Composable
-    private fun FirewallAppRow(appInfo: AppInfo) {
+    fun FirewallAppRow(appInfo: AppInfo) {
         var appStatus by remember(appInfo.uid) {
             mutableStateOf(FirewallManager.FirewallStatus.getStatus(appInfo.firewallStatus))
         }
