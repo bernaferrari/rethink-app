@@ -98,9 +98,6 @@
             android:name=".ui.activity.AppListActivity"
             android:finishOnTaskLaunch="true" />
         <activity
-            android:name=".ui.activity.DetailedStatisticsActivity"
-            android:finishOnTaskLaunch="true" />
-        <activity
             android:name=".ui.activity.NetworkLogsActivity"
             android:finishOnTaskLaunch="true" />
         <activity

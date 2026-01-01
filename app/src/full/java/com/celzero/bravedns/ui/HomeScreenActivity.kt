@@ -135,8 +135,9 @@ import com.celzero.bravedns.ui.activity.AntiCensorshipActivity
 import com.celzero.bravedns.ui.activity.AppListActivity
 import com.celzero.bravedns.ui.activity.ConfigureRethinkBasicActivity
 import com.celzero.bravedns.ui.activity.CustomRulesActivity
-import com.celzero.bravedns.ui.activity.DetailedStatisticsActivity
+import com.celzero.bravedns.ui.compose.navigation.HomeNavRequest
 import com.celzero.bravedns.ui.activity.DnsDetailActivity
+import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
 import com.celzero.bravedns.ui.activity.EventsActivity
 import com.celzero.bravedns.ui.activity.FirewallActivity
 import com.celzero.bravedns.ui.activity.MiscSettingsActivity
@@ -205,6 +206,7 @@ class HomeScreenActivity : AppCompatActivity() {
     private val homeViewModel by viewModel<com.celzero.bravedns.ui.compose.home.HomeScreenViewModel>()
     private val summaryViewModel by viewModel<com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel>()
     private val aboutViewModel by viewModel<com.celzero.bravedns.ui.compose.about.AboutViewModel>()
+    private val detailedStatsViewModel by viewModel<com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel>()
 
     // TODO: see if this can be replaced with a more robust solution
     // keep track of when app went to background
@@ -212,6 +214,7 @@ class HomeScreenActivity : AppCompatActivity() {
     private var showBugReportSheet by mutableStateOf(false)
     private var homeDialogState by mutableStateOf<HomeDialog?>(null)
     private var snackbarHostState: SnackbarHostState? = null
+    private var homeNavRequest by mutableStateOf<HomeNavRequest?>(null)
 
     private lateinit var startForResult: androidx.activity.result.ActivityResultLauncher<Intent>
     private lateinit var notificationPermissionResult: androidx.activity.result.ActivityResultLauncher<String>
@@ -329,7 +332,10 @@ class HomeScreenActivity : AppCompatActivity() {
                     onTokenDoubleTap = { aboutViewModel.generateNewToken() },
                     onFossClick = { openUrl(this, getString(R.string.about_foss_link)) },
                     onFlossFundsClick = { openUrl(this, getString(R.string.about_floss_fund_link)) },
-                    snackbarHostState = hostState
+                    snackbarHostState = hostState,
+                    detailedStatsViewModel = detailedStatsViewModel,
+                    homeNavRequest = homeNavRequest,
+                    onHomeNavConsumed = { homeNavRequest = null }
                 )
                 if (showBugReportSheet) {
                     BugReportFilesSheet(onDismiss = { showBugReportSheet = false })
@@ -863,10 +869,10 @@ class HomeScreenActivity : AppCompatActivity() {
 
     private fun openDetailedStatsUi(type: SummaryStatisticsType) {
         val timeCategory = summaryViewModel.uiState.value.timeCategory.value
-        val intent = Intent(this, DetailedStatisticsActivity::class.java)
-        intent.putExtra(DetailedStatisticsActivity.INTENT_TYPE, type.tid)
-        intent.putExtra(DetailedStatisticsActivity.INTENT_TIME_CATEGORY, timeCategory)
-        startActivity(intent)
+        val category =
+            SummaryStatisticsViewModel.TimeCategory.fromValue(timeCategory)
+                ?: SummaryStatisticsViewModel.TimeCategory.ONE_HOUR
+        homeNavRequest = HomeNavRequest.DetailedStats(type, category)
     }
 
     private fun promptForAppSponsorship() {

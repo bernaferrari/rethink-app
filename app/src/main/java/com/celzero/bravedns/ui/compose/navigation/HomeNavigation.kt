@@ -24,14 +24,17 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.navigation.NavType
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.SummaryStatisticsType
 import com.celzero.bravedns.ui.compose.about.AboutScreen
@@ -39,7 +42,9 @@ import com.celzero.bravedns.ui.compose.about.AboutUiState
 import com.celzero.bravedns.ui.compose.configure.ConfigureScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreenUiState
+import com.celzero.bravedns.ui.compose.statistics.DetailedStatisticsScreen
 import com.celzero.bravedns.ui.compose.statistics.SummaryStatisticsScreen
+import com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
 
 enum class HomeDestination(
@@ -51,6 +56,19 @@ enum class HomeDestination(
     STATS("stats", R.string.title_statistics, R.drawable.ic_statistics),
     CONFIGURE("configure", R.string.lbl_configure, R.drawable.ic_settings),
     ABOUT("about", R.string.title_about, R.drawable.ic_about)
+}
+
+sealed interface HomeNavRequest {
+    data class DetailedStats(
+        val type: SummaryStatisticsType,
+        val timeCategory: SummaryStatisticsViewModel.TimeCategory
+    ) : HomeNavRequest
+}
+
+private const val ROUTE_DETAILED_STATS = "detailedStats"
+
+private fun detailedStatsRoute(typeId: Int, timeCategory: Int): String {
+    return "$ROUTE_DETAILED_STATS/$typeId/$timeCategory"
 }
 
 @Composable
@@ -106,11 +124,26 @@ fun HomeScreenRoot(
     onTokenDoubleTap: () -> Unit,
     onFossClick: () -> Unit,
     onFlossFundsClick: () -> Unit,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
+    detailedStatsViewModel: DetailedStatisticsViewModel,
+    homeNavRequest: HomeNavRequest?,
+    onHomeNavConsumed: () -> Unit
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: HomeDestination.HOME.route
+
+    LaunchedEffect(homeNavRequest) {
+        val request = homeNavRequest ?: return@LaunchedEffect
+        when (request) {
+            is HomeNavRequest.DetailedStats -> {
+                navController.navigate(
+                    detailedStatsRoute(request.type.tid, request.timeCategory.value)
+                )
+            }
+        }
+        onHomeNavConsumed()
+    }
 
     BackHandler(enabled = currentRoute != HomeDestination.HOME.route) {
         navController.navigate(HomeDestination.HOME.route) {
@@ -172,6 +205,29 @@ fun HomeScreenRoot(
                 SummaryStatisticsScreen(
                     viewModel = summaryViewModel,
                     onSeeMoreClick = onOpenDetailedStats
+                )
+            }
+            composable(
+                route = "$ROUTE_DETAILED_STATS/{typeId}/{timeCategory}",
+                arguments =
+                    listOf(
+                        navArgument("typeId") { type = NavType.IntType },
+                        navArgument("timeCategory") { type = NavType.IntType }
+                    )
+            ) { entry ->
+                val typeId = entry.arguments?.getInt("typeId")
+                    ?: SummaryStatisticsType.MOST_CONNECTED_APPS.tid
+                val timeCategoryValue = entry.arguments?.getInt("timeCategory")
+                    ?: SummaryStatisticsViewModel.TimeCategory.ONE_HOUR.value
+                val type = SummaryStatisticsType.getType(typeId)
+                val timeCategory =
+                    SummaryStatisticsViewModel.TimeCategory.fromValue(timeCategoryValue)
+                        ?: SummaryStatisticsViewModel.TimeCategory.ONE_HOUR
+                DetailedStatisticsScreen(
+                    viewModel = detailedStatsViewModel,
+                    type = type,
+                    timeCategory = timeCategory,
+                    onBackClick = { navController.popBackStack() }
                 )
             }
             composable(HomeDestination.CONFIGURE.route) {
