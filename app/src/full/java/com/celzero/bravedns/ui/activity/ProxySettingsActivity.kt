@@ -15,7 +15,6 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -74,7 +73,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
@@ -149,6 +147,15 @@ class ProxySettingsActivity : AppCompatActivity() {
     private var orbotShowInfoDialog by mutableStateOf(false)
     private var orbotShowStopDialog by mutableStateOf(false)
     private var orbotIsDns by mutableStateOf(false)
+    private var showOrbotInstallDialog by mutableStateOf(false)
+    private var showSocks5Dialog by mutableStateOf(false)
+    private var showHttpDialog by mutableStateOf(false)
+    private var socks5DialogEndpoint by mutableStateOf<ProxyEndpoint?>(null)
+    private var socks5DialogAppNames by mutableStateOf<List<String>>(emptyList())
+    private var socks5DialogAppName by mutableStateOf("")
+    private var httpDialogEndpoint by mutableStateOf<ProxyEndpoint?>(null)
+    private var httpDialogAppNames by mutableStateOf<List<String>>(emptyList())
+    private var httpDialogAppName by mutableStateOf<String?>(null)
 
     companion object {
         private const val REFRESH_TIMEOUT: Long = 4000
@@ -205,41 +212,7 @@ class ProxySettingsActivity : AppCompatActivity() {
 
     /** Prompt user to download the Orbot app based on the current BUILDCONFIG flavor. */
     private fun showOrbotInstallDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.orbot_install_dialog_title)) },
-                    text = { Text(text = getString(R.string.orbot_install_dialog_message)) },
-                    confirmButton = {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = {
-                                dialog.dismiss()
-                                handleOrbotInstall()
-                            }) {
-                                Text(text = getString(R.string.orbot_install_dialog_positive))
-                            }
-                            TextButton(onClick = {
-                                dialog.dismiss()
-                                launchOrbotWebsite()
-                            }) {
-                                Text(text = getString(R.string.orbot_install_dialog_neutral))
-                            }
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_dismiss))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        showOrbotInstallDialog = true
     }
 
     private fun launchOrbotWebsite() {
@@ -530,58 +503,10 @@ class ProxySettingsActivity : AppCompatActivity() {
         appNames: List<String>,
         appName: String
     ) {
-        val lp = WindowManager.LayoutParams()
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.show()
-        lp.copyFrom(dialog.window?.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-
-        dialog.setCancelable(false)
-        dialog.window?.attributes = lp
-
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                Socks5ProxyDialogContent(
-                    endpoint = endpoint,
-                    appNames = appNames,
-                    appName = appName,
-                    onDismiss = { dialog.dismiss() },
-                    onApply = { selection, ip, port, userName, password, udpBlocked, excludeApps ->
-                        persistentState.excludeAppsInProxy = !excludeApps
-                        persistentState.setUdpBlocked(udpBlocked)
-                        insertSocks5Endpoint(
-                            endpoint.id,
-                            ip,
-                            port,
-                            selection,
-                            userName,
-                            password,
-                            udpBlocked
-                        )
-                        socks5Desc =
-                            if (selection == getString(R.string.settings_app_list_default_app)) {
-                                getString(
-                                    R.string.settings_socks_forwarding_desc_no_app,
-                                    ip,
-                                    port.toString()
-                                )
-                            } else {
-                                getString(
-                                    R.string.settings_socks_forwarding_desc,
-                                    ip,
-                                    port.toString(),
-                                    selection
-                                )
-                            }
-                        socks5Enabled = true
-                        dialog.dismiss()
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
+        socks5DialogEndpoint = endpoint
+        socks5DialogAppNames = appNames
+        socks5DialogAppName = appName
+        showSocks5Dialog = true
     }
 
     private fun handleProxyUi() {
@@ -595,34 +520,10 @@ class ProxySettingsActivity : AppCompatActivity() {
         appNames: List<String>,
         appName: String?
     ) {
-        val lp = WindowManager.LayoutParams()
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.show()
-        lp.copyFrom(dialog.window?.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-
-        dialog.setCancelable(false)
-        dialog.window?.attributes = lp
-
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                HttpProxyDialogContent(
-                    endpoint = endpoint,
-                    appNames = appNames,
-                    appName = appName,
-                    onDismiss = { dialog.dismiss() },
-                    onApply = { selection, ip, port, userName, password ->
-                        insertHttpProxyEndpointDB(endpoint.id, ip, port, selection)
-                        httpProxyDesc = getString(R.string.settings_http_proxy_desc, ip)
-                        httpProxyEnabled = true
-                        dialog.dismiss()
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
+        httpDialogEndpoint = endpoint
+        httpDialogAppNames = appNames
+        httpDialogAppName = appName
+        showHttpDialog = true
     }
 
     @OptIn(ExperimentalMaterial3Api::class)
@@ -812,6 +713,101 @@ class ProxySettingsActivity : AppCompatActivity() {
                         orbotShowStopDialog = false
                     }
                 )
+            }
+
+            if (showOrbotInstallDialog) {
+                AlertDialog(
+                    onDismissRequest = { showOrbotInstallDialog = false },
+                    title = { Text(text = getString(R.string.orbot_install_dialog_title)) },
+                    text = { Text(text = getString(R.string.orbot_install_dialog_message)) },
+                    confirmButton = {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(
+                                onClick = {
+                                    showOrbotInstallDialog = false
+                                    handleOrbotInstall()
+                                }
+                            ) {
+                                Text(text = getString(R.string.orbot_install_dialog_positive))
+                            }
+                            TextButton(
+                                onClick = {
+                                    showOrbotInstallDialog = false
+                                    launchOrbotWebsite()
+                                }
+                            ) {
+                                Text(text = getString(R.string.orbot_install_dialog_neutral))
+                            }
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showOrbotInstallDialog = false }) {
+                            Text(text = getString(R.string.lbl_dismiss))
+                        }
+                    }
+                )
+            }
+
+            socks5DialogEndpoint?.let { endpoint ->
+                if (showSocks5Dialog) {
+                    ModalBottomSheet(onDismissRequest = { showSocks5Dialog = false }) {
+                        Socks5ProxyDialogContent(
+                            endpoint = endpoint,
+                            appNames = socks5DialogAppNames,
+                            appName = socks5DialogAppName,
+                            onDismiss = { showSocks5Dialog = false },
+                            onApply = { selection, ip, port, userName, password, udpBlocked, excludeApps ->
+                                persistentState.excludeAppsInProxy = !excludeApps
+                                persistentState.setUdpBlocked(udpBlocked)
+                                insertSocks5Endpoint(
+                                    endpoint.id,
+                                    ip,
+                                    port,
+                                    selection,
+                                    userName,
+                                    password,
+                                    udpBlocked
+                                )
+                                socks5Desc =
+                                    if (selection == getString(R.string.settings_app_list_default_app)) {
+                                        getString(
+                                            R.string.settings_socks_forwarding_desc_no_app,
+                                            ip,
+                                            port.toString()
+                                        )
+                                    } else {
+                                        getString(
+                                            R.string.settings_socks_forwarding_desc,
+                                            ip,
+                                            port.toString(),
+                                            selection
+                                        )
+                                    }
+                                socks5Enabled = true
+                                showSocks5Dialog = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            httpDialogEndpoint?.let { endpoint ->
+                if (showHttpDialog) {
+                    ModalBottomSheet(onDismissRequest = { showHttpDialog = false }) {
+                        HttpProxyDialogContent(
+                            endpoint = endpoint,
+                            appNames = httpDialogAppNames,
+                            appName = httpDialogAppName,
+                            onDismiss = { showHttpDialog = false },
+                            onApply = { selection, ip, port, userName, password ->
+                                insertHttpProxyEndpointDB(endpoint.id, ip, port, selection)
+                                httpProxyDesc = getString(R.string.settings_http_proxy_desc, ip)
+                                httpProxyEnabled = true
+                                showHttpDialog = false
+                            }
+                        )
+                    }
+                }
             }
         }
     }

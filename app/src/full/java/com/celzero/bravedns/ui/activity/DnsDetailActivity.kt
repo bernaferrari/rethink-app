@@ -17,7 +17,6 @@ package com.celzero.bravedns.ui.activity
 
 import Logger
 import Logger.LOG_TAG_DNS
-import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -59,7 +58,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
@@ -112,6 +110,10 @@ class DnsDetailActivity : AppCompatActivity() {
     private val appDownloadManager by inject<AppDownloadManager>()
     private val viewModel: DnsSettingsViewModel by viewModel()
     private var showRecordTypesSheet by mutableStateOf(false)
+    private var showSystemDnsDialog by mutableStateOf(false)
+    private var systemDnsDialogText by mutableStateOf("")
+    private var showSmartDnsDialog by mutableStateOf(false)
+    private var smartDnsDialogText by mutableStateOf("")
     private var showLocalBlocklistsSheet by mutableStateOf(false)
 
     private var showDownloadDialog by mutableStateOf(false)
@@ -189,6 +191,68 @@ class DnsDetailActivity : AppCompatActivity() {
                 )
                 if (showRecordTypesSheet) {
                     DnsRecordTypesSheet(onDismiss = { showRecordTypesSheet = false })
+                }
+                if (showSystemDnsDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showSystemDnsDialog = false },
+                        title = { Text(text = getString(R.string.network_dns)) },
+                        text = { Text(text = systemDnsDialogText) },
+                        confirmButton = {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton(onClick = { showSystemDnsDialog = false }) {
+                                    Text(text = getString(R.string.ada_noapp_dialog_positive))
+                                }
+                                TextButton(
+                                    onClick = {
+                                        UIUtils.clipboardCopy(
+                                            this@DnsDetailActivity,
+                                            systemDnsDialogText,
+                                            getString(R.string.copy_clipboard_label)
+                                        )
+                                        Utilities.showToastUiCentered(
+                                            this@DnsDetailActivity,
+                                            getString(R.string.info_dialog_url_copy_toast_msg),
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        showSystemDnsDialog = false
+                                    }
+                                ) {
+                                    Text(text = getString(R.string.dns_info_neutral))
+                                }
+                            }
+                        }
+                    )
+                }
+                if (showSmartDnsDialog) {
+                    AlertDialog(
+                        onDismissRequest = { showSmartDnsDialog = false },
+                        title = { Text(text = getString(R.string.smart_dns)) },
+                        text = { Text(text = smartDnsDialogText) },
+                        confirmButton = {
+                            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                TextButton(onClick = { showSmartDnsDialog = false }) {
+                                    Text(text = getString(R.string.ada_noapp_dialog_positive))
+                                }
+                                TextButton(
+                                    onClick = {
+                                        UIUtils.clipboardCopy(
+                                            this@DnsDetailActivity,
+                                            smartDnsDialogText,
+                                            getString(R.string.copy_clipboard_label)
+                                        )
+                                        Utilities.showToastUiCentered(
+                                            this@DnsDetailActivity,
+                                            getString(R.string.info_dialog_url_copy_toast_msg),
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        showSmartDnsDialog = false
+                                    }
+                                ) {
+                                    Text(text = getString(R.string.dns_info_neutral))
+                                }
+                            }
+                        }
+                    )
                 }
                 if (showLocalBlocklistsSheet) {
                     LocalBlocklistsSheet()
@@ -429,88 +493,15 @@ class DnsDetailActivity : AppCompatActivity() {
                     val txt = getString(R.string.symbol_star) + " " + it
                     stringBuilder.append(txt).append("\n")
                 }
-                val list = stringBuilder.toString()
-                val dialog = Dialog(this@DnsDetailActivity, R.style.App_Dialog_NoDim)
-                dialog.setCancelable(true)
-                val composeView = ComposeView(this@DnsDetailActivity)
-                composeView.setContent {
-                    RethinkTheme {
-                        AlertDialog(
-                            onDismissRequest = { dialog.dismiss() },
-                            title = { Text(text = getString(R.string.smart_dns)) },
-                            text = { Text(text = list) },
-                            confirmButton = {
-                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    TextButton(onClick = { dialog.dismiss() }) {
-                                        Text(text = getString(R.string.ada_noapp_dialog_positive))
-                                    }
-                                    TextButton(
-                                        onClick = {
-                                            UIUtils.clipboardCopy(
-                                                this@DnsDetailActivity,
-                                                list,
-                                                getString(R.string.copy_clipboard_label)
-                                            )
-                                            Utilities.showToastUiCentered(
-                                                this@DnsDetailActivity,
-                                                getString(R.string.info_dialog_url_copy_toast_msg),
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            dialog.dismiss()
-                                        }
-                                    ) {
-                                        Text(text = getString(R.string.dns_info_neutral))
-                                    }
-                                }
-                            }
-                        )
-                    }
-                }
-                dialog.setContentView(composeView)
-                dialog.show()
+                smartDnsDialogText = stringBuilder.toString()
+                showSmartDnsDialog = true
             }
         }
     }
 
     private fun showSystemDnsDialog(dns: String) {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.network_dns)) },
-                    text = { Text(text = dns) },
-                    confirmButton = {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            TextButton(onClick = { dialog.dismiss() }) {
-                                Text(text = getString(R.string.ada_noapp_dialog_positive))
-                            }
-                            TextButton(
-                                onClick = {
-                                    UIUtils.clipboardCopy(
-                                        this@DnsDetailActivity,
-                                        dns,
-                                        getString(R.string.copy_clipboard_label)
-                                    )
-                                    Utilities.showToastUiCentered(
-                                        this@DnsDetailActivity,
-                                        getString(R.string.info_dialog_url_copy_toast_msg),
-                                        Toast.LENGTH_SHORT
-                                    )
-                                    dialog.dismiss()
-                                }
-                            ) {
-                                Text(text = getString(R.string.dns_info_neutral))
-                            }
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        systemDnsDialogText = dns
+        showSystemDnsDialog = true
     }
 
     private fun openLocalBlocklist() {
