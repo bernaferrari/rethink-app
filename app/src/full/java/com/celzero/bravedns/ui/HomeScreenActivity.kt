@@ -39,7 +39,6 @@ import android.os.Bundle
 import android.os.SystemClock
 import android.provider.Settings
 import android.view.Gravity
-import android.view.View
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -71,10 +70,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -172,7 +175,6 @@ import com.celzero.bravedns.util.Utilities.isWebsiteFlavour
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.bravedns.util.disableFrostTemporarily
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -209,6 +211,7 @@ class HomeScreenActivity : AppCompatActivity() {
     private var appInBackground = false
     private var showBugReportSheet by mutableStateOf(false)
     private var homeDialogState by mutableStateOf<HomeDialog?>(null)
+    private var snackbarHostState: SnackbarHostState? = null
 
     private lateinit var startForResult: androidx.activity.result.ActivityResultLauncher<Intent>
     private lateinit var notificationPermissionResult: androidx.activity.result.ActivityResultLauncher<String>
@@ -257,6 +260,15 @@ class HomeScreenActivity : AppCompatActivity() {
 
         setContent {
             RethinkTheme {
+                val hostState = remember { SnackbarHostState() }
+                DisposableEffect(hostState) {
+                    snackbarHostState = hostState
+                    onDispose {
+                        if (snackbarHostState == hostState) {
+                            snackbarHostState = null
+                        }
+                    }
+                }
                 val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
                 val aboutState by aboutViewModel.uiState.collectAsStateWithLifecycle()
                 HomeScreenRoot(
@@ -316,7 +328,8 @@ class HomeScreenActivity : AppCompatActivity() {
                     onTokenClick = { copyTokenToClipboard() },
                     onTokenDoubleTap = { aboutViewModel.generateNewToken() },
                     onFossClick = { openUrl(this, getString(R.string.about_foss_link)) },
-                    onFlossFundsClick = { openUrl(this, getString(R.string.about_floss_fund_link)) }
+                    onFlossFundsClick = { openUrl(this, getString(R.string.about_floss_fund_link)) },
+                    snackbarHostState = hostState
                 )
                 if (showBugReportSheet) {
                     BugReportFilesSheet(onDismiss = { showBugReportSheet = false })
@@ -756,21 +769,16 @@ class HomeScreenActivity : AppCompatActivity() {
         }
 
     private fun showUpdateCompleteSnackbar() {
-        try {
-            val container: View = findViewById(android.R.id.content)
-            val snack =
-                Snackbar.make(
-                    container,
-                    getString(R.string.update_complete_snack_message),
-                    Snackbar.LENGTH_INDEFINITE
+        lifecycleScope.launch {
+            val result =
+                snackbarHostState?.showSnackbar(
+                    message = getString(R.string.update_complete_snack_message),
+                    actionLabel = getString(R.string.update_complete_action_snack),
+                    duration = SnackbarDuration.Indefinite
                 )
-            snack.setAction(getString(R.string.update_complete_action_snack)) {
+            if (result == SnackbarResult.ActionPerformed) {
                 appUpdateManager.completeUpdate()
             }
-            snack.setActionTextColor(ContextCompat.getColor(this, R.color.primaryLightColorText))
-            snack.show()
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "err showing update complete snackbar: ${e.message}", e)
         }
     }
 
@@ -1081,11 +1089,12 @@ class HomeScreenActivity : AppCompatActivity() {
                     Logger.i(LOG_TAG_UI, "User accepted notification permission")
                 } else {
                     Logger.w(LOG_TAG_UI, "User rejected notification permission")
-                    Snackbar.make(
-                        findViewById<View>(android.R.id.content).rootView,
-                        getString(R.string.hsf_notification_permission_failure),
-                        Snackbar.LENGTH_LONG
-                    ).show()
+                    lifecycleScope.launch {
+                        snackbarHostState?.showSnackbar(
+                            message = getString(R.string.hsf_notification_permission_failure),
+                            duration = SnackbarDuration.Long
+                        )
+                    }
                 }
             }
 

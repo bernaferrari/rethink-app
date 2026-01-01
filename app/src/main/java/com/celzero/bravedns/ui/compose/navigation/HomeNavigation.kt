@@ -21,6 +21,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
@@ -103,7 +105,8 @@ fun HomeScreenRoot(
     onTokenClick: () -> Unit,
     onTokenDoubleTap: () -> Unit,
     onFossClick: () -> Unit,
-    onFlossFundsClick: () -> Unit
+    onFlossFundsClick: () -> Unit,
+    snackbarHostState: SnackbarHostState
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -118,6 +121,7 @@ fun HomeScreenRoot(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
             NavigationBar {
                 HomeDestination.entries.forEach { destination ->

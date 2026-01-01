@@ -16,7 +16,6 @@
 package com.celzero.bravedns.ui.compose.statistics
 
 import android.graphics.drawable.Drawable
-import android.widget.ImageView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -34,8 +33,8 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.viewinterop.AndroidView
 import com.celzero.bravedns.R
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 
 @Composable
 fun StatisticsSummaryItem(
@@ -67,17 +66,14 @@ fun StatisticsSummaryItem(
                 if (!flagText.isNullOrEmpty()) {
                     Text(text = flagText, fontSize = 22.sp)
                 } else {
-                    AndroidView(
-                        factory = { context ->
-                            ImageView(context).apply {
-                                scaleType = ImageView.ScaleType.CENTER_CROP
-                            }
-                        },
-                        update = { view ->
-                            view.setImageDrawable(iconDrawable)
-                        },
-                        modifier = Modifier.size(32.dp)
-                    )
+                    val painter = rememberDrawablePainter(iconDrawable)
+                    painter?.let {
+                        Image(
+                            painter = it,
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
                 }
             }
 
