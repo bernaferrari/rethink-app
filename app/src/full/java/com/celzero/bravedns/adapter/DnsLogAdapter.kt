@@ -18,7 +18,6 @@ package com.celzero.bravedns.adapter
 
 import android.content.Context
 import android.graphics.drawable.Drawable
-import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -44,15 +43,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
@@ -65,7 +60,6 @@ import com.celzero.bravedns.glide.FavIconDownloader
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.ui.bottomsheet.DnsBlocklistDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.UIUtils.fetchColor
@@ -74,46 +68,10 @@ import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.firestack.backend.Backend
 import io.github.aakira.napier.Napier
 
-class DnsLogAdapter(val context: Context, val loadFavIcon: Boolean, val isRethinkDns: Boolean) :
-    PagingDataAdapter<DnsLog, DnsLogAdapter.DnsLogViewHolder>(DIFF_CALLBACK) {
+class DnsLogAdapter(val context: Context, val loadFavIcon: Boolean, val isRethinkDns: Boolean) {
 
     companion object {
         private const val TAG = "DnsLogAdapter"
-        private val DIFF_CALLBACK =
-            object : DiffUtil.ItemCallback<DnsLog>() {
-                override fun areItemsTheSame(prev: DnsLog, curr: DnsLog) =
-                    prev.id == curr.id
-
-                override fun areContentsTheSame(prev: DnsLog, curr: DnsLog): Boolean {
-                    return prev == curr
-                }
-            }
-    }
-
-    override fun onBindViewHolder(holder: DnsLogViewHolder, position: Int) {
-        val log: DnsLog = getItem(position) ?: return
-        holder.update(log)
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DnsLogViewHolder {
-        val composeView = ComposeView(parent.context)
-        composeView.layoutParams =
-            RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        return DnsLogViewHolder(composeView)
-    }
-
-    inner class DnsLogViewHolder(private val composeView: ComposeView) :
-        RecyclerView.ViewHolder(composeView) {
-        fun update(log: DnsLog) {
-            composeView.setContent {
-                RethinkTheme {
-                    DnsLogRow(log)
-                }
-            }
-        }
     }
 
     @Composable

@@ -18,7 +18,6 @@ package com.celzero.bravedns.adapter
 
 import android.content.Context
 import android.graphics.drawable.Drawable
-import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,14 +42,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ConnectionTracker
@@ -60,7 +55,6 @@ import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.bottomsheet.ConnTrackerDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.TIME_FORMAT_1
 import com.celzero.bravedns.util.KnownPorts
 import com.celzero.bravedns.util.Protocol
@@ -73,21 +67,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
-class RethinkLogAdapter(private val context: Context) :
-    PagingDataAdapter<RethinkLog, RethinkLogAdapter.RethinkLogViewHolder>(DIFF_CALLBACK) {
+class RethinkLogAdapter(private val context: Context) {
 
     companion object {
-        private val DIFF_CALLBACK =
-            object : DiffUtil.ItemCallback<RethinkLog>() {
-                override fun areItemsTheSame(oldConnection: RethinkLog, newConnection: RethinkLog) =
-                    oldConnection.id == newConnection.id
-
-                override fun areContentsTheSame(
-                    oldConnection: RethinkLog,
-                    newConnection: RethinkLog
-                ) = oldConnection == newConnection
-            }
-
         private const val MAX_BYTES = 500000 // 500 KB
         private const val MAX_TIME_TCP = 135 // seconds
         private const val MAX_TIME_UDP = 135 // seconds
@@ -95,33 +77,6 @@ class RethinkLogAdapter(private val context: Context) :
         const val DNS_IP_TEMPLATE_V4 = "10.111.222.3"
         const val DNS_IP_TEMPLATE_V6 = "fd66:f83a:c650::3"
         private const val TAG = "RethinkLogAdapter"
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RethinkLogViewHolder {
-        val composeView = ComposeView(parent.context)
-        composeView.layoutParams =
-            RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        return RethinkLogViewHolder(composeView)
-    }
-
-    override fun onBindViewHolder(holder: RethinkLogViewHolder, position: Int) {
-        val log: RethinkLog = getItem(position) ?: return
-        holder.update(log)
-    }
-
-    inner class RethinkLogViewHolder(private val composeView: ComposeView) :
-        RecyclerView.ViewHolder(composeView) {
-
-        fun update(log: RethinkLog) {
-            composeView.setContent {
-                RethinkTheme {
-                    RethinkLogRow(log)
-                }
-            }
-        }
     }
 
     @Composable

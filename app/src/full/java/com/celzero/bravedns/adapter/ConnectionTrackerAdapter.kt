@@ -18,7 +18,6 @@ package com.celzero.bravedns.adapter
 
 import android.content.Context
 import android.graphics.drawable.Drawable
-import android.view.ViewGroup
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,14 +42,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ConnectionTracker
@@ -59,7 +54,6 @@ import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.bottomsheet.ConnTrackerDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.TIME_FORMAT_1
 import com.celzero.bravedns.util.KnownPorts
 import com.celzero.bravedns.util.Protocol
@@ -73,55 +67,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
-class ConnectionTrackerAdapter(private val context: Context) :
-    PagingDataAdapter<ConnectionTracker, ConnectionTrackerAdapter.ConnectionTrackerViewHolder>(
-        DIFF_CALLBACK
-    ) {
+class ConnectionTrackerAdapter(private val context: Context) {
 
     companion object {
-        private val DIFF_CALLBACK =
-            object : DiffUtil.ItemCallback<ConnectionTracker>() {
-                override fun areItemsTheSame(old: ConnectionTracker, new: ConnectionTracker): Boolean {
-                    return old.id == new.id
-                }
-
-                override fun areContentsTheSame(old: ConnectionTracker, new: ConnectionTracker): Boolean {
-                    return old == new
-                }
-            }
-
         private const val MAX_BYTES = 500000 // 500 KB
         private const val MAX_TIME_TCP = 135 // seconds
         private const val MAX_TIME_UDP = 135 // seconds
         private const val NO_USER_ID = 0
         private const val TAG = "ConnTrackAdapter"
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ConnectionTrackerViewHolder {
-        val composeView = ComposeView(parent.context)
-        composeView.layoutParams =
-            RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        return ConnectionTrackerViewHolder(composeView)
-    }
-
-    override fun onBindViewHolder(holder: ConnectionTrackerViewHolder, position: Int) {
-        val connTracker: ConnectionTracker = getItem(position) ?: return
-        holder.update(connTracker)
-    }
-
-    inner class ConnectionTrackerViewHolder(private val composeView: ComposeView) :
-        RecyclerView.ViewHolder(composeView) {
-
-        fun update(connTracker: ConnectionTracker) {
-            composeView.setContent {
-                RethinkTheme {
-                    ConnectionRow(connTracker)
-                }
-            }
-        }
     }
 
     @Composable
