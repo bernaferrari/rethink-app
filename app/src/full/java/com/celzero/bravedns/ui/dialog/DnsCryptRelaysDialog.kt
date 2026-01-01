@@ -38,13 +38,14 @@ import androidx.lifecycle.asFlow
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.DnsCryptRelayEndpointAdapter
+import com.celzero.bravedns.adapter.RelayRow
+import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.DnsCryptRelayEndpoint
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 
 class DnsCryptRelaysDialog(
     private var activity: Activity,
-    private val relayAdapter: DnsCryptRelayEndpointAdapter,
+    private val appConfig: AppConfig,
     private val relays: LiveData<PagingData<DnsCryptRelayEndpoint>>,
     themeID: Int
 ) : Dialog(activity, themeID) {
@@ -81,7 +82,7 @@ class DnsCryptRelaysDialog(
             LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
                 items(items.itemCount) { index ->
                     val item = items[index] ?: return@items
-                    relayAdapter.RelayRow(item)
+                    RelayRow(item, appConfig)
                 }
             }
             Button(onClick = onDismiss, modifier = Modifier.align(androidx.compose.ui.Alignment.End)) {

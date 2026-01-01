@@ -15,8 +15,6 @@
  */
 package com.celzero.bravedns.adapter
 
-import android.content.Context
-import android.view.ViewGroup
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -34,126 +32,79 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.findViewTreeLifecycleOwner
-import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities.getFlag
 
-class RpnCountriesAdapter(
-    private val context: Context,
-    private val countries: List<String>,
-    private val selectedCCs: Set<String>
-) : RecyclerView.Adapter<RpnCountriesAdapter.RpnCountriesViewHolder>() {
+@Composable
+fun CountryRow(conf: String, isSelected: Boolean) {
+    val context = LocalContext.current
+    val flag = getFlag(conf)
+    val strokeColor = getStrokeColorForStatus(context, isSelected)
 
-    private var lifecycleOwner: LifecycleOwner? = null
-
-    override fun onBindViewHolder(holder: RpnCountriesViewHolder, position: Int) {
-        holder.update(countries[position])
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RpnCountriesViewHolder {
-        val composeView = ComposeView(parent.context)
-        composeView.layoutParams =
-            RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        if (lifecycleOwner == null) {
-            lifecycleOwner = parent.findViewTreeLifecycleOwner()
-        }
-        return RpnCountriesViewHolder(composeView)
-    }
-
-    override fun getItemCount(): Int {
-        return countries.size
-    }
-
-    inner class RpnCountriesViewHolder(private val composeView: ComposeView) :
-        RecyclerView.ViewHolder(composeView) {
-
-        fun update(conf: String) {
-            composeView.setContent {
-                RethinkTheme {
-                    CountryRow(conf)
-                }
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = CardDefaults.shape,
+        colors = CardDefaults.cardColors(),
+        border =
+            if (isSelected) {
+                BorderStroke(2.dp, Color(strokeColor))
+            } else {
+                BorderStroke(0.dp, Color(strokeColor))
             }
-        }
-    }
-
-    @Composable
-    fun CountryRow(conf: String) {
-        val flag = getFlag(conf)
-        val ccName = conf
-        val isSelected = selectedCCs.contains(conf)
-        val strokeColor = getStrokeColorForStatus(isSelected)
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = CardDefaults.shape,
-            colors = CardDefaults.cardColors(),
-            border =
-                if (isSelected) {
-                    BorderStroke(2.dp, Color(strokeColor))
-                } else {
-                    BorderStroke(0.dp, Color(strokeColor))
-                }
+    ) {
+        Row(
+            modifier = Modifier.padding(10.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier.padding(10.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = flag,
-                            modifier = Modifier.padding(end = 8.dp),
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-                        Text(
-                            text = ccName,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                    if (isSelected) {
-                        AssistChip(
-                            onClick = { },
-                            label = {
-                                Text(
-                                    text = stringResource(id = R.string.lbl_active),
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            }
-                        )
-                        Text(
-                            text = stringResource(id = R.string.lbl_active)
-                                .replaceFirstChar(Char::titlecase),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    } else {
-                        Text(
-                            text = stringResource(id = R.string.lbl_disabled)
-                                .replaceFirstChar(Char::titlecase),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = flag,
+                        modifier = Modifier.padding(end = 8.dp),
+                        style = MaterialTheme.typography.headlineSmall
+                    )
+                    Text(
+                        text = conf,
+                        style = MaterialTheme.typography.titleMedium
+                    )
                 }
-                Spacer(modifier = Modifier.padding(end = 8.dp))
-                Checkbox(checked = isSelected, onCheckedChange = null, enabled = false)
+                if (isSelected) {
+                    AssistChip(
+                        onClick = { },
+                        label = {
+                            Text(
+                                text = stringResource(id = R.string.lbl_active),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        }
+                    )
+                    Text(
+                        text = stringResource(id = R.string.lbl_active)
+                            .replaceFirstChar(Char::titlecase),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                } else {
+                    Text(
+                        text = stringResource(id = R.string.lbl_disabled)
+                            .replaceFirstChar(Char::titlecase),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
             }
+            Spacer(modifier = Modifier.padding(end = 8.dp))
+            Checkbox(checked = isSelected, onCheckedChange = null, enabled = false)
         }
     }
+}
 
-    private fun getStrokeColorForStatus(isActive: Boolean): Int {
-        if (!isActive) return fetchColor(context, R.attr.chipTextNegative)
-        return fetchColor(context, R.attr.accentGood)
-    }
+private fun getStrokeColorForStatus(context: android.content.Context, isActive: Boolean): Int {
+    if (!isActive) return fetchColor(context, R.attr.chipTextNegative)
+    return fetchColor(context, R.attr.accentGood)
 }

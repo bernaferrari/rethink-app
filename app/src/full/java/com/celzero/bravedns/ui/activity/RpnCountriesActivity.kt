@@ -38,7 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.RpnCountriesAdapter
+import com.celzero.bravedns.adapter.CountryRow
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
@@ -129,12 +129,10 @@ class RpnCountriesActivity : AppCompatActivity() {
     @Composable
     private fun CountriesList() {
         val list = countries
-        val adapter = remember(list, selectedCountries) {
-            RpnCountriesAdapter(this, list, selectedCountries)
-        }
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(list.size) { index ->
-                adapter.CountryRow(list[index])
+                val country = list[index]
+                CountryRow(country, selectedCountries.contains(country))
             }
         }
     }

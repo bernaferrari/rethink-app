@@ -75,7 +75,6 @@ import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.DnsCryptEndpointAdapter
-import com.celzero.bravedns.adapter.DnsCryptRelayEndpointAdapter
 import com.celzero.bravedns.adapter.DnsProxyEndpointAdapter
 import com.celzero.bravedns.adapter.DoTEndpointAdapter
 import com.celzero.bravedns.adapter.DohEndpointAdapter
@@ -688,7 +687,7 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                TextButton(onClick = { openDnsCryptRelaysDialog(lifecycleOwner) }) {
+                TextButton(onClick = { openDnsCryptRelaysDialog() }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(text = stringResource(R.string.cd_dnscrypt_relay_heading))
                         Spacer(modifier = Modifier.width(4.dp))
@@ -709,9 +708,7 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
         }
     }
 
-    private fun openDnsCryptRelaysDialog(lifecycleOwner: LifecycleOwner) {
-        val relayAdapter = DnsCryptRelayEndpointAdapter(this, lifecycleOwner, appConfig)
-
+    private fun openDnsCryptRelaysDialog() {
         var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
         if (Themes.isFrostTheme(themeId)) {
             themeId = R.style.App_Dialog_NoDim
@@ -719,7 +716,7 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
         val customDialog =
             DnsCryptRelaysDialog(
                 activity = this,
-                relayAdapter = relayAdapter,
+                appConfig = appConfig,
                 relays = dnsCryptRelayViewModel.dnsCryptRelayEndpointList,
                 themeID = themeId
             )
