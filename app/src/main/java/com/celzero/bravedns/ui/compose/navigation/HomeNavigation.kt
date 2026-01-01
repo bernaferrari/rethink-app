@@ -41,9 +41,12 @@ import com.celzero.bravedns.data.SummaryStatisticsType
 import com.celzero.bravedns.ui.compose.alerts.AlertsScreen
 import com.celzero.bravedns.ui.compose.about.AboutScreen
 import com.celzero.bravedns.ui.compose.about.AboutUiState
+import com.celzero.bravedns.ui.compose.app.AppInfoScreen
 import com.celzero.bravedns.ui.compose.configure.ConfigureScreen
 import com.celzero.bravedns.ui.compose.events.EventsScreen
+import com.celzero.bravedns.ui.compose.firewall.FirewallSettingsScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreen
+import com.celzero.bravedns.ui.compose.settings.AdvancedSettingsScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreenUiState
 import com.celzero.bravedns.ui.compose.rpn.RpnAvailabilityScreen
 import com.celzero.bravedns.ui.compose.rpn.RpnCountriesScreen
@@ -53,6 +56,11 @@ import com.celzero.bravedns.ui.compose.logs.DomainConnectionsScreen
 import com.celzero.bravedns.ui.compose.statistics.DetailedStatisticsScreen
 import com.celzero.bravedns.ui.compose.statistics.SummaryStatisticsScreen
 import com.celzero.bravedns.database.EventDao
+import com.celzero.bravedns.service.EventLogger
+import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
+import com.celzero.bravedns.viewmodel.CustomDomainViewModel
+import com.celzero.bravedns.viewmodel.CustomIpViewModel
 import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
 import com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel
 import com.celzero.bravedns.viewmodel.EventsViewModel
@@ -78,7 +86,10 @@ sealed interface HomeNavRequest {
     data object RpnCountries : HomeNavRequest
     data object RpnAvailability : HomeNavRequest
     data object Events : HomeNavRequest
+    data object FirewallSettings : HomeNavRequest
+    data object AdvancedSettings : HomeNavRequest
     data class RpnWinProxyDetails(val countryCode: String) : HomeNavRequest
+    data class AppInfo(val uid: Int) : HomeNavRequest
     data class DomainConnections(
         val type: DomainConnectionsInputType,
         val flag: String,
@@ -97,6 +108,9 @@ private const val ROUTE_RPN_AVAILABILITY = "rpnAvailability"
 private const val ROUTE_DOMAIN_CONNECTIONS = "domainConnections"
 private const val ROUTE_EVENTS = "events"
 private const val ROUTE_RPN_WIN_PROXY_DETAILS = "rpnWinProxyDetails"
+private const val ROUTE_APP_INFO = "appInfo"
+private const val ROUTE_FIREWALL_SETTINGS = "firewallSettings"
+private const val ROUTE_ADVANCED_SETTINGS = "advancedSettings"
 
 private fun domainConnectionsRoute(
     type: DomainConnectionsInputType,
@@ -135,6 +149,9 @@ fun HomeScreenRoot(
     onConfigureAppsClick: () -> Unit,
     onConfigureDnsClick: () -> Unit,
     onConfigureFirewallClick: () -> Unit,
+    onFirewallUniversalClick: () -> Unit,
+    onFirewallCustomIpClick: () -> Unit,
+    onFirewallAppWiseIpClick: () -> Unit,
     onConfigureProxyClick: () -> Unit,
     onConfigureNetworkClick: () -> Unit,
     onConfigureOthersClick: () -> Unit,
@@ -177,6 +194,11 @@ fun HomeScreenRoot(
     domainConnectionsViewModel: DomainConnectionsViewModel,
     eventsViewModel: EventsViewModel,
     eventDao: EventDao,
+    appInfoEventLogger: EventLogger,
+    appInfoIpRulesViewModel: CustomIpViewModel,
+    appInfoDomainRulesViewModel: CustomDomainViewModel,
+    appInfoNetworkLogsViewModel: AppConnectionsViewModel,
+    persistentState: PersistentState,
     homeNavRequest: HomeNavRequest?,
     onHomeNavConsumed: () -> Unit
 ) {
@@ -204,6 +226,12 @@ fun HomeScreenRoot(
             HomeNavRequest.Events -> {
                 navController.navigate(ROUTE_EVENTS)
             }
+            HomeNavRequest.FirewallSettings -> {
+                navController.navigate(ROUTE_FIREWALL_SETTINGS)
+            }
+            HomeNavRequest.AdvancedSettings -> {
+                navController.navigate(ROUTE_ADVANCED_SETTINGS)
+            }
             is HomeNavRequest.RpnWinProxyDetails -> {
                 navController.navigate("$ROUTE_RPN_WIN_PROXY_DETAILS/${Uri.encode(request.countryCode)}")
             }
@@ -219,6 +247,9 @@ fun HomeScreenRoot(
                         request.timeCategory
                     )
                 )
+            }
+            is HomeNavRequest.AppInfo -> {
+                navController.navigate("$ROUTE_APP_INFO/${request.uid}")
             }
         }
         onHomeNavConsumed()
@@ -299,6 +330,34 @@ fun HomeScreenRoot(
                 EventsScreen(
                     viewModel = eventsViewModel,
                     eventDao = eventDao,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_FIREWALL_SETTINGS) {
+                FirewallSettingsScreen(
+                    onUniversalFirewallClick = onFirewallUniversalClick,
+                    onCustomIpDomainClick = onFirewallCustomIpClick,
+                    onAppWiseIpDomainClick = onFirewallAppWiseIpClick,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_ADVANCED_SETTINGS) {
+                AdvancedSettingsScreen(
+                    persistentState = persistentState,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = "$ROUTE_APP_INFO/{uid}",
+                arguments = listOf(navArgument("uid") { type = NavType.IntType })
+            ) { entry ->
+                val uid = entry.arguments?.getInt("uid") ?: 0
+                AppInfoScreen(
+                    uid = uid,
+                    eventLogger = appInfoEventLogger,
+                    ipRulesViewModel = appInfoIpRulesViewModel,
+                    domainRulesViewModel = appInfoDomainRulesViewModel,
+                    networkLogsViewModel = appInfoNetworkLogsViewModel,
                     onBackClick = { navController.popBackStack() }
                 )
             }

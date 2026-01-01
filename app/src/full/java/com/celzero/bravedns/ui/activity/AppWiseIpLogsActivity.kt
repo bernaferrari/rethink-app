@@ -66,6 +66,7 @@ import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.bottomsheet.AppIpRulesSheet
+import com.celzero.bravedns.ui.compose.app.AppInfoNav
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Themes
@@ -119,8 +120,8 @@ class AppWiseIpLogsActivity : AppCompatActivity() {
             controller.isAppearanceLightNavigationBars = false
             window.isNavigationBarContrastEnforced = false
         }
-        uid = intent.getIntExtra(AppInfoActivity.INTENT_UID, INVALID_UID)
-        isAsn = intent.getBooleanExtra(AppInfoActivity.INTENT_ASN, false)
+        uid = intent.getIntExtra(AppInfoNav.EXTRA_UID, INVALID_UID)
+        isAsn = intent.getBooleanExtra(AppInfoNav.EXTRA_ASN, false)
         if (uid == INVALID_UID) {
             finish()
         }

@@ -28,8 +28,8 @@ import androidx.compose.ui.platform.LocalContext
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.service.FirewallManager
-import com.celzero.bravedns.ui.activity.AppInfoActivity
 import com.celzero.bravedns.ui.activity.NetworkLogsActivity
+import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.ui.compose.statistics.StatisticsSummaryItem
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Utilities
@@ -99,8 +99,9 @@ fun ConnectionRow(dc: AppConnection) {
                 intent.putExtra(Constants.SEARCH_QUERY, dc.appOrDnsName)
                 withContext(Dispatchers.Main) { context.startActivity(intent) }
             } else {
-                val intent = Intent(context, AppInfoActivity::class.java)
-                intent.putExtra(AppInfoActivity.INTENT_UID, dc.uid)
+                val intent = Intent(context, HomeScreenActivity::class.java)
+                intent.putExtra(HomeScreenActivity.EXTRA_NAV_TARGET, HomeScreenActivity.NAV_TARGET_APP_INFO)
+                intent.putExtra(HomeScreenActivity.EXTRA_APP_INFO_UID, dc.uid)
                 withContext(Dispatchers.Main) { context.startActivity(intent) }
             }
         }

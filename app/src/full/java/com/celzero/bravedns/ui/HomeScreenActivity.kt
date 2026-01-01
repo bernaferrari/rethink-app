@@ -126,6 +126,7 @@ import com.celzero.bravedns.scheduler.EnhancedBugReport
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.AppUpdater
 import com.celzero.bravedns.service.BraveVPNService
+import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.VpnController
@@ -146,6 +147,7 @@ import com.celzero.bravedns.ui.activity.NetworkLogsActivity
 import com.celzero.bravedns.ui.activity.PauseActivity
 import com.celzero.bravedns.ui.activity.ProxySettingsActivity
 import com.celzero.bravedns.ui.activity.TunnelSettingsActivity
+import com.celzero.bravedns.ui.activity.UniversalFirewallSettingsActivity
 import com.celzero.bravedns.ui.activity.WelcomeActivity
 import com.celzero.bravedns.ui.activity.WgMainActivity
 import com.celzero.bravedns.ui.compose.navigation.HomeScreenRoot
@@ -177,6 +179,9 @@ import com.celzero.bravedns.util.Utilities.isWebsiteFlavour
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.bravedns.util.disableFrostTemporarily
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
+import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
+import com.celzero.bravedns.viewmodel.CustomDomainViewModel
+import com.celzero.bravedns.viewmodel.CustomIpViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -204,6 +209,7 @@ class HomeScreenActivity : AppCompatActivity() {
     private val workScheduler by inject<WorkScheduler>()
     private val appDatabase by inject<AppDatabase>()
     private val eventDao by inject<EventDao>()
+    private val eventLogger by inject<EventLogger>()
 
     private val homeViewModel by viewModel<com.celzero.bravedns.ui.compose.home.HomeScreenViewModel>()
     private val summaryViewModel by viewModel<com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel>()
@@ -211,6 +217,9 @@ class HomeScreenActivity : AppCompatActivity() {
     private val detailedStatsViewModel by viewModel<com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel>()
     private val domainConnectionsViewModel by viewModel<DomainConnectionsViewModel>()
     private val eventsViewModel by viewModel<EventsViewModel>()
+    private val appInfoIpRulesViewModel by viewModel<CustomIpViewModel>()
+    private val appInfoDomainRulesViewModel by viewModel<CustomDomainViewModel>()
+    private val appInfoNetworkLogsViewModel by viewModel<AppConnectionsViewModel>()
 
     // TODO: see if this can be replaced with a more robust solution
     // keep track of when app went to background
@@ -283,7 +292,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     homeUiState = homeState,
                     onHomeStartStopClick = { handleMainScreenBtnClickEvent() },
                     onHomeDnsClick = { startDnsActivity(0) },
-                    onHomeFirewallClick = { startFirewallActivity(0) },
+                    onHomeFirewallClick = { homeNavRequest = HomeNavRequest.FirewallSettings },
                     onHomeProxyClick = {
                         if (appConfig.isWireGuardEnabled()) {
                             startActivity(ScreenType.PROXY_WIREGUARD)
@@ -299,13 +308,16 @@ class HomeScreenActivity : AppCompatActivity() {
                     isDebug = DEBUG,
                     onConfigureAppsClick = { startActivity(ConfigureScreenType.APPS) },
                     onConfigureDnsClick = { startActivity(ConfigureScreenType.DNS) },
-                    onConfigureFirewallClick = { startActivity(ConfigureScreenType.FIREWALL) },
+                    onConfigureFirewallClick = { homeNavRequest = HomeNavRequest.FirewallSettings },
+                    onFirewallUniversalClick = { openUniversalFirewallScreen() },
+                    onFirewallCustomIpClick = { openCustomIpScreen() },
+                    onFirewallAppWiseIpClick = { openAppWiseIpScreen() },
                     onConfigureProxyClick = { startActivity(ConfigureScreenType.PROXY) },
                     onConfigureNetworkClick = { startActivity(ConfigureScreenType.VPN) },
                     onConfigureOthersClick = { startActivity(ConfigureScreenType.OTHERS) },
                     onConfigureLogsClick = { startActivity(ConfigureScreenType.LOGS) },
                     onConfigureAntiCensorshipClick = { startActivity(ConfigureScreenType.ANTI_CENSORSHIP) },
-                    onConfigureAdvancedClick = { startActivity(ConfigureScreenType.ADVANCED) },
+                    onConfigureAdvancedClick = { homeNavRequest = HomeNavRequest.AdvancedSettings },
                     aboutUiState = aboutState,
                     onSponsorClick = { openUrl(this, RETHINKDNS_SPONSOR_LINK) },
                     onTelegramClick = { openUrl(this, getString(R.string.about_telegram_link)) },
@@ -342,6 +354,11 @@ class HomeScreenActivity : AppCompatActivity() {
                     domainConnectionsViewModel = domainConnectionsViewModel,
                     eventsViewModel = eventsViewModel,
                     eventDao = eventDao,
+                    appInfoEventLogger = eventLogger,
+                    appInfoIpRulesViewModel = appInfoIpRulesViewModel,
+                    appInfoDomainRulesViewModel = appInfoDomainRulesViewModel,
+                    appInfoNetworkLogsViewModel = appInfoNetworkLogsViewModel,
+                    persistentState = persistentState,
                     homeNavRequest = homeNavRequest,
                     onHomeNavConsumed = { homeNavRequest = null }
                 )
@@ -425,28 +442,37 @@ class HomeScreenActivity : AppCompatActivity() {
 
     private fun handleNavigationIntent(intent: Intent?) {
         val target = intent?.getStringExtra(EXTRA_NAV_TARGET) ?: return
-        if (target != NAV_TARGET_DOMAIN_CONNECTIONS) return
-        val typeValue = intent.getIntExtra(EXTRA_DC_TYPE, 0)
-        val flag = intent.getStringExtra(EXTRA_DC_FLAG).orEmpty()
-        val domain = intent.getStringExtra(EXTRA_DC_DOMAIN).orEmpty()
-        val asn = intent.getStringExtra(EXTRA_DC_ASN).orEmpty()
-        val ip = intent.getStringExtra(EXTRA_DC_IP).orEmpty()
-        val isBlocked = intent.getBooleanExtra(EXTRA_DC_IS_BLOCKED, false)
-        val timeCategoryValue = intent.getIntExtra(EXTRA_DC_TIME_CATEGORY, 0)
-        val type = com.celzero.bravedns.ui.compose.logs.DomainConnectionsInputType.fromValue(typeValue)
-        val timeCategory =
-            DomainConnectionsViewModel.TimeCategory.fromValue(timeCategoryValue)
-                ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR
-        homeNavRequest =
-            HomeNavRequest.DomainConnections(
-                type = type,
-                flag = flag,
-                domain = domain,
-                asn = asn,
-                ip = ip,
-                isBlocked = isBlocked,
-                timeCategory = timeCategory
-            )
+        when (target) {
+            NAV_TARGET_DOMAIN_CONNECTIONS -> {
+                val typeValue = intent.getIntExtra(EXTRA_DC_TYPE, 0)
+                val flag = intent.getStringExtra(EXTRA_DC_FLAG).orEmpty()
+                val domain = intent.getStringExtra(EXTRA_DC_DOMAIN).orEmpty()
+                val asn = intent.getStringExtra(EXTRA_DC_ASN).orEmpty()
+                val ip = intent.getStringExtra(EXTRA_DC_IP).orEmpty()
+                val isBlocked = intent.getBooleanExtra(EXTRA_DC_IS_BLOCKED, false)
+                val timeCategoryValue = intent.getIntExtra(EXTRA_DC_TIME_CATEGORY, 0)
+                val type =
+                    com.celzero.bravedns.ui.compose.logs.DomainConnectionsInputType.fromValue(typeValue)
+                val timeCategory =
+                    DomainConnectionsViewModel.TimeCategory.fromValue(timeCategoryValue)
+                        ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR
+                homeNavRequest =
+                    HomeNavRequest.DomainConnections(
+                        type = type,
+                        flag = flag,
+                        domain = domain,
+                        asn = asn,
+                        ip = ip,
+                        isBlocked = isBlocked,
+                        timeCategory = timeCategory
+                    )
+            }
+            NAV_TARGET_APP_INFO -> {
+                val uid = intent.getIntExtra(EXTRA_APP_INFO_UID, Constants.INVALID_UID)
+                if (uid == Constants.INVALID_UID) return
+                homeNavRequest = HomeNavRequest.AppInfo(uid = uid)
+            }
+        }
     }
 
     private fun handleRestoreProcess(uri: Uri?) {
@@ -989,6 +1015,36 @@ class HomeScreenActivity : AppCompatActivity() {
 
     private fun startFirewallActivity(screenToLoad: Int) {
         startActivity(ScreenType.FIREWALL, screenToLoad)
+    }
+
+    private fun openUniversalFirewallScreen() {
+        val intent = Intent(this, UniversalFirewallSettingsActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun openCustomIpScreen() {
+        val intent = Intent(this, CustomRulesActivity::class.java)
+        intent.putExtra(
+            Constants.VIEW_PAGER_SCREEN_TO_LOAD,
+            CustomRulesActivity.Tabs.IP_RULES.screen
+        )
+        intent.putExtra(
+            CustomRulesActivity.INTENT_RULES,
+            CustomRulesActivity.RULES.APP_SPECIFIC_RULES.type
+        )
+        intent.putExtra(Constants.INTENT_UID, Constants.UID_EVERYBODY)
+        startActivity(intent)
+    }
+
+    private fun openAppWiseIpScreen() {
+        val intent = Intent(this, CustomRulesActivity::class.java)
+        intent.putExtra(
+            Constants.VIEW_PAGER_SCREEN_TO_LOAD,
+            CustomRulesActivity.Tabs.IP_RULES.screen
+        )
+        intent.putExtra(CustomRulesActivity.INTENT_RULES, CustomRulesActivity.RULES.ALL_RULES.type)
+        intent.putExtra(Constants.INTENT_UID, Constants.UID_EVERYBODY)
+        startActivity(intent)
     }
 
     private fun startAppsActivity() {
@@ -1853,6 +1909,7 @@ class HomeScreenActivity : AppCompatActivity() {
         private const val MB_DIVISOR = 1024.0 * 1024.0
         const val EXTRA_NAV_TARGET = "extra_nav_target"
         const val NAV_TARGET_DOMAIN_CONNECTIONS = "nav_target_domain_connections"
+        const val NAV_TARGET_APP_INFO = "nav_target_app_info"
         const val EXTRA_DC_TYPE = "extra_dc_type"
         const val EXTRA_DC_FLAG = "extra_dc_flag"
         const val EXTRA_DC_DOMAIN = "extra_dc_domain"
@@ -1860,6 +1917,7 @@ class HomeScreenActivity : AppCompatActivity() {
         const val EXTRA_DC_IP = "extra_dc_ip"
         const val EXTRA_DC_IS_BLOCKED = "extra_dc_is_blocked"
         const val EXTRA_DC_TIME_CATEGORY = "extra_dc_time_category"
+        const val EXTRA_APP_INFO_UID = "extra_app_info_uid"
     }
 
     @Composable

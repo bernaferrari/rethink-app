@@ -71,9 +71,6 @@
             android:finishOnTaskLaunch="true"
             android:noHistory="true" />
         <activity
-            android:name=".ui.activity.AppInfoActivity"
-            android:finishOnTaskLaunch="true" />
-        <activity
             android:name=".ui.activity.PauseActivity"
             android:launchMode="singleInstance" />
         <activity

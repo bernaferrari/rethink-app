@@ -59,8 +59,7 @@ import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.FirewallManager.updateFirewallStatus
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.ProxyManager.ID_NONE
-import com.celzero.bravedns.ui.activity.AppInfoActivity
-import com.celzero.bravedns.ui.activity.AppInfoActivity.Companion.INTENT_UID
+import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
@@ -451,8 +450,9 @@ private suspend fun toggleWifi(
 }
 
 private fun openAppDetailActivity(context: Context, uid: Int) {
-    val intent = Intent(context, AppInfoActivity::class.java)
-    intent.putExtra(INTENT_UID, uid)
+    val intent = Intent(context, HomeScreenActivity::class.java)
+    intent.putExtra(HomeScreenActivity.EXTRA_NAV_TARGET, HomeScreenActivity.NAV_TARGET_APP_INFO)
+    intent.putExtra(HomeScreenActivity.EXTRA_APP_INFO_UID, uid)
     context.startActivity(intent)
 }
 

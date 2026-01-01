@@ -82,7 +82,7 @@ import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager.isNotLocalAndRpnProxy
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.activity.AppInfoActivity
+import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.Protocol
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
@@ -278,8 +278,9 @@ fun ConnTrackerSheet(
                     Modifier.fillMaxWidth()
                         .clickable {
                             onDismiss()
-                            val intent = Intent(activity, AppInfoActivity::class.java)
-                            intent.putExtra(AppInfoActivity.INTENT_UID, info.uid)
+                            val intent = Intent(activity, HomeScreenActivity::class.java)
+                            intent.putExtra(HomeScreenActivity.EXTRA_NAV_TARGET, HomeScreenActivity.NAV_TARGET_APP_INFO)
+                            intent.putExtra(HomeScreenActivity.EXTRA_APP_INFO_UID, info.uid)
                             activity.startActivity(intent)
                         }
                         .padding(horizontal = 20.dp),

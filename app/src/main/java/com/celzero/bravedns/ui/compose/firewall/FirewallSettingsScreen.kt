@@ -18,14 +18,31 @@ import androidx.compose.ui.unit.sp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FirewallSettingsScreen(
     onUniversalFirewallClick: () -> Unit,
     onCustomIpDomainClick: () -> Unit,
-    onAppWiseIpDomainClick: () -> Unit
+    onAppWiseIpDomainClick: () -> Unit,
+    onBackClick: (() -> Unit)? = null
 ) {
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            if (onBackClick != null) {
+                TopAppBar(
+                    title = { Text(text = stringResource(id = R.string.firewall_mode_info_title)) },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
+                                contentDescription = "Back"
+                            )
+                        }
+                    }
+                )
+            }
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier

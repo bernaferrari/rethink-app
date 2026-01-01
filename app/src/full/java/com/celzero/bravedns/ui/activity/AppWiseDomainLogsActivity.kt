@@ -67,6 +67,7 @@ import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.bottomsheet.AppDomainRulesSheet
+import com.celzero.bravedns.ui.compose.app.AppInfoNav
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Themes
@@ -121,8 +122,8 @@ class AppWiseDomainLogsActivity : AppCompatActivity() {
             controller.isAppearanceLightNavigationBars = false
             window.isNavigationBarContrastEnforced = false
         }
-        uid = intent.getIntExtra(AppInfoActivity.INTENT_UID, INVALID_UID)
-        isActiveConns = intent.getBooleanExtra(AppInfoActivity.INTENT_ACTIVE_CONNS, false)
+        uid = intent.getIntExtra(AppInfoNav.EXTRA_UID, INVALID_UID)
+        isActiveConns = intent.getBooleanExtra(AppInfoNav.EXTRA_ACTIVE_CONNS, false)
 
         if (uid == INVALID_UID) {
             finish()

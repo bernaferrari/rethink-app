@@ -44,8 +44,6 @@ import androidx.core.view.WindowInsetsControllerCompat
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.activity.AppInfoActivity
-import com.celzero.bravedns.ui.activity.AppInfoActivity.Companion.INTENT_UID
 import com.celzero.bravedns.ui.activity.AppListActivity
 import com.celzero.bravedns.ui.activity.AppLockActivity
 import com.celzero.bravedns.ui.activity.MiscSettingsActivity.BioMetricType
@@ -201,8 +199,9 @@ class NotificationHandlerActivity: AppCompatActivity() {
         val uid = recvIntent.getIntExtra(Constants.NOTIF_INTENT_EXTRA_APP_UID, Int.MIN_VALUE)
         Logger.d(LOG_TAG_VPN, "notification intent - new app installed, uid: $uid")
         if (uid > 0) {
-            val intent = Intent(this, AppInfoActivity::class.java)
-            intent.putExtra(INTENT_UID, uid)
+            val intent = Intent(this, HomeScreenActivity::class.java)
+            intent.putExtra(HomeScreenActivity.EXTRA_NAV_TARGET, HomeScreenActivity.NAV_TARGET_APP_INFO)
+            intent.putExtra(HomeScreenActivity.EXTRA_APP_INFO_UID, uid)
             startActivity(intent)
             finish()
         } else {
