@@ -71,7 +71,8 @@ import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
-import com.celzero.bravedns.ui.dialog.NetworkReachabilityDialog
+import com.celzero.bravedns.ui.dialog.CustomLanIpSheet
+import com.celzero.bravedns.ui.dialog.NetworkReachabilitySheet
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.InternetProtocol
 import com.celzero.bravedns.util.NewSettingsManager
@@ -168,6 +169,8 @@ class TunnelSettingsActivity : AppCompatActivity() {
         var internetProtocol by remember { mutableStateOf(persistentState.internetProtocolType) }
         var vpnPolicy by remember { mutableStateOf(persistentState.vpnBuilderPolicy) }
         var connectivityChecks by remember { mutableStateOf(persistentState.connectivityChecks) }
+        var showCustomLanIpSheet by remember { mutableStateOf(false) }
+        var showReachabilitySheet by remember { mutableStateOf(false) }
 
         val canModify = !isLockdown
         val showPtrans = internetProtocol == InternetProtocol.IPv6.id
@@ -373,7 +376,19 @@ class TunnelSettingsActivity : AppCompatActivity() {
                         )
 
                         if (showPingIps) {
-                            Button(onClick = { showNwReachabilityCheckDialog() }) {
+                            Button(
+                                onClick = {
+                                    if (!VpnController.hasTunnel()) {
+                                        showToastUiCentered(
+                                            this@TunnelSettingsActivity,
+                                            getString(R.string.settings_socks5_vpn_disabled_error),
+                                            Toast.LENGTH_SHORT
+                                        )
+                                    } else {
+                                        showReachabilitySheet = true
+                                    }
+                                }
+                            ) {
                                 Text(text = getString(R.string.settings_ping_ips))
                             }
                         }
@@ -511,11 +526,24 @@ class TunnelSettingsActivity : AppCompatActivity() {
                             icon = Icons.Filled.Settings,
                             title = getString(R.string.custom_lan_ip_title),
                             description = getString(R.string.custom_lan_ip_desc),
-                            onClick = { openCustomLanIpDialog() }
+                            onClick = { showCustomLanIpSheet = true }
                         )
                     }
                 }
             }
+        }
+
+        if (showCustomLanIpSheet) {
+            CustomLanIpSheet(
+                persistentState = persistentState,
+                onDismiss = { showCustomLanIpSheet = false }
+            )
+        }
+        if (showReachabilitySheet) {
+            NetworkReachabilitySheet(
+                persistentState = persistentState,
+                onDismiss = { showReachabilitySheet = false }
+            )
         }
     }
 
@@ -566,29 +594,6 @@ class TunnelSettingsActivity : AppCompatActivity() {
                 Text(text = description, style = MaterialTheme.typography.bodySmall)
             }
             Icon(imageVector = Icons.Filled.ArrowForward, contentDescription = null)
-        }
-    }
-
-    private fun openCustomLanIpDialog() {
-        try {
-            var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-            if (Themes.isFrostTheme(themeId)) {
-                themeId = R.style.App_Dialog_NoDim
-            }
-            val dialog = com.celzero.bravedns.ui.dialog.CustomLanIpDialog(
-                this,
-                persistentState,
-                themeId
-            )
-            dialog.setCanceledOnTouchOutside(true)
-            dialog.show()
-        } catch (e: Exception) {
-            Napier.e("err opening CustomLanIpDialog: ${e.message}", e)
-            showToastUiCentered(
-                this,
-                getString(R.string.custom_lan_ip_open_error),
-                Toast.LENGTH_LONG
-            )
         }
     }
 
@@ -898,24 +903,6 @@ class TunnelSettingsActivity : AppCompatActivity() {
         }
         dialog.setContentView(composeView)
         dialog.show()
-    }
-
-    private fun showNwReachabilityCheckDialog() {
-        if (!VpnController.hasTunnel()) {
-            showToastUiCentered(
-                this,
-                getString(R.string.settings_socks5_vpn_disabled_error),
-                Toast.LENGTH_SHORT
-            )
-            return
-        }
-        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-        if (Themes.isFrostTheme(themeId)) {
-            themeId = R.style.App_Dialog_NoDim
-        }
-        val nwReachabilityDialog = NetworkReachabilityDialog(this, persistentState, themeId)
-        nwReachabilityDialog.setCanceledOnTouchOutside(true)
-        nwReachabilityDialog.show()
     }
 
     private fun logEvent(msg: String, details: String) {

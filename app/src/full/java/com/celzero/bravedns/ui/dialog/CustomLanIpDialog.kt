@@ -15,11 +15,7 @@
  */
 package com.celzero.bravedns.ui.dialog
 
-import android.app.Activity
-import android.os.Bundle
-import android.view.Window
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -33,101 +29,74 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
 import inet.ipaddr.IPAddressString
 import io.github.aakira.napier.Napier
 
-class CustomLanIpDialog(
-    activity: Activity,
-    private val persistentState: PersistentState,
-    themeId: Int
-) : AppCompatDialog(activity, themeId) {
+private const val GATEWAY_4_PREFIX = 24
+private const val GATEWAY_6_PREFIX = 120
+private const val ROUTER_4_PREFIX = 32
+private const val ROUTER_6_PREFIX = 128
+private const val DNS_4_PREFIX = 32
+private const val DNS_6_PREFIX = 128
 
-    companion object {
-        private const val GATEWAY_4_PREFIX = 24
-        private const val GATEWAY_6_PREFIX = 120
-        private const val ROUTER_4_PREFIX = 32
-        private const val ROUTER_6_PREFIX = 128
-        private const val DNS_4_PREFIX = 32
-        private const val DNS_6_PREFIX = 128
+private const val GATEWAY_4_IP = "10.111.222.1"
+private const val GATEWAY_6_IP = "fd66:f83a:c650::1"
+private const val ROUTER_4_IP = "10.111.222.2"
+private const val ROUTER_6_IP = "fd66:f83a:c650::2"
+private const val DNS_4_IP = "10.111.222.3"
+private const val DNS_6_IP = "fd66:f83a:c650::3"
 
-        private const val GATEWAY_4_IP = "10.111.222.1"
-        private const val GATEWAY_6_IP = "fd66:f83a:c650::1"
-        private const val ROUTER_4_IP = "10.111.222.2"
-        private const val ROUTER_6_IP = "fd66:f83a:c650::2"
-        private const val DNS_4_IP = "10.111.222.3"
-        private const val DNS_6_IP = "fd66:f83a:c650::3"
-    }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CustomLanIpSheet(
+    persistentState: PersistentState,
+    onDismiss: () -> Unit
+) {
+    val context = LocalContext.current
+    var initialMode by remember { mutableStateOf(false) }
+    var currentMode by remember { mutableStateOf(false) }
 
-    private var initialMode = false
-    private var currentMode by mutableStateOf(false)
+    var gatewayIpv4 by remember { mutableStateOf("") }
+    var gatewayIpv4Prefix by remember { mutableStateOf("") }
+    var gatewayIpv6 by remember { mutableStateOf("") }
+    var gatewayIpv6Prefix by remember { mutableStateOf("") }
 
-    private var gatewayIpv4 by mutableStateOf("")
-    private var gatewayIpv4Prefix by mutableStateOf("")
-    private var gatewayIpv6 by mutableStateOf("")
-    private var gatewayIpv6Prefix by mutableStateOf("")
+    var routerIpv4 by remember { mutableStateOf("") }
+    var routerIpv4Prefix by remember { mutableStateOf("") }
+    var routerIpv6 by remember { mutableStateOf("") }
+    var routerIpv6Prefix by remember { mutableStateOf("") }
 
-    private var routerIpv4 by mutableStateOf("")
-    private var routerIpv4Prefix by mutableStateOf("")
-    private var routerIpv6 by mutableStateOf("")
-    private var routerIpv6Prefix by mutableStateOf("")
+    var dnsIpv4 by remember { mutableStateOf("") }
+    var dnsIpv4Prefix by remember { mutableStateOf("") }
+    var dnsIpv6 by remember { mutableStateOf("") }
+    var dnsIpv6Prefix by remember { mutableStateOf("") }
 
-    private var dnsIpv4 by mutableStateOf("")
-    private var dnsIpv4Prefix by mutableStateOf("")
-    private var dnsIpv6 by mutableStateOf("")
-    private var dnsIpv6Prefix by mutableStateOf("")
+    var errorMessage by remember { mutableStateOf("") }
 
-    private var errorMessage by mutableStateOf("")
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        requestWindowFeature(Window.FEATURE_NO_TITLE)
-        setCancelable(true)
-
-        persistentState.customModeOrIpChanged = false
-
-        setupInitialState()
-
-        val composeView = ComposeView(context)
-        composeView.setContent {
-            RethinkTheme {
-                CustomLanIpContent()
-            }
-        }
-        setContentView(composeView)
-    }
-
-    private fun setupInitialState() {
-        initialMode = persistentState.customLanIpMode
-        currentMode = initialMode
-
-        if (currentMode) {
-            loadManualValues()
-        } else {
-            loadDefaultAutoValues()
-        }
-    }
-
-    private fun loadDefaultAutoValues() {
+    fun loadDefaultAutoValues() {
         gatewayIpv4 = GATEWAY_4_IP
         gatewayIpv4Prefix = GATEWAY_4_PREFIX.toString()
         gatewayIpv6 = GATEWAY_6_IP
@@ -144,7 +113,7 @@ class CustomLanIpDialog(
         dnsIpv6Prefix = DNS_6_PREFIX.toString()
     }
 
-    private fun loadManualValues() {
+    fun loadManualValues() {
         if (persistentState.customLanGatewayIpv4.isNotBlank()) {
             loadIpAndPrefixIntoFields(persistentState.customLanGatewayIpv4) { ip, prefix ->
                 gatewayIpv4 = ip
@@ -206,21 +175,17 @@ class CustomLanIpDialog(
         }
     }
 
-    private fun resetManualFields() {
+    fun hideError() {
+        errorMessage = ""
+    }
+
+    fun resetManualFields() {
         loadDefaultAutoValues()
         hideError()
         Toast.makeText(context, R.string.custom_lan_ip_saved_manual, Toast.LENGTH_SHORT).show()
     }
 
-    private fun showError(message: String) {
-        errorMessage = message
-    }
-
-    private fun hideError() {
-        errorMessage = ""
-    }
-
-    private fun saveAutoMode() {
+    fun saveAutoMode() {
         try {
             val modeChanged = initialMode != currentMode
             persistentState.customLanIpMode = false
@@ -228,17 +193,16 @@ class CustomLanIpDialog(
                 persistentState.customModeOrIpChanged = true
                 Napier.i("Custom LAN IPs cleared (switched to AUTO)")
             }
-
             hideError()
             Toast.makeText(context, R.string.custom_lan_ip_saved_auto, Toast.LENGTH_SHORT).show()
-            dismiss()
+            onDismiss()
         } catch (e: Exception) {
             Napier.e("err saving custom lan ip (auto): ${e.message}")
-            showError(context.getString(R.string.custom_lan_ip_save_error))
+            errorMessage = context.getString(R.string.custom_lan_ip_save_error)
         }
     }
 
-    private fun saveManualMode() {
+    fun saveManualMode() {
         try {
             val gatewayV4 = gatewayIpv4.trim()
             val gatewayV4Prefix = gatewayIpv4Prefix.trim()
@@ -262,7 +226,7 @@ class CustomLanIpDialog(
                 !validateIpv4WithPrefix(dnsV4, dnsV4Prefix) ||
                 !validateIpv6WithPrefix(dnsV6, dnsV6Prefix)
             ) {
-                showError(context.getString(R.string.custom_lan_ip_validation_error))
+                errorMessage = context.getString(R.string.custom_lan_ip_validation_error)
                 return
             }
 
@@ -300,141 +264,25 @@ class CustomLanIpDialog(
 
             hideError()
             Toast.makeText(context, R.string.custom_lan_ip_saved_manual, Toast.LENGTH_SHORT).show()
-            dismiss()
+            onDismiss()
         } catch (e: Exception) {
             Napier.e("err saving custom lan ip (manual): ${e.message}")
-            showError(context.getString(R.string.custom_lan_ip_save_error))
+            errorMessage = context.getString(R.string.custom_lan_ip_save_error)
         }
     }
 
-    private fun loadIpAndPrefixIntoFields(
-        value: String,
-        onLoaded: (String, String) -> Unit
-    ) {
-        if (value.isBlank()) {
-            onLoaded("", "")
-            return
-        }
-        val parts = value.split("/")
-        val ip = parts.getOrNull(0).orEmpty()
-        val prefix = parts.getOrNull(1).orEmpty()
-        onLoaded(ip, prefix)
-    }
-
-    private fun combineIpAndPrefix(ip: String, prefix: String): String {
-        if (ip.isBlank() && prefix.isBlank()) return ""
-        return "$ip/$prefix"
-    }
-
-    private fun validateIpv4WithPrefix(ip: String, prefixText: String): Boolean {
-        if (ip.isEmpty() && prefixText.isEmpty()) return true
-        if (ip.isEmpty() || prefixText.isEmpty()) {
-            Napier.w("IPv4 validation failed: both IP and prefix must be provided together")
-            return false
-        }
-
-        return try {
-            val addr = IPAddressString(ip).address
-            if (addr == null) {
-                Napier.w("IPv4 validation failed: invalid IP address format: $ip")
-                return false
-            }
-            if (!addr.isIPv4) {
-                Napier.w("IPv4 validation failed: not an IPv4 address: $ip")
-                return false
-            }
-
-            val host = addr.toNormalizedString()
-            if (!isRfc1918Ipv4(host)) {
-                Napier.w(
-                    "IPv4 validation failed: not a private/unique local address (must be 10.x.x.x, 172.16-31.x.x, or 192.168.x.x): $host"
-                )
-                return false
-            }
-
-            val prefix = prefixText.toIntOrNull()
-            if (prefix == null) {
-                Napier.w("IPv4 validation failed: invalid prefix length: $prefixText")
-                return false
-            }
-            if (prefix !in 0..32) {
-                Napier.w("IPv4 validation failed: prefix length must be 0-32, got: $prefix")
-                return false
-            }
-
-            true
-        } catch (e: Exception) {
-            Napier.e("IPv4 validation error for $ip/$prefixText: ${e.message}")
-            false
+    LaunchedEffect(Unit) {
+        persistentState.customModeOrIpChanged = false
+        initialMode = persistentState.customLanIpMode
+        currentMode = initialMode
+        if (currentMode) {
+            loadManualValues()
+        } else {
+            loadDefaultAutoValues()
         }
     }
 
-    private fun validateIpv6WithPrefix(ip: String, prefixText: String): Boolean {
-        if (ip.isEmpty() && prefixText.isEmpty()) return true
-        if (ip.isEmpty() || prefixText.isEmpty()) {
-            Napier.w("IPv6 validation failed: both IP and prefix must be provided together")
-            return false
-        }
-
-        return try {
-            val addr = IPAddressString(ip).address
-            if (addr == null) {
-                Napier.w("IPv6 validation failed: invalid IP address format: $ip")
-                return false
-            }
-            if (!addr.isIPv6) {
-                Napier.w("IPv6 validation failed: not an IPv6 address: $ip")
-                return false
-            }
-
-            val host = addr.toNormalizedString()
-            if (!isUlaIpv6(host)) {
-                Napier.w(
-                    "IPv6 validation failed: not a unique local address (must start with fc or fd): $host"
-                )
-                return false
-            }
-
-            val prefix = prefixText.toIntOrNull()
-            if (prefix == null) {
-                Napier.w("IPv6 validation failed: invalid prefix length: $prefixText")
-                return false
-            }
-            if (prefix !in 0..128) {
-                Napier.w("IPv6 validation failed: prefix length must be 0-128, got: $prefix")
-                return false
-            }
-
-            true
-        } catch (e: Exception) {
-            Napier.e("IPv6 validation error for $ip/$prefixText: ${e.message}")
-            false
-        }
-    }
-
-    private fun isRfc1918Ipv4(host: String): Boolean {
-        if (host.startsWith("10.")) return true
-
-        if (host.startsWith("172.")) {
-            val parts = host.split(".")
-            if (parts.size == 4) {
-                val second = parts[1].toIntOrNull() ?: return false
-                if (second in 16..31) return true
-            }
-        }
-
-        if (host.startsWith("192.168.")) return true
-
-        return false
-    }
-
-    private fun isUlaIpv6(host: String): Boolean {
-        val lower = host.lowercase()
-        return lower.startsWith("fc") || lower.startsWith("fd")
-    }
-
-    @Composable
-    private fun CustomLanIpContent() {
+    ModalBottomSheet(onDismissRequest = onDismiss) {
         val manualEnabled = currentMode
         val selectedBg = Color(fetchToggleBtnColors(context, R.color.accentGood))
         val unselectedBg = Color(fetchToggleBtnColors(context, R.color.defaultToggleBtnBg))
@@ -586,69 +434,193 @@ class CustomLanIpDialog(
             }
         }
     }
+}
 
-    @Composable
-    private fun ToggleButton(
-        text: String,
-        selected: Boolean,
-        selectedBg: Color,
-        unselectedBg: Color,
-        selectedText: Color,
-        unselectedText: Color,
-        modifier: Modifier,
-        onClick: () -> Unit
+@Composable
+private fun ToggleButton(
+    text: String,
+    selected: Boolean,
+    selectedBg: Color,
+    unselectedBg: Color,
+    selectedText: Color,
+    unselectedText: Color,
+    modifier: Modifier,
+    onClick: () -> Unit
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = if (selected) selectedBg else unselectedBg,
+                contentColor = if (selected) selectedText else unselectedText
+            )
     ) {
-        Button(
-            onClick = onClick,
-            modifier = modifier,
-            colors =
-                ButtonDefaults.buttonColors(
-                    containerColor = if (selected) selectedBg else unselectedBg,
-                    contentColor = if (selected) selectedText else unselectedText
-                )
-        ) {
-            Text(text = text, fontWeight = FontWeight.SemiBold)
-        }
+        Text(text = text, fontWeight = FontWeight.SemiBold)
     }
+}
 
-    @Composable
-    private fun SectionTitle(text: String) {
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 8.dp)
+@Composable
+private fun SectionTitle(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodyMedium,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.padding(top = 8.dp)
+    )
+}
+
+@Composable
+private fun IpRow(
+    ipValue: String,
+    prefixValue: String,
+    ipHint: String,
+    prefixHint: String,
+    enabled: Boolean,
+    onIpChange: (String) -> Unit,
+    onPrefixChange: (String) -> Unit
+) {
+    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = ipValue,
+            onValueChange = onIpChange,
+            modifier = Modifier.weight(2f),
+            singleLine = true,
+            label = { Text(text = ipHint) },
+            enabled = enabled
+        )
+        OutlinedTextField(
+            value = prefixValue,
+            onValueChange = onPrefixChange,
+            modifier = Modifier.weight(1f),
+            singleLine = true,
+            label = { Text(text = prefixHint) },
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+            enabled = enabled
         )
     }
+}
 
-    @Composable
-    private fun IpRow(
-        ipValue: String,
-        prefixValue: String,
-        ipHint: String,
-        prefixHint: String,
-        enabled: Boolean,
-        onIpChange: (String) -> Unit,
-        onPrefixChange: (String) -> Unit
-    ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            OutlinedTextField(
-                value = ipValue,
-                onValueChange = onIpChange,
-                modifier = Modifier.weight(2f),
-                singleLine = true,
-                label = { Text(text = ipHint) },
-                enabled = enabled
+private fun loadIpAndPrefixIntoFields(
+    value: String,
+    onLoaded: (String, String) -> Unit
+) {
+    if (value.isBlank()) {
+        onLoaded("", "")
+        return
+    }
+    val parts = value.split("/")
+    val ip = parts.getOrNull(0).orEmpty()
+    val prefix = parts.getOrNull(1).orEmpty()
+    onLoaded(ip, prefix)
+}
+
+private fun combineIpAndPrefix(ip: String, prefix: String): String {
+    if (ip.isBlank() && prefix.isBlank()) return ""
+    return "$ip/$prefix"
+}
+
+private fun validateIpv4WithPrefix(ip: String, prefixText: String): Boolean {
+    if (ip.isEmpty() && prefixText.isEmpty()) return true
+    if (ip.isEmpty() || prefixText.isEmpty()) {
+        Napier.w("IPv4 validation failed: both IP and prefix must be provided together")
+        return false
+    }
+
+    return try {
+        val addr = IPAddressString(ip).address
+        if (addr == null) {
+            Napier.w("IPv4 validation failed: invalid IP address format: $ip")
+            return false
+        }
+        if (!addr.isIPv4) {
+            Napier.w("IPv4 validation failed: not an IPv4 address: $ip")
+            return false
+        }
+
+        val host = addr.toNormalizedString()
+        if (!isRfc1918Ipv4(host)) {
+            Napier.w(
+                "IPv4 validation failed: not a private/unique local address (must be 10.x.x.x, 172.16-31.x.x, or 192.168.x.x): $host"
             )
-            OutlinedTextField(
-                value = prefixValue,
-                onValueChange = onPrefixChange,
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                label = { Text(text = prefixHint) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                enabled = enabled
+            return false
+        }
+
+        val prefix = prefixText.toIntOrNull()
+        if (prefix == null) {
+            Napier.w("IPv4 validation failed: invalid prefix length: $prefixText")
+            return false
+        }
+        if (prefix !in 0..32) {
+            Napier.w("IPv4 validation failed: prefix out of range: $prefixText")
+            return false
+        }
+        true
+    } catch (e: Exception) {
+        Napier.w("IPv4 validation failed: ${e.message}")
+        false
+    }
+}
+
+private fun validateIpv6WithPrefix(ip: String, prefixText: String): Boolean {
+    if (ip.isEmpty() && prefixText.isEmpty()) return true
+    if (ip.isEmpty() || prefixText.isEmpty()) {
+        Napier.w("IPv6 validation failed: both IP and prefix must be provided together")
+        return false
+    }
+
+    return try {
+        val addr = IPAddressString(ip).address
+        if (addr == null) {
+            Napier.w("IPv6 validation failed: invalid IP address format: $ip")
+            return false
+        }
+        if (!addr.isIPv6) {
+            Napier.w("IPv6 validation failed: not an IPv6 address: $ip")
+            return false
+        }
+
+        val host = addr.toNormalizedString()
+        if (!isUlaIpv6(host)) {
+            Napier.w(
+                "IPv6 validation failed: not a unique local address (must start with fc or fd): $host"
             )
+            return false
+        }
+
+        val prefix = prefixText.toIntOrNull()
+        if (prefix == null) {
+            Napier.w("IPv6 validation failed: invalid prefix length: $prefixText")
+            return false
+        }
+        if (prefix !in 0..128) {
+            Napier.w("IPv6 validation failed: prefix out of range: $prefixText")
+            return false
+        }
+        true
+    } catch (e: Exception) {
+        Napier.w("IPv6 validation failed: ${e.message}")
+        false
+    }
+}
+
+private fun isRfc1918Ipv4(host: String): Boolean {
+    if (host.startsWith("10.")) return true
+
+    if (host.startsWith("172.")) {
+        val parts = host.split(".")
+        if (parts.size == 4) {
+            val second = parts[1].toIntOrNull() ?: return false
+            if (second in 16..31) return true
         }
     }
+
+    if (host.startsWith("192.168.")) return true
+
+    return false
+}
+
+private fun isUlaIpv6(host: String): Boolean {
+    val lower = host.lowercase()
+    return lower.startsWith("fc") || lower.startsWith("fd")
 }
