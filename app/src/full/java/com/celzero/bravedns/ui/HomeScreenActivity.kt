@@ -28,7 +28,6 @@ import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.DialogInterface
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
@@ -59,6 +58,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.IconButton
@@ -156,7 +156,6 @@ import com.celzero.bravedns.util.Utilities.isWebsiteFlavour
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.bravedns.util.disableFrostTemporarily
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -779,74 +778,71 @@ class HomeScreenActivity : AppCompatActivity() {
         message: String
     ) {
         if (!isInForeground()) return
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
 
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(title)
-
-        // Determine dialog type based on title to decide if it should be modal
         val isUpdateAvailable = title == getString(R.string.download_update_dialog_title)
         val isUpToDate = message == getString(R.string.download_update_dialog_message_ok)
         val isError = message == getString(R.string.download_update_dialog_failure_message)
         val isQuotaExceeded = message == getString(R.string.download_update_dialog_trylater_message)
 
-        // Adjust message for Play Store if needed
-        if (isUpdateAvailable && source == AppUpdater.InstallSource.STORE) {
-            // Play Store updates should use native UI, but if we reach here, show appropriate message
-            builder.setMessage("A new version is available. Please update from Play Store.")
-        } else {
-            builder.setMessage(message)
+        val resolvedMessage =
+            if (isUpdateAvailable && source == AppUpdater.InstallSource.STORE) {
+                "A new version is available. Please update from Play Store."
+            } else {
+                message
+            }
+
+        dialog.setCancelable(!isUpdateAvailable)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = {
+                        if (!isUpdateAvailable) {
+                            dialog.dismiss()
+                        }
+                    },
+                    title = { Text(text = title) },
+                    text = { Text(text = resolvedMessage) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                if (isUpdateAvailable) {
+                                    if (source == AppUpdater.InstallSource.STORE) {
+                                        appUpdateManager.completeUpdate()
+                                    } else {
+                                        initiateDownload()
+                                    }
+                                }
+                                dialog.dismiss()
+                            }
+                        ) {
+                            val label =
+                                if (isUpdateAvailable && source != AppUpdater.InstallSource.STORE) {
+                                    getString(R.string.hs_download_positive_website)
+                                } else {
+                                    getString(R.string.hs_download_positive_default)
+                                }
+                            Text(text = label)
+                        }
+                    },
+                    dismissButton = {
+                        if (isUpdateAvailable) {
+                            TextButton(
+                                onClick = {
+                                    persistentState.lastAppUpdateCheck = System.currentTimeMillis()
+                                    dialog.dismiss()
+                                }
+                            ) {
+                                Text(text = getString(R.string.hs_download_negative_default))
+                            }
+                        }
+                    }
+                )
+            }
         }
-
-        // Make dialog non-dismissible (modal) only when an actual update is available
-        // User cannot dismiss by tapping outside or pressing back button
-        // However, user can still choose "Remind me later" button
-        builder.setCancelable(!isUpdateAvailable)
-
-        when {
-            isUpdateAvailable -> {
-                // Update is available - modal dialog with explicit user choice
-                if (source == AppUpdater.InstallSource.STORE) {
-                    // For Play Store updates, this dialog rarely appears as Google's native UI handles it
-                    // But if it does appear, just show OK to dismiss (native UI should have been shown)
-                    builder.setPositiveButton(getString(R.string.hs_download_positive_default)) { dialogInterface, _ ->
-                        appUpdateManager.completeUpdate()
-                        dialogInterface.dismiss()
-                    }
-                    builder.setNegativeButton(getString(R.string.hs_download_negative_default)) { dialogInterface, _ ->
-                        persistentState.lastAppUpdateCheck = System.currentTimeMillis()
-                        dialogInterface.dismiss()
-                    }
-                } else {
-                    // For website version, open browser to download - this is the main use case
-                    builder.setPositiveButton(getString(R.string.hs_download_positive_website)) { dialogInterface, _ ->
-                        initiateDownload()
-                        dialogInterface.dismiss()
-                    }
-                    // Negative button allows user to postpone the update
-                    builder.setNegativeButton(getString(R.string.hs_download_negative_default)) { dialogInterface, _ ->
-                        persistentState.lastAppUpdateCheck = System.currentTimeMillis()
-                        dialogInterface.dismiss()
-                    }
-                }
-            }
-            isUpToDate || isError || isQuotaExceeded -> {
-                // Informational dialogs - dismissible with OK button
-                builder.setCancelable(true)
-                builder.setPositiveButton(getString(R.string.hs_download_positive_default)) { dialogInterface, _ ->
-                    dialogInterface.dismiss()
-                }
-            }
-            else -> {
-                // Fallback for any other case - make it dismissible
-                builder.setCancelable(true)
-                builder.setPositiveButton(getString(R.string.hs_download_positive_default)) { dialogInterface, _ ->
-                    dialogInterface.dismiss()
-                }
-            }
-        }
-
         try {
-            val dialog = builder.create()
+            dialog.setContentView(composeView)
             dialog.show()
         } catch (e: Exception) {
             Logger.e(LOG_TAG_UI, "err showing download dialog: ${e.message}", e)
@@ -922,22 +918,33 @@ class HomeScreenActivity : AppCompatActivity() {
         val formattedAmount =
             getString(R.string.two_argument_no_space, getString(R.string.symbol_dollar), "%.2f".format(amount))
 
-        val alertBuilder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        val dialog = alertBuilder.create()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
         dialog.setCancelable(true)
-        dialog.show()
-
         val composeView = ComposeView(this)
         composeView.setContent {
             RethinkTheme {
-                SponsorInfoDialogContent(
-                    amount = formattedAmount,
-                    usageMessage = msg,
-                    onSponsorClick = { openUrl(this, RETHINKDNS_SPONSOR_LINK) }
-                )
+                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                    Text(
+                        text = getString(R.string.about_sponsor_link_text),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    SponsorInfoDialogContent(
+                        amount = formattedAmount,
+                        usageMessage = msg,
+                        onSponsorClick = { openUrl(this@HomeScreenActivity, RETHINKDNS_SPONSOR_LINK) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                }
             }
         }
-        dialog.setView(composeView)
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun handleMainScreenBtnClickEvent() {
@@ -970,28 +977,83 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun showAlwaysOnStopDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.always_on_dialog_stop_heading)
-        if (VpnController.isVpnLockdown()) {
-            builder.setMessage(UIUtils.htmlToSpannedText(getString(R.string.always_on_dialog_lockdown_stop_message)))
-        } else {
-            builder.setMessage(R.string.always_on_dialog_stop_message)
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(false)
+        val message =
+            if (VpnController.isVpnLockdown()) {
+                UIUtils.htmlToSpannedText(getString(R.string.always_on_dialog_lockdown_stop_message)).toString()
+            } else {
+                getString(R.string.always_on_dialog_stop_message)
+            }
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = getString(R.string.always_on_dialog_stop_heading)) },
+                    text = { Text(text = message) },
+                    confirmButton = {
+                        Column(horizontalAlignment = Alignment.End) {
+                            TextButton(
+                                onClick = {
+                                    dialog.dismiss()
+                                    stopVpnService()
+                                }
+                            ) {
+                                Text(text = getString(R.string.always_on_dialog_positive))
+                            }
+                            TextButton(
+                                onClick = {
+                                    dialog.dismiss()
+                                    openVpnProfile(this@HomeScreenActivity)
+                                }
+                            ) {
+                                Text(text = getString(R.string.always_on_dialog_neutral))
+                            }
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
         }
-        builder.setCancelable(false)
-        builder.setPositiveButton(R.string.always_on_dialog_positive) { _, _ -> stopVpnService() }
-        builder.setNegativeButton(R.string.lbl_cancel) { _, _ -> }
-        builder.setNeutralButton(R.string.always_on_dialog_neutral) { _, _ -> openVpnProfile(this) }
-        builder.create().show()
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun showAlwaysOnDisableDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.always_on_dialog_heading)
-        builder.setMessage(R.string.always_on_dialog)
-        builder.setCancelable(false)
-        builder.setPositiveButton(R.string.always_on_dialog_positive_btn) { _, _ -> openVpnProfile(this) }
-        builder.setNegativeButton(R.string.lbl_cancel) { _, _ -> }
-        builder.create().show()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(false)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = getString(R.string.always_on_dialog_heading)) },
+                    text = { Text(text = getString(R.string.always_on_dialog)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                openVpnProfile(this@HomeScreenActivity)
+                            }
+                        ) {
+                            Text(text = getString(R.string.always_on_dialog_positive_btn))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
+        }
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun startDnsActivity(screenToLoad: Int) {
@@ -1268,31 +1330,51 @@ class HomeScreenActivity : AppCompatActivity() {
             val vpnStats = VpnController.vpnStats()
             val stats = formatedStat + vpnStats
             uiCtx {
-                val tv = android.widget.TextView(this@HomeScreenActivity)
-                val pad = resources.getDimensionPixelSize(R.dimen.dots_margin_bottom)
-                tv.setPadding(pad, pad, pad, pad)
-                if (formatedStat == null) {
-                    tv.text = "No Stats"
-                } else {
-                    tv.text = stats
-                }
-                tv.setTextIsSelectable(true)
-                tv.typeface = android.graphics.Typeface.MONOSPACE
-                val scroll = android.widget.ScrollView(this@HomeScreenActivity)
-                scroll.addView(tv)
-                MaterialAlertDialogBuilder(this@HomeScreenActivity, R.style.App_Dialog_NoDim)
-                    .setTitle(getString(R.string.title_statistics))
-                    .setView(scroll)
-                    .setPositiveButton(R.string.fapps_info_dialog_positive_btn) { d, _ -> d.dismiss() }
-                    .setNeutralButton(R.string.dns_info_neutral) { _, _ ->
-                        copyToClipboard("stats_dump", stats)
-                        showToastUiCentered(
-                            this@HomeScreenActivity,
-                            getString(R.string.copied_clipboard),
-                            Toast.LENGTH_SHORT
+                val dialog = Dialog(this@HomeScreenActivity, R.style.App_Dialog_NoDim)
+                dialog.setCancelable(true)
+                val composeView = ComposeView(this@HomeScreenActivity)
+                composeView.setContent {
+                    RethinkTheme {
+                        val displayText = if (formatedStat == null) "No Stats" else stats
+                        AlertDialog(
+                            onDismissRequest = { dialog.dismiss() },
+                            title = { Text(text = getString(R.string.title_statistics)) },
+                            text = {
+                                SelectionContainer {
+                                    Column(
+                                        modifier =
+                                            Modifier.fillMaxWidth()
+                                                .verticalScroll(rememberScrollState())
+                                                .padding(8.dp)
+                                    ) {
+                                        Text(text = displayText, style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(onClick = { dialog.dismiss() }) {
+                                    Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(
+                                    onClick = {
+                                        copyToClipboard("stats_dump", stats)
+                                        showToastUiCentered(
+                                            this@HomeScreenActivity,
+                                            getString(R.string.copied_clipboard),
+                                            Toast.LENGTH_SHORT
+                                        )
+                                    }
+                                ) {
+                                    Text(text = getString(R.string.dns_info_neutral))
+                                }
+                            }
                         )
-                    }.create()
-                    .show()
+                    }
+                }
+                dialog.setContentView(composeView)
+                dialog.show()
             }
         }
     }
@@ -1310,43 +1392,97 @@ class HomeScreenActivity : AppCompatActivity() {
                 uiCtx { showNoLogDialog() }
                 return@io
             }
+            uiCtx { showDatabaseTablesDialog(tables) }
+        }
+    }
 
-            val items = tables.toTypedArray()
-            uiCtx {
-                MaterialAlertDialogBuilder(this@HomeScreenActivity, R.style.App_Dialog_NoDim)
-                    .setTitle(R.string.title_database_dump)
-                    .setItems(items) { _, which ->
-                        val table = items[which]
-                        io {
-                            val dump = buildTableDump(table)
-                            uiCtx {
-                                val tv = android.widget.TextView(this@HomeScreenActivity)
-                                tv.setPadding(20, 20, 20, 20)
-                                tv.text = dump
-                                tv.setTextIsSelectable(true)
-                                tv.typeface = android.graphics.Typeface.MONOSPACE
-                                val scroll = android.widget.ScrollView(this@HomeScreenActivity)
-                                scroll.addView(tv)
-                                MaterialAlertDialogBuilder(this@HomeScreenActivity, R.style.App_Dialog_NoDim)
-                                    .setTitle(table)
-                                    .setView(scroll)
-                                    .setPositiveButton(R.string.fapps_info_dialog_positive_btn) { d, _ -> d.dismiss() }
-                                    .setNeutralButton(R.string.dns_info_neutral) { _, _ ->
-                                        copyToClipboard("db_dump", dump)
-                                        showToastUiCentered(
-                                            this@HomeScreenActivity,
-                                            getString(R.string.copied_clipboard),
-                                            Toast.LENGTH_SHORT
-                                        )
-                                    }.create()
-                                    .show()
+    private fun showDatabaseTablesDialog(tables: List<String>) {
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = getString(R.string.title_database_dump)) },
+                    text = {
+                        Column(
+                            modifier =
+                                Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            tables.forEach { table ->
+                                TextButton(
+                                    onClick = {
+                                        dialog.dismiss()
+                                        io {
+                                            val dump = buildTableDump(table)
+                                            uiCtx { showDatabaseDumpDialog(table, dump) }
+                                        }
+                                    }
+                                ) {
+                                    Text(text = table)
+                                }
                             }
                         }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
                     }
-                    .setPositiveButton(R.string.lbl_cancel) { d, _ -> d.dismiss() }
-                    .show()
+                )
             }
         }
+        dialog.setContentView(composeView)
+        dialog.show()
+    }
+
+    private fun showDatabaseDumpDialog(title: String, dump: String) {
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = title) },
+                    text = {
+                        SelectionContainer {
+                            Column(
+                                modifier =
+                                    Modifier.fillMaxWidth()
+                                        .verticalScroll(rememberScrollState())
+                                        .padding(8.dp)
+                            ) {
+                                Text(text = dump, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                copyToClipboard("db_dump", dump)
+                                showToastUiCentered(
+                                    this@HomeScreenActivity,
+                                    getString(R.string.copied_clipboard),
+                                    Toast.LENGTH_SHORT
+                                )
+                            }
+                        ) {
+                            Text(text = getString(R.string.dns_info_neutral))
+                        }
+                    }
+                )
+            }
+        }
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun getDatabaseTables(): List<String> {
@@ -1395,14 +1531,35 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun showNoLogDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.about_bug_no_log_dialog_title)
-        builder.setMessage(R.string.about_bug_no_log_dialog_message)
-        builder.setPositiveButton(getString(R.string.about_bug_no_log_dialog_positive_btn)) { _, _ ->
-            sendEmailIntent(this)
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = getString(R.string.about_bug_no_log_dialog_title)) },
+                    text = { Text(text = getString(R.string.about_bug_no_log_dialog_message)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                sendEmailIntent(this@HomeScreenActivity)
+                            }
+                        ) {
+                            Text(text = getString(R.string.about_bug_no_log_dialog_positive_btn))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
         }
-        builder.setNegativeButton(getString(R.string.lbl_cancel)) { dialog, _ -> dialog.dismiss() }
-        builder.create().show()
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun openNotificationSettings() {
@@ -1431,36 +1588,47 @@ class HomeScreenActivity : AppCompatActivity() {
     private fun showNewFeaturesDialog() {
         val v = getVersionName().slice(0..6)
         val title = getString(R.string.about_whats_new, v)
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
         val composeView = ComposeView(this)
         composeView.setContent {
             RethinkTheme {
-                WhatsNewDialogContent()
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = title) },
+                    text = { WhatsNewDialogContent() },
+                    confirmButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.about_dialog_positive_button))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                sendEmailIntent(this@HomeScreenActivity)
+                            }
+                        ) {
+                            Text(text = getString(R.string.about_dialog_neutral_button))
+                        }
+                    }
+                )
             }
         }
-        MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-            .setView(composeView)
-            .setTitle(title)
-            .setPositiveButton(getString(R.string.about_dialog_positive_button)) { dialogInterface, _ ->
-                dialogInterface.dismiss()
-            }
-            .setNeutralButton(getString(R.string.about_dialog_neutral_button)) { _: DialogInterface, _: Int ->
-                sendEmailIntent(this)
-            }
-            .setCancelable(true)
-            .create()
-            .show()
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun showContributors() {
-        val dialog = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).create()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
         val composeView = ComposeView(this)
         composeView.setContent {
             RethinkTheme {
                 ContributorsDialogContent(onDismiss = { dialog.dismiss() })
             }
         }
-        dialog.setView(composeView)
-        dialog.setCancelable(true)
+        dialog.setContentView(composeView)
         dialog.show()
     }
 
