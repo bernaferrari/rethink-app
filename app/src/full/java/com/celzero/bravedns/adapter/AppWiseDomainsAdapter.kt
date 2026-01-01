@@ -16,7 +16,6 @@
 package com.celzero.bravedns.adapter
 
 import android.content.Context
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -28,22 +27,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.fragment.app.FragmentActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.bottomsheet.AppDomainRulesDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
@@ -56,46 +51,14 @@ class AppWiseDomainsAdapter(
     val lifecycleOwner: LifecycleOwner,
     val uid: Int,
     val isActiveConn: Boolean = false
-) :
-    PagingDataAdapter<AppConnection, AppWiseDomainsAdapter.ConnectionDetailsViewHolder>(
-        DIFF_CALLBACK
-    ) {
+) {
 
     private var maxValue: Int = 0
     private var minPercentage: Int = 100
+    private val refreshToken = mutableStateOf(0)
 
     companion object {
-        private val DIFF_CALLBACK =
-            object : DiffUtil.ItemCallback<AppConnection>() {
-                override fun areItemsTheSame(oldConnection: AppConnection, newConnection: AppConnection) =
-                    oldConnection == newConnection
-
-                override fun areContentsTheSame(oldConnection: AppConnection, newConnection: AppConnection) =
-                    oldConnection == newConnection
-            }
-
         private const val TAG = "AppWiseDomainsAdapter"
-    }
-
-    override fun onCreateViewHolder(
-        parent: ViewGroup,
-        viewType: Int
-    ): ConnectionDetailsViewHolder {
-        val composeView = ComposeView(parent.context)
-        composeView.layoutParams =
-            RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        return ConnectionDetailsViewHolder(composeView)
-    }
-
-    override fun onBindViewHolder(
-        holder: ConnectionDetailsViewHolder,
-        position: Int
-    ) {
-        val appConnection: AppConnection = getItem(position) ?: return
-        holder.update(appConnection)
     }
 
     private fun calculatePercentage(c: Double): Int {
@@ -111,17 +74,6 @@ class AppWiseDomainsAdapter(
                 minPercentage = percentage
             }
             percentage
-        }
-    }
-
-    inner class ConnectionDetailsViewHolder(private val composeView: ComposeView) :
-        RecyclerView.ViewHolder(composeView) {
-        fun update(conn: AppConnection) {
-            composeView.setContent {
-                RethinkTheme {
-                    DomainRow(conn)
-                }
-            }
         }
     }
 
@@ -153,7 +105,7 @@ class AppWiseDomainsAdapter(
                         Text(text = secondaryText, style = MaterialTheme.typography.bodySmall)
                     }
                     if (!isActiveConn && !conn.appOrDnsName.isNullOrEmpty()) {
-                        DomainProgress(conn)
+                        DomainProgress(conn, refreshToken.value)
                     }
                 }
                 Text(
@@ -166,7 +118,10 @@ class AppWiseDomainsAdapter(
     }
 
     @Composable
-    private fun DomainProgress(conn: AppConnection) {
+    private fun DomainProgress(conn: AppConnection, refresh: Int) {
+        if (refresh == Int.MIN_VALUE) {
+            return
+        }
         val status = DomainRulesManager.status(conn.appOrDnsName.orEmpty(), uid)
         val color =
             when (status) {
@@ -242,31 +197,15 @@ class AppWiseDomainsAdapter(
             activity,
             uid,
             domain,
-            RecyclerView.NO_POSITION
-        ) { pos ->
-            if (pos != RecyclerView.NO_POSITION) {
-                notifyItemChanged(pos)
-            } else {
-                notifyDataSetChanged()
-            }
-        }.show()
+            -1
+        ) { _ ->
+            refreshToken.value = refreshToken.value + 1
+        }
+            .show()
     }
 
     private fun beautifyIpString(d: String): String {
         return removeBeginningTrailingCommas(d).replace(",,", ",").replace(",", ", ")
     }
 
-    private fun notifyDataset(position: Int) {
-        try {
-            if (position >= 0 && position < itemCount) {
-                notifyItemChanged(position)
-            } else {
-                Napier.w("$TAG invalid position: $position, itemCount: $itemCount, refreshing adapter")
-                refresh()
-            }
-        } catch (e: Exception) {
-            Napier.e("$TAG error notifying position $position: ${e.message}", e)
-            refresh()
-        }
-    }
 }

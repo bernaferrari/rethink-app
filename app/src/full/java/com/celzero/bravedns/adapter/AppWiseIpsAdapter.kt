@@ -16,7 +16,6 @@
 package com.celzero.bravedns.adapter
 
 import android.content.Context
-import android.view.ViewGroup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,21 +26,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.fragment.app.FragmentActivity
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
+import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.LifecycleOwner
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.ui.bottomsheet.AppIpRulesDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
@@ -53,34 +48,14 @@ class AppWiseIpsAdapter(
     val lifecycleOwner: LifecycleOwner,
     val uid: Int,
     val isAsn: Boolean = false
-) : PagingDataAdapter<AppConnection, AppWiseIpsAdapter.ConnectionDetailsViewHolder>(DIFF_CALLBACK) {
+) {
 
     private var maxValue: Int = 0
     private var minPercentage: Int = 100
+    private val refreshToken = mutableStateOf(0)
 
     companion object {
-        private val DIFF_CALLBACK =
-            object : DiffUtil.ItemCallback<AppConnection>() {
-                override fun areItemsTheSame(old: AppConnection, new: AppConnection) = old == new
-
-                override fun areContentsTheSame(old: AppConnection, new: AppConnection) = old == new
-            }
         private const val TAG = "AppWiseIpsAdapter"
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ConnectionDetailsViewHolder {
-        val composeView = ComposeView(parent.context)
-        composeView.layoutParams =
-            RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        return ConnectionDetailsViewHolder(composeView)
-    }
-
-    override fun onBindViewHolder(holder: ConnectionDetailsViewHolder, position: Int) {
-        val appConnection: AppConnection = getItem(position) ?: return
-        holder.update(appConnection)
     }
 
     private fun calculatePercentage(c: Double): Int {
@@ -96,17 +71,6 @@ class AppWiseIpsAdapter(
                 minPercentage = percentage
             }
             percentage
-        }
-    }
-
-    inner class ConnectionDetailsViewHolder(private val composeView: ComposeView) :
-        RecyclerView.ViewHolder(composeView) {
-        fun update(conn: AppConnection) {
-            composeView.setContent {
-                RethinkTheme {
-                    IpRow(conn)
-                }
-            }
         }
     }
 
@@ -140,7 +104,7 @@ class AppWiseIpsAdapter(
                         Text(text = secondaryText, style = MaterialTheme.typography.bodySmall)
                     }
                     if (!isAsn) {
-                        IpProgress(conn)
+                        IpProgress(conn, refreshToken.value)
                     }
                 }
                 Text(text = countText, style = MaterialTheme.typography.labelLarge)
@@ -150,7 +114,10 @@ class AppWiseIpsAdapter(
     }
 
     @Composable
-    private fun IpProgress(conn: AppConnection) {
+    private fun IpProgress(conn: AppConnection, refresh: Int) {
+        if (refresh == Int.MIN_VALUE) {
+            return
+        }
         val status = IpRulesManager.getMostSpecificRuleMatch(conn.uid, conn.ipAddress)
         val color =
             when (status) {
@@ -194,27 +161,15 @@ class AppWiseIpsAdapter(
             uid = uid,
             ipAddress = conn.ipAddress,
             domains = beautifyDomainString(conn.appOrDnsName ?: ""),
-            position = RecyclerView.NO_POSITION
-        ) { position ->
-            notifyDataset(position)
-        }.show()
+            position = -1
+        ) { _ ->
+            refreshToken.value = refreshToken.value + 1
+        }
+            .show()
     }
 
     private fun beautifyDomainString(d: String): String {
         return removeBeginningTrailingCommas(d).replace(",,", ",").replace(",", ", ")
     }
 
-    private fun notifyDataset(position: Int) {
-        try {
-            if (position >= 0 && position < itemCount) {
-                notifyItemChanged(position)
-            } else {
-                Napier.w("$TAG invalid position: $position, itemCount: $itemCount, refreshing adapter")
-                refresh()
-            }
-        } catch (e: Exception) {
-            Napier.e("$TAG error notifying position $position: ${e.message}", e)
-            refresh()
-        }
-    }
 }
