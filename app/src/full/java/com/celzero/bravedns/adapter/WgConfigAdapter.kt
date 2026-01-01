@@ -134,14 +134,14 @@ class WgConfigAdapter(
         fun update(config: WgConfigFiles) {
             composeView.setContent {
                 RethinkTheme {
-                    WgConfigRow(config)
+                    ConfigRow(config)
                 }
             }
         }
     }
 
     @Composable
-    private fun WgConfigRow(config: WgConfigFiles) {
+    fun ConfigRow(config: WgConfigFiles) {
         val lifecycleOwner = LocalLifecycleOwner.current
         val scope = rememberCoroutineScope()
         var isChecked by remember(config.id, config.isActive) {

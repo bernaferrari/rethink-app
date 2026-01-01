@@ -22,7 +22,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.TypedValue
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.compose.setContent
@@ -37,6 +36,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -44,6 +44,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -54,6 +55,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -63,11 +65,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.OneWgConfigAdapter
 import com.celzero.bravedns.adapter.WgConfigAdapter
@@ -104,8 +105,6 @@ class WgMainActivity :
     private val appConfig by inject<AppConfig>()
     private val eventLogger by inject<EventLogger>()
 
-    private var wgConfigAdapter: WgConfigAdapter? = null
-    private var oneWgConfigAdapter: OneWgConfigAdapter? = null
     private val wgConfigViewModel: WgConfigViewModel by viewModel()
 
     private var selectedTab by mutableStateOf(WgTab.ONE)
@@ -238,7 +237,6 @@ class WgMainActivity :
     }
 
     private fun init() {
-        ensureAdapters()
         collapseFab()
         observeConfig()
         observeDnsName()
@@ -248,28 +246,6 @@ class WgMainActivity :
             } else {
                 WgTab.ONE
             }
-    }
-
-    private fun ensureAdapters() {
-        if (oneWgConfigAdapter == null) {
-            oneWgConfigAdapter = OneWgConfigAdapter(this, this, eventLogger)
-            wgConfigViewModel.interfaces.observe(this) {
-                oneWgConfigAdapter?.submitData(lifecycle, it)
-            }
-        }
-
-        if (wgConfigAdapter == null) {
-            wgConfigAdapter = WgConfigAdapter(this, this, persistentState.splitDns, eventLogger)
-            wgConfigViewModel.interfaces.observe(this) {
-                wgConfigAdapter?.submitData(lifecycle, it)
-            }
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        oneWgConfigAdapter?.notifyDataSetChanged()
-        wgConfigAdapter?.notifyDataSetChanged()
     }
 
     private fun Context.isDarkThemeOn(): Boolean {
@@ -397,14 +373,6 @@ class WgMainActivity :
         observeDnsName()
     }
 
-    private fun dpToPx(dp: Int): Int {
-        return TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            dp.toFloat(),
-            resources.displayMetrics
-        ).toInt()
-    }
-
     @Composable
     private fun WgMainScreen() {
         val context = LocalContext.current
@@ -429,44 +397,48 @@ class WgMainActivity :
                         style = MaterialTheme.typography.bodySmall
                     )
 
-                    val generalAdapter = wgConfigAdapter
-                    val oneAdapter = oneWgConfigAdapter
-
                     Box(modifier = Modifier.fillMaxSize()) {
-                        if (generalAdapter != null) {
-                            val show = selectedTab == WgTab.GENERAL
-                            AndroidView(
-                                factory = { ctx ->
-                                    RecyclerView(ctx).apply {
-                                        layoutManager = LinearLayoutManager(ctx)
-                                        adapter = generalAdapter
-                                        clipToPadding = false
-                                        setPadding(0, 0, 0, dpToPx(100))
-                                    }
-                                },
-                                modifier =
-                                    Modifier
-                                        .fillMaxSize()
-                                        .alpha(if (show) 1f else 0f)
-                            )
+                        val items = wgConfigViewModel.interfaces.asFlow().collectAsLazyPagingItems()
+                        val padding = PaddingValues(bottom = 100.dp)
+                        if (selectedTab == WgTab.GENERAL) {
+                            val adapter =
+                                remember {
+                                    WgConfigAdapter(
+                                        this@WgMainActivity,
+                                        this@WgMainActivity,
+                                        persistentState.splitDns,
+                                        eventLogger
+                                    )
+                                }
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = padding
+                            ) {
+                                items(count = items.itemCount) { index ->
+                                    val item = items[index] ?: return@items
+                                    adapter.ConfigRow(item)
+                                }
+                            }
                         }
 
-                        if (oneAdapter != null) {
-                            val show = selectedTab == WgTab.ONE
-                            AndroidView(
-                                factory = { ctx ->
-                                    RecyclerView(ctx).apply {
-                                        layoutManager = LinearLayoutManager(ctx)
-                                        adapter = oneAdapter
-                                        clipToPadding = false
-                                        setPadding(0, 0, 0, dpToPx(100))
-                                    }
-                                },
-                                modifier =
-                                    Modifier
-                                        .fillMaxSize()
-                                        .alpha(if (show) 1f else 0f)
-                            )
+                        if (selectedTab == WgTab.ONE) {
+                            val adapter =
+                                remember {
+                                    OneWgConfigAdapter(
+                                        this@WgMainActivity,
+                                        this@WgMainActivity,
+                                        eventLogger
+                                    )
+                                }
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                contentPadding = padding
+                            ) {
+                                items(count = items.itemCount) { index ->
+                                    val item = items[index] ?: return@items
+                                    adapter.ConfigRow(item)
+                                }
+                            }
                         }
                     }
                 }
