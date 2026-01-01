@@ -37,7 +37,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.WgHopAdapter
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import com.celzero.bravedns.adapter.HopRow
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.wireguard.Config
@@ -50,8 +52,6 @@ class WgHopDialog(
     private val hopables: List<Config>,
     private val selectedId: Int
 ) : Dialog(activity, themeID), KoinComponent {
-
-    private lateinit var adapter: WgHopAdapter
 
     companion object {
         private const val TAG = "HopDlg"
@@ -78,11 +78,11 @@ class WgHopDialog(
             WindowManager.LayoutParams.MATCH_PARENT
         )
         Logger.v(LOG_TAG_UI, "$TAG; init called")
-        adapter = WgHopAdapter(activity, srcId, hopables, selectedId)
     }
 
     @Composable
     private fun WgHopContent(onDismiss: () -> Unit) {
+        val selectedHopId = remember { mutableStateOf(selectedId) }
         Column(
             modifier = Modifier.fillMaxSize().padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -98,7 +98,14 @@ class WgHopDialog(
             ) {
                 items(hopables) { config ->
                     val mapping = WireguardManager.getConfigFilesById(config.getId()) ?: return@items
-                    adapter.HopRow(config = config, isActive = mapping.isActive)
+                    HopRow(
+                        context = activity,
+                        srcId = srcId,
+                        config = config,
+                        isActive = mapping.isActive,
+                        selectedId = selectedHopId.value,
+                        onSelectedIdChange = { selectedHopId.value = it }
+                    )
                 }
             }
             Button(

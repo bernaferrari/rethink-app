@@ -435,9 +435,6 @@ class OrbotDialog(
                 ProxyManager.ID_ORBOT_BASE,
                 ProxyManager.ORBOT_PROXY_NAME
             )
-        mappingViewModel.apps.observe(activity) {
-            appsAdapter.submitData(activity.lifecycle, it)
-        }
         var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
         if (Themes.isFrostTheme(themeId)) {
             themeId = R.style.App_Dialog_NoDim

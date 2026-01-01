@@ -19,7 +19,6 @@ import android.content.Context
 import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
-import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -46,21 +45,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ProxyApplicationMapping
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.ProxyManager
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.getDefaultIcon
 import com.celzero.bravedns.util.Utilities.getIcon
@@ -75,62 +67,11 @@ class WgIncludeAppsAdapter(
     private val context: Context,
     private val proxyId: String,
     private val proxyName: String
-) :
-    PagingDataAdapter<ProxyApplicationMapping, WgIncludeAppsAdapter.IncludedAppInfoViewHolder>(
-        DIFF_CALLBACK
-    ) {
+) {
     private val packageManager: PackageManager = context.packageManager
-
-    companion object {
-        private val DIFF_CALLBACK =
-            object : DiffUtil.ItemCallback<ProxyApplicationMapping>() {
-                override fun areItemsTheSame(
-                    oldConnection: ProxyApplicationMapping,
-                    newConnection: ProxyApplicationMapping
-                ): Boolean {
-                    return (oldConnection.proxyId == newConnection.proxyId &&
-                        oldConnection.uid == newConnection.uid)
-                }
-
-                override fun areContentsTheSame(
-                    oldConnection: ProxyApplicationMapping,
-                    newConnection: ProxyApplicationMapping
-                ): Boolean {
-                    return oldConnection == newConnection
-                }
-            }
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): IncludedAppInfoViewHolder {
-        val composeView = ComposeView(parent.context)
-        composeView.layoutParams =
-            RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        return IncludedAppInfoViewHolder(composeView)
-    }
-
-    override fun onBindViewHolder(holder: IncludedAppInfoViewHolder, position: Int) {
-        val apps: ProxyApplicationMapping = getItem(position) ?: return
-        holder.update(apps)
-    }
-
-    inner class IncludedAppInfoViewHolder(private val composeView: ComposeView) :
-        RecyclerView.ViewHolder(composeView) {
-
-        fun update(mapping: ProxyApplicationMapping) {
-            composeView.setContent {
-                RethinkTheme {
-                    IncludeAppRow(mapping)
-                }
-            }
-        }
-    }
 
     @Composable
     fun IncludeAppRow(mapping: ProxyApplicationMapping) {
-        val defaultName = stringResource(id = R.string.cd_custom_dns_proxy_default_app)
         var isProxyExcluded by remember(mapping.uid) { mutableStateOf(false) }
         var hasInternetPerm by remember(mapping.uid) { mutableStateOf(true) }
         var iconDrawable by remember(mapping.uid) { mutableStateOf<Drawable?>(null) }
@@ -189,15 +130,7 @@ class WgIncludeAppsAdapter(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 AndroidView(
-                    factory = { ctx ->
-                        AppCompatImageView(ctx).apply {
-                            layoutParams =
-                                ViewGroup.LayoutParams(
-                                    ViewGroup.LayoutParams.WRAP_CONTENT,
-                                    ViewGroup.LayoutParams.WRAP_CONTENT
-                                )
-                        }
-                    },
+                    factory = { ctx -> AppCompatImageView(ctx) },
                     update = { imageView ->
                         Glide.with(imageView)
                             .load(iconDrawable)
@@ -317,6 +250,6 @@ class WgIncludeAppsAdapter(
     }
 
     private fun io(f: suspend () -> Unit) {
-        (context as LifecycleOwner).lifecycleScope.launch { withContext(Dispatchers.IO) { f() } }
+        kotlinx.coroutines.CoroutineScope(Dispatchers.Main).launch { withContext(Dispatchers.IO) { f() } }
     }
 }

@@ -42,6 +42,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,7 +56,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.WgPeersAdapter
+import com.celzero.bravedns.adapter.WgPeerRow
 import com.celzero.bravedns.data.SsidItem
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
@@ -166,20 +167,13 @@ class WgConfigDetailActivity : AppCompatActivity() {
 
     @Composable
     private fun WgConfigDetailContent() {
+        val scope = rememberCoroutineScope()
         val appsCount by
             mappingViewModel
                 .getAppCountById(ID_WG_BASE + configId)
                 .asFlow()
                 .collectAsState(initial = 0)
-        val peerAdapter =
-            remember(peers) {
-                WgPeersAdapter(
-                    this@WgConfigDetailActivity,
-                    Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme),
-                    configId,
-                    peers.toMutableList()
-                )
-            }
+        val themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
 
         LaunchedEffect(configId) {
             refreshConfig()
@@ -281,7 +275,13 @@ class WgConfigDetailActivity : AppCompatActivity() {
             Text(text = stringResource(id = R.string.lbl_peer), style = MaterialTheme.typography.titleMedium)
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(peers) { peer ->
-                    peerAdapter.WgPeerRow(peer)
+                    WgPeerRow(
+                        context = this@WgConfigDetailActivity,
+                        themeId = themeId,
+                        configId = configId,
+                        wgPeer = peer,
+                        onPeerChanged = { scope.launch { refreshConfig() } }
+                    )
                 }
             }
         }
@@ -511,7 +511,6 @@ class WgConfigDetailActivity : AppCompatActivity() {
     private fun openAppsDialog(proxyName: String) {
         val proxyId = ID_WG_BASE + configId
         val appsAdapter = com.celzero.bravedns.adapter.WgIncludeAppsAdapter(this, proxyId, proxyName)
-        mappingViewModel.apps.observe(this) { appsAdapter.submitData(lifecycle, it) }
         var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
         if (Themes.isFrostTheme(themeId)) {
             themeId = R.style.App_Dialog_NoDim
