@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.activity
 
+import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
@@ -40,12 +41,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -60,7 +64,6 @@ import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.firestack.backend.Backend
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -129,15 +132,25 @@ class PingTestActivity : AppCompatActivity() {
     }
 
     private fun showStartVpnDialog() {
-        val builder = MaterialAlertDialogBuilder(this)
-        builder.setTitle(getString(R.string.vpn_not_active_dialog_title))
-        builder.setMessage(getString(R.string.vpn_not_active_dialog_desc))
-        builder.setCancelable(false)
-        builder.setPositiveButton(getString(R.string.dns_info_positive)) { dialogInterface, _ ->
-            dialogInterface.dismiss()
-            finish()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(false)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = getString(R.string.vpn_not_active_dialog_title)) },
+                    text = { Text(text = getString(R.string.vpn_not_active_dialog_desc)) },
+                    confirmButton = {
+                        TextButton(onClick = { finish() }) {
+                            Text(text = getString(R.string.dns_info_positive))
+                        }
+                    }
+                )
+            }
         }
-        builder.create().show()
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     @Composable

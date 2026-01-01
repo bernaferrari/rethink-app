@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.activity
 
+import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
@@ -27,12 +28,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
@@ -44,7 +48,6 @@ import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -101,14 +104,24 @@ class RpnCountriesActivity : AppCompatActivity() {
     }
 
     private fun showNoProxyCountriesDialog() {
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setTitle("No countries available")
-            .setMessage("No countries available for RPN. Please try again later.")
-            .setPositiveButton(R.string.dns_info_positive) { _, _ ->
-                finish()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(false)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = "No countries available") },
+                    text = { Text(text = "No countries available for RPN. Please try again later.") },
+                    confirmButton = {
+                        TextButton(onClick = { finish() }) {
+                            Text(text = getString(R.string.dns_info_positive))
+                        }
+                    }
+                )
             }
-            .setCancelable(false)
-            .create()
+        }
+        dialog.setContentView(composeView)
         dialog.show()
     }
 
