@@ -29,7 +29,9 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,14 +45,18 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -61,6 +67,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
@@ -78,8 +85,8 @@ import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.RefreshDatabase
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
+import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.bottomsheet.FirewallAppFilterDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
@@ -94,6 +101,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -673,10 +681,6 @@ class AppListActivity :
         }
     }
 
-    private fun openFilterBottomSheet() {
-        FirewallAppFilterDialog(this).show()
-    }
-
     private fun refreshDatabase() {
         io { refreshDatabase.refresh(RefreshDatabase.ACTION_REFRESH_INTERACTIVE) }
     }
@@ -689,6 +693,7 @@ class AppListActivity :
         lifecycleScope.launch(Dispatchers.IO) { f() }
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun AppListScreen() {
         val refreshRotation = rememberInfiniteTransition(label = "refresh").animateFloat(
@@ -700,6 +705,24 @@ class AppListActivity :
             ),
             label = "refreshRotation"
         )
+
+        var showFilterSheet by remember { mutableStateOf(false) }
+
+        if (showFilterSheet) {
+            FirewallAppFilterSheet(
+                initialFilters = filters.value,
+                firewallFilter = selectedFirewallFilter,
+                onDismiss = { showFilterSheet = false },
+                onApply = { applied ->
+                    filters.postValue(applied)
+                    showFilterSheet = false
+                },
+                onClear = { cleared ->
+                    filters.postValue(cleared)
+                    showFilterSheet = false
+                }
+            )
+        }
 
         Column(
             modifier = Modifier
@@ -734,7 +757,7 @@ class AppListActivity :
                                     .rotate(if (isRefreshing) refreshRotation.value else 0f)
                             )
                         }
-                        IconButton(onClick = { openFilterBottomSheet() }) {
+                        IconButton(onClick = { showFilterSheet = true }) {
                             Image(
                                 painter = painterResource(R.drawable.ic_filter),
                                 contentDescription = null
@@ -764,6 +787,165 @@ class AppListActivity :
             }
             BulkToggleRow()
             AppListRecycler()
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun FirewallAppFilterSheet(
+        initialFilters: Filters?,
+        firewallFilter: FirewallFilter,
+        onDismiss: () -> Unit,
+        onApply: (Filters) -> Unit,
+        onClear: (Filters) -> Unit
+    ) {
+        var topFilter by remember {
+            mutableStateOf(initialFilters?.topLevelFilter ?: TopLevelFilter.ALL)
+        }
+        val selectedCategories = remember {
+            mutableStateListOf<String>().apply {
+                if (initialFilters != null) {
+                    addAll(initialFilters.categoryFilters)
+                }
+            }
+        }
+        val categories = remember { mutableStateListOf<String>() }
+
+        LaunchedEffect(topFilter) {
+            val result = fetchCategories(topFilter)
+            categories.clear()
+            categories.addAll(result)
+            selectedCategories.retainAll(result.toSet())
+        }
+
+        ModalBottomSheet(
+            onDismissRequest = onDismiss
+        ) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Box(
+                    modifier = Modifier
+                        .width(60.dp)
+                        .height(3.dp)
+                        .background(Color(fetchColor(this@AppListActivity, R.attr.border)), MaterialTheme.shapes.small)
+                        .align(Alignment.CenterHorizontally)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = getString(R.string.fapps_filter_filter_heading),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color(fetchColor(this@AppListActivity, R.attr.secondaryTextColor)),
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TopFilterChip(
+                        label = getString(R.string.lbl_all),
+                        selected = topFilter == TopLevelFilter.ALL,
+                        onClick = { topFilter = TopLevelFilter.ALL }
+                    )
+                    TopFilterChip(
+                        label = getString(R.string.fapps_filter_parent_installed),
+                        selected = topFilter == TopLevelFilter.INSTALLED,
+                        onClick = { topFilter = TopLevelFilter.INSTALLED }
+                    )
+                    TopFilterChip(
+                        label = getString(R.string.fapps_filter_parent_system),
+                        selected = topFilter == TopLevelFilter.SYSTEM,
+                        onClick = { topFilter = TopLevelFilter.SYSTEM }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = getString(R.string.fapps_filter_categories_heading),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color(fetchColor(this@AppListActivity, R.attr.secondaryTextColor)),
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    categories.forEach { category ->
+                        androidx.compose.material3.FilterChip(
+                            selected = selectedCategories.contains(category),
+                            onClick = {
+                                if (selectedCategories.contains(category)) {
+                                    selectedCategories.remove(category)
+                                } else {
+                                    selectedCategories.add(category)
+                                }
+                            },
+                            label = { Text(text = category) }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    TextButton(
+                        onClick = {
+                            selectedCategories.clear()
+                            topFilter = TopLevelFilter.ALL
+                            val cleared = Filters().apply {
+                                topLevelFilter = TopLevelFilter.ALL
+                                this.firewallFilter = firewallFilter
+                            }
+                            onClear(cleared)
+                        }
+                    ) {
+                        Text(text = getString(R.string.fapps_filter_clear_btn))
+                    }
+                    TextButton(
+                        onClick = {
+                            val applied = Filters().apply {
+                                topLevelFilter = topFilter
+                                this.firewallFilter = firewallFilter
+                                categoryFilters = selectedCategories.toMutableSet()
+                            }
+                            onApply(applied)
+                        }
+                    ) {
+                        Text(text = getString(R.string.lbl_apply))
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun TopFilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
+        androidx.compose.material3.FilterChip(
+            selected = selected,
+            onClick = onClick,
+            label = {
+                Text(
+                    text = label,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                    fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal
+                )
+            }
+        )
+    }
+
+    private suspend fun fetchCategories(filter: TopLevelFilter): List<String> {
+        return withContext(Dispatchers.IO) {
+            when (filter) {
+                TopLevelFilter.ALL -> FirewallManager.getAllCategories()
+                TopLevelFilter.INSTALLED -> FirewallManager.getCategoriesForInstalledApps()
+                TopLevelFilter.SYSTEM -> FirewallManager.getCategoriesForSystemApps()
+            }
         }
     }
 
