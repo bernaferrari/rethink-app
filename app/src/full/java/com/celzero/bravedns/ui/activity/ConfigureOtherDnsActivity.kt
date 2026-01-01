@@ -711,15 +711,18 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
 
     private fun openDnsCryptRelaysDialog(lifecycleOwner: LifecycleOwner) {
         val relayAdapter = DnsCryptRelayEndpointAdapter(this, lifecycleOwner, appConfig)
-        dnsCryptRelayViewModel.dnsCryptRelayEndpointList.observe(lifecycleOwner) {
-            relayAdapter.submitData(lifecycleOwner.lifecycle, it)
-        }
 
         var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
         if (Themes.isFrostTheme(themeId)) {
             themeId = R.style.App_Dialog_NoDim
         }
-        val customDialog = DnsCryptRelaysDialog(this, relayAdapter, themeId)
+        val customDialog =
+            DnsCryptRelaysDialog(
+                activity = this,
+                relayAdapter = relayAdapter,
+                relays = dnsCryptRelayViewModel.dnsCryptRelayEndpointList,
+                themeID = themeId
+            )
         customDialog.show()
     }
 

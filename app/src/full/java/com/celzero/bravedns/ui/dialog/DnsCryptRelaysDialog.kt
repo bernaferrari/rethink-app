@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,15 +33,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.asFlow
+import androidx.paging.PagingData
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
+import com.celzero.bravedns.adapter.DnsCryptRelayEndpointAdapter
+import com.celzero.bravedns.database.DnsCryptRelayEndpoint
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 
 class DnsCryptRelaysDialog(
     private var activity: Activity,
-    internal var adapter: RecyclerView.Adapter<*>,
+    private val relayAdapter: DnsCryptRelayEndpointAdapter,
+    private val relays: LiveData<PagingData<DnsCryptRelayEndpoint>>,
     themeID: Int
 ) : Dialog(activity, themeID) {
 
@@ -63,6 +68,7 @@ class DnsCryptRelaysDialog(
 
     @Composable
     private fun DnsCryptRelaysContent(onDismiss: () -> Unit) {
+        val items = relays.asFlow().collectAsLazyPagingItems()
         Column(
             modifier = Modifier.fillMaxSize().padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -72,15 +78,12 @@ class DnsCryptRelaysDialog(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-            AndroidView(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                factory = { ctx ->
-                    RecyclerView(ctx).apply {
-                        layoutManager = LinearLayoutManager(ctx)
-                        adapter = this@DnsCryptRelaysDialog.adapter
-                    }
+            LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                items(items.itemCount) { index ->
+                    val item = items[index] ?: return@items
+                    relayAdapter.RelayRow(item)
                 }
-            )
+            }
             Button(onClick = onDismiss, modifier = Modifier.align(androidx.compose.ui.Alignment.End)) {
                 Text(text = context.getString(R.string.lbl_dismiss))
             }

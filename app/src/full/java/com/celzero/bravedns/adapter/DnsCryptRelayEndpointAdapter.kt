@@ -117,14 +117,14 @@ class DnsCryptRelayEndpointAdapter(
         fun update(endpoint: DnsCryptRelayEndpoint) {
             composeView.setContent {
                 RethinkTheme {
-                    DnsCryptRelayRow(endpoint = endpoint)
+                    RelayRow(endpoint = endpoint)
                 }
             }
         }
     }
 
     @Composable
-    private fun DnsCryptRelayRow(endpoint: DnsCryptRelayEndpoint) {
+    fun RelayRow(endpoint: DnsCryptRelayEndpoint) {
         var isSelected by remember(endpoint.id) { mutableStateOf(endpoint.isSelected) }
         var explanation by remember(endpoint.id) { mutableStateOf("") }
 
