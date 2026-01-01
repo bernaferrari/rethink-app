@@ -16,12 +16,9 @@
 package com.celzero.bravedns.adapter
 
 import android.content.Context
-import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
-import android.widget.ArrayAdapter
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -31,11 +28,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,6 +45,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -57,7 +58,6 @@ import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.getDefaultIcon
 import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -68,7 +68,64 @@ class WgIncludeAppsAdapter(
     private val proxyId: String,
     private val proxyName: String
 ) {
+    private data class IncludeDialogState(
+        val packageList: List<String>,
+        val mapping: ProxyApplicationMapping,
+        val included: Boolean
+    )
+
     private val packageManager: PackageManager = context.packageManager
+    private val pendingDialog = mutableStateOf<IncludeDialogState?>(null)
+
+    @Composable
+    fun IncludeDialogHost() {
+        val state = pendingDialog.value ?: return
+        val (title, positiveTxt) =
+            if (state.included) {
+                context.getString(
+                    R.string.wg_apps_dialog_title_include,
+                    state.packageList.size.toString()
+                ) to context.getString(R.string.lbl_include)
+            } else {
+                context.getString(
+                    R.string.wg_apps_dialog_title_exclude,
+                    state.packageList.size.toString()
+                ) to context.getString(R.string.lbl_remove)
+            }
+
+        AlertDialog(
+            onDismissRequest = { pendingDialog.value = null },
+            icon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_firewall_exclude_on),
+                    contentDescription = null
+                )
+            },
+            title = { Text(text = title) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    state.packageList.forEach { name ->
+                        Text(text = name, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        updateProxyIdForApp(state.mapping, state.included)
+                        pendingDialog.value = null
+                    }
+                ) {
+                    Text(text = positiveTxt)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDialog.value = null }) {
+                    Text(text = context.getString(R.string.ctbs_dialog_negative_btn))
+                }
+            }
+        )
+    }
 
     @Composable
     fun IncludeAppRow(mapping: ProxyApplicationMapping) {
@@ -186,7 +243,7 @@ class WgIncludeAppsAdapter(
             }
             uiCtx {
                 if (appUidList.count() > 1) {
-                    showDialog(appUidList, mapping, include)
+                    pendingDialog.value = IncludeDialogState(appUidList, mapping, include)
                 } else {
                     updateProxyIdForApp(mapping, include)
                 }
@@ -204,45 +261,6 @@ class WgIncludeAppsAdapter(
                 Napier.i("Removed apps: ${mapping.uid}, $proxyId, $proxyName")
             }
         }
-    }
-
-    private fun showDialog(
-        packageList: List<String>,
-        mapping: ProxyApplicationMapping,
-        included: Boolean
-    ) {
-        val positiveTxt: String
-        val builderSingle = MaterialAlertDialogBuilder(context)
-        builderSingle.setIcon(R.drawable.ic_firewall_exclude_on)
-
-        val count = packageList.count()
-        val title =
-            if (included) {
-                positiveTxt = context.getString(R.string.lbl_include)
-                context.getString(R.string.wg_apps_dialog_title_include, count.toString())
-            } else {
-                positiveTxt = context.getString(R.string.lbl_remove)
-                context.getString(R.string.wg_apps_dialog_title_exclude, count.toString())
-            }
-
-        builderSingle.setTitle(title)
-        val arrayAdapter =
-            ArrayAdapter<String>(context, android.R.layout.simple_list_item_activated_1)
-        arrayAdapter.addAll(packageList)
-        builderSingle.setCancelable(false)
-        builderSingle.setItems(packageList.toTypedArray(), null)
-        builderSingle
-            .setPositiveButton(positiveTxt) { _: DialogInterface, _: Int ->
-                updateProxyIdForApp(mapping, included)
-            }
-            .setNeutralButton(context.getString(R.string.ctbs_dialog_negative_btn)) {
-                _: DialogInterface,
-                _: Int ->
-            }
-
-        val alertDialog: AlertDialog = builderSingle.show()
-        alertDialog.listView.setOnItemClickListener { _, _, _, _ -> }
-        alertDialog.setCancelable(false)
     }
 
     private suspend fun uiCtx(f: suspend () -> Unit) {

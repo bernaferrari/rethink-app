@@ -43,6 +43,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
@@ -52,6 +53,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -79,7 +81,6 @@ import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -150,58 +151,6 @@ class WgIncludeAppsDialog(
         viewModel.setFilter("", TopLevelFilter.ALL_APPS, proxyId)
     }
 
-    private fun showDialog(toAdd: Boolean, onCancel: () -> Unit) {
-        val builder = MaterialAlertDialogBuilder(context, R.style.App_Dialog_NoDim)
-        if (toAdd) {
-            builder.setTitle(context.getString(R.string.include_all_app_wg_dialog_title))
-            builder.setMessage(context.getString(R.string.include_all_app_wg_dialog_desc))
-        } else {
-            builder.setTitle(context.getString(R.string.exclude_all_app_wg_dialog_title))
-            builder.setMessage(context.getString(R.string.exclude_all_app_wg_dialog_desc))
-        }
-        builder.setCancelable(true)
-        builder.setPositiveButton(
-            if (toAdd) context.getString(R.string.lbl_include)
-            else context.getString(R.string.exclude)
-        ) { _, _ ->
-            // add all if the list is empty or remove all if the list is full
-            io {
-                if (toAdd) {
-                    Napier.i("Adding all apps to proxy $proxyId, $proxyName")
-                    ProxyManager.setProxyIdForAllApps(proxyId, proxyName)
-                } else {
-                    Napier.i("Removing all apps from proxy $proxyId, $proxyName")
-                    ProxyManager.setNoProxyForAllApps()
-                }
-            }
-        }
-
-        builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ ->
-            onCancel()
-        }
-
-        builder.create().show()
-    }
-
-    private fun showConfirmationDialog() {
-        val builder = MaterialAlertDialogBuilder(context, R.style.App_Dialog_NoDim)
-        builder.setTitle(context.getString(R.string.remaining_apps_dialog_title))
-        builder.setMessage(context.getString(R.string.remaining_apps_dialog_desc))
-        builder.setCancelable(true)
-        builder.setPositiveButton(context.getString(R.string.lbl_include)) { _, _ ->
-            io {
-                Napier.i("Adding remaining apps to proxy $proxyId, $proxyName")
-                ProxyManager.setProxyIdForUnselectedApps(proxyId, proxyName)
-            }
-        }
-
-        builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ ->
-            // no-op
-        }
-
-        builder.create().show()
-    }
-
     private fun io(f: suspend () -> Unit) {
         (activity as LifecycleOwner).lifecycleScope.launch(Dispatchers.IO) { f() }
     }
@@ -214,6 +163,8 @@ class WgIncludeAppsDialog(
         var query by remember { mutableStateOf(searchText) }
         var selectedFilter by remember { mutableStateOf(filterType) }
         var selectAllChecked by remember { mutableStateOf(false) }
+        var pendingSelectAll by remember { mutableStateOf<Boolean?>(null) }
+        var showRemainingDialog by remember { mutableStateOf(false) }
         var isRefreshing by remember { mutableStateOf(false) }
         val appCount =
             viewModel.getAppCountById(proxyId).asFlow().collectAsState(initial = 0).value
@@ -235,6 +186,7 @@ class WgIncludeAppsDialog(
                     overflow = TextOverflow.Ellipsis
                 )
 
+                adapter.IncludeDialogHost()
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Column(
@@ -325,8 +277,7 @@ class WgIncludeAppsDialog(
                     Checkbox(
                         checked = selectAllChecked,
                         onCheckedChange = { checked ->
-                            selectAllChecked = checked
-                            showDialog(checked) { selectAllChecked = !checked }
+                            pendingSelectAll = checked
                         }
                     )
                 }
@@ -349,7 +300,7 @@ class WgIncludeAppsDialog(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Button(onClick = { showConfirmationDialog() }) {
+                    Button(onClick = { showRemainingDialog = true }) {
                         Text(text = stringResource(R.string.lbl_remaining_apps))
                     }
                     Button(
@@ -362,6 +313,79 @@ class WgIncludeAppsDialog(
                     }
                 }
             }
+        }
+
+        pendingSelectAll?.let { toAdd ->
+            val (title, message, positiveText) =
+                if (toAdd) {
+                    Triple(
+                        stringResource(R.string.include_all_app_wg_dialog_title),
+                        stringResource(R.string.include_all_app_wg_dialog_desc),
+                        stringResource(R.string.lbl_include)
+                    )
+                } else {
+                    Triple(
+                        stringResource(R.string.exclude_all_app_wg_dialog_title),
+                        stringResource(R.string.exclude_all_app_wg_dialog_desc),
+                        stringResource(R.string.exclude)
+                    )
+                }
+
+            AlertDialog(
+                onDismissRequest = { pendingSelectAll = null },
+                title = { Text(text = title) },
+                text = { Text(text = message) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            io {
+                                if (toAdd) {
+                                    Napier.i("Adding all apps to proxy $proxyId, $proxyName")
+                                    ProxyManager.setProxyIdForAllApps(proxyId, proxyName)
+                                } else {
+                                    Napier.i("Removing all apps from proxy $proxyId, $proxyName")
+                                    ProxyManager.setNoProxyForAllApps()
+                                }
+                            }
+                            selectAllChecked = toAdd
+                            pendingSelectAll = null
+                        }
+                    ) {
+                        Text(text = positiveText)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { pendingSelectAll = null }) {
+                        Text(text = stringResource(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showRemainingDialog) {
+            AlertDialog(
+                onDismissRequest = { showRemainingDialog = false },
+                title = { Text(text = stringResource(R.string.remaining_apps_dialog_title)) },
+                text = { Text(text = stringResource(R.string.remaining_apps_dialog_desc)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            io {
+                                Napier.i("Adding remaining apps to proxy $proxyId, $proxyName")
+                                ProxyManager.setProxyIdForUnselectedApps(proxyId, proxyName)
+                            }
+                            showRemainingDialog = false
+                        }
+                    ) {
+                        Text(text = stringResource(R.string.lbl_include))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRemainingDialog = false }) {
+                        Text(text = stringResource(R.string.lbl_cancel))
+                    }
+                }
+            )
         }
     }
 }
