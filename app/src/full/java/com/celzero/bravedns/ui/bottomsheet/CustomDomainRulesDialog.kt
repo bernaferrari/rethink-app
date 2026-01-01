@@ -66,9 +66,7 @@ import org.koin.core.component.inject
 class CustomDomainRulesDialog(
     private val activity: FragmentActivity,
     private var cd: CustomDomain
-) : KoinComponent,
-    ProxyCountriesDialog.CountriesDismissListener,
-    WireguardListDialog.WireguardDismissListener {
+) : KoinComponent, WireguardListDialog.WireguardDismissListener {
     private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
@@ -369,18 +367,6 @@ class CustomDomainRulesDialog(
 
     private suspend fun uiCtx(f: suspend () -> Unit) {
         withContext(Dispatchers.Main) { f() }
-    }
-
-    override fun onDismissCC(obj: Any?) {
-        try {
-            val customDomain = obj as CustomDomain
-            cd = customDomain
-            status = DomainRulesManager.Status.getStatus(cd.status)
-            statusText = buildStatusText(status, cd.modifiedTs)
-            Napier.i("$TAG onDismissCC: ${cd.domain}, ${cd.proxyCC}")
-        } catch (e: Exception) {
-            Napier.e("$TAG err in onDismissCC ${e.message}", e)
-        }
     }
 
     override fun onDismissWg(obj: Any?) {

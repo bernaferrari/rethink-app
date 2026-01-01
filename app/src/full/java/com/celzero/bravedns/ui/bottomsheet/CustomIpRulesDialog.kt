@@ -66,9 +66,7 @@ import org.koin.core.component.inject
 class CustomIpRulesDialog(
     private val activity: FragmentActivity,
     private var ci: CustomIp
-) : KoinComponent,
-    ProxyCountriesDialog.CountriesDismissListener,
-    WireguardListDialog.WireguardDismissListener {
+) : KoinComponent, WireguardListDialog.WireguardDismissListener {
     private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
@@ -428,18 +426,6 @@ class CustomIpRulesDialog(
 
     private suspend fun uiCtx(f: suspend () -> Unit) {
         withContext(Dispatchers.Main) { f() }
-    }
-
-    override fun onDismissCC(obj: Any?) {
-        try {
-            val cip = obj as CustomIp
-            ci = cip
-            status = IpRuleStatus.getStatus(cip.status)
-            statusText = buildStatusText(status, cip.modifiedDateTime)
-            Napier.v("$TAG onDismissCC: ${cip.ipAddress}, ${cip.proxyCC}")
-        } catch (e: Exception) {
-            Napier.w("$TAG err in onDismissCC ${e.message}", e)
-        }
     }
 
     override fun onDismissWg(obj: Any?) {
