@@ -24,7 +24,6 @@ import Logger.LOG_TAG_VPN
 import android.Manifest
 import android.app.UiModeManager
 import android.app.Activity
-import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -41,7 +40,6 @@ import android.os.SystemClock
 import android.provider.Settings
 import android.view.Gravity
 import android.view.View
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
@@ -73,6 +71,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -85,7 +84,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -208,6 +208,7 @@ class HomeScreenActivity : AppCompatActivity() {
     // keep track of when app went to background
     private var appInBackground = false
     private var showBugReportSheet by mutableStateOf(false)
+    private var homeDialogState by mutableStateOf<HomeDialog?>(null)
 
     private lateinit var startForResult: androidx.activity.result.ActivityResultLauncher<Intent>
     private lateinit var notificationPermissionResult: androidx.activity.result.ActivityResultLauncher<String>
@@ -320,6 +321,7 @@ class HomeScreenActivity : AppCompatActivity() {
                 if (showBugReportSheet) {
                     BugReportFilesSheet(onDismiss = { showBugReportSheet = false })
                 }
+                HomeDialogHost()
             }
         }
 
@@ -428,36 +430,7 @@ class HomeScreenActivity : AppCompatActivity() {
 
     private fun showRestoreDialog(uri: Uri) {
         if (!isInForeground()) return
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.brbs_restore_dialog_title)) },
-                    text = { Text(text = getString(R.string.brbs_restore_dialog_message)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                startRestore(uri)
-                                observeRestoreWorker()
-                            }
-                        ) {
-                            Text(text = getString(R.string.brbs_restore_dialog_positive))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        homeDialogState = HomeDialog.Restore(uri)
     }
 
     private fun startRestore(fileUri: Uri) {
@@ -807,75 +780,7 @@ class HomeScreenActivity : AppCompatActivity() {
         message: String
     ) {
         if (!isInForeground()) return
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-
-        val isUpdateAvailable = title == getString(R.string.download_update_dialog_title)
-        val isUpToDate = message == getString(R.string.download_update_dialog_message_ok)
-        val isError = message == getString(R.string.download_update_dialog_failure_message)
-        val isQuotaExceeded = message == getString(R.string.download_update_dialog_trylater_message)
-
-        val resolvedMessage =
-            if (isUpdateAvailable && source == AppUpdater.InstallSource.STORE) {
-                "A new version is available. Please update from Play Store."
-            } else {
-                message
-            }
-
-        dialog.setCancelable(!isUpdateAvailable)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = {
-                        if (!isUpdateAvailable) {
-                            dialog.dismiss()
-                        }
-                    },
-                    title = { Text(text = title) },
-                    text = { Text(text = resolvedMessage) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                if (isUpdateAvailable) {
-                                    if (source == AppUpdater.InstallSource.STORE) {
-                                        appUpdateManager.completeUpdate()
-                                    } else {
-                                        initiateDownload()
-                                    }
-                                }
-                                dialog.dismiss()
-                            }
-                        ) {
-                            val label =
-                                if (isUpdateAvailable && source != AppUpdater.InstallSource.STORE) {
-                                    getString(R.string.hs_download_positive_website)
-                                } else {
-                                    getString(R.string.hs_download_positive_default)
-                                }
-                            Text(text = label)
-                        }
-                    },
-                    dismissButton = {
-                        if (isUpdateAvailable) {
-                            TextButton(
-                                onClick = {
-                                    persistentState.lastAppUpdateCheck = System.currentTimeMillis()
-                                    dialog.dismiss()
-                                }
-                            ) {
-                                Text(text = getString(R.string.hs_download_negative_default))
-                            }
-                        }
-                    }
-                )
-            }
-        }
-        try {
-            dialog.setContentView(composeView)
-            dialog.show()
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "err showing download dialog: ${e.message}", e)
-        }
+        homeDialogState = HomeDialog.Download(source, title, message)
     }
 
     private fun initiateDownload() {
@@ -928,6 +833,26 @@ class HomeScreenActivity : AppCompatActivity() {
         ADVANCED
     }
 
+    private sealed interface HomeDialog {
+        data class Restore(val uri: Uri) : HomeDialog
+        data class Download(
+            val source: AppUpdater.InstallSource,
+            val title: String,
+            val message: String
+        ) : HomeDialog
+        data class AlwaysOnStop(val message: String) : HomeDialog
+        data object AlwaysOnDisable : HomeDialog
+        data object PrivateDns : HomeDialog
+        data class FirstTimeVpn(val intent: Intent) : HomeDialog
+        data class Stats(val displayText: String, val dump: String) : HomeDialog
+        data class Sponsor(val usageMessage: String, val amount: String) : HomeDialog
+        data object Contributors : HomeDialog
+        data class DatabaseTables(val tables: List<String>) : HomeDialog
+        data class DatabaseDump(val title: String, val dump: String) : HomeDialog
+        data object NoLog : HomeDialog
+        data class NewFeatures(val title: String) : HomeDialog
+    }
+
     private fun openDetailedStatsUi(type: SummaryStatisticsType) {
         val timeCategory = summaryViewModel.uiState.value.timeCategory.value
         val intent = Intent(this, DetailedStatisticsActivity::class.java)
@@ -946,34 +871,7 @@ class HomeScreenActivity : AppCompatActivity() {
         val msg = getString(R.string.sponser_dialog_usage_msg, days.toInt().toString(), "%.2f".format(amount))
         val formattedAmount =
             getString(R.string.two_argument_no_space, getString(R.string.symbol_dollar), "%.2f".format(amount))
-
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    Text(
-                        text = getString(R.string.about_sponsor_link_text),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    SponsorInfoDialogContent(
-                        amount = formattedAmount,
-                        usageMessage = msg,
-                        onSponsorClick = { openUrl(this@HomeScreenActivity, RETHINKDNS_SPONSOR_LINK) }
-                    )
-                    Spacer(modifier = Modifier.height(12.dp))
-                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                }
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        homeDialogState = HomeDialog.Sponsor(msg, formattedAmount)
     }
 
     private fun handleMainScreenBtnClickEvent() {
@@ -1006,83 +904,17 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun showAlwaysOnStopDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(false)
         val message =
             if (VpnController.isVpnLockdown()) {
                 UIUtils.htmlToSpannedText(getString(R.string.always_on_dialog_lockdown_stop_message)).toString()
             } else {
                 getString(R.string.always_on_dialog_stop_message)
             }
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = {},
-                    title = { Text(text = getString(R.string.always_on_dialog_stop_heading)) },
-                    text = { Text(text = message) },
-                    confirmButton = {
-                        Column(horizontalAlignment = Alignment.End) {
-                            TextButton(
-                                onClick = {
-                                    dialog.dismiss()
-                                    stopVpnService()
-                                }
-                            ) {
-                                Text(text = getString(R.string.always_on_dialog_positive))
-                            }
-                            TextButton(
-                                onClick = {
-                                    dialog.dismiss()
-                                    openVpnProfile(this@HomeScreenActivity)
-                                }
-                            ) {
-                                Text(text = getString(R.string.always_on_dialog_neutral))
-                            }
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        homeDialogState = HomeDialog.AlwaysOnStop(message)
     }
 
     private fun showAlwaysOnDisableDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(false)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = {},
-                    title = { Text(text = getString(R.string.always_on_dialog_heading)) },
-                    text = { Text(text = getString(R.string.always_on_dialog)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                openVpnProfile(this@HomeScreenActivity)
-                            }
-                        ) {
-                            Text(text = getString(R.string.always_on_dialog_positive_btn))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        homeDialogState = HomeDialog.AlwaysOnDisable
     }
 
     private fun startDnsActivity(screenToLoad: Int) {
@@ -1105,35 +937,7 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun showPrivateDnsDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(false)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = {},
-                    title = { Text(text = getString(R.string.private_dns_dialog_heading)) },
-                    text = { Text(text = getString(R.string.private_dns_dialog_desc)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                openNetworkSettings(this@HomeScreenActivity, Settings.ACTION_WIRELESS_SETTINGS)
-                            }
-                        ) {
-                            Text(text = getString(R.string.private_dns_dialog_positive))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_dismiss))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        homeDialogState = HomeDialog.PrivateDns
     }
 
     private fun startFirewallActivity(screenToLoad: Int) {
@@ -1247,44 +1051,7 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun showFirstTimeVpnDialog(prepareVpnIntent: Intent) {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(false)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = {},
-                    title = { Text(text = getString(R.string.hsf_vpn_dialog_header)) },
-                    text = { Text(text = getString(R.string.hsf_vpn_dialog_message)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                try {
-                                    startForResult.launch(prepareVpnIntent)
-                                } catch (e: ActivityNotFoundException) {
-                                    Logger.e(LOG_TAG_VPN, "Activity not found to start VPN service", e)
-                                    showToastUiCentered(
-                                        this@HomeScreenActivity,
-                                        getString(R.string.hsf_vpn_prepare_failure),
-                                        Toast.LENGTH_LONG
-                                    )
-                                }
-                            }
-                        ) {
-                            Text(text = getString(R.string.lbl_proceed))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        homeDialogState = HomeDialog.FirstTimeVpn(prepareVpnIntent)
     }
 
     private fun registerForActivityResult() {
@@ -1359,51 +1126,8 @@ class HomeScreenActivity : AppCompatActivity() {
             val vpnStats = VpnController.vpnStats()
             val stats = formatedStat + vpnStats
             uiCtx {
-                val dialog = Dialog(this@HomeScreenActivity, R.style.App_Dialog_NoDim)
-                dialog.setCancelable(true)
-                val composeView = ComposeView(this@HomeScreenActivity)
-                composeView.setContent {
-                    RethinkTheme {
-                        val displayText = if (formatedStat == null) "No Stats" else stats
-                        AlertDialog(
-                            onDismissRequest = { dialog.dismiss() },
-                            title = { Text(text = getString(R.string.title_statistics)) },
-                            text = {
-                                SelectionContainer {
-                                    Column(
-                                        modifier =
-                                            Modifier.fillMaxWidth()
-                                                .verticalScroll(rememberScrollState())
-                                                .padding(8.dp)
-                                    ) {
-                                        Text(text = displayText, style = MaterialTheme.typography.bodySmall)
-                                    }
-                                }
-                            },
-                            confirmButton = {
-                                TextButton(onClick = { dialog.dismiss() }) {
-                                    Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                                }
-                            },
-                            dismissButton = {
-                                TextButton(
-                                    onClick = {
-                                        copyToClipboard("stats_dump", stats)
-                                        showToastUiCentered(
-                                            this@HomeScreenActivity,
-                                            getString(R.string.copied_clipboard),
-                                            Toast.LENGTH_SHORT
-                                        )
-                                    }
-                                ) {
-                                    Text(text = getString(R.string.dns_info_neutral))
-                                }
-                            }
-                        )
-                    }
-                }
-                dialog.setContentView(composeView)
-                dialog.show()
+                val displayText = if (formatedStat == null) "No Stats" else stats
+                homeDialogState = HomeDialog.Stats(displayText, stats)
             }
         }
     }
@@ -1426,92 +1150,11 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun showDatabaseTablesDialog(tables: List<String>) {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.title_database_dump)) },
-                    text = {
-                        Column(
-                            modifier =
-                                Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            tables.forEach { table ->
-                                TextButton(
-                                    onClick = {
-                                        dialog.dismiss()
-                                        io {
-                                            val dump = buildTableDump(table)
-                                            uiCtx { showDatabaseDumpDialog(table, dump) }
-                                        }
-                                    }
-                                ) {
-                                    Text(text = table)
-                                }
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        homeDialogState = HomeDialog.DatabaseTables(tables)
     }
 
     private fun showDatabaseDumpDialog(title: String, dump: String) {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = title) },
-                    text = {
-                        SelectionContainer {
-                            Column(
-                                modifier =
-                                    Modifier.fillMaxWidth()
-                                        .verticalScroll(rememberScrollState())
-                                        .padding(8.dp)
-                            ) {
-                                Text(text = dump, style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = {
-                                copyToClipboard("db_dump", dump)
-                                showToastUiCentered(
-                                    this@HomeScreenActivity,
-                                    getString(R.string.copied_clipboard),
-                                    Toast.LENGTH_SHORT
-                                )
-                            }
-                        ) {
-                            Text(text = getString(R.string.dns_info_neutral))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        homeDialogState = HomeDialog.DatabaseDump(title, dump)
     }
 
     private fun getDatabaseTables(): List<String> {
@@ -1560,35 +1203,7 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun showNoLogDialog() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = getString(R.string.about_bug_no_log_dialog_title)) },
-                    text = { Text(text = getString(R.string.about_bug_no_log_dialog_message)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                sendEmailIntent(this@HomeScreenActivity)
-                            }
-                        ) {
-                            Text(text = getString(R.string.about_bug_no_log_dialog_positive_btn))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        homeDialogState = HomeDialog.NoLog
     }
 
     private fun openNotificationSettings() {
@@ -1617,48 +1232,11 @@ class HomeScreenActivity : AppCompatActivity() {
     private fun showNewFeaturesDialog() {
         val v = getVersionName().slice(0..6)
         val title = getString(R.string.about_whats_new, v)
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                AlertDialog(
-                    onDismissRequest = { dialog.dismiss() },
-                    title = { Text(text = title) },
-                    text = { WhatsNewDialogContent() },
-                    confirmButton = {
-                        TextButton(onClick = { dialog.dismiss() }) {
-                            Text(text = getString(R.string.about_dialog_positive_button))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = {
-                                dialog.dismiss()
-                                sendEmailIntent(this@HomeScreenActivity)
-                            }
-                        ) {
-                            Text(text = getString(R.string.about_dialog_neutral_button))
-                        }
-                    }
-                )
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        homeDialogState = HomeDialog.NewFeatures(title)
     }
 
     private fun showContributors() {
-        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
-        dialog.setCancelable(true)
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                ContributorsDialogContent(onDismiss = { dialog.dismiss() })
-            }
-        }
-        dialog.setContentView(composeView)
-        dialog.show()
+        homeDialogState = HomeDialog.Contributors
     }
 
     private fun promptCrashLogAction() {
@@ -2237,6 +1815,384 @@ class HomeScreenActivity : AppCompatActivity() {
                 text = getString(R.string.whats_new_version_update),
                 textAlign = TextAlign.Start
             )
+        }
+    }
+
+    @Composable
+    private fun HomeDialogHost() {
+        when (val dialog = homeDialogState) {
+            is HomeDialog.Restore -> {
+                AlertDialog(
+                    onDismissRequest = { homeDialogState = null },
+                    title = { Text(text = getString(R.string.brbs_restore_dialog_title)) },
+                    text = { Text(text = getString(R.string.brbs_restore_dialog_message)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                homeDialogState = null
+                                startRestore(dialog.uri)
+                                observeRestoreWorker()
+                            }
+                        ) {
+                            Text(text = getString(R.string.brbs_restore_dialog_positive))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { homeDialogState = null }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
+            is HomeDialog.Download -> {
+                val isUpdateAvailable = dialog.title == getString(R.string.download_update_dialog_title)
+                val resolvedMessage =
+                    if (isUpdateAvailable && dialog.source == AppUpdater.InstallSource.STORE) {
+                        "A new version is available. Please update from Play Store."
+                    } else {
+                        dialog.message
+                    }
+
+                AlertDialog(
+                    onDismissRequest = {
+                        if (!isUpdateAvailable) {
+                            homeDialogState = null
+                        }
+                    },
+                    title = { Text(text = dialog.title) },
+                    text = { Text(text = resolvedMessage) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                if (isUpdateAvailable) {
+                                    if (dialog.source == AppUpdater.InstallSource.STORE) {
+                                        appUpdateManager.completeUpdate()
+                                    } else {
+                                        initiateDownload()
+                                    }
+                                }
+                                homeDialogState = null
+                            }
+                        ) {
+                            val label =
+                                if (isUpdateAvailable && dialog.source != AppUpdater.InstallSource.STORE) {
+                                    getString(R.string.hs_download_positive_website)
+                                } else {
+                                    getString(R.string.hs_download_positive_default)
+                                }
+                            Text(text = label)
+                        }
+                    },
+                    dismissButton = {
+                        if (isUpdateAvailable) {
+                            TextButton(
+                                onClick = {
+                                    persistentState.lastAppUpdateCheck = System.currentTimeMillis()
+                                    homeDialogState = null
+                                }
+                            ) {
+                                Text(text = getString(R.string.hs_download_negative_default))
+                            }
+                        }
+                    }
+                )
+
+            }
+            is HomeDialog.AlwaysOnStop -> {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = getString(R.string.always_on_dialog_stop_heading)) },
+                    text = { Text(text = dialog.message) },
+                    confirmButton = {
+                        Column(horizontalAlignment = Alignment.End) {
+                            TextButton(
+                                onClick = {
+                                    homeDialogState = null
+                                    stopVpnService()
+                                }
+                            ) {
+                                Text(text = getString(R.string.always_on_dialog_positive))
+                            }
+                            TextButton(
+                                onClick = {
+                                    homeDialogState = null
+                                    openVpnProfile(this@HomeScreenActivity)
+                                }
+                            ) {
+                                Text(text = getString(R.string.always_on_dialog_neutral))
+                            }
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { homeDialogState = null }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
+            HomeDialog.AlwaysOnDisable -> {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = getString(R.string.always_on_dialog_heading)) },
+                    text = { Text(text = getString(R.string.always_on_dialog)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                homeDialogState = null
+                                openVpnProfile(this@HomeScreenActivity)
+                            }
+                        ) {
+                            Text(text = getString(R.string.always_on_dialog_positive_btn))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { homeDialogState = null }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
+            HomeDialog.PrivateDns -> {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = getString(R.string.private_dns_dialog_heading)) },
+                    text = { Text(text = getString(R.string.private_dns_dialog_desc)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                homeDialogState = null
+                                openNetworkSettings(this@HomeScreenActivity, Settings.ACTION_WIRELESS_SETTINGS)
+                            }
+                        ) {
+                            Text(text = getString(R.string.private_dns_dialog_positive))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { homeDialogState = null }) {
+                            Text(text = getString(R.string.lbl_dismiss))
+                        }
+                    }
+                )
+            }
+            is HomeDialog.FirstTimeVpn -> {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = getString(R.string.hsf_vpn_dialog_header)) },
+                    text = { Text(text = getString(R.string.hsf_vpn_dialog_message)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                homeDialogState = null
+                                try {
+                                    startForResult.launch(dialog.intent)
+                                } catch (e: ActivityNotFoundException) {
+                                    Logger.e(LOG_TAG_VPN, "Activity not found to start VPN service", e)
+                                    showToastUiCentered(
+                                        this@HomeScreenActivity,
+                                        getString(R.string.hsf_vpn_prepare_failure),
+                                        Toast.LENGTH_LONG
+                                    )
+                                }
+                            }
+                        ) {
+                            Text(text = getString(R.string.lbl_proceed))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { homeDialogState = null }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
+            is HomeDialog.Stats -> {
+                AlertDialog(
+                    onDismissRequest = { homeDialogState = null },
+                    title = { Text(text = getString(R.string.title_statistics)) },
+                    text = {
+                        SelectionContainer {
+                            Column(
+                                modifier =
+                                    Modifier.fillMaxWidth()
+                                        .verticalScroll(rememberScrollState())
+                                        .padding(8.dp)
+                            ) {
+                                Text(text = dialog.displayText, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { homeDialogState = null }) {
+                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                copyToClipboard("stats_dump", dialog.dump)
+                                showToastUiCentered(
+                                    this@HomeScreenActivity,
+                                    getString(R.string.copied_clipboard),
+                                    Toast.LENGTH_SHORT
+                                )
+                            }
+                        ) {
+                            Text(text = getString(R.string.dns_info_neutral))
+                        }
+                    }
+                )
+            }
+            is HomeDialog.Sponsor -> {
+                Dialog(
+                    onDismissRequest = { homeDialogState = null },
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    Surface(color = MaterialTheme.colorScheme.background) {
+                        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                            Text(
+                                text = getString(R.string.about_sponsor_link_text),
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            SponsorInfoDialogContent(
+                                amount = dialog.amount,
+                                usageMessage = dialog.usageMessage,
+                                onSponsorClick = { openUrl(this@HomeScreenActivity, RETHINKDNS_SPONSOR_LINK) }
+                            )
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                                TextButton(onClick = { homeDialogState = null }) {
+                                    Text(text = getString(R.string.lbl_cancel))
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            HomeDialog.Contributors -> {
+                Dialog(
+                    onDismissRequest = { homeDialogState = null },
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    Surface(color = MaterialTheme.colorScheme.background) {
+                        ContributorsDialogContent(onDismiss = { homeDialogState = null })
+                    }
+                }
+            }
+            is HomeDialog.DatabaseTables -> {
+                AlertDialog(
+                    onDismissRequest = { homeDialogState = null },
+                    title = { Text(text = getString(R.string.title_database_dump)) },
+                    text = {
+                        Column(
+                            modifier =
+                                Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            dialog.tables.forEach { table ->
+                                TextButton(
+                                    onClick = {
+                                        homeDialogState = null
+                                        io {
+                                            val dump = buildTableDump(table)
+                                            uiCtx { homeDialogState = HomeDialog.DatabaseDump(table, dump) }
+                                        }
+                                    }
+                                ) {
+                                    Text(text = table)
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { homeDialogState = null }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
+            is HomeDialog.DatabaseDump -> {
+                AlertDialog(
+                    onDismissRequest = { homeDialogState = null },
+                    title = { Text(text = dialog.title) },
+                    text = {
+                        SelectionContainer {
+                            Column(
+                                modifier =
+                                    Modifier.fillMaxWidth()
+                                        .verticalScroll(rememberScrollState())
+                                        .padding(8.dp)
+                            ) {
+                                Text(text = dialog.dump, style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { homeDialogState = null }) {
+                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                copyToClipboard("db_dump", dialog.dump)
+                                showToastUiCentered(
+                                    this@HomeScreenActivity,
+                                    getString(R.string.copied_clipboard),
+                                    Toast.LENGTH_SHORT
+                                )
+                            }
+                        ) {
+                            Text(text = getString(R.string.dns_info_neutral))
+                        }
+                    }
+                )
+            }
+            HomeDialog.NoLog -> {
+                AlertDialog(
+                    onDismissRequest = { homeDialogState = null },
+                    title = { Text(text = getString(R.string.about_bug_no_log_dialog_title)) },
+                    text = { Text(text = getString(R.string.about_bug_no_log_dialog_message)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                homeDialogState = null
+                                sendEmailIntent(this@HomeScreenActivity)
+                            }
+                        ) {
+                            Text(text = getString(R.string.about_bug_no_log_dialog_positive_btn))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { homeDialogState = null }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
+            is HomeDialog.NewFeatures -> {
+                AlertDialog(
+                    onDismissRequest = { homeDialogState = null },
+                    title = { Text(text = dialog.title) },
+                    text = { WhatsNewDialogContent() },
+                    confirmButton = {
+                        TextButton(onClick = { homeDialogState = null }) {
+                            Text(text = getString(R.string.about_dialog_positive_button))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                homeDialogState = null
+                                sendEmailIntent(this@HomeScreenActivity)
+                            }
+                        ) {
+                            Text(text = getString(R.string.about_dialog_neutral_button))
+                        }
+                    }
+                )
+            }
+            null -> Unit
         }
     }
 

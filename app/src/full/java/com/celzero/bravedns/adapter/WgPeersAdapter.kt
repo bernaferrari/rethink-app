@@ -15,7 +15,6 @@
  */
 package com.celzero.bravedns.adapter
 
-import android.app.Activity
 import android.content.Context
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,9 +31,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -43,7 +44,6 @@ import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.ui.dialog.WgAddPeerDialog
-import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.wireguard.Peer
@@ -54,13 +54,13 @@ import kotlinx.coroutines.withContext
 @Composable
 fun WgPeerRow(
     context: Context,
-    themeId: Int,
     configId: Int,
     wgPeer: Peer,
     onPeerChanged: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val showDeleteDialog = remember(wgPeer.getPublicKey()) { mutableStateOf(false) }
+    var showEditDialog by remember(wgPeer.getPublicKey()) { mutableStateOf(false) }
     val endpoint =
         if (wgPeer.getEndpoint().isPresent) {
             wgPeer.getEndpoint().get().toString()
@@ -101,7 +101,7 @@ fun WgPeerRow(
                 )
                 Spacer(modifier = Modifier.weight(1f))
                 IconButton(onClick = {
-                    openEditPeerDialog(context, themeId, configId, wgPeer, onPeerChanged)
+                    showEditDialog = true
                 }) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_edit_icon_grey),
@@ -171,6 +171,17 @@ fun WgPeerRow(
             }
         )
     }
+
+    if (showEditDialog) {
+        WgAddPeerDialog(
+            configId = configId,
+            wgPeer = wgPeer,
+            onDismiss = {
+                showEditDialog = false
+                onPeerChanged()
+            }
+        )
+    }
 }
 
 @Composable
@@ -179,23 +190,6 @@ private fun LabelValue(label: String, value: String) {
         Text(text = label, style = MaterialTheme.typography.bodyMedium)
         Text(text = value, style = MaterialTheme.typography.bodySmall)
     }
-}
-
-private fun openEditPeerDialog(
-    context: Context,
-    themeId: Int,
-    configId: Int,
-    wgPeer: Peer,
-    onPeerChanged: () -> Unit
-) {
-    var resolvedThemeId = themeId
-    if (Themes.isFrostTheme(resolvedThemeId)) {
-        resolvedThemeId = R.style.App_Dialog_NoDim
-    }
-    val addPeerDialog = WgAddPeerDialog(context as Activity, resolvedThemeId, configId, wgPeer)
-    addPeerDialog.setCanceledOnTouchOutside(false)
-    addPeerDialog.show()
-    addPeerDialog.setOnDismissListener { onPeerChanged() }
 }
 
 private fun deletePeer(

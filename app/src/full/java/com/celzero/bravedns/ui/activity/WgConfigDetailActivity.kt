@@ -121,6 +121,16 @@ class WgConfigDetailActivity : AppCompatActivity() {
     private var showInvalidConfigDialog by mutableStateOf(false)
     private var showDeleteInterfaceDialog by mutableStateOf(false)
     private var showSsidPermissionDialog by mutableStateOf(false)
+    private var showAddPeerDialog by mutableStateOf(false)
+    private var showHopDialog by mutableStateOf(false)
+    private var hopDialogConfigs by mutableStateOf<List<com.celzero.bravedns.wireguard.Config>>(emptyList())
+    private var hopDialogSelectedId by mutableStateOf(INVALID_CONF_ID)
+    private var showSsidDialog by mutableStateOf(false)
+    private var ssidDialogCurrent by mutableStateOf("")
+    private var showIncludeAppsDialog by mutableStateOf(false)
+    private var includeAppsAdapter by mutableStateOf<com.celzero.bravedns.adapter.WgIncludeAppsAdapter?>(null)
+    private var includeAppsProxyId by mutableStateOf("")
+    private var includeAppsProxyName by mutableStateOf("")
 
     companion object {
         private const val CLIPBOARD_PUBLIC_KEY_LBL = "Public Key"
@@ -177,8 +187,6 @@ class WgConfigDetailActivity : AppCompatActivity() {
                 .getAppCountById(ID_WG_BASE + configId)
                 .asFlow()
                 .collectAsState(initial = 0)
-        val themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-
         LaunchedEffect(configId) {
             refreshConfig()
         }
@@ -288,6 +296,53 @@ class WgConfigDetailActivity : AppCompatActivity() {
             )
         }
 
+        if (showAddPeerDialog) {
+            WgAddPeerDialog(
+                configId = configId,
+                wgPeer = null,
+                onDismiss = {
+                    showAddPeerDialog = false
+                    scope.launch { refreshConfig() }
+                }
+            )
+        }
+
+        if (showHopDialog) {
+            WgHopDialog(
+                srcId = configId,
+                hopables = hopDialogConfigs,
+                selectedId = hopDialogSelectedId,
+                onDismiss = { showHopDialog = false }
+            )
+        }
+
+        if (showSsidDialog) {
+            WgSsidDialog(
+                currentSsids = ssidDialogCurrent,
+                onSave = { newSsids ->
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        WireguardManager.updateSsids(configId, newSsids)
+                        val cfg = WireguardManager.getConfigFilesById(configId)
+                        withContext(Dispatchers.Main) {
+                            ssids = SsidItem.parseStorageList(cfg?.ssids ?: "")
+                        }
+                    }
+                },
+                onDismiss = { showSsidDialog = false }
+            )
+        }
+
+        val appsAdapter = includeAppsAdapter
+        if (showIncludeAppsDialog && appsAdapter != null) {
+            WgIncludeAppsDialog(
+                adapter = appsAdapter,
+                viewModel = mappingViewModel,
+                proxyId = includeAppsProxyId,
+                proxyName = includeAppsProxyName,
+                onDismiss = { showIncludeAppsDialog = false }
+            )
+        }
+
         Column(
             modifier = Modifier.fillMaxSize().padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -314,7 +369,7 @@ class WgConfigDetailActivity : AppCompatActivity() {
             }
 
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(onClick = { openAddPeerDialog() }) {
+                Button(onClick = { showAddPeerDialog = true }) {
                     Text(text = stringResource(id = R.string.lbl_add))
                 }
                 Button(onClick = { showDeleteInterfaceDialog = true }) {
@@ -382,7 +437,6 @@ class WgConfigDetailActivity : AppCompatActivity() {
                 items(peers) { peer ->
                     WgPeerRow(
                         context = this@WgConfigDetailActivity,
-                        themeId = themeId,
                         configId = configId,
                         wgPeer = peer,
                         onPeerChanged = { scope.launch { refreshConfig() } }
@@ -600,15 +654,10 @@ class WgConfigDetailActivity : AppCompatActivity() {
 
     private fun openAppsDialog(proxyName: String) {
         val proxyId = ID_WG_BASE + configId
-        val appsAdapter = com.celzero.bravedns.adapter.WgIncludeAppsAdapter(this, proxyId, proxyName)
-        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-        if (Themes.isFrostTheme(themeId)) {
-            themeId = R.style.App_Dialog_NoDim
-        }
-        val includeAppsDialog =
-            WgIncludeAppsDialog(this, appsAdapter, mappingViewModel, themeId, proxyId, proxyName)
-        includeAppsDialog.setCanceledOnTouchOutside(false)
-        includeAppsDialog.show()
+        includeAppsAdapter = com.celzero.bravedns.adapter.WgIncludeAppsAdapter(this, proxyId, proxyName)
+        includeAppsProxyId = proxyId
+        includeAppsProxyName = proxyName
+        showIncludeAppsDialog = true
     }
 
     private fun openHopDialog() {
@@ -616,13 +665,9 @@ class WgConfigDetailActivity : AppCompatActivity() {
             val hopables = WgHopManager.getHopableWgs(configId)
             val selectedId = convertStringIdToId(WgHopManager.getHop(configId))
             withContext(Dispatchers.Main) {
-                var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-                if (Themes.isFrostTheme(themeId)) {
-                    themeId = R.style.App_Dialog_NoDim
-                }
-                val hopDialog = WgHopDialog(this@WgConfigDetailActivity, themeId, configId, hopables, selectedId)
-                hopDialog.setCanceledOnTouchOutside(false)
-                hopDialog.show()
+                hopDialogConfigs = hopables
+                hopDialogSelectedId = selectedId
+                showHopDialog = true
             }
         }
     }
@@ -635,19 +680,6 @@ class WgConfigDetailActivity : AppCompatActivity() {
         }
     }
 
-    private fun openAddPeerDialog() {
-        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-        if (Themes.isFrostTheme(themeId)) {
-            themeId = R.style.App_Dialog_NoDim
-        }
-        val addPeerDialog = WgAddPeerDialog(this, themeId, configId, null)
-        addPeerDialog.setCanceledOnTouchOutside(false)
-        addPeerDialog.show()
-        addPeerDialog.setOnDismissListener {
-            lifecycleScope.launch { refreshConfig() }
-        }
-    }
-
     private fun openEditConfig() {
         val intent = Intent(this, WgConfigEditorActivity::class.java)
         intent.putExtra(WgConfigEditorActivity.INTENT_EXTRA_WG_ID, configId)
@@ -656,22 +688,8 @@ class WgConfigDetailActivity : AppCompatActivity() {
     }
 
     private fun openSsidDialog() {
-        val currentSsids = WireguardManager.getConfigFilesById(configId)?.ssids ?: ""
-        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-        if (Themes.isFrostTheme(themeId)) {
-            themeId = R.style.App_Dialog_NoDim
-        }
-        val ssidDialog = WgSsidDialog(this, themeId, currentSsids) { newSsids ->
-            lifecycleScope.launch(Dispatchers.IO) {
-                WireguardManager.updateSsids(configId, newSsids)
-                val cfg = WireguardManager.getConfigFilesById(configId)
-                withContext(Dispatchers.Main) {
-                    ssids = SsidItem.parseStorageList(cfg?.ssids ?: "")
-                }
-            }
-        }
-        ssidDialog.setCanceledOnTouchOutside(false)
-        ssidDialog.show()
+        ssidDialogCurrent = WireguardManager.getConfigFilesById(configId)?.ssids.orEmpty()
+        showSsidDialog = true
     }
 
     private fun logEvent(msg: String, details: String) {

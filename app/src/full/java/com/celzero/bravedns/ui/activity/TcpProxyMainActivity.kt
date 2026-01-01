@@ -70,6 +70,10 @@ class TcpProxyMainActivity : AppCompatActivity() {
     private var tcpErrorText by mutableStateOf("")
     private var enableUdpRelayChecked by mutableStateOf(false)
     private var warpSwitchChecked by mutableStateOf(false)
+    private var showIncludeAppsDialog by mutableStateOf(false)
+    private var includeAppsAdapter by mutableStateOf<WgIncludeAppsAdapter?>(null)
+    private var includeAppsProxyId by mutableStateOf("")
+    private var includeAppsProxyName by mutableStateOf("")
 
     companion object {
         private const val TAG = "TcpProxyMainActivity"
@@ -201,15 +205,10 @@ class TcpProxyMainActivity : AppCompatActivity() {
     private fun openAppsDialog() {
         val proxyId = ProxyManager.ID_TCP_BASE
         val proxyName = ProxyManager.TCP_PROXY_NAME
-        val appsAdapter = WgIncludeAppsAdapter(this, proxyId, proxyName)
-        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-        if (Themes.isFrostTheme(themeId)) {
-            themeId = R.style.App_Dialog_NoDim
-        }
-        val includeAppsDialog =
-            WgIncludeAppsDialog(this, appsAdapter, mappingViewModel, themeId, proxyId, proxyName)
-        includeAppsDialog.setCanceledOnTouchOutside(false)
-        includeAppsDialog.show()
+        includeAppsAdapter = WgIncludeAppsAdapter(this, proxyId, proxyName)
+        includeAppsProxyId = proxyId
+        includeAppsProxyName = proxyName
+        showIncludeAppsDialog = true
     }
 
     private suspend fun showConfigCreationError() {
@@ -237,6 +236,16 @@ class TcpProxyMainActivity : AppCompatActivity() {
 
     @Composable
     private fun TcpProxyContent() {
+        val appsAdapter = includeAppsAdapter
+        if (showIncludeAppsDialog && appsAdapter != null) {
+            WgIncludeAppsDialog(
+                adapter = appsAdapter,
+                viewModel = mappingViewModel,
+                proxyId = includeAppsProxyId,
+                proxyName = includeAppsProxyName,
+                onDismiss = { showIncludeAppsDialog = false }
+            )
+        }
         Column(
             modifier =
                 Modifier.fillMaxSize()

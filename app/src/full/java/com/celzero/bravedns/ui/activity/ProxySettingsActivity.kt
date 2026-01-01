@@ -156,6 +156,10 @@ class ProxySettingsActivity : AppCompatActivity() {
     private var httpDialogEndpoint by mutableStateOf<ProxyEndpoint?>(null)
     private var httpDialogAppNames by mutableStateOf<List<String>>(emptyList())
     private var httpDialogAppName by mutableStateOf<String?>(null)
+    private var showIncludeAppsDialog by mutableStateOf(false)
+    private var includeAppsAdapter by mutableStateOf<WgIncludeAppsAdapter?>(null)
+    private var includeAppsProxyId by mutableStateOf("")
+    private var includeAppsProxyName by mutableStateOf("")
 
     companion object {
         private const val REFRESH_TIMEOUT: Long = 4000
@@ -529,6 +533,16 @@ class ProxySettingsActivity : AppCompatActivity() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     private fun ProxySettingsScreen() {
+        val appsAdapter = includeAppsAdapter
+        if (showIncludeAppsDialog && appsAdapter != null) {
+            WgIncludeAppsDialog(
+                adapter = appsAdapter,
+                viewModel = proxyAppsMappingViewModel,
+                proxyId = includeAppsProxyId,
+                proxyName = includeAppsProxyName,
+                onDismiss = { showIncludeAppsDialog = false }
+            )
+        }
         val scrollState = rememberScrollState()
         Scaffold(
             topBar = {
@@ -1134,27 +1148,15 @@ class ProxySettingsActivity : AppCompatActivity() {
     }
 
     private fun openOrbotAppsDialog() {
-        val appsAdapter =
+        includeAppsAdapter =
             WgIncludeAppsAdapter(
                 this,
                 ProxyManager.ID_ORBOT_BASE,
                 ProxyManager.ORBOT_PROXY_NAME
             )
-        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-        if (Themes.isFrostTheme(themeId)) {
-            themeId = R.style.App_Dialog_NoDim
-        }
-        val includeAppsDialog =
-            WgIncludeAppsDialog(
-                this,
-                appsAdapter,
-                proxyAppsMappingViewModel,
-                themeId,
-                ProxyManager.ID_ORBOT_BASE,
-                ProxyManager.ID_ORBOT_BASE
-            )
-        includeAppsDialog.setCanceledOnTouchOutside(false)
-        includeAppsDialog.show()
+        includeAppsProxyId = ProxyManager.ID_ORBOT_BASE
+        includeAppsProxyName = ProxyManager.ORBOT_PROXY_NAME
+        showIncludeAppsDialog = true
     }
 
     private fun stopOrbot() {

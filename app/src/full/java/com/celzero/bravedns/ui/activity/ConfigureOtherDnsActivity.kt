@@ -88,7 +88,6 @@ import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
-import com.celzero.bravedns.ui.dialog.DnsCryptRelaysDialog
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.isAtleastQ
@@ -245,6 +244,7 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
     private fun DohListContent(paddingValues: PaddingValues) {
         val items = dohViewModel.dohEndpointList.asFlow().collectAsLazyPagingItems()
         var showDialog by remember { mutableStateOf(false) }
+        var showRelaysDialog by remember { mutableStateOf(false) }
         DnsEndpointListWithFab(
             paddingValues = paddingValues,
             items = items,
@@ -621,6 +621,7 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
     private fun DnsCryptListContent(paddingValues: PaddingValues) {
         val items = dnsCryptViewModel.dnsCryptEndpointList.asFlow().collectAsLazyPagingItems()
         var showDialog by remember { mutableStateOf(false) }
+        var showRelaysDialog by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -635,7 +636,7 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                TextButton(onClick = { openDnsCryptRelaysDialog() }) {
+                TextButton(onClick = { showRelaysDialog = true }) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(text = stringResource(R.string.cd_dnscrypt_relay_heading))
                         Spacer(modifier = Modifier.width(4.dp))
@@ -659,21 +660,14 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
                 DnsCryptDialogContent(onDismiss = { showDialog = false })
             }
         }
-    }
 
-    private fun openDnsCryptRelaysDialog() {
-        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-        if (Themes.isFrostTheme(themeId)) {
-            themeId = R.style.App_Dialog_NoDim
-        }
-        val customDialog =
-            DnsCryptRelaysDialog(
-                activity = this,
+        if (showRelaysDialog) {
+            com.celzero.bravedns.ui.dialog.DnsCryptRelaysDialog(
                 appConfig = appConfig,
                 relays = dnsCryptRelayViewModel.dnsCryptRelayEndpointList,
-                themeID = themeId
+                onDismiss = { showRelaysDialog = false }
             )
-        customDialog.show()
+        }
     }
 
     @Composable
