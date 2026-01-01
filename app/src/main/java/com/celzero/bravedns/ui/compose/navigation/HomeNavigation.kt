@@ -47,6 +47,7 @@ import com.celzero.bravedns.ui.compose.home.HomeScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreenUiState
 import com.celzero.bravedns.ui.compose.rpn.RpnAvailabilityScreen
 import com.celzero.bravedns.ui.compose.rpn.RpnCountriesScreen
+import com.celzero.bravedns.ui.compose.rpn.RpnWinProxyDetailsScreen
 import com.celzero.bravedns.ui.compose.logs.DomainConnectionsInputType
 import com.celzero.bravedns.ui.compose.logs.DomainConnectionsScreen
 import com.celzero.bravedns.ui.compose.statistics.DetailedStatisticsScreen
@@ -77,6 +78,7 @@ sealed interface HomeNavRequest {
     data object RpnCountries : HomeNavRequest
     data object RpnAvailability : HomeNavRequest
     data object Events : HomeNavRequest
+    data class RpnWinProxyDetails(val countryCode: String) : HomeNavRequest
     data class DomainConnections(
         val type: DomainConnectionsInputType,
         val flag: String,
@@ -94,6 +96,7 @@ private const val ROUTE_RPN_COUNTRIES = "rpnCountries"
 private const val ROUTE_RPN_AVAILABILITY = "rpnAvailability"
 private const val ROUTE_DOMAIN_CONNECTIONS = "domainConnections"
 private const val ROUTE_EVENTS = "events"
+private const val ROUTE_RPN_WIN_PROXY_DETAILS = "rpnWinProxyDetails"
 
 private fun domainConnectionsRoute(
     type: DomainConnectionsInputType,
@@ -201,6 +204,9 @@ fun HomeScreenRoot(
             HomeNavRequest.Events -> {
                 navController.navigate(ROUTE_EVENTS)
             }
+            is HomeNavRequest.RpnWinProxyDetails -> {
+                navController.navigate("$ROUTE_RPN_WIN_PROXY_DETAILS/${Uri.encode(request.countryCode)}")
+            }
             is HomeNavRequest.DomainConnections -> {
                 navController.navigate(
                     domainConnectionsRoute(
@@ -293,6 +299,16 @@ fun HomeScreenRoot(
                 EventsScreen(
                     viewModel = eventsViewModel,
                     eventDao = eventDao,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = "$ROUTE_RPN_WIN_PROXY_DETAILS/{countryCode}",
+                arguments = listOf(navArgument("countryCode") { type = NavType.StringType })
+            ) { entry ->
+                val cc = entry.arguments?.getString("countryCode").orEmpty()
+                RpnWinProxyDetailsScreen(
+                    countryCode = cc,
                     onBackClick = { navController.popBackStack() }
                 )
             }

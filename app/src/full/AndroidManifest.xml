@@ -153,8 +153,6 @@
             android:finishOnTaskLaunch="true" />
         <activity android:name=".ui.activity.RpnAvailabilityCheckActivity"
             android:finishOnTaskLaunch="true" />-->
-        <activity android:name=".ui.activity.RpnWinProxyDetailsActivity"
-            android:finishOnTaskLaunch="true" />
         <activity
             android:name=".ui.activity.BubbleActivity"
             android:allowEmbedded="true"
