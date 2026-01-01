@@ -27,12 +27,38 @@ import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -41,7 +67,6 @@ import com.celzero.bravedns.data.AppConfig.Companion.DOH_INDEX
 import com.celzero.bravedns.data.AppConfig.Companion.DOT_INDEX
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.bottomsheet.DnsRecordTypesDialog
 import com.celzero.bravedns.ui.bottomsheet.LocalBlocklistsDialog
 import com.celzero.bravedns.ui.compose.dns.DnsSettingsScreen
 import com.celzero.bravedns.ui.compose.dns.DnsSettingsViewModel
@@ -53,6 +78,7 @@ import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
+import com.celzero.bravedns.util.ResourceRecordTypes
 import com.celzero.firestack.backend.Backend
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -64,6 +90,7 @@ class DnsDetailActivity : AppCompatActivity() {
 
     private val persistentState by inject<PersistentState>()
     private val viewModel: DnsSettingsViewModel by viewModel()
+    private var showRecordTypesSheet by mutableStateOf(false)
 
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
@@ -115,6 +142,9 @@ class DnsDetailActivity : AppCompatActivity() {
                     onFallbackChange = { viewModel.setUseFallbackDnsToBypass(it) },
                     onPreventLeaksChange = { viewModel.setPreventDnsLeaksEnabled(it) }
                 )
+                if (showRecordTypesSheet) {
+                    DnsRecordTypesSheet(onDismiss = { showRecordTypesSheet = false })
+                }
             }
         }
     }
@@ -125,10 +155,200 @@ class DnsDetailActivity : AppCompatActivity() {
     }
 
     private fun showDnsRecordTypesBottomSheet() {
-        val dialog = DnsRecordTypesDialog(this, persistentState) {
-            viewModel.updateUiState()
+        showRecordTypesSheet = true
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun DnsRecordTypesSheet(onDismiss: () -> Unit) {
+        var isAutoMode by remember { mutableStateOf(persistentState.dnsRecordTypesAutoMode) }
+        val selected = remember {
+            mutableStateListOf<String>().apply {
+                addAll(getInitialRecordSelection(persistentState.dnsRecordTypesAutoMode))
+            }
         }
-        dialog.show()
+
+        val allTypes = remember {
+            ResourceRecordTypes.entries.filter { it != ResourceRecordTypes.UNKNOWN }
+        }
+
+        val sortedTypes by remember(isAutoMode, selected) {
+            derivedStateOf {
+                allTypes.sortedWith(
+                    compareByDescending<ResourceRecordTypes> {
+                        if (isAutoMode) true else selected.contains(it.name)
+                    }.thenBy { it.name }
+                )
+            }
+        }
+
+        ModalBottomSheet(onDismissRequest = onDismiss) {
+            Column(modifier = Modifier.padding(16.dp)) {
+                Box(
+                    modifier = Modifier
+                        .width(60.dp)
+                        .height(3.dp)
+                        .background(
+                            MaterialTheme.colorScheme.surfaceVariant,
+                            RoundedCornerShape(4.dp)
+                        )
+                        .align(Alignment.CenterHorizontally)
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                Text(
+                    text = getString(R.string.cd_allowed_dns_record_types_heading),
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 8.dp, end = 8.dp)
+                )
+                Text(
+                    text = getString(R.string.cd_allowed_dns_record_types_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
+                )
+
+                RecordModeToggleRow(
+                    isAutoMode = isAutoMode,
+                    onAutoSelected = {
+                        isAutoMode = true
+                        persistentState.dnsRecordTypesAutoMode = true
+                    },
+                    onManualSelected = {
+                        isAutoMode = false
+                        persistentState.dnsRecordTypesAutoMode = false
+                    }
+                )
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 40.dp)
+                ) {
+                    items(sortedTypes) { type ->
+                        RecordTypeRow(
+                            type = type,
+                            isAutoMode = isAutoMode,
+                            isSelected = if (isAutoMode) true else selected.contains(type.name),
+                            onToggle = {
+                                if (isAutoMode) return@RecordTypeRow
+                                if (selected.contains(type.name)) {
+                                    selected.remove(type.name)
+                                } else {
+                                    selected.add(type.name)
+                                }
+                                persistentState.setAllowedDnsRecordTypes(selected.toSet())
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun RecordModeToggleRow(
+        isAutoMode: Boolean,
+        onAutoSelected: () -> Unit,
+        onManualSelected: () -> Unit
+    ) {
+        val selectedBg = MaterialTheme.colorScheme.primaryContainer
+        val unselectedBg = MaterialTheme.colorScheme.surfaceVariant
+        val selectedText = MaterialTheme.colorScheme.onPrimaryContainer
+        val unselectedText = MaterialTheme.colorScheme.onSurfaceVariant
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            TextButton(
+                onClick = onAutoSelected,
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        if (isAutoMode) selectedBg else unselectedBg,
+                        RoundedCornerShape(16.dp)
+                    )
+            ) {
+                Text(
+                    text = getString(R.string.settings_ip_text_ipv46),
+                    color = if (isAutoMode) selectedText else unselectedText
+                )
+            }
+            TextButton(
+                onClick = onManualSelected,
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        if (!isAutoMode) selectedBg else unselectedBg,
+                        RoundedCornerShape(16.dp)
+                    )
+            ) {
+                Text(
+                    text = getString(R.string.lbl_manual),
+                    color = if (!isAutoMode) selectedText else unselectedText
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun RecordTypeRow(
+        type: ResourceRecordTypes,
+        isAutoMode: Boolean,
+        isSelected: Boolean,
+        onToggle: () -> Unit
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 6.dp)
+                .alpha(if (isAutoMode) 0.6f else 1f)
+                .clickable(enabled = !isAutoMode) { onToggle() }
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = type.name,
+                    style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(bottom = 2.dp)
+                )
+                Text(
+                    text = type.desc,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = if (isAutoMode) null else { _ -> onToggle() },
+                modifier = Modifier.padding(start = 8.dp)
+            )
+        }
+        if (isAutoMode) {
+            Spacer(modifier = Modifier.height(2.dp))
+        }
+    }
+
+    private fun getInitialRecordSelection(autoMode: Boolean): List<String> {
+        if (!autoMode) {
+            return persistentState.getAllowedDnsRecordTypes().toList()
+        }
+        val storedSelection = persistentState.allowedDnsRecordTypesString
+        if (storedSelection.isNotEmpty()) {
+            return storedSelection.split(",").filter { it.isNotEmpty() }
+        }
+        return listOf(
+            ResourceRecordTypes.A.name,
+            ResourceRecordTypes.AAAA.name,
+            ResourceRecordTypes.CNAME.name,
+            ResourceRecordTypes.HTTPS.name,
+            ResourceRecordTypes.SVCB.name
+        )
     }
 
     private fun showSmartDnsInfoDialog() {
