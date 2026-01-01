@@ -19,8 +19,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.WindowManager
-import android.widget.ArrayAdapter
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +46,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -56,19 +55,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.asFlow
 import androidx.paging.compose.LazyPagingItems
@@ -102,7 +100,6 @@ import com.celzero.bravedns.viewmodel.DnsCryptEndpointViewModel
 import com.celzero.bravedns.viewmodel.DnsCryptRelayEndpointViewModel
 import com.celzero.bravedns.viewmodel.DnsProxyEndpointViewModel
 import com.celzero.bravedns.viewmodel.ODoHEndpointViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import inet.ipaddr.IPAddressString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -247,30 +244,16 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
     @Composable
     private fun DohListContent(paddingValues: PaddingValues) {
         val items = dohViewModel.dohEndpointList.asFlow().collectAsLazyPagingItems()
+        var showDialog by remember { mutableStateOf(false) }
         DnsEndpointListWithFab(
             paddingValues = paddingValues,
             items = items,
-            onFabClick = { showAddCustomDohDialog() }
+            onFabClick = { showDialog = true }
         ) { endpoint ->
             DoHEndpointRow(endpoint, appConfig)
         }
-    }
-
-    private fun showAddCustomDohDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        val lp = WindowManager.LayoutParams()
-        val dialog = builder.create()
-        dialog.show()
-        lp.copyFrom(dialog.window?.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-
-        dialog.setCancelable(true)
-        dialog.window?.attributes = lp
-
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
+        if (showDialog) {
+            FullWidthDialog(onDismiss = { showDialog = false }) {
                 CustomDohDialogContent(
                     title = getString(R.string.cd_doh_dialog_heading),
                     nameLabel = getString(R.string.cd_doh_dialog_resolver_name),
@@ -285,18 +268,17 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
                     onSubmit = { name, url, isSecure ->
                         if (checkUrl(url)) {
                             insertDoHEndpoint(name, url, isSecure)
-                            dialog.dismiss()
+                            showDialog = false
                             null
                         } else {
                             getString(R.string.custom_url_error_invalid_url)
                         }
                     },
                     invalidUrlMessage = getString(R.string.custom_url_error_invalid_url),
-                    onDismiss = { dialog.dismiss() }
+                    onDismiss = { showDialog = false }
                 )
             }
         }
-        dialog.setView(composeView)
     }
 
     private fun insertDoHEndpoint(name: String, url: String, isSecure: Boolean) {
@@ -337,36 +319,22 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
     @Composable
     private fun DotListContent(paddingValues: PaddingValues) {
         val items = dotViewModel.dohEndpointList.asFlow().collectAsLazyPagingItems()
+        var showDialog by remember { mutableStateOf(false) }
         DnsEndpointListWithFab(
             paddingValues = paddingValues,
             items = items,
-            onFabClick = { showAddDotDialog() }
+            onFabClick = { showDialog = true }
         ) { endpoint ->
             DoTEndpointRow(endpoint, appConfig)
         }
-    }
-
-    private fun showAddDotDialog() {
-        val dialog = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).create()
-        val lp = WindowManager.LayoutParams()
-        dialog.show()
-        lp.copyFrom(dialog.window?.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-
-        dialog.setCancelable(true)
-        dialog.window?.attributes = lp
-
-        val title =
-            getString(
-                R.string.two_argument_space,
-                getString(R.string.lbl_add).replaceFirstChar(Char::titlecase),
-                getString(R.string.lbl_dot)
-            )
-
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
+        if (showDialog) {
+            val title =
+                getString(
+                    R.string.two_argument_space,
+                    getString(R.string.lbl_add).replaceFirstChar(Char::titlecase),
+                    getString(R.string.lbl_dot)
+                )
+            FullWidthDialog(onDismiss = { showDialog = false }) {
                 CustomDohDialogContent(
                     title = title,
                     nameLabel = getString(R.string.cd_doh_dialog_resolver_name),
@@ -378,15 +346,14 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
                     nameForIndex = { index -> getString(R.string.lbl_dot) + index.toString() },
                     onSubmit = { name, url, isSecure ->
                         insertDotEndpoint(name, url, isSecure)
-                        dialog.dismiss()
+                        showDialog = false
                         null
                     },
                     invalidUrlMessage = "",
-                    onDismiss = { dialog.dismiss() }
+                    onDismiss = { showDialog = false }
                 )
             }
         }
-        dialog.setView(composeView)
     }
 
     private fun insertDotEndpoint(name: String, url: String, isSecure: Boolean) {
@@ -414,44 +381,38 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
     @Composable
     private fun DnsProxyListContent(paddingValues: PaddingValues) {
         val items = dnsProxyViewModel.dnsProxyEndpointList.asFlow().collectAsLazyPagingItems()
+        val scope = rememberCoroutineScope()
+        var showDialog by remember { mutableStateOf(false) }
+        var appNames by remember { mutableStateOf<List<String>>(emptyList()) }
+        var nextIndex by remember { mutableStateOf(0) }
         DnsEndpointListWithFab(
             paddingValues = paddingValues,
             items = items,
             onFabClick = {
-                io {
-                    val appNames: MutableList<String> = ArrayList()
-                    appNames.add(getString(R.string.settings_app_list_default_app))
-                    appNames.addAll(FirewallManager.getAllAppNamesSortedByVpnPermission(this))
-                    val nextIndex = appConfig.getDnsProxyCount().plus(1)
-                    uiCtx { showAddDnsProxyDialog(appNames, nextIndex) }
+                scope.launch {
+                    val names = withContext(Dispatchers.IO) {
+                        val list: MutableList<String> = ArrayList()
+                        list.add(getString(R.string.settings_app_list_default_app))
+                        list.addAll(FirewallManager.getAllAppNamesSortedByVpnPermission(this@ConfigureOtherDnsActivity))
+                        list
+                    }
+                    appNames = names
+                    nextIndex = appConfig.getDnsProxyCount().plus(1)
+                    showDialog = true
                 }
             }
         ) { endpoint ->
             DnsProxyEndpointRow(endpoint, appConfig)
         }
-    }
-
-    private fun showAddDnsProxyDialog(appNames: List<String>, nextIndex: Int) {
-        val dialog = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).create()
-        val lp = WindowManager.LayoutParams()
-        dialog.show()
-        lp.copyFrom(dialog.window?.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-        dialog.window?.attributes = lp
-        dialog.setCancelable(true)
-
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
+        if (showDialog && appNames.isNotEmpty()) {
+            FullWidthDialog(onDismiss = { showDialog = false }) {
                 DnsProxyDialogContent(
                     appNames = appNames,
                     nextIndex = nextIndex,
-                    onDismiss = { dialog.dismiss() }
+                    onDismiss = { showDialog = false }
                 )
             }
         }
-        dialog.setView(composeView)
     }
 
     @Composable
@@ -659,6 +620,7 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
     @Composable
     private fun DnsCryptListContent(paddingValues: PaddingValues) {
         val items = dnsCryptViewModel.dnsCryptEndpointList.asFlow().collectAsLazyPagingItems()
+        var showDialog by remember { mutableStateOf(false) }
         Column(
             modifier = Modifier.fillMaxSize().padding(paddingValues),
             verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -687,9 +649,14 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
             DnsEndpointListWithFab(
                 paddingValues = PaddingValues(0.dp),
                 items = items,
-                onFabClick = { showAddDnsCryptDialog() }
+                onFabClick = { showDialog = true }
             ) { endpoint ->
                 DnsCryptRow(endpoint, appConfig)
+            }
+        }
+        if (showDialog) {
+            FullWidthDialog(onDismiss = { showDialog = false }) {
+                DnsCryptDialogContent(onDismiss = { showDialog = false })
             }
         }
     }
@@ -707,26 +674,6 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
                 themeID = themeId
             )
         customDialog.show()
-    }
-
-    private fun showAddDnsCryptDialog() {
-        val dialog = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).create()
-        val lp = WindowManager.LayoutParams()
-        dialog.show()
-        lp.copyFrom(dialog.window?.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-        dialog.window?.attributes = lp
-
-        dialog.setCancelable(true)
-
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
-                DnsCryptDialogContent(onDismiss = { dialog.dismiss() })
-            }
-        }
-        dialog.setView(composeView)
     }
 
     @Composable
@@ -873,36 +820,22 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
     @Composable
     private fun OdohListContent(paddingValues: PaddingValues) {
         val items = oDohViewModel.dohEndpointList.asFlow().collectAsLazyPagingItems()
+        var showDialog by remember { mutableStateOf(false) }
         DnsEndpointListWithFab(
             paddingValues = paddingValues,
             items = items,
-            onFabClick = { showAddOdohDialog() }
+            onFabClick = { showDialog = true }
         ) { endpoint ->
             ODoHEndpointRow(endpoint, appConfig)
         }
-    }
-
-    private fun showAddOdohDialog() {
-        val dialog = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).create()
-        val lp = WindowManager.LayoutParams()
-        dialog.show()
-        lp.copyFrom(dialog.window?.attributes)
-        lp.width = WindowManager.LayoutParams.MATCH_PARENT
-        lp.height = WindowManager.LayoutParams.WRAP_CONTENT
-
-        dialog.setCancelable(true)
-        dialog.window?.attributes = lp
-
-        val title =
-            getString(
-                R.string.two_argument_space,
-                getString(R.string.lbl_add).replaceFirstChar(Char::uppercase),
-                getString(R.string.lbl_odoh)
-            )
-
-        val composeView = ComposeView(this)
-        composeView.setContent {
-            RethinkTheme {
+        if (showDialog) {
+            val title =
+                getString(
+                    R.string.two_argument_space,
+                    getString(R.string.lbl_add).replaceFirstChar(Char::uppercase),
+                    getString(R.string.lbl_odoh)
+                )
+            FullWidthDialog(onDismiss = { showDialog = false }) {
                 CustomOdohDialogContent(
                     title = title,
                     nameLabel = getString(R.string.cd_doh_dialog_resolver_name),
@@ -917,17 +850,32 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
                     onSubmit = { name, proxy, resolver ->
                         if (checkUrl(resolver)) {
                             insertOdoh(name, proxy, resolver)
-                            dialog.dismiss()
+                            showDialog = false
                             null
                         } else {
                             getString(R.string.custom_url_error_invalid_url)
                         }
                     },
-                    onDismiss = { dialog.dismiss() }
+                    onDismiss = { showDialog = false }
                 )
             }
         }
-        dialog.setView(composeView)
+    }
+
+    @Composable
+    private fun FullWidthDialog(
+        onDismiss: () -> Unit,
+        content: @Composable () -> Unit
+    ) {
+        Dialog(onDismissRequest = onDismiss) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium,
+                tonalElevation = 6.dp
+            ) {
+                content()
+            }
+        }
     }
 
     @Composable
@@ -1107,7 +1055,4 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
         lifecycleScope.launch(Dispatchers.IO) { f() }
     }
 
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
-    }
 }
