@@ -16,12 +16,9 @@
 package com.celzero.bravedns.adapter
 
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
-import android.widget.ArrayAdapter
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,10 +29,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,7 +65,6 @@ import com.celzero.bravedns.ui.activity.AppInfoActivity
 import com.celzero.bravedns.ui.activity.AppInfoActivity.Companion.INTENT_UID
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getIcon
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -78,6 +76,7 @@ import java.util.concurrent.TimeUnit
 fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var dialogState by remember(appInfo.uid) { mutableStateOf<FirewallAppDialogState?>(null) }
     val packageManager = context.packageManager
     var appStatus by remember(appInfo.uid) {
         mutableStateOf(FirewallManager.FirewallStatus.getStatus(appInfo.firewallStatus))
@@ -150,7 +149,23 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                 )
             }
             if (wifiIcon != null) {
-                IconButton(onClick = { handleWifiToggle(context, scope, eventLogger, appInfo) }) {
+                IconButton(
+                    onClick = {
+                        handleWifiToggle(
+                            scope,
+                            eventLogger,
+                            appInfo
+                        ) { packageList, connStatus ->
+                            dialogState =
+                                FirewallAppDialogState(
+                                    packageList,
+                                    appInfo,
+                                    isWifi = true,
+                                    connStatus
+                                )
+                        }
+                    }
+                ) {
                     Icon(
                         painter = painterResource(id = wifiIcon),
                         contentDescription = null
@@ -158,7 +173,23 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                 }
             }
             if (mobileIcon != null) {
-                IconButton(onClick = { handleMobileToggle(context, scope, eventLogger, appInfo) }) {
+                IconButton(
+                    onClick = {
+                        handleMobileToggle(
+                            scope,
+                            eventLogger,
+                            appInfo
+                        ) { packageList, connStatus ->
+                            dialogState =
+                                FirewallAppDialogState(
+                                    packageList,
+                                    appInfo,
+                                    isWifi = false,
+                                    connStatus
+                                )
+                        }
+                    }
+                ) {
                     Icon(
                         painter = painterResource(id = mobileIcon),
                         contentDescription = null
@@ -168,7 +199,65 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
         }
         Spacer(modifier = Modifier.fillMaxWidth())
     }
+
+    dialogState?.let { state ->
+        val count = state.packageList.count()
+        AlertDialog(
+            onDismissRequest = { dialogState = null },
+            icon = {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_firewall_block_grey),
+                    contentDescription = null
+                )
+            },
+            title = {
+                Text(
+                    text =
+                        context.getString(
+                            R.string.ctbs_block_other_apps,
+                            state.appInfo.appName,
+                            count.toString()
+                        )
+                )
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    state.packageList.forEach { name ->
+                        Text(text = name, style = MaterialTheme.typography.bodyMedium)
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        scope.launch(Dispatchers.IO) {
+                            if (state.isWifi) {
+                                toggleWifi(eventLogger, state.appInfo, state.connStatus)
+                            } else {
+                                toggleMobileData(eventLogger, state.appInfo, state.connStatus)
+                            }
+                        }
+                        dialogState = null
+                    }
+                ) {
+                    Text(text = context.getString(R.string.lbl_proceed))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { dialogState = null }) {
+                    Text(text = context.getString(R.string.ctbs_dialog_negative_btn))
+                }
+            }
+        )
+    }
 }
+
+private data class FirewallAppDialogState(
+    val packageList: List<String>,
+    val appInfo: AppInfo,
+    val isWifi: Boolean,
+    val connStatus: FirewallManager.ConnectionStatus
+)
 
 private fun buildDataUsageText(context: Context, appInfo: AppInfo): String {
     val u = Utilities.humanReadableByteCount(appInfo.uploadBytes, true)
@@ -255,10 +344,10 @@ private fun mobileIconRes(
 }
 
 private fun handleWifiToggle(
-    context: Context,
     scope: CoroutineScope,
     eventLogger: EventLogger,
-    appInfo: AppInfo
+    appInfo: AppInfo,
+    onShowDialog: (List<String>, FirewallManager.ConnectionStatus) -> Unit
 ) {
     enableAfterDelay(scope, TimeUnit.SECONDS.toMillis(1L))
     scope.launch(Dispatchers.IO) {
@@ -266,7 +355,7 @@ private fun handleWifiToggle(
         val connStatus = FirewallManager.connectionStatus(appInfo.uid)
         if (appNames.count() > 1) {
             withContext(Dispatchers.Main) {
-                showDialog(context, scope, eventLogger, appNames, appInfo, isWifi = true, connStatus)
+                onShowDialog(appNames, connStatus)
             }
             return@launch
         }
@@ -275,10 +364,10 @@ private fun handleWifiToggle(
 }
 
 private fun handleMobileToggle(
-    context: Context,
     scope: CoroutineScope,
     eventLogger: EventLogger,
-    appInfo: AppInfo
+    appInfo: AppInfo,
+    onShowDialog: (List<String>, FirewallManager.ConnectionStatus) -> Unit
 ) {
     enableAfterDelay(scope, TimeUnit.SECONDS.toMillis(1L))
     scope.launch(Dispatchers.IO) {
@@ -286,7 +375,7 @@ private fun handleMobileToggle(
         val connStatus = FirewallManager.connectionStatus(appInfo.uid)
         if (appNames.count() > 1) {
             withContext(Dispatchers.Main) {
-                showDialog(context, scope, eventLogger, appNames, appInfo, isWifi = false, connStatus)
+                onShowDialog(appNames, connStatus)
             }
             return@launch
         }
@@ -366,45 +455,6 @@ private fun openAppDetailActivity(context: Context, uid: Int) {
     val intent = Intent(context, AppInfoActivity::class.java)
     intent.putExtra(INTENT_UID, uid)
     context.startActivity(intent)
-}
-
-private fun showDialog(
-    context: Context,
-    scope: CoroutineScope,
-    eventLogger: EventLogger,
-    packageList: List<String>,
-    appInfo: AppInfo,
-    isWifi: Boolean,
-    connStatus: FirewallManager.ConnectionStatus
-) {
-    val builderSingle = MaterialAlertDialogBuilder(context)
-    builderSingle.setIcon(R.drawable.ic_firewall_block_grey)
-    val count = packageList.count()
-    builderSingle.setTitle(
-        context.getString(
-            R.string.ctbs_block_other_apps, appInfo.appName, count.toString()))
-
-    val arrayAdapter =
-        ArrayAdapter<String>(context, android.R.layout.simple_list_item_activated_1)
-    arrayAdapter.addAll(packageList)
-    builderSingle.setCancelable(false)
-    builderSingle.setItems(packageList.toTypedArray(), null)
-    builderSingle
-        .setPositiveButton(context.getString(R.string.lbl_proceed)) { _: DialogInterface, _: Int ->
-            scope.launch(Dispatchers.IO) {
-                if (isWifi) {
-                    toggleWifi(eventLogger, appInfo, connStatus)
-                    return@launch
-                }
-                toggleMobileData(eventLogger, appInfo, connStatus)
-            }
-        }
-        .setNeutralButton(context.getString(R.string.ctbs_dialog_negative_btn)) { _: DialogInterface, _: Int ->
-        }
-
-    val alertDialog: AlertDialog = builderSingle.create()
-    alertDialog.listView.setOnItemClickListener { _, _, _, _ -> }
-    alertDialog.show()
 }
 
 private fun enableAfterDelay(scope: CoroutineScope, delayMs: Long) {
