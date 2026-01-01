@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.activity
 
+import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
@@ -41,6 +42,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -141,17 +145,36 @@ class EventsActivity : AppCompatActivity() {
     }
 
     private fun showDeleteDialog() {
-        com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-            .setTitle(R.string.ada_delete_logs_dialog_title)
-            .setMessage(R.string.ada_delete_logs_dialog_desc)
-            .setCancelable(true)
-            .setPositiveButton(getString(R.string.lbl_delete)) { _, _ ->
-                lifecycleScope.launch(Dispatchers.IO) { eventDao.deleteAll() }
-                refreshEvents()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = getString(R.string.ada_delete_logs_dialog_title)) },
+                    text = { Text(text = getString(R.string.ada_delete_logs_dialog_desc)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                lifecycleScope.launch(Dispatchers.IO) { eventDao.deleteAll() }
+                                refreshEvents()
+                            }
+                        ) {
+                            Text(text = getString(R.string.lbl_delete))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
             }
-            .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
-            .create()
-            .show()
+        }
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun applyFilter(tag: TopLevelFilter) {

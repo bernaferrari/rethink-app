@@ -17,6 +17,7 @@ package com.celzero.bravedns.ui.activity
 
 import Logger
 import Logger.LOG_TAG_PROXY
+import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -47,11 +48,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +64,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
@@ -89,7 +93,6 @@ import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.zxing.qrcode.QRCodeReader
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
@@ -288,46 +291,66 @@ class WgMainActivity :
     }
 
     private fun showDisableDialog(isOneWgToggle: Boolean) {
-        MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-            .setTitle(getString(R.string.wireguard_disable_title))
-            .setMessage(getString(R.string.wireguard_disable_message))
-            .setPositiveButton(getString(R.string.always_on_dialog_positive)) { _, _ ->
-                io {
-                    if (WireguardManager.canDisableAllActiveConfigs()) {
-                        WireguardManager.disableAllActiveConfigs()
-                        logEvent(
-                            "Wireguard disable",
-                            "all configs from toggle switch; isOneWgToggle: $isOneWgToggle"
-                        )
-                        uiCtx {
-                            observeDnsName()
-                            selectedTab = if (isOneWgToggle) WgTab.ONE else WgTab.GENERAL
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = getString(R.string.wireguard_disable_title)) },
+                    text = { Text(text = getString(R.string.wireguard_disable_message)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                io {
+                                    if (WireguardManager.canDisableAllActiveConfigs()) {
+                                        WireguardManager.disableAllActiveConfigs()
+                                        logEvent(
+                                            "Wireguard disable",
+                                            "all configs from toggle switch; isOneWgToggle: $isOneWgToggle"
+                                        )
+                                        uiCtx {
+                                            observeDnsName()
+                                            selectedTab = if (isOneWgToggle) WgTab.ONE else WgTab.GENERAL
+                                        }
+                                    } else {
+                                        val configs = WireguardManager.getActiveCatchAllConfig()
+                                        if (configs.isNotEmpty()) {
+                                            uiCtx {
+                                                Utilities.showToastUiCentered(
+                                                    this@WgMainActivity,
+                                                    getString(R.string.wireguard_disable_failure),
+                                                    Toast.LENGTH_LONG
+                                                )
+                                            }
+                                        } else {
+                                            uiCtx {
+                                                Utilities.showToastUiCentered(
+                                                    this@WgMainActivity,
+                                                    getString(R.string.wireguard_disable_failure_relay),
+                                                    Toast.LENGTH_LONG
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        ) {
+                            Text(text = getString(R.string.always_on_dialog_positive))
                         }
-                    } else {
-                        val configs = WireguardManager.getActiveCatchAllConfig()
-                        if (configs.isNotEmpty()) {
-                            uiCtx {
-                                Utilities.showToastUiCentered(
-                                    this,
-                                    getString(R.string.wireguard_disable_failure),
-                                    Toast.LENGTH_LONG
-                                )
-                            }
-                        } else {
-                            uiCtx {
-                                Utilities.showToastUiCentered(
-                                    this,
-                                    getString(R.string.wireguard_disable_failure_relay),
-                                    Toast.LENGTH_LONG
-                                )
-                            }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_cancel))
                         }
                     }
-                }
+                )
             }
-            .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
-            .create()
-            .show()
+        }
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun onOneWgToggleClick() {

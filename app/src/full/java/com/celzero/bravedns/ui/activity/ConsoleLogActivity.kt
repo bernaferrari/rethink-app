@@ -18,6 +18,7 @@ package com.celzero.bravedns.ui.activity
 import Logger
 import Logger.LOG_TAG_BUG_REPORT
 import Logger.LOG_TAG_UI
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageInfo
@@ -26,7 +27,6 @@ import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -37,14 +37,18 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,6 +58,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
@@ -80,7 +85,6 @@ import com.celzero.bravedns.util.disableFrostTemporarily
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.util.restoreFrost
 import com.celzero.bravedns.viewmodel.ConsoleLogViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -152,8 +156,6 @@ class ConsoleLogActivity : AppCompatActivity() {
     }
 
     private fun showFilterDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(getString(R.string.console_log_title))
         val items = arrayOf(
             getString(R.string.settings_gologger_dialog_option_0),
             getString(R.string.settings_gologger_dialog_option_1),
@@ -165,28 +167,59 @@ class ConsoleLogActivity : AppCompatActivity() {
             getString(R.string.settings_gologger_dialog_option_7)
         )
         val checkedItem = Logger.uiLogLevel.toInt()
-        builder.setSingleChoiceItems(items.map { it }.toTypedArray(), checkedItem) { _, which ->
-            Logger.uiLogLevel = which.toLong()
-            GoVpnAdapter.setLogLevel(
-                persistentState.goLoggerLevel.toInt(),
-                Logger.uiLogLevel.toInt()
-            )
-            viewModel.setLogLevel(which.toLong())
-            if (which < Logger.LoggerLevel.ERROR.id) {
-                consoleLogRepository.setStartTimestamp(System.currentTimeMillis())
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                var selectedIndex by remember { mutableStateOf(checkedItem) }
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = getString(R.string.console_log_title)) },
+                    text = {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            items.forEachIndexed { index, label ->
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(
+                                        selected = selectedIndex == index,
+                                        onClick = {
+                                            selectedIndex = index
+                                            Logger.uiLogLevel = index.toLong()
+                                            GoVpnAdapter.setLogLevel(
+                                                persistentState.goLoggerLevel.toInt(),
+                                                Logger.uiLogLevel.toInt()
+                                            )
+                                            viewModel.setLogLevel(index.toLong())
+                                            if (index < Logger.LoggerLevel.ERROR.id) {
+                                                consoleLogRepository.setStartTimestamp(System.currentTimeMillis())
+                                            }
+                                            Logger.i(LOG_TAG_BUG_REPORT, "Log level set to ${items[index]}")
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text(text = label, style = MaterialTheme.typography.bodyMedium)
+                                }
+                            }
+                        }
+                    },
+                    confirmButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
             }
-            Logger.i(LOG_TAG_BUG_REPORT, "Log level set to ${items[which]}")
         }
-        builder.setCancelable(true)
-        builder.setPositiveButton(getString(R.string.fapps_info_dialog_positive_btn)) { dialogInterface, _ ->
-            dialogInterface.dismiss()
-        }
-        builder.setNeutralButton(getString(R.string.lbl_cancel)) { dialogInterface, _ ->
-            dialogInterface.dismiss()
-        }
-        val alertDialog: AlertDialog = builder.create()
-        alertDialog.setCancelable(true)
-        alertDialog.show()
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun handleShareLogs(filePath: String) {
