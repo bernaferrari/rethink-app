@@ -17,6 +17,7 @@ package com.celzero.bravedns.adapter
 
 import android.content.Context
 import android.widget.Toast
+import androidx.compose.material3.AlertDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
@@ -42,7 +44,6 @@ import com.celzero.bravedns.ui.bottomsheet.AppDomainRulesDialog
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aakira.napier.Napier
 import kotlin.math.log2
 
@@ -56,6 +57,7 @@ class AppWiseDomainsAdapter(
     private var maxValue: Int = 0
     private var minPercentage: Int = 100
     private val refreshToken = mutableStateOf(0)
+    private val pendingCloseDialog = mutableStateOf<AppConnection?>(null)
 
     companion object {
         private const val TAG = "AppWiseDomainsAdapter"
@@ -118,6 +120,45 @@ class AppWiseDomainsAdapter(
     }
 
     @Composable
+    fun CloseDialogHost() {
+        val conn = pendingCloseDialog.value ?: return
+        AlertDialog(
+            onDismissRequest = { pendingCloseDialog.value = null },
+            title = { Text(text = context.getString(R.string.close_conns_dialog_title)) },
+            text = {
+                Text(
+                    text = context.getString(R.string.close_conns_dialog_desc, conn.ipAddress)
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        VpnController.closeConnectionsByUidDomain(
+                            conn.uid,
+                            conn.ipAddress,
+                            "app-wise-domains-manual-close"
+                        )
+                        Napier.i("$TAG closed connection for uid: ${conn.uid}, domain: ${conn.appOrDnsName}")
+                        showToastUiCentered(
+                            context,
+                            context.getString(R.string.config_add_success_toast),
+                            Toast.LENGTH_LONG
+                        )
+                        pendingCloseDialog.value = null
+                    }
+                ) {
+                    Text(text = context.getString(R.string.lbl_proceed))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingCloseDialog.value = null }) {
+                    Text(text = context.getString(R.string.lbl_cancel))
+                }
+            }
+        )
+    }
+
+    @Composable
     private fun DomainProgress(conn: AppConnection, refresh: Int) {
         if (refresh == Int.MIN_VALUE) {
             return
@@ -146,34 +187,10 @@ class AppWiseDomainsAdapter(
 
     private fun handleClick(conn: AppConnection) {
         if (isActiveConn) {
-            showCloseConnectionDialog(conn)
+            pendingCloseDialog.value = conn
             return
         }
         openBottomSheet(conn)
-    }
-
-    private fun showCloseConnectionDialog(appConn: AppConnection) {
-        val dialog = MaterialAlertDialogBuilder(context, R.style.App_Dialog_NoDim)
-            .setTitle(context.getString(R.string.close_conns_dialog_title))
-            .setMessage(context.getString(R.string.close_conns_dialog_desc, appConn.ipAddress))
-            .setPositiveButton(R.string.lbl_proceed) { _, _ ->
-                VpnController.closeConnectionsByUidDomain(
-                    appConn.uid,
-                    appConn.ipAddress,
-                    "app-wise-domains-manual-close"
-                )
-                Napier.i("$TAG closed connection for uid: ${appConn.uid}, domain: ${appConn.appOrDnsName}")
-                showToastUiCentered(
-                    context,
-                    context.getString(R.string.config_add_success_toast),
-                    Toast.LENGTH_LONG
-                )
-            }
-            .setNegativeButton(R.string.lbl_cancel, null)
-            .create()
-        dialog.setCancelable(true)
-        dialog.setCanceledOnTouchOutside(true)
-        dialog.show()
     }
 
     private fun openBottomSheet(appConn: AppConnection) {

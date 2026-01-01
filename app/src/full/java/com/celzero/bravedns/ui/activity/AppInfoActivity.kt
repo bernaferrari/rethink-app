@@ -170,6 +170,8 @@ class AppInfoActivity : AppCompatActivity() {
             loadAppInfo()
         }
 
+        activeAdapter.CloseDialogHost()
+
         Column(
             modifier = Modifier.fillMaxSize().padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)

@@ -352,6 +352,7 @@ class AppWiseDomainLogsActivity : AppCompatActivity() {
                     isActiveConns
                 )
             }
+        adapter.CloseDialogHost()
         if (!isRethinkApp) {
             networkLogsViewModel.setUid(uid)
         }
