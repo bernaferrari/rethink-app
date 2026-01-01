@@ -37,6 +37,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.SummaryStatisticsType
+import com.celzero.bravedns.ui.compose.alerts.AlertsScreen
 import com.celzero.bravedns.ui.compose.about.AboutScreen
 import com.celzero.bravedns.ui.compose.about.AboutUiState
 import com.celzero.bravedns.ui.compose.configure.ConfigureScreen
@@ -63,9 +64,11 @@ sealed interface HomeNavRequest {
         val type: SummaryStatisticsType,
         val timeCategory: SummaryStatisticsViewModel.TimeCategory
     ) : HomeNavRequest
+    data object Alerts : HomeNavRequest
 }
 
 private const val ROUTE_DETAILED_STATS = "detailedStats"
+private const val ROUTE_ALERTS = "alerts"
 
 private fun detailedStatsRoute(typeId: Int, timeCategory: Int): String {
     return "$ROUTE_DETAILED_STATS/$typeId/$timeCategory"
@@ -141,6 +144,9 @@ fun HomeScreenRoot(
                     detailedStatsRoute(request.type.tid, request.timeCategory.value)
                 )
             }
+            HomeNavRequest.Alerts -> {
+                navController.navigate(ROUTE_ALERTS)
+            }
         }
         onHomeNavConsumed()
     }
@@ -206,6 +212,9 @@ fun HomeScreenRoot(
                     viewModel = summaryViewModel,
                     onSeeMoreClick = onOpenDetailedStats
                 )
+            }
+            composable(ROUTE_ALERTS) {
+                AlertsScreen(onBackClick = { navController.popBackStack() })
             }
             composable(
                 route = "$ROUTE_DETAILED_STATS/{typeId}/{timeCategory}",

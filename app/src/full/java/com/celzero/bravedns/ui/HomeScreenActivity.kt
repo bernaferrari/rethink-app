@@ -130,7 +130,6 @@ import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.ui.activity.AdvancedSettingActivity
-import com.celzero.bravedns.ui.activity.AlertsActivity
 import com.celzero.bravedns.ui.activity.AntiCensorshipActivity
 import com.celzero.bravedns.ui.activity.AppListActivity
 import com.celzero.bravedns.ui.activity.ConfigureRethinkBasicActivity
@@ -964,6 +963,10 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun startActivity(type: ScreenType, screenToLoad: Int = 0) {
+        if (type == ScreenType.ALERTS) {
+            homeNavRequest = HomeNavRequest.Alerts
+            return
+        }
         val intent =
             when (type) {
                 ScreenType.DNS -> Intent(this, DnsDetailActivity::class.java)
@@ -971,7 +974,6 @@ class HomeScreenActivity : AppCompatActivity() {
                 ScreenType.LOGS -> Intent(this, NetworkLogsActivity::class.java)
                 ScreenType.RULES -> Intent(this, CustomRulesActivity::class.java)
                 ScreenType.PROXY -> Intent(this, ProxySettingsActivity::class.java)
-                ScreenType.ALERTS -> Intent(this, AlertsActivity::class.java)
                 ScreenType.RETHINK -> Intent(this, ConfigureRethinkBasicActivity::class.java)
                 ScreenType.PROXY_WIREGUARD -> Intent(this, WgMainActivity::class.java)
             }

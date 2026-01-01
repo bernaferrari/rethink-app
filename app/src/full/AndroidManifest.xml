@@ -142,9 +142,6 @@
             android:screenOrientation="fullSensor"
             tools:replace="screenOrientation" />
         <activity
-            android:name=".ui.activity.AlertsActivity"
-            android:finishOnTaskLaunch="true" />
-        <activity
             android:name=".ui.activity.AntiCensorshipActivity"
             android:finishOnTaskLaunch="true" />
         <activity
