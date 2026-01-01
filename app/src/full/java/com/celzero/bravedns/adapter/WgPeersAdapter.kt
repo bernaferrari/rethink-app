@@ -23,13 +23,17 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,7 +47,6 @@ import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.wireguard.Peer
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -57,6 +60,7 @@ fun WgPeerRow(
     onPeerChanged: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val showDeleteDialog = remember(wgPeer.getPublicKey()) { mutableStateOf(false) }
     val endpoint =
         if (wgPeer.getEndpoint().isPresent) {
             wgPeer.getEndpoint().get().toString()
@@ -105,9 +109,7 @@ fun WgPeerRow(
                     )
                 }
                 IconButton(onClick = {
-                    showDeleteInterfaceDialog(context, wgPeer) {
-                        deletePeer(context, scope, configId, wgPeer, onPeerChanged)
-                    }
+                    showDeleteDialog.value = true
                 }) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_delete),
@@ -140,6 +142,35 @@ fun WgPeerRow(
             }
         }
     }
+
+    if (showDeleteDialog.value) {
+        val deleteTitle =
+            context.getString(
+                R.string.two_argument_space,
+                context.getString(R.string.config_delete_dialog_title),
+                context.getString(R.string.lbl_peer)
+            )
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog.value = false },
+            title = { Text(text = deleteTitle) },
+            text = { Text(text = context.getString(R.string.config_delete_dialog_desc)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog.value = false
+                        deletePeer(context, scope, configId, wgPeer, onPeerChanged)
+                    }
+                ) {
+                    Text(text = deleteTitle)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog.value = false }) {
+                    Text(text = context.getString(R.string.lbl_cancel))
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -165,22 +196,6 @@ private fun openEditPeerDialog(
     addPeerDialog.setCanceledOnTouchOutside(false)
     addPeerDialog.show()
     addPeerDialog.setOnDismissListener { onPeerChanged() }
-}
-
-private fun showDeleteInterfaceDialog(context: Context, wgPeer: Peer, onDelete: () -> Unit) {
-    val builder = MaterialAlertDialogBuilder(context, R.style.App_Dialog_NoDim)
-    val delText =
-        context.getString(
-            R.string.two_argument_space,
-            context.getString(R.string.config_delete_dialog_title),
-            context.getString(R.string.lbl_peer)
-        )
-    builder.setTitle(delText)
-    builder.setMessage(context.getString(R.string.config_delete_dialog_desc))
-    builder.setCancelable(true)
-    builder.setPositiveButton(delText) { _, _ -> onDelete() }
-    builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ -> }
-    builder.create().show()
 }
 
 private fun deletePeer(
