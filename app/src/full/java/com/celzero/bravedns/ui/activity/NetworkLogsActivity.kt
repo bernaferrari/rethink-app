@@ -39,6 +39,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -50,6 +51,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -95,7 +97,6 @@ import com.celzero.bravedns.viewmodel.ConnectionTrackerViewModel.TopLevelFilter
 import com.celzero.bravedns.viewmodel.DnsLogViewModel
 import com.celzero.bravedns.viewmodel.RethinkLogViewModel
 import com.celzero.bravedns.viewmodel.WgNwActivityViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -241,6 +242,7 @@ class NetworkLogsActivity : AppCompatActivity() {
     private fun ConnectionLogsContent() {
         val adapter = remember { ConnectionTrackerAdapter(this) }
         val items = connectionTrackerViewModel.connectionTrackerList.asFlow().collectAsLazyPagingItems()
+        var showDeleteDialog by remember { mutableStateOf(false) }
 
         var query by remember { mutableStateOf("") }
         var parentFilter by remember { mutableStateOf(TopLevelFilter.ALL) }
@@ -292,7 +294,7 @@ class NetworkLogsActivity : AppCompatActivity() {
                         label = { Text(getString(R.string.lbl_search)) },
                         singleLine = true
                     )
-                    IconButton(onClick = { showConnectionDeleteDialog() }) {
+                    IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(imageVector = Icons.Filled.Delete, contentDescription = null)
                     }
                 }
@@ -374,6 +376,48 @@ class NetworkLogsActivity : AppCompatActivity() {
                 }
             }
         }
+
+        if (showDeleteDialog) {
+            val rule =
+                searchParam.split(UniversalFirewallSettingsActivity.RULES_SEARCH_ID).getOrNull(1)
+            val isRuleDelete = isUnivNavigated && rule != null
+            val title =
+                if (isRuleDelete) {
+                    getString(R.string.conn_track_clear_rule_logs_title)
+                } else {
+                    getString(R.string.conn_track_clear_logs_title)
+                }
+            val message =
+                if (isRuleDelete) {
+                    getString(R.string.conn_track_clear_rule_logs_message)
+                } else {
+                    getString(R.string.conn_track_clear_logs_message)
+                }
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text(text = title) },
+                text = { Text(text = message) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            if (isRuleDelete) {
+                                io { connectionTrackerRepository.clearLogsByRule(rule.orEmpty()) }
+                            } else {
+                                io { connectionTrackerRepository.clearAllData() }
+                            }
+                        }
+                    ) {
+                        Text(text = getString(R.string.dns_log_dialog_positive))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
     }
 
     @OptIn(FlowPreview::class)
@@ -383,6 +427,7 @@ class NetworkLogsActivity : AppCompatActivity() {
         val isRethinkDns = appConfig.isRethinkDnsConnected()
         val adapter = remember { DnsLogAdapter(this, favIcon, isRethinkDns) }
         val items = dnsLogViewModel.dnsLogsList.asFlow().collectAsLazyPagingItems()
+        var showDeleteDialog by remember { mutableStateOf(false) }
 
         var query by remember { mutableStateOf("") }
         var filter by remember { mutableStateOf(DnsLogViewModel.DnsLogFilter.ALL) }
@@ -416,7 +461,7 @@ class NetworkLogsActivity : AppCompatActivity() {
                         label = { Text(getString(R.string.lbl_search)) },
                         singleLine = true
                     )
-                    IconButton(onClick = { showDnsLogsDeleteDialog() }) {
+                    IconButton(onClick = { showDeleteDialog = true }) {
                         Icon(imageVector = Icons.Filled.Delete, contentDescription = null)
                     }
                 }
@@ -453,6 +498,29 @@ class NetworkLogsActivity : AppCompatActivity() {
                 }
             }
         }
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text(text = getString(R.string.dns_log_clear_logs_title)) },
+                text = { Text(text = getString(R.string.dns_log_clear_logs_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            io { dnsLogRepository.clearAllData() }
+                        }
+                    ) {
+                        Text(text = getString(R.string.dns_log_dialog_positive))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
     }
 
     @OptIn(FlowPreview::class)
@@ -461,6 +529,7 @@ class NetworkLogsActivity : AppCompatActivity() {
         val adapter = remember { RethinkLogAdapter(this) }
         val items = rethinkLogViewModel.rlogList.asFlow().collectAsLazyPagingItems()
         var query by remember { mutableStateOf("") }
+        var showDeleteDialog by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
             snapshotFlow { query }
@@ -482,7 +551,7 @@ class NetworkLogsActivity : AppCompatActivity() {
                     label = { Text(getString(R.string.lbl_search)) },
                     singleLine = true
                 )
-                IconButton(onClick = { showRethinkLogsDeleteDialog() }) {
+                IconButton(onClick = { showDeleteDialog = true }) {
                     Icon(imageVector = Icons.Filled.Delete, contentDescription = null)
                 }
             }
@@ -500,12 +569,55 @@ class NetworkLogsActivity : AppCompatActivity() {
                 }
             }
         }
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text(text = getString(R.string.dns_log_clear_logs_title)) },
+                text = { Text(text = getString(R.string.dns_log_clear_logs_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            io { rethinkLogRepository.clearAllData() }
+                        }
+                    ) {
+                        Text(text = getString(R.string.dns_log_dialog_positive))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
     }
 
     @Composable
     private fun WgStatsContent() {
         if (wgId.isEmpty() || !wgId.startsWith(ProxyManager.ID_WG_BASE)) {
-            LaunchedEffect(Unit) { showWgErrorDialog() }
+            var showWgError by remember { mutableStateOf(true) }
+            if (showWgError) {
+                AlertDialog(
+                    onDismissRequest = {
+                        showWgError = false
+                        finish()
+                    },
+                    title = { Text(text = getString(R.string.lbl_wireguard)) },
+                    text = { Text(text = getString(R.string.config_invalid_desc)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                showWgError = false
+                                finish()
+                            }
+                        ) {
+                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                        }
+                    }
+                )
+            }
             return
         }
 
@@ -643,70 +755,6 @@ class NetworkLogsActivity : AppCompatActivity() {
         )
     }
 
-    private fun showConnectionDeleteDialog() {
-        val rule = searchParam.split(UniversalFirewallSettingsActivity.RULES_SEARCH_ID).getOrNull(1)
-        if (isUnivNavigated && rule != null) {
-            MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-                .setTitle(R.string.conn_track_clear_rule_logs_title)
-                .setMessage(R.string.conn_track_clear_rule_logs_message)
-                .setCancelable(true)
-                .setPositiveButton(getString(R.string.dns_log_dialog_positive)) { _, _ ->
-                    io { connectionTrackerRepository.clearLogsByRule(rule) }
-                }
-                .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
-                .create()
-                .show()
-        } else {
-            MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-                .setTitle(R.string.conn_track_clear_logs_title)
-                .setMessage(R.string.conn_track_clear_logs_message)
-                .setCancelable(true)
-                .setPositiveButton(getString(R.string.dns_log_dialog_positive)) { _, _ ->
-                    io { connectionTrackerRepository.clearAllData() }
-                }
-                .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
-                .create()
-                .show()
-        }
-    }
-
-    private fun showDnsLogsDeleteDialog() {
-        MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-            .setTitle(R.string.dns_log_clear_logs_title)
-            .setMessage(R.string.dns_log_clear_logs_message)
-            .setCancelable(true)
-            .setPositiveButton(getString(R.string.dns_log_dialog_positive)) { _, _ ->
-                io { dnsLogRepository.clearAllData() }
-            }
-            .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
-            .create()
-            .show()
-    }
-
-    private fun showRethinkLogsDeleteDialog() {
-        MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-            .setTitle(R.string.dns_log_clear_logs_title)
-            .setMessage(R.string.dns_log_clear_logs_message)
-            .setCancelable(true)
-            .setPositiveButton(getString(R.string.dns_log_dialog_positive)) { _, _ ->
-                io { rethinkLogRepository.clearAllData() }
-            }
-            .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
-            .create()
-            .show()
-    }
-
-    private fun showWgErrorDialog() {
-        val dialog = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-            .setTitle(getString(R.string.lbl_wireguard))
-            .setMessage(getString(R.string.config_invalid_desc))
-            .setPositiveButton(R.string.fapps_info_dialog_positive_btn) { _, _ ->
-                finish()
-            }
-            .setCancelable(false)
-            .create()
-        dialog.show()
-    }
 
     private fun openConsoleLogActivity() {
         val intent = Intent(this, ConsoleLogActivity::class.java)
