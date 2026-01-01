@@ -16,7 +16,6 @@
 package com.celzero.bravedns.adapter
 
 import android.content.Context
-import android.view.ViewGroup
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -36,15 +35,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.RethinkLocalFileTag
 import com.celzero.bravedns.service.RethinkBlocklistManager
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.openUrl
@@ -52,76 +46,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class LocalAdvancedViewAdapter(val context: Context) :
-    PagingDataAdapter<RethinkLocalFileTag, LocalAdvancedViewAdapter.RethinkLocalFileTagViewHolder>(
-        DIFF_CALLBACK
-    ) {
-
-    companion object {
-        private val DIFF_CALLBACK =
-            object : DiffUtil.ItemCallback<RethinkLocalFileTag>() {
-
-                override fun areItemsTheSame(
-                    oldConnection: RethinkLocalFileTag,
-                    newConnection: RethinkLocalFileTag
-                ): Boolean {
-                    return oldConnection == newConnection
-                }
-
-                override fun areContentsTheSame(
-                    oldConnection: RethinkLocalFileTag,
-                    newConnection: RethinkLocalFileTag
-                ): Boolean {
-                    return oldConnection == newConnection
-                }
-            }
-    }
-
-    override fun onCreateViewHolder(
-        parent: ViewGroup,
-        viewType: Int
-    ): RethinkLocalFileTagViewHolder {
-        val composeView = ComposeView(parent.context)
-        composeView.layoutParams =
-            RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        return RethinkLocalFileTagViewHolder(composeView)
-    }
-
-    override fun onBindViewHolder(holder: RethinkLocalFileTagViewHolder, position: Int) {
-        val filetag: RethinkLocalFileTag = getItem(position) ?: return
-        holder.update(filetag, position)
-    }
-
-    inner class RethinkLocalFileTagViewHolder(private val composeView: ComposeView) :
-        RecyclerView.ViewHolder(composeView) {
-
-        fun update(filetag: RethinkLocalFileTag, position: Int) {
-            val showHeader = position == 0 || getItem(position - 1)?.group != filetag.group
-            composeView.setContent {
-                RethinkTheme {
-                    BlocklistRow(filetag = filetag, showHeader = showHeader) { isSelected ->
-                        toggleCheckbox(isSelected, filetag)
-                    }
-                }
-            }
-        }
-
-        private fun toggleCheckbox(isSelected: Boolean, filetag: RethinkLocalFileTag) {
-            setFileTag(filetag, isSelected)
-        }
-
-        private fun setFileTag(filetag: RethinkLocalFileTag, selected: Boolean) {
-            io {
-                filetag.isSelected = selected
-                RethinkBlocklistManager.updateFiletagLocal(filetag)
-                val list = RethinkBlocklistManager.getSelectedFileTagsLocal().toSet()
-                RethinkBlocklistState.updateFileTagList(list)
-            }
-        }
-    }
+class LocalAdvancedViewAdapter(val context: Context) {
 
     @Composable
     fun BlocklistRow(
@@ -203,6 +128,15 @@ class LocalAdvancedViewAdapter(val context: Context) :
                     )
                 }
             }
+        }
+    }
+
+    fun setFileTag(filetag: RethinkLocalFileTag, selected: Boolean) {
+        io {
+            filetag.isSelected = selected
+            RethinkBlocklistManager.updateFiletagLocal(filetag)
+            val list = RethinkBlocklistManager.getSelectedFileTagsLocal().toSet()
+            RethinkBlocklistState.updateFileTagList(list)
         }
     }
 

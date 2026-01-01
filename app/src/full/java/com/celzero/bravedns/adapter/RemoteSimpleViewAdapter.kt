@@ -16,7 +16,6 @@
 package com.celzero.bravedns.adapter
 
 import android.content.Context
-import android.view.ViewGroup
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -37,89 +36,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
-import androidx.paging.PagingDataAdapter
-import androidx.recyclerview.widget.DiffUtil
-import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.RemoteBlocklistPacksMap
 import com.celzero.bravedns.service.RethinkBlocklistManager
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
-class RemoteSimpleViewAdapter(val context: Context) :
-    PagingDataAdapter<RemoteBlocklistPacksMap, RemoteSimpleViewAdapter.RethinkSimpleViewHolder>(
-        DIFF_CALLBACK
-    ) {
-
-    companion object {
-        private val DIFF_CALLBACK =
-            object : DiffUtil.ItemCallback<RemoteBlocklistPacksMap>() {
-
-                override fun areItemsTheSame(
-                    oldConnection: RemoteBlocklistPacksMap,
-                    newConnection: RemoteBlocklistPacksMap
-                ): Boolean {
-                    return oldConnection == newConnection
-                }
-
-                override fun areContentsTheSame(
-                    oldConnection: RemoteBlocklistPacksMap,
-                    newConnection: RemoteBlocklistPacksMap
-                ): Boolean {
-                    return oldConnection == newConnection
-                }
-            }
-    }
-
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RethinkSimpleViewHolder {
-        val composeView = ComposeView(parent.context)
-        composeView.layoutParams =
-            RecyclerView.LayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            )
-        return RethinkSimpleViewHolder(composeView)
-    }
-
-    override fun onBindViewHolder(holder: RethinkSimpleViewHolder, position: Int) {
-        val map: RemoteBlocklistPacksMap = getItem(position) ?: return
-        holder.update(map, position)
-    }
-
-    inner class RethinkSimpleViewHolder(private val composeView: ComposeView) :
-        RecyclerView.ViewHolder(composeView) {
-
-        fun update(map: RemoteBlocklistPacksMap, position: Int) {
-            val showHeader = position == 0 || getItem(position - 1)?.group != map.group
-            composeView.setContent {
-                RethinkTheme {
-                    BlocklistRow(map = map, showHeader = showHeader) { isSelected ->
-                        toggleCheckbox(isSelected, map)
-                    }
-                }
-            }
-        }
-
-        private fun toggleCheckbox(isSelected: Boolean, map: RemoteBlocklistPacksMap) {
-            setFileTag(map.blocklistIds.toMutableList(), if (isSelected) 1 else 0)
-        }
-
-        private fun setFileTag(tagIds: MutableList<Int>, selected: Int) {
-            io {
-                RethinkBlocklistManager.updateFiletagsRemote(tagIds.toSet(), selected)
-                val selectedTags = RethinkBlocklistManager.getSelectedFileTagsRemote().toSet()
-                RethinkBlocklistState.updateFileTagList(selectedTags)
-                ui { notifyDataSetChanged() }
-            }
-        }
-    }
+class RemoteSimpleViewAdapter(val context: Context) {
 
     @Composable
     fun BlocklistRow(
@@ -232,13 +157,5 @@ class RemoteSimpleViewAdapter(val context: Context) :
         } else {
             ""
         }
-    }
-
-    private fun io(f: suspend () -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch { f() }
-    }
-
-    private fun ui(f: () -> Unit) {
-        CoroutineScope(Dispatchers.Main).launch { f() }
     }
 }
