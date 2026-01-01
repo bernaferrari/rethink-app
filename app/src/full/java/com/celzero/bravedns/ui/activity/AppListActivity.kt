@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.activity
 
+import android.app.Dialog
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
@@ -46,6 +47,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -61,7 +64,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.MutableLiveData
@@ -86,7 +88,6 @@ import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.AppInfoViewModel
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -419,15 +420,35 @@ class AppListActivity :
     }
 
     private fun showBulkRulesUpdateDialog(title: String, message: String, type: BlockType) {
-        val builder =
-            AlertDialog.Builder(this)
-                .setTitle(title)
-                .setMessage(message)
-                .setPositiveButton(getString(R.string.lbl_apply)) { _, _ -> updateBulkRules(type) }
-                .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
-                .setCancelable(true)
-
-        builder.create().show()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = title) },
+                    text = { Text(text = message) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                updateBulkRules(type)
+                            }
+                        ) {
+                            Text(text = getString(R.string.lbl_apply))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
+        }
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun updateBulkRules(type: BlockType) {
@@ -454,18 +475,24 @@ class AppListActivity :
     }
 
     private fun showInfoDialog() {
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
         val composeView = ComposeView(this)
         composeView.setContent {
             RethinkTheme {
-                FirewallInfoDialogContent()
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    text = { FirewallInfoDialogContent() },
+                    confirmButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                        }
+                    }
+                )
             }
         }
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim).setView(composeView)
-        builder.setPositiveButton(getString(R.string.fapps_info_dialog_positive_btn)) { dialog, _ ->
-            dialog.dismiss()
-        }
-        builder.setCancelable(true)
-        builder.create().show()
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     @Composable

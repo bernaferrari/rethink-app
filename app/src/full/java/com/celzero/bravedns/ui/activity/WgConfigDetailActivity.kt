@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.activity
 
+import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
@@ -40,6 +41,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -50,6 +53,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
@@ -92,7 +96,6 @@ import com.celzero.bravedns.wireguard.Config
 import com.celzero.bravedns.wireguard.Peer
 import com.celzero.bravedns.wireguard.WgHopManager
 import com.celzero.firestack.backend.RouterStats
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -411,17 +414,39 @@ class WgConfigDetailActivity : AppCompatActivity() {
     }
 
     private fun showInvalidConfigDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(getString(R.string.lbl_wireguard))
-        builder.setMessage(getString(R.string.config_invalid_desc))
-        builder.setCancelable(false)
-        builder.setPositiveButton(getString(R.string.fapps_info_dialog_positive_btn)) { _, _ ->
-            finish()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(false)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = getString(R.string.lbl_wireguard)) },
+                    text = { Text(text = getString(R.string.config_invalid_desc)) },
+                    confirmButton = {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(
+                                onClick = {
+                                    dialog.dismiss()
+                                    finish()
+                                }
+                            ) {
+                                Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                            }
+                            TextButton(
+                                onClick = {
+                                    WireguardManager.deleteConfig(configId)
+                                    dialog.dismiss()
+                                }
+                            ) {
+                                Text(text = getString(R.string.lbl_delete))
+                            }
+                        }
+                    }
+                )
+            }
         }
-        builder.setNeutralButton(getString(R.string.lbl_delete)) { _, _ ->
-            WireguardManager.deleteConfig(configId)
-        }
-        val dialog = builder.create()
+        dialog.setContentView(composeView)
         dialog.show()
     }
 
@@ -546,35 +571,54 @@ class WgConfigDetailActivity : AppCompatActivity() {
     }
 
     private fun showDeleteInterfaceDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         val delText =
             getString(
                 R.string.two_argument_space,
                 getString(R.string.config_delete_dialog_title),
                 getString(R.string.lbl_wireguard)
             )
-        builder.setTitle(delText)
-        builder.setMessage(getString(R.string.config_delete_dialog_desc))
-        builder.setCancelable(true)
-        builder.setPositiveButton(delText) { _, _ ->
-            lifecycleScope.launch(Dispatchers.IO) {
-                WireguardManager.deleteConfig(configId)
-                withContext(Dispatchers.Main) {
-                    Utilities.showToastUiCentered(
-                        this@WgConfigDetailActivity,
-                        getString(R.string.config_add_success_toast),
-                        Toast.LENGTH_SHORT
-                    )
-                    finish()
-                }
-                logEvent("Delete WireGuard config", "User deleted WireGuard config with id $configId")
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = delText) },
+                    text = { Text(text = getString(R.string.config_delete_dialog_desc)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                lifecycleScope.launch(Dispatchers.IO) {
+                                    WireguardManager.deleteConfig(configId)
+                                    withContext(Dispatchers.Main) {
+                                        Utilities.showToastUiCentered(
+                                            this@WgConfigDetailActivity,
+                                            getString(R.string.config_add_success_toast),
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        finish()
+                                    }
+                                    logEvent(
+                                        "Delete WireGuard config",
+                                        "User deleted WireGuard config with id $configId"
+                                    )
+                                }
+                            }
+                        ) {
+                            Text(text = delText)
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
             }
         }
-
-        builder.setNegativeButton(this.getString(R.string.lbl_cancel)) { _, _ ->
-            // no-op
-        }
-        val dialog = builder.create()
+        dialog.setContentView(composeView)
         dialog.show()
     }
 
@@ -618,17 +662,42 @@ class WgConfigDetailActivity : AppCompatActivity() {
     }
 
     private fun showSsidPermissionExplanationDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(getString(R.string.lbl_ssid))
-        builder.setMessage(SsidPermissionManager.getPermissionExplanation(this))
-        builder.setCancelable(true)
-        builder.setPositiveButton(getString(R.string.fapps_info_dialog_positive_btn)) { _, _ ->
-            SsidPermissionManager.requestSsidPermissions(this)
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = getString(R.string.lbl_ssid)) },
+                    text = { Text(text = SsidPermissionManager.getPermissionExplanation(this@WgConfigDetailActivity)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                SsidPermissionManager.requestSsidPermissions(this@WgConfigDetailActivity)
+                            }
+                        ) {
+                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                lifecycleScope.launch(Dispatchers.IO) {
+                                    WireguardManager.updateSsidEnabled(configId, false)
+                                }
+                            }
+                        ) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
         }
-        builder.setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
-            lifecycleScope.launch(Dispatchers.IO) { WireguardManager.updateSsidEnabled(configId, false) }
-        }
-        builder.create().show()
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun logEvent(msg: String, details: String) {

@@ -17,15 +17,22 @@ package com.celzero.bravedns.ui.activity
 
 import Logger
 import Logger.LOG_TAG_DNS
+import android.app.Dialog
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.getValue
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewModelScope
@@ -47,7 +54,6 @@ import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.firestack.backend.Backend
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -154,53 +160,86 @@ class DnsDetailActivity : AppCompatActivity() {
                     stringBuilder.append(txt).append("\n")
                 }
                 val list = stringBuilder.toString()
-                val builder = MaterialAlertDialogBuilder(this@DnsDetailActivity, R.style.App_Dialog_NoDim)
-                    .setTitle(R.string.smart_dns)
-                    .setMessage(list)
-                    .setCancelable(true)
-                    .setPositiveButton(R.string.ada_noapp_dialog_positive) { di, _ ->
-                        di.dismiss()
-                    }.setNeutralButton(
-                        getString(R.string.dns_info_neutral)
-                    ) { _: DialogInterface, _: Int ->
-                        UIUtils.clipboardCopy(
-                            this@DnsDetailActivity,
-                            list,
-                            getString(R.string.copy_clipboard_label)
-                        )
-                        Utilities.showToastUiCentered(
-                            this@DnsDetailActivity,
-                            getString(R.string.info_dialog_url_copy_toast_msg),
-                            Toast.LENGTH_SHORT
+                val dialog = Dialog(this@DnsDetailActivity, R.style.App_Dialog_NoDim)
+                dialog.setCancelable(true)
+                val composeView = ComposeView(this@DnsDetailActivity)
+                composeView.setContent {
+                    RethinkTheme {
+                        AlertDialog(
+                            onDismissRequest = { dialog.dismiss() },
+                            title = { Text(text = getString(R.string.smart_dns)) },
+                            text = { Text(text = list) },
+                            confirmButton = {
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    TextButton(onClick = { dialog.dismiss() }) {
+                                        Text(text = getString(R.string.ada_noapp_dialog_positive))
+                                    }
+                                    TextButton(
+                                        onClick = {
+                                            UIUtils.clipboardCopy(
+                                                this@DnsDetailActivity,
+                                                list,
+                                                getString(R.string.copy_clipboard_label)
+                                            )
+                                            Utilities.showToastUiCentered(
+                                                this@DnsDetailActivity,
+                                                getString(R.string.info_dialog_url_copy_toast_msg),
+                                                Toast.LENGTH_SHORT
+                                            )
+                                            dialog.dismiss()
+                                        }
+                                    ) {
+                                        Text(text = getString(R.string.dns_info_neutral))
+                                    }
+                                }
+                            }
                         )
                     }
-                val dialog = builder.create()
+                }
+                dialog.setContentView(composeView)
                 dialog.show()
             }
         }
     }
 
     private fun showSystemDnsDialog(dns: String) {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-            .setTitle(R.string.network_dns)
-            .setMessage(dns)
-            .setCancelable(true)
-            .setPositiveButton(R.string.ada_noapp_dialog_positive) { di, _ ->
-                di.dismiss()
-            }
-            .setNeutralButton(getString(R.string.dns_info_neutral)) { _: DialogInterface, _: Int ->
-                UIUtils.clipboardCopy(
-                    this,
-                    dns,
-                    getString(R.string.copy_clipboard_label)
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = getString(R.string.network_dns)) },
+                    text = { Text(text = dns) },
+                    confirmButton = {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(onClick = { dialog.dismiss() }) {
+                                Text(text = getString(R.string.ada_noapp_dialog_positive))
+                            }
+                            TextButton(
+                                onClick = {
+                                    UIUtils.clipboardCopy(
+                                        this@DnsDetailActivity,
+                                        dns,
+                                        getString(R.string.copy_clipboard_label)
+                                    )
+                                    Utilities.showToastUiCentered(
+                                        this@DnsDetailActivity,
+                                        getString(R.string.info_dialog_url_copy_toast_msg),
+                                        Toast.LENGTH_SHORT
+                                    )
+                                    dialog.dismiss()
+                                }
+                            ) {
+                                Text(text = getString(R.string.dns_info_neutral))
+                            }
+                        }
+                    }
                 )
-                Utilities.showToastUiCentered(
-                    this,
-                    getString(R.string.info_dialog_url_copy_toast_msg),
-                    Toast.LENGTH_SHORT
-                )
             }
-        val dialog = builder.create()
+        }
+        dialog.setContentView(composeView)
         dialog.show()
     }
 
