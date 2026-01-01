@@ -26,13 +26,11 @@ import android.view.WindowManager
 import androidx.annotation.ColorInt
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDialog
 import androidx.appcompat.content.res.AppCompatResources
 import androidx.core.graphics.drawable.toDrawable
 import com.celzero.bravedns.R
 import com.celzero.bravedns.util.Utilities.isAtleastR
 import com.celzero.bravedns.util.Utilities.isAtleastS
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import java.util.function.Consumer
 
 /** Utility extension functions to configure Activity/Dialog/BottomSheet window appearance generically. */
@@ -115,19 +113,6 @@ fun Dialog.useTransparentNoDimBackground(
     // set transparent (or given) background
     window?.setBackgroundDrawable(color.toDrawable())
 }
-
-fun AppCompatDialog.useTransparentNoDimBackground(
-    @ColorInt color: Int = Color.TRANSPARENT
-) {
-    (this as Dialog?)?.useTransparentNoDimBackground(color)
-}
-
-fun BottomSheetDialog.useTransparentNoDimBackground(
-    @ColorInt color: Int = Color.TRANSPARENT
-) {
-    (this as Dialog?)?.useTransparentNoDimBackground(color)
-}
-
 
 private var frostWasEnabled = false
 
