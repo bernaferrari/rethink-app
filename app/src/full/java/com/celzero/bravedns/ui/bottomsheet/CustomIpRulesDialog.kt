@@ -66,7 +66,7 @@ import org.koin.core.component.inject
 class CustomIpRulesDialog(
     private val activity: FragmentActivity,
     private var ci: CustomIp
-) : KoinComponent, WireguardListDialog.WireguardDismissListener {
+) : KoinComponent {
     private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
@@ -428,15 +428,4 @@ class CustomIpRulesDialog(
         withContext(Dispatchers.Main) { f() }
     }
 
-    override fun onDismissWg(obj: Any?) {
-        try {
-            val cip = obj as CustomIp
-            ci = cip
-            status = IpRuleStatus.getStatus(cip.status)
-            statusText = buildStatusText(status, cip.modifiedDateTime)
-            Napier.v("$TAG onDismissWg: ${cip.ipAddress}, ${cip.proxyCC}")
-        } catch (e: Exception) {
-            Napier.w("$TAG err in onDismissWg ${e.message}", e)
-        }
-    }
 }

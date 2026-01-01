@@ -30,8 +30,11 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -39,8 +42,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
@@ -51,7 +56,9 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -66,9 +73,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
@@ -85,10 +94,10 @@ import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
-import com.celzero.bravedns.ui.bottomsheet.OrbotDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.OrbotHelper
+import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.openUrl
@@ -101,6 +110,11 @@ import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.RouterStats
+import android.widget.TextView
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.text.HtmlCompat
+import com.celzero.bravedns.adapter.WgIncludeAppsAdapter
+import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -127,6 +141,14 @@ class ProxySettingsActivity : AppCompatActivity() {
     private var canEnableProxy by mutableStateOf(true)
     private var showVpnLockdownDesc by mutableStateOf(false)
     private var isRefreshing by mutableStateOf(false)
+    private var showOrbotSheet by mutableStateOf(false)
+    private var orbotIsConnecting by mutableStateOf(false)
+    private var orbotIncludeAppsLabel by mutableStateOf("")
+    private var orbotStatusText by mutableStateOf("")
+    private var orbotSelectedType by mutableStateOf(AppConfig.ProxyType.NONE.name)
+    private var orbotShowInfoDialog by mutableStateOf(false)
+    private var orbotShowStopDialog by mutableStateOf(false)
+    private var orbotIsDns by mutableStateOf(false)
 
     companion object {
         private const val REFRESH_TIMEOUT: Long = 4000
@@ -155,6 +177,7 @@ class ProxySettingsActivity : AppCompatActivity() {
             }
         }
 
+        initOrbotSheetState()
         updateUi()
     }
 
@@ -260,7 +283,7 @@ class ProxySettingsActivity : AppCompatActivity() {
                 return@launch
             }
 
-            OrbotDialog(this@ProxySettingsActivity, proxyAppsMappingViewModel).show()
+            showOrbotSheet = true
         }
     }
 
@@ -780,6 +803,16 @@ class ProxySettingsActivity : AppCompatActivity() {
                     )
                 }
             }
+
+            if (showOrbotSheet) {
+                OrbotSheet(
+                    onDismiss = {
+                        showOrbotSheet = false
+                        orbotShowInfoDialog = false
+                        orbotShowStopDialog = false
+                    }
+                )
+            }
         }
     }
 
@@ -817,6 +850,365 @@ class ProxySettingsActivity : AppCompatActivity() {
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+    }
+
+    private fun initOrbotSheetState() {
+        persistentState.orbotConnectionStatus.observe(this) {
+            orbotIsConnecting = it == true
+            if (!orbotIsConnecting) {
+                io {
+                    orbotIsDns = appConfig.isOrbotDns()
+                    withContext(Dispatchers.Main) { updateOrbotUi(orbotIsDns) }
+                }
+            }
+        }
+        proxyAppsMappingViewModel.getAppCountById(ProxyManager.ID_ORBOT_BASE).observe(this) {
+            orbotIncludeAppsLabel = getString(R.string.add_remove_apps, it.toString())
+        }
+        io {
+            orbotIsDns = appConfig.isOrbotDns()
+            withContext(Dispatchers.Main) { updateOrbotUi(orbotIsDns) }
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun OrbotSheet(onDismiss: () -> Unit) {
+        val hasHttpSupport = isAtleastQ()
+        val transition = rememberInfiniteTransition(label = "orbot-rotation")
+        val rotation by
+            transition.animateFloat(
+                initialValue = 0f,
+                targetValue = 360f,
+                animationSpec = infiniteRepeatable(tween(2000, easing = LinearEasing)),
+                label = "rotation"
+            )
+
+        ModalBottomSheet(onDismissRequest = onDismiss) {
+            val borderColor = Color(UIUtils.fetchColor(this@ProxySettingsActivity, R.attr.border))
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier =
+                        Modifier.align(Alignment.CenterHorizontally)
+                            .width(60.dp)
+                            .height(3.dp)
+                            .background(borderColor, RoundedCornerShape(2.dp))
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Image(
+                        painter =
+                            painterResource(
+                                id =
+                                    if (orbotSelectedType == AppConfig.ProxyType.NONE.name) {
+                                        R.drawable.orbot_disabled
+                                    } else {
+                                        R.drawable.orbot_enabled
+                                    }
+                            ),
+                        contentDescription = null,
+                        modifier = Modifier.size(40.dp).rotate(if (orbotIsConnecting) rotation else 0f)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = getString(R.string.orbot_title),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = orbotStatusText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_info_white),
+                        contentDescription = getString(R.string.orbot_explanation),
+                        modifier = Modifier.size(22.dp).clickable { orbotShowInfoDialog = true }
+                    )
+                }
+
+                OrbotOptionRow(
+                    label = getString(R.string.orbot_none),
+                    description = getString(R.string.orbot_none_desc),
+                    selected = orbotSelectedType == AppConfig.ProxyType.NONE.name
+                ) {
+                    handleOrbotStop()
+                }
+
+                OrbotOptionRow(
+                    label = getString(R.string.orbot_socks5),
+                    description = getString(R.string.orbot_socks5_desc),
+                    selected = orbotSelectedType == AppConfig.ProxyType.SOCKS5.name
+                ) {
+                    enableOrbotProxy(AppConfig.ProxyType.SOCKS5.name)
+                }
+
+                if (hasHttpSupport) {
+                    OrbotOptionRow(
+                        label = getString(R.string.orbot_http),
+                        description = getString(R.string.orbot_http_desc),
+                        selected = orbotSelectedType == AppConfig.ProxyType.HTTP.name
+                    ) {
+                        enableOrbotProxy(AppConfig.ProxyType.HTTP.name)
+                    }
+                    OrbotOptionRow(
+                        label = getString(R.string.orbot_both),
+                        description = getString(R.string.orbot_both_desc),
+                        selected = orbotSelectedType == AppConfig.ProxyType.HTTP_SOCKS5.name
+                    ) {
+                        enableOrbotProxy(AppConfig.ProxyType.HTTP_SOCKS5.name)
+                    }
+                }
+
+                TextButton(onClick = { orbotHelper.openOrbotApp() }) {
+                    Text(text = getString(R.string.settings_orbot_header))
+                }
+
+                TextButton(onClick = { openOrbotAppsDialog() }) {
+                    Text(text = orbotIncludeAppsLabel)
+                }
+            }
+        }
+
+        if (orbotShowInfoDialog) {
+            AlertDialog(
+                onDismissRequest = { orbotShowInfoDialog = false },
+                title = { Text(text = getString(R.string.orbot_title)) },
+                text = { HtmlText(getString(R.string.orbot_explanation)) },
+                confirmButton = {
+                    TextButton(onClick = { orbotShowInfoDialog = false }) {
+                        Text(text = getString(R.string.lbl_dismiss))
+                    }
+                }
+            )
+        }
+
+        if (orbotShowStopDialog) {
+            AlertDialog(
+                onDismissRequest = { orbotShowStopDialog = false },
+                title = { Text(text = getString(R.string.orbot_stop_dialog_title)) },
+                text = { Text(text = orbotStopDialogMessage()) },
+                confirmButton = {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        TextButton(onClick = { orbotShowStopDialog = false }) {
+                            Text(text = getString(R.string.lbl_dismiss))
+                        }
+                        TextButton(
+                            onClick = {
+                                orbotShowStopDialog = false
+                                orbotHelper.openOrbotApp()
+                            }
+                        ) {
+                            Text(text = getString(R.string.orbot_stop_dialog_negative))
+                        }
+                        if (orbotIsDns) {
+                            TextButton(
+                                onClick = {
+                                    orbotShowStopDialog = false
+                                    gotoDnsConfigureScreen()
+                                    onDismiss()
+                                }
+                            ) {
+                                Text(text = getString(R.string.orbot_stop_dialog_neutral))
+                            }
+                        }
+                    }
+                }
+            )
+        }
+    }
+
+    @Composable
+    private fun OrbotOptionRow(
+        label: String,
+        description: String,
+        selected: Boolean,
+        onClick: () -> Unit
+    ) {
+        Row(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .clickable(enabled = !orbotIsConnecting) { onClick() }
+                    .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            RadioButton(selected = selected, onClick = null, enabled = !orbotIsConnecting)
+            Column {
+                Text(text = label, style = MaterialTheme.typography.bodyMedium)
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun HtmlText(html: String) {
+        AndroidView(
+            factory = { ctx ->
+                TextView(ctx).apply {
+                    text = HtmlCompat.fromHtml(html.replace("\n", "<br /><br />"), HtmlCompat.FROM_HTML_MODE_LEGACY)
+                }
+            },
+            update = { view ->
+                view.text =
+                    HtmlCompat.fromHtml(
+                        html.replace("\n", "<br /><br />"),
+                        HtmlCompat.FROM_HTML_MODE_LEGACY
+                    )
+            }
+        )
+    }
+
+    private fun enableOrbotProxy(type: String) {
+        io {
+            val isSelected = ProxyManager.isAnyAppSelected(ProxyManager.ID_ORBOT_BASE)
+            withContext(Dispatchers.Main) {
+                if (!isSelected) {
+                    Utilities.showToastUiCentered(
+                        this@ProxySettingsActivity,
+                        getString(R.string.orbot_no_app_toast),
+                        Toast.LENGTH_SHORT
+                    )
+                    updateOrbotUi(orbotIsDns)
+                    return@withContext
+                }
+                if (type == orbotSelectedType) return@withContext
+                persistentState.orbotConnectionStatus.postValue(true)
+                startOrbot(type)
+            }
+        }
+    }
+
+    private fun handleOrbotStop() {
+        stopOrbot()
+        io {
+            orbotIsDns = appConfig.isOrbotDns()
+            withContext(Dispatchers.Main) { orbotShowStopDialog = true }
+            logEvent("Orbot Stopped", "User stopped Orbot from Orbot Bottom Sheet")
+        }
+    }
+
+    private fun updateOrbotUi(isOrbotDns: Boolean) {
+        orbotSelectedType = OrbotHelper.selectedProxyType
+        orbotStatusText =
+            when (orbotSelectedType) {
+                AppConfig.ProxyType.SOCKS5.name -> {
+                    if (isOrbotDns) {
+                        getString(
+                            R.string.orbot_bs_status_1,
+                            getString(R.string.orbot_status_arg_3)
+                        )
+                    } else {
+                        getString(
+                            R.string.orbot_bs_status_1,
+                            getString(R.string.orbot_status_arg_2)
+                        )
+                    }
+                }
+                AppConfig.ProxyType.HTTP.name -> {
+                    getString(R.string.orbot_bs_status_2)
+                }
+                AppConfig.ProxyType.HTTP_SOCKS5.name -> {
+                    if (isOrbotDns) {
+                        getString(
+                            R.string.orbot_bs_status_3,
+                            getString(R.string.orbot_status_arg_3)
+                        )
+                    } else {
+                        getString(
+                            R.string.orbot_bs_status_3,
+                            getString(R.string.orbot_status_arg_2)
+                        )
+                    }
+                }
+                else -> getString(R.string.orbot_bs_status_4)
+            }
+    }
+
+    private fun openOrbotAppsDialog() {
+        val appsAdapter =
+            WgIncludeAppsAdapter(
+                this,
+                ProxyManager.ID_ORBOT_BASE,
+                ProxyManager.ORBOT_PROXY_NAME
+            )
+        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
+        if (Themes.isFrostTheme(themeId)) {
+            themeId = R.style.App_Dialog_NoDim
+        }
+        val includeAppsDialog =
+            WgIncludeAppsDialog(
+                this,
+                appsAdapter,
+                proxyAppsMappingViewModel,
+                themeId,
+                ProxyManager.ID_ORBOT_BASE,
+                ProxyManager.ID_ORBOT_BASE
+            )
+        includeAppsDialog.setCanceledOnTouchOutside(false)
+        includeAppsDialog.show()
+    }
+
+    private fun stopOrbot() {
+        appConfig.removeAllProxies()
+        orbotSelectedType = AppConfig.ProxyType.NONE.name
+        orbotHelper.stopOrbot(isInteractive = true)
+    }
+
+    private fun startOrbot(type: String) {
+        io {
+            val isOrbotInstalled = FirewallManager.isOrbotInstalled()
+            withContext(Dispatchers.Main) {
+                if (!isOrbotInstalled) {
+                    return@withContext
+                }
+
+                if (VpnController.hasTunnel()) {
+                    orbotHelper.startOrbot(type)
+                    logEvent(
+                        "Orbot Started with type: $type",
+                        "User started Orbot from Orbot Bottom Sheet with type: $type"
+                    )
+                    orbotSelectedType = type
+                } else {
+                    Utilities.showToastUiCentered(
+                        this@ProxySettingsActivity,
+                        getString(R.string.settings_socks5_vpn_disabled_error),
+                        Toast.LENGTH_LONG
+                    )
+                }
+            }
+        }
+    }
+
+    private fun orbotStopDialogMessage(): String {
+        return if (orbotIsDns) {
+            getString(
+                R.string.orbot_stop_dialog_message_combo,
+                getString(R.string.orbot_stop_dialog_message),
+                getString(R.string.orbot_stop_dialog_dns_message)
+            )
+        } else {
+            getString(R.string.orbot_stop_dialog_message)
+        }
+    }
+
+    private fun gotoDnsConfigureScreen() {
+        val intent = Intent(this, DnsDetailActivity::class.java)
+        intent.putExtra(Constants.VIEW_PAGER_SCREEN_TO_LOAD, 0)
+        startActivity(intent)
     }
 
     private fun proxyModeLabel(mode: ProxyManager.ProxyMode): String {

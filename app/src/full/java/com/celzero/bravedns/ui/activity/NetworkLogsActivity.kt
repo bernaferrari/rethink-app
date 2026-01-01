@@ -19,15 +19,21 @@ package com.celzero.bravedns.ui.activity
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.drawable.Drawable
 import android.os.Bundle
+import android.view.View
 import android.view.WindowManager
+import android.widget.ImageView
 import android.widget.Toast
+import android.widget.TextView
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,16 +42,21 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -64,12 +75,22 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.isVisible
+import androidx.core.text.HtmlCompat
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
+import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions
+import com.bumptech.glide.request.target.CustomViewTarget
+import com.bumptech.glide.request.transition.DrawableCrossFadeFactory
+import com.bumptech.glide.request.transition.Transition
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.ConnectionTrackerAdapter
 import com.celzero.bravedns.adapter.DnsLogAdapter
@@ -77,16 +98,25 @@ import com.celzero.bravedns.adapter.RethinkLogAdapter
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.data.DataUsageSummary
 import com.celzero.bravedns.database.ConnectionTrackerRepository
+import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.database.DnsLogRepository
 import com.celzero.bravedns.database.RethinkLogRepository
+import com.celzero.bravedns.database.EventSource
+import com.celzero.bravedns.database.EventType
+import com.celzero.bravedns.database.Severity
+import com.celzero.bravedns.glide.FavIconDownloader
 import com.celzero.bravedns.service.BraveVPNService
+import com.celzero.bravedns.service.DomainRulesManager
+import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.activity.DomainConnectionsActivity
 import com.celzero.bravedns.ui.compose.statistics.StatisticsSummaryItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
@@ -94,6 +124,7 @@ import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.ConnectionTrackerViewModel
 import com.celzero.bravedns.viewmodel.ConnectionTrackerViewModel.TopLevelFilter
+import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
 import com.celzero.bravedns.viewmodel.DnsLogViewModel
 import com.celzero.bravedns.viewmodel.RethinkLogViewModel
 import com.celzero.bravedns.viewmodel.WgNwActivityViewModel
@@ -118,6 +149,7 @@ class NetworkLogsActivity : AppCompatActivity() {
     private val connectionTrackerRepository by inject<ConnectionTrackerRepository>()
     private val dnsLogRepository by inject<DnsLogRepository>()
     private val rethinkLogRepository by inject<RethinkLogRepository>()
+    private val eventLogger by inject<EventLogger>()
 
     private val connectionTrackerViewModel: ConnectionTrackerViewModel by viewModel()
     private val dnsLogViewModel: DnsLogViewModel by viewModel()
@@ -425,7 +457,13 @@ class NetworkLogsActivity : AppCompatActivity() {
     private fun DnsLogsContent() {
         val favIcon = persistentState.fetchFavIcon
         val isRethinkDns = appConfig.isRethinkDnsConnected()
-        val adapter = remember { DnsLogAdapter(this, favIcon, isRethinkDns) }
+        var selectedLog by remember { mutableStateOf<DnsLog?>(null) }
+        val adapter =
+            remember {
+                DnsLogAdapter(this, favIcon, isRethinkDns) { log ->
+                    selectedLog = log
+                }
+            }
         val items = dnsLogViewModel.dnsLogsList.asFlow().collectAsLazyPagingItems()
         var showDeleteDialog by remember { mutableStateOf(false) }
 
@@ -519,6 +557,13 @@ class NetworkLogsActivity : AppCompatActivity() {
                         Text(text = getString(R.string.lbl_cancel))
                     }
                 }
+            )
+        }
+
+        selectedLog?.let { log ->
+            DnsBlocklistSheet(
+                log = log,
+                onDismiss = { selectedLog = null }
             )
         }
     }
@@ -772,6 +817,453 @@ class NetworkLogsActivity : AppCompatActivity() {
 
     private fun io(f: suspend () -> Unit) {
         lifecycleScope.launch(Dispatchers.IO) { f() }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun DnsBlocklistSheet(
+        log: DnsLog,
+        onDismiss: () -> Unit
+    ) {
+        val borderColor = Color(UIUtils.fetchColor(this, R.attr.border))
+        val ruleLabels = remember { DomainRulesManager.Status.getLabel(this).toList() }
+        val ruleOptions =
+            remember {
+                listOf(
+                    DomainRulesManager.Status.NONE,
+                    DomainRulesManager.Status.BLOCK,
+                    DomainRulesManager.Status.TRUST
+                )
+            }
+        var ruleExpanded by remember { mutableStateOf(false) }
+        val currentRule = remember(log.uid) { getRuleUid(log) }
+        var lastStatus by remember { mutableStateOf(DomainRulesManager.Status.NONE) }
+        var showRuleInfo by remember { mutableStateOf(false) }
+        var showIpDetails by remember { mutableStateOf(false) }
+        var showAppInfo by remember { mutableStateOf(false) }
+        var ipDetailsText by remember { mutableStateOf("") }
+        var appInfoText by remember { mutableStateOf("") }
+        val selectedIndex = ruleOptions.indexOf(lastStatus).coerceAtLeast(0)
+        var selectedLabel by remember { mutableStateOf(ruleLabels[selectedIndex]) }
+
+        LaunchedEffect(log) {
+            val domain = log.queryStr
+            if (domain.isNotEmpty()) {
+                lastStatus = DomainRulesManager.getDomainRule(domain, currentRule)
+                selectedLabel = ruleLabels[lastStatus.id]
+            }
+            ipDetailsText = getResponseIps(log)
+            appInfoText = log.packageName
+        }
+
+        ModalBottomSheet(onDismissRequest = onDismiss) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Box(
+                    modifier =
+                        Modifier.align(Alignment.CenterHorizontally)
+                            .width(60.dp)
+                            .height(3.dp)
+                            .background(borderColor, RoundedCornerShape(2.dp))
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    if (persistentState.fetchFavIcon) {
+                        AndroidView(
+                            factory = { ctx ->
+                                ImageView(ctx).apply {
+                                    visibility = View.GONE
+                                }
+                            },
+                            update = { view -> loadFavIcon(view, log) },
+                            modifier = Modifier.size(32.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = log.queryStr,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.clickable { openDomainConnections(log) }
+                        )
+                        Text(
+                            text = log.flag,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Column(horizontalAlignment = Alignment.End) {
+                        Text(
+                            text = getString(
+                                R.string.dns_btm_latency_ms,
+                                log.latency.toString()
+                            ),
+                            style = MaterialTheme.typography.bodySmall
+                        )
+                        Text(
+                            text = getResponseIp(log),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.clickable { showIpDetails = true }
+                        )
+                    }
+                }
+
+                HtmlText(
+                    html = getString(R.string.bsdl_block_desc),
+                    modifier = Modifier.padding(horizontal = 10.dp)
+                ) { showRuleInfo = true }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(text = getString(R.string.lbl_domain_rules))
+                    Box(modifier = Modifier.weight(1f)) {
+                        TextButton(
+                            onClick = { ruleExpanded = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(text = selectedLabel)
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(text = "▼")
+                        }
+                        DropdownMenu(
+                            expanded = ruleExpanded,
+                            onDismissRequest = { ruleExpanded = false }
+                        ) {
+                            ruleOptions.forEachIndexed { index, option ->
+                                DropdownMenuItem(
+                                    text = { Text(ruleLabels[index]) },
+                                    onClick = {
+                                        ruleExpanded = false
+                                        if (option == lastStatus) return@DropdownMenuItem
+                                        val domain = log.queryStr
+                                        if (domain.isNotEmpty()) {
+                                            selectedLabel = ruleLabels[index]
+                                            applyDomainRule(domain, currentRule, option) {
+                                                lastStatus = it
+                                            }
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (log.msg.isNotEmpty()) {
+                    Text(
+                        text = log.msg,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 10.dp)
+                    )
+                }
+
+                if (log.region.isNotEmpty()) {
+                    Text(
+                        text = log.region,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(horizontal = 10.dp)
+                    )
+                }
+
+                if (log.blockedTarget.isNotEmpty()) {
+                    Text(
+                        text = log.blockedTarget,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(horizontal = 10.dp)
+                    )
+                }
+
+                BlockedSummary(log)
+
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    val blocklists = log.getBlocklists().filter { it.isNotBlank() }
+                    if (blocklists.isNotEmpty()) {
+                        val countText =
+                            getString(R.string.rsv_blocklist_count_text, blocklists.size)
+                        ChipText(countText)
+                    }
+                    val ips = log.responseIps.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                    if (ips.isNotEmpty()) {
+                        val ipLabel = getString(R.string.lbl_ip)
+                        val text =
+                            getString(
+                                R.string.two_argument_colon,
+                                ipLabel,
+                                ips.size.toString()
+                            )
+                        ChipText(text)
+                    }
+                    if (log.typeName.isNotEmpty()) {
+                        ChipText(log.typeName)
+                    }
+                }
+
+                AppInfoRow(log, onShow = { showAppInfo = true })
+            }
+        }
+
+        if (showRuleInfo) {
+            AlertDialog(
+                onDismissRequest = { showRuleInfo = false },
+                title = { Text(text = getString(R.string.lbl_domain_rules)) },
+                text = { HtmlText(html = getString(R.string.bsdl_block_desc)) },
+                confirmButton = {
+                    TextButton(onClick = { showRuleInfo = false }) {
+                        Text(text = getString(R.string.hs_download_positive_default))
+                    }
+                }
+            )
+        }
+
+        if (showIpDetails) {
+            AlertDialog(
+                onDismissRequest = { showIpDetails = false },
+                title = { Text(text = log.queryStr) },
+                text = { Text(text = ipDetailsText) },
+                confirmButton = {
+                    TextButton(onClick = { showIpDetails = false }) {
+                        Text(text = getString(R.string.hs_download_positive_default))
+                    }
+                }
+            )
+        }
+
+        if (showAppInfo) {
+            AlertDialog(
+                onDismissRequest = { showAppInfo = false },
+                title = { Text(text = log.appName) },
+                text = { Text(text = appInfoText) },
+                confirmButton = {
+                    TextButton(onClick = { showAppInfo = false }) {
+                        Text(text = getString(R.string.hs_download_positive_default))
+                    }
+                }
+            )
+        }
+    }
+
+    @Composable
+    private fun HtmlText(html: String, modifier: Modifier = Modifier, onClick: (() -> Unit)? = null) {
+        AndroidView(
+            factory = { ctx ->
+                TextView(ctx).apply {
+                    text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY)
+                }
+            },
+            update = { view ->
+                view.text = HtmlCompat.fromHtml(html, HtmlCompat.FROM_HTML_MODE_LEGACY)
+                view.setOnClickListener {
+                    onClick?.invoke()
+                }
+            },
+            modifier = modifier
+        )
+    }
+
+    @Composable
+    private fun ChipText(text: String) {
+        Box(
+            modifier =
+                Modifier.background(
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        RoundedCornerShape(12.dp)
+                    )
+                    .padding(horizontal = 10.dp, vertical = 4.dp)
+        ) {
+            Text(text = text, style = MaterialTheme.typography.bodySmall)
+        }
+    }
+
+    @Composable
+    private fun BlockedSummary(log: DnsLog) {
+        if (!log.isBlocked && !log.upstreamBlock && log.blockLists.isEmpty()) return
+
+        val blockedBy =
+            when {
+                log.blockedTarget.isNotEmpty() -> log.blockedTarget
+                log.blockLists.isNotEmpty() -> getString(R.string.lbl_rules)
+                log.proxyId.isNotEmpty() -> log.proxyId
+                log.resolver.isNotEmpty() -> log.resolver
+                else -> getString(R.string.lbl_domain_rules)
+            }
+        Text(
+            text = getString(R.string.bsdl_blocked_desc, log.queryStr, blockedBy),
+            style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(horizontal = 10.dp)
+        )
+    }
+
+    @Composable
+    private fun AppInfoRow(log: DnsLog, onShow: () -> Unit) {
+        if (log.appName.isEmpty() && log.packageName.isEmpty()) return
+
+        Row(
+            modifier =
+                Modifier.fillMaxWidth().padding(horizontal = 10.dp).clickable {
+                    onShow()
+                },
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            AndroidView(
+                factory = { ctx -> ImageView(ctx) },
+                update = { view ->
+                    view.setImageDrawable(
+                        getIcon(this@NetworkLogsActivity, log.packageName, log.appName)
+                    )
+                },
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(text = log.appName, style = MaterialTheme.typography.bodyMedium)
+        }
+    }
+
+    private fun openDomainConnections(log: DnsLog) {
+        val domain = log.queryStr
+        if (domain.isEmpty()) return
+        val intent = Intent(this, DomainConnectionsActivity::class.java)
+        intent.putExtra(
+            DomainConnectionsActivity.INTENT_EXTRA_TYPE,
+            DomainConnectionsActivity.InputType.DOMAIN.type
+        )
+        intent.putExtra(DomainConnectionsActivity.INTENT_EXTRA_DOMAIN, domain)
+        intent.putExtra(DomainConnectionsActivity.INTENT_EXTRA_IS_BLOCKED, log.isBlocked)
+        intent.putExtra(
+            DomainConnectionsActivity.INTENT_EXTRA_TIME_CATEGORY,
+            DomainConnectionsViewModel.TimeCategory.SEVEN_DAYS.value
+        )
+        startActivity(intent)
+    }
+
+    private fun getResponseIp(log: DnsLog): String {
+        return log.responseIps.split(",").firstOrNull()?.trim().orEmpty()
+    }
+
+    private fun getResponseIps(log: DnsLog): String {
+        val ips = log.responseIps.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+        return if (ips.isEmpty()) {
+            getString(
+                R.string.two_argument_colon,
+                getString(R.string.lbl_ip),
+                "0"
+            )
+        } else {
+            ips.joinToString(separator = "\n")
+        }
+    }
+
+    private fun loadFavIcon(view: ImageView, log: DnsLog) {
+        if (!persistentState.fetchFavIcon) {
+            view.visibility = View.GONE
+            return
+        }
+
+        val domain = log.queryStr
+        if (domain.isEmpty()) {
+            view.visibility = View.GONE
+            return
+        }
+
+        val trim = domain.dropLastWhile { it == '.' }
+        if (FavIconDownloader.isUrlAvailableInFailedCache(trim) != null) {
+            view.visibility = View.GONE
+            return
+        }
+
+        val factory = DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()
+        val nextDnsUrl = FavIconDownloader.constructFavIcoUrlNextDns(trim)
+        val duckduckGoUrl = FavIconDownloader.constructFavUrlDuckDuckGo(trim)
+        val duckduckgoDomainUrl = FavIconDownloader.getDomainUrlFromFdqnDuckduckgo(trim)
+
+        Glide.with(applicationContext)
+            .load(nextDnsUrl)
+            .onlyRetrieveFromCache(true)
+            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+            .error(
+                Glide.with(applicationContext)
+                    .load(duckduckGoUrl)
+                    .onlyRetrieveFromCache(true)
+                    .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    .error(
+                        Glide.with(applicationContext)
+                            .load(duckduckgoDomainUrl)
+                            .onlyRetrieveFromCache(true)
+                            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+                    )
+            )
+            .transition(DrawableTransitionOptions.withCrossFade(factory))
+            .into(
+                object : CustomViewTarget<ImageView, Drawable>(view) {
+                    override fun onLoadFailed(errorDrawable: Drawable?) {
+                        view.isVisible = false
+                    }
+
+                    override fun onResourceCleared(placeholder: Drawable?) {
+                        view.isVisible = false
+                        view.setImageDrawable(null)
+                    }
+
+                    override fun onResourceReady(
+                        resource: Drawable,
+                        transition: Transition<in Drawable>?
+                    ) {
+                        view.isVisible = true
+                        view.setImageDrawable(resource)
+                    }
+                }
+            )
+    }
+
+    private fun applyDomainRule(
+        domain: String,
+        uid: Int,
+        status: DomainRulesManager.Status,
+        onUpdated: (DomainRulesManager.Status) -> Unit
+    ) {
+        io {
+            DomainRulesManager.changeStatus(
+                domain,
+                uid,
+                "",
+                DomainRulesManager.DomainType.DOMAIN,
+                status
+            )
+            onUpdated(status)
+            logDnsRuleEvent(domain, status)
+        }
+    }
+
+    private fun logDnsRuleEvent(domain: String, status: DomainRulesManager.Status) {
+        eventLogger.log(
+            EventType.FW_RULE_MODIFIED,
+            Severity.LOW,
+            "DNS log rule",
+            EventSource.UI,
+            false,
+            "Domain rule updated for $domain: ${status.name}"
+        )
+    }
+
+    private fun getRuleUid(log: DnsLog): Int {
+        return when (log.uid) {
+            Constants.INVALID_UID,
+            Constants.MISSING_UID -> Constants.UID_EVERYBODY
+            else -> log.uid
+        }
     }
 
     private suspend fun uiCtx(f: suspend () -> Unit) {

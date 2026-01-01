@@ -21,6 +21,7 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.net.Uri
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -35,10 +36,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -51,46 +54,88 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.font.FontWeight
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.viewModelScope
 import com.celzero.bravedns.R
+import com.celzero.bravedns.customdownloader.LocalBlocklistCoordinator
 import com.celzero.bravedns.data.AppConfig.Companion.DOH_INDEX
 import com.celzero.bravedns.data.AppConfig.Companion.DOT_INDEX
+import com.celzero.bravedns.download.AppDownloadManager
+import com.celzero.bravedns.download.DownloadConstants
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.bottomsheet.LocalBlocklistsDialog
 import com.celzero.bravedns.ui.compose.dns.DnsSettingsScreen
 import com.celzero.bravedns.ui.compose.dns.DnsSettingsViewModel
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.activity.ConfigureRethinkBasicActivity
 import com.celzero.bravedns.ui.activity.DnsListActivity
+import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
+import com.celzero.bravedns.util.Constants.Companion.LOCAL_BLOCKLIST_DOWNLOAD_FOLDER_NAME
+import com.celzero.bravedns.util.Constants.Companion.RETHINK_SEARCH_URL
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.util.Utilities.blocklistCanonicalPath
+import com.celzero.bravedns.util.Utilities.convertLongToTime
+import com.celzero.bravedns.util.Utilities.deleteRecursive
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.util.ResourceRecordTypes
 import com.celzero.firestack.backend.Backend
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.io.File
+import androidx.work.WorkInfo
+import androidx.work.WorkManager
 
 class DnsDetailActivity : AppCompatActivity() {
 
     private val persistentState by inject<PersistentState>()
+    private val appDownloadManager by inject<AppDownloadManager>()
     private val viewModel: DnsSettingsViewModel by viewModel()
     private var showRecordTypesSheet by mutableStateOf(false)
+    private var showLocalBlocklistsSheet by mutableStateOf(false)
+
+    private var showDownloadDialog by mutableStateOf(false)
+    private var downloadDialogIsRedownload by mutableStateOf(false)
+    private var showDeleteDialog by mutableStateOf(false)
+    private var showLockdownDialog by mutableStateOf(false)
+
+    private var enableLabel by mutableStateOf("")
+    private var enableColor by mutableStateOf(Color.Unspecified)
+    private var headingText by mutableStateOf("")
+    private var versionText by mutableStateOf("")
+    private var canConfigure by mutableStateOf(false)
+    private var canCopy by mutableStateOf(false)
+    private var canSearch by mutableStateOf(false)
+    private var showCheckDownload by mutableStateOf(true)
+    private var showDownload by mutableStateOf(false)
+    private var showRedownload by mutableStateOf(false)
+    private var isChecking by mutableStateOf(false)
+    private var isDownloading by mutableStateOf(false)
+    private var isRedownloading by mutableStateOf(false)
+
+    companion object {
+        private const val BUTTON_ALPHA_DISABLED = 0.5f
+    }
 
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
@@ -145,8 +190,13 @@ class DnsDetailActivity : AppCompatActivity() {
                 if (showRecordTypesSheet) {
                     DnsRecordTypesSheet(onDismiss = { showRecordTypesSheet = false })
                 }
+                if (showLocalBlocklistsSheet) {
+                    LocalBlocklistsSheet()
+                }
             }
         }
+
+        initLocalBlocklistsState()
     }
 
     override fun onResume() {
@@ -464,9 +514,9 @@ class DnsDetailActivity : AppCompatActivity() {
     }
 
     private fun openLocalBlocklist() {
-        LocalBlocklistsDialog(this) {
-            viewModel.updateUiState()
-        }.show()
+        updateLocalBlocklistUi()
+        initLocalBlocklistVersion()
+        showLocalBlocklistsSheet = true
     }
 
     private fun invokeRethinkActivity(type: ConfigureRethinkBasicActivity.FragmentLoader) {
@@ -478,6 +528,634 @@ class DnsDetailActivity : AppCompatActivity() {
     private fun showCustomDns() {
         val intent = Intent(this, DnsListActivity::class.java)
         startActivity(intent)
+    }
+
+    private fun initLocalBlocklistsState() {
+        updateLocalBlocklistUi()
+        initLocalBlocklistVersion()
+        initializeLocalBlocklistObservers()
+        observeLocalBlocklistWorkManager()
+    }
+
+    private fun dismissLocalBlocklistsSheet() {
+        showLocalBlocklistsSheet = false
+        viewModel.updateUiState()
+    }
+
+    private fun initLocalBlocklistVersion() {
+        if (persistentState.localBlocklistTimestamp == INIT_TIME_MS) {
+            showCheckUpdateUi()
+            versionText = ""
+            return
+        }
+
+        versionText =
+            getString(
+                R.string.settings_local_blocklist_version,
+                convertLongToTime(
+                    persistentState.localBlocklistTimestamp,
+                    Constants.TIME_FORMAT_2
+                )
+            )
+
+        if (persistentState.newestRemoteBlocklistTimestamp == INIT_TIME_MS) {
+            showCheckUpdateUi()
+            return
+        }
+
+        if (persistentState.newestLocalBlocklistTimestamp > persistentState.localBlocklistTimestamp) {
+            showUpdateUi()
+            return
+        }
+
+        showCheckUpdateUi()
+    }
+
+    private fun initializeLocalBlocklistObservers() {
+        appDownloadManager.downloadRequired.observe(this) {
+            Napier.i("Check for blocklist update, status: $it")
+            if (it == null) return@observe
+
+            handleDownloadStatus(it)
+        }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun LocalBlocklistsSheet() {
+        ModalBottomSheet(onDismissRequest = { dismissLocalBlocklistsSheet() }) {
+            LocalBlocklistsContent()
+        }
+    }
+
+    @Composable
+    private fun LocalBlocklistsContent() {
+        val borderColor = Color(UIUtils.fetchColor(this, R.attr.border))
+
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Box(
+                modifier =
+                    Modifier.align(Alignment.CenterHorizontally)
+                        .width(60.dp)
+                        .height(3.dp)
+                        .background(borderColor, RoundedCornerShape(2.dp))
+            )
+
+            Text(
+                text = headingText,
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(horizontal = 12.dp)
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = enableLabel,
+                    color = enableColor,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                TextButton(onClick = { enableBlocklist() }) {
+                    Text(text = getString(R.string.lbl_apply))
+                }
+            }
+
+            if (versionText.isNotEmpty()) {
+                Text(
+                    text = versionText,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = 12.dp)
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ActionButton(
+                    text = getString(R.string.lbl_configure),
+                    enabled = canConfigure,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    invokeLocalBlocklistActivity()
+                }
+                ActionButton(
+                    text = getString(R.string.lbbs_copy),
+                    enabled = canCopy,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    val url = Constants.RETHINK_BASE_URL_MAX + persistentState.localBlocklistStamp
+                    UIUtils.clipboardCopy(
+                        this@DnsDetailActivity,
+                        url,
+                        getString(R.string.copy_clipboard_label)
+                    )
+                    Utilities.showToastUiCentered(
+                        this@DnsDetailActivity,
+                        getString(R.string.info_dialog_rethink_toast_msg),
+                        Toast.LENGTH_SHORT
+                    )
+                }
+                ActionButton(
+                    text = getString(R.string.lbl_search),
+                    enabled = canSearch,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    dismissLocalBlocklistsSheet()
+                    val url = RETHINK_SEARCH_URL + Uri.encode(persistentState.localBlocklistStamp)
+                    UIUtils.openUrl(this@DnsDetailActivity, url)
+                }
+            }
+
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                if (showCheckDownload) {
+                    DownloadRow(
+                        label = getString(R.string.lbbs_update_check),
+                        isLoading = isChecking,
+                        enabled = !isChecking
+                    ) {
+                        isChecking = true
+                        isBlocklistUpdateAvailable()
+                    }
+                }
+                if (showDownload) {
+                    DownloadRow(
+                        label = getString(R.string.local_blocklist_download),
+                        isLoading = isDownloading,
+                        enabled = !isDownloading
+                    ) {
+                        downloadDialogIsRedownload = false
+                        showDownloadDialog = true
+                    }
+                }
+                if (showRedownload) {
+                    DownloadRow(
+                        label = getString(R.string.local_blocklist_redownload),
+                        isLoading = isRedownloading,
+                        enabled = !isRedownloading
+                    ) {
+                        downloadDialogIsRedownload = true
+                        showDownloadDialog = true
+                    }
+                }
+                DownloadRow(
+                    label = getString(R.string.lbl_delete),
+                    isLoading = false,
+                    enabled = true
+                ) {
+                    showDeleteDialog = true
+                }
+            }
+        }
+
+        if (showDownloadDialog) {
+            val title =
+                if (downloadDialogIsRedownload) {
+                    getString(R.string.local_blocklist_redownload)
+                } else {
+                    getString(R.string.local_blocklist_download)
+                }
+            val message =
+                if (downloadDialogIsRedownload) {
+                    getString(
+                        R.string.local_blocklist_redownload_desc,
+                        convertLongToTime(
+                            persistentState.localBlocklistTimestamp,
+                            Constants.TIME_FORMAT_2
+                        )
+                    )
+                } else {
+                    getString(R.string.local_blocklist_download_desc)
+                }
+            AlertDialog(
+                onDismissRequest = { showDownloadDialog = false },
+                title = { Text(text = title) },
+                text = { Text(text = message) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDownloadDialog = false
+                            downloadLocalBlocklist(downloadDialogIsRedownload)
+                        }
+                    ) {
+                        Text(text = getString(R.string.settings_local_blocklist_dialog_positive))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDownloadDialog = false }) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text(text = getString(R.string.lbl_delete)) },
+                text = { Text(text = getString(R.string.local_blocklist_delete_desc)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteDialog = false
+                            deleteLocalBlocklist()
+                        }
+                    ) {
+                        Text(text = getString(R.string.lbl_delete))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+
+        if (showLockdownDialog) {
+            AlertDialog(
+                onDismissRequest = { showLockdownDialog = false },
+                title = { Text(text = getString(R.string.lockdown_download_enable_inapp)) },
+                text = { Text(text = getString(R.string.lockdown_download_message)) },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showLockdownDialog = false
+                            persistentState.useCustomDownloadManager = true
+                            downloadLocalBlocklist(downloadDialogIsRedownload)
+                        }
+                    ) {
+                        Text(text = getString(R.string.lockdown_download_enable_inapp))
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = {
+                            showLockdownDialog = false
+                            proceedWithDownload(downloadDialogIsRedownload)
+                        }
+                    ) {
+                        Text(text = getString(R.string.lbl_cancel))
+                    }
+                }
+            )
+        }
+    }
+
+    @Composable
+    private fun DownloadRow(label: String, isLoading: Boolean, enabled: Boolean, onClick: () -> Unit) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = label, style = MaterialTheme.typography.bodyMedium)
+            if (isLoading) {
+                CircularProgressIndicator(modifier = Modifier.size(18.dp))
+            } else {
+                TextButton(onClick = onClick, enabled = enabled) {
+                    Text(text = getString(R.string.lbl_proceed))
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun ActionButton(
+        text: String,
+        enabled: Boolean,
+        modifier: Modifier = Modifier,
+        onClick: () -> Unit
+    ) {
+        val alpha = if (enabled) 1f else BUTTON_ALPHA_DISABLED
+        Button(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = modifier.height(36.dp).alpha(alpha),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(0.dp)
+        ) {
+            Text(text = text, modifier = Modifier.padding(horizontal = 6.dp))
+        }
+    }
+
+    private fun showCheckUpdateUi() {
+        showCheckDownload = true
+        showDownload = false
+        showRedownload = false
+        isChecking = false
+        isDownloading = false
+        isRedownloading = false
+    }
+
+    private fun showUpdateUi() {
+        showCheckDownload = false
+        showDownload = true
+        showRedownload = false
+        isChecking = false
+        isDownloading = false
+        isRedownloading = false
+    }
+
+    private fun showRedownloadUi() {
+        showCheckDownload = false
+        showDownload = false
+        showRedownload = true
+        isChecking = false
+        isDownloading = false
+        isRedownloading = false
+    }
+
+    private fun downloadLocalBlocklist(isRedownload: Boolean) {
+        if (VpnController.isVpnLockdown() && !persistentState.useCustomDownloadManager) {
+            showLockdownDialog = true
+            return
+        }
+
+        proceedWithDownload(isRedownload)
+    }
+
+    private fun proceedWithDownload(isRedownload: Boolean) {
+        ui {
+            var status = AppDownloadManager.DownloadManagerStatus.NOT_STARTED
+            isDownloading = !isRedownload
+            isRedownloading = isRedownload
+            val currentTs = persistentState.localBlocklistTimestamp
+            ioCtx { status = appDownloadManager.downloadLocalBlocklist(currentTs, isRedownload) }
+            handleDownloadStatus(status)
+        }
+    }
+
+    private fun deleteLocalBlocklist() {
+        ui {
+            ioCtx {
+                val path = blocklistCanonicalPath(this@DnsDetailActivity, LOCAL_BLOCKLIST_DOWNLOAD_FOLDER_NAME)
+                val dir = File(path)
+                deleteRecursive(dir)
+                persistentState.localBlocklistTimestamp = INIT_TIME_MS
+                persistentState.localBlocklistStamp = ""
+                persistentState.newestLocalBlocklistTimestamp = INIT_TIME_MS
+            }
+
+            updateLocalBlocklistUi()
+            showCheckUpdateUi()
+            Utilities.showToastUiCentered(
+                this@DnsDetailActivity,
+                getString(R.string.config_add_success_toast),
+                Toast.LENGTH_SHORT
+            )
+        }
+    }
+
+    private fun handleDownloadStatus(status: AppDownloadManager.DownloadManagerStatus) {
+        when (status) {
+            AppDownloadManager.DownloadManagerStatus.IN_PROGRESS -> {
+                isChecking = true
+            }
+            AppDownloadManager.DownloadManagerStatus.STARTED -> {
+                isChecking = true
+            }
+            AppDownloadManager.DownloadManagerStatus.NOT_STARTED -> {
+                // no-op
+            }
+            AppDownloadManager.DownloadManagerStatus.SUCCESS -> {
+                showUpdateUi()
+                isChecking = false
+                isDownloading = false
+                isRedownloading = false
+                appDownloadManager.downloadRequired.postValue(
+                    AppDownloadManager.DownloadManagerStatus.NOT_STARTED
+                )
+            }
+            AppDownloadManager.DownloadManagerStatus.FAILURE -> {
+                isChecking = false
+                isDownloading = false
+                isRedownloading = false
+                Utilities.showToastUiCentered(
+                    this@DnsDetailActivity,
+                    getString(R.string.blocklist_update_check_failure),
+                    Toast.LENGTH_SHORT
+                )
+                appDownloadManager.downloadRequired.postValue(
+                    AppDownloadManager.DownloadManagerStatus.NOT_STARTED
+                )
+            }
+            AppDownloadManager.DownloadManagerStatus.NOT_REQUIRED -> {
+                showRedownloadUi()
+                isChecking = false
+                Utilities.showToastUiCentered(
+                    this@DnsDetailActivity,
+                    getString(R.string.blocklist_update_check_not_required),
+                    Toast.LENGTH_SHORT
+                )
+                appDownloadManager.downloadRequired.postValue(
+                    AppDownloadManager.DownloadManagerStatus.NOT_STARTED
+                )
+            }
+            AppDownloadManager.DownloadManagerStatus.NOT_AVAILABLE -> {
+                Utilities.showToastUiCentered(
+                    this@DnsDetailActivity,
+                    getString(R.string.blocklist_not_available_toast),
+                    Toast.LENGTH_SHORT
+                )
+            }
+        }
+    }
+
+    private fun updateLocalBlocklistUi() {
+        if (Utilities.isPlayStoreFlavour()) {
+            return
+        }
+
+        if (persistentState.blocklistEnabled) {
+            enableBlocklistUi()
+            return
+        }
+
+        disableBlocklistUi()
+    }
+
+    private fun enableBlocklistUi() {
+        enableLabel = getString(R.string.lbbs_enabled)
+        enableColor = Color(UIUtils.fetchToggleBtnColors(this, R.color.accentGood))
+        headingText =
+            getString(
+                R.string.settings_local_blocklist_in_use,
+                persistentState.numberOfLocalBlocklists.toString()
+            )
+
+        canConfigure = true
+        canCopy = true
+        canSearch = true
+    }
+
+    private fun disableBlocklistUi() {
+        enableLabel = getString(R.string.lbl_disabled)
+        enableColor = Color(UIUtils.fetchToggleBtnColors(this, R.color.accentBad))
+        headingText = getString(R.string.lbbs_heading)
+
+        canConfigure = false
+        canCopy = false
+        canSearch = false
+    }
+
+    private fun isBlocklistUpdateAvailable() {
+        io { appDownloadManager.isDownloadRequired(RethinkBlocklistManager.DownloadType.LOCAL) }
+    }
+
+    private fun enableBlocklist() {
+        if (persistentState.blocklistEnabled) {
+            removeBraveDnsLocal()
+            updateLocalBlocklistUi()
+            return
+        }
+
+        if (!VpnController.hasTunnel()) {
+            Utilities.showToastUiCentered(
+                this@DnsDetailActivity,
+                getString(R.string.ssv_toast_start_rethink),
+                Toast.LENGTH_SHORT
+            )
+            return
+        }
+
+        ui {
+            val blocklistsExist =
+                withContext(Dispatchers.Default) {
+                    Utilities.hasLocalBlocklists(
+                        this@DnsDetailActivity,
+                        persistentState.localBlocklistTimestamp
+                    )
+                }
+
+            if (blocklistsExist) {
+                setBraveDnsLocal()
+                if (isLocalBlocklistStampAvailable()) {
+                    updateLocalBlocklistUi()
+                } else {
+                    invokeLocalBlocklistActivity()
+                }
+            } else {
+                invokeLocalBlocklistActivity()
+            }
+        }
+    }
+
+    private fun invokeLocalBlocklistActivity() {
+        if (!VpnController.hasTunnel()) {
+            Utilities.showToastUiCentered(
+                this@DnsDetailActivity,
+                getString(R.string.ssv_toast_start_rethink),
+                Toast.LENGTH_SHORT
+            )
+            return
+        }
+
+        dismissLocalBlocklistsSheet()
+        val intent = Intent(this@DnsDetailActivity, ConfigureRethinkBasicActivity::class.java)
+        intent.putExtra(
+            ConfigureRethinkBasicActivity.INTENT,
+            ConfigureRethinkBasicActivity.FragmentLoader.LOCAL.ordinal
+        )
+        startActivity(intent)
+    }
+
+    private fun isLocalBlocklistStampAvailable(): Boolean {
+        return persistentState.localBlocklistStamp.isNotEmpty()
+    }
+
+    private fun setBraveDnsLocal() {
+        persistentState.blocklistEnabled = true
+    }
+
+    private fun removeBraveDnsLocal() {
+        persistentState.blocklistEnabled = false
+    }
+
+    private fun observeLocalBlocklistWorkManager() {
+        val workManager = WorkManager.getInstance(applicationContext)
+
+        workManager.getWorkInfosByTagLiveData(LocalBlocklistCoordinator.CUSTOM_DOWNLOAD).observe(
+            this
+        ) { workInfoList ->
+            val workInfo = workInfoList?.getOrNull(0) ?: return@observe
+            Napier.i("WorkManager state: ${workInfo.state} for ${LocalBlocklistCoordinator.CUSTOM_DOWNLOAD}")
+            if (workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING) {
+                isDownloading = true
+            } else if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                isDownloading = false
+                showUpdateUi()
+                workManager.pruneWork()
+            } else if (workInfo.state == WorkInfo.State.CANCELLED || workInfo.state == WorkInfo.State.FAILED) {
+                isDownloading = false
+                Utilities.showToastUiCentered(
+                    this@DnsDetailActivity,
+                    getString(R.string.blocklist_update_check_failure),
+                    Toast.LENGTH_SHORT
+                )
+                workManager.pruneWork()
+                workManager.cancelAllWorkByTag(LocalBlocklistCoordinator.CUSTOM_DOWNLOAD)
+            }
+        }
+
+        workManager.getWorkInfosByTagLiveData(DownloadConstants.DOWNLOAD_TAG).observe(
+            this
+        ) { workInfoList ->
+            val workInfo = workInfoList?.getOrNull(0) ?: return@observe
+            Napier.i("WorkManager state: ${workInfo.state} for ${DownloadConstants.DOWNLOAD_TAG}")
+            if (workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING) {
+                isDownloading = true
+            } else if (workInfo.state == WorkInfo.State.CANCELLED || workInfo.state == WorkInfo.State.FAILED) {
+                isDownloading = false
+                Utilities.showToastUiCentered(
+                    this@DnsDetailActivity,
+                    getString(R.string.blocklist_update_check_failure),
+                    Toast.LENGTH_SHORT
+                )
+                workManager.pruneWork()
+                workManager.cancelAllWorkByTag(DownloadConstants.DOWNLOAD_TAG)
+                workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
+            }
+        }
+
+        workManager.getWorkInfosByTagLiveData(DownloadConstants.FILE_TAG).observe(
+            this
+        ) { workInfoList ->
+            val workInfo = workInfoList?.getOrNull(0) ?: return@observe
+            if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+                isDownloading = false
+                showUpdateUi()
+                workManager.pruneWork()
+            } else if (workInfo.state == WorkInfo.State.CANCELLED || workInfo.state == WorkInfo.State.FAILED) {
+                isDownloading = false
+                Utilities.showToastUiCentered(
+                    this@DnsDetailActivity,
+                    getString(R.string.blocklist_update_check_failure),
+                    Toast.LENGTH_SHORT
+                )
+                workManager.pruneWork()
+                workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
+            }
+        }
+    }
+
+    private fun ui(f: suspend () -> Unit) {
+        lifecycleScope.launch(Dispatchers.Main) { f() }
+    }
+
+    private suspend fun ioCtx(f: suspend () -> Unit) {
+        withContext(Dispatchers.IO) { f() }
+    }
+
+    private fun io(f: suspend () -> Unit) {
+        lifecycleScope.launch(Dispatchers.IO) { f() }
     }
 
 }

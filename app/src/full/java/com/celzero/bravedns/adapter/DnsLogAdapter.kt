@@ -47,7 +47,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
-import androidx.fragment.app.FragmentActivity
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
@@ -59,7 +58,6 @@ import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.glide.FavIconDownloader
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.ProxyManager
-import com.celzero.bravedns.ui.bottomsheet.DnsBlocklistDialog
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.UIUtils.fetchColor
@@ -68,7 +66,12 @@ import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.firestack.backend.Backend
 import io.github.aakira.napier.Napier
 
-class DnsLogAdapter(val context: Context, val loadFavIcon: Boolean, val isRethinkDns: Boolean) {
+class DnsLogAdapter(
+    val context: Context,
+    val loadFavIcon: Boolean,
+    val isRethinkDns: Boolean,
+    private val onShowBlocklist: (DnsLog) -> Unit
+) {
 
     companion object {
         private const val TAG = "DnsLogAdapter"
@@ -214,11 +217,7 @@ class DnsLogAdapter(val context: Context, val loadFavIcon: Boolean, val isRethin
     }
 
     private fun openBottomSheet(log: DnsLog) {
-        if (context !is FragmentActivity) {
-            Napier.w("$TAG err opening dns log btm sheet, no ctx to activity")
-            return
-        }
-        DnsBlocklistDialog(context, log).show()
+        onShowBlocklist(log)
     }
 
     private fun statusIndicatorColor(log: DnsLog): Color? {

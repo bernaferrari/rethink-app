@@ -20,6 +20,7 @@ import Logger.LOG_TAG_FIREWALL
 import Logger.LOG_TAG_UI
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
+import android.widget.Toast
 import android.widget.ImageView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -37,10 +38,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,6 +56,9 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.ExperimentalMaterial3Api
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CustomDomain
 import com.celzero.bravedns.database.EventSource
@@ -62,7 +69,7 @@ import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.service.WireguardManager
+import com.celzero.bravedns.service.ProxyManager.ID_WG_BASE
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Themes.Companion.getBottomsheetCurrentTheme
@@ -83,7 +90,7 @@ class AppDomainRulesDialog(
     private val domain: String,
     private val position: Int,
     private val onDismiss: (Int) -> Unit
-) : KoinComponent, WireguardListDialog.WireguardDismissListener {
+) : KoinComponent {
     private val dialog = BottomSheetDialog(activity, getThemeId())
 
     private val persistentState by inject<PersistentState>()
@@ -93,6 +100,8 @@ class AppDomainRulesDialog(
     private var cd: CustomDomain? = null
     private var appName by mutableStateOf<String?>(null)
     private var appIcon by mutableStateOf<Drawable?>(null)
+    private var showWgSheet by mutableStateOf(false)
+    private var wgConfigs by mutableStateOf<List<WgConfigFilesImmutable?>>(emptyList())
 
     companion object {
         private const val TAG = "AppDomainBtmSht"
@@ -252,6 +261,14 @@ class AppDomainRulesDialog(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
             )
         }
+
+        if (showWgSheet) {
+            WireguardListSheet(
+                inputLabel = cd?.domain,
+                selectedProxyId = cd?.proxyId.orEmpty(),
+                onDismiss = { showWgSheet = false }
+            )
+        }
     }
 
     private fun updateAppDetails() {
@@ -290,6 +307,7 @@ class AppDomainRulesDialog(
                 }
             }
         }
+
     }
 
     private fun setRulesUi() {
@@ -301,13 +319,8 @@ class AppDomainRulesDialog(
 
     private fun showWgListDialog(data: List<WgConfigFilesImmutable?>) {
         Logger.v(LOG_TAG_UI, "$TAG show wg list(${data.size} for ${cd?.domain}, uid: $uid")
-        WireguardListDialog(
-            activity,
-            WireguardListDialog.InputType.DOMAIN,
-            cd,
-            data,
-            this
-        ).show()
+        wgConfigs = data
+        showWgSheet = true
     }
 
     private fun applyDomainRule(status: DomainRulesManager.Status) {
@@ -345,14 +358,110 @@ class AppDomainRulesDialog(
         withContext(Dispatchers.Main) { f() }
     }
 
-    override fun onDismissWg(obj: Any?) {
-        try {
-            val customDomain = obj as CustomDomain
-            cd = customDomain
-            setRulesUi()
-            Logger.i(LOG_TAG_UI, "$TAG onDismissWg: ${cd?.domain}, $uid, ${cd?.proxyId}")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "$TAG err in onDismissWg ${e.message}", e)
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun WireguardListSheet(
+        inputLabel: String?,
+        selectedProxyId: String,
+        onDismiss: () -> Unit
+    ) {
+        var currentProxyId by remember(inputLabel, selectedProxyId) { mutableStateOf(selectedProxyId) }
+        val borderColor = Color(UIUtils.fetchColor(activity, R.attr.border))
+
+        ModalBottomSheet(onDismissRequest = onDismiss) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Box(
+                    modifier =
+                        Modifier.align(Alignment.CenterHorizontally)
+                            .width(60.dp)
+                            .height(3.dp)
+                            .background(borderColor, RoundedCornerShape(2.dp))
+                )
+
+                inputLabel?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.titleLarge,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                LazyColumn {
+                    items(wgConfigs, key = { it?.id ?: -1 }) { conf ->
+                        val proxyId = conf?.let { ID_WG_BASE + it.id } ?: ""
+                        val isSelected = currentProxyId == proxyId
+                        val name =
+                            conf?.name ?: activity.getString(R.string.settings_app_list_default_app)
+                        val idSuffix = conf?.id?.toString()?.padStart(3, '0')
+                        val desc =
+                            if (conf == null) {
+                                activity.getString(R.string.settings_app_list_default_app)
+                            } else {
+                                activity.getString(R.string.settings_app_list_default_app) +
+                                    " $idSuffix"
+                            }
+
+                        Row(
+                            modifier =
+                                Modifier.fillMaxWidth()
+                                    .clickable {
+                                        currentProxyId = proxyId
+                                        processDomain(conf)
+                                        onDismiss()
+                                    }
+                                    .padding(vertical = 8.dp, horizontal = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            Text(
+                                text = ID_WG_BASE.uppercase(),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = name, style = MaterialTheme.typography.bodyLarge)
+                                Text(
+                                    text = desc,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            RadioButton(selected = isSelected, onClick = null)
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.size(8.dp))
+            }
+        }
+    }
+
+    private fun processDomain(conf: WgConfigFilesImmutable?) {
+        io {
+            val domain = cd ?: run {
+                Logger.w(LOG_TAG_UI, "$TAG: Custom domain is null")
+                return@io
+            }
+            if (conf == null) {
+                DomainRulesManager.setProxyId(domain, "")
+                domain.proxyId = ""
+            } else {
+                val id = ID_WG_BASE + conf.id
+                DomainRulesManager.setProxyId(domain, id)
+                domain.proxyId = id
+            }
+            val name = conf?.name ?: activity.getString(R.string.settings_app_list_default_app)
+            Logger.v(LOG_TAG_UI, "$TAG: wg-endpoint set to $name for ${domain.domain}")
+            uiCtx {
+                Utilities.showToastUiCentered(
+                    activity,
+                    activity.getString(R.string.config_add_success_toast),
+                    Toast.LENGTH_SHORT
+                )
+            }
         }
     }
 }
