@@ -110,7 +110,7 @@ import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.activity.DomainConnectionsActivity
+import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.ui.bottomsheet.ConnTrackerSheet
 import com.celzero.bravedns.ui.compose.statistics.StatisticsSummaryItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
@@ -1156,17 +1156,16 @@ class NetworkLogsActivity : AppCompatActivity() {
     private fun openDomainConnections(log: DnsLog) {
         val domain = log.queryStr
         if (domain.isEmpty()) return
-        val intent = Intent(this, DomainConnectionsActivity::class.java)
+        val intent = Intent(this, HomeScreenActivity::class.java)
+        intent.putExtra(HomeScreenActivity.EXTRA_NAV_TARGET, HomeScreenActivity.NAV_TARGET_DOMAIN_CONNECTIONS)
+        intent.putExtra(HomeScreenActivity.EXTRA_DC_TYPE, 0)
+        intent.putExtra(HomeScreenActivity.EXTRA_DC_DOMAIN, domain)
+        intent.putExtra(HomeScreenActivity.EXTRA_DC_IS_BLOCKED, log.isBlocked)
         intent.putExtra(
-            DomainConnectionsActivity.INTENT_EXTRA_TYPE,
-            DomainConnectionsActivity.InputType.DOMAIN.type
-        )
-        intent.putExtra(DomainConnectionsActivity.INTENT_EXTRA_DOMAIN, domain)
-        intent.putExtra(DomainConnectionsActivity.INTENT_EXTRA_IS_BLOCKED, log.isBlocked)
-        intent.putExtra(
-            DomainConnectionsActivity.INTENT_EXTRA_TIME_CATEGORY,
+            HomeScreenActivity.EXTRA_DC_TIME_CATEGORY,
             DomainConnectionsViewModel.TimeCategory.SEVEN_DAYS.value
         )
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         startActivity(intent)
     }
 

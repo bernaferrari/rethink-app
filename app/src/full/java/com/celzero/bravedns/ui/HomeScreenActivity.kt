@@ -137,6 +137,7 @@ import com.celzero.bravedns.ui.activity.CustomRulesActivity
 import com.celzero.bravedns.ui.compose.navigation.HomeNavRequest
 import com.celzero.bravedns.ui.activity.DnsDetailActivity
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
+import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
 import com.celzero.bravedns.ui.activity.EventsActivity
 import com.celzero.bravedns.ui.activity.FirewallActivity
 import com.celzero.bravedns.ui.activity.MiscSettingsActivity
@@ -206,6 +207,7 @@ class HomeScreenActivity : AppCompatActivity() {
     private val summaryViewModel by viewModel<com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel>()
     private val aboutViewModel by viewModel<com.celzero.bravedns.ui.compose.about.AboutViewModel>()
     private val detailedStatsViewModel by viewModel<com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel>()
+    private val domainConnectionsViewModel by viewModel<DomainConnectionsViewModel>()
 
     // TODO: see if this can be replaced with a more robust solution
     // keep track of when app went to background
@@ -249,6 +251,7 @@ class HomeScreenActivity : AppCompatActivity() {
 
         // handle intent receiver for backup/restore
         handleIntent()
+        handleNavigationIntent(intent)
 
         initUpdateCheck()
 
@@ -333,6 +336,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     onFlossFundsClick = { openUrl(this, getString(R.string.about_floss_fund_link)) },
                     snackbarHostState = hostState,
                     detailedStatsViewModel = detailedStatsViewModel,
+                    domainConnectionsViewModel = domainConnectionsViewModel,
                     homeNavRequest = homeNavRequest,
                     onHomeNavConsumed = { homeNavRequest = null }
                 )
@@ -365,13 +369,12 @@ class HomeScreenActivity : AppCompatActivity() {
         Logger.i(LOG_IAB, "ensureBillingSetup: billing client initiated")
     }*/
 
-    /*override fun onNewIntent(intent: Intent?) {
+    override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        // by simply receiving and setting the new intent, we ensure that when the activity
-        // is brought back to the foreground, it uses the latest intent state
+        handleNavigationIntent(intent)
         Logger.v(LOG_TAG_UI, "home screen activity received new intent")
-    }*/
+    }
 
     override fun onResume() {
         super.onResume()
@@ -413,6 +416,32 @@ class HomeScreenActivity : AppCompatActivity() {
             Logger.i(LOG_TAG_UI, "Restart from restore, so refreshing app database...")
             io { rdb.refresh(RefreshDatabase.ACTION_REFRESH_RESTORE) }
         }
+    }
+
+    private fun handleNavigationIntent(intent: Intent?) {
+        val target = intent?.getStringExtra(EXTRA_NAV_TARGET) ?: return
+        if (target != NAV_TARGET_DOMAIN_CONNECTIONS) return
+        val typeValue = intent.getIntExtra(EXTRA_DC_TYPE, 0)
+        val flag = intent.getStringExtra(EXTRA_DC_FLAG).orEmpty()
+        val domain = intent.getStringExtra(EXTRA_DC_DOMAIN).orEmpty()
+        val asn = intent.getStringExtra(EXTRA_DC_ASN).orEmpty()
+        val ip = intent.getStringExtra(EXTRA_DC_IP).orEmpty()
+        val isBlocked = intent.getBooleanExtra(EXTRA_DC_IS_BLOCKED, false)
+        val timeCategoryValue = intent.getIntExtra(EXTRA_DC_TIME_CATEGORY, 0)
+        val type = com.celzero.bravedns.ui.compose.logs.DomainConnectionsInputType.fromValue(typeValue)
+        val timeCategory =
+            DomainConnectionsViewModel.TimeCategory.fromValue(timeCategoryValue)
+                ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR
+        homeNavRequest =
+            HomeNavRequest.DomainConnections(
+                type = type,
+                flag = flag,
+                domain = domain,
+                asn = asn,
+                ip = ip,
+                isBlocked = isBlocked,
+                timeCategory = timeCategory
+            )
     }
 
     private fun handleRestoreProcess(uri: Uri?) {
@@ -1818,6 +1847,15 @@ class HomeScreenActivity : AppCompatActivity() {
         private const val BYTES_IN_KB = 1024L
         private const val BYTES_IN_MB = 1024L * 1024L
         private const val MB_DIVISOR = 1024.0 * 1024.0
+        const val EXTRA_NAV_TARGET = "extra_nav_target"
+        const val NAV_TARGET_DOMAIN_CONNECTIONS = "nav_target_domain_connections"
+        const val EXTRA_DC_TYPE = "extra_dc_type"
+        const val EXTRA_DC_FLAG = "extra_dc_flag"
+        const val EXTRA_DC_DOMAIN = "extra_dc_domain"
+        const val EXTRA_DC_ASN = "extra_dc_asn"
+        const val EXTRA_DC_IP = "extra_dc_ip"
+        const val EXTRA_DC_IS_BLOCKED = "extra_dc_is_blocked"
+        const val EXTRA_DC_TIME_CATEGORY = "extra_dc_time_category"
     }
 
     @Composable

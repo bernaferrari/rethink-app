@@ -28,6 +28,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import android.net.Uri
 import androidx.navigation.NavType
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
@@ -45,8 +46,11 @@ import com.celzero.bravedns.ui.compose.home.HomeScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreenUiState
 import com.celzero.bravedns.ui.compose.rpn.RpnAvailabilityScreen
 import com.celzero.bravedns.ui.compose.rpn.RpnCountriesScreen
+import com.celzero.bravedns.ui.compose.logs.DomainConnectionsInputType
+import com.celzero.bravedns.ui.compose.logs.DomainConnectionsScreen
 import com.celzero.bravedns.ui.compose.statistics.DetailedStatisticsScreen
 import com.celzero.bravedns.ui.compose.statistics.SummaryStatisticsScreen
+import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
 import com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
 
@@ -69,12 +73,39 @@ sealed interface HomeNavRequest {
     data object Alerts : HomeNavRequest
     data object RpnCountries : HomeNavRequest
     data object RpnAvailability : HomeNavRequest
+    data class DomainConnections(
+        val type: DomainConnectionsInputType,
+        val flag: String,
+        val domain: String,
+        val asn: String,
+        val ip: String,
+        val isBlocked: Boolean,
+        val timeCategory: DomainConnectionsViewModel.TimeCategory
+    ) : HomeNavRequest
 }
 
 private const val ROUTE_DETAILED_STATS = "detailedStats"
 private const val ROUTE_ALERTS = "alerts"
 private const val ROUTE_RPN_COUNTRIES = "rpnCountries"
 private const val ROUTE_RPN_AVAILABILITY = "rpnAvailability"
+private const val ROUTE_DOMAIN_CONNECTIONS = "domainConnections"
+
+private fun domainConnectionsRoute(
+    type: DomainConnectionsInputType,
+    flag: String,
+    domain: String,
+    asn: String,
+    ip: String,
+    isBlocked: Boolean,
+    timeCategory: DomainConnectionsViewModel.TimeCategory
+): String {
+    val encodedFlag = Uri.encode(flag)
+    val encodedDomain = Uri.encode(domain)
+    val encodedAsn = Uri.encode(asn)
+    val encodedIp = Uri.encode(ip)
+    return "$ROUTE_DOMAIN_CONNECTIONS/${type.type}/${timeCategory.value}" +
+        "?flag=$encodedFlag&domain=$encodedDomain&asn=$encodedAsn&ip=$encodedIp&blocked=$isBlocked"
+}
 
 private fun detailedStatsRoute(typeId: Int, timeCategory: Int): String {
     return "$ROUTE_DETAILED_STATS/$typeId/$timeCategory"
@@ -135,6 +166,7 @@ fun HomeScreenRoot(
     onFlossFundsClick: () -> Unit,
     snackbarHostState: SnackbarHostState,
     detailedStatsViewModel: DetailedStatisticsViewModel,
+    domainConnectionsViewModel: DomainConnectionsViewModel,
     homeNavRequest: HomeNavRequest?,
     onHomeNavConsumed: () -> Unit
 ) {
@@ -158,6 +190,19 @@ fun HomeScreenRoot(
             }
             HomeNavRequest.RpnAvailability -> {
                 navController.navigate(ROUTE_RPN_AVAILABILITY)
+            }
+            is HomeNavRequest.DomainConnections -> {
+                navController.navigate(
+                    domainConnectionsRoute(
+                        request.type,
+                        request.flag,
+                        request.domain,
+                        request.asn,
+                        request.ip,
+                        request.isBlocked,
+                        request.timeCategory
+                    )
+                )
             }
         }
         onHomeNavConsumed()
@@ -233,6 +278,43 @@ fun HomeScreenRoot(
             }
             composable(ROUTE_RPN_AVAILABILITY) {
                 RpnAvailabilityScreen(onBackClick = { navController.popBackStack() })
+            }
+            composable(
+                route = "$ROUTE_DOMAIN_CONNECTIONS/{type}/{timeCategory}?flag={flag}&domain={domain}&asn={asn}&ip={ip}&blocked={blocked}",
+                arguments =
+                    listOf(
+                        navArgument("type") { type = NavType.IntType },
+                        navArgument("timeCategory") { type = NavType.IntType },
+                        navArgument("flag") { type = NavType.StringType; defaultValue = "" },
+                        navArgument("domain") { type = NavType.StringType; defaultValue = "" },
+                        navArgument("asn") { type = NavType.StringType; defaultValue = "" },
+                        navArgument("ip") { type = NavType.StringType; defaultValue = "" },
+                        navArgument("blocked") { type = NavType.BoolType; defaultValue = false }
+                    )
+            ) { entry ->
+                val typeId = entry.arguments?.getInt("type") ?: DomainConnectionsInputType.DOMAIN.type
+                val tcValue = entry.arguments?.getInt("timeCategory")
+                    ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR.value
+                val flag = entry.arguments?.getString("flag").orEmpty()
+                val domain = entry.arguments?.getString("domain").orEmpty()
+                val asn = entry.arguments?.getString("asn").orEmpty()
+                val ip = entry.arguments?.getString("ip").orEmpty()
+                val isBlocked = entry.arguments?.getBoolean("blocked") ?: false
+                val type = DomainConnectionsInputType.fromValue(typeId)
+                val timeCategory =
+                    DomainConnectionsViewModel.TimeCategory.fromValue(tcValue)
+                        ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR
+                DomainConnectionsScreen(
+                    viewModel = domainConnectionsViewModel,
+                    type = type,
+                    flag = flag,
+                    domain = domain,
+                    asn = asn,
+                    ip = ip,
+                    isBlocked = isBlocked,
+                    timeCategory = timeCategory,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
             composable(
                 route = "$ROUTE_DETAILED_STATS/{typeId}/{timeCategory}",
