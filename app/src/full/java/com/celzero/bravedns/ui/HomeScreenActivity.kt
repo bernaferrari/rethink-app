@@ -119,6 +119,7 @@ import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.data.SummaryStatisticsType
 import com.celzero.bravedns.database.AppDatabase
 import com.celzero.bravedns.database.AppInfoRepository
+import com.celzero.bravedns.database.EventDao
 import com.celzero.bravedns.database.RefreshDatabase
 import com.celzero.bravedns.scheduler.BugReportZipper
 import com.celzero.bravedns.scheduler.EnhancedBugReport
@@ -138,7 +139,7 @@ import com.celzero.bravedns.ui.compose.navigation.HomeNavRequest
 import com.celzero.bravedns.ui.activity.DnsDetailActivity
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
 import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
-import com.celzero.bravedns.ui.activity.EventsActivity
+import com.celzero.bravedns.viewmodel.EventsViewModel
 import com.celzero.bravedns.ui.activity.FirewallActivity
 import com.celzero.bravedns.ui.activity.MiscSettingsActivity
 import com.celzero.bravedns.ui.activity.NetworkLogsActivity
@@ -202,12 +203,14 @@ class HomeScreenActivity : AppCompatActivity() {
     private val appConfig by inject<AppConfig>()
     private val workScheduler by inject<WorkScheduler>()
     private val appDatabase by inject<AppDatabase>()
+    private val eventDao by inject<EventDao>()
 
     private val homeViewModel by viewModel<com.celzero.bravedns.ui.compose.home.HomeScreenViewModel>()
     private val summaryViewModel by viewModel<com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel>()
     private val aboutViewModel by viewModel<com.celzero.bravedns.ui.compose.about.AboutViewModel>()
     private val detailedStatsViewModel by viewModel<com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel>()
     private val domainConnectionsViewModel by viewModel<DomainConnectionsViewModel>()
+    private val eventsViewModel by viewModel<EventsViewModel>()
 
     // TODO: see if this can be replaced with a more robust solution
     // keep track of when app went to background
@@ -337,6 +340,8 @@ class HomeScreenActivity : AppCompatActivity() {
                     snackbarHostState = hostState,
                     detailedStatsViewModel = detailedStatsViewModel,
                     domainConnectionsViewModel = domainConnectionsViewModel,
+                    eventsViewModel = eventsViewModel,
+                    eventDao = eventDao,
                     homeNavRequest = homeNavRequest,
                     onHomeNavConsumed = { homeNavRequest = null }
                 )
@@ -1157,8 +1162,7 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun openEventLogs() {
-        val intent = Intent(this, EventsActivity::class.java)
-        startActivity(intent)
+        homeNavRequest = HomeNavRequest.Events
     }
 
     private fun getVersionName(): String {

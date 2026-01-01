@@ -42,6 +42,7 @@ import com.celzero.bravedns.ui.compose.alerts.AlertsScreen
 import com.celzero.bravedns.ui.compose.about.AboutScreen
 import com.celzero.bravedns.ui.compose.about.AboutUiState
 import com.celzero.bravedns.ui.compose.configure.ConfigureScreen
+import com.celzero.bravedns.ui.compose.events.EventsScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreenUiState
 import com.celzero.bravedns.ui.compose.rpn.RpnAvailabilityScreen
@@ -50,8 +51,10 @@ import com.celzero.bravedns.ui.compose.logs.DomainConnectionsInputType
 import com.celzero.bravedns.ui.compose.logs.DomainConnectionsScreen
 import com.celzero.bravedns.ui.compose.statistics.DetailedStatisticsScreen
 import com.celzero.bravedns.ui.compose.statistics.SummaryStatisticsScreen
+import com.celzero.bravedns.database.EventDao
 import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
 import com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel
+import com.celzero.bravedns.viewmodel.EventsViewModel
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
 
 enum class HomeDestination(
@@ -73,6 +76,7 @@ sealed interface HomeNavRequest {
     data object Alerts : HomeNavRequest
     data object RpnCountries : HomeNavRequest
     data object RpnAvailability : HomeNavRequest
+    data object Events : HomeNavRequest
     data class DomainConnections(
         val type: DomainConnectionsInputType,
         val flag: String,
@@ -89,6 +93,7 @@ private const val ROUTE_ALERTS = "alerts"
 private const val ROUTE_RPN_COUNTRIES = "rpnCountries"
 private const val ROUTE_RPN_AVAILABILITY = "rpnAvailability"
 private const val ROUTE_DOMAIN_CONNECTIONS = "domainConnections"
+private const val ROUTE_EVENTS = "events"
 
 private fun domainConnectionsRoute(
     type: DomainConnectionsInputType,
@@ -167,6 +172,8 @@ fun HomeScreenRoot(
     snackbarHostState: SnackbarHostState,
     detailedStatsViewModel: DetailedStatisticsViewModel,
     domainConnectionsViewModel: DomainConnectionsViewModel,
+    eventsViewModel: EventsViewModel,
+    eventDao: EventDao,
     homeNavRequest: HomeNavRequest?,
     onHomeNavConsumed: () -> Unit
 ) {
@@ -190,6 +197,9 @@ fun HomeScreenRoot(
             }
             HomeNavRequest.RpnAvailability -> {
                 navController.navigate(ROUTE_RPN_AVAILABILITY)
+            }
+            HomeNavRequest.Events -> {
+                navController.navigate(ROUTE_EVENTS)
             }
             is HomeNavRequest.DomainConnections -> {
                 navController.navigate(
@@ -278,6 +288,13 @@ fun HomeScreenRoot(
             }
             composable(ROUTE_RPN_AVAILABILITY) {
                 RpnAvailabilityScreen(onBackClick = { navController.popBackStack() })
+            }
+            composable(ROUTE_EVENTS) {
+                EventsScreen(
+                    viewModel = eventsViewModel,
+                    eventDao = eventDao,
+                    onBackClick = { navController.popBackStack() }
+                )
             }
             composable(
                 route = "$ROUTE_DOMAIN_CONNECTIONS/{type}/{timeCategory}?flag={flag}&domain={domain}&asn={asn}&ip={ip}&blocked={blocked}",
