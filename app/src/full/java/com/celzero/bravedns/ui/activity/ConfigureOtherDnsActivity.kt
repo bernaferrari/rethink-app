@@ -19,13 +19,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
 import android.view.WindowManager
 import android.widget.ArrayAdapter
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -38,10 +37,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -60,13 +61,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.asFlow
+import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.DnsCryptEndpointAdapter
 import com.celzero.bravedns.adapter.DnsCryptRelayEndpointAdapter
@@ -81,11 +87,6 @@ import com.celzero.bravedns.database.DnsCryptEndpoint
 import com.celzero.bravedns.database.DnsCryptRelayEndpoint
 import com.celzero.bravedns.database.DnsProxyEndpoint
 import com.celzero.bravedns.database.ODoHEndpoint
-import com.celzero.bravedns.databinding.FragmentDnsCryptListBinding
-import com.celzero.bravedns.databinding.FragmentDnsProxyListBinding
-import com.celzero.bravedns.databinding.FragmentDohListBinding
-import com.celzero.bravedns.databinding.FragmentDotListBinding
-import com.celzero.bravedns.databinding.FragmentOdohListBinding
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
@@ -205,38 +206,58 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
 
     @Composable
     private fun OtherDnsListContent(dnsType: DnsScreen, paddingValues: PaddingValues) {
-        val lifecycleOwner = LocalLifecycleOwner.current
-        androidx.compose.ui.viewinterop.AndroidView(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            factory = { context ->
-                when (dnsType) {
-                    DnsScreen.DOH -> createDohListView(context, lifecycleOwner)
-                    DnsScreen.DNS_PROXY -> createDnsProxyListView(context, lifecycleOwner)
-                    DnsScreen.DNS_CRYPT -> createDnsCryptListView(context, lifecycleOwner)
-                    DnsScreen.DOT -> createDotListView(context, lifecycleOwner)
-                    DnsScreen.ODOH -> createOdohListView(context, lifecycleOwner)
-                }
-            }
-        )
+        when (dnsType) {
+            DnsScreen.DOH -> DohListContent(paddingValues)
+            DnsScreen.DNS_PROXY -> DnsProxyListContent(paddingValues)
+            DnsScreen.DNS_CRYPT -> DnsCryptListContent(paddingValues)
+            DnsScreen.DOT -> DotListContent(paddingValues)
+            DnsScreen.ODOH -> OdohListContent(paddingValues)
+        }
     }
 
-    private fun createDohListView(context: Context, lifecycleOwner: LifecycleOwner): View {
-        val binding = FragmentDohListBinding.inflate(LayoutInflater.from(context))
-        val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
-        binding.recyclerDohConnections.layoutManager = layoutManager
-
-        val adapter = DohEndpointAdapter(context, appConfig)
-        dohViewModel.dohEndpointList.observe(lifecycleOwner) {
-            adapter.submitData(lifecycleOwner.lifecycle, it)
+    @Composable
+    private fun <T : Any> DnsEndpointListWithFab(
+        paddingValues: PaddingValues,
+        items: LazyPagingItems<T>,
+        onFabClick: () -> Unit,
+        itemContent: @Composable (T) -> Unit
+    ) {
+        val context = LocalContext.current
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 72.dp)
+            ) {
+                items(items.itemCount) { index ->
+                    val item = items[index] ?: return@items
+                    itemContent(item)
+                }
+            }
+            FloatingActionButton(
+                onClick = onFabClick,
+                modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_fab_without_border),
+                    contentDescription = context.getString(R.string.lbl_create)
+                )
+            }
         }
-        binding.recyclerDohConnections.adapter = adapter
+    }
 
-        binding.dohFabAddServerIcon.bringToFront()
-        binding.dohFabAddServerIcon.setOnClickListener { showAddCustomDohDialog() }
-
-        return binding.root
+    @Composable
+    private fun DohListContent(paddingValues: PaddingValues) {
+        val lifecycleOwner = LocalLifecycleOwner.current
+        val adapter = remember { DohEndpointAdapter(this@ConfigureOtherDnsActivity, appConfig) }
+        adapter.lifecycleOwner = lifecycleOwner
+        val items = dohViewModel.dohEndpointList.asFlow().collectAsLazyPagingItems()
+        DnsEndpointListWithFab(
+            paddingValues = paddingValues,
+            items = items,
+            onFabClick = { showAddCustomDohDialog() }
+        ) { endpoint ->
+            adapter.DoHEndpointRow(endpoint)
+        }
     }
 
     private fun showAddCustomDohDialog() {
@@ -317,19 +338,19 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
         }
     }
 
-    private fun createDotListView(context: Context, lifecycleOwner: LifecycleOwner): View {
-        val binding = FragmentDotListBinding.inflate(LayoutInflater.from(context))
-        val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
-        binding.recyclerDot.layoutManager = layoutManager
-
-        val adapter = DoTEndpointAdapter(context, appConfig)
-        dotViewModel.dohEndpointList.observe(lifecycleOwner) {
-            adapter.submitData(lifecycleOwner.lifecycle, it)
+    @Composable
+    private fun DotListContent(paddingValues: PaddingValues) {
+        val lifecycleOwner = LocalLifecycleOwner.current
+        val adapter = remember { DoTEndpointAdapter(this@ConfigureOtherDnsActivity, appConfig) }
+        adapter.lifecycleOwner = lifecycleOwner
+        val items = dotViewModel.dohEndpointList.asFlow().collectAsLazyPagingItems()
+        DnsEndpointListWithFab(
+            paddingValues = paddingValues,
+            items = items,
+            onFabClick = { showAddDotDialog() }
+        ) { endpoint ->
+            adapter.DoTEndpointRow(endpoint)
         }
-        binding.recyclerDot.adapter = adapter
-
-        binding.dotFabAdd.setOnClickListener { showAddDotDialog() }
-        return binding.root
     }
 
     private fun showAddDotDialog() {
@@ -397,29 +418,29 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
         }
     }
 
-    private fun createDnsProxyListView(context: Context, lifecycleOwner: LifecycleOwner): View {
-        val binding = FragmentDnsProxyListBinding.inflate(LayoutInflater.from(context))
-        val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
-        binding.recyclerDnsProxyConnections.layoutManager = layoutManager
-
-        val adapter = DnsProxyEndpointAdapter(context, lifecycleOwner, appConfig)
-        dnsProxyViewModel.dnsProxyEndpointList.observe(lifecycleOwner) {
-            adapter.submitData(lifecycleOwner.lifecycle, it)
-        }
-        binding.recyclerDnsProxyConnections.adapter = adapter
-
-        binding.dohFabAddServerIcon.bringToFront()
-        binding.dohFabAddServerIcon.setOnClickListener {
-            io {
-                val appNames: MutableList<String> = ArrayList()
-                appNames.add(getString(R.string.settings_app_list_default_app))
-                appNames.addAll(FirewallManager.getAllAppNamesSortedByVpnPermission(this))
-                val nextIndex = appConfig.getDnsProxyCount().plus(1)
-                uiCtx { showAddDnsProxyDialog(appNames, nextIndex) }
+    @Composable
+    private fun DnsProxyListContent(paddingValues: PaddingValues) {
+        val lifecycleOwner = LocalLifecycleOwner.current
+        val adapter =
+            remember(lifecycleOwner) {
+                DnsProxyEndpointAdapter(this@ConfigureOtherDnsActivity, lifecycleOwner, appConfig)
             }
+        val items = dnsProxyViewModel.dnsProxyEndpointList.asFlow().collectAsLazyPagingItems()
+        DnsEndpointListWithFab(
+            paddingValues = paddingValues,
+            items = items,
+            onFabClick = {
+                io {
+                    val appNames: MutableList<String> = ArrayList()
+                    appNames.add(getString(R.string.settings_app_list_default_app))
+                    appNames.addAll(FirewallManager.getAllAppNamesSortedByVpnPermission(this))
+                    val nextIndex = appConfig.getDnsProxyCount().plus(1)
+                    uiCtx { showAddDnsProxyDialog(appNames, nextIndex) }
+                }
+            }
+        ) { endpoint ->
+            adapter.DnsProxyEndpointRow(endpoint)
         }
-
-        return binding.root
     }
 
     private fun showAddDnsProxyDialog(appNames: List<String>, nextIndex: Int) {
@@ -647,22 +668,45 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
         }
     }
 
-    private fun createDnsCryptListView(context: Context, lifecycleOwner: LifecycleOwner): View {
-        val binding = FragmentDnsCryptListBinding.inflate(LayoutInflater.from(context))
-        val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
-        binding.recyclerDnsCryptConnections.layoutManager = layoutManager
-
-        val adapter = DnsCryptEndpointAdapter(context, appConfig)
-        dnsCryptViewModel.dnsCryptEndpointList.observe(lifecycleOwner) {
-            adapter.submitData(lifecycleOwner.lifecycle, it)
+    @Composable
+    private fun DnsCryptListContent(paddingValues: PaddingValues) {
+        val lifecycleOwner = LocalLifecycleOwner.current
+        val adapter = remember { DnsCryptEndpointAdapter(this@ConfigureOtherDnsActivity, appConfig) }
+        adapter.lifecycleOwner = lifecycleOwner
+        val items = dnsCryptViewModel.dnsCryptEndpointList.asFlow().collectAsLazyPagingItems()
+        Column(
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.cd_dns_crypt_title),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                TextButton(onClick = { openDnsCryptRelaysDialog(lifecycleOwner) }) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = stringResource(R.string.cd_dnscrypt_relay_heading))
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Icon(
+                            painter = painterResource(R.drawable.ic_right_arrow_secondary),
+                            contentDescription = null
+                        )
+                    }
+                }
+            }
+            DnsEndpointListWithFab(
+                paddingValues = PaddingValues(0.dp),
+                items = items,
+                onFabClick = { showAddDnsCryptDialog() }
+            ) { endpoint ->
+                adapter.DnsCryptRow(endpoint)
+            }
         }
-        binding.recyclerDnsCryptConnections.adapter = adapter
-
-        binding.addRelayBtn.setOnClickListener { openDnsCryptRelaysDialog(lifecycleOwner) }
-        binding.dohFabAddServerIcon.bringToFront()
-        binding.dohFabAddServerIcon.setOnClickListener { showAddDnsCryptDialog() }
-
-        return binding.root
     }
 
     private fun openDnsCryptRelaysDialog(lifecycleOwner: LifecycleOwner) {
@@ -840,21 +884,19 @@ class ConfigureOtherDnsActivity : AppCompatActivity() {
         }
     }
 
-    private fun createOdohListView(context: Context, lifecycleOwner: LifecycleOwner): View {
-        val binding = FragmentOdohListBinding.inflate(LayoutInflater.from(context))
-        val layoutManager = androidx.recyclerview.widget.LinearLayoutManager(context)
-        binding.recyclerOdoh.layoutManager = layoutManager
-
-        val adapter = ODoHEndpointAdapter(context, appConfig)
-        oDohViewModel.dohEndpointList.observe(lifecycleOwner) {
-            adapter.submitData(lifecycleOwner.lifecycle, it)
+    @Composable
+    private fun OdohListContent(paddingValues: PaddingValues) {
+        val lifecycleOwner = LocalLifecycleOwner.current
+        val adapter = remember { ODoHEndpointAdapter(this@ConfigureOtherDnsActivity, appConfig) }
+        adapter.lifecycleOwner = lifecycleOwner
+        val items = oDohViewModel.dohEndpointList.asFlow().collectAsLazyPagingItems()
+        DnsEndpointListWithFab(
+            paddingValues = paddingValues,
+            items = items,
+            onFabClick = { showAddOdohDialog() }
+        ) { endpoint ->
+            adapter.ODoHEndpointRow(endpoint)
         }
-        binding.recyclerOdoh.adapter = adapter
-
-        binding.odohFabAdd.bringToFront()
-        binding.odohFabAdd.setOnClickListener { showAddOdohDialog() }
-
-        return binding.root
     }
 
     private fun showAddOdohDialog() {

@@ -125,7 +125,7 @@ class RemoteAdvancedViewAdapter(val context: Context) :
     }
 
     @Composable
-    private fun BlocklistRow(
+    fun BlocklistRow(
         filetag: RethinkRemoteFileTag,
         showHeader: Boolean,
         onToggle: (Boolean) -> Unit

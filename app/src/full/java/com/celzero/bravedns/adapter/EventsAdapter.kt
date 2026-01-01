@@ -112,7 +112,7 @@ class EventsAdapter(private val context: Context) :
     }
 
     @Composable
-    private fun EventCard(event: Event, onCopy: (String) -> Unit) {
+    fun EventCard(event: Event, onCopy: (String) -> Unit) {
         val hasDetails = !event.details.isNullOrBlank()
         var expanded by remember(event.id) { mutableStateOf(false) }
         val rotation by animateFloatAsState(

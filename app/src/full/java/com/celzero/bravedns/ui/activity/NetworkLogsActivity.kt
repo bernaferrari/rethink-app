@@ -16,70 +16,77 @@ limitations under the License.
 
 package com.celzero.bravedns.ui.activity
 
-import Logger
-import Logger.LOG_TAG_UI
 import android.content.Context
 import android.content.Intent
-import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
 import android.view.WindowManager
-import android.view.inputmethod.InputMethodManager
-import android.widget.CompoundButton
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material3.Button
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.core.view.isVisible
-import androidx.lifecycle.LifecycleOwner
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.ConnectionTrackerAdapter
 import com.celzero.bravedns.adapter.DnsLogAdapter
 import com.celzero.bravedns.adapter.RethinkLogAdapter
-import com.celzero.bravedns.adapter.WgNwStatsAdapter
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.data.DataUsageSummary
 import com.celzero.bravedns.database.ConnectionTrackerRepository
 import com.celzero.bravedns.database.DnsLogRepository
 import com.celzero.bravedns.database.RethinkLogRepository
-import com.celzero.bravedns.databinding.FragmentConnectionTrackerBinding
-import com.celzero.bravedns.databinding.FragmentDnsLogsBinding
-import com.celzero.bravedns.databinding.FragmentWgNwStatsBinding
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.compose.statistics.StatisticsSummaryItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.UIUtils
-import com.celzero.bravedns.util.UIUtils.formatToRelativeTime
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
@@ -88,13 +95,9 @@ import com.celzero.bravedns.viewmodel.ConnectionTrackerViewModel.TopLevelFilter
 import com.celzero.bravedns.viewmodel.DnsLogViewModel
 import com.celzero.bravedns.viewmodel.RethinkLogViewModel
 import com.celzero.bravedns.viewmodel.WgNwActivityViewModel
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.button.MaterialButtonToggleGroup
-import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -107,6 +110,7 @@ class NetworkLogsActivity : AppCompatActivity() {
     private var searchParam = ""
     private var isUnivNavigated = false
     private var isWireGuardLogs = false
+    private var wgId: String = ""
 
     private val persistentState by inject<PersistentState>()
     private val appConfig by inject<AppConfig>()
@@ -118,33 +122,6 @@ class NetworkLogsActivity : AppCompatActivity() {
     private val dnsLogViewModel: DnsLogViewModel by viewModel()
     private val rethinkLogViewModel: RethinkLogViewModel by viewModel()
     private val wgNwActivityViewModel: WgNwActivityViewModel by viewModel()
-
-    private var connectionBinding: FragmentConnectionTrackerBinding? = null
-    private var dnsBinding: FragmentDnsLogsBinding? = null
-    private var rethinkBinding: FragmentConnectionTrackerBinding? = null
-    private var wgBinding: FragmentWgNwStatsBinding? = null
-
-    private var connectionLayoutManager: RecyclerView.LayoutManager? = null
-    private var dnsLayoutManager: RecyclerView.LayoutManager? = null
-
-    private var connectionFilterQuery: String = ""
-    private var connectionFilterCategories: MutableSet<String> = mutableSetOf()
-    private var connectionFilterType: TopLevelFilter = TopLevelFilter.ALL
-    private val connectionSearchQuery = MutableStateFlow("")
-    private var connectionQueryCollectorStarted = false
-    private var connectionFromWireGuardScreen: Boolean = false
-    private var connectionFromUniversalFirewallScreen: Boolean = false
-
-    private var dnsFilterValue: String = ""
-    private var dnsFilterType: DnsLogViewModel.DnsLogFilter = DnsLogViewModel.DnsLogFilter.ALL
-    private val dnsSearchQuery = MutableStateFlow("")
-    private var dnsQueryCollectorStarted = false
-    private var dnsFromWireGuardScreen: Boolean = false
-
-    private val rethinkSearchQuery = MutableStateFlow("")
-    private var rethinkQueryCollectorStarted = false
-
-    private var wgId: String = ""
 
     private var tabs: List<TabSpec> = emptyList()
 
@@ -188,12 +165,9 @@ class NetworkLogsActivity : AppCompatActivity() {
             isWireGuardLogs = true
         }
 
-        connectionFromUniversalFirewallScreen = isUnivNavigated
-        connectionFromWireGuardScreen = isWireGuardLogs
-        dnsFromWireGuardScreen = isWireGuardLogs
-
         if (isWireGuardLogs) {
             wgId = searchParam.substringAfter(RULES_SEARCH_ID_WIREGUARD)
+            dnsLogViewModel.setIsWireGuardLogs(true, wgId)
         }
 
         tabs = buildTabs()
@@ -205,28 +179,11 @@ class NetworkLogsActivity : AppCompatActivity() {
 
         setContent {
             RethinkTheme {
-                NetworkLogsContent(initialTab = fragmentIndex)
+                NetworkLogsScreen(initialTab = fragmentIndex)
             }
         }
 
         observeAppState()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        refreshSearchView(connectionBinding?.connectionSearch)
-        refreshSearchView(dnsBinding?.queryListSearch)
-        refreshSearchView(rethinkBinding?.connectionSearch)
-        connectionBinding?.connectionListRl?.requestFocus()
-        dnsBinding?.topRl?.requestFocus()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        connectionBinding = null
-        dnsBinding = null
-        rethinkBinding = null
-        wgBinding = null
     }
 
     private fun Context.isDarkThemeOn(): Boolean {
@@ -234,116 +191,436 @@ class NetworkLogsActivity : AppCompatActivity() {
             Configuration.UI_MODE_NIGHT_YES
     }
 
+    @OptIn(ExperimentalMaterial3Api::class)
     @Composable
-    private fun NetworkLogsContent(initialTab: Int) {
-        val lifecycleOwner = LocalLifecycleOwner.current
+    private fun NetworkLogsScreen(initialTab: Int) {
         val selectedTab = remember { mutableIntStateOf(initialTab.coerceIn(0, tabs.size - 1)) }
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            Box(modifier = Modifier.fillMaxWidth()) {
-                TabRow(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(end = 48.dp),
-                    selectedTabIndex = selectedTab.intValue
-                ) {
-                    tabs.forEachIndexed { index, spec ->
-                        Tab(
-                            selected = selectedTab.intValue == index,
-                            onClick = { selectedTab.intValue = index },
-                            text = { Text(text = spec.label) }
+        Scaffold(
+            topBar = {
+                TopAppBar(title = { Text(text = getString(R.string.lbl_logs)) })
+            }
+        ) { padding ->
+            Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    TabRow(
+                        modifier = Modifier.fillMaxWidth().padding(end = 48.dp),
+                        selectedTabIndex = selectedTab.intValue
+                    ) {
+                        tabs.forEachIndexed { index, spec ->
+                            Tab(
+                                selected = selectedTab.intValue == index,
+                                onClick = { selectedTab.intValue = index },
+                                text = { Text(text = spec.label) }
+                            )
+                        }
+                    }
+                    IconButton(
+                        modifier = Modifier.align(Alignment.CenterEnd),
+                        onClick = { openConsoleLogActivity() }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_android_icon),
+                            contentDescription = null
                         )
                     }
                 }
-                IconButton(
-                    modifier = Modifier.align(Alignment.CenterEnd),
-                    onClick = { openConsoleLogActivity() }
+
+                when (tabs[selectedTab.intValue].tab) {
+                    LogTab.CONNECTION -> ConnectionLogsContent()
+                    LogTab.DNS -> DnsLogsContent()
+                    LogTab.RETHINK -> RethinkLogsContent()
+                    LogTab.WG_STATS -> WgStatsContent()
+                }
+            }
+        }
+    }
+
+    @OptIn(FlowPreview::class)
+    @Composable
+    private fun ConnectionLogsContent() {
+        val adapter = remember { ConnectionTrackerAdapter(this) }
+        val items = connectionTrackerViewModel.connectionTrackerList.asFlow().collectAsLazyPagingItems()
+
+        var query by remember { mutableStateOf("") }
+        var parentFilter by remember { mutableStateOf(TopLevelFilter.ALL) }
+        var childFilters by remember { mutableStateOf(setOf<String>()) }
+
+        LaunchedEffect(Unit) {
+            if (searchParam.isNotEmpty()) {
+                if (isUnivNavigated) {
+                    val rule = searchParam.split(UniversalFirewallSettingsActivity.RULES_SEARCH_ID)[1]
+                    parentFilter = TopLevelFilter.BLOCKED
+                    childFilters = setOf(rule)
+                } else if (isWireGuardLogs) {
+                    val rule = searchParam.split(RULES_SEARCH_ID_WIREGUARD)[1]
+                    query = rule
+                } else {
+                    query = searchParam
+                }
+            }
+        }
+
+        LaunchedEffect(Unit) {
+            snapshotFlow { Triple(query, parentFilter, childFilters) }
+                .debounce(300)
+                .distinctUntilChanged()
+                .collect { (q, type, filters) ->
+                    connectionTrackerViewModel.setFilter(q, filters, type)
+                }
+        }
+
+        Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+            if (!persistentState.logsEnabled) {
+                Text(
+                    text = getString(R.string.logs_disabled_summary),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                return
+            }
+
+            if (!isUnivNavigated && !isWireGuardLogs) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_android_icon),
-                        contentDescription = null
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        modifier = Modifier.weight(1f),
+                        label = { Text(getString(R.string.lbl_search)) },
+                        singleLine = true
                     )
+                    IconButton(onClick = { showConnectionDeleteDialog() }) {
+                        Icon(imageVector = Icons.Filled.Delete, contentDescription = null)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        TopLevelFilter.ALL to getString(R.string.lbl_all),
+                        TopLevelFilter.ALLOWED to getString(R.string.lbl_allowed),
+                        TopLevelFilter.BLOCKED to getString(R.string.lbl_blocked)
+                    ).forEach { (filter, label) ->
+                        FilterChip(
+                            selected = parentFilter == filter,
+                            onClick = {
+                                parentFilter = filter
+                                childFilters = emptySet()
+                            },
+                            label = { Text(text = label) }
+                        )
+                    }
+                }
+
+                val categories =
+                    when (parentFilter) {
+                        TopLevelFilter.BLOCKED -> FirewallRuleset.getBlockedRules()
+                        TopLevelFilter.ALLOWED -> FirewallRuleset.getAllowedRules()
+                        TopLevelFilter.ALL -> FirewallRuleset.getBlockedRules()
+                    }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().height(64.dp),
+                    contentPadding = PaddingValues(horizontal = 4.dp)
+                ) {
+                    items(categories.size) { index ->
+                        val rule = categories[index]
+                        val selected = childFilters.contains(rule.id)
+                        FilterChip(
+                            selected = selected,
+                            onClick = {
+                                childFilters =
+                                    if (selected) {
+                                        childFilters - rule.id
+                                    } else {
+                                        childFilters + rule.id
+                                    }
+                            },
+                            label = { Text(text = getString(rule.title)) },
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(id = FirewallRuleset.getRulesIcon(rule.id)),
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            if (items.itemCount == 0 && items.loadState.append.endOfPaginationReached) {
+                Text(
+                    text = if (isWireGuardLogs || isUnivNavigated) {
+                        getString(R.string.ada_ip_no_connection)
+                    } else {
+                        getString(R.string.lbl_no_logs)
+                    },
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(items.itemCount) { index ->
+                        val item = items[index] ?: return@items
+                        adapter.ConnectionRow(item)
+                    }
+                }
+            }
+        }
+    }
+
+    @OptIn(FlowPreview::class)
+    @Composable
+    private fun DnsLogsContent() {
+        val favIcon = persistentState.fetchFavIcon
+        val isRethinkDns = appConfig.isRethinkDnsConnected()
+        val adapter = remember { DnsLogAdapter(this, favIcon, isRethinkDns) }
+        val items = dnsLogViewModel.dnsLogsList.asFlow().collectAsLazyPagingItems()
+
+        var query by remember { mutableStateOf("") }
+        var filter by remember { mutableStateOf(DnsLogViewModel.DnsLogFilter.ALL) }
+
+        LaunchedEffect(Unit) {
+            if (searchParam.isNotEmpty() && !isWireGuardLogs) {
+                query = searchParam
+            }
+        }
+
+        LaunchedEffect(Unit) {
+            snapshotFlow { Pair(query, filter) }
+                .debounce(300)
+                .distinctUntilChanged()
+                .collect { (q, type) ->
+                    dnsLogViewModel.setFilter(q, type)
+                }
+        }
+
+        Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+            if (!isWireGuardLogs) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        modifier = Modifier.weight(1f),
+                        label = { Text(getString(R.string.lbl_search)) },
+                        singleLine = true
+                    )
+                    IconButton(onClick = { showDnsLogsDeleteDialog() }) {
+                        Icon(imageVector = Icons.Filled.Delete, contentDescription = null)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    listOf(
+                        DnsLogViewModel.DnsLogFilter.ALL to getString(R.string.lbl_all),
+                        DnsLogViewModel.DnsLogFilter.ALLOWED to getString(R.string.lbl_allowed),
+                        DnsLogViewModel.DnsLogFilter.MAYBE_BLOCKED to getString(R.string.lbl_maybe_blocked),
+                        DnsLogViewModel.DnsLogFilter.BLOCKED to getString(R.string.lbl_blocked),
+                        DnsLogViewModel.DnsLogFilter.UNKNOWN_RECORDS to getString(R.string.network_log_app_name_unknown)
+                    ).forEach { (type, label) ->
+                        FilterChip(
+                            selected = filter == type,
+                            onClick = { filter = type },
+                            label = { Text(text = label) }
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+            }
+
+            if (items.itemCount == 0 && items.loadState.append.endOfPaginationReached) {
+                Text(text = getString(R.string.lbl_no_logs), style = MaterialTheme.typography.bodyMedium)
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(items.itemCount) { index ->
+                        val item = items[index] ?: return@items
+                        adapter.DnsLogRow(item)
+                    }
+                }
+            }
+        }
+    }
+
+    @OptIn(FlowPreview::class)
+    @Composable
+    private fun RethinkLogsContent() {
+        val adapter = remember { RethinkLogAdapter(this) }
+        val items = rethinkLogViewModel.rlogList.asFlow().collectAsLazyPagingItems()
+        var query by remember { mutableStateOf("") }
+
+        LaunchedEffect(Unit) {
+            snapshotFlow { query }
+                .debounce(300)
+                .distinctUntilChanged()
+                .collect { q -> rethinkLogViewModel.setFilter(q) }
+        }
+
+        Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    modifier = Modifier.weight(1f),
+                    label = { Text(getString(R.string.lbl_search)) },
+                    singleLine = true
+                )
+                IconButton(onClick = { showRethinkLogsDeleteDialog() }) {
+                    Icon(imageVector = Icons.Filled.Delete, contentDescription = null)
                 }
             }
 
-            when (tabs[selectedTab.intValue].tab) {
-                LogTab.CONNECTION -> ConnectionLogsContent(lifecycleOwner)
-                LogTab.DNS -> DnsLogsContent(lifecycleOwner)
-                LogTab.RETHINK -> RethinkLogsContent(lifecycleOwner)
-                LogTab.WG_STATS -> WgStatsContent(lifecycleOwner)
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (items.itemCount == 0 && items.loadState.append.endOfPaginationReached) {
+                Text(text = getString(R.string.lbl_no_logs), style = MaterialTheme.typography.bodyMedium)
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(items.itemCount) { index ->
+                        val item = items[index] ?: return@items
+                        adapter.RethinkLogRow(item)
+                    }
+                }
             }
         }
     }
 
     @Composable
-    private fun ConnectionLogsContent(lifecycleOwner: LifecycleOwner) {
-        androidx.compose.ui.viewinterop.AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { context ->
-                val binding =
-                    connectionBinding
-                        ?: FragmentConnectionTrackerBinding.inflate(LayoutInflater.from(context))
-                if (connectionBinding == null) {
-                    connectionBinding = binding
-                    initConnectionView(binding, lifecycleOwner)
-                }
-                binding.root
+    private fun WgStatsContent() {
+        if (wgId.isEmpty() || !wgId.startsWith(ProxyManager.ID_WG_BASE)) {
+            LaunchedEffect(Unit) { showWgErrorDialog() }
+            return
+        }
+
+        var selectedTime by remember { mutableStateOf(WgNwActivityViewModel.TimeCategory.ONE_HOUR) }
+        var dataUsage by remember { mutableStateOf(DataUsageSummary(0L, 0L, 0, 0L)) }
+        val items = wgNwActivityViewModel.wgAppNwActivity.asFlow().collectAsLazyPagingItems()
+
+        LaunchedEffect(Unit) {
+            wgNwActivityViewModel.setWgId(wgId)
+        }
+
+        LaunchedEffect(selectedTime) {
+            wgNwActivityViewModel.timeCategoryChanged(selectedTime)
+            io {
+                val totalUsage = wgNwActivityViewModel.totalUsage(wgId)
+                uiCtx { dataUsage = totalUsage }
             }
-        )
+        }
+
+        val totalUsageText = formatTotalUsage(dataUsage)
+
+        Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                val options: List<Pair<WgNwActivityViewModel.TimeCategory, String>> =
+                    listOf(
+                        WgNwActivityViewModel.TimeCategory.ONE_HOUR to
+                            getString(R.string.ci_desc, "1", getString(R.string.lbl_hour)),
+                        WgNwActivityViewModel.TimeCategory.TWENTY_FOUR_HOUR to
+                            getString(R.string.ci_desc, "24", getString(R.string.lbl_hour)),
+                        WgNwActivityViewModel.TimeCategory.SEVEN_DAYS to
+                            getString(R.string.ci_desc, "7", getString(R.string.lbl_day))
+                    )
+                options.forEach { (value, label) ->
+                    FilterChip(
+                        selected = selectedTime == value,
+                        onClick = { selectedTime = value },
+                        label = { Text(text = label) }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (totalUsageText.isNotEmpty()) {
+                Text(text = totalUsageText, style = MaterialTheme.typography.bodyMedium)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            if (items.itemCount == 0 && items.loadState.append.endOfPaginationReached) {
+                Text(text = getString(R.string.lbl_no_logs), style = MaterialTheme.typography.bodyMedium)
+            } else {
+                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                    items(items.itemCount) { index ->
+                        val item = items[index] ?: return@items
+                        val usageText =
+                            if (item.downloadBytes != null && item.uploadBytes != null) {
+                                val download =
+                                    getString(
+                                        R.string.symbol_download,
+                                        Utilities.humanReadableByteCount(item.downloadBytes, true)
+                                    )
+                                val upload =
+                                    getString(
+                                        R.string.symbol_upload,
+                                        Utilities.humanReadableByteCount(item.uploadBytes, true)
+                                    )
+                                getString(R.string.two_argument, upload, download)
+                            } else {
+                                null
+                            }
+
+                        val total = (item.downloadBytes ?: 0L) + (item.uploadBytes ?: 0L)
+                        val progress = if (total == 0L) 0f else 1f
+
+                        StatisticsSummaryItem(
+                            title = item.appOrDnsName ?: "",
+                            subtitle = usageText,
+                            countText = item.count.toString(),
+                            iconDrawable = Utilities.getDefaultIcon(this@NetworkLogsActivity),
+                            flagText = null,
+                            showProgress = true,
+                            progress = progress,
+                            progressColor = MaterialTheme.colorScheme.primary,
+                            showIndicator = false,
+                            onClick = null
+                        )
+                    }
+                }
+            }
+        }
     }
 
-    @Composable
-    private fun DnsLogsContent(lifecycleOwner: LifecycleOwner) {
-        androidx.compose.ui.viewinterop.AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { context ->
-                val binding = dnsBinding ?: FragmentDnsLogsBinding.inflate(LayoutInflater.from(context))
-                if (dnsBinding == null) {
-                    dnsBinding = binding
-                    initDnsLogView(binding, lifecycleOwner)
-                }
-                binding.root
-            }
-        )
-    }
-
-    @Composable
-    private fun RethinkLogsContent(lifecycleOwner: LifecycleOwner) {
-        androidx.compose.ui.viewinterop.AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { context ->
-                val binding =
-                    rethinkBinding
-                        ?: FragmentConnectionTrackerBinding.inflate(LayoutInflater.from(context))
-                if (rethinkBinding == null) {
-                    rethinkBinding = binding
-                    initRethinkLogView(binding, lifecycleOwner)
-                }
-                binding.root
-            }
-        )
-    }
-
-    @Composable
-    private fun WgStatsContent(lifecycleOwner: LifecycleOwner) {
-        androidx.compose.ui.viewinterop.AndroidView(
-            modifier = Modifier.fillMaxSize(),
-            factory = { context ->
-                val binding = wgBinding ?: FragmentWgNwStatsBinding.inflate(LayoutInflater.from(context))
-                if (wgBinding == null) {
-                    wgBinding = binding
-                    initWgStatsView(binding, lifecycleOwner)
-                }
-                binding.root
-            }
-        )
-    }
-
-    private fun refreshSearchView(searchView: SearchView?) {
-        if (searchView == null) return
-        searchView.clearFocus()
-        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.restartInput(searchView)
+    private fun formatTotalUsage(dataUsage: DataUsageSummary): String {
+        val unmeteredUsage = (dataUsage.totalDownload + dataUsage.totalUpload)
+        val totalUsage = unmeteredUsage + dataUsage.meteredDataUsage
+        val unmetered =
+            getString(
+                R.string.two_argument_colon,
+                getString(R.string.ada_app_unmetered),
+                Utilities.humanReadableByteCount(unmeteredUsage, true)
+            )
+        val metered =
+            getString(
+                R.string.two_argument_colon,
+                getString(R.string.ada_app_metered),
+                Utilities.humanReadableByteCount(dataUsage.meteredDataUsage, true)
+            )
+        val overall =
+            getString(
+                R.string.two_argument_colon,
+                getString(R.string.lbl_overall),
+                Utilities.humanReadableByteCount(totalUsage, true)
+            )
+        return listOf(unmetered, metered, overall).joinToString("\n")
     }
 
     private fun buildTabs(): List<TabSpec> {
@@ -358,311 +635,17 @@ class NetworkLogsActivity : AppCompatActivity() {
             )
         }
 
-        val tabs = mutableListOf<TabSpec>()
-        val braveMode = appConfig.getBraveMode()
-        when {
-            braveMode.isDnsMode() -> {
-                tabs.add(TabSpec(LogTab.DNS, getString(R.string.dns_mode_info_title)))
-            }
-            braveMode.isFirewallMode() -> {
-                tabs.add(TabSpec(LogTab.CONNECTION, getString(R.string.firewall_act_network_monitor_tab)))
-            }
-            else -> {
-                tabs.add(TabSpec(LogTab.CONNECTION, getString(R.string.firewall_act_network_monitor_tab)))
-                tabs.add(TabSpec(LogTab.DNS, getString(R.string.dns_mode_info_title)))
-            }
-        }
-
-        if (persistentState.routeRethinkInRethink) {
-            tabs.add(TabSpec(LogTab.RETHINK, getString(R.string.app_name)))
-        }
-
-        return tabs
-    }
-
-    private fun initConnectionView(binding: FragmentConnectionTrackerBinding, lifecycleOwner: LifecycleOwner) {
-        if (!persistentState.logsEnabled) {
-            binding.connectionListLogsDisabledTv.visibility = View.VISIBLE
-            binding.connectionCardViewTop.visibility = View.GONE
-            return
-        }
-
-        binding.connectionListLogsDisabledTv.visibility = View.GONE
-
-        if (connectionFromWireGuardScreen || connectionFromUniversalFirewallScreen) {
-            hideConnectionSearchLayout(binding)
-        } else {
-            binding.connectionCardViewTop.visibility = View.VISIBLE
-        }
-
-        binding.connectionSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String): Boolean {
-                connectionSearchQuery.value = query
-                return true
-            }
-
-            override fun onQueryTextChange(query: String): Boolean {
-                connectionSearchQuery.value = query
-                return true
-            }
-        })
-
-        setupConnectionRecyclerView(binding, lifecycleOwner)
-
-        binding.connectionSearch.setOnClickListener {
-            showConnectionParentChipsUi(binding)
-            showConnectionChildChipsIfNeeded(binding)
-            binding.connectionSearch.requestFocus()
-            binding.connectionSearch.onActionViewExpanded()
-        }
-
-        binding.connectionFilterIcon.setOnClickListener { toggleConnectionParentChipsUi(binding) }
-
-        binding.connectionDeleteIcon.setOnClickListener { showConnectionDeleteDialog() }
-
-        remakeConnectionParentFilterChipsUi(binding)
-        remakeConnectionChildFilterChipsUi(binding, FirewallRuleset.getBlockedRules())
-
-        applyInitialConnectionFilters(binding)
-        startConnectionQueryCollector()
-    }
-
-    private fun applyInitialConnectionFilters(binding: FragmentConnectionTrackerBinding) {
-        if (searchParam.isEmpty()) return
-
-        if (connectionFromUniversalFirewallScreen) {
-            val rule = searchParam.split(UniversalFirewallSettingsActivity.RULES_SEARCH_ID)[1]
-            connectionFilterCategories.add(rule)
-            connectionFilterType = TopLevelFilter.BLOCKED
-            connectionTrackerViewModel.setFilter(connectionFilterQuery, connectionFilterCategories, connectionFilterType)
-            hideConnectionSearchLayout(binding)
-            return
-        }
-
-        if (connectionFromWireGuardScreen) {
-            val rule = searchParam.split(RULES_SEARCH_ID_WIREGUARD)[1]
-            connectionFilterQuery = rule
-            connectionFilterType = TopLevelFilter.ALL
-            connectionTrackerViewModel.setFilter(connectionFilterQuery, connectionFilterCategories, connectionFilterType)
-            hideConnectionSearchLayout(binding)
-            return
-        }
-
-        binding.connectionSearch.setQuery(searchParam, true)
-        connectionTrackerViewModel.setFilter(searchParam, connectionFilterCategories, connectionFilterType)
-    }
-
-    private fun setupConnectionRecyclerView(binding: FragmentConnectionTrackerBinding, lifecycleOwner: LifecycleOwner) {
-        binding.recyclerConnection.setHasFixedSize(true)
-        connectionLayoutManager = LinearLayoutManager(this)
-        connectionLayoutManager?.isItemPrefetchEnabled = true
-        binding.recyclerConnection.layoutManager = connectionLayoutManager
-
-        val recyclerAdapter = ConnectionTrackerAdapter(this)
-        recyclerAdapter.stateRestorationPolicy =
-            RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-
-        binding.recyclerConnection.adapter = recyclerAdapter
-
-        connectionTrackerViewModel.connectionTrackerList.observe(lifecycleOwner) { pagingData ->
-            recyclerAdapter.submitData(lifecycleOwner.lifecycle, pagingData)
-        }
-
-        recyclerAdapter.addLoadStateListener { loadState ->
-            val isEmpty = recyclerAdapter.itemCount < 1
-            if (loadState.append.endOfPaginationReached && isEmpty) {
-                if (connectionFromUniversalFirewallScreen || connectionFromWireGuardScreen) {
-                    binding.connectionListLogsDisabledTv.text = getString(R.string.ada_ip_no_connection)
-                    binding.connectionListLogsDisabledTv.visibility = View.VISIBLE
-                    binding.connectionCardViewTop.visibility = View.GONE
-                } else {
-                    binding.connectionListLogsDisabledTv.visibility = View.GONE
-                    binding.connectionCardViewTop.visibility = View.VISIBLE
-                }
-                connectionTrackerViewModel.connectionTrackerList.removeObservers(this)
-                binding.recyclerConnection.visibility = View.GONE
-            } else {
-                binding.connectionListLogsDisabledTv.visibility = View.GONE
-                if (!binding.recyclerConnection.isVisible) binding.recyclerConnection.visibility = View.VISIBLE
-                if (connectionFromUniversalFirewallScreen || connectionFromWireGuardScreen) {
-                    binding.connectionCardViewTop.visibility = View.GONE
-                } else {
-                    binding.connectionCardViewTop.visibility = View.VISIBLE
-                }
-            }
-        }
-
-        binding.recyclerConnection.post {
-            try {
-                if (recyclerAdapter.itemCount > 0) {
-                    recyclerAdapter.stateRestorationPolicy =
-                        RecyclerView.Adapter.StateRestorationPolicy.ALLOW
-                }
-            } catch (_: Exception) {
-                Logger.e(LOG_TAG_UI, "ConnTrack; err in setting the recycler restoration policy")
-            }
-        }
-        binding.recyclerConnection.layoutAnimation = null
-        setupConnectionRecyclerScrollListener(binding)
-    }
-
-    private fun setupConnectionRecyclerScrollListener(binding: FragmentConnectionTrackerBinding) {
-        val scrollListener =
-            object : RecyclerView.OnScrollListener() {
-
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    super.onScrolled(recyclerView, dx, dy)
-
-                    val firstChild = recyclerView.getChildAt(0)
-                    if (firstChild == null) {
-                        Logger.v(LOG_TAG_UI, "ConnTrack; err; no child views found in recyclerView")
-                        return
-                    }
-
-                    val tag = firstChild.tag as? Long
-                    if (tag == null) {
-                        Logger.v(LOG_TAG_UI, "ConnTrack; err; tag is null for first child, rv")
-                        return
-                    }
-
-                    binding.connectionListScrollHeader.text =
-                        formatToRelativeTime(this@NetworkLogsActivity, tag)
-                    binding.connectionListScrollHeader.visibility = View.VISIBLE
-                }
-
-                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    super.onScrollStateChanged(recyclerView, newState)
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                        binding.connectionListScrollHeader.visibility = View.GONE
-                    }
-                }
-            }
-        binding.recyclerConnection.addOnScrollListener(scrollListener)
-    }
-
-    private fun hideConnectionSearchLayout(binding: FragmentConnectionTrackerBinding) {
-        binding.connectionCardViewTop.visibility = View.GONE
-    }
-
-    private fun toggleConnectionParentChipsUi(binding: FragmentConnectionTrackerBinding) {
-        if (binding.filterChipParentGroup.isVisible) {
-            hideConnectionParentChipsUi(binding)
-            hideConnectionChildChipsUi(binding)
-        } else {
-            showConnectionParentChipsUi(binding)
-            showConnectionChildChipsIfNeeded(binding)
-        }
-    }
-
-    private fun showConnectionChildChipsIfNeeded(binding: FragmentConnectionTrackerBinding) {
-        when (connectionFilterType) {
-            TopLevelFilter.ALL -> {
-                hideConnectionChildChipsUi(binding)
-            }
-            TopLevelFilter.ALLOWED -> {
-                showConnectionChildChipsUi(binding)
-            }
-            TopLevelFilter.BLOCKED -> {
-                showConnectionChildChipsUi(binding)
-            }
-        }
-    }
-
-    private fun remakeConnectionParentFilterChipsUi(binding: FragmentConnectionTrackerBinding) {
-        binding.filterChipParentGroup.removeAllViews()
-
-        val all = makeConnectionParentChip(binding, TopLevelFilter.ALL.id, getString(R.string.lbl_all), true)
-        val allowed =
-            makeConnectionParentChip(binding, TopLevelFilter.ALLOWED.id, getString(R.string.lbl_allowed), false)
-        val blocked =
-            makeConnectionParentChip(binding, TopLevelFilter.BLOCKED.id, getString(R.string.lbl_blocked), false)
-
-        binding.filterChipParentGroup.addView(all)
-        binding.filterChipParentGroup.addView(allowed)
-        binding.filterChipParentGroup.addView(blocked)
-    }
-
-    private fun makeConnectionParentChip(
-        binding: FragmentConnectionTrackerBinding,
-        id: Int,
-        label: String,
-        checked: Boolean
-    ): Chip {
-        val chip = this.layoutInflater.inflate(R.layout.item_chip_filter, binding.root, false) as Chip
-        chip.tag = id
-        chip.text = label
-        chip.isChecked = checked
-
-        chip.setOnCheckedChangeListener { button: CompoundButton, isSelected: Boolean ->
-            if (isSelected) {
-                applyConnectionParentFilter(binding, button.tag)
-            } else {
-                unselectConnectionParentsChipsUi(binding, button.tag)
-            }
-        }
-
-        return chip
-    }
-
-    private fun makeConnectionChildChip(
-        binding: FragmentConnectionTrackerBinding,
-        id: String,
-        titleResId: Int
-    ): Chip {
-        val chip = this.layoutInflater.inflate(R.layout.item_chip_filter, binding.root, false) as Chip
-        chip.text = getString(titleResId)
-        chip.chipIcon = ContextCompat.getDrawable(this, FirewallRuleset.getRulesIcon(id))
-        chip.isCheckedIconVisible = false
-        chip.tag = id
-
-        chip.setOnCheckedChangeListener { compoundButton: CompoundButton, isSelected: Boolean ->
-            applyConnectionChildFilter(compoundButton.tag, isSelected)
-        }
-        return chip
-    }
-
-    private fun applyConnectionParentFilter(binding: FragmentConnectionTrackerBinding, tag: Any) {
-        when (tag) {
-            TopLevelFilter.ALL.id -> {
-                connectionFilterCategories.clear()
-                connectionFilterType = TopLevelFilter.ALL
-                connectionTrackerViewModel.setFilter(connectionFilterQuery, connectionFilterCategories, connectionFilterType)
-                hideConnectionChildChipsUi(binding)
-            }
-            TopLevelFilter.ALLOWED.id -> {
-                connectionFilterCategories.clear()
-                connectionFilterType = TopLevelFilter.ALLOWED
-                connectionTrackerViewModel.setFilter(connectionFilterQuery, connectionFilterCategories, connectionFilterType)
-                remakeConnectionChildFilterChipsUi(binding, FirewallRuleset.getAllowedRules())
-                showConnectionChildChipsUi(binding)
-            }
-            TopLevelFilter.BLOCKED.id -> {
-                connectionFilterType = TopLevelFilter.BLOCKED
-                connectionTrackerViewModel.setFilter(connectionFilterQuery, connectionFilterCategories, connectionFilterType)
-                remakeConnectionChildFilterChipsUi(binding, FirewallRuleset.getBlockedRules())
-                showConnectionChildChipsUi(binding)
-            }
-        }
-    }
-
-    @OptIn(FlowPreview::class)
-    private fun startConnectionQueryCollector() {
-        if (connectionQueryCollectorStarted) return
-        connectionQueryCollectorStarted = true
-        lifecycleScope.launch {
-            connectionSearchQuery
-                .debounce(1000)
-                .distinctUntilChanged()
-                .collect { query ->
-                    connectionFilterQuery = query
-                    connectionTrackerViewModel.setFilter(query, connectionFilterCategories, connectionFilterType)
-                }
-        }
+        return listOf(
+            TabSpec(LogTab.CONNECTION, getString(R.string.firewall_act_network_monitor_tab)),
+            TabSpec(LogTab.DNS, getString(R.string.dns_mode_info_title)),
+            TabSpec(LogTab.RETHINK, getString(R.string.lbl_rethink)),
+            TabSpec(LogTab.WG_STATS, getString(R.string.title_statistics))
+        )
     }
 
     private fun showConnectionDeleteDialog() {
-        val rule = connectionFilterCategories.firstOrNull()
-        if (connectionFromUniversalFirewallScreen && rule != null) {
+        val rule = searchParam.split(UniversalFirewallSettingsActivity.RULES_SEARCH_ID).getOrNull(1)
+        if (isUnivNavigated && rule != null) {
             MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
                 .setTitle(R.string.conn_track_clear_rule_logs_title)
                 .setMessage(R.string.conn_track_clear_rule_logs_message)
@@ -687,538 +670,30 @@ class NetworkLogsActivity : AppCompatActivity() {
         }
     }
 
-    private fun remakeConnectionChildFilterChipsUi(binding: FragmentConnectionTrackerBinding, categories: List<FirewallRuleset>) {
-        with(binding.filterChipGroup) {
-            removeAllViews()
-            for (c in categories) {
-                addView(makeConnectionChildChip(binding, c.id, c.title))
-            }
-        }
-    }
-
-    private fun applyConnectionChildFilter(tag: Any, show: Boolean) {
-        if (show) {
-            connectionFilterCategories.add(tag.toString())
-        } else {
-            connectionFilterCategories.remove(tag.toString())
-        }
-        connectionTrackerViewModel.setFilter(connectionFilterQuery, connectionFilterCategories, connectionFilterType)
-    }
-
-    private fun unselectConnectionParentsChipsUi(binding: FragmentConnectionTrackerBinding, tag: Any) {
-        when (tag) {
-            TopLevelFilter.ALL.id -> {
-                showConnectionChildChipsUi(binding)
-            }
-        }
-    }
-
-    private fun showConnectionChildChipsUi(binding: FragmentConnectionTrackerBinding) {
-        binding.filterChipGroup.visibility = View.VISIBLE
-    }
-
-    private fun hideConnectionChildChipsUi(binding: FragmentConnectionTrackerBinding) {
-        binding.filterChipGroup.visibility = View.GONE
-    }
-
-    private fun showConnectionParentChipsUi(binding: FragmentConnectionTrackerBinding) {
-        binding.filterChipParentGroup.visibility = View.VISIBLE
-    }
-
-    private fun hideConnectionParentChipsUi(binding: FragmentConnectionTrackerBinding) {
-        binding.filterChipParentGroup.visibility = View.GONE
-    }
-
-    private fun initDnsLogView(binding: FragmentDnsLogsBinding, lifecycleOwner: LifecycleOwner) {
-        if (!persistentState.logsEnabled) {
-            binding.queryListLogsDisabledTv.visibility = View.VISIBLE
-            binding.queryListLogsDisabledTv.text = getString(R.string.show_logs_disabled_dns_message)
-            binding.queryListCardViewTop.visibility = View.GONE
-            return
-        }
-
-        displayDnsLogsUi(binding, lifecycleOwner)
-        setupDnsClickListeners(binding)
-        remakeDnsFilterChipsUi(binding)
-        startDnsQueryCollector()
-
-        applyInitialDnsFilters(binding)
-    }
-
-    private fun applyInitialDnsFilters(binding: FragmentDnsLogsBinding) {
-        if (searchParam.isEmpty()) return
-        if (dnsFromWireGuardScreen) {
-            hideDnsSearchLayout(binding)
-            dnsLogViewModel.setIsWireGuardLogs(true, wgId)
-            return
-        }
-
-        if (searchParam.contains(UniversalFirewallSettingsActivity.RULES_SEARCH_ID)) {
-            return
-        }
-
-        binding.queryListSearch.setQuery(searchParam, true)
-    }
-
-    private fun hideDnsSearchLayout(binding: FragmentDnsLogsBinding) {
-        binding.queryListCardViewTop.visibility = View.GONE
-    }
-
-    private fun setupDnsClickListeners(binding: FragmentDnsLogsBinding) {
-        binding.queryListSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String): Boolean {
-                dnsSearchQuery.value = query
-                return true
-            }
-
-            override fun onQueryTextChange(query: String): Boolean {
-                dnsSearchQuery.value = query
-                return true
-            }
-        })
-        binding.queryListSearch.setOnClickListener {
-            showDnsChipsUi(binding)
-            binding.queryListSearch.requestFocus()
-            binding.queryListSearch.onActionViewExpanded()
-        }
-
-        binding.queryListFilterIcon.setOnClickListener { toggleDnsChipsUi(binding) }
-
-        binding.queryListDeleteIcon.setOnClickListener { showDnsLogsDeleteDialog() }
-    }
-
-    private fun displayDnsLogsUi(binding: FragmentDnsLogsBinding, lifecycleOwner: LifecycleOwner) {
-        binding.queryListLogsDisabledTv.visibility = View.GONE
-        binding.queryListCardViewTop.visibility = View.VISIBLE
-
-        binding.recyclerQuery.setHasFixedSize(true)
-        dnsLayoutManager = LinearLayoutManager(this)
-        dnsLayoutManager?.isItemPrefetchEnabled = true
-        binding.recyclerQuery.layoutManager = dnsLayoutManager
-
-        val favIcon = persistentState.fetchFavIcon
-        val isRethinkDns = appConfig.isRethinkDnsConnected()
-        val recyclerAdapter = DnsLogAdapter(this, favIcon, isRethinkDns)
-        recyclerAdapter.stateRestorationPolicy =
-            RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
-        binding.recyclerQuery.adapter = recyclerAdapter
-        dnsLogViewModel.dnsLogsList.observe(lifecycleOwner) {
-            recyclerAdapter.submitData(lifecycleOwner.lifecycle, it)
-        }
-
-        recyclerAdapter.addLoadStateListener { loadState ->
-            val isEmpty = recyclerAdapter.itemCount < 1
-            if (loadState.append.endOfPaginationReached && isEmpty) {
-                dnsLogViewModel.dnsLogsList.removeObservers(this)
-                binding.recyclerQuery.visibility = View.GONE
-            } else {
-                if (!binding.recyclerQuery.isVisible) binding.recyclerQuery.visibility = View.VISIBLE
-            }
-        }
-
-        binding.recyclerQuery.post {
-            try {
-                if (recyclerAdapter.itemCount > 0) {
-                    recyclerAdapter.stateRestorationPolicy =
-                        RecyclerView.Adapter.StateRestorationPolicy.ALLOW
-                }
-            } catch (_: Exception) {
-                Logger.e(LOG_TAG_UI, "DnsLogs; err in setting the recycler restoration policy")
-            }
-        }
-
-        val scrollListener =
-            object : RecyclerView.OnScrollListener() {
-
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    super.onScrolled(recyclerView, dx, dy)
-
-                    val firstChild = recyclerView.getChildAt(0)
-                    if (firstChild == null) {
-                        Logger.w(LOG_TAG_UI, "DnsLogs; err; no child views found in recyclerView")
-                        return
-                    }
-
-                    val tag = firstChild.tag as? Long
-                    if (tag == null) {
-                        Logger.w(LOG_TAG_UI, "DnsLogs; err; tag is null")
-                        return
-                    }
-
-                    binding.queryListRecyclerScrollHeader.text = formatToRelativeTime(this@NetworkLogsActivity, tag)
-                    binding.queryListRecyclerScrollHeader.visibility = View.VISIBLE
-                }
-
-                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    super.onScrollStateChanged(recyclerView, newState)
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                        binding.queryListRecyclerScrollHeader.visibility = View.GONE
-                    }
-                }
-            }
-        binding.recyclerQuery.addOnScrollListener(scrollListener)
-        binding.recyclerQuery.layoutAnimation = null
-    }
-
-    private fun remakeDnsFilterChipsUi(binding: FragmentDnsLogsBinding) {
-        binding.filterChipGroup.removeAllViews()
-
-        val all = makeDnsChip(binding, DnsLogViewModel.DnsLogFilter.ALL.id, getString(R.string.lbl_all), true)
-        val allowed = makeDnsChip(binding, DnsLogViewModel.DnsLogFilter.ALLOWED.id, getString(R.string.lbl_allowed), false)
-        val maybeBlocked =
-            makeDnsChip(binding, DnsLogViewModel.DnsLogFilter.MAYBE_BLOCKED.id, getString(R.string.lbl_maybe_blocked), false)
-        val blocked = makeDnsChip(binding, DnsLogViewModel.DnsLogFilter.BLOCKED.id, getString(R.string.lbl_blocked), false)
-        val unknown =
-            makeDnsChip(
-                binding,
-                DnsLogViewModel.DnsLogFilter.UNKNOWN_RECORDS.id,
-                getString(R.string.network_log_app_name_unknown),
-                false
-            )
-
-        binding.filterChipGroup.addView(all)
-        binding.filterChipGroup.addView(allowed)
-        binding.filterChipGroup.addView(maybeBlocked)
-        binding.filterChipGroup.addView(blocked)
-        binding.filterChipGroup.addView(unknown)
-    }
-
-    private fun makeDnsChip(
-        binding: FragmentDnsLogsBinding,
-        id: Int,
-        label: String,
-        checked: Boolean
-    ): Chip {
-        val chip = this.layoutInflater.inflate(R.layout.item_chip_filter, binding.root, false) as Chip
-        chip.tag = id
-        chip.text = label
-        chip.isChecked = checked
-
-        chip.setOnCheckedChangeListener { button: CompoundButton, isSelected: Boolean ->
-            if (isSelected) {
-                applyDnsFilter(button.tag)
-            }
-        }
-
-        return chip
-    }
-
-    private fun toggleDnsChipsUi(binding: FragmentDnsLogsBinding) {
-        if (binding.filterChipGroup.isVisible) {
-            hideDnsChipsUi(binding)
-        } else {
-            showDnsChipsUi(binding)
-        }
-    }
-
-    private fun applyDnsFilter(tag: Any) {
-        when (tag) {
-            DnsLogViewModel.DnsLogFilter.ALL.id -> {
-                dnsFilterType = DnsLogViewModel.DnsLogFilter.ALL
-                dnsLogViewModel.setFilter(dnsFilterValue, dnsFilterType)
-            }
-            DnsLogViewModel.DnsLogFilter.ALLOWED.id -> {
-                dnsFilterType = DnsLogViewModel.DnsLogFilter.ALLOWED
-                dnsLogViewModel.setFilter(dnsFilterValue, dnsFilterType)
-            }
-            DnsLogViewModel.DnsLogFilter.BLOCKED.id -> {
-                dnsFilterType = DnsLogViewModel.DnsLogFilter.BLOCKED
-                dnsLogViewModel.setFilter(dnsFilterValue, dnsFilterType)
-            }
-            DnsLogViewModel.DnsLogFilter.MAYBE_BLOCKED.id -> {
-                dnsFilterType = DnsLogViewModel.DnsLogFilter.MAYBE_BLOCKED
-                dnsLogViewModel.setFilter(dnsFilterValue, dnsFilterType)
-            }
-            DnsLogViewModel.DnsLogFilter.UNKNOWN_RECORDS.id -> {
-                dnsFilterType = DnsLogViewModel.DnsLogFilter.UNKNOWN_RECORDS
-                dnsLogViewModel.setFilter(dnsFilterValue, dnsFilterType)
-            }
-        }
-    }
-
-    private fun showDnsChipsUi(binding: FragmentDnsLogsBinding) {
-        binding.filterChipGroup.visibility = View.VISIBLE
-    }
-
-    private fun hideDnsChipsUi(binding: FragmentDnsLogsBinding) {
-        binding.filterChipGroup.visibility = View.GONE
-    }
-
     private fun showDnsLogsDeleteDialog() {
         MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-            .setTitle(R.string.dns_query_clear_logs_title)
-            .setMessage(R.string.dns_query_clear_logs_message)
+            .setTitle(R.string.dns_log_clear_logs_title)
+            .setMessage(R.string.dns_log_clear_logs_message)
             .setCancelable(true)
             .setPositiveButton(getString(R.string.dns_log_dialog_positive)) { _, _ ->
-                io {
-                    Glide.get(this@NetworkLogsActivity).clearDiskCache()
-                    dnsLogRepository.clearAllData()
-                }
+                io { dnsLogRepository.clearAllData() }
             }
             .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
             .create()
             .show()
     }
 
-    @OptIn(FlowPreview::class)
-    private fun startDnsQueryCollector() {
-        if (dnsQueryCollectorStarted) return
-        dnsQueryCollectorStarted = true
-        lifecycleScope.launch {
-            dnsSearchQuery
-                .debounce(1000)
-                .distinctUntilChanged()
-                .collect { query ->
-                    dnsFilterValue = query
-                    dnsLogViewModel.setFilter(dnsFilterValue, dnsFilterType)
-                }
-        }
-    }
-
-    private fun initRethinkLogView(binding: FragmentConnectionTrackerBinding, lifecycleOwner: LifecycleOwner) {
-        binding.connectionFilterIcon.visibility = View.GONE
-
-        if (!persistentState.logsEnabled) {
-            binding.connectionListLogsDisabledTv.visibility = View.VISIBLE
-            binding.connectionCardViewTop.visibility = View.GONE
-            return
-        }
-
-        binding.connectionListLogsDisabledTv.visibility = View.GONE
-        binding.connectionCardViewTop.visibility = View.VISIBLE
-
-        binding.recyclerConnection.setHasFixedSize(true)
-        val layoutManager = LinearLayoutManager(this)
-        binding.recyclerConnection.layoutManager = layoutManager
-        val recyclerAdapter = RethinkLogAdapter(this)
-        rethinkLogViewModel.rlogList.observe(lifecycleOwner) {
-            recyclerAdapter.submitData(lifecycleOwner.lifecycle, it)
-        }
-        binding.recyclerConnection.adapter = recyclerAdapter
-        binding.recyclerConnection.layoutAnimation = null
-
-        setupRethinkRecyclerScrollListener(binding)
-        binding.connectionSearch.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String): Boolean {
-                rethinkSearchQuery.value = query
-                return true
+    private fun showRethinkLogsDeleteDialog() {
+        MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+            .setTitle(R.string.dns_log_clear_logs_title)
+            .setMessage(R.string.dns_log_clear_logs_message)
+            .setCancelable(true)
+            .setPositiveButton(getString(R.string.dns_log_dialog_positive)) { _, _ ->
+                io { rethinkLogRepository.clearAllData() }
             }
-
-            override fun onQueryTextChange(query: String): Boolean {
-                rethinkSearchQuery.value = query
-                return true
-            }
-        })
-        startRethinkQueryCollector()
-
-        binding.connectionDeleteIcon.setOnClickListener { showRethinkDeleteDialog() }
-
-        if (searchParam.isNotEmpty()) {
-            binding.connectionSearch.setQuery(searchParam, true)
-        }
-    }
-
-    private fun setupRethinkRecyclerScrollListener(binding: FragmentConnectionTrackerBinding) {
-        val scrollListener =
-            object : RecyclerView.OnScrollListener() {
-
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    super.onScrolled(recyclerView, dx, dy)
-
-                    val firstChild = recyclerView.getChildAt(0)
-                    if (firstChild == null) {
-                        Logger.w(LOG_TAG_UI, "RinRLogs; err; no child views found in recyclerView")
-                        return
-                    }
-
-                    val tag = firstChild.tag as? Long
-                    if (tag == null) {
-                        Logger.w(LOG_TAG_UI, "RinRLogs; err; tag is null for first child, rv")
-                        return
-                    }
-
-                    binding.connectionListScrollHeader.text =
-                        formatToRelativeTime(this@NetworkLogsActivity, tag)
-                    binding.connectionListScrollHeader.visibility = View.VISIBLE
-                }
-
-                override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
-                    super.onScrollStateChanged(recyclerView, newState)
-                    if (newState == RecyclerView.SCROLL_STATE_IDLE) {
-                        binding.connectionListScrollHeader.visibility = View.GONE
-                    }
-                }
-            }
-        binding.recyclerConnection.addOnScrollListener(scrollListener)
-    }
-
-    @OptIn(FlowPreview::class)
-    private fun startRethinkQueryCollector() {
-        if (rethinkQueryCollectorStarted) return
-        rethinkQueryCollectorStarted = true
-        lifecycleScope.launch {
-            rethinkSearchQuery
-                .debounce(1000)
-                .distinctUntilChanged()
-                .collect { query ->
-                    rethinkLogViewModel.setFilter(query)
-                }
-        }
-    }
-
-    private fun showRethinkDeleteDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.conn_track_clear_logs_title)
-        builder.setMessage(R.string.conn_track_clear_logs_message)
-        builder.setCancelable(true)
-        builder.setPositiveButton(getString(R.string.dns_log_dialog_positive)) { _, _ ->
-            io { rethinkLogRepository.clearAllData() }
-        }
-
-        builder.setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
-        builder.create().show()
-    }
-
-    private fun initWgStatsView(binding: FragmentWgNwStatsBinding, lifecycleOwner: LifecycleOwner) {
-        if (wgId.isEmpty() || !wgId.startsWith(ProxyManager.ID_WG_BASE)) {
-            showWgErrorDialog()
-            return
-        }
-
-        setTabbedViewTxt(binding)
-        highlightToggleBtn(binding)
-        setWgRecyclerView(binding, lifecycleOwner)
-        setWgClickListeners(binding)
-        handleTotalUsagesUi(binding)
-    }
-
-    private fun setWgClickListeners(binding: FragmentWgNwStatsBinding) {
-        binding.toggleGroup.addOnButtonCheckedListener(wgToggleListener(binding))
-    }
-
-    private fun setTabbedViewTxt(binding: FragmentWgNwStatsBinding) {
-        binding.tbRecentToggleBtn.text = getString(R.string.ci_desc, "1", getString(R.string.lbl_hour))
-        binding.tbDailyToggleBtn.text = getString(R.string.ci_desc, "24", getString(R.string.lbl_hour))
-        binding.tbWeeklyToggleBtn.text = getString(R.string.ci_desc, "7", getString(R.string.lbl_day))
-    }
-
-    private fun setWgRecyclerView(binding: FragmentWgNwStatsBinding, lifecycleOwner: LifecycleOwner) {
-        val adapter = WgNwStatsAdapter(this)
-        binding.statsRecyclerView.layoutManager = LinearLayoutManager(this)
-        binding.statsRecyclerView.adapter = adapter
-
-        wgNwActivityViewModel.setWgId(wgId)
-        wgNwActivityViewModel.wgAppNwActivity.observe(lifecycleOwner) {
-            adapter.submitData(lifecycleOwner.lifecycle, it)
-        }
-
-        adapter.addLoadStateListener { loadState ->
-            val isEmpty = adapter.itemCount < 1
-            if (loadState.append.endOfPaginationReached && isEmpty) {
-                binding.tbStatsCard.visibility = View.GONE
-                binding.tbLogsDisabledTv.visibility = View.VISIBLE
-                wgNwActivityViewModel.wgAppNwActivity.removeObservers(this)
-            } else {
-                binding.tbLogsDisabledTv.visibility = View.GONE
-                binding.tbStatsCard.visibility = View.VISIBLE
-            }
-        }
-    }
-
-    private fun highlightToggleBtn(binding: FragmentWgNwStatsBinding) {
-        val timeCategory = "0"
-        val btn = binding.toggleGroup.findViewWithTag<MaterialButton>(timeCategory)
-        btn.isChecked = true
-        selectToggleBtnUi(binding, btn)
-    }
-
-    private fun wgToggleListener(binding: FragmentWgNwStatsBinding) =
-        MaterialButtonToggleGroup.OnButtonCheckedListener { _, checkedId, isChecked ->
-            val mb: MaterialButton = binding.toggleGroup.findViewById(checkedId)
-            if (isChecked) {
-                selectToggleBtnUi(binding, mb)
-                val tcValue = (mb.tag as String).toIntOrNull() ?: 0
-                val timeCategory =
-                    WgNwActivityViewModel.TimeCategory.fromValue(tcValue)
-                        ?: WgNwActivityViewModel.TimeCategory.ONE_HOUR
-                Logger.d(LOG_TAG_UI, "WgNwStats: time category changed to $timeCategory")
-                wgNwActivityViewModel.timeCategoryChanged(timeCategory)
-                handleTotalUsagesUi(binding)
-                return@OnButtonCheckedListener
-            }
-
-            unselectToggleBtnUi(binding, mb)
-        }
-
-    private fun handleTotalUsagesUi(binding: FragmentWgNwStatsBinding) {
-        io {
-            val totalUsage = wgNwActivityViewModel.totalUsage(wgId)
-            uiCtx { setTotalUsagesUi(binding, totalUsage) }
-        }
-    }
-
-    private fun setTotalUsagesUi(binding: FragmentWgNwStatsBinding, dataUsage: DataUsageSummary) {
-        val unmeteredUsage = (dataUsage.totalDownload + dataUsage.totalUpload)
-        val totalUsage = unmeteredUsage + dataUsage.meteredDataUsage
-
-        binding.fssUnmeteredDataUsage.text =
-            getString(
-                R.string.two_argument_colon,
-                getString(R.string.ada_app_unmetered),
-                Utilities.humanReadableByteCount(unmeteredUsage, true)
-            )
-        binding.fssMeteredDataUsage.text =
-            getString(
-                R.string.two_argument_colon,
-                getString(R.string.ada_app_metered),
-                Utilities.humanReadableByteCount(dataUsage.meteredDataUsage, true)
-            )
-        binding.fssTotalDataUsage.text =
-            getString(
-                R.string.two_argument_colon,
-                getString(R.string.lbl_overall),
-                Utilities.humanReadableByteCount(totalUsage, true)
-            )
-        binding.fssMeteredDataUsage.setCompoundDrawablesWithIntrinsicBounds(
-            R.drawable.dot_accent,
-            0,
-            0,
-            0
-        )
-
-        val alphaValue = 128
-        val drawable = binding.fssMeteredDataUsage.compoundDrawables[0]
-        drawable?.mutate()?.alpha = alphaValue
-
-        val ump = calculatePercentage(unmeteredUsage, totalUsage)
-        val mp = calculatePercentage(dataUsage.meteredDataUsage, totalUsage)
-        val secondaryVal = ump + mp
-
-        binding.fssProgressBar.max = secondaryVal
-        binding.fssProgressBar.progress = ump
-        binding.fssProgressBar.secondaryProgress = secondaryVal
-    }
-
-    private fun calculatePercentage(value: Long, total: Long): Int {
-        if (total <= 0) return 0
-        return ((value.toDouble() / total.toDouble()) * 100).toInt()
-    }
-
-    private fun selectToggleBtnUi(binding: FragmentWgNwStatsBinding, btn: MaterialButton) {
-        btn.backgroundTintList =
-            ColorStateList.valueOf(
-                UIUtils.fetchToggleBtnColors(this, R.color.accentGood)
-            )
-        btn.setTextColor(UIUtils.fetchColor(this, R.attr.homeScreenHeaderTextColor))
-        binding.toggleGroup.checkedButtonId
-    }
-
-    private fun unselectToggleBtnUi(binding: FragmentWgNwStatsBinding, btn: MaterialButton) {
-        btn.setTextColor(UIUtils.fetchColor(this, R.attr.primaryTextColor))
-        btn.backgroundTintList =
-            ColorStateList.valueOf(
-                UIUtils.fetchToggleBtnColors(this, R.color.defaultToggleBtnBg)
-            )
+            .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ -> }
+            .create()
+            .show()
     }
 
     private fun showWgErrorDialog() {

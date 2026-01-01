@@ -95,7 +95,7 @@ class ConsoleLogAdapter(private val context: Context) :
     }
 
     @Composable
-    private fun ConsoleLogRow(log: ConsoleLog) {
+    fun ConsoleLogRow(log: ConsoleLog) {
         val logLevel = log.message.firstOrNull() ?: 'V'
         val colorRes =
             when (logLevel) {

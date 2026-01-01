@@ -129,7 +129,7 @@ class WgIncludeAppsAdapter(
     }
 
     @Composable
-    private fun IncludeAppRow(mapping: ProxyApplicationMapping) {
+    fun IncludeAppRow(mapping: ProxyApplicationMapping) {
         val defaultName = stringResource(id = R.string.cd_custom_dns_proxy_default_app)
         var isProxyExcluded by remember(mapping.uid) { mutableStateOf(false) }
         var hasInternetPerm by remember(mapping.uid) { mutableStateOf(true) }

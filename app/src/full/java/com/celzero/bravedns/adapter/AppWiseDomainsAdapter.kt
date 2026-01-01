@@ -126,7 +126,7 @@ class AppWiseDomainsAdapter(
     }
 
     @Composable
-    private fun DomainRow(conn: AppConnection) {
+    fun DomainRow(conn: AppConnection) {
         val countText = conn.count.toString()
         val (primaryText, secondaryText) =
             if (isActiveConn) {

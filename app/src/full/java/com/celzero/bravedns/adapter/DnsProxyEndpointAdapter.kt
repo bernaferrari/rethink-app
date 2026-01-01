@@ -116,7 +116,7 @@ class DnsProxyEndpointAdapter(
     }
 
     @Composable
-    private fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint) {
+    fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint) {
         var explanation by remember(endpoint.id) { mutableStateOf("") }
 
         LaunchedEffect(endpoint.id, endpoint.proxyName, endpoint.proxyAppName) {

@@ -19,26 +19,30 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,9 +52,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.AppWiseDomainsAdapter
@@ -67,26 +71,23 @@ import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class AppWiseDomainLogsActivity :
-    AppCompatActivity(), SearchView.OnQueryTextListener {
+class AppWiseDomainLogsActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
     private val networkLogsViewModel: AppConnectionsViewModel by viewModel()
     private var uid: Int = INVALID_UID
-    private var layoutManager: RecyclerView.LayoutManager? = null
     private lateinit var appInfo: AppInfo
     private var isActiveConns = false
-
-    private var recyclerAdapter: AppWiseDomainsAdapter? = null
-    private var recyclerViewRef: RecyclerView? = null
-    private var searchViewRef: SearchView? = null
+    private var isRethinkApp = false
 
     private var selectedCategory by mutableStateOf(AppConnectionsViewModel.TimeCategory.SEVEN_DAYS)
     private var searchHint by mutableStateOf("")
@@ -121,33 +122,14 @@ class AppWiseDomainLogsActivity :
         if (uid == INVALID_UID) {
             finish()
         }
-        val isRethink = Utilities.getApplicationInfo(this, this.packageName)?.uid == uid
+        isRethinkApp = Utilities.getApplicationInfo(this, this.packageName)?.uid == uid
         init()
-        if (isActiveConns) {
-            setActiveConnsAdapter(isRethink)
-        } else {
-            if (isRethink) {
-                setRethinkAdapter()
-            } else {
-                setAdapter()
-            }
-        }
 
         setContent {
             RethinkTheme {
                 AppWiseDomainLogsScreen()
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        searchViewRef?.setQuery("", false)
-        searchViewRef?.clearFocus()
-
-        val imm = this.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        searchViewRef?.let { imm.restartInput(it) }
-        recyclerViewRef?.requestFocus()
     }
 
     private fun init() {
@@ -207,96 +189,6 @@ class AppWiseDomainLogsActivity :
         searchHint = hint
     }
 
-    private fun setActiveConnsAdapter(isRethink: Boolean) {
-        Napier.v(tag = TAG, message = "setActiveConnsAdapter: uid: $uid, isRethink: $isRethink")
-        if (!isRethink) networkLogsViewModel.setUid(uid)
-        layoutManager = LinearLayoutManager(this)
-        val adapter = AppWiseDomainsAdapter(this, this, uid, true)
-        recyclerAdapter = adapter
-
-        if (isRethink) {
-            val uptime = VpnController.uptimeMs()
-            networkLogsViewModel.getRethinkAllActiveConns(uptime).observe(this) {
-                try {
-                    recyclerViewRef?.stopScroll()
-                    adapter.submitData(this.lifecycle, it)
-                } catch (e: Exception) {
-                    Napier.e(tag = TAG, message = "Error submitting rethink active connections data: ${e.message}", throwable = e)
-                }
-            }
-        } else {
-            networkLogsViewModel.activeConnections.observe(this) {
-                try {
-                    recyclerViewRef?.stopScroll()
-                    adapter.submitData(this.lifecycle, it)
-                } catch (e: Exception) {
-                    Napier.e(tag = TAG, message = "Error submitting active connections data: ${e.message}", throwable = e)
-                }
-            }
-        }
-        recyclerViewRef?.adapter = adapter
-    }
-
-    private fun setAdapter() {
-        networkLogsViewModel.setUid(uid)
-        layoutManager = LinearLayoutManager(this)
-        val adapter = AppWiseDomainsAdapter(this, this, uid)
-        recyclerAdapter = adapter
-        networkLogsViewModel.appDomainLogs.observe(this) {
-            try {
-                recyclerViewRef?.stopScroll()
-                adapter.submitData(this.lifecycle, it)
-            } catch (e: Exception) {
-                Napier.e(tag = TAG, message = "Error submitting domain logs data: ${e.message}", throwable = e)
-            }
-        }
-        recyclerViewRef?.adapter = adapter
-    }
-
-    private fun setRethinkAdapter() {
-        networkLogsViewModel.setUid(uid)
-        layoutManager = LinearLayoutManager(this)
-        val adapter = AppWiseDomainsAdapter(this, this, uid)
-        recyclerAdapter = adapter
-        networkLogsViewModel.rinrDomainLogs.observe(this) {
-            try {
-                recyclerViewRef?.stopScroll()
-                adapter.submitData(this.lifecycle, it)
-            } catch (e: Exception) {
-                Napier.e(tag = TAG, message = "Error submitting rethink domain logs data: ${e.message}", throwable = e)
-            }
-        }
-        recyclerViewRef?.adapter = adapter
-    }
-
-    override fun onQueryTextSubmit(query: String): Boolean {
-        Utilities.delay(QUERY_TEXT_DELAY, lifecycleScope) {
-            if (!this.isFinishing) {
-                val type = if (isActiveConns) {
-                    AppConnectionsViewModel.FilterType.ACTIVE_CONNECTIONS
-                } else {
-                    AppConnectionsViewModel.FilterType.DOMAIN
-                }
-                networkLogsViewModel.setFilter(query, type)
-            }
-        }
-        return true
-    }
-
-    override fun onQueryTextChange(query: String): Boolean {
-        Utilities.delay(QUERY_TEXT_DELAY, lifecycleScope) {
-            if (!this.isFinishing) {
-                val type = if (isActiveConns) {
-                    AppConnectionsViewModel.FilterType.ACTIVE_CONNECTIONS
-                } else {
-                    AppConnectionsViewModel.FilterType.DOMAIN
-                }
-                networkLogsViewModel.setFilter(query, type)
-            }
-        }
-        return true
-    }
-
     private fun showDeleteConnectionsDialog() {
         val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         builder.setTitle(R.string.ada_delete_logs_dialog_title)
@@ -322,7 +214,7 @@ class AppWiseDomainLogsActivity :
 
     @Composable
     private fun AppWiseDomainLogsScreen() {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxSize()) {
             if (showToggleGroup) {
                 ToggleRow()
                 Spacer(modifier = Modifier.height(8.dp))
@@ -390,8 +282,25 @@ class AppWiseDomainLogsActivity :
         }
     }
 
+    @OptIn(FlowPreview::class)
     @Composable
     private fun HeaderRow() {
+        var query by remember { mutableStateOf("") }
+        LaunchedEffect(Unit) {
+            snapshotFlow { query }
+                .debounce(QUERY_TEXT_DELAY)
+                .distinctUntilChanged()
+                .collect { value ->
+                    val type =
+                        if (isActiveConns) {
+                            AppConnectionsViewModel.FilterType.ACTIVE_CONNECTIONS
+                        } else {
+                            AppConnectionsViewModel.FilterType.DOMAIN
+                        }
+                    networkLogsViewModel.setFilter(value, type)
+                }
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -413,20 +322,12 @@ class AppWiseDomainLogsActivity :
                 }
             )
 
-            AndroidView(
-                factory = { ctx ->
-                    SearchView(ctx).apply {
-                        isIconified = false
-                        queryHint = searchHint.ifEmpty { ctx.getString(R.string.search_custom_domains) }
-                        setOnQueryTextListener(this@AppWiseDomainLogsActivity)
-                        searchViewRef = this
-                    }
-                },
-                update = { view ->
-                    view.queryHint =
-                        searchHint.ifEmpty { view.context.getString(R.string.search_custom_domains) }
-                },
-                modifier = Modifier.weight(1f)
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                label = { Text(text = searchHint.ifEmpty { getString(R.string.search_custom_domains) }) }
             )
 
             if (showDeleteIcon) {
@@ -443,19 +344,42 @@ class AppWiseDomainLogsActivity :
 
     @Composable
     private fun AppWiseDomainList() {
-        val adapter = recyclerAdapter
-        if (adapter == null) return
-        AndroidView(
-            factory = { ctx ->
-                RecyclerView(ctx).apply {
-                    setHasFixedSize(true)
-                    layoutManager = this@AppWiseDomainLogsActivity.layoutManager
-                    this.adapter = adapter
-                    recyclerViewRef = this
+        val adapter =
+            remember {
+                AppWiseDomainsAdapter(
+                    this@AppWiseDomainLogsActivity,
+                    this@AppWiseDomainLogsActivity,
+                    uid,
+                    isActiveConns
+                )
+            }
+        if (!isRethinkApp) {
+            networkLogsViewModel.setUid(uid)
+        }
+
+        val items =
+            if (isActiveConns) {
+                if (isRethinkApp) {
+                    val uptime = remember { VpnController.uptimeMs() }
+                    networkLogsViewModel.getRethinkAllActiveConns(uptime).asFlow()
+                        .collectAsLazyPagingItems()
+                } else {
+                    networkLogsViewModel.activeConnections.asFlow().collectAsLazyPagingItems()
                 }
-            },
-            modifier = Modifier.padding(2.dp)
-        )
+            } else {
+                if (isRethinkApp) {
+                    networkLogsViewModel.rinrDomainLogs.asFlow().collectAsLazyPagingItems()
+                } else {
+                    networkLogsViewModel.appDomainLogs.asFlow().collectAsLazyPagingItems()
+                }
+            }
+
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(2.dp)) {
+            items(count = items.itemCount) { index ->
+                val item = items[index] ?: return@items
+                adapter.DomainRow(item)
+            }
+        }
     }
 
     @Composable

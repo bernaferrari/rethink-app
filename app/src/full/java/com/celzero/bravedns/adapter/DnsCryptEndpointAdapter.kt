@@ -123,7 +123,7 @@ class DnsCryptEndpointAdapter(private val context: Context, private val appConfi
     }
 
     @Composable
-    private fun DnsCryptRow(endpoint: DnsCryptEndpoint) {
+    fun DnsCryptRow(endpoint: DnsCryptEndpoint) {
         var explanation by remember(endpoint.id) { mutableStateOf("") }
 
         LaunchedEffect(endpoint.id, endpoint.isSelected) {

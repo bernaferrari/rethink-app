@@ -117,7 +117,7 @@ class DnsLogAdapter(val context: Context, val loadFavIcon: Boolean, val isRethin
     }
 
     @Composable
-    private fun DnsLogRow(log: DnsLog) {
+    fun DnsLogRow(log: DnsLog) {
         val indicatorColor = statusIndicatorColor(log)
         val dnsTypeName = dnsTypeName(log)
         val unicodeHint = unicodeHint(log)

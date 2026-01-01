@@ -19,26 +19,30 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -48,9 +52,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.AppWiseIpsAdapter
@@ -67,24 +71,22 @@ import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class AppWiseIpLogsActivity :
-    AppCompatActivity(), SearchView.OnQueryTextListener {
+class AppWiseIpLogsActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
     private val networkLogsViewModel: AppConnectionsViewModel by viewModel()
     private var uid: Int = INVALID_UID
-    private var layoutManager: RecyclerView.LayoutManager? = null
     private lateinit var appInfo: AppInfo
     private var isAsn = false
-
-    private var recyclerAdapter: AppWiseIpsAdapter? = null
-    private var recyclerViewRef: RecyclerView? = null
-    private var searchViewRef: SearchView? = null
+    private var isRethinkApp = false
 
     private var selectedCategory by mutableStateOf(AppConnectionsViewModel.TimeCategory.SEVEN_DAYS)
     private var searchHint by mutableStateOf("")
@@ -117,16 +119,10 @@ class AppWiseIpLogsActivity :
         if (uid == INVALID_UID) {
             finish()
         }
+        isRethinkApp = Utilities.getApplicationInfo(this, this.packageName)?.uid == uid
         init()
-        if (Utilities.getApplicationInfo(this, this.packageName)?.uid == uid) {
-            setRethinkAdapter()
-        } else {
-            if (isAsn) {
-                showDeleteIcon = false
-                setAsnAdapter()
-            } else {
-                setAdapter()
-            }
+        if (isAsn) {
+            showDeleteIcon = false
         }
 
         setContent {
@@ -134,15 +130,6 @@ class AppWiseIpLogsActivity :
                 AppWiseIpLogsScreen()
             }
         }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        searchViewRef?.setQuery("", false)
-        searchViewRef?.clearFocus()
-
-        val imm = this.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        searchViewRef?.let { imm.restartInput(it) }
     }
 
     private fun init() {
@@ -197,67 +184,6 @@ class AppWiseIpLogsActivity :
         searchHint = hint
     }
 
-    private fun setAdapter() {
-        networkLogsViewModel.setUid(uid)
-        layoutManager = LinearLayoutManager(this)
-        val adapter = AppWiseIpsAdapter(this, this, uid)
-        recyclerAdapter = adapter
-        networkLogsViewModel.appIpLogs.observe(this) {
-            adapter.submitData(this.lifecycle, it)
-        }
-        recyclerViewRef?.adapter = adapter
-    }
-
-    private fun setAsnAdapter() {
-        networkLogsViewModel.setUid(uid)
-        layoutManager = LinearLayoutManager(this)
-        val adapter = AppWiseIpsAdapter(this, this, uid, isAsn = true)
-        recyclerAdapter = adapter
-        networkLogsViewModel.asnLogs.observe(this) {
-            adapter.submitData(this.lifecycle, it)
-        }
-        recyclerViewRef?.adapter = adapter
-    }
-
-    private fun setRethinkAdapter() {
-        networkLogsViewModel.setUid(uid)
-        layoutManager = LinearLayoutManager(this)
-        val adapter = AppWiseIpsAdapter(this, this, uid)
-        recyclerAdapter = adapter
-        networkLogsViewModel.rinrIpLogs.observe(this) {
-            adapter.submitData(this.lifecycle, it)
-        }
-        recyclerViewRef?.adapter = adapter
-    }
-
-    override fun onQueryTextSubmit(query: String): Boolean {
-        Utilities.delay(QUERY_TEXT_DELAY, lifecycleScope) {
-            if (!this.isFinishing) {
-                val type = if (isAsn) {
-                    AppConnectionsViewModel.FilterType.ASN
-                } else {
-                    AppConnectionsViewModel.FilterType.IP
-                }
-                networkLogsViewModel.setFilter(query, type)
-            }
-        }
-        return true
-    }
-
-    override fun onQueryTextChange(query: String): Boolean {
-        Utilities.delay(QUERY_TEXT_DELAY, lifecycleScope) {
-            if (!this.isFinishing) {
-                val type = if (isAsn) {
-                    AppConnectionsViewModel.FilterType.ASN
-                } else {
-                    AppConnectionsViewModel.FilterType.IP
-                }
-                networkLogsViewModel.setFilter(query, type)
-            }
-        }
-        return true
-    }
-
     private fun showDeleteConnectionsDialog() {
         val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         builder.setTitle(R.string.ada_delete_logs_dialog_title)
@@ -285,7 +211,7 @@ class AppWiseIpLogsActivity :
 
     @Composable
     private fun AppWiseIpLogsScreen() {
-        Column(modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier.fillMaxSize()) {
             ToggleRow()
             Spacer(modifier = Modifier.height(8.dp))
             HeaderRow()
@@ -351,8 +277,25 @@ class AppWiseIpLogsActivity :
         }
     }
 
+    @OptIn(FlowPreview::class)
     @Composable
     private fun HeaderRow() {
+        var query by remember { mutableStateOf("") }
+        LaunchedEffect(Unit) {
+            snapshotFlow { query }
+                .debounce(QUERY_TEXT_DELAY)
+                .distinctUntilChanged()
+                .collect { value ->
+                    val type =
+                        if (isAsn) {
+                            AppConnectionsViewModel.FilterType.ASN
+                        } else {
+                            AppConnectionsViewModel.FilterType.IP
+                        }
+                    networkLogsViewModel.setFilter(value, type)
+                }
+        }
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -374,22 +317,13 @@ class AppWiseIpLogsActivity :
                 }
             )
 
-            AndroidView(
-                factory = { ctx ->
-                    SearchView(ctx).apply {
-                        isIconified = false
-                        queryHint = searchHint.ifEmpty { ctx.getString(R.string.search_universal_ips) }
-                        isEnabled = !isAsn
-                        setOnQueryTextListener(this@AppWiseIpLogsActivity)
-                        searchViewRef = this
-                    }
-                },
-                update = { view ->
-                    view.queryHint =
-                        searchHint.ifEmpty { view.context.getString(R.string.search_universal_ips) }
-                    view.isEnabled = !isAsn
-                },
-                modifier = Modifier.weight(1f)
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                enabled = !isAsn,
+                label = { Text(text = searchHint.ifEmpty { getString(R.string.search_universal_ips) }) }
             )
 
             if (showDeleteIcon) {
@@ -406,19 +340,34 @@ class AppWiseIpLogsActivity :
 
     @Composable
     private fun AppWiseIpList() {
-        val adapter = recyclerAdapter
-        if (adapter == null) return
-        AndroidView(
-            factory = { ctx ->
-                RecyclerView(ctx).apply {
-                    setHasFixedSize(true)
-                    layoutManager = this@AppWiseIpLogsActivity.layoutManager
-                    this.adapter = adapter
-                    recyclerViewRef = this
-                }
-            },
-            modifier = Modifier.padding(2.dp)
-        )
+        val adapter =
+            remember {
+                AppWiseIpsAdapter(
+                    this@AppWiseIpLogsActivity,
+                    this@AppWiseIpLogsActivity,
+                    uid,
+                    isAsn
+                )
+            }
+        if (!isRethinkApp) {
+            networkLogsViewModel.setUid(uid)
+        }
+
+        val items =
+            if (isRethinkApp) {
+                networkLogsViewModel.rinrIpLogs.asFlow().collectAsLazyPagingItems()
+            } else if (isAsn) {
+                networkLogsViewModel.asnLogs.asFlow().collectAsLazyPagingItems()
+            } else {
+                networkLogsViewModel.appIpLogs.asFlow().collectAsLazyPagingItems()
+            }
+
+        LazyColumn(modifier = Modifier.fillMaxSize().padding(2.dp)) {
+            items(count = items.itemCount) { index ->
+                val item = items[index] ?: return@items
+                adapter.IpRow(item)
+            }
+        }
     }
 
     @Composable

@@ -122,7 +122,7 @@ class RemoteSimpleViewAdapter(val context: Context) :
     }
 
     @Composable
-    private fun BlocklistRow(
+    fun BlocklistRow(
         map: RemoteBlocklistPacksMap,
         showHeader: Boolean,
         onToggle: (Boolean) -> Unit

@@ -124,7 +124,7 @@ class LocalAdvancedViewAdapter(val context: Context) :
     }
 
     @Composable
-    private fun BlocklistRow(
+    fun BlocklistRow(
         filetag: RethinkLocalFileTag,
         showHeader: Boolean,
         onToggle: (Boolean) -> Unit

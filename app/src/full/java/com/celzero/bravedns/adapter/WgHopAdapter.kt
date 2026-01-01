@@ -118,7 +118,7 @@ class WgHopAdapter(
     }
 
     @Composable
-    private fun HopRow(config: Config, isActive: Boolean) {
+    fun HopRow(config: Config, isActive: Boolean) {
         var isChecked by remember { mutableStateOf(config.getId() == selectedId) }
         var inProgress by remember { mutableStateOf(false) }
         var statusText by remember { mutableStateOf("") }

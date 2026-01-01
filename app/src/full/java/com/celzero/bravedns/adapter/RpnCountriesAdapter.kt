@@ -80,14 +80,14 @@ class RpnCountriesAdapter(
         fun update(conf: String) {
             composeView.setContent {
                 RethinkTheme {
-                    RpnCountryRow(conf)
+                    CountryRow(conf)
                 }
             }
         }
     }
 
     @Composable
-    private fun RpnCountryRow(conf: String) {
+    fun CountryRow(conf: String) {
         val flag = getFlag(conf)
         val ccName = conf
         val isSelected = selectedCCs.contains(conf)

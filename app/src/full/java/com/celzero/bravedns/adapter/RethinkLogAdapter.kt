@@ -125,7 +125,7 @@ class RethinkLogAdapter(private val context: Context) :
     }
 
     @Composable
-    private fun RethinkLogRow(log: RethinkLog) {
+    fun RethinkLogRow(log: RethinkLog) {
         val time = Utilities.convertLongToTime(log.timeStamp, TIME_FORMAT_1)
         val protocolLabel = protocolLabel(log.port, log.protocol)
         val indicatorColor = hintColor(log)

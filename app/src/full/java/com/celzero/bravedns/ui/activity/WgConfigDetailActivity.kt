@@ -15,32 +15,52 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import Logger
-import Logger.LOG_TAG_PROXY
-import Logger.LOG_TAG_UI
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
 import android.text.format.DateUtils
-import android.view.View
-import android.widget.LinearLayout
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.AppCompatImageView
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.WgIncludeAppsAdapter
 import com.celzero.bravedns.adapter.WgPeersAdapter
 import com.celzero.bravedns.data.SsidItem
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.database.WgConfigFilesImmutable
-import com.celzero.bravedns.databinding.ActivityWgDetailBinding
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
@@ -53,7 +73,7 @@ import com.celzero.bravedns.service.WireguardManager.ERR_CODE_VPN_NOT_FULL
 import com.celzero.bravedns.service.WireguardManager.ERR_CODE_WG_INVALID
 import com.celzero.bravedns.service.WireguardManager.INVALID_CONF_ID
 import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
-import com.celzero.bravedns.ui.activity.NetworkLogsActivity.Companion.RULES_SEARCH_ID_WIREGUARD
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.dialog.WgAddPeerDialog
 import com.celzero.bravedns.ui.dialog.WgHopDialog
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
@@ -62,8 +82,6 @@ import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.SsidPermissionManager
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
-import com.celzero.bravedns.util.UIUtils.fetchColor
-import com.celzero.bravedns.util.UIUtils.openAndroidAppInfo
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.tos
@@ -72,7 +90,6 @@ import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
 import com.celzero.bravedns.wireguard.Config
 import com.celzero.bravedns.wireguard.Peer
 import com.celzero.bravedns.wireguard.WgHopManager
-import com.celzero.bravedns.wireguard.WgInterface
 import com.celzero.firestack.backend.RouterStats
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
@@ -80,50 +97,25 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import kotlin.getValue
 
-class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
-    private val b by viewBinding(ActivityWgDetailBinding::bind)
+class WgConfigDetailActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()
 
     private val mappingViewModel: ProxyAppsMappingViewModel by viewModel()
 
-    private var wgPeersAdapter: WgPeersAdapter? = null
-    private var layoutManager: LinearLayoutManager? = null
-
     private var configId: Int = INVALID_CONF_ID
-    private var wgInterface: WgInterface? = null
-    private val peers: MutableList<Peer> = mutableListOf()
     private var wgType: WgType = WgType.DEFAULT
 
-    // SSID permission handling
-    private val ssidPermissionCallback = object : SsidPermissionManager.PermissionCallback {
-        override fun onPermissionsGranted() {
-            Logger.vv(LOG_TAG_UI, "ssid-callback permissions granted")
-            // Refresh the SSID section to update error layouts and functionality
-            val cfg = WireguardManager.getConfigFilesById(configId)
-            ui {
-                setupSsidSection(cfg)
-            }
-        }
-
-        override fun onPermissionsDenied() {
-            // Show dialog asking user to manually enable permissions in settings
-            Logger.vv(LOG_TAG_UI, "ssid-callback permissions denied")
-            ui {
-                showPermissionDeniedDialog()
-            }
-        }
-
-        override fun onPermissionsRationale() {
-            // Show explanation dialog before requesting permissions
-            Logger.vv(LOG_TAG_UI, "ssid-callback permissions rationale")
-            ui {
-                showSsidPermissionExplanationDialog()
-            }
-        }
-    }
+    private var configFiles by mutableStateOf<WgConfigFilesImmutable?>(null)
+    private var config by mutableStateOf<Config?>(null)
+    private var peers by mutableStateOf<List<Peer>>(emptyList())
+    private var statusText by mutableStateOf("")
+    private var statusColor by mutableStateOf<Int?>(null)
+    private var catchAllEnabled by mutableStateOf(false)
+    private var useMobileEnabled by mutableStateOf(false)
+    private var ssidEnabled by mutableStateOf(false)
+    private var ssids by mutableStateOf<List<SsidItem>>(emptyList())
 
     companion object {
         private const val CLIPBOARD_PUBLIC_KEY_LBL = "Public Key"
@@ -160,142 +152,161 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         configId = intent.getIntExtra(WgConfigEditorActivity.INTENT_EXTRA_WG_ID, INVALID_CONF_ID)
         wgType = WgType.fromInt(intent.getIntExtra(INTENT_EXTRA_WG_TYPE, WgType.DEFAULT.value))
 
-        b.ssidDescTv.text = getString(R.string.wg_setting_ssid_desc, getString(R.string.lbl_ssids))
-    }
-
-    override fun onResume() {
-        super.onResume()
-        init()
-        setupClickListeners()
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Logger.vv(LOG_TAG_UI, "onRequestPermissionsResult: requestCode=$requestCode")
-        // Handle SSID permission results
-        SsidPermissionManager.handlePermissionResult(
-            requestCode,
-            permissions,
-            grantResults,
-            ssidPermissionCallback
-        )
+        setContent {
+            RethinkTheme {
+                WgConfigDetailContent()
+            }
+        }
     }
 
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-                Configuration.UI_MODE_NIGHT_YES
+            Configuration.UI_MODE_NIGHT_YES
     }
 
-    private fun init() {
-        if (!VpnController.hasTunnel()) {
-            Logger.i(LOG_TAG_PROXY, "VPN not active, config may not be available")
-            Utilities.showToastUiCentered(
-                this,
-                ERR_CODE_VPN_NOT_ACTIVE +
-                        getString(R.string.settings_socks5_vpn_disabled_error),
-                Toast.LENGTH_LONG
-            )
-            finish()
-            return
+    @Composable
+    private fun WgConfigDetailContent() {
+        val appsCount by
+            mappingViewModel
+                .getAppCountById(ID_WG_BASE + configId)
+                .asFlow()
+                .collectAsState(initial = 0)
+        val peerAdapter =
+            remember(peers) {
+                WgPeersAdapter(
+                    this@WgConfigDetailActivity,
+                    Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme),
+                    configId,
+                    peers.toMutableList()
+                )
+            }
+
+        LaunchedEffect(configId) {
+            refreshConfig()
         }
 
-        b.hopBtn.text = getString(
-            R.string.two_argument_space,
-            getString(R.string.hop_add_remove_title),
-            getString(R.string.lbl_experimental)
-        )
-        b.editBtn.text = getString(R.string.rt_edit_dialog_positive).uppercase()
-        b.deleteBtn.text = getString(R.string.lbl_delete).uppercase()
-
-        b.catchAllTitleTv.text =
-            getString(
-                R.string.two_argument_space,
-                getString(R.string.catch_all_wg_dialog_title),
-                getString(R.string.symbol_lightening)
-            )
-
-        val mobileOnlyExperimentalTxt = getString(
-            R.string.two_argument_space,
-            getString(R.string.wg_setting_use_on_mobile),
-            getString(R.string.lbl_experimental)
-        )
-        b.useMobileTitleTv.text =
-            getString(
-                R.string.two_argument_space,
-                mobileOnlyExperimentalTxt,
-                getString(R.string.symbol_mobile)
-            )
-        val ssidExperimentalTxt = getString(
-            R.string.two_argument_space,
-            getString(R.string.wg_setting_ssid_title),
-            getString(R.string.lbl_experimental)
-        )
-        b.ssidTitleTv.text = getString(
-            R.string.two_argument_space,
-            ssidExperimentalTxt,
-            getString(R.string.symbol_id)
-        )
-        if (wgType.isDefault()) {
-            b.wgHeaderTv.text = getString(R.string.lbl_advanced).replaceFirstChar(Char::titlecase)
-            b.catchAllRl.visibility = View.VISIBLE
-            b.oneWgInfoTv.visibility = View.GONE
-            b.hopBtn.visibility = View.VISIBLE
-            b.hopBtnX.visibility = View.VISIBLE
-            b.mobileSsidSettingsCard.visibility = View.VISIBLE
-        } else if (wgType.isOneWg()) {
-            b.wgHeaderTv.text =
-                getString(R.string.rt_list_simple_btn_txt).replaceFirstChar(Char::titlecase)
-            b.catchAllRl.visibility = View.GONE
-            b.hopBtn.visibility = View.GONE
-            b.hopBtnX.visibility = View.GONE
-            b.oneWgInfoTv.visibility = View.VISIBLE
-            b.applicationsBtn.isEnabled = false
-            b.applicationsBtnX.isEnabled = false
-            b.mobileSsidSettingsCard.visibility = View.GONE
-            b.applicationsBtn.text = getString(R.string.one_wg_apps_added)
-            b.appsLabel.text = "All apps"
-        } else {
-            // invalid wireguard type, finish the activity
-            finish()
-            return
+        LaunchedEffect(configFiles?.isActive, configFiles?.id) {
+            updateStatusUi(configId)
         }
-        val config = WireguardManager.getConfigById(configId)
+
+        Column(
+            modifier = Modifier.fillMaxSize().padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if (config == null || configFiles == null) {
+                Text(text = stringResource(id = R.string.config_invalid_desc))
+                Button(onClick = { finish() }) { Text(text = stringResource(id = R.string.fapps_info_dialog_positive_btn)) }
+                return@Column
+            }
+
+            Card(colors = CardDefaults.cardColors()) {
+                Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(text = config?.getName().orEmpty(), style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        text = getString(R.string.single_argument_parenthesis, configId.toString()),
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text(text = statusText, color = statusColor?.let { Color(it) } ?: MaterialTheme.colorScheme.onSurface)
+                }
+            }
+
+            if (wgType.isOneWg()) {
+                Text(text = stringResource(id = R.string.one_wg_apps_added))
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(onClick = { openAddPeerDialog() }) {
+                    Text(text = stringResource(id = R.string.lbl_add))
+                }
+                Button(onClick = { showDeleteInterfaceDialog() }) {
+                    Text(text = stringResource(id = R.string.lbl_delete))
+                }
+                Button(onClick = { openEditConfig() }) {
+                    Text(text = stringResource(id = R.string.rt_edit_dialog_positive))
+                }
+            }
+
+            if (wgType.isDefault()) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Button(onClick = { openAppsDialog(config?.getName().orEmpty()) }, enabled = !catchAllEnabled) {
+                        Text(text = getString(R.string.add_remove_apps, appsCount.toString()))
+                    }
+                    Button(onClick = { openHopDialog() }) {
+                        Text(text = stringResource(id = R.string.hop_add_remove_title))
+                    }
+                }
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = stringResource(id = R.string.catch_all_wg_dialog_title))
+                    Text(text = stringResource(id = R.string.catch_all_wg_dialog_desc), style = MaterialTheme.typography.bodySmall)
+                }
+                Switch(
+                    checked = catchAllEnabled,
+                    onCheckedChange = { enabled -> updateCatchAll(enabled) }
+                )
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = stringResource(id = R.string.wg_setting_use_on_mobile))
+                    Text(text = stringResource(id = R.string.wg_setting_use_on_mobile_desc), style = MaterialTheme.typography.bodySmall)
+                }
+                Switch(
+                    checked = useMobileEnabled,
+                    onCheckedChange = { enabled -> updateUseOnMobileNetwork(enabled) }
+                )
+            }
+
+            if (SsidPermissionManager.isDeviceSupported(this@WgConfigDetailActivity)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(text = stringResource(id = R.string.wg_setting_ssid_title))
+                        Text(text = stringResource(id = R.string.wg_setting_ssid_desc, stringResource(id = R.string.lbl_ssids)), style = MaterialTheme.typography.bodySmall)
+                        if (ssids.isNotEmpty()) {
+                            Text(text = ssids.joinToString { it.name }, style = MaterialTheme.typography.bodySmall)
+                        }
+                    }
+                    Switch(
+                        checked = ssidEnabled,
+                        onCheckedChange = { enabled -> toggleSsid(enabled) }
+                    )
+                }
+                Button(onClick = { openSsidDialog() }) {
+                    Text(text = stringResource(id = R.string.rt_edit_dialog_positive))
+                }
+            }
+
+            Text(text = stringResource(id = R.string.lbl_peer), style = MaterialTheme.typography.titleMedium)
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(peers) { peer ->
+                    peerAdapter.WgPeerRow(peer)
+                }
+            }
+        }
+    }
+
+    private suspend fun refreshConfig() {
+        val cfg = WireguardManager.getConfigById(configId)
         val mapping = WireguardManager.getConfigFilesById(configId)
-
-        if (config == null) {
+        if (cfg == null || mapping == null) {
             showInvalidConfigDialog()
             return
         }
-
-        if (mapping != null) {
-            // if catch all is enabled, disable the add apps button and lockdown
-            b.catchAllCheck.isChecked = mapping.isCatchAll
-            if (mapping.isCatchAll) {
-                b.applicationsBtn.isEnabled = false
-                b.applicationsBtn.text = getString(R.string.routing_remaining_apps)
-            }
-            b.useMobileCheck.isChecked = mapping.useOnlyOnMetered
-        }
-
-        if (shouldObserveAppsCount()) {
-            handleAppsCount()
-        } else {
-            b.applicationsBtn.isEnabled = false
-            // texts are updated based on the catch all and one-wg
-        }
-        setupSsidSection(mapping)
-        io { updateStatusUi(config.getId()) }
-        prefillConfig(config)
+        config = cfg
+        configFiles = mapping
+        peers = cfg.getPeers() ?: emptyList()
+        catchAllEnabled = mapping.isCatchAll
+        useMobileEnabled = mapping.useOnlyOnMetered
+        ssidEnabled = mapping.ssidEnabled
+        ssids = SsidItem.parseStorageList(mapping.ssids)
     }
 
     private suspend fun updateStatusUi(id: Int) {
-        val config = WireguardManager.getConfigFilesById(id)
+        val mapping = WireguardManager.getConfigFilesById(id)
         val cid = ID_WG_BASE + id
-        if (config?.isActive == true) {
+        if (mapping?.isActive == true) {
             val statusPair = VpnController.getProxyStatusById(cid)
             val stats = VpnController.getProxyStats(cid)
             val ps = UIUtils.ProxyStatus.entries.find { it.id == statusPair.first }
@@ -304,37 +315,19 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
             } else {
                 null
             }
-            uiCtx {
+            withContext(Dispatchers.Main) {
                 if (dnsStatusId != null && isDnsError(dnsStatusId)) {
-                    // check for dns failure cases and update the UI
-                    b.statusText.text = getString(R.string.status_failing)
-                        .replaceFirstChar(Char::titlecase)
-                    b.interfaceDetailCard.strokeWidth = 2
-                    b.interfaceDetailCard.strokeColor = fetchColor(this, R.attr.chipTextNegative)
-                    return@uiCtx
-                } else if (statusPair.first != null) {
-                    val handshakeTime = getHandshakeTime(stats).toString()
-                    val statusText = getStatusText(ps, handshakeTime, stats, statusPair.second)
-                    b.statusText.text = statusText
-                } else {
-                    if (statusPair.second.isEmpty()) {
-                        b.statusText.text =
-                            getString(R.string.status_waiting).replaceFirstChar(Char::titlecase)
-                    } else {
-                        val txt =
-                            getString(R.string.status_waiting).replaceFirstChar(Char::titlecase) + " (${statusPair.second})"
-                        b.statusText.text = txt
-                    }
+                    statusText = getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
+                    statusColor = UIUtils.fetchColor(this@WgConfigDetailActivity, R.attr.chipTextNegative)
+                    return@withContext
                 }
-                val strokeColor = getStrokeColorForStatus(ps, stats)
-                b.interfaceDetailCard.strokeWidth = 2
-                b.interfaceDetailCard.strokeColor = fetchColor(this, strokeColor)
+                statusText = getStatusText(ps, getHandshakeTime(stats).toString(), stats, statusPair.second)
+                statusColor = UIUtils.fetchColor(this@WgConfigDetailActivity, getStrokeColorForStatus(ps, stats))
             }
         } else {
-            uiCtx {
-                b.interfaceDetailCard.strokeWidth = 0
-                b.statusText.text =
-                    getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase)
+            withContext(Dispatchers.Main) {
+                statusText = getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase)
+                statusColor = null
             }
         }
     }
@@ -343,7 +336,13 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         if (statusId == null) return true
 
         val s = Transaction.Status.fromId(statusId)
-        return s == Transaction.Status.BAD_QUERY || s == Transaction.Status.BAD_RESPONSE || s == Transaction.Status.NO_RESPONSE || s == Transaction.Status.SEND_FAIL || s == Transaction.Status.CLIENT_ERROR || s == Transaction.Status.INTERNAL_ERROR || s == Transaction.Status.TRANSPORT_ERROR
+        return s == Transaction.Status.BAD_QUERY ||
+            s == Transaction.Status.BAD_RESPONSE ||
+            s == Transaction.Status.NO_RESPONSE ||
+            s == Transaction.Status.SEND_FAIL ||
+            s == Transaction.Status.CLIENT_ERROR ||
+            s == Transaction.Status.INTERNAL_ERROR ||
+            s == Transaction.Status.TRANSPORT_ERROR
     }
 
     private fun getStatusText(
@@ -361,7 +360,6 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
             return txt.replaceFirstChar(Char::titlecase)
         }
 
-        // no need to check for lastOk/since for paused wg
         if (status == UIUtils.ProxyStatus.TPU) {
             return getString(UIUtils.getProxyStatusStringRes(status.id))
                 .replaceFirstChar(Char::titlecase)
@@ -392,7 +390,6 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
             return ""
         }
         val now = System.currentTimeMillis()
-        // returns a string describing 'time' as a time relative to 'now'
         return DateUtils.getRelativeTimeSpanString(
             stats.lastOK,
             now,
@@ -409,7 +406,7 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         return when (status) {
             UIUtils.ProxyStatus.TOK -> if (isFailing) R.attr.chipTextNeutral else R.attr.accentGood
             UIUtils.ProxyStatus.TUP, UIUtils.ProxyStatus.TZZ, UIUtils.ProxyStatus.TNT -> R.attr.chipTextNeutral
-            else -> R.attr.chipTextNegative // TKO, TEND
+            else -> R.attr.chipTextNegative
         }
     }
 
@@ -428,231 +425,11 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         dialog.show()
     }
 
-    private fun shouldObserveAppsCount(): Boolean {
-        return !wgType.isOneWg() && !b.catchAllCheck.isChecked
-    }
-
-    private fun prefillConfig(config: Config) {
-        wgInterface = config.getInterface()
-        peers.clear()
-        peers.addAll(config.getPeers() ?: emptyList())
-        if (wgInterface == null) {
-            return
-        }
-        b.configNameText.visibility = View.VISIBLE
-        b.configNameText.text = config.getName()
-        b.configIdText.text =
-            getString(R.string.single_argument_parenthesis, config.getId().toString())
-
-        setPeersAdapter()
-        // show dns servers if in one-wg mode
-        if (wgType.isOneWg()) {
-            b.dnsServersLabel.visibility = View.VISIBLE
-            b.dnsServersText.visibility = View.VISIBLE
-            var dns = wgInterface?.dnsServers?.joinToString { it.hostAddress?.toString() ?: "" }
-            val searchDomains = wgInterface?.dnsSearchDomains?.joinToString { it }
-            dns =
-                if (!searchDomains.isNullOrEmpty()) {
-                    "$dns,$searchDomains"
-                } else {
-                    dns
-                }
-            b.dnsServersText.text = dns
-        } else {
-            b.publicKeyLabel.visibility = View.VISIBLE
-            b.publicKeyText.visibility = View.VISIBLE
-            b.publicKeyText.text = wgInterface?.getKeyPair()?.getPublicKey()?.base64().tos()
-            b.dnsServersLabel.visibility = View.GONE
-            b.dnsServersText.visibility = View.GONE
-        }
-
-        // uncomment this if we want to show the public key, addresses, listen port and mtu
-        /*b.publicKeyText.text = wgInterface?.getKeyPair()?.getPublicKey()?.base64()
-
-        if (wgInterface?.getAddresses()?.isEmpty() == true) {
-            b.addressesLabel.visibility = View.GONE
-            b.addressesText.visibility = View.GONE
-        } else {
-            b.addressesText.text = wgInterface?.getAddresses()?.joinToString { it.toString() }
-        }*/
-
-        /*if (wgInterface?.dnsServers?.isEmpty() == true) {
-                    b.dnsServersText.visibility = View.GONE
-              b.dnsServersLabel.visibility = View.GONE
-                } else {
-                    b.dnsServersText.text =
-                        wgInterface?.dnsServers?.joinToString { it.hostAddress?.toString() ?: "" }
-                }
-        if (wgInterface?.listenPort?.isPresent == true) {
-            b.listenPortText.text = wgInterface?.listenPort?.get().toString()
-        } else {
-            b.listenPortLabel.visibility = View.GONE
-            b.listenPortText.visibility = View.GONE
-        }
-        if (wgInterface?.mtu?.isPresent == true) {
-            b.mtuText.text = wgInterface?.mtu?.get().toString()
-        } else {
-            b.mtuLabel.visibility = View.GONE
-            b.mtuText.visibility = View.GONE
-        }*/
-    }
-
-    private fun handleAppsCount() {
-        val id = ID_WG_BASE + configId
-        b.applicationsBtn.isEnabled = true
-        mappingViewModel.getAppCountById(id).observe(this) {
-            if (it == 0) {
-                b.applicationsBtn.setTextColor(fetchColor(this, R.attr.accentBad))
-            } else {
-                b.applicationsBtn.setTextColor(fetchColor(this, R.attr.accentGood))
-            }
-            b.applicationsBtn.text = getString(R.string.add_remove_apps, it.toString())
-            b.appsLabel.text = "Apps ($it)"
-        }
-    }
-
-    private fun setupClickListeners() {
-        b.editBtn.setOnClickListener {
-            val intent = Intent(this, WgConfigEditorActivity::class.java)
-            intent.putExtra(WgConfigEditorActivity.INTENT_EXTRA_WG_ID, configId)
-            intent.putExtra(INTENT_EXTRA_WG_TYPE, wgType.value)
-            this.startActivity(intent)
-        }
-
-        b.addPeerFab.setOnClickListener { openAddPeerDialog() }
-
-        b.applicationsBtn.setOnClickListener {
-            val proxyName = WireguardManager.getConfigName(configId)
-            openAppsDialog(proxyName)
-        }
-
-        b.deleteBtn.setOnClickListener { showDeleteInterfaceDialog() }
-
-        /*b.newConfLayout.setOnClickListener {
-            b.newConfProgressBar.visibility = View.VISIBLE
-            io { createConfigOrShowErrorLayout() }
-        }*/
-
-        b.publicKeyLabel.setOnClickListener {
-            UIUtils.clipboardCopy(this, b.publicKeyText.text.toString(), CLIPBOARD_PUBLIC_KEY_LBL)
-            Utilities.showToastUiCentered(
-                this,
-                getString(R.string.public_key_copy_toast_msg),
-                Toast.LENGTH_SHORT
-            )
-        }
-
-        b.publicKeyText.setOnClickListener {
-            UIUtils.clipboardCopy(this, b.publicKeyText.text.toString(), CLIPBOARD_PUBLIC_KEY_LBL)
-            Utilities.showToastUiCentered(
-                this,
-                getString(R.string.public_key_copy_toast_msg),
-                Toast.LENGTH_SHORT
-            )
-        }
-
-        b.catchAllRl.setOnClickListener {
-            b.catchAllCheck.isChecked = !b.catchAllCheck.isChecked
-            updateCatchAll(b.catchAllCheck.isChecked)
-        }
-
-        b.catchAllCheck.setOnClickListener { updateCatchAll(b.catchAllCheck.isChecked) }
-
-        b.useMobileRl.setOnClickListener {
-            b.useMobileCheck.callOnClick()
-        }
-
-        b.useMobileCheck.setOnClickListener {
-            val sid = ID_WG_BASE + configId
-            if (WgHopManager.isAlreadyHop(sid)) {
-                Utilities.showToastUiCentered(
-                    this,
-                    getString(R.string.wg_mobile_only_hop_err),
-                    Toast.LENGTH_LONG
-                )
-                b.useMobileCheck.isChecked = !b.useMobileCheck.isChecked
-                return@setOnClickListener
-            }
-            updateUseOnMobileNetwork(b.useMobileCheck.isChecked)
-            if (b.useMobileCheck.isChecked) {
-                // Enable experimental-dependent settings when experimental features are enabled
-                persistentState.enableStabilityDependentSettings(this)
-            }
-        }
-
-        b.logsBtn.setOnClickListener {
-            startActivity(ID_WG_BASE + configId)
-        }
-
-        b.hopBtn.setOnClickListener {
-            val mapping = WireguardManager.getConfigFilesById(configId)
-            if (mapping == null) {
-                showInvalidConfigDialog()
-                return@setOnClickListener
-            }
-
-            if (mapping.isActive || mapping.isCatchAll) {
-                io {
-                    val sid = ID_WG_BASE + configId
-                    val isVia = WgHopManager.isAlreadyHop(sid)
-                    if (isVia) {
-                        uiCtx {
-                            Utilities.showToastUiCentered(
-                                this,
-                                getString(
-                                    R.string.hop_error_toast_msg_1,
-                                    getString(R.string.lbl_hop)
-                                ),
-                                Toast.LENGTH_LONG
-                            )
-                        }
-                        return@io
-                    }
-                    val hopId = WgHopManager.getHop(configId)
-                    Logger.d(LOG_TAG_PROXY, "hop result: $hopId")
-                    val iid = convertStringIdToId(hopId)
-                    val hopables = WgHopManager.getHopableWgs(configId)
-                    uiCtx {
-                        if (hopables.isEmpty()) {
-                            Utilities.showToastUiCentered(
-                                this,
-                                getString(R.string.hop_error_toast_msg_2),
-                                Toast.LENGTH_LONG
-                            )
-                        } else {
-                            openHopDialog(hopables, iid)
-                        }
-                    }
-                }
-            } else {
-                Utilities.showToastUiCentered(
-                    this,
-                    getString(R.string.wireguard_no_config_msg),
-                    Toast.LENGTH_SHORT
-                )
-            }
-        }
-    }
-
-    private fun convertStringIdToId(id: String): Int {
-        return try {
-            val configId = id.substring(ID_WG_BASE.length)
-            configId.toIntOrNull() ?: INVALID_CONF_ID
-        } catch (_: Exception) {
-            Logger.i(LOG_TAG_PROXY, "err converting string id to int: $id")
-            INVALID_CONF_ID
-        }
-    }
-
-    private fun startActivity(searchParam: String?) {
-        val intent = Intent(this, NetworkLogsActivity::class.java)
-        val query = RULES_SEARCH_ID_WIREGUARD + searchParam
-        intent.putExtra(Constants.SEARCH_QUERY, query)
-        startActivity(intent)
-    }
-
     private fun updateUseOnMobileNetwork(enabled: Boolean) {
-        io { WireguardManager.updateUseOnMobileNetworkConfig(configId, enabled) }
+        useMobileEnabled = enabled
+        lifecycleScope.launch(Dispatchers.IO) {
+            WireguardManager.updateUseOnMobileNetworkConfig(configId, enabled)
+        }
         logEvent(
             "WireGuard Use on Mobile Networks",
             "User ${if (enabled) "enabled" else "disabled"} use on mobile networks for WireGuard config with id $configId"
@@ -660,67 +437,55 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
     }
 
     private fun updateCatchAll(enabled: Boolean) {
-        io {
+        catchAllEnabled = enabled
+        lifecycleScope.launch(Dispatchers.IO) {
             if (!VpnController.hasTunnel()) {
-                uiCtx {
+                withContext(Dispatchers.Main) {
+                    catchAllEnabled = !enabled
                     Utilities.showToastUiCentered(
-                        this,
+                        this@WgConfigDetailActivity,
                         ERR_CODE_VPN_NOT_ACTIVE + getString(R.string.settings_socks5_vpn_disabled_error),
                         Toast.LENGTH_LONG
                     )
-                    b.catchAllCheck.isChecked = !enabled
                 }
-                return@io
+                return@launch
             }
 
             if (!WireguardManager.canEnableProxy()) {
-                Logger.i(
-                    LOG_TAG_PROXY,
-                    "not in DNS+Firewall mode, cannot enable WireGuard"
-                )
-                uiCtx {
-                    // reset the check box
-                    b.catchAllCheck.isChecked = false
+                withContext(Dispatchers.Main) {
+                    catchAllEnabled = false
                     Utilities.showToastUiCentered(
-                        this,
+                        this@WgConfigDetailActivity,
                         ERR_CODE_VPN_NOT_FULL + getString(R.string.wireguard_enabled_failure),
                         Toast.LENGTH_LONG
                     )
                 }
-                return@io
+                return@launch
             }
 
             if (WireguardManager.oneWireGuardEnabled()) {
-                // this should not happen, ui is disabled if one wireGuard is enabled
-                Logger.w(LOG_TAG_PROXY, "one wireGuard is already enabled")
-                uiCtx {
-                    // reset the check box
-                    b.catchAllCheck.isChecked = false
+                withContext(Dispatchers.Main) {
+                    catchAllEnabled = false
                     Utilities.showToastUiCentered(
-                        this,
-                        ERR_CODE_OTHER_WG_ACTIVE + getString(
-                            R.string.wireguard_enabled_failure
-                        ),
+                        this@WgConfigDetailActivity,
+                        ERR_CODE_OTHER_WG_ACTIVE + getString(R.string.wireguard_enabled_failure),
                         Toast.LENGTH_LONG
                     )
                 }
-                return@io
+                return@launch
             }
 
-
-            val config = WireguardManager.getConfigFilesById(configId)
-            if (config == null) {
-                Logger.e(LOG_TAG_PROXY, "updateCatchAll: config not found for $configId")
-                uiCtx {
-                    // reset the check box
-                    b.catchAllCheck.isChecked = false
+            val cfg = WireguardManager.getConfigFilesById(configId)
+            if (cfg == null) {
+                withContext(Dispatchers.Main) {
+                    catchAllEnabled = false
                     Utilities.showToastUiCentered(
-                        this,
+                        this@WgConfigDetailActivity,
                         ERR_CODE_WG_INVALID + getString(R.string.wireguard_enabled_failure),
                         Toast.LENGTH_LONG
                     )
                 }
-                return@io
+                return@launch
             }
 
             WireguardManager.updateCatchAllConfig(configId, enabled)
@@ -728,20 +493,24 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
                 "WireGuard Catch All apps",
                 "User ${if (enabled) "enabled" else "disabled"} catch all apps for WireGuard config with id $configId"
             )
-            uiCtx {
-                b.applicationsBtn.isEnabled = !enabled
-                if (enabled) {
-                    b.applicationsBtn.text = getString(R.string.routing_remaining_apps)
-                } else {
-                    handleAppsCount()
-                }
-            }
+        }
+    }
+
+    private fun toggleSsid(enabled: Boolean) {
+        ssidEnabled = enabled
+        if (!SsidPermissionManager.hasRequiredPermissions(this) || !SsidPermissionManager.isLocationEnabled(this)) {
+            ssidEnabled = false
+            showSsidPermissionExplanationDialog()
+            return
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            WireguardManager.updateSsidEnabled(configId, enabled)
         }
     }
 
     private fun openAppsDialog(proxyName: String) {
         val proxyId = ID_WG_BASE + configId
-        val appsAdapter = WgIncludeAppsAdapter(this, proxyId, proxyName)
+        val appsAdapter = com.celzero.bravedns.adapter.WgIncludeAppsAdapter(this, proxyId, proxyName)
         mappingViewModel.apps.observe(this) { appsAdapter.submitData(lifecycle, it) }
         var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
         if (Themes.isFrostTheme(themeId)) {
@@ -753,23 +522,28 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         includeAppsDialog.show()
     }
 
-    private fun openHopDialog(hopables: List<Config>, selectedId: Int) {
-        val curr = WireguardManager.getConfigById(configId)
-        if (curr == null) {
-            Utilities.showToastUiCentered(
-                this,
-                getString(R.string.config_invalid_desc),
-                Toast.LENGTH_SHORT
-            )
-            return
+    private fun openHopDialog() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            val hopables = WgHopManager.getHopableWgs(configId)
+            val selectedId = convertStringIdToId(WgHopManager.getHop(configId))
+            withContext(Dispatchers.Main) {
+                var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
+                if (Themes.isFrostTheme(themeId)) {
+                    themeId = R.style.App_Dialog_NoDim
+                }
+                val hopDialog = WgHopDialog(this@WgConfigDetailActivity, themeId, configId, hopables, selectedId)
+                hopDialog.setCanceledOnTouchOutside(false)
+                hopDialog.show()
+            }
         }
-        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-        if (Themes.isFrostTheme(themeId)) {
-            themeId = R.style.App_Dialog_NoDim
+    }
+
+    private fun convertStringIdToId(id: String): Int {
+        return try {
+            id.removePrefix(ID_WG_BASE).toIntOrNull() ?: INVALID_CONF_ID
+        } catch (_: Exception) {
+            INVALID_CONF_ID
         }
-        val hopDialog = WgHopDialog(this, themeId, configId, hopables, selectedId)
-        hopDialog.setCanceledOnTouchOutside(false)
-        hopDialog.show()
     }
 
     private fun showDeleteInterfaceDialog() {
@@ -784,11 +558,11 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         builder.setMessage(getString(R.string.config_delete_dialog_desc))
         builder.setCancelable(true)
         builder.setPositiveButton(delText) { _, _ ->
-            io {
+            lifecycleScope.launch(Dispatchers.IO) {
                 WireguardManager.deleteConfig(configId)
-                uiCtx {
+                withContext(Dispatchers.Main) {
                     Utilities.showToastUiCentered(
-                        this,
+                        this@WgConfigDetailActivity,
                         getString(R.string.config_add_success_toast),
                         Toast.LENGTH_SHORT
                     )
@@ -814,189 +588,15 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         addPeerDialog.setCanceledOnTouchOutside(false)
         addPeerDialog.show()
         addPeerDialog.setOnDismissListener {
-            if (wgPeersAdapter != null) {
-                wgPeersAdapter?.dataChanged()
-            } else {
-                setPeersAdapter()
-            }
+            lifecycleScope.launch { refreshConfig() }
         }
     }
 
-    private fun setPeersAdapter() {
-        layoutManager = LinearLayoutManager(this)
-        b.peersList.layoutManager = layoutManager
-        val themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-        wgPeersAdapter = WgPeersAdapter(this, themeId, configId, peers)
-        b.peersList.adapter = wgPeersAdapter
-    }
-
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
-    }
-
-    private fun io(f: suspend () -> Unit) {
-        lifecycleScope.launch(Dispatchers.IO) { f() }
-    }
-
-    private fun ui(f: suspend () -> Unit) {
-        if (isFinishing || isDestroyed) return
-
-        lifecycleScope.launch(Dispatchers.Main) { f() }
-    }
-
-    // SSID section setup
-    private fun setupSsidSection(cfg: WgConfigFilesImmutable?) {
-        val sw = b.ssidCheck
-        val editGroup = b.ssidEditGroup
-        val displayGroup = b.ssidDisplayGroup
-        val editBtn: AppCompatImageView = b.ssidEditBtn
-        val valueTv = b.ssidValueTv
-        val layout = b.ssidFilterRl
-        val permissionErrorLayout = b.ssidPermissionErrorLayout
-        val locationErrorLayout = b.ssidLocationErrorLayout
-
-        if (cfg == null) {
-            hideSsidExtras(editGroup, displayGroup)
-            hideErrorLayouts(permissionErrorLayout, locationErrorLayout)
-            sw.isEnabled = false
-            Logger.w(LOG_TAG_UI, "setupSsidSection: cfg is null for $configId")
-            return
-        }
-
-        // Check if device supports required features
-        if (!SsidPermissionManager.isDeviceSupported(this)) {
-            hideSsidExtras(editGroup, displayGroup)
-            hideErrorLayouts(permissionErrorLayout, locationErrorLayout)
-            sw.isEnabled = false
-            layout.visibility = View.GONE
-            Logger.w(LOG_TAG_UI, "setupSsidSection: device not supported for SSID feature")
-            return
-        }
-
-        // Always keep the switch enabled
-        sw.isEnabled = true
-        layout.visibility = View.VISIBLE
-
-        // Check permissions and location services
-        val hasPermissions = SsidPermissionManager.hasRequiredPermissions(this)
-        val isLocationEnabled = SsidPermissionManager.isLocationEnabled(this)
-
-        val enabled = cfg.ssidEnabled
-        val ssidItems = SsidItem.parseStorageList(cfg.ssids)
-        sw.isChecked = enabled
-
-        if (enabled && hasPermissions && isLocationEnabled) {
-            // SSID is enabled and we have all necessary permissions/location
-            if (ssidItems.isEmpty()) {
-                val txt = getString(R.string.two_argument_space, getString(R.string.lbl_all), getString(R.string.lbl_ssids))
-                val allTxt = getString(R.string.single_argument_parenthesis, txt)
-                valueTv.text = allTxt
-                showSsidDisplay(editGroup, displayGroup)
-            } else {
-                val displayText =
-                    ssidItems.joinToString(", ") { "${it.name} (${it.type.getDisplayName(this)})" }
-                valueTv.text = displayText
-                showSsidDisplay(editGroup, displayGroup)
-            }
-        } else {
-            // Hide SSID display/edit groups when disabled or missing permissions
-            hideSsidExtras(editGroup, displayGroup)
-        }
-
-        Logger.d(LOG_TAG_UI, "SSID permissions: $hasPermissions, Location enabled: $isLocationEnabled, checked: ${b.ssidCheck.isChecked}")
-        // Show/hide error layouts based on permission and location status
-        updateErrorLayouts(hasPermissions, isLocationEnabled, permissionErrorLayout, locationErrorLayout)
-
-        sw.setOnCheckedChangeListener { _, isChecked ->
-            // Check current permissions and location status dynamically
-            val currentHasPermissions = SsidPermissionManager.hasRequiredPermissions(this)
-            val currentLocationEnabled = SsidPermissionManager.isLocationEnabled(this)
-
-            // Check permissions before enabling SSID feature
-            if (isChecked && !currentHasPermissions) {
-                // Don't reset the switch, just request permissions
-                SsidPermissionManager.checkAndRequestPermissions(this, ssidPermissionCallback)
-                Logger.d(LOG_TAG_UI, "SSID permissions not granted, requesting...")
-                return@setOnCheckedChangeListener
-            }
-
-            // Check if location services are enabled
-            if (isChecked && !currentLocationEnabled) {
-                // Don't reset the switch, just prompt user to enable location
-                showLocationEnableDialog()
-                Logger.d(LOG_TAG_UI, "Location services not enabled, prompting user...")
-                return@setOnCheckedChangeListener
-            }
-
-            // If we reach here, either we're disabling or we have all required permissions
-            io { WireguardManager.updateSsidEnabled(configId, isChecked) }
-            logEvent(
-                "SSID feature toggled",
-                "ConfigId: $configId, Enabled: $isChecked"
-            )
-
-            if (isChecked && currentHasPermissions && currentLocationEnabled) {
-                // Enable experimental-dependent settings when experimental features are enabled
-                persistentState.enableStabilityDependentSettings(this)
-
-                // Enabling with proper permissions, load and display SSIDs
-                io {
-                    val cur = WireguardManager.getConfigFilesById(configId)?.ssids ?: ""
-                    val list = SsidItem.parseStorageList(cur)
-                    uiCtx {
-                        if (list.isEmpty()) {
-                            val allTxt = getString(R.string.two_argument_space, getString(R.string.lbl_all), getString(R.string.lbl_ssids))
-                            valueTv.text = allTxt
-                            showSsidDisplay(editGroup, displayGroup)
-                        } else {
-                            val displayText =
-                                list.joinToString(", ") { "${it.name} (${it.type.getDisplayName(this@WgConfigDetailActivity)})" }
-                            valueTv.text = displayText
-                            showSsidDisplay(editGroup, displayGroup)
-                        }
-                    }
-                }
-                Logger.i(LOG_TAG_UI, "SSID feature enabled for configId: $configId")
-            } else {
-                // Disabling SSID feature
-                hideSsidExtras(editGroup, displayGroup)
-                Logger.i(LOG_TAG_UI, "SSID feature disabled for configId: $configId")
-            }
-
-            // Update error layouts after state change with current permission status
-            updateErrorLayouts(currentHasPermissions, currentLocationEnabled, permissionErrorLayout, locationErrorLayout)
-        }
-
-        layout.setOnClickListener { sw.performClick() }
-
-        editBtn.setOnClickListener {
-            openSsidDialog()
-        }
-
-        // Setup click listeners for error action buttons
-        setupErrorActionListeners()
-    }
-
-    private fun setupErrorActionListeners() {
-        // Permission error action - opens app settings
-        b.ssidPermissionErrorAction.setOnClickListener {
-            openAndroidAppInfo(this, this.packageName)
-        }
-
-        // Location error action - opens location settings
-        b.ssidLocationErrorAction.setOnClickListener {
-            SsidPermissionManager.requestLocationEnable(this)
-        }
-    }
-
-    private fun hideSsidExtras(editGroup: LinearLayout, displayGroup: LinearLayout) {
-        editGroup.visibility = View.GONE
-        displayGroup.visibility = View.GONE
-    }
-
-    private fun showSsidDisplay(editGroup: LinearLayout, displayGroup: LinearLayout) {
-        editGroup.visibility = View.GONE
-        displayGroup.visibility = View.VISIBLE
+    private fun openEditConfig() {
+        val intent = Intent(this, WgConfigEditorActivity::class.java)
+        intent.putExtra(WgConfigEditorActivity.INTENT_EXTRA_WG_ID, configId)
+        intent.putExtra(INTENT_EXTRA_WG_TYPE, wgType.value)
+        startActivity(intent)
     }
 
     private fun openSsidDialog() {
@@ -1006,125 +606,40 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
             themeId = R.style.App_Dialog_NoDim
         }
         val ssidDialog = WgSsidDialog(this, themeId, currentSsids) { newSsids ->
-            // Save callback - update the SSID configuration
-            io {
+            lifecycleScope.launch(Dispatchers.IO) {
                 WireguardManager.updateSsids(configId, newSsids)
-                // Refresh SSID section after saving
-                uiCtx {
-                    val cfg = WireguardManager.getConfigFilesById(configId)
-                    setupSsidSection(cfg)
+                val cfg = WireguardManager.getConfigFilesById(configId)
+                withContext(Dispatchers.Main) {
+                    ssids = SsidItem.parseStorageList(cfg?.ssids ?: "")
                 }
             }
         }
         ssidDialog.setCanceledOnTouchOutside(false)
         ssidDialog.show()
-        ssidDialog.setOnDismissListener {
-            // Refresh SSID section after dialog dismisses
-            val cfg = WireguardManager.getConfigFilesById(configId)
-            setupSsidSection(cfg)
-        }
-    }
-
-    private fun showLocationEnableDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(getString(R.string.ssid_location_error))
-        builder.setMessage(getString(R.string.location_enable_explanation, getString(R.string.lbl_ssids)))
-        builder.setCancelable(true)
-        builder.setPositiveButton(getString(R.string.ssid_location_error_action)) { dialog, _ ->
-            SsidPermissionManager.requestLocationEnable(this)
-            dialog.dismiss()
-            Logger.vv(LOG_TAG_UI, "Prompted user to enable location services, opening settings...")
-        }
-        builder.setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
-            // Reset the SSID switch since location is required
-            b.ssidCheck.isChecked = false
-            io { WireguardManager.updateSsidEnabled(configId, false) }
-            logEvent("SSID location denied", "User denied enabling location services for configId: $configId")
-        }
-        val dialog = builder.create()
-        dialog.show()
     }
 
     private fun showSsidPermissionExplanationDialog() {
         val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(getString(R.string.ssid_permission_error_action))
-        builder.setMessage(getString(R.string.ssid_permission_explanation, getString(R.string.lbl_ssids)))
-        builder.setCancelable(true)
-        builder.setPositiveButton(getString(R.string.ssid_permission_error_action)) { dialog, _ ->
-            SsidPermissionManager.requestSsidPermissions(this)
-            dialog.dismiss()
-            Logger.vv(LOG_TAG_UI, "Showing SSID permission rationale dialog, requesting permissions...")
-        }
-        builder.setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
-            // Reset the SSID switch since permissions are required
-            b.ssidCheck.isChecked = false
-            io { WireguardManager.updateSsidEnabled(configId, false) }
-            logEvent("SSID permission denied", "User denied SSID permissions for configId: $configId")
-        }
-        val dialog = builder.create()
-        dialog.show()
-    }
-
-    private fun updateErrorLayouts(
-        hasPermissions: Boolean,
-        isLocationEnabled: Boolean,
-        permissionErrorLayout: LinearLayout,
-        locationErrorLayout: LinearLayout
-    ) {
-        val sw = b.ssidCheck
-
-        // Show permission error if SSID is enabled but permissions are missing
-        if (sw.isChecked && !hasPermissions) {
-            Logger.vv(LOG_TAG_UI, "Showing permission error layout")
-            permissionErrorLayout.visibility = View.VISIBLE
-        } else {
-            permissionErrorLayout.visibility = View.GONE
-        }
-
-        // Show location error if SSID is enabled and has permissions but location is disabled
-        if (sw.isChecked && hasPermissions && !isLocationEnabled) {
-            Logger.vv(LOG_TAG_UI, "Showing location error layout")
-            locationErrorLayout.visibility = View.VISIBLE
-        } else {
-            locationErrorLayout.visibility = View.GONE
-        }
-    }
-
-    private fun hideErrorLayouts(
-        permissionErrorLayout: LinearLayout,
-        locationErrorLayout: LinearLayout
-    ) {
-        Logger.vv(LOG_TAG_UI, "Hiding all SSID error layouts")
-        permissionErrorLayout.visibility = View.GONE
-        locationErrorLayout.visibility = View.GONE
-    }
-
-    private fun updateSsidPermissionState(hasPermissions: Boolean) {
-        // This method can be used to update UI state when permissions change
-        // Currently handled by setupSsidSection being called from callback
-        val cfg = WireguardManager.getConfigFilesById(configId)
-        setupSsidSection(cfg)
-    }
-
-    private fun showPermissionDeniedDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(getString(R.string.ssid_permission_error_action))
+        builder.setTitle(getString(R.string.lbl_ssid))
         builder.setMessage(SsidPermissionManager.getPermissionExplanation(this))
         builder.setCancelable(true)
-        builder.setPositiveButton(getString(R.string.ssid_permission_error_action)) { _, _ ->
-            SsidPermissionManager.openAppSettings(this)
+        builder.setPositiveButton(getString(R.string.fapps_info_dialog_positive_btn)) { _, _ ->
+            SsidPermissionManager.requestSsidPermissions(this)
         }
         builder.setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
-            // Reset the SSID switch since permissions are required
-            b.ssidCheck.isChecked = false
-            io { WireguardManager.updateSsidEnabled(configId, false) }
-            logEvent("SSID permission denied", "User denied SSID permissions for configId: $configId")
+            lifecycleScope.launch(Dispatchers.IO) { WireguardManager.updateSsidEnabled(configId, false) }
         }
-        val dialog = builder.create()
-        dialog.show()
+        builder.create().show()
     }
 
     private fun logEvent(msg: String, details: String) {
-        eventLogger.log(EventType.PROXY_SWITCH, Severity.LOW, msg, EventSource.UI, false, details)
+        eventLogger.log(
+            type = EventType.PROXY_SWITCH,
+            severity = Severity.LOW,
+            message = msg,
+            source = EventSource.MANAGER,
+            userAction = true,
+            details = details
+        )
     }
 }

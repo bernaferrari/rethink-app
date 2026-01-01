@@ -125,7 +125,7 @@ class ConnectionTrackerAdapter(private val context: Context) :
     }
 
     @Composable
-    private fun ConnectionRow(ct: ConnectionTracker) {
+    fun ConnectionRow(ct: ConnectionTracker) {
         val time = Utilities.convertLongToTime(ct.timeStamp, TIME_FORMAT_1)
         val protocolLabel = protocolLabel(ct.port, ct.protocol)
         val indicatorColor = hintColor(ct)

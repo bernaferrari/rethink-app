@@ -15,78 +15,104 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import Logger
-import Logger.LOG_TAG_UI
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.View
-import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.CompoundButton
-import android.widget.SeekBar
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.AppCompatRadioButton
-import androidx.appcompat.widget.AppCompatTextView
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.NetworkCheck
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
-import com.celzero.bravedns.databinding.ActivityTunnelSettingsBinding
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.dialog.NetworkReachabilityDialog
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.InternetProtocol
 import com.celzero.bravedns.util.NewSettingsManager
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
-import com.celzero.bravedns.util.UIUtils.setBadgeDotVisible
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.aakira.napier.Napier
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
 
-class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settings) {
-    private val b by viewBinding(ActivityTunnelSettingsBinding::bind)
+class TunnelSettingsActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
     private val appConfig by inject<AppConfig>()
     private val eventLogger by inject<EventLogger>()
 
+    private var isLockdown by mutableStateOf(false)
+
     companion object {
-        // Time conversion constants
         private const val SECONDS_PER_MINUTE = 60
         private const val SECONDS_PER_HOUR = 3600
 
-        // Network policy indices
         private const val POLICY_AUTO = 0
         private const val POLICY_SENSITIVE = 1
         private const val POLICY_RELAXED = 2
         private const val POLICY_FIXED = 3
 
-        // IP protocol dialog positions
         private const val IP_DIALOG_POS_IPV4 = 0
         private const val IP_DIALOG_POS_IPV6 = 1
         private const val IP_DIALOG_POS_ALWAYS_V46 = 2
         private const val IP_DIALOG_POS_V46 = 3
 
-        // Alpha values for UI elements
         private const val ALPHA_ENABLED = 1f
         private const val ALPHA_DISABLED = 0.5f
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         theme.applyStyle(Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme), true)
-        //setTheme(Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme))
         super.onCreate(savedInstanceState)
 
         handleFrostEffectIfNeeded(persistentState.theme)
@@ -97,8 +123,18 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
             window.isNavigationBarContrastEnforced = false
         }
 
-        initView()
-        setupClickListeners()
+        isLockdown = VpnController.isVpnLockdown()
+
+        setContent {
+            RethinkTheme {
+                TunnelSettingsScreen()
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        isLockdown = VpnController.isVpnLockdown()
     }
 
     private fun Context.isDarkThemeOn(): Boolean {
@@ -106,462 +142,426 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
             Configuration.UI_MODE_NIGHT_YES
     }
 
-    override fun onResume() {
-        super.onResume()
-        handleLockdownModeIfNeeded()
-        showNewBadgeIfNeeded()
-    }
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun TunnelSettingsScreen() {
+        var allowBypass by remember { mutableStateOf(persistentState.allowBypass) }
+        var allowBypassLoading by remember { mutableStateOf(false) }
+        var useMultipleNetworks by remember { mutableStateOf(persistentState.useMultipleNetworks) }
+        var routeLan by remember { mutableStateOf(persistentState.privateIps) }
+        var excludeApps by remember { mutableStateOf(!persistentState.excludeAppsInProxy) }
+        var stallNoNetwork by remember { mutableStateOf(persistentState.stallOnNoNetwork) }
+        var protocolTranslation by remember { mutableStateOf(persistentState.protocolTranslationType) }
+        var meteredOnlyMobile by remember { mutableStateOf(persistentState.treatOnlyMobileNetworkAsMetered) }
+        var listenPortFixed by remember { mutableStateOf(!persistentState.randomizeListenPort) }
+        var wgLockdown by remember { mutableStateOf(persistentState.wgGlobalLockdown) }
+        var endpointIndependence by remember { mutableStateOf(persistentState.endpointIndependence) }
+        var allowIncoming by remember { mutableStateOf(persistentState.nwEngExperimentalFeatures) }
+        var tcpKeepAlive by remember { mutableStateOf(persistentState.tcpKeepAlive) }
+        var useMaxMtu by remember { mutableStateOf(persistentState.useMaxMtu) }
+        var tunnelMetered by remember { mutableStateOf(persistentState.setVpnBuilderToMetered) }
+        var dialTimeoutMin by remember { mutableStateOf(persistentState.dialTimeoutSec / SECONDS_PER_MINUTE) }
+        var internetProtocol by remember { mutableStateOf(persistentState.internetProtocolType) }
+        var vpnPolicy by remember { mutableStateOf(persistentState.vpnBuilderPolicy) }
+        var connectivityChecks by remember { mutableStateOf(persistentState.connectivityChecks) }
 
-    private fun showNewBadgeIfNeeded() {
-        val showBadge =
-            NewSettingsManager.shouldShowBadge(NewSettingsManager.WG_GLOBAL_LOCKDOWN_MODE_SETTING)
-        b.dvWgLockdownTxt.setBadgeDotVisible(this, showBadge)
-    }
+        val canModify = !isLockdown
+        val showPtrans = internetProtocol == InternetProtocol.IPv6.id
+        val showConnectivityChecks = internetProtocol == InternetProtocol.IPv46.id
+        val showPingIps = showConnectivityChecks && connectivityChecks
 
-    private fun initView() {
-        b.settingsActivityWireguardText.text = getString(R.string.settings_proxy_header).lowercase()
-        val text = getString(R.string.two_argument, getString(R.string.orbot_status_arg_2).lowercase(), getString(R.string.lbl_ip))
-        b.settingsActivityTcpText.text = text.lowercase()
-        b.dvWgAllowIncomingTxt.text = getString(R.string.two_argument_space, getString(R.string.settings_allow_incoming_wg_packets), getString(R.string.lbl_experimental))
-        b.settingsUseMaxMtuHeading.text = getString(R.string.two_argument_space, getString(R.string.settings_jumbo_packets), getString(R.string.lbl_experimental))
-
-        b.settingsActivityAllowBypassProgress.visibility = View.GONE
-        displayAllowBypassUi()
-        // use multiple networks
-        b.settingsActivityAllNetworkSwitch.isChecked = persistentState.useMultipleNetworks
-        // route lan traffic
-        b.settingsActivityLanTrafficSwitch.isChecked = persistentState.privateIps
-        // show ping ips
-        b.settingsActivityPingIpsBtn.visibility = if (persistentState.connectivityChecks) View.VISIBLE else View.GONE
-        // exclude apps in proxy
-        b.settingsActivityExcludeProxyAppsSwitch.isChecked = !persistentState.excludeAppsInProxy
-        // for protocol translation, enable only on DNS/DNS+Firewall mode
-        if (appConfig.getBraveMode().isDnsActive()) {
-            b.settingsActivityPtransSwitch.isChecked = persistentState.protocolTranslationType
-        } else {
-            persistentState.protocolTranslationType = false
-            b.settingsActivityPtransSwitch.isChecked = false
-        }
-
-        b.settingsActivityMobileMeteredSwitch.isChecked = persistentState.treatOnlyMobileNetworkAsMetered
-
-        b.settingsStallNoNwSwitch.isChecked = persistentState.stallOnNoNetwork
-
-        b.dvWgListenPortSwitch.isChecked = !persistentState.randomizeListenPort
-
-        b.dvWgLockdownSwitch.isChecked = persistentState.wgGlobalLockdown
-
-        // endpoint independent mapping (eim) / endpoint independent filtering (eif)
-        b.dvEimfSwitch.isChecked = persistentState.endpointIndependence
-        if (persistentState.endpointIndependence) {
-            b.dvWgAllowIncomingRl.visibility = View.VISIBLE
-            b.dvWgAllowIncomingTxt.text = getString(R.string.two_argument_space, getString(R.string.settings_allow_incoming_wg_packets), getString(R.string.lbl_experimental))
-            b.dvWgAllowIncomingSwitch.isChecked = persistentState.nwEngExperimentalFeatures
-        } else {
-            b.dvWgAllowIncomingRl.visibility = View.GONE
-        }
-
-        b.dvTcpKeepAliveSwitch.isChecked = persistentState.tcpKeepAlive
-        b.dvTimeoutSeekbar.progress = persistentState.dialTimeoutSec / SECONDS_PER_MINUTE
-
-        b.settingsUseMaxMtuSwitch.isChecked = persistentState.useMaxMtu
-
-        if (isAtleastQ()) {
-            b.settingsActivityTunnelMeteredRl.visibility = View.VISIBLE
-            b.settingsActivityTunnelMeteredSwitch.isChecked = persistentState.setVpnBuilderToMetered
-        } else {
-            b.settingsActivityTunnelMeteredRl.visibility = View.GONE
-        }
-
-        displayDialerTimeOutUi(persistentState.dialTimeoutSec)
-        displayInternetProtocolUi()
-        displayRethinkInRethinkUi()
-        showNwPolicyDescription(persistentState.vpnBuilderPolicy)
-        
-        // If Fixed policy is selected, disable jumbo packets and IP version settings
-        if (persistentState.vpnBuilderPolicy == POLICY_FIXED) {
-            b.settingsUseMaxMtuRl.isEnabled = false
-            b.settingsUseMaxMtuSwitch.isEnabled = false
-            b.settingsActivityIpRl.isEnabled = false
-        }
-    }
-
-
-    private fun displayDialerTimeOutUi(progressSec: Int) {
-        val displayText = formatTimeShort(progressSec)
-        b.dvTimeoutValue.text = displayText
-    }
-
-    private fun formatTimeShort(totalSeconds: Int): String {
-        val hours = totalSeconds / SECONDS_PER_HOUR
-        val minutes = (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE
-        val seconds = totalSeconds % SECONDS_PER_MINUTE
-
-        val parts = mutableListOf<String>()
-
-        if (hours > 0) parts.add("${hours}h")
-        if (minutes > 0) parts.add("${minutes}m")
-        if (seconds > 0) parts.add("${seconds}s")
-
-        return if (parts.isEmpty()) getString(R.string.lbl_disabled) else parts.joinToString(" ")
-    }
-
-    private fun updateDialerTimeOut(valueMin: Int) {
-        val inSec = valueMin * SECONDS_PER_MINUTE
-        persistentState.dialTimeoutSec = inSec
-        displayDialerTimeOutUi(inSec)
-    }
-
-    private fun displayAllowBypassUi() {
-        // allow apps part of the vpn to request networks outside of it, effectively letting it
-        // bypass the vpn itself
-        if (!Utilities.isPlayStoreFlavour()) {
-            b.settingsActivityAllowBypassRl.visibility = View.VISIBLE
-            b.settingsActivityAllowBypassDesc.visibility = View.VISIBLE
-            b.settingsActivityAllowBypassSwitch.visibility = View.VISIBLE
-            b.settingsActivityAllowBypassProgress.visibility = View.GONE
-
-            b.settingsActivityAllowBypassSwitch.isChecked = persistentState.allowBypass
-        } else {
-            b.settingsActivityAllowBypassRl.visibility = View.GONE
-            b.settingsActivityAllowBypassDesc.visibility = View.GONE
-            b.settingsActivityAllowBypassSwitch.visibility = View.GONE
-            b.settingsActivityAllowBypassProgress.visibility = View.GONE
-        }
-    }
-
-    private fun setupClickListeners() {
-        b.settingsActivityAllNetworkRl.setOnClickListener {
-            b.settingsActivityAllNetworkSwitch.isChecked =
-                !b.settingsActivityAllNetworkSwitch.isChecked
-        }
-
-        b.settingsActivityAllNetworkSwitch.setOnCheckedChangeListener {
-            _: CompoundButton,
-            b: Boolean ->
-            persistentState.useMultipleNetworks = b
-            if (b) {
-                persistentState.enableStabilityDependentSettings(this)
+        val ipDesc =
+            when (internetProtocol) {
+                InternetProtocol.IPv4.id -> getString(R.string.settings_ip_text_ipv4)
+                InternetProtocol.IPv6.id -> getString(R.string.settings_ip_text_ipv6)
+                InternetProtocol.IPv46.id -> getString(R.string.settings_ip_text_ipv46)
+                InternetProtocol.ALWAYSv46.id ->
+                    getString(R.string.settings_ip_text_ipv4) + " & " + getString(R.string.settings_ip_text_ipv6)
+                else -> getString(R.string.settings_ip_text_ipv4)
             }
-            if (!b && persistentState.routeRethinkInRethink) {
-                persistentState.routeRethinkInRethink = false
-                displayRethinkInRethinkUi()
+
+        val vpnPolicyDesc =
+            when (vpnPolicy) {
+                POLICY_AUTO -> getString(R.string.settings_ip_text_ipv46)
+                POLICY_SENSITIVE -> getString(R.string.vpn_policy_sensitive)
+                POLICY_RELAXED -> getString(R.string.vpn_policy_relaxed)
+                POLICY_FIXED -> getString(R.string.vpn_policy_fixed)
+                else -> getString(R.string.settings_ip_text_ipv46)
             }
-            logEvent(
-                "use all networks",
-                "Use all networks for VPN: $b"
-            )
-        }
 
-        b.settingsActivityExcludeProxyAppsSwitch.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.excludeAppsInProxy = !isChecked
-            logEvent(
-                "exclude apps in proxy",
-                "Exclude apps in proxy: ${!isChecked}"
-            )
-        }
+        val dialTimeoutDesc = formatTimeShort(dialTimeoutMin * SECONDS_PER_MINUTE)
 
-        b.settingsActivityExcludeProxyAppsRl.setOnClickListener {
-            b.settingsActivityExcludeProxyAppsSwitch.isChecked = !b.settingsActivityExcludeProxyAppsSwitch.isChecked
-        }
-
-        b.settingsRInRRl.setOnClickListener {
-            b.settingsRInRSwitch.isChecked = !b.settingsRInRSwitch.isChecked
-        }
-
-        b.settingsRInRSwitch.setOnCheckedChangeListener { _: CompoundButton, isChecked: Boolean ->
-            // show a dialog to enable use multiple networks if the user selects yes
-            // rinr will not work without multiple networks
-            // reason: ConnectivityManager.activeNetwork returns VPN network when rinr is enabled
-            if (isChecked && !persistentState.useMultipleNetworks) {
-                val alertBuilder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-                alertBuilder.setTitle(getString(R.string.settings_rinr_dialog_title))
-                val msg =
-                    getString(
-                        R.string.settings_rinr_dialog_desc,
-                        getString(R.string.settings_network_all_networks)
-                    )
-                alertBuilder.setMessage(msg)
-                alertBuilder.setCancelable(false)
-                alertBuilder.setPositiveButton(getString(R.string.lbl_proceed)) { dialog, _ ->
-                    dialog.dismiss()
-                    b.settingsActivityAllNetworkSwitch.isChecked = true
-                    persistentState.useMultipleNetworks = true
-                    persistentState.routeRethinkInRethink = true
-                    displayRethinkInRethinkUi()
-                    logEvent(
-                        "use all networks",
-                        "Use all networks for VPN: true"
-                    )
+        Scaffold(
+            topBar = {
+                TopAppBar(title = { Text(text = getString(R.string.lbl_network)) })
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (isLockdown) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().clickable { UIUtils.openVpnProfile(this@TunnelSettingsActivity) },
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.NetworkCheck,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(text = getString(R.string.settings_lock_down_mode_desc))
+                    }
                 }
-                alertBuilder.setNegativeButton(getString(R.string.lbl_cancel)) { dialog, _ ->
-                    dialog.dismiss()
-                    b.settingsRInRSwitch.isChecked = false
-                    logEvent(
-                        "rinr disabled",
-                        "Rethink in Rethink disabled by user"
-                    )
-                }
-                val dialog = alertBuilder.create()
-                dialog.show()
-            } else {
-                persistentState.routeRethinkInRethink = isChecked
-                if (isChecked) {
-                    persistentState.enableStabilityDependentSettings(this)
-                }
-                logEvent(
-                    "rinr toggled",
-                    "Rethink in Rethink set to: $isChecked"
-                )
-                displayRethinkInRethinkUi()
-            }
-        }
 
-        b.settingsActivityAllowBypassRl.setOnClickListener {
-            b.settingsActivityAllowBypassSwitch.isChecked =
-                !b.settingsActivityAllowBypassSwitch.isChecked
-        }
+                Card(modifier = Modifier.fillMaxWidth()) {
+                    Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        SettingToggleRow(
+                            icon = Icons.Filled.Settings,
+                            title = getString(R.string.settings_allow_bypass_heading),
+                            description = getString(R.string.settings_allow_bypass_desc),
+                            checked = allowBypass,
+                            enabled = canModify && !Utilities.isPlayStoreFlavour(),
+                            alpha = if (canModify) ALPHA_ENABLED else ALPHA_DISABLED,
+                            onCheckedChange = { checked ->
+                                if (Utilities.isPlayStoreFlavour()) return@SettingToggleRow
+                                allowBypass = checked
+                                persistentState.allowBypass = checked
+                                allowBypassLoading = true
+                                Utilities.delay(TimeUnit.SECONDS.toMillis(1L), lifecycleScope) {
+                                    allowBypassLoading = false
+                                }
+                                logEvent("allow bypass", "Allow bypass VPN: $checked")
+                            }
+                        )
+                        if (allowBypassLoading) {
+                            Text(text = getString(R.string.lbl_loading), style = MaterialTheme.typography.bodySmall)
+                        }
 
-        b.settingsActivityAllowBypassSwitch.setOnCheckedChangeListener {
-            _: CompoundButton,
-            checked: Boolean ->
-            if (Utilities.isPlayStoreFlavour()) return@setOnCheckedChangeListener
+                        SettingToggleRow(
+                            icon = Icons.Filled.Tune,
+                            title = getString(R.string.fail_open_network_title),
+                            description = getString(R.string.fail_open_network_desc),
+                            checked = stallNoNetwork,
+                            enabled = true,
+                            onCheckedChange = {
+                                stallNoNetwork = it
+                                persistentState.stallOnNoNetwork = it
+                                logEvent("stall on no network", "Stall on no network: $it")
+                            }
+                        )
 
-            persistentState.allowBypass = checked
-            b.settingsActivityAllowBypassSwitch.isEnabled = false
-            b.settingsActivityAllowBypassSwitch.visibility = View.INVISIBLE
-            b.settingsActivityAllowBypassProgress.visibility = View.VISIBLE
+                        SettingToggleRow(
+                            icon = Icons.Filled.Tune,
+                            title = getString(R.string.settings_allow_lan_heading),
+                            description = getString(R.string.settings_allow_lan_desc),
+                            checked = routeLan,
+                            enabled = canModify,
+                            alpha = if (canModify) ALPHA_ENABLED else ALPHA_DISABLED,
+                            onCheckedChange = { checked ->
+                                routeLan = checked
+                                persistentState.privateIps = checked
+                                if (checked) persistentState.enableStabilityDependentSettings(this@TunnelSettingsActivity)
+                                logEvent("route lan traffic", "Route LAN traffic: $checked")
+                            }
+                        )
 
-            Utilities.delay(TimeUnit.SECONDS.toMillis(1L), lifecycleScope) {
-                b.settingsActivityAllowBypassSwitch.isEnabled = true
-                b.settingsActivityAllowBypassProgress.visibility = View.GONE
-                b.settingsActivityAllowBypassSwitch.visibility = View.VISIBLE
-            }
-            logEvent(
-                "allow bypass",
-                "Allow bypass VPN: $checked"
-            )
-        }
+                        SettingToggleRow(
+                            icon = Icons.Filled.Tune,
+                            title = getString(R.string.settings_network_all_networks),
+                            description = getString(R.string.settings_network_all_networks_desc),
+                            checked = useMultipleNetworks,
+                            enabled = canModify,
+                            alpha = if (canModify) ALPHA_ENABLED else ALPHA_DISABLED,
+                            onCheckedChange = { checked ->
+                                useMultipleNetworks = checked
+                                persistentState.useMultipleNetworks = checked
+                                if (checked) persistentState.enableStabilityDependentSettings(this@TunnelSettingsActivity)
+                                if (!checked && persistentState.routeRethinkInRethink) {
+                                    persistentState.routeRethinkInRethink = false
+                                }
+                                logEvent("use all networks", "Use all networks for VPN: $checked")
+                            }
+                        )
 
-        b.settingsActivityLanTrafficRl.setOnClickListener {
-            b.settingsActivityLanTrafficSwitch.isChecked =
-                !b.settingsActivityLanTrafficSwitch.isChecked
-        }
+                        SettingToggleRow(
+                            icon = Icons.Filled.Tune,
+                            title = getString(R.string.settings_exclude_apps_in_proxy),
+                            description = getString(R.string.settings_exclude_apps_in_proxy_desc),
+                            checked = excludeApps,
+                            enabled = canModify,
+                            alpha = if (canModify) ALPHA_ENABLED else ALPHA_DISABLED,
+                            onCheckedChange = { checked ->
+                                excludeApps = checked
+                                persistentState.excludeAppsInProxy = !checked
+                                logEvent("exclude apps in proxy", "Exclude apps in proxy: ${!checked}")
+                            }
+                        )
 
-        b.settingsActivityLanTrafficSwitch.setOnCheckedChangeListener {
-            _: CompoundButton,
-            checked: Boolean ->
-            persistentState.privateIps = checked
-            if (checked) {
-                persistentState.enableStabilityDependentSettings(this)
-            }
-            b.settingsActivityLanTrafficSwitch.isEnabled = false
+                        SettingToggleRow(
+                            icon = Icons.Filled.Tune,
+                            title = getString(R.string.settings_protocol_translation),
+                            description = getString(R.string.settings_protocol_translation_desc),
+                            checked = protocolTranslation,
+                            enabled = showPtrans,
+                            alpha = if (showPtrans) ALPHA_ENABLED else ALPHA_DISABLED,
+                            onCheckedChange = { checked ->
+                                if (appConfig.getBraveMode().isDnsActive()) {
+                                    protocolTranslation = checked
+                                    persistentState.protocolTranslationType = checked
+                                } else {
+                                    protocolTranslation = false
+                                    showToastUiCentered(
+                                        this@TunnelSettingsActivity,
+                                        getString(R.string.settings_protocol_translation_dns_inactive),
+                                        Toast.LENGTH_SHORT
+                                    )
+                                }
+                                logEvent("protocol translation", "Protocol translation set to: $checked")
+                            }
+                        )
 
-            Utilities.delay(TimeUnit.SECONDS.toMillis(1L), lifecycleScope) {
-                b.settingsActivityLanTrafficSwitch.isEnabled = true
-            }
-            logEvent(
-                "route lan traffic",
-                "Route LAN traffic: $checked"
-            )
-        }
+                        SettingActionRow(
+                            icon = Icons.Filled.Settings,
+                            title = getString(R.string.settings_default_dns_heading),
+                            description = getString(R.string.settings_default_dns_desc),
+                            onClick = { showDefaultDnsDialog() }
+                        )
 
-        b.settingsActivityVpnLockdownDesc.setOnClickListener { UIUtils.openVpnProfile(this) }
+                        SettingActionRow(
+                            icon = Icons.Filled.Settings,
+                            title = getString(R.string.vpn_policy_title),
+                            description = vpnPolicyDesc,
+                            onClick = { showTunNetworkPolicyDialog { policy ->
+                                vpnPolicy = policy
+                                if (policy == POLICY_FIXED) {
+                                    persistentState.useMaxMtu = true
+                                    useMaxMtu = true
+                                    persistentState.internetProtocolType = InternetProtocol.ALWAYSv46.id
+                                    internetProtocol = InternetProtocol.ALWAYSv46.id
+                                }
+                            } }
+                        )
 
-        b.settingsActivityIpRl.setOnClickListener {
-            if (persistentState.vpnBuilderPolicy == POLICY_FIXED) return@setOnClickListener
+                        SettingActionRow(
+                            icon = Icons.Filled.Settings,
+                            title = getString(R.string.settings_ip_dialog_title),
+                            description = getString(R.string.settings_selected_ip_desc, ipDesc),
+                            enabled = vpnPolicy != POLICY_FIXED,
+                            onClick = { showIpDialog { protocol ->
+                                internetProtocol = protocol
+                            } }
+                        )
 
-            enableAfterDelay(TimeUnit.SECONDS.toMillis(1L), b.settingsActivityIpRl)
-            showIpDialog()
-        }
+                        SettingActionRow(
+                            icon = Icons.Filled.Settings,
+                            title = getString(R.string.settings_connectivity_checks),
+                            description = getString(R.string.settings_connectivity_checks_desc),
+                            enabled = showConnectivityChecks,
+                            onClick = {
+                                showConnectivityChecksOptionsDialog { enabled, auto ->
+                                    connectivityChecks = enabled
+                                    persistentState.performAutoNetworkConnectivityChecks = auto
+                                    persistentState.connectivityChecks = enabled
+                                }
+                            }
+                        )
 
-        b.settingsActivityPtransRl.setOnClickListener {
-            b.settingsActivityPtransSwitch.isChecked = !b.settingsActivityPtransSwitch.isChecked
-        }
+                        if (showPingIps) {
+                            Button(onClick = { showNwReachabilityCheckDialog() }) {
+                                Text(text = getString(R.string.settings_ping_ips))
+                            }
+                        }
 
-        b.settingsActivityPtransSwitch.setOnCheckedChangeListener { _, isSelected ->
-            if (appConfig.getBraveMode().isDnsActive()) {
-                persistentState.protocolTranslationType = isSelected
-            } else {
-                b.settingsActivityPtransSwitch.isChecked = false
-                showToastUiCentered(
-                    this,
-                    getString(R.string.settings_protocol_translation_dns_inactive),
-                    Toast.LENGTH_SHORT
-                )
-            }
-            logEvent(
-                "protocol translation",
-                "Protocol translation set to: $isSelected"
-            )
-        }
+                        SettingToggleRow(
+                            icon = Icons.Filled.Tune,
+                            title = getString(R.string.settings_treat_mobile_metered),
+                            description = getString(R.string.settings_treat_mobile_metered_desc),
+                            checked = meteredOnlyMobile,
+                            enabled = true,
+                            onCheckedChange = { checked ->
+                                meteredOnlyMobile = checked
+                                persistentState.treatOnlyMobileNetworkAsMetered = checked
+                                logEvent("treat mobile network as metered", "Treat only mobile network as metered: $checked")
+                            }
+                        )
 
-        b.settingsActivityDefaultDnsRl.setOnClickListener { showDefaultDnsDialog() }
+                        SettingToggleRow(
+                            icon = Icons.Filled.Tune,
+                            title = getString(R.string.settings_wg_listen_port),
+                            description = getString(R.string.settings_wg_listen_port_desc),
+                            checked = listenPortFixed,
+                            enabled = true,
+                            onCheckedChange = { checked ->
+                                listenPortFixed = checked
+                                persistentState.randomizeListenPort = !checked
+                                logEvent("wireguard listen port", "WireGuard listen port randomize: ${!checked}")
+                            }
+                        )
 
-        b.settingsVpnProcessPolicyRl.setOnClickListener { showTunNetworkPolicyDialog() }
+                        SettingToggleRow(
+                            icon = Icons.Filled.Tune,
+                            title = getString(R.string.settings_wg_lockdown),
+                            description = getString(R.string.settings_wg_lockdown_desc),
+                            checked = wgLockdown,
+                            enabled = true,
+                            onCheckedChange = { checked ->
+                                wgLockdown = checked
+                                persistentState.wgGlobalLockdown = checked
+                                NewSettingsManager.markSettingSeen(NewSettingsManager.WG_GLOBAL_LOCKDOWN_MODE_SETTING)
+                                logEvent("wg global lockdown", "WireGuard global lockdown mode set to: $checked")
+                            }
+                        )
 
-        b.settingsActivityConnectivityChecksRl.setOnClickListener {
-            showConnectivityChecksOptionsDialog()
-        }
+                        SettingToggleRow(
+                            icon = Icons.Filled.Tune,
+                            title = getString(R.string.settings_endpoint_independence),
+                            description = getString(R.string.settings_endpoint_independence_desc),
+                            checked = endpointIndependence,
+                            enabled = true,
+                            onCheckedChange = { checked ->
+                                endpointIndependence = checked
+                                persistentState.endpointIndependence = checked
+                                if (!checked) {
+                                    allowIncoming = false
+                                    persistentState.nwEngExperimentalFeatures = false
+                                } else {
+                                    allowIncoming = persistentState.nwEngExperimentalFeatures
+                                }
+                                logEvent("endpoint independence", "Endpoint independence (EIM/EIF) set to: $checked")
+                            }
+                        )
 
-        b.settingsActivityConnectivityChecksImg.setOnClickListener {
-            showConnectivityChecksOptionsDialog()
-        }
+                        if (endpointIndependence) {
+                            SettingToggleRow(
+                                icon = Icons.Filled.Tune,
+                                title = getString(R.string.settings_allow_incoming_wg_packets),
+                                description = getString(R.string.settings_allow_incoming_wg_packets_desc),
+                                checked = allowIncoming,
+                                enabled = true,
+                                onCheckedChange = { checked ->
+                                    allowIncoming = checked
+                                    persistentState.nwEngExperimentalFeatures = checked
+                                    logEvent("wg allow incoming packets", "WireGuard allow incoming packets set to: $checked")
+                                }
+                            )
+                        }
 
-        b.settingsActivityPingIpsBtn.setOnClickListener {
-            if (!VpnController.hasTunnel()) {
-                showToastUiCentered(
-                    this,
-                    getString(R.string.settings_socks5_vpn_disabled_error),
-                    Toast.LENGTH_SHORT
-                )
-                return@setOnClickListener
-            }
-            showNwReachabilityCheckDialog()
-        }
+                        SettingToggleRow(
+                            icon = Icons.Filled.Tune,
+                            title = getString(R.string.settings_tcp_keep_alive),
+                            description = getString(R.string.settings_tcp_keep_alive_desc),
+                            checked = tcpKeepAlive,
+                            enabled = true,
+                            onCheckedChange = { checked ->
+                                tcpKeepAlive = checked
+                                persistentState.tcpKeepAlive = checked
+                                logEvent("tcp keep alive", "TCP keep alive set to: $checked")
+                            }
+                        )
 
-        b.settingsActivityMobileMeteredSwitch.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.treatOnlyMobileNetworkAsMetered = isChecked
-            logEvent(
-                "treat mobile network as metered",
-                "Treat only mobile network as metered: $isChecked"
-            )
-        }
+                        SettingToggleRow(
+                            icon = Icons.Filled.Tune,
+                            title = getString(R.string.settings_jumbo_packets),
+                            description = getString(R.string.settings_jumbo_packets_desc),
+                            checked = useMaxMtu,
+                            enabled = vpnPolicy != POLICY_FIXED && !persistentState.routeRethinkInRethink,
+                            alpha = if (vpnPolicy != POLICY_FIXED && !persistentState.routeRethinkInRethink) ALPHA_ENABLED else ALPHA_DISABLED,
+                            onCheckedChange = { checked ->
+                                useMaxMtu = checked
+                                persistentState.useMaxMtu = checked
+                                logEvent("use jumbo packets", "Use jumbo packets set to: $checked")
+                            }
+                        )
 
-        b.settingsActivityMobileMeteredRl.setOnClickListener {
-            b.settingsActivityMobileMeteredSwitch.isChecked =
-                !b.settingsActivityMobileMeteredSwitch.isChecked
-        }
+                        if (isAtleastQ()) {
+                            SettingToggleRow(
+                                icon = Icons.Filled.Tune,
+                                title = getString(R.string.settings_vpn_builder_metered),
+                                description = getString(R.string.settings_vpn_builder_metered_desc),
+                                checked = tunnelMetered,
+                                enabled = true,
+                                onCheckedChange = { checked ->
+                                    tunnelMetered = checked
+                                    persistentState.setVpnBuilderToMetered = checked
+                                    logEvent("set vpn metered", "Set VPN builder to metered: $checked")
+                                }
+                            )
+                        }
 
-        b.settingsStallNoNwSwitch.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.stallOnNoNetwork = isChecked
-            logEvent(
-                "stall on no network",
-                "Stall on no network: $isChecked"
-            )
-        }
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            Text(text = getString(R.string.settings_dial_timeout), style = MaterialTheme.typography.titleSmall)
+                            Text(text = dialTimeoutDesc, style = MaterialTheme.typography.bodySmall)
+                            Slider(
+                                value = dialTimeoutMin.toFloat(),
+                                onValueChange = { value ->
+                                    dialTimeoutMin = value.toInt()
+                                    persistentState.dialTimeoutSec = dialTimeoutMin * SECONDS_PER_MINUTE
+                                },
+                                valueRange = 0f..60f
+                            )
+                        }
 
-        b.settingsStallNoNwRl.setOnClickListener {
-            b.settingsStallNoNwSwitch.isChecked = !b.settingsStallNoNwSwitch.isChecked
-        }
-
-        b.dvWgListenPortSwitch.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.randomizeListenPort = !isChecked
-            logEvent(
-                "wireguard listen port",
-                "WireGuard listen port randomize: ${!isChecked}"
-            )
-        }
-
-        b.dvWgListenPortRl.setOnClickListener {
-            b.dvWgListenPortSwitch.isChecked = !b.dvWgListenPortSwitch.isChecked
-        }
-
-        b.dvEimfSwitch.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.endpointIndependence = isChecked
-            if (isChecked) {
-                b.dvWgAllowIncomingRl.visibility = View.VISIBLE
-                b.dvWgAllowIncomingSwitch.isChecked = persistentState.nwEngExperimentalFeatures
-            } else {
-                b.dvWgAllowIncomingRl.visibility = View.GONE
-                persistentState.nwEngExperimentalFeatures = false
-            }
-            logEvent(
-                "endpoint independence",
-                "Endpoint independence (EIM/EIF) set to: $isChecked"
-            )
-        }
-
-        b.dvEimfRl.setOnClickListener { b.dvEimfSwitch.isChecked = !b.dvEimfSwitch.isChecked }
-
-        b.dvWgAllowIncomingSwitch.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.nwEngExperimentalFeatures = isChecked
-            logEvent(
-                "wg allow incoming packets",
-                "WireGuard allow incoming packets set to: $isChecked"
-            )
-        }
-
-        b.dvWgAllowIncomingRl.setOnClickListener {
-            b.dvWgAllowIncomingSwitch.isChecked = !b.dvWgAllowIncomingSwitch.isChecked
-        }
-
-        b.dvWgLockdownSwitch.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.wgGlobalLockdown = isChecked
-            logEvent(
-                "wg global lockdown",
-                "WireGuard global lockdown mode set to: $isChecked"
-            )
-        }
-
-        b.dvWgLockdownRl.setOnClickListener {
-            NewSettingsManager.markSettingSeen(NewSettingsManager.WG_GLOBAL_LOCKDOWN_MODE_SETTING)
-            b.dvWgLockdownSwitch.isChecked = !b.dvWgLockdownSwitch.isChecked
-        }
-
-        b.dvTcpKeepAliveSwitch.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.tcpKeepAlive = isChecked
-            logEvent(
-                "tcp keep alive",
-                "TCP keep alive set to: $isChecked"
-            )
-        }
-
-        b.dvTcpKeepAliveRl.setOnClickListener {
-            b.dvTcpKeepAliveSwitch.isChecked = !b.dvTcpKeepAliveSwitch.isChecked
-        }
-
-        b.settingsUseMaxMtuRl.setOnClickListener {
-            b.settingsUseMaxMtuSwitch.isChecked = !b.settingsUseMaxMtuSwitch.isChecked
-        }
-
-        b.settingsUseMaxMtuSwitch.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.useMaxMtu = isChecked
-            logEvent(
-                "use jumbo packets",
-                "Use jumbo packets set to: $isChecked"
-            )
-        }
-
-        b.settingsActivityTunnelMeteredRl.setOnClickListener {
-            if (!isAtleastQ()) return@setOnClickListener
-            b.settingsActivityTunnelMeteredSwitch.isChecked = !b.settingsActivityTunnelMeteredSwitch.isChecked
-        }
-
-        b.settingsActivityTunnelMeteredSwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (!isAtleastQ()) return@setOnCheckedChangeListener
-            persistentState.setVpnBuilderToMetered = isChecked
-            logEvent(
-                "set vpn metered",
-                "Set VPN builder to metered: $isChecked"
-            )
-        }
-
-        b.dvTimeoutSeekbar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
-                updateDialerTimeOut(progress)
-            }
-
-            override fun onStartTrackingTouch(seekBar: SeekBar?) {
-                // No action needed on start tracking
-                // This can be used to show a toast or a message if needed
-                // For now, we will just log the start of tracking
-                Logger.v(LOG_TAG_UI, "Dialer timeout seekbar tracking started")
-            }
-
-            override fun onStopTrackingTouch(seekBar: SeekBar?) {
-                // When the user stops dragging the seekbar, update the dialer timeout
-                seekBar?.progress?.let { progress ->
-                    updateDialerTimeOut(progress)
+                        SettingActionRow(
+                            icon = Icons.Filled.Settings,
+                            title = getString(R.string.custom_lan_ip_title),
+                            description = getString(R.string.custom_lan_ip_desc),
+                            onClick = { openCustomLanIpDialog() }
+                        )
+                    }
                 }
             }
-        })
+        }
+    }
 
-        // Custom LAN IPs for VPN
-        b.settingsCustomLanIpHeading.text = getString(R.string.custom_lan_ip_title)
-        b.settingsCustomLanIpDesc.text = getString(R.string.custom_lan_ip_desc)
-        b.settingsCustomLanIpRl.setOnClickListener {
-            openCustomLanIpDialog()
+    @Composable
+    private fun SettingToggleRow(
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        title: String,
+        description: String,
+        checked: Boolean,
+        enabled: Boolean,
+        alpha: Float = 1f,
+        onCheckedChange: (Boolean) -> Unit
+    ) {
+        Row(
+            modifier =
+                Modifier.fillMaxWidth().clickable(enabled = enabled) {
+                    onCheckedChange(!checked)
+                }.alpha(alpha),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
+                Icon(imageVector = icon, contentDescription = null)
+                Column(modifier = Modifier.padding(start = 12.dp)) {
+                    Text(text = title, style = MaterialTheme.typography.titleSmall)
+                    Text(text = description, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+            Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
+        }
+    }
+
+    @Composable
+    private fun SettingActionRow(
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        title: String,
+        description: String,
+        enabled: Boolean = true,
+        onClick: () -> Unit
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().clickable(enabled = enabled) { onClick() }.alpha(if (enabled) 1f else 0.5f),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(imageVector = icon, contentDescription = null)
+            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                Text(text = title, style = MaterialTheme.typography.titleSmall)
+                Text(text = description, style = MaterialTheme.typography.bodySmall)
+            }
+            Icon(imageVector = Icons.Filled.ArrowForward, contentDescription = null)
         }
     }
 
@@ -579,7 +579,7 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
             dialog.setCanceledOnTouchOutside(true)
             dialog.show()
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "err opening CustomLanIpDialog: ${e.message}", e)
+            Napier.e("err opening CustomLanIpDialog: ${e.message}", e)
             showToastUiCentered(
                 this,
                 getString(R.string.custom_lan_ip_open_error),
@@ -589,39 +589,31 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
     }
 
     private fun showDefaultDnsDialog() {
-        /*if (RpnProxyManager.isRpnEnabled()) {
-            showToastUiCentered(
-                this,
-                getString(R.string.fallback_rplus_toast),
-                Toast.LENGTH_SHORT
-            )
-            return
-        }*/
-
         val alertBuilder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         alertBuilder.setTitle(getString(R.string.settings_default_dns_heading))
         val items = Constants.DEFAULT_DNS_LIST.map { it.name }.toTypedArray()
-        // get the index of the default dns url
-        // if the default dns url is not in the list, then select the first item
         val checkedItem =
             Constants.DEFAULT_DNS_LIST.firstOrNull { it.url == persistentState.defaultDnsUrl }
                 ?.let { Constants.DEFAULT_DNS_LIST.indexOf(it) } ?: 0
         alertBuilder.setSingleChoiceItems(items, checkedItem) { dialog, pos ->
             dialog.dismiss()
-            // update the default dns url
             persistentState.defaultDnsUrl = Constants.DEFAULT_DNS_LIST[pos].url
             logEvent(
                 "default dns changed",
                 "Default DNS changed to: ${Constants.DEFAULT_DNS_LIST[pos].name}"
             )
         }
-        val dialog = alertBuilder.create()
-        dialog.show()
+        alertBuilder.create().show()
     }
 
     data class NetworkPolicyOption(val title: String, val description: String)
-    private fun showTunNetworkPolicyDialog() {
-        val conservativeTxt = getString(R.string.two_argument_space, getString(R.string.vpn_policy_fixed), getString(R.string.lbl_experimental))
+
+    private fun showTunNetworkPolicyDialog(onSelected: (Int) -> Unit) {
+        val conservativeTxt = getString(
+            R.string.two_argument_space,
+            getString(R.string.vpn_policy_fixed),
+            getString(R.string.lbl_experimental)
+        )
         val options = listOf(
             NetworkPolicyOption(getString(R.string.settings_ip_text_ipv46), getString(R.string.vpn_policy_auto_desc)),
             NetworkPolicyOption(getString(R.string.vpn_policy_sensitive), getString(R.string.vpn_policy_sensitive_desc)),
@@ -629,239 +621,74 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
             NetworkPolicyOption(conservativeTxt, getString(R.string.vpn_policy_fixed_desc))
         )
         var currentSelection = persistentState.vpnBuilderPolicy
-        val adapter = object : ArrayAdapter<NetworkPolicyOption>(
-            this, R.layout.item_network_policy, R.id.policyTitle, options
-        ) {
-            override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-                val view = super.getView(position, convertView, parent)
-                val titleView = view.findViewById<AppCompatTextView>(R.id.policyTitle)
-                val descView = view.findViewById<AppCompatTextView>(R.id.policyDesc)
-                val radio = view.findViewById<AppCompatRadioButton>(R.id.radioButton)
-
-                val item = getItem(position)
-                titleView.text = item?.title
-                descView.text = item?.description
-                radio.isChecked = position == currentSelection
-
-                return view
-            }
-        }
 
         val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
             .setTitle(getString(R.string.vpn_policy_title))
-            .setAdapter(adapter) { _, which ->
+            .setSingleChoiceItems(
+                options.map { it.title }.toTypedArray(),
+                currentSelection
+            ) { dialog, which ->
+                dialog.dismiss()
                 currentSelection = which
                 if (currentSelection == POLICY_FIXED) {
-                    // enable experimental settings prompt
                     persistentState.enableStabilityDependentSettings(this)
                 }
-                saveNetworkPolicy(which)
-                adapter.notifyDataSetChanged()
+                persistentState.vpnBuilderPolicy = which
+                onSelected(which)
+                logEvent("vpn builder network policy changed", "VPN builder network policy changed to index: $which")
             }
 
-        val dialog = builder.create()
-        dialog.show()
+        builder.create().show()
     }
 
-    private fun saveNetworkPolicy(which: Int) {
-        persistentState.vpnBuilderPolicy = which
-        showNwPolicyDescription(which)
-
-        // If Fixed policy is selected (index 3), enable jumbo packets and set IPv4 & IPv6
-        if (which == POLICY_FIXED) {
-            // Enable jumbo packets
-            persistentState.useMaxMtu = true
-            b.settingsUseMaxMtuSwitch.isChecked = true
-
-            // Set IP version to IPv4 & IPv6 (ALWAYSv46)
-            persistentState.internetProtocolType = InternetProtocol.ALWAYSv46.id
-
-            // Disable both settings (jumbo packets and IP version)
-            b.settingsUseMaxMtuRl.isEnabled = false
-            b.settingsUseMaxMtuSwitch.isEnabled = false
-            b.settingsActivityIpRl.isEnabled = false
-
-            // Update UI
-            displayInternetProtocolUi()
-        } else {
-            // Enable both settings for other policies
-            b.settingsUseMaxMtuRl.isEnabled = true
-            b.settingsUseMaxMtuSwitch.isEnabled = true
-            b.settingsActivityIpRl.isEnabled = true
-        }
-        logEvent(
-            "vpn builder network policy changed",
-            "VPN builder network policy changed to index: $which"
-        )
-    }
-
-    private fun showNwPolicyDescription(which: Int) {
-        when (which) {
-            POLICY_AUTO -> { b.settingsVpnNwPolicyDesc.text = getString(R.string.settings_ip_text_ipv46) }
-            POLICY_SENSITIVE -> { b.settingsVpnNwPolicyDesc.text = getString(R.string.vpn_policy_sensitive) }
-            POLICY_RELAXED -> { b.settingsVpnNwPolicyDesc.text = getString(R.string.vpn_policy_relaxed) }
-            POLICY_FIXED -> { b.settingsVpnNwPolicyDesc.text = getString(R.string.vpn_policy_fixed) }
-        }
-    }
-
-    private fun showNwReachabilityCheckDialog() {
-        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-        if (Themes.isFrostTheme(themeId)) {
-            themeId = R.style.App_Dialog_NoDim
-        }
-        val nwReachabilityDialog = NetworkReachabilityDialog(this, persistentState, themeId)
-        nwReachabilityDialog.setCanceledOnTouchOutside(true)
-        nwReachabilityDialog.show()
-    }
-
-    private fun displayInternetProtocolUi() {
-        b.settingsActivityIpRl.isEnabled = true
-        when (persistentState.internetProtocolType) {
-            InternetProtocol.IPv4.id -> {
-                b.genSettingsIpDesc.text =
-                    getString(
-                        R.string.settings_selected_ip_desc,
-                        getString(R.string.settings_ip_text_ipv4)
-                    )
-                b.settingsActivityPtransRl.visibility = View.GONE
-                b.settingsActivityConnectivityChecksRl.visibility = View.GONE
-                b.settingsActivityPingIpsBtn.visibility = View.GONE
-            }
-            InternetProtocol.IPv6.id -> {
-                b.genSettingsIpDesc.text =
-                    getString(
-                        R.string.settings_selected_ip_desc,
-                        getString(R.string.settings_ip_text_ipv6)
-                    )
-                b.settingsActivityPtransRl.visibility = View.VISIBLE
-                b.settingsActivityConnectivityChecksRl.visibility = View.GONE
-                b.settingsActivityPingIpsBtn.visibility = View.GONE
-            }
-            InternetProtocol.IPv46.id -> {
-                b.genSettingsIpDesc.text =
-                    getString(
-                        R.string.settings_selected_ip_desc,
-                        getString(R.string.settings_ip_text_ipv46)
-                    )
-                b.settingsActivityPtransRl.visibility = View.GONE
-                b.settingsActivityConnectivityChecksRl.visibility = View.VISIBLE
-                if (persistentState.connectivityChecks) {
-                    b.settingsActivityPingIpsBtn.visibility = View.VISIBLE
-                } else {
-                    b.settingsActivityPingIpsBtn.visibility = View.GONE
-                }
-            }
-            InternetProtocol.ALWAYSv46.id -> {
-                b.genSettingsIpDesc.text =
-                    getString(
-                        R.string.settings_selected_ip_desc,
-                        getString(R.string.settings_ip_text_ipv4) + " & " + getString(R.string.settings_ip_text_ipv6)
-                    )
-                b.settingsActivityPtransRl.visibility = View.GONE
-                b.settingsActivityConnectivityChecksRl.visibility = View.GONE
-                b.settingsActivityPingIpsBtn.visibility = View.GONE
-            }
-            else -> {
-                b.genSettingsIpDesc.text =
-                    getString(
-                        R.string.settings_selected_ip_desc,
-                        getString(R.string.settings_ip_text_ipv4)
-                    )
-                b.settingsActivityPtransRl.visibility = View.GONE
-                b.settingsActivityConnectivityChecksRl.visibility = View.GONE
-                b.settingsActivityPingIpsBtn.visibility = View.GONE
-            }
-        }
-    }
-
-    private fun displayRethinkInRethinkUi() {
-        b.settingsRInRSwitch.isChecked = persistentState.routeRethinkInRethink
-        if (persistentState.routeRethinkInRethink) {
-            b.genRInRDesc.text = getString(R.string.settings_rinr_desc_enabled)
-            disableBandwidthBoosterUi()
-        } else {
-            b.genRInRDesc.text = getString(R.string.settings_rinr_desc_disabled)
-            enableBandwidthBoosterUi()
-        }
-    }
-
-    private fun disableBandwidthBoosterUi() {
-        b.settingsUseMaxMtuRl.alpha = ALPHA_DISABLED
-        b.settingsUseMaxMtuSwitch.isEnabled = false
-        b.settingsUseMaxMtuRl.isEnabled = false
-    }
-
-    private fun enableBandwidthBoosterUi() {
-        b.settingsUseMaxMtuRl.alpha = ALPHA_ENABLED
-        b.settingsUseMaxMtuSwitch.isEnabled = true
-        b.settingsUseMaxMtuRl.isEnabled = true
-    }
-
-    private fun showIpDialog() {
+    private fun showIpDialog(onSelected: (Int) -> Unit) {
         val alertBuilder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         alertBuilder.setTitle(getString(R.string.settings_ip_dialog_title))
-        val alwaysv46Txt = getString(R.string.settings_ip_text_ipv4) + " & " + getString(R.string.settings_ip_text_ipv6) + " " + getString(R.string.lbl_experimental)
+        val alwaysv46Txt =
+            getString(R.string.settings_ip_text_ipv4) + " & " +
+                getString(R.string.settings_ip_text_ipv6) + " " +
+                getString(R.string.lbl_experimental)
         val items =
             arrayOf(
                 getString(R.string.settings_ip_dialog_ipv4),
                 getString(R.string.settings_ip_dialog_ipv6),
                 alwaysv46Txt,
-                getString(R.string.settings_ip_dialog_ipv46),
+                getString(R.string.settings_ip_dialog_ipv46)
             )
         val chosenProtocol = persistentState.internetProtocolType
-        val checkedItem = when (chosenProtocol) {
-            InternetProtocol.ALWAYSv46.id -> {
-                IP_DIALOG_POS_ALWAYS_V46 // alwaysV46 is at pos 2
+        val checkedItem =
+            when (chosenProtocol) {
+                InternetProtocol.ALWAYSv46.id -> IP_DIALOG_POS_ALWAYS_V46
+                InternetProtocol.IPv46.id -> IP_DIALOG_POS_V46
+                InternetProtocol.IPv4.id -> IP_DIALOG_POS_IPV4
+                InternetProtocol.IPv6.id -> IP_DIALOG_POS_IPV6
+                else -> IP_DIALOG_POS_IPV4
             }
-            InternetProtocol.IPv46.id -> {
-                IP_DIALOG_POS_V46 // ipv46 is at pos 3
-            }
-            else -> {
-                when (chosenProtocol) {
-                    InternetProtocol.IPv4.id -> IP_DIALOG_POS_IPV4
-                    InternetProtocol.IPv6.id -> IP_DIALOG_POS_IPV6
-                    else -> IP_DIALOG_POS_IPV4
-                }
-            }
-        }
         alertBuilder.setSingleChoiceItems(items, checkedItem) { dialog, which ->
             dialog.dismiss()
-            val selectedItem = when (which) {
-                IP_DIALOG_POS_V46 -> {
-                    InternetProtocol.IPv46.id // ipv46 is at pos 3
+            val selectedItem =
+                when (which) {
+                    IP_DIALOG_POS_V46 -> InternetProtocol.IPv46.id
+                    IP_DIALOG_POS_ALWAYS_V46 -> InternetProtocol.ALWAYSv46.id
+                    else -> which
                 }
-                IP_DIALOG_POS_ALWAYS_V46 -> {
-                    InternetProtocol.ALWAYSv46.id // alwaysV46 is at pos 2
-                }
-                else -> {
-                    which
-                }
-            }
-            // return if already selected item is same as current item
-            if (persistentState.internetProtocolType == selectedItem) {
-                return@setSingleChoiceItems
-            }
+            if (persistentState.internetProtocolType == selectedItem) return@setSingleChoiceItems
 
             val protocolType = InternetProtocol.getInternetProtocol(selectedItem)
             persistentState.internetProtocolType = protocolType.id
-
-            // Enable experimental-dependent settings for IPv6, IPv46, and ALWAYSv46 (experimental protocols)
             if (protocolType.id == InternetProtocol.IPv6.id ||
                 protocolType.id == InternetProtocol.IPv46.id ||
-                protocolType.id == InternetProtocol.ALWAYSv46.id) {
+                protocolType.id == InternetProtocol.ALWAYSv46.id
+            ) {
                 persistentState.enableStabilityDependentSettings(this)
             }
-
-            displayInternetProtocolUi()
-            logEvent(
-                "internet protocol changed",
-                "Internet protocol changed to: ${protocolType.name}"
-            )
+            onSelected(protocolType.id)
+            logEvent("internet protocol changed", "Internet protocol changed to: ${protocolType.name}")
         }
         alertBuilder.create().show()
     }
 
-    private fun showConnectivityChecksOptionsDialog() {
+    private fun showConnectivityChecksOptionsDialog(onSelected: (Boolean, Boolean) -> Unit) {
         val alertBuilder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         alertBuilder.setTitle(getString(R.string.settings_connectivity_checks))
         val items = arrayOf(
@@ -871,70 +698,80 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
         )
         val type = persistentState.performAutoNetworkConnectivityChecks
         val enabled = persistentState.connectivityChecks
-        val checkedItem = if (!enabled) {
-            0 // none
-        } else {
-            when (type) {
-                true -> 1 // auto
-                false -> 2 // manual
+        val checkedItem =
+            if (!enabled) {
+                0
+            } else {
+                when (type) {
+                    true -> 1
+                    false -> 2
+                }
             }
-        }
 
         alertBuilder.setSingleChoiceItems(items, checkedItem) { dialog, which ->
             dialog.dismiss()
             when (which) {
                 0 -> {
-                    // none
                     persistentState.performAutoNetworkConnectivityChecks = true
                     persistentState.connectivityChecks = false
-                    b.settingsActivityPingIpsBtn.visibility = View.GONE
+                    onSelected(false, true)
                 }
                 1 -> {
-                    // auto
                     persistentState.performAutoNetworkConnectivityChecks = true
                     persistentState.connectivityChecks = true
-                    b.settingsActivityPingIpsBtn.visibility = View.VISIBLE
+                    onSelected(true, true)
                 }
                 2 -> {
-                    // manual
                     persistentState.performAutoNetworkConnectivityChecks = false
                     persistentState.connectivityChecks = true
-                    b.settingsActivityPingIpsBtn.visibility = View.VISIBLE
+                    onSelected(true, false)
                 }
             }
-            logEvent(
-                "connectivity checks changed",
-                "Connectivity checks changed to option index: $which"
-            )
+            logEvent("connectivity checks changed", "Connectivity checks changed to option index: $which")
         }
         alertBuilder.create().show()
     }
 
-    private fun handleLockdownModeIfNeeded() {
-        val isLockdown = VpnController.isVpnLockdown()
-        if (isLockdown) {
-            b.settingsActivityVpnLockdownDesc.visibility = View.VISIBLE
-            b.settingsActivityAllowBypassRl.alpha = ALPHA_DISABLED
-            b.settingsActivityExcludeProxyAppsRl.alpha = ALPHA_DISABLED
-        } else {
-            b.settingsActivityVpnLockdownDesc.visibility = View.GONE
-            b.settingsActivityAllowBypassRl.alpha = ALPHA_ENABLED
-            b.settingsActivityExcludeProxyAppsRl.alpha = ALPHA_ENABLED
+    private fun showNwReachabilityCheckDialog() {
+        if (!VpnController.hasTunnel()) {
+            showToastUiCentered(
+                this,
+                getString(R.string.settings_socks5_vpn_disabled_error),
+                Toast.LENGTH_SHORT
+            )
+            return
         }
-        b.settingsActivityAllowBypassSwitch.isEnabled = !isLockdown
-        b.settingsActivityAllowBypassRl.isEnabled = !isLockdown
-        b.settingsActivityLanTrafficRl.isEnabled = !isLockdown
-        b.settingsActivityExcludeProxyAppsSwitch.isEnabled = !isLockdown
-        b.settingsActivityExcludeProxyAppsRl.isEnabled = !isLockdown
+        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
+        if (Themes.isFrostTheme(themeId)) {
+            themeId = R.style.App_Dialog_NoDim
+        }
+        val nwReachabilityDialog = NetworkReachabilityDialog(this, persistentState, themeId)
+        nwReachabilityDialog.setCanceledOnTouchOutside(true)
+        nwReachabilityDialog.show()
     }
 
     private fun logEvent(msg: String, details: String) {
         eventLogger.log(EventType.TUN_ESTABLISHED, Severity.LOW, msg, EventSource.UI, false, details)
     }
 
-    private fun enableAfterDelay(ms: Long, vararg views: View) {
-        for (v in views) v.isEnabled = false
+    private fun formatTimeShort(totalSeconds: Int): String {
+        val hours = totalSeconds / SECONDS_PER_HOUR
+        val minutes = (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE
+        val seconds = totalSeconds % SECONDS_PER_MINUTE
 
-        Utilities.delay(ms, lifecycleScope) { for (v in views) v.isEnabled = true }
+        val parts = mutableListOf<String>()
+        if (hours > 0) parts.add("${hours}h")
+        if (minutes > 0) parts.add("${minutes}m")
+        if (seconds > 0) parts.add("${seconds}s")
+
+        return if (parts.isEmpty()) getString(R.string.lbl_disabled) else parts.joinToString(" ")
+    }
+
+    private fun io(f: suspend () -> Unit) {
+        lifecycleScope.launch(Dispatchers.IO) { f() }
+    }
+
+    private suspend fun uiCtx(f: suspend () -> Unit) {
+        withContext(Dispatchers.Main) { f() }
     }
 }

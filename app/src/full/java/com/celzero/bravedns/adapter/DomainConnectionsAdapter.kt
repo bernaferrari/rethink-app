@@ -19,10 +19,16 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.drawable.Drawable
 import android.view.ViewGroup
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
@@ -188,13 +194,96 @@ class DomainConnectionsAdapter(
         }
     }
 
+    @Composable
+    fun ConnectionRow(dc: AppConnection) {
+        val fallbackName = if (dc.appOrDnsName.isNullOrEmpty()) {
+            context.getString(R.string.network_log_app_name_unnamed, "(${dc.uid})")
+        } else {
+            dc.appOrDnsName
+        }
+        val totalUsageText = if (dc.downloadBytes != null && dc.uploadBytes != null) {
+            val download =
+                context.getString(
+                    R.string.symbol_download,
+                    Utilities.humanReadableByteCount(dc.downloadBytes, true)
+                )
+            val upload =
+                context.getString(
+                    R.string.symbol_upload,
+                    Utilities.humanReadableByteCount(dc.uploadBytes, true)
+                )
+            context.getString(R.string.two_argument, upload, download)
+        } else {
+            null
+        }
+
+        val scope = rememberCoroutineScope()
+        var title by remember { mutableStateOf(fallbackName.orEmpty()) }
+        var icon by remember { mutableStateOf(Utilities.getDefaultIcon(context)) }
+        var isUnknown by remember { mutableStateOf(true) }
+
+        LaunchedEffect(dc.uid, dc.appOrDnsName) {
+            withContext(Dispatchers.IO) {
+                val appInfo = FirewallManager.getAppInfoByUid(dc.uid)
+                val displayName = if (dc.appOrDnsName.isNullOrEmpty()) {
+                    appInfo?.appName ?: fallbackName.orEmpty()
+                } else {
+                    dc.appOrDnsName
+                }
+                val resolvedIcon =
+                    Utilities.getIcon(
+                        context,
+                        appInfo?.packageName ?: "",
+                        appInfo?.appName ?: ""
+                    ) ?: Utilities.getDefaultIcon(context)
+                withContext(Dispatchers.Main) {
+                    isUnknown = appInfo == null
+                    title = displayName ?: ""
+                    icon = resolvedIcon
+                }
+            }
+        }
+
+        val onClick = {
+            scope.launch(Dispatchers.IO) {
+                if (isUnknown) {
+                    val intent = Intent(context, NetworkLogsActivity::class.java)
+                    intent.putExtra(
+                        Constants.VIEW_PAGER_SCREEN_TO_LOAD,
+                        NetworkLogsActivity.Tabs.NETWORK_LOGS.screen
+                    )
+                    intent.putExtra(Constants.SEARCH_QUERY, dc.appOrDnsName)
+                    withContext(Dispatchers.Main) { context.startActivity(intent) }
+                } else {
+                    val intent = Intent(context, AppInfoActivity::class.java)
+                    intent.putExtra(AppInfoActivity.INTENT_UID, dc.uid)
+                    withContext(Dispatchers.Main) { context.startActivity(intent) }
+                }
+            }
+            Unit
+        }
+
+        StatisticsSummaryItem(
+            title = title,
+            subtitle = totalUsageText,
+            countText = dc.count.toString(),
+            iconDrawable = icon,
+            flagText = null,
+            showProgress = false,
+            progress = 0f,
+            progressColor = Color.Transparent,
+            showIndicator = true,
+            onClick = onClick
+        )
+    }
+
     private suspend fun isUnknownApp(appConnection: AppConnection): Boolean {
         val appInfo = FirewallManager.getAppInfoByUid(appConnection.uid)
         return appInfo == null
     }
 
     private fun io(f: suspend () -> Unit) {
-        (context as LifecycleOwner).lifecycleScope.launch(Dispatchers.IO) { f() }
+        (context as? androidx.lifecycle.LifecycleOwner)?.lifecycleScope?.launch(Dispatchers.IO) { f() }
     }
 
     private suspend fun uiCtx(f: suspend () -> Unit) {

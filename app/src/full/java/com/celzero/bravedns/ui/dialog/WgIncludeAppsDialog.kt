@@ -15,61 +15,92 @@
  */
 package com.celzero.bravedns.ui.dialog
 
-import Logger
-import Logger.LOG_TAG_PROXY
 import android.app.Activity
 import android.app.Dialog
-import android.graphics.PorterDuff
-import android.graphics.PorterDuffColorFilter
 import android.os.Bundle
 import android.view.Window
 import android.view.WindowManager
-import android.view.animation.Animation
-import android.view.animation.RotateAnimation
-import android.widget.CompoundButton
 import android.widget.Toast
-import androidx.appcompat.widget.SearchView
-import androidx.core.content.ContextCompat
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.RefreshDatabase
-import com.celzero.bravedns.databinding.DialogWgAppsBinding
 import com.celzero.bravedns.service.ProxyManager
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
-import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 class WgIncludeAppsDialog(
     private var activity: Activity,
-    internal var adapter: RecyclerView.Adapter<*>,
+    internal var adapter: com.celzero.bravedns.adapter.WgIncludeAppsAdapter,
     var viewModel: ProxyAppsMappingViewModel,
     themeID: Int,
     private val proxyId: String,
     private val proxyName: String
-) : Dialog(activity, themeID), SearchView.OnQueryTextListener, KoinComponent {
+) : Dialog(activity, themeID), KoinComponent {
 
-    private lateinit var b: DialogWgAppsBinding
-
-    private lateinit var animation: Animation
     private val refreshDatabase by inject<RefreshDatabase>()
     private var filterType: TopLevelFilter = TopLevelFilter.ALL_APPS
     private var searchText = ""
 
     companion object {
-        private const val ANIMATION_DURATION = 750L
-        private const val ANIMATION_REPEAT_COUNT = -1
-        private const val ANIMATION_PIVOT_VALUE = 0.5f
-        private const val ANIMATION_START_DEGREE = 0.0f
-        private const val ANIMATION_END_DEGREE = 360.0f
-
         private const val REFRESH_TIMEOUT: Long = 4000
     }
 
@@ -91,28 +122,17 @@ class WgIncludeAppsDialog(
         super.onCreate(savedInstanceState)
 
         requestWindowFeature(Window.FEATURE_NO_TITLE)
-        b = DialogWgAppsBinding.inflate(layoutInflater)
-        setContentView(b.root)
+        setContentView(
+            ComposeView(context).apply {
+                setContent {
+                    RethinkTheme {
+                        WgIncludeAppsDialogScreen()
+                    }
+                }
+            }
+        )
         setCancelable(false)
-        addAnimation()
-        remakeFirewallChipsUi()
-        observeApps()
         initializeValues()
-        initializeClickListeners()
-    }
-
-    private fun addAnimation() {
-        animation =
-            RotateAnimation(
-                ANIMATION_START_DEGREE,
-                ANIMATION_END_DEGREE,
-                Animation.RELATIVE_TO_SELF,
-                ANIMATION_PIVOT_VALUE,
-                Animation.RELATIVE_TO_SELF,
-                ANIMATION_PIVOT_VALUE
-            )
-        animation.repeatCount = ANIMATION_REPEAT_COUNT
-        animation.duration = ANIMATION_DURATION
     }
 
     private fun initializeValues() {
@@ -120,132 +140,6 @@ class WgIncludeAppsDialog(
             WindowManager.LayoutParams.MATCH_PARENT,
             WindowManager.LayoutParams.MATCH_PARENT
         )
-
-        val layoutManager = LinearLayoutManager(activity)
-        b.wgIncludeAppRecyclerViewDialog.layoutManager = layoutManager
-        b.wgIncludeAppRecyclerViewDialog.adapter = adapter
-    }
-
-    private fun observeApps() {
-        viewModel.getAppCountById(proxyId).observe(activity as LifecycleOwner) {
-            b.wgIncludeAppDialogHeading.text =
-                activity.getString(R.string.add_remove_apps, it.toString())
-        }
-    }
-
-    private fun remakeFirewallChipsUi() {
-        b.wgIncludeAppDialogChipGroup.removeAllViews()
-
-        val all =
-            makeFirewallChip(
-                TopLevelFilter.ALL_APPS.id,
-                activity.getString(TopLevelFilter.ALL_APPS.getLabelId()),
-                true
-            )
-        val selected =
-            makeFirewallChip(
-                TopLevelFilter.SELECTED_APPS.id,
-                activity.getString(TopLevelFilter.SELECTED_APPS.getLabelId()),
-                false
-            )
-
-        val unselected =
-            makeFirewallChip(
-                TopLevelFilter.UNSELECTED_APPS.id,
-                activity.getString(TopLevelFilter.UNSELECTED_APPS.getLabelId()),
-                false
-            )
-
-        b.wgIncludeAppDialogChipGroup.addView(all)
-        b.wgIncludeAppDialogChipGroup.addView(selected)
-        b.wgIncludeAppDialogChipGroup.addView(unselected)
-    }
-
-    private fun makeFirewallChip(id: Int, label: String, checked: Boolean): Chip {
-        val chip = this.layoutInflater.inflate(R.layout.item_chip_filter, b.root, false) as Chip
-        chip.tag = id
-        chip.text = label
-        chip.isChecked = checked
-
-        chip.setOnCheckedChangeListener { button: CompoundButton, isSelected: Boolean ->
-            if (isSelected) {
-                applyFilter(button.tag)
-                colorUpChipIcon(chip)
-            } else {
-                // no-op
-                // no action needed for checkState: false
-            }
-        }
-
-        return chip
-    }
-
-    private fun colorUpChipIcon(chip: Chip) {
-        val colorFilter =
-            PorterDuffColorFilter(
-                ContextCompat.getColor(activity, R.color.primaryText),
-                PorterDuff.Mode.SRC_IN
-            )
-        chip.checkedIcon?.colorFilter = colorFilter
-        chip.chipIcon?.colorFilter = colorFilter
-    }
-
-    private fun applyFilter(tag: Any) {
-        when (tag as Int) {
-            TopLevelFilter.ALL_APPS.id -> {
-                filterType = TopLevelFilter.ALL_APPS
-                viewModel.setFilter(searchText, filterType, proxyId)
-            }
-            TopLevelFilter.SELECTED_APPS.id -> {
-                filterType = TopLevelFilter.SELECTED_APPS
-                viewModel.setFilter(searchText, filterType, proxyId)
-            }
-            TopLevelFilter.UNSELECTED_APPS.id -> {
-                filterType = TopLevelFilter.UNSELECTED_APPS
-                viewModel.setFilter(searchText, filterType, proxyId)
-            }
-        }
-    }
-
-    private fun initializeClickListeners() {
-        b.wgIncludeAppDialogOkButton.setOnClickListener {
-            clearSearch()
-            dismiss()
-        }
-
-        b.wgIncludeAppDialogSearchView.setOnQueryTextListener(this)
-
-        b.wgIncludeAppDialogSearchView.setOnCloseListener {
-            clearSearch()
-            false
-        }
-
-        b.wgIncludeAppSelectAllCheckbox.setOnClickListener {
-            showDialog(b.wgIncludeAppSelectAllCheckbox.isChecked)
-        }
-
-        b.wgRemainingAppsBtn.setOnClickListener { showConfirmationDialog() }
-
-        b.wgIncludeAppSelectAllCheckbox.setOnCheckedChangeListener(null)
-
-        b.wgRefreshList.setOnClickListener {
-            b.wgRefreshList.isEnabled = false
-            b.wgRefreshList.animation = animation
-            b.wgRefreshList.startAnimation(animation)
-            refreshDatabase()
-            val l = activity as LifecycleOwner
-            Utilities.delay(REFRESH_TIMEOUT, l.lifecycleScope) {
-                if (this.isShowing) {
-                    b.wgRefreshList.isEnabled = true
-                    b.wgRefreshList.clearAnimation()
-                    Utilities.showToastUiCentered(
-                        context,
-                        context.getString(R.string.refresh_complete),
-                        Toast.LENGTH_SHORT
-                    )
-                }
-            }
-        }
     }
 
     private fun refreshDatabase() {
@@ -256,7 +150,7 @@ class WgIncludeAppsDialog(
         viewModel.setFilter("", TopLevelFilter.ALL_APPS, proxyId)
     }
 
-    private fun showDialog(toAdd: Boolean) {
+    private fun showDialog(toAdd: Boolean, onCancel: () -> Unit) {
         val builder = MaterialAlertDialogBuilder(context, R.style.App_Dialog_NoDim)
         if (toAdd) {
             builder.setTitle(context.getString(R.string.include_all_app_wg_dialog_title))
@@ -273,17 +167,17 @@ class WgIncludeAppsDialog(
             // add all if the list is empty or remove all if the list is full
             io {
                 if (toAdd) {
-                    Logger.i(LOG_TAG_PROXY, "Adding all apps to proxy $proxyId, $proxyName")
+                    Napier.i("Adding all apps to proxy $proxyId, $proxyName")
                     ProxyManager.setProxyIdForAllApps(proxyId, proxyName)
                 } else {
-                    Logger.i(LOG_TAG_PROXY, "Removing all apps from proxy $proxyId, $proxyName")
+                    Napier.i("Removing all apps from proxy $proxyId, $proxyName")
                     ProxyManager.setNoProxyForAllApps()
                 }
             }
         }
 
         builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ ->
-            b.wgIncludeAppSelectAllCheckbox.isChecked = !toAdd
+            onCancel()
         }
 
         builder.create().show()
@@ -296,7 +190,7 @@ class WgIncludeAppsDialog(
         builder.setCancelable(true)
         builder.setPositiveButton(context.getString(R.string.lbl_include)) { _, _ ->
             io {
-                Logger.i(LOG_TAG_PROXY, "Adding remaining apps to proxy $proxyId, $proxyName")
+                Napier.i("Adding remaining apps to proxy $proxyId, $proxyName")
                 ProxyManager.setProxyIdForUnselectedApps(proxyId, proxyName)
             }
         }
@@ -308,19 +202,166 @@ class WgIncludeAppsDialog(
         builder.create().show()
     }
 
-    override fun onQueryTextSubmit(query: String): Boolean {
-        searchText = query
-        viewModel.setFilter(query, filterType, proxyId)
-        return true
-    }
-
-    override fun onQueryTextChange(query: String): Boolean {
-        searchText = query
-        viewModel.setFilter(query, filterType, proxyId)
-        return true
-    }
-
     private fun io(f: suspend () -> Unit) {
         (activity as LifecycleOwner).lifecycleScope.launch(Dispatchers.IO) { f() }
+    }
+
+    @Composable
+    private fun WgIncludeAppsDialogScreen() {
+        val context = LocalContext.current
+        val scrollState = rememberScrollState()
+        val scope = rememberCoroutineScope()
+        var query by remember { mutableStateOf(searchText) }
+        var selectedFilter by remember { mutableStateOf(filterType) }
+        var selectAllChecked by remember { mutableStateOf(false) }
+        var isRefreshing by remember { mutableStateOf(false) }
+        val appCount =
+            viewModel.getAppCountById(proxyId).asFlow().collectAsState(initial = 0).value
+        val apps = viewModel.apps.asFlow().collectAsLazyPagingItems()
+
+        LaunchedEffect(query, selectedFilter) {
+            searchText = query
+            filterType = selectedFilter
+            viewModel.setFilter(query, selectedFilter, proxyId)
+        }
+
+        Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
+            Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+                Text(
+                    text = context.getString(R.string.add_remove_apps, appCount.toString()),
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.titleMedium,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Column(
+                    modifier =
+                        Modifier.fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                            .padding(8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            modifier = Modifier.weight(1f),
+                            value = query,
+                            onValueChange = { query = it },
+                            label = { Text(stringResource(R.string.search_proxy_add_apps)) },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search)
+                        )
+                        IconButton(
+                            onClick = {
+                                if (isRefreshing) return@IconButton
+                                isRefreshing = true
+                                refreshDatabase()
+                                scope.launch {
+                                    delay(REFRESH_TIMEOUT)
+                                    if (this@WgIncludeAppsDialog.isShowing) {
+                                        isRefreshing = false
+                                        Utilities.showToastUiCentered(
+                                            context,
+                                            context.getString(R.string.refresh_complete),
+                                            Toast.LENGTH_SHORT
+                                        )
+                                    }
+                                }
+                            },
+                            enabled = !isRefreshing
+                        ) {
+                            val transition = rememberInfiniteTransition(label = "wgRefresh")
+                            val rotation by
+                                transition.animateFloat(
+                                    initialValue = 0f,
+                                    targetValue = 360f,
+                                    animationSpec =
+                                        infiniteRepeatable(
+                                            animation = tween(750, easing = LinearEasing)
+                                        ),
+                                    label = "wgRefreshRotation"
+                                )
+                            Icon(
+                                imageVector = Icons.Filled.Refresh,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.rotate(if (isRefreshing) rotation else 0f)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Row(
+                        modifier = Modifier.horizontalScroll(scrollState),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        TopLevelFilter.entries.forEach { filter ->
+                            FilterChip(
+                                selected = selectedFilter == filter,
+                                onClick = { selectedFilter = filter },
+                                label = { Text(text = stringResource(filter.getLabelId())) }
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = stringResource(R.string.lbl_select_all),
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Checkbox(
+                        checked = selectAllChecked,
+                        onCheckedChange = { checked ->
+                            selectAllChecked = checked
+                            showDialog(checked) { selectAllChecked = !checked }
+                        }
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                LazyColumn(
+                    modifier = Modifier.weight(1f).fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    items(count = apps.itemCount) { index ->
+                        val item = apps[index] ?: return@items
+                        adapter.IncludeAppRow(item)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Button(onClick = { showConfirmationDialog() }) {
+                        Text(text = stringResource(R.string.lbl_remaining_apps))
+                    }
+                    Button(
+                        onClick = {
+                            clearSearch()
+                            dismiss()
+                        }
+                    ) {
+                        Text(text = stringResource(R.string.ada_noapp_dialog_positive))
+                    }
+                }
+            }
+        }
     }
 }

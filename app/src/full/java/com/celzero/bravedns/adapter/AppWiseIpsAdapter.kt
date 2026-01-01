@@ -111,7 +111,7 @@ class AppWiseIpsAdapter(
     }
 
     @Composable
-    private fun IpRow(conn: AppConnection) {
+    fun IpRow(conn: AppConnection) {
         val countText = conn.count.toString()
         val flagText =
             if (isAsn) {

@@ -24,20 +24,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.RpnCountriesAdapter
 import com.celzero.bravedns.service.PersistentState
@@ -130,16 +129,14 @@ class RpnCountriesActivity : AppCompatActivity() {
     @Composable
     private fun CountriesList() {
         val list = countries
-        val listAdapter = RpnCountriesAdapter(this, list, selectedCountries)
-        AndroidView(
-            factory = { ctx ->
-                RecyclerView(ctx).apply {
-                    layoutManager = LinearLayoutManager(ctx)
-                    adapter = listAdapter
-                }
-            },
-            modifier = Modifier.fillMaxSize()
-        )
+        val adapter = remember(list, selectedCountries) {
+            RpnCountriesAdapter(this, list, selectedCountries)
+        }
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(list.size) { index ->
+                adapter.CountryRow(list[index])
+            }
+        }
     }
 
     @Composable

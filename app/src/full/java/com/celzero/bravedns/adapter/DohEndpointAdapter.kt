@@ -121,7 +121,7 @@ class DohEndpointAdapter(private val context: Context, private val appConfig: Ap
     }
 
     @Composable
-    private fun DoHEndpointRow(endpoint: DoHEndpoint) {
+    fun DoHEndpointRow(endpoint: DoHEndpoint) {
         var explanation by remember(endpoint.id) { mutableStateOf("") }
 
         LaunchedEffect(endpoint.id, endpoint.isSelected) {

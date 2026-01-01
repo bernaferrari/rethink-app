@@ -92,7 +92,7 @@ class WgPeersAdapter(
     }
 
     @Composable
-    private fun WgPeerRow(wgPeer: Peer) {
+    fun WgPeerRow(wgPeer: Peer) {
         val endpoint =
             if (wgPeer.getEndpoint().isPresent) {
                 wgPeer.getEndpoint().get().toString()
@@ -173,7 +173,7 @@ class WgPeersAdapter(
     }
 
     @Composable
-    private fun LabelValue(label: String, value: String) {
+    fun LabelValue(label: String, value: String) {
         Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
             Text(text = label, style = MaterialTheme.typography.bodyMedium)
             Text(text = value, style = MaterialTheme.typography.bodySmall)

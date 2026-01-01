@@ -18,22 +18,52 @@ package com.celzero.bravedns.ui.activity
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.View
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.height
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Card
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
-import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
-import com.celzero.bravedns.databinding.ActivityAdvancedSettingBinding
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import org.koin.android.ext.android.inject
 
-class AdvancedSettingActivity : AppCompatActivity(R.layout.activity_advanced_setting) {
+class AdvancedSettingActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
-    private val b by viewBinding(ActivityAdvancedSettingBinding::bind)
 
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
@@ -50,174 +80,111 @@ class AdvancedSettingActivity : AppCompatActivity(R.layout.activity_advanced_set
             controller.isAppearanceLightNavigationBars = false
             window.isNavigationBarContrastEnforced = false
         }
-        initView()
-        setupClickListeners()
-    }
 
-    private fun initView() {
-
-        if (DEBUG) {
-            b.settingsExperimentalRl.visibility = View.VISIBLE
-            b.dvExperimentalSwitch.isChecked = persistentState.nwEngExperimentalFeatures
-            b.settingsAutoDialRl.visibility = View.VISIBLE
-            b.dvAutoDialSwitch.isChecked = persistentState.autoDialsParallel
-            b.settingsPanicRandRl.visibility = View.VISIBLE
-            b.dvPanicRandSwitch.isChecked = persistentState.panicRandom
-        } else {
-            b.settingsExperimentalRl.visibility = View.GONE
-            b.settingsAutoDialRl.visibility = View.GONE
-            b.settingsPanicRandRl.visibility = View.GONE
-        }
-
-    }
-
-    private fun setupClickListeners() {
-
-        b.settingsExperimentalRl.setOnClickListener {
-            b.dvExperimentalSwitch.isChecked = !b.dvExperimentalSwitch.isChecked
-        }
-
-        b.dvExperimentalSwitch.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.nwEngExperimentalFeatures = isChecked
-        }
-
-        b.settingsClearResidueRl.setOnClickListener {
-            // TODO: show list of files to be deleted and confirm deletion
-            // clearResidueAfterConfirmation()
-        }
-
-        b.settingsAutoDialRl.setOnClickListener {
-            b.dvAutoDialSwitch.isChecked = !b.dvAutoDialSwitch.isChecked
-        }
-
-        b.dvAutoDialSwitch.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.autoDialsParallel = isChecked
-        }
-
-        b.settingsPanicRandRl.setOnClickListener {
-            b.dvPanicRandSwitch.isChecked = !b.dvPanicRandSwitch.isChecked
-        }
-
-        b.dvPanicRandSwitch.setOnCheckedChangeListener { _, isChecked ->
-            persistentState.panicRandom = isChecked
-        }
-    }
-
-    /*private fun clearResidueAfterConfirmation() {
-        val alertBuilder = MaterialAlertDialogBuilder(this)
-        alertBuilder.setTitle(getString(R.string.clear_residue_dialog_heading))
-        alertBuilder.setMessage(getString(R.string.clear_residue_dialog_desc))
-        alertBuilder.setCancelable(false)
-        alertBuilder.setPositiveButton(getString(R.string.lbl_proceed)) { dialog, _ ->
-            dialog.dismiss()
-            clearResidue()
-        }
-        alertBuilder.setNegativeButton(getString(R.string.lbl_cancel)) { dialog, _ ->
-            dialog.dismiss()
-        }
-        alertBuilder.create().show()
-    }
-
-    private fun clearResidue() {
-        // when app is in play store version delete the local blocklists
-        if (isPlayStoreFlavour()) {
-            // delete the local blocklists
-            deleteLocalBlocklists()
-        }
-        deleteUnusedBlocklists()
-        deleteLogs()
-        io { WireguardManager.deleteResidueWgs() }
-    }
-
-    private fun deleteLocalBlocklists() {
-        // in play version so delete the local blocklists
-        val path = blocklistCanonicalPath(this, LOCAL_BLOCKLIST_DOWNLOAD_FOLDER_NAME)
-        val dir = File(path)
-        val res = deleteRecursive(dir)
-        // reset the local blocklists
-        if (res) {
-            persistentState.localBlocklistStamp = ""
-            persistentState.localBlocklistTimestamp = 0L
-        }
-        Logger.i(LOG_TAG_UI, "$TAG; local blocklists deleted, path: $path")
-    }
-
-    private fun deleteUnusedBlocklists() {
-        Logger.v(LOG_TAG_UI, "$TAG; deleting unused blocklists")
-        // delete all the blocklists other than the one in the settings
-        val localTsDir = persistentState.localBlocklistTimestamp
-        val remoteTsDir = persistentState.remoteBlocklistTimestamp
-        val localBlocklistDir = File(blocklistCanonicalPath(this, LOCAL_BLOCKLIST_DOWNLOAD_FOLDER_NAME))
-        val remoteBlocklistDir = File(blocklistCanonicalPath(this, REMOTE_BLOCKLIST_DOWNLOAD_FOLDER_NAME))
-        // all the blocklists are named with their timestamp as directory name
-        if (localBlocklistDir.exists() && localBlocklistDir.isDirectory) {
-            localBlocklistDir.listFiles()?.forEach { file ->
-                if (file.isDirectory && file.name.toLongOrNull() != localTsDir) {
-                    if (deleteRecursive(file)) {
-                        Logger.i(LOG_TAG_UI, "$TAG; deleted unused local blocklist: ${file.name}")
-                    } else {
-                        Logger.w(LOG_TAG_UI, "$TAG; failed to delete unused local blocklist: ${file.name}")
-                    }
-                }
+        setContent {
+            RethinkTheme {
+                AdvancedSettingsScreen()
             }
         }
-        if (remoteBlocklistDir.exists() && remoteBlocklistDir.isDirectory) {
-            remoteBlocklistDir.listFiles()?.forEach { file ->
-                if (file.isDirectory && file.name.toLongOrNull() != remoteTsDir) {
-                    if (deleteRecursive(file)) {
-                        Logger.i(LOG_TAG_UI, "$TAG; deleted unused remote blocklist: ${file.name}")
-                    } else {
-                        Logger.w(LOG_TAG_UI, "$TAG; failed to delete unused remote blocklist: ${file.name}")
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun AdvancedSettingsScreen() {
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.lbl_network),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                )
+            }
+        ) { padding ->
+            Column(
+                modifier = Modifier.fillMaxSize().padding(padding).padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                if (DEBUG) {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
+                            SettingToggleRow(
+                                icon = Icons.Filled.Build,
+                                title = stringResource(R.string.adv_set_experimental_title),
+                                description = stringResource(R.string.adv_set_experimental_desc),
+                                checked = persistentState.nwEngExperimentalFeatures,
+                                onCheckedChange = { persistentState.nwEngExperimentalFeatures = it }
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            SettingToggleRow(
+                                icon = Icons.Filled.Tune,
+                                title = stringResource(R.string.set_auto_dial_title),
+                                description = stringResource(R.string.set_auto_dial_desc),
+                                checked = persistentState.autoDialsParallel,
+                                onCheckedChange = { persistentState.autoDialsParallel = it }
+                            )
+
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            SettingToggleRow(
+                                icon = Icons.Filled.Warning,
+                                title = "Randomly Panic",
+                                description = "Enable random panic in tunnel.",
+                                checked = persistentState.panicRandom,
+                                onCheckedChange = { persistentState.panicRandom = it }
+                            )
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun deleteLogs(): Boolean {
-        Logger.v(LOG_TAG_UI, "$TAG; deleting all log files before backup")
-        try {
-            // delete tombstone logs
-            val tombstoneDir = File(filesDir.canonicalPath + File.separator + TOMBSTONE_DIR_NAME)
-            if (tombstoneDir.exists() && tombstoneDir.isDirectory) {
-                tombstoneDir.listFiles()?.forEach { file ->
-                    if (file.delete()) {
-                        Logger.i(LOG_TAG_UI, "$TAG; deleted log file: ${file.name}")
-                    } else {
-                        Logger.w(LOG_TAG_UI, "$TAG; failed to delete log file: ${file.name}")
+    @Composable
+    private fun SettingToggleRow(
+        icon: androidx.compose.ui.graphics.vector.ImageVector,
+        title: String,
+        description: String,
+        checked: Boolean,
+        onCheckedChange: (Boolean) -> Unit
+    ) {
+        var localChecked by remember { mutableStateOf(checked) }
+        Row(
+            modifier =
+                Modifier.fillMaxWidth()
+                    .clickable {
+                        localChecked = !localChecked
+                        onCheckedChange(localChecked)
                     }
+                    .padding(vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(28.dp)
+            )
+            Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
+                Text(text = title, style = MaterialTheme.typography.titleMedium)
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = localChecked,
+                onCheckedChange = {
+                    localChecked = it
+                    onCheckedChange(it)
                 }
-            }
-
-            // delete bugreport logs
-            val bugreportDir = File(filesDir.canonicalPath + File.separator + BUG_REPORT_DIR_NAME)
-            if (bugreportDir.exists() && bugreportDir.isDirectory) {
-                deleteRecursive(bugreportDir)
-                Logger.i(LOG_TAG_UI, "$TAG; deleted bugreport logs from: ${bugreportDir.canonicalPath}")
-            }
-
-            // delete zip files
-            val tombstoneZip = File(filesDir.canonicalPath + File.separator + TOMBSTONE_ZIP_FILE_NAME)
-            if (tombstoneZip.exists()) {
-                tombstoneZip.delete()
-                Logger.i(LOG_TAG_UI, "$TAG; deleted tombstone zip file: ${tombstoneZip.canonicalPath}")
-            }
-
-            val bugreportZip = File(filesDir.canonicalPath + File.separator + BUG_REPORT_ZIP_FILE_NAME)
-            if (bugreportZip.exists()) {
-                bugreportZip.delete()
-                Logger.i(LOG_TAG_UI, "$TAG; deleted bugreport zip file: ${bugreportZip.canonicalPath}")
-            }
-
-            Logger.i(LOG_TAG_UI, "$TAG; deleted all log files successfully")
-            return true
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_UI, "$TAG; err while deleting log files: ${e.message}")
-            return false
+            )
         }
     }
-
-    private fun io(f: suspend () -> Unit) {
-        lifecycleScope.launch(Dispatchers.IO) { f() }
-    }*/
 }

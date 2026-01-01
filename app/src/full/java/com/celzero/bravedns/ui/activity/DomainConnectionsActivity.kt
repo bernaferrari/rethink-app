@@ -30,11 +30,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -43,14 +45,13 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
-import androidx.recyclerview.widget.RecyclerView
+import androidx.lifecycle.asFlow
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.DomainConnectionsAdapter
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
-import com.celzero.bravedns.util.CustomLinearLayoutManager
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.UIUtils.getCountryNameFromFlag
 import com.celzero.bravedns.util.Utilities.isAtleastQ
@@ -67,7 +68,6 @@ class DomainConnectionsActivity : AppCompatActivity() {
     private var titleText by mutableStateOf("")
     private var subtitleText by mutableStateOf("")
     private var showNoData by mutableStateOf(false)
-    private var recyclerAdapter: DomainConnectionsAdapter? = null
 
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
@@ -138,8 +138,6 @@ class DomainConnectionsActivity : AppCompatActivity() {
                 ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR
         setSubTitle(timeCategory)
         viewModel.timeCategoryChanged(timeCategory)
-        setupAdapter()
-
         setContent {
             RethinkTheme {
                 DomainConnectionsScreen()
@@ -177,27 +175,6 @@ class DomainConnectionsActivity : AppCompatActivity() {
                     )
                 }
             }
-    }
-
-    private fun setupAdapter() {
-        recyclerAdapter = DomainConnectionsAdapter(this, type)
-
-        val liveData = when (type) {
-            InputType.DOMAIN -> viewModel.domainConnectionList
-            InputType.FLAG -> viewModel.flagConnectionList
-            InputType.ASN -> viewModel.asnConnectionList
-            InputType.IP -> viewModel.ipConnectionList
-        }
-
-        liveData.observe(this) { recyclerAdapter?.submitData(this.lifecycle, it) }
-
-        recyclerAdapter?.addLoadStateListener {
-            if (it.append.endOfPaginationReached) {
-                showNoData = recyclerAdapter?.itemCount?.let { count -> count < 1 } ?: true
-            } else {
-                showNoData = false
-            }
-        }
     }
 
     @Composable
@@ -243,18 +220,23 @@ class DomainConnectionsActivity : AppCompatActivity() {
 
     @Composable
     private fun ConnectionsList() {
-        val listAdapter = recyclerAdapter
-        if (listAdapter == null) return
-        AndroidView(
-            factory = { ctx ->
-                RecyclerView(ctx).apply {
-                    layoutManager = CustomLinearLayoutManager(ctx)
-                    this.adapter = listAdapter
-                    isNestedScrollingEnabled = false
-                }
-            },
-            modifier = Modifier.fillMaxSize()
-        )
+        val adapter = remember { DomainConnectionsAdapter(this@DomainConnectionsActivity, type) }
+        val liveData =
+            when (type) {
+                InputType.DOMAIN -> viewModel.domainConnectionList
+                InputType.FLAG -> viewModel.flagConnectionList
+                InputType.ASN -> viewModel.asnConnectionList
+                InputType.IP -> viewModel.ipConnectionList
+            }
+        val items = liveData.asFlow().collectAsLazyPagingItems()
+        showNoData = items.itemCount == 0 && items.loadState.append.endOfPaginationReached
+
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(count = items.itemCount) { index ->
+                val item = items[index] ?: return@items
+                adapter.ConnectionRow(item)
+            }
+        }
     }
 
     @Composable

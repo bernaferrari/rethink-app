@@ -122,7 +122,7 @@ class LocalSimpleViewAdapter(val context: Context) :
     }
 
     @Composable
-    private fun BlocklistRow(
+    fun BlocklistRow(
         map: LocalBlocklistPacksMap,
         showHeader: Boolean,
         onToggle: (Boolean) -> Unit

@@ -15,29 +15,43 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import Logger
-import Logger.LOG_TAG_UI
 import android.content.Context
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.res.Configuration
-import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.text.format.DateUtils
-import android.view.View
-import android.widget.ArrayAdapter
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.TooltipCompat
-import androidx.core.content.ContextCompat
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import by.kirich1409.viewbindingdelegate.viewBinding
-import com.bumptech.glide.Glide
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.AppWiseDomainsAdapter
 import com.celzero.bravedns.adapter.AppWiseIpsAdapter
@@ -45,20 +59,16 @@ import com.celzero.bravedns.database.AppInfo
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
-import com.celzero.bravedns.databinding.ActivityAppDetailsBinding
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
-import com.celzero.bravedns.service.FirewallManager.updateFirewallStatus
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.ProxyManager.ID_NONE
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Constants.Companion.RETHINK_PACKAGE
-import com.celzero.bravedns.util.Constants.Companion.VIEW_PAGER_SCREEN_TO_LOAD
 import com.celzero.bravedns.util.Themes
-import com.celzero.bravedns.util.UIUtils.htmlToSpannedText
 import com.celzero.bravedns.util.UIUtils.openAndroidAppInfo
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
@@ -68,16 +78,14 @@ import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
 import com.celzero.bravedns.viewmodel.CustomDomainViewModel
 import com.celzero.bravedns.viewmodel.CustomIpViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class AppInfoActivity : AppCompatActivity(R.layout.activity_app_details) {
-    private val b by viewBinding(ActivityAppDetailsBinding::bind)
-
+class AppInfoActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()
 
@@ -86,12 +94,14 @@ class AppInfoActivity : AppCompatActivity(R.layout.activity_app_details) {
     private val networkLogsViewModel: AppConnectionsViewModel by viewModel()
 
     private var uid: Int = INVALID_UID
-    private lateinit var appInfo: AppInfo
-
-    private var appStatus = FirewallManager.FirewallStatus.NONE
-    private var connStatus = FirewallManager.ConnectionStatus.ALLOW
-
-    private var showBypassToolTip: Boolean = true
+    private var appInfo by mutableStateOf<AppInfo?>(null)
+    private var appStatus by mutableStateOf(FirewallManager.FirewallStatus.NONE)
+    private var connStatus by mutableStateOf(FirewallManager.ConnectionStatus.ALLOW)
+    private var firewallStatusText by mutableStateOf("")
+    private var isProxyExcluded by mutableStateOf(false)
+    private var isTempAllowed by mutableStateOf(false)
+    private var tempAllowExpiryTime by mutableStateOf(0L)
+    private var proxyDetails by mutableStateOf("")
 
     companion object {
         const val INTENT_UID = "UID"
@@ -111,683 +121,268 @@ class AppInfoActivity : AppCompatActivity(R.layout.activity_app_details) {
         }
 
         uid = intent.getIntExtra(INTENT_UID, INVALID_UID)
-        Logger.d(LOG_TAG_UI, "AppInfoActivity, intent uid: $uid")
         ipRulesViewModel.setUid(uid)
         domainRulesViewModel.setUid(uid)
         networkLogsViewModel.setUid(uid)
-        init()
-        observeAppRules()
-        setupClickListeners()
-    }
 
-    private fun observeAppRules() {
-        ipRulesViewModel.ipRulesCount(uid).observe(this) { b.aadIpBlockHeader.text = it.toString() }
-
-        domainRulesViewModel.domainRulesCount(uid).observe(this) {
-            b.aadDomainBlockHeader.text = it.toString()
+        setContent {
+            RethinkTheme {
+                AppInfoContent()
+            }
         }
     }
 
-    private fun init() {
-        io {
-            val appInfo = FirewallManager.getAppInfoByUid(uid)
-            // case: app is uninstalled but still available in RethinkDNS database
-            if (appInfo == null || uid == INVALID_UID || appInfo.tombstoneTs > 0) {
-                uiCtx { showNoAppFoundDialog() }
-                return@io
+    private fun Context.isDarkThemeOn(): Boolean {
+        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
+    }
+
+    @Composable
+    private fun AppInfoContent() {
+        val lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+        val domainAdapter = remember { AppWiseDomainsAdapter(this, lifecycleOwner, uid) }
+        val ipAdapter = remember { AppWiseIpsAdapter(this, lifecycleOwner, uid) }
+        val activeAdapter = remember { AppWiseDomainsAdapter(this, lifecycleOwner, uid, isActiveConn = true) }
+
+        val isRethink = appInfo?.packageName == RETHINK_PACKAGE
+        val uptime = VpnController.uptimeMs()
+        val activeConns =
+            if (isRethink) {
+                networkLogsViewModel.getRethinkActiveConnsLimited(uptime)
+            } else {
+                networkLogsViewModel.fetchTopActiveConnections(uid, uptime)
+            }
+        val activeItems = activeConns.asFlow().collectAsLazyPagingItems()
+        val domainItems =
+            if (isRethink) {
+                networkLogsViewModel.getRethinkDomainLogsLimited().asFlow().collectAsLazyPagingItems()
+            } else {
+                networkLogsViewModel.getDomainLogsLimited(uid).asFlow().collectAsLazyPagingItems()
+            }
+        val ipItems =
+            if (isRethink) {
+                networkLogsViewModel.getRethinkIpLogsLimited().asFlow().collectAsLazyPagingItems()
+            } else {
+                networkLogsViewModel.getIpLogsLimited(uid).asFlow().collectAsLazyPagingItems()
             }
 
-            val packages = FirewallManager.getPackageNamesByUid(appInfo.uid)
-            appStatus = FirewallManager.appStatus(appInfo.uid)
-            connStatus = FirewallManager.connectionStatus(appInfo.uid)
-            uiCtx {
-                this.appInfo = appInfo
+        LaunchedEffect(uid) {
+            loadAppInfo()
+        }
 
-                b.aadAppDetailName.text = appName(packages.count())
-                b.aadPkgName.text = appInfo.packageName
-                b.excludeProxySwitch.isChecked = appInfo.isProxyExcluded
-                
-                // Set temporary allow toggle state
-                val isTempAllowed = FirewallManager.isTempAllowed(appInfo.uid)
-                b.tempAllowSwitch.isChecked = isTempAllowed
-                updateTempAllowDescription(isTempAllowed, appInfo.tempAllowExpiryTime)
-                
-                displayDataUsage()
-                displayProxyStatus()
-                displayIcon(
-                    Utilities.getIcon(this, appInfo.packageName, appInfo.appName),
-                    b.aadAppDetailIcon
-                )
+        Column(
+            modifier = Modifier.fillMaxSize().padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            if (appInfo == null) {
+                Text(text = stringResource(id = R.string.ada_noapp_dialog_message))
+                Button(onClick = { finish() }) { Text(text = stringResource(id = R.string.ada_noapp_dialog_positive)) }
+                return@Column
+            }
 
-                if (appInfo.packageName == RETHINK_PACKAGE) {
-                    updateFirewallStatusUi(appStatus, connStatus)
-                    setActiveConnsAdapter(true)
-                    setRethinkDomainLogsAdapter()
-                    setRethinkIpLogsAdapter()
-                } else {
-                    updateFirewallStatusUi(appStatus, connStatus)
-                    setActiveConnsAdapter(false)
-                    if (persistentState.downloadIpInfo) {
-                        setASNAdapter()
+            Card(colors = CardDefaults.cardColors()) {
+                Column(modifier = Modifier.fillMaxWidth().padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(text = appInfo?.appName.orEmpty(), style = MaterialTheme.typography.titleLarge)
+                    Text(text = appInfo?.packageName.orEmpty(), style = MaterialTheme.typography.bodySmall)
+                    Text(text = firewallStatusText, style = MaterialTheme.typography.bodySmall)
+                    if (proxyDetails.isNotEmpty()) {
+                        Text(text = proxyDetails, style = MaterialTheme.typography.bodySmall)
                     }
-                    setDomainsAdapter()
-                    setIpAdapter()
                 }
+            }
 
-                // disable exclude app option for apps with no package name
-                if (FirewallManager.isUnknownPackage(uid)) {
-                    b.aadAppSettingsExclude.alpha = 0.5f
-                    b.aadAppSettingsExclude.isEnabled = false
-                } else {
-                    b.aadAppSettingsExclude.alpha = 1.0f
-                    b.aadAppSettingsExclude.isEnabled = true
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(onClick = { openAndroidAppInfo(this@AppInfoActivity, appInfo?.packageName) }) {
+                    Text(text = stringResource(id = R.string.about_settings_app_info))
+                }
+                Button(onClick = { openCustomRulesScreen() }) {
+                    Text(text = stringResource(id = R.string.ada_app_dns_settings))
+                }
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = stringResource(id = R.string.exclude_apps_from_proxy))
+                    Text(text = stringResource(id = R.string.settings_exclude_proxy_apps_desc), style = MaterialTheme.typography.bodySmall)
+                }
+                Switch(
+                    checked = isProxyExcluded,
+                    onCheckedChange = { enabled ->
+                        isProxyExcluded = enabled
+                        updateProxyExcluded(enabled)
+                    }
+                )
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(text = stringResource(id = R.string.temp_allow_label))
+                    Text(text = stringResource(id = R.string.temp_allow_desc), style = MaterialTheme.typography.bodySmall)
+                }
+                Switch(
+                    checked = isTempAllowed,
+                    onCheckedChange = { enabled ->
+                        isTempAllowed = enabled
+                        updateTempAllow(enabled)
+                    }
+                )
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(onClick = { toggleWifi() }) {
+                    Text(text = stringResource(id = R.string.ada_app_unmetered))
+                }
+                Button(onClick = { toggleMobileData() }) {
+                    Text(text = stringResource(id = R.string.ada_app_metered))
+                }
+                Button(onClick = { toggleIsolate() }) {
+                    Text(text = stringResource(id = R.string.ada_app_isolate))
+                }
+            }
+
+            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Button(onClick = { toggleBypassDnsFirewall() }) {
+                    Text(text = stringResource(id = R.string.ada_app_bypass_dns_firewall))
+                }
+                Button(onClick = { toggleBypassUniversal() }) {
+                    Text(text = stringResource(id = R.string.ada_app_bypass_univ))
+                }
+                Button(onClick = { toggleExclude() }) {
+                    Text(text = stringResource(id = R.string.ada_app_exclude))
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+            Text(text = stringResource(id = R.string.top_active_conns), style = MaterialTheme.typography.titleMedium)
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.height(200.dp)) {
+                items(count = activeItems.itemCount) { index ->
+                    val item = activeItems[index] ?: return@items
+                    activeAdapter.DomainRow(item)
+                }
+            }
+
+            Text(text = stringResource(id = R.string.ssv_most_contacted_domain_heading), style = MaterialTheme.typography.titleMedium)
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.height(200.dp)) {
+                items(count = domainItems.itemCount) { index ->
+                    val item = domainItems[index] ?: return@items
+                    domainAdapter.DomainRow(item)
+                }
+            }
+
+            Text(text = stringResource(id = R.string.ssv_most_contacted_ips_heading), style = MaterialTheme.typography.titleMedium)
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.height(200.dp)) {
+                items(count = ipItems.itemCount) { index ->
+                    val item = ipItems[index] ?: return@items
+                    ipAdapter.IpRow(item)
                 }
             }
         }
     }
 
-    private fun displayProxyStatus() {
-        val proxy = ProxyManager.getProxyIdForApp(uid)
-        if (proxy.isEmpty() || proxy == ID_NONE) {
-            b.aadProxyDetails.visibility = View.GONE
+    private suspend fun loadAppInfo() {
+        val info = withContext(Dispatchers.IO) { FirewallManager.getAppInfoByUid(uid) }
+        if (info == null || uid == INVALID_UID || info.tombstoneTs > 0) {
+            showNoAppFoundDialog()
             return
         }
-        b.aadProxyDetails.visibility = View.VISIBLE
-        b.aadProxyDetails.text = getString(R.string.wireguard_apps_proxy_map_desc, proxy)
+        val status = FirewallManager.appStatus(info.uid)
+        val conn = FirewallManager.connectionStatus(info.uid)
+        val proxy =
+            ProxyManager.getProxyIdForApp(uid).takeIf { it.isNotEmpty() && it != ID_NONE }
+                ?.let { getString(R.string.wireguard_apps_proxy_map_desc, it) }
+                .orEmpty()
+        appInfo = info
+        appStatus = status
+        connStatus = conn
+        isProxyExcluded = info.isProxyExcluded
+        isTempAllowed = FirewallManager.isTempAllowed(info.uid)
+        tempAllowExpiryTime = info.tempAllowExpiryTime
+        proxyDetails = proxy
+        firewallStatusText = getFirewallText(appStatus, connStatus)
     }
 
-    private fun openCustomIpScreen() {
+    private fun openCustomRulesScreen() {
         val intent = Intent(this, CustomRulesActivity::class.java)
-        intent.putExtra(VIEW_PAGER_SCREEN_TO_LOAD, CustomRulesActivity.Tabs.IP_RULES.screen)
-        intent.putExtra(Constants.INTENT_UID, uid)
+        intent.putExtra(INTENT_UID, uid)
         startActivity(intent)
     }
 
-    private fun openCustomDomainScreen() {
-        val intent = Intent(this, CustomRulesActivity::class.java)
-        intent.putExtra(VIEW_PAGER_SCREEN_TO_LOAD, CustomRulesActivity.Tabs.DOMAIN_RULES.screen)
-        intent.putExtra(Constants.INTENT_UID, uid)
-        startActivity(intent)
-    }
-
-    private fun displayDataUsage() {
-        if (!::appInfo.isInitialized) {
-            Logger.w(LOG_TAG_UI, "AppInfo not initialized yet in displayDataUsage")
-            // Set default values when appInfo is not available
-            b.aadDataUsageStatus.text = getString(R.string.two_argument,
-                getString(R.string.symbol_upload, "0 B"),
-                getString(R.string.symbol_download, "0 B"))
-            return
-        }
-
-        val u = Utilities.humanReadableByteCount(appInfo.uploadBytes, true)
-        val uploadBytes = getString(R.string.symbol_upload, u)
-        val d = Utilities.humanReadableByteCount(appInfo.downloadBytes, true)
-        val downloadBytes = getString(R.string.symbol_download, d)
-        b.aadDataUsageStatus.text = getString(R.string.two_argument, uploadBytes, downloadBytes)
-    }
-
-    private fun updateFirewallStatusUi(
-        firewallStatus: FirewallManager.FirewallStatus,
-        connectionStatus: FirewallManager.ConnectionStatus
-    ) {
-        val statusText = getFirewallText(firewallStatus, connectionStatus)
-        val statusWithTime = if (::appInfo.isInitialized && appInfo.modifiedTs > 0) {
-            val now = System.currentTimeMillis()
-            val uptime = now - appInfo.modifiedTs
-            val relativeTime = DateUtils.getRelativeTimeSpanString(
-                now - uptime,
-                now,
-                DateUtils.MINUTE_IN_MILLIS,
-                DateUtils.FORMAT_ABBREV_RELATIVE
-            )
-            "$statusText $relativeTime"
-        } else {
-            statusText
-        }
-
-        b.aadFirewallStatus.text =
-            htmlToSpannedText(
-                getString(
-                    R.string.ada_firewall_status,
-                    statusWithTime
-                )
-            )
-
-        when (firewallStatus) {
-            FirewallManager.FirewallStatus.EXCLUDE -> {
-                enableAppExcludedUi()
-            }
-            FirewallManager.FirewallStatus.BYPASS_UNIVERSAL -> {
-                enableAppBypassedUi()
-            }
-            FirewallManager.FirewallStatus.ISOLATE -> {
-                enableIsolateUi()
-            }
-            FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL -> {
-                enableDnsFirewallBypassedUi()
-            }
-            FirewallManager.FirewallStatus.NONE -> {
-                when (connectionStatus) {
-                    FirewallManager.ConnectionStatus.ALLOW -> {
-                        enableAllow()
-                    }
-                    else -> {
-                        enableBlock(connectionStatus)
-                    }
-                }
-                disableWhitelistExcludeUi()
-            }
-            FirewallManager.FirewallStatus.UNTRACKED -> {
-                // no-op
-            }
+    private fun updateProxyExcluded(enabled: Boolean) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            FirewallManager.updateIsProxyExcluded(uid, enabled)
         }
     }
 
-    private fun setupClickListeners() {
-
-        b.aadAppInfoIcon.setOnClickListener {
-            if (!::appInfo.isInitialized) {
-                Logger.w(LOG_TAG_UI, "AppInfo not initialized yet in aadAppInfoIcon click listener, using uid: $uid")
-                showToastUiCentered(
-                    this,
-                    this.getString(R.string.ctbs_app_info_not_available_toast),
-                    Toast.LENGTH_SHORT
-                )
-                return@setOnClickListener
-            }
-
-            io {
-                val appNames = FirewallManager.getAppNamesByUid(uid)
-                uiCtx {
-                    if (appNames.count() == 1) {
-                        openAndroidAppInfo(this, appInfo.packageName)
-                    } else if (appNames.count() > 1) {
-                        showAppInfoDialog(appNames)
-                    } else {
-                        showToastUiCentered(
-                            this,
-                            this.getString(R.string.ctbs_app_info_not_available_toast),
-                            Toast.LENGTH_SHORT
-                        )
-                    }
-                }
-            }
-        }
-
-        TooltipCompat.setTooltipText(
-            b.aadAppSettingsBypassDnsFirewall,
-            getString(
-                R.string.bypass_dns_firewall_tooltip,
-                getString(R.string.ada_app_bypass_dns_firewall)
-            )
-        )
-
-        TooltipCompat.setTooltipText(b.aadCloseConnsChip, getString(R.string.close_conns_dialog_title))
-
-        b.aadAppSettingsBypassDnsFirewall.setOnClickListener {
-            guardAppInfoInitialized("aadAppSettingsBypassDnsFirewall") {
-                // show the tooltip only once when app is not bypassed (dns + firewall) earlier
-                if (showBypassToolTip && appStatus == FirewallManager.FirewallStatus.NONE) {
-                    b.aadAppSettingsBypassDnsFirewall.performLongClick()
-                    showBypassToolTip = false
-                    return@guardAppInfoInitialized
-                }
-
-                if (appStatus == FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL) {
-                    updateFirewallStatus(
-                        FirewallManager.FirewallStatus.NONE,
-                        FirewallManager.ConnectionStatus.ALLOW
-                    )
-                    logEvent(
-                        "firewall rule change",
-                        "DNS + Firewall bypass disabled for ${appInfo.appName} (${appInfo.uid})"
-                    )
-                } else {
-                    updateFirewallStatus(
-                        FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL,
-                        FirewallManager.ConnectionStatus.ALLOW
-                    )
-                    logEvent(
-                        "firewall rule change",
-                        "DNS + Firewall bypass enabled for ${appInfo.appName} (${appInfo.uid})"
-                    )
-                }
-            }
-        }
-
-        b.aadAppSettingsBlockWifi.setOnClickListener {
-            guardAppInfoInitialized("aadAppSettingsBlockWifi") {
-                toggleWifi(appInfo)
-                updateFirewallStatusUi(appStatus, connStatus)
-            }
-        }
-
-        b.aadAppSettingsBlockMd.setOnClickListener {
-            guardAppInfoInitialized("aadAppSettingsBlockMd") {
-                toggleMobileData(appInfo)
-                updateFirewallStatusUi(appStatus, connStatus)
-            }
-        }
-
-        b.aadAppSettingsBypassUniv.setOnClickListener {
-            guardAppInfoInitialized("aadAppSettingsBypassUniv") {
-                // change the status to allowed if already app is bypassed
-                if (appStatus == FirewallManager.FirewallStatus.BYPASS_UNIVERSAL) {
-                    updateFirewallStatus(
-                        FirewallManager.FirewallStatus.NONE,
-                        FirewallManager.ConnectionStatus.ALLOW
-                    )
-                    logEvent(
-                        "firewall rule change",
-                        "Universal bypass disabled for ${appInfo.appName} (${appInfo.uid})"
-                    )
-                } else {
-                    updateFirewallStatus(
-                        FirewallManager.FirewallStatus.BYPASS_UNIVERSAL,
-                        FirewallManager.ConnectionStatus.ALLOW
-                    )
-                    logEvent(
-                        "firewall rule change",
-                        "Universal bypass enabled for ${appInfo.appName} (${appInfo.uid})"
-                    )
-                }
-            }
-        }
-
-        b.aadAppSettingsExclude.setOnClickListener {
-            guardAppInfoInitialized("aadAppSettingsExclude") {
-                if (VpnController.isVpnLockdown()) {
-                    showToastUiCentered(this, getString(R.string.hsf_exclude_error), Toast.LENGTH_SHORT)
-                    return@guardAppInfoInitialized
-                }
-
-                io {
-                    if (FirewallManager.isUnknownPackage(uid) && appStatus == FirewallManager.FirewallStatus.EXCLUDE) {
-                        uiCtx {
-                            showToastUiCentered(
-                                this,
-                                getString(R.string.exclude_no_package_err_toast),
-                                Toast.LENGTH_LONG
-                            )
-                        }
-                        return@io
-                    }
-
-                    // change the status to allowed if already app is excluded
-                    if (appStatus == FirewallManager.FirewallStatus.EXCLUDE) {
-                        updateFirewallStatus(
-                            FirewallManager.FirewallStatus.NONE,
-                            FirewallManager.ConnectionStatus.ALLOW
-                        )
-                        logEvent(
-                            "firewall rule change",
-                            "App exclusion disabled for ${appInfo.appName} (${appInfo.uid})"
-                        )
-                    } else {
-                        updateFirewallStatus(
-                            FirewallManager.FirewallStatus.EXCLUDE,
-                            FirewallManager.ConnectionStatus.ALLOW
-                        )
-                        logEvent(
-                            "firewall rule change",
-                            "App exclusion enabled for ${appInfo.appName} (${appInfo.uid})"
-                        )
-                    }
-                }
-            }
-        }
-
-        b.aadAppSettingsIsolate.setOnClickListener {
-            guardAppInfoInitialized("aadAppSettingsIsolate") {
-                // change the status to allowed if already app is isolated
-                if (appStatus == FirewallManager.FirewallStatus.ISOLATE) {
-                    updateFirewallStatus(
-                        FirewallManager.FirewallStatus.NONE,
-                        FirewallManager.ConnectionStatus.ALLOW
-                    )
-                    logEvent(
-                        "firewall rule change",
-                        "App isolation disabled for ${appInfo.appName} (${appInfo.uid})"
-                    )
-                } else {
-                    updateFirewallStatus(
-                        FirewallManager.FirewallStatus.ISOLATE,
-                        FirewallManager.ConnectionStatus.ALLOW
-                    )
-                    logEvent(
-                        "firewall rule change",
-                        "App isolation enabled for ${appInfo.appName} (${appInfo.uid})"
-                    )
-                }
-            }
-        }
-
-        b.aadIpBlockCard.setOnClickListener { openCustomIpScreen() }
-
-        b.aadDomainBlockCard.setOnClickListener { openCustomDomainScreen() }
-
-        b.aadIpsChip.setOnClickListener { openAppWiseIpLogsActivity() }
-
-        b.aadDomainsChip.setOnClickListener { openAppWiseDomainLogsActivity() }
-
-        b.aadActiveConnsChip.setOnClickListener { openAppWiseDomainLogsActivity(activeConns = true) }
-
-        b.aadAsnChip.setOnClickListener { openAppWiseIpLogsActivity(asn = true) }
-
-        b.excludeProxySwitch.setOnCheckedChangeListener { _, isChecked ->
-            updateExcludeProxyStatus(isChecked)
-        }
-
-        b.excludeProxyRl.setOnClickListener {
-            b.excludeProxySwitch.isChecked = !b.excludeProxySwitch.isChecked
-        }
-
-        b.tempAllowSwitch.setOnCheckedChangeListener { _, isChecked ->
-            updateTempAllowStatus(isChecked)
-        }
-
-        b.tempAllowRl.setOnClickListener {
-            b.tempAllowSwitch.isChecked = !b.tempAllowSwitch.isChecked
-        }
-
-        b.aadCloseConnsChip.setOnClickListener {
-            if (!::appInfo.isInitialized) {
-                Logger.w(LOG_TAG_UI, "AppInfo not initialized yet in aadCloseConnsChip click listener, using uid: $uid")
-                showCloseConnectionDialog(uid, "Unknown App")
-                return@setOnClickListener
-            }
-
-            showCloseConnectionDialog(uid, appInfo.appName)
-        }
-    }
-
-    private fun updateExcludeProxyStatus(isExcluded: Boolean) {
-        io {
-            FirewallManager.updateIsProxyExcluded(uid, isExcluded)
-            logEvent(
-                "proxy exclude change",
-                "Proxy exclude status changed for ${appInfo.appName} (${appInfo.uid}), new status: $isExcluded"
-            )
-        }
-    }
-
-    private fun updateTempAllowStatus(isAllowed: Boolean) {
-        io {
-            if (isAllowed) {
+    private fun updateTempAllow(enabled: Boolean) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            if (enabled) {
                 FirewallManager.updateTempAllow(uid, true)
-                val expiryTime = System.currentTimeMillis() + (15 * 60 * 1000L)
-                uiCtx {
-                    updateTempAllowDescription(true, expiryTime)
-                }
             } else {
                 FirewallManager.updateTempAllow(uid, false)
-                uiCtx {
-                    updateTempAllowDescription(false, 0)
-                }
             }
-            logEvent(
-                "temp allow change",
-                "Temporary allow status changed for ${appInfo.appName} (${appInfo.uid}), new status: $isAllowed"
-            )
         }
     }
 
-    private fun updateTempAllowDescription(isAllowed: Boolean, expiryTime: Long) {
-        if (isAllowed && expiryTime > 0) {
-            val now = System.currentTimeMillis()
-            if (expiryTime > now) {
-                val relativeTime = DateUtils.getRelativeTimeSpanString(
-                    expiryTime,
-                    now,
-                    DateUtils.MINUTE_IN_MILLIS,
-                    DateUtils.FORMAT_ABBREV_RELATIVE
-                )
-                b.tempAllowDesc.text = getString(R.string.temp_allow_active, relativeTime)
+    private fun toggleBypassDnsFirewall() {
+        val next =
+            if (appStatus == FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL) {
+                FirewallManager.FirewallStatus.NONE
             } else {
-                b.tempAllowDesc.text = getString(R.string.temp_allow_desc)
+                FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL
             }
-        } else {
-            b.tempAllowDesc.text = getString(R.string.temp_allow_desc)
-        }
+        updateFirewallStatus(next, FirewallManager.ConnectionStatus.ALLOW)
     }
 
-    private fun openAppWiseDomainLogsActivity(activeConns: Boolean = false) {
-        val intent = Intent(this, AppWiseDomainLogsActivity::class.java)
-        intent.putExtra(INTENT_UID, uid)
-        intent.putExtra(INTENT_ACTIVE_CONNS, activeConns)
-        startActivity(intent)
+    private fun toggleBypassUniversal() {
+        val next =
+            if (appStatus == FirewallManager.FirewallStatus.BYPASS_UNIVERSAL) {
+                FirewallManager.FirewallStatus.NONE
+            } else {
+                FirewallManager.FirewallStatus.BYPASS_UNIVERSAL
+            }
+        updateFirewallStatus(next, FirewallManager.ConnectionStatus.ALLOW)
     }
 
-    private fun openAppWiseIpLogsActivity(asn: Boolean = false) {
-        val intent = Intent(this, AppWiseIpLogsActivity::class.java)
-        intent.putExtra(INTENT_UID, uid)
-        intent.putExtra(INTENT_ASN, asn)
-        startActivity(intent)
+    private fun toggleExclude() {
+        val next =
+            if (appStatus == FirewallManager.FirewallStatus.EXCLUDE) {
+                FirewallManager.FirewallStatus.NONE
+            } else {
+                FirewallManager.FirewallStatus.EXCLUDE
+            }
+        updateFirewallStatus(next, FirewallManager.ConnectionStatus.ALLOW)
     }
 
-    private fun setActiveConnsAdapter(isRethink: Boolean) {
-        val layoutManager = LinearLayoutManager(this)
-        b.aadActiveConnsRv.layoutManager = layoutManager
-        val adapter = AppWiseDomainsAdapter(this, this, uid, isActiveConn = true)
-        val uptime = VpnController.uptimeMs()
-        Logger.i(LOG_TAG_UI, "app-info-act, active conns, uptime: $uptime ms")
-        if (isRethink) {
-            networkLogsViewModel.getRethinkActiveConnsLimited(uptime).observe(this) {
-                adapter.submitData(this.lifecycle, it)
+    private fun toggleIsolate() {
+        val next =
+            if (appStatus == FirewallManager.FirewallStatus.ISOLATE) {
+                FirewallManager.FirewallStatus.NONE
+            } else {
+                FirewallManager.FirewallStatus.ISOLATE
             }
-        } else {
-            networkLogsViewModel.fetchTopActiveConnections(uid, uptime).observe(this) {
-                adapter.submitData(this.lifecycle, it)
-            }
-        }
-        b.aadActiveConnsRv.adapter = adapter
-
-        adapter.addLoadStateListener {
-            if (it.append.endOfPaginationReached) {
-                if (adapter.itemCount >= 1) {
-                    b.aadActiveConnsRl.visibility = View.VISIBLE
-                } else {
-                    b.aadActiveConnsRl.visibility = View.GONE
-                }
-            }
-        }
+        updateFirewallStatus(next, FirewallManager.ConnectionStatus.ALLOW)
     }
 
-    private fun setASNAdapter() {
-        val layoutManager = LinearLayoutManager(this)
-        b.aadAsnRv.layoutManager = layoutManager
-        val adapter = AppWiseIpsAdapter(this, this, uid,  isAsn = true)
-        networkLogsViewModel.getAsnLogsLimited(uid).observe(this) {
-            adapter.submitData(this.lifecycle, it)
-        }
-        b.aadAsnRv.adapter = adapter
-
-        adapter.addLoadStateListener {
-            if (it.append.endOfPaginationReached) {
-                if (adapter.itemCount >= 1) {
-                    b.aadAsnRl.visibility = View.VISIBLE
-                } else {
-                    b.aadAsnRl.visibility = View.GONE
-                }
+    private fun toggleWifi() {
+        val newConnStatus =
+            when (connStatus) {
+                FirewallManager.ConnectionStatus.UNMETERED -> FirewallManager.ConnectionStatus.ALLOW
+                FirewallManager.ConnectionStatus.BOTH -> FirewallManager.ConnectionStatus.METERED
+                FirewallManager.ConnectionStatus.METERED -> FirewallManager.ConnectionStatus.BOTH
+                FirewallManager.ConnectionStatus.ALLOW -> FirewallManager.ConnectionStatus.UNMETERED
             }
-        }
+        updateFirewallStatus(FirewallManager.FirewallStatus.NONE, newConnStatus, connStatus)
     }
 
-    private fun setDomainsAdapter() {
-        val layoutManager = LinearLayoutManager(this)
-        b.aadMostContactedDomainRv.layoutManager = layoutManager
-        val adapter = AppWiseDomainsAdapter(this, this, uid)
-        networkLogsViewModel.getDomainLogsLimited(uid).observe(this) {
-            adapter.submitData(this.lifecycle, it)
-        }
-        b.aadMostContactedDomainRv.adapter = adapter
-
-        adapter.addLoadStateListener {
-            if (it.append.endOfPaginationReached) {
-                if (adapter.itemCount >= 1) {
-                    b.aadMostContactedDomainRl.visibility = View.VISIBLE
-                } else {
-                    b.aadMostContactedDomainRl.visibility = View.GONE
-                }
+    private fun toggleMobileData() {
+        val newConnStatus =
+            when (connStatus) {
+                FirewallManager.ConnectionStatus.METERED -> FirewallManager.ConnectionStatus.ALLOW
+                FirewallManager.ConnectionStatus.UNMETERED -> FirewallManager.ConnectionStatus.BOTH
+                FirewallManager.ConnectionStatus.BOTH -> FirewallManager.ConnectionStatus.UNMETERED
+                FirewallManager.ConnectionStatus.ALLOW -> FirewallManager.ConnectionStatus.METERED
             }
-        }
-    }
-
-    private fun setRethinkDomainLogsAdapter() {
-        val layoutManager = LinearLayoutManager(this)
-        b.aadMostContactedDomainRv.layoutManager = layoutManager
-        val adapter = AppWiseDomainsAdapter(this, this, uid)
-        networkLogsViewModel.getRethinkDomainLogsLimited().observe(this) {
-            adapter.submitData(this.lifecycle, it)
-        }
-        b.aadMostContactedDomainRv.adapter = adapter
-
-        adapter.addLoadStateListener {
-            if (it.append.endOfPaginationReached) {
-                if (adapter.itemCount >= 1) {
-                    b.aadMostContactedDomainRl.visibility = View.VISIBLE
-                } else {
-                    b.aadMostContactedDomainRl.visibility = View.GONE
-                }
-            }
-        }
-    }
-
-    private fun setRethinkIpLogsAdapter() {
-        val layoutManager = LinearLayoutManager(this)
-        b.aadMostContactedIpsRv.layoutManager = layoutManager
-        val adapter = AppWiseIpsAdapter(this, this, uid)
-        networkLogsViewModel.getRethinkIpLogsLimited().observe(this) {
-            adapter.submitData(this.lifecycle, it)
-        }
-        b.aadMostContactedIpsRv.adapter = adapter
-
-        adapter.addLoadStateListener {
-            if (it.append.endOfPaginationReached) {
-                if (adapter.itemCount >= 1) {
-                    b.aadMostContactedIpsRl.visibility = View.VISIBLE
-                } else {
-                    b.aadMostContactedIpsRl.visibility = View.GONE
-                }
-            }
-        }
-    }
-
-    private fun setIpAdapter() {
-        b.aadMostContactedIpsRv.setHasFixedSize(true)
-        val layoutManager = LinearLayoutManager(this)
-        b.aadMostContactedIpsRv.layoutManager = layoutManager
-        val adapter = AppWiseIpsAdapter(this, this, uid)
-        networkLogsViewModel.getIpLogsLimited(uid).observe(this) {
-            adapter.submitData(this.lifecycle, it)
-        }
-        b.aadMostContactedIpsRv.adapter = adapter
-
-        adapter.addLoadStateListener {
-            if (it.append.endOfPaginationReached) {
-                if (adapter.itemCount >= 1) {
-                    b.aadMostContactedIpsRl.visibility = View.VISIBLE
-                } else {
-                    b.aadMostContactedIpsRl.visibility = View.GONE
-                }
-            }
-        }
-    }
-
-    private fun showAppInfoDialog(appNames: List<String>) {
-        val builderSingle = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builderSingle.setTitle(this.getString(R.string.about_settings_app_info))
-
-        val arrayAdapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_activated_1)
-        arrayAdapter.addAll(appNames)
-        builderSingle.setCancelable(false)
-
-        builderSingle.setItems(appNames.toTypedArray(), null)
-
-        builderSingle.setPositiveButton(getString(R.string.ada_noapp_dialog_positive)) {
-            dialog: DialogInterface,
-            _: Int ->
-            dialog.dismiss()
-        }
-
-        val alertDialog = builderSingle.create()
-        val ctx = this.applicationContext
-        alertDialog.listView.setOnItemClickListener { _, _, position, _ ->
-            io {
-                val pkg = FirewallManager.getPackageNameByAppName(appNames[position])
-                uiCtx {
-                    Logger.i(Logger.LOG_TAG_UI, "AppInfoActivity, package name: $pkg")
-                    openAndroidAppInfo(ctx, pkg)
-                }
-            }
-        }
-        alertDialog.show()
-    }
-
-    private fun toggleMobileData(appInfo: AppInfo) {
-        // toggle mobile data: change the connection status based on the current status.
-        // if allow -> none(app status) + metered(connection status)
-        // if unmetered -> none(app status) + both(connection status)
-        // if metered -> none(app status) + allow(connection status)
-        // if both -> none(app status) + unmetered(connection status)
-
-        io {
-            val connStatus = FirewallManager.connectionStatus(appInfo.uid)
-            uiCtx {
-                val cStat =
-                    when (connStatus) {
-                        FirewallManager.ConnectionStatus.METERED -> {
-                            FirewallManager.ConnectionStatus.ALLOW
-                        }
-                        FirewallManager.ConnectionStatus.UNMETERED -> {
-                            FirewallManager.ConnectionStatus.BOTH
-                        }
-                        FirewallManager.ConnectionStatus.BOTH -> {
-                            FirewallManager.ConnectionStatus.UNMETERED
-                        }
-                        FirewallManager.ConnectionStatus.ALLOW -> {
-                            FirewallManager.ConnectionStatus.METERED
-                        }
-                    }
-                updateFirewallStatus(FirewallManager.FirewallStatus.NONE, cStat, connStatus)
-            }
-        }
-    }
-
-    private fun toggleWifi(appInfo: AppInfo) {
-        // toggle wifi: change the connection status based on the current status.
-        // if Wifi -> none(app status) + wifi(connection status)
-        // if MOBILE DATA -> none(app status) + both(connection status)
-        // if BOTH -> none(app status) + mobile data(connection status)
-        // if ALLOW -> none(app status) + wifi(connection status)
-
-        io {
-            val connStatus = FirewallManager.connectionStatus(appInfo.uid)
-            uiCtx {
-                val cStat =
-                    when (connStatus) {
-                        FirewallManager.ConnectionStatus.UNMETERED -> {
-                            FirewallManager.ConnectionStatus.ALLOW
-                        }
-                        FirewallManager.ConnectionStatus.BOTH -> {
-                            FirewallManager.ConnectionStatus.METERED
-                        }
-                        FirewallManager.ConnectionStatus.METERED -> {
-                            FirewallManager.ConnectionStatus.BOTH
-                        }
-                        FirewallManager.ConnectionStatus.ALLOW -> {
-                            FirewallManager.ConnectionStatus.UNMETERED
-                        }
-                    }
-
-                updateFirewallStatus(FirewallManager.FirewallStatus.NONE, cStat, connStatus)
-                logEvent(
-                    "firewall rule change",
-                    "Toggled WIFI for ${appInfo.appName} (${appInfo.uid}), new conn status: $cStat"
-                )
-            }
-        }
+        updateFirewallStatus(FirewallManager.FirewallStatus.NONE, newConnStatus, connStatus)
     }
 
     private fun updateFirewallStatus(
@@ -795,128 +390,40 @@ class AppInfoActivity : AppCompatActivity(R.layout.activity_app_details) {
         cStat: FirewallManager.ConnectionStatus,
         prevConnStat: FirewallManager.ConnectionStatus = FirewallManager.ConnectionStatus.ALLOW
     ) {
-        io {
-            val appNames = FirewallManager.getAppNamesByUid(appInfo.uid)
-            uiCtx {
-                if (appNames.count() > 1) {
-                    showDialog(appNames, appInfo, aStat, cStat, prevConnStat)
-                    return@uiCtx
-                }
-
-                completeFirewallChanges(aStat, cStat)
+        val info = appInfo ?: return
+        if (aStat == FirewallManager.FirewallStatus.EXCLUDE && FirewallManager.isUnknownPackage(uid)) {
+            showToastUiCentered(this, getString(R.string.exclude_no_package_err_toast), Toast.LENGTH_LONG)
+            return
+        }
+        lifecycleScope.launch(Dispatchers.IO) {
+            FirewallManager.updateFirewallStatus(info.uid, aStat, cStat)
+            withContext(Dispatchers.Main) {
+                appStatus = aStat
+                connStatus = cStat
+                firewallStatusText = getFirewallText(appStatus, connStatus)
+                logEvent(
+                    "Firewall status changed",
+                    "Firewall status changed for ${info.appName} (${info.uid}), new status: $aStat, conn status: $cStat"
+                )
             }
         }
-    }
-
-    private fun completeFirewallChanges(
-        aStat: FirewallManager.FirewallStatus,
-        cStat: FirewallManager.ConnectionStatus
-    ) {
-        appStatus = aStat
-        connStatus = cStat
-        io { updateFirewallStatus(appInfo.uid, aStat, cStat) }
-        updateFirewallStatusUi(aStat, cStat)
-        logEvent(
-            "firewall rule change",
-            "Firewall status changed for ${appInfo.appName} (${appInfo.uid}), new status: $aStat, conn status: $cStat"
-        )
-    }
-
-    private fun enableAppBypassedUi() {
-        setDrawable(R.drawable.ic_bypass_dns_firewall_off, b.aadAppSettingsBypassDnsFirewall)
-        setDrawable(R.drawable.ic_firewall_wifi_on_grey, b.aadAppSettingsBlockWifi)
-        setDrawable(R.drawable.ic_firewall_data_on_grey, b.aadAppSettingsBlockMd)
-        setDrawable(R.drawable.ic_firewall_bypass_on, b.aadAppSettingsBypassUniv)
-        setDrawable(R.drawable.ic_firewall_exclude_off, b.aadAppSettingsExclude)
-        setDrawable(R.drawable.ic_firewall_lockdown_off, b.aadAppSettingsIsolate)
-    }
-
-    private fun enableDnsFirewallBypassedUi() {
-        setDrawable(R.drawable.ic_bypass_dns_firewall_on, b.aadAppSettingsBypassDnsFirewall)
-        setDrawable(R.drawable.ic_firewall_wifi_on_grey, b.aadAppSettingsBlockWifi)
-        setDrawable(R.drawable.ic_firewall_data_on_grey, b.aadAppSettingsBlockMd)
-        setDrawable(R.drawable.ic_firewall_bypass_off, b.aadAppSettingsBypassUniv)
-        setDrawable(R.drawable.ic_firewall_exclude_off, b.aadAppSettingsExclude)
-        setDrawable(R.drawable.ic_firewall_lockdown_off, b.aadAppSettingsIsolate)
-    }
-
-    private fun enableAppExcludedUi() {
-        setDrawable(R.drawable.ic_bypass_dns_firewall_off, b.aadAppSettingsBypassDnsFirewall)
-        setDrawable(R.drawable.ic_firewall_wifi_on_grey, b.aadAppSettingsBlockWifi)
-        setDrawable(R.drawable.ic_firewall_data_on_grey, b.aadAppSettingsBlockMd)
-        setDrawable(R.drawable.ic_firewall_bypass_off, b.aadAppSettingsBypassUniv)
-        setDrawable(R.drawable.ic_firewall_exclude_on, b.aadAppSettingsExclude)
-        setDrawable(R.drawable.ic_firewall_lockdown_off, b.aadAppSettingsIsolate)
-    }
-
-    private fun disableWhitelistExcludeUi() {
-        setDrawable(R.drawable.ic_firewall_bypass_off, b.aadAppSettingsBypassUniv)
-        setDrawable(R.drawable.ic_firewall_exclude_off, b.aadAppSettingsExclude)
-        setDrawable(R.drawable.ic_firewall_lockdown_off, b.aadAppSettingsIsolate)
-        setDrawable(R.drawable.ic_bypass_dns_firewall_off, b.aadAppSettingsBypassDnsFirewall)
-    }
-
-    private fun enableIsolateUi() {
-        setDrawable(R.drawable.ic_bypass_dns_firewall_off, b.aadAppSettingsBypassDnsFirewall)
-        setDrawable(R.drawable.ic_firewall_wifi_on_grey, b.aadAppSettingsBlockWifi)
-        setDrawable(R.drawable.ic_firewall_data_on_grey, b.aadAppSettingsBlockMd)
-        setDrawable(R.drawable.ic_firewall_bypass_off, b.aadAppSettingsBypassUniv)
-        setDrawable(R.drawable.ic_firewall_exclude_off, b.aadAppSettingsExclude)
-        setDrawable(R.drawable.ic_firewall_lockdown_on, b.aadAppSettingsIsolate)
-    }
-
-    private fun enableAllow() {
-        setDrawable(R.drawable.ic_bypass_dns_firewall_off, b.aadAppSettingsBypassDnsFirewall)
-        setDrawable(R.drawable.ic_firewall_wifi_on, b.aadAppSettingsBlockWifi)
-        setDrawable(R.drawable.ic_firewall_data_on, b.aadAppSettingsBlockMd)
-        setDrawable(R.drawable.ic_firewall_bypass_off, b.aadAppSettingsBypassUniv)
-        setDrawable(R.drawable.ic_firewall_exclude_off, b.aadAppSettingsExclude)
-        setDrawable(R.drawable.ic_firewall_lockdown_off, b.aadAppSettingsIsolate)
-    }
-
-    // update the BLOCK status based on connection status (mobile data + wifi + both)
-    private fun enableBlock(cStat: FirewallManager.ConnectionStatus) {
-        when (cStat) {
-            FirewallManager.ConnectionStatus.METERED -> {
-                setDrawable(R.drawable.ic_firewall_wifi_on, b.aadAppSettingsBlockWifi)
-                setDrawable(R.drawable.ic_firewall_data_off, b.aadAppSettingsBlockMd)
-            }
-            FirewallManager.ConnectionStatus.UNMETERED -> {
-                setDrawable(R.drawable.ic_firewall_wifi_off, b.aadAppSettingsBlockWifi)
-                setDrawable(R.drawable.ic_firewall_data_on, b.aadAppSettingsBlockMd)
-            }
-            FirewallManager.ConnectionStatus.BOTH -> {
-                setDrawable(R.drawable.ic_firewall_wifi_off, b.aadAppSettingsBlockWifi)
-                setDrawable(R.drawable.ic_firewall_data_off, b.aadAppSettingsBlockMd)
-            }
-            FirewallManager.ConnectionStatus.ALLOW -> {
-                setDrawable(R.drawable.ic_firewall_wifi_on, b.aadAppSettingsBlockWifi)
-                setDrawable(R.drawable.ic_firewall_data_on, b.aadAppSettingsBlockMd)
-            }
-        }
-        setDrawable(R.drawable.ic_bypass_dns_firewall_off, b.aadAppSettingsBypassDnsFirewall)
-        setDrawable(R.drawable.ic_firewall_bypass_off, b.aadAppSettingsBypassUniv)
-        setDrawable(R.drawable.ic_firewall_exclude_off, b.aadAppSettingsExclude)
-        setDrawable(R.drawable.ic_firewall_lockdown_off, b.aadAppSettingsIsolate)
-    }
-
-    private fun setDrawable(drawable: Int, txt: TextView) {
-        val top = ContextCompat.getDrawable(this, drawable)
-        txt.setCompoundDrawablesWithIntrinsicBounds(null, top, null, null)
     }
 
     private fun getFirewallText(
         aStat: FirewallManager.FirewallStatus,
         cStat: FirewallManager.ConnectionStatus
-    ): CharSequence {
+    ): String {
         return when (aStat) {
             FirewallManager.FirewallStatus.NONE -> {
-                when {
-                    cStat.mobileData() -> getString(R.string.ada_app_status_block_md)
-                    cStat.wifi() -> getString(R.string.ada_app_status_block_wifi)
-                    cStat.allow() -> getString(R.string.ada_app_status_allow)
-                    cStat.blocked() -> getString(R.string.ada_app_status_block)
-                    else -> getString(R.string.ada_app_status_unknown)
+                when (cStat) {
+                    FirewallManager.ConnectionStatus.METERED ->
+                        getString(R.string.ada_app_status_block_md)
+                    FirewallManager.ConnectionStatus.UNMETERED ->
+                        getString(R.string.ada_app_status_block_wifi)
+                    FirewallManager.ConnectionStatus.BOTH ->
+                        getString(R.string.ada_app_status_block)
+                    FirewallManager.ConnectionStatus.ALLOW ->
+                        getString(R.string.ada_app_status_allow)
                 }
             }
             FirewallManager.FirewallStatus.EXCLUDE -> getString(R.string.ada_app_status_exclude)
@@ -929,122 +436,26 @@ class AppInfoActivity : AppCompatActivity(R.layout.activity_app_details) {
         }
     }
 
-    private fun appName(packageCount: Int): String {
-        return if (packageCount >= 2) {
-            getString(
-                R.string.ctbs_app_other_apps,
-                appInfo.appName,
-                packageCount.minus(1).toString()
-            )
-        } else {
-            appInfo.appName
-        }
-    }
-
     private fun showNoAppFoundDialog() {
         val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         builder.setTitle(getString(R.string.ada_noapp_dialog_title))
         builder.setMessage(getString(R.string.ada_noapp_dialog_message))
-        builder.setCancelable(false)
-        builder.setPositiveButton(getString(R.string.ada_noapp_dialog_positive)) {
-            dialogInterface,
-            _ ->
-            dialogInterface.dismiss()
+        builder.setCancelable(true)
+        builder.setPositiveButton(getString(R.string.fapps_info_dialog_positive_btn)) { _, _ ->
             finish()
         }
-        builder.create().show()
-    }
-
-    private fun showDialog(
-        packageList: List<String>,
-        appInfo: AppInfo,
-        aStat: FirewallManager.FirewallStatus,
-        cStat: FirewallManager.ConnectionStatus,
-        prevConnStat: FirewallManager.ConnectionStatus
-    ) {
-
-        val builderSingle = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-
-        builderSingle.setIcon(R.drawable.ic_firewall_block_grey)
-        val count = packageList.count()
-        builderSingle.setTitle(
-            this.getString(R.string.ctbs_block_other_apps, appInfo.appName, count.toString())
-        )
-
-        val arrayAdapter = ArrayAdapter<String>(this, android.R.layout.simple_list_item_activated_1)
-        arrayAdapter.addAll(packageList)
-        builderSingle.setCancelable(false)
-
-        builderSingle.setItems(packageList.toTypedArray(), null)
-
-        builderSingle
-            .setPositiveButton(getString(FirewallManager.getLabelForStatus(aStat, cStat, prevConnStat))) {
-                di: DialogInterface,
-                _: Int ->
-                di.dismiss()
-                completeFirewallChanges(aStat, cStat)
-            }
-            .setNeutralButton(this.getString(R.string.ctbs_dialog_negative_btn)) {
-                _: DialogInterface,
-                _: Int ->
-            }
-
-        val alertDialog: AlertDialog = builderSingle.create()
-        alertDialog.listView.setOnItemClickListener { _, _, _, _ -> }
-        alertDialog.show()
-    }
-
-    private fun showCloseConnectionDialog(uid: Int, appName: String) {
-        Logger.v(LOG_TAG_UI, "$TAG show close connection dialog for uid: $uid")
-        val dialog = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-            .setTitle(this.getString(R.string.close_conns_dialog_title))
-            .setMessage(getString(R.string.close_conns_dialog_desc, appName))
-            .setPositiveButton(R.string.lbl_proceed) { _, _ ->
-                // close the connection
-                VpnController.closeConnectionsIfNeeded(uid, "app-info-dialog-manual-close")
-                Logger.i(LOG_TAG_UI, "$TAG closed connection for uid: $uid")
-                showToastUiCentered(this, getString(R.string.config_add_success_toast), Toast.LENGTH_LONG)
-                logEvent("close connections",
-                    "Closed active connections for $appName ($uid) from AppInfoActivity")
-            }
-            .setNegativeButton(R.string.lbl_cancel, null)
-            .create()
-        dialog.setCancelable(true)
-        dialog.setCanceledOnTouchOutside(true)
+        val dialog = builder.create()
         dialog.show()
     }
 
-    private fun displayIcon(drawable: Drawable?, mIconImageView: ImageView) {
-        Glide.with(this).load(drawable).error(Utilities.getDefaultIcon(this)).into(mIconImageView)
-    }
-
-    private fun Context.isDarkThemeOn(): Boolean {
-        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
-            Configuration.UI_MODE_NIGHT_YES
-    }
-
-    private fun guardAppInfoInitialized(listenerName: String, block: () -> Unit) {
-        if (!::appInfo.isInitialized) {
-            Logger.w(LOG_TAG_UI, "AppInfo not initialized yet in $listenerName click listener, using uid: $uid")
-            showToastUiCentered(
-                this,
-                this.getString(R.string.ctbs_app_info_not_available_toast),
-                Toast.LENGTH_SHORT
-            )
-            return
-        }
-        block()
-    }
-
     private fun logEvent(msg: String, details: String) {
-        eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, msg, EventSource.UI, false, details)
-    }
-
-    private fun io(f: suspend () -> Unit): Job {
-        return lifecycleScope.launch(Dispatchers.IO) { f() }
-    }
-
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
+        eventLogger.log(
+            type = EventType.FW_RULE_MODIFIED,
+            severity = Severity.LOW,
+            message = msg,
+            source = EventSource.MANAGER,
+            userAction = true,
+            details = details
+        )
     }
 }

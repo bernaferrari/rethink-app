@@ -488,6 +488,35 @@
 
     <string name="settings_enable_logs_desc" translatable="true">Store DNS and Firewall logs locally on-device.</string>
     <string name="settings_enable_logs" translatable="true">Enable on-device logging</string>
+    <string name="logs_disabled_summary" translatable="true">Logging is disabled. Enable on-device logging in Settings.</string>
+    <string name="lbl_no_logs" translatable="true">No logs yet.</string>
+    <string name="dns_log_clear_logs_title" translatable="true">Delete all logs?</string>
+    <string name="dns_log_clear_logs_message" translatable="true">This deletes on-device logs. This operation is not reversible. Do you want to proceed?</string>
+    <string name="lbl_rethink" translatable="true">Rethink</string>
+    <string name="lbl_loading" translatable="true">Loading...</string>
+    <string name="lbl_view" translatable="true">View</string>
+    <string name="orbot_install_dialog_error" translatable="true">Unable to open Orbot install page.</string>
+    <string name="settings_dns_proxy_invalid_port" translatable="true">Invalid port.</string>
+    <string name="settings_dns_proxy_invalid_ip" translatable="true">Invalid IP address.</string>
+    <string name="settings_udp_block" translatable="true">Block UDP (except DNS)</string>
+    <string name="settings_exclude_apps_in_proxy" translatable="true">Exclude proxy apps</string>
+    <string name="settings_exclude_apps_in_proxy_desc" translatable="true">Exclude apps that act as proxy providers.</string>
+    <string name="settings_protocol_translation" translatable="true">Protocol translation</string>
+    <string name="settings_protocol_translation_desc" translatable="true">Translate UDP traffic to TCP when needed.</string>
+    <string name="settings_ping_ips" translatable="true">Ping IPs</string>
+    <string name="settings_treat_mobile_metered" translatable="true">Treat mobile data as metered</string>
+    <string name="settings_treat_mobile_metered_desc" translatable="true">Apply metered network behavior to mobile data.</string>
+    <string name="settings_wg_listen_port" translatable="true">WireGuard listen port</string>
+    <string name="settings_wg_listen_port_desc" translatable="true">Allow setting a custom listen port.</string>
+    <string name="settings_wg_lockdown" translatable="true">WireGuard lockdown</string>
+    <string name="settings_wg_lockdown_desc" translatable="true">Restrict traffic to the WireGuard interface only.</string>
+    <string name="settings_endpoint_independence" translatable="true">Endpoint-independent mapping</string>
+    <string name="settings_endpoint_independence_desc" translatable="true">Prefer endpoint-independent NAT behavior.</string>
+    <string name="settings_tcp_keep_alive" translatable="true">TCP keep-alive</string>
+    <string name="settings_tcp_keep_alive_desc" translatable="true">Keep idle TCP connections alive.</string>
+    <string name="settings_vpn_builder_metered" translatable="true">Use metered VPN</string>
+    <string name="settings_vpn_builder_metered_desc" translatable="true">Treat the VPN connection as metered.</string>
+    <string name="settings_dial_timeout" translatable="true">Dial timeout</string>
 
     <string name="app_mode_choose" translatable="true">Choose mode</string>
 

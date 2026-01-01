@@ -18,44 +18,45 @@ package com.celzero.bravedns.ui.activity
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
-import android.view.inputmethod.InputMethodManager
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.EventsAdapter
 import com.celzero.bravedns.database.EventDao
@@ -63,43 +64,35 @@ import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
-import com.celzero.bravedns.util.UIUtils.formatToRelativeTime
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.util.restoreFrost
 import com.celzero.bravedns.viewmodel.EventsViewModel
 import com.celzero.bravedns.viewmodel.EventsViewModel.TopLevelFilter
-import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import kotlinx.coroutines.FlowPreview
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.widget.Toast
+import androidx.paging.compose.collectAsLazyPagingItems
 
-class EventsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
+class EventsActivity : AppCompatActivity() {
     private val persistentState by inject<com.celzero.bravedns.service.PersistentState>()
     private val viewModel: EventsViewModel by viewModel()
     private val eventDao by inject<EventDao>()
 
-    private var layoutManager: RecyclerView.LayoutManager? = null
-    private var recyclerAdapter: EventsAdapter? = null
-    private var recyclerViewRef: FastScrollRecyclerView? = null
-    private var searchViewRef: SearchView? = null
-
     private var filterQuery: String = ""
-    private val searchQuery = MutableStateFlow("")
     private var filterSources by mutableStateOf(setOf<EventSource>())
     private var filterSeverity by mutableStateOf<Severity?>(null)
     private var filterType by mutableStateOf(TopLevelFilter.ALL)
 
     private var showSeverityChips by mutableStateOf(false)
     private var showSourceChips by mutableStateOf(false)
-    private var showEmptyState by mutableStateOf(false)
-    private var scrollHeaderText by mutableStateOf("")
-    private var scrollHeaderVisible by mutableStateOf(false)
 
     companion object {
         private const val TAG = "EventsActivity"
@@ -136,62 +129,10 @@ class EventsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         super.onResume()
         val themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
         restoreFrost(themeId)
-
-        searchViewRef?.clearFocus()
-        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        searchViewRef?.let { imm.restartInput(it) }
-        recyclerViewRef?.requestFocus()
     }
 
     private fun initView() {
-        setupRecyclerView()
-        setQueryFilter()
-    }
-
-    private fun setupRecyclerView() {
-        layoutManager = LinearLayoutManager(this)
-        val adapter = EventsAdapter(this)
-        recyclerAdapter = adapter
-
-        viewModel.eventsList.observe(this) { pagingData ->
-            adapter.submitData(lifecycle, pagingData)
-        }
-
-        adapter.addLoadStateListener { loadState ->
-            val isEmpty = adapter.itemCount < 1
-            if (loadState.append.endOfPaginationReached && isEmpty) {
-                showEmptyState = true
-            } else {
-                showEmptyState = false
-            }
-        }
-    }
-
-    private fun setupRecyclerScrollListener() {
-        recyclerViewRef?.addOnScrollListener(
-            object : RecyclerView.OnScrollListener() {
-                override fun onScrolled(recyclerView: RecyclerView, dx: Int, dy: Int) {
-                    super.onScrolled(recyclerView, dx, dy)
-                    val firstChild = recyclerView.getChildAt(0) ?: return
-                    val tag = firstChild.tag as? Long ?: return
-                    scrollHeaderText = formatToRelativeTime(this@EventsActivity, tag)
-                    scrollHeaderVisible = true
-                }
-            }
-        )
-    }
-
-    @OptIn(FlowPreview::class)
-    private fun setQueryFilter() {
-        lifecycleScope.launch {
-            searchQuery
-                .debounce(QUERY_TEXT_DELAY)
-                .distinctUntilChanged()
-                .collect { query ->
-                    filterQuery = query
-                    viewModel.setFilter(query, filterSources, filterSeverity)
-                }
-        }
+        // no-op: driven by Compose state
     }
 
     private fun refreshEvents() {
@@ -268,21 +209,26 @@ class EventsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         }
     }
 
-    override fun onQueryTextSubmit(query: String): Boolean {
-        searchQuery.value = query
-        return true
-    }
-
-    override fun onQueryTextChange(query: String): Boolean {
-        searchQuery.value = query
-        return true
-    }
-
+    @OptIn(FlowPreview::class)
     @Composable
     private fun EventsScreen() {
+        var query by remember { mutableStateOf("") }
+        val items = viewModel.eventsList.asFlow().collectAsLazyPagingItems()
+        LaunchedEffect(Unit) {
+            snapshotFlow { query }
+                .debounce(QUERY_TEXT_DELAY)
+                .distinctUntilChanged()
+                .collect { value ->
+                    filterQuery = value
+                    viewModel.setFilter(value, filterSources, filterSeverity)
+                }
+        }
+
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
                 SearchRow(
+                    query = query,
+                    onQueryChange = { query = it },
                     onFilterClick = {
                         showSeverityChips = !showSeverityChips
                         if (!showSeverityChips) {
@@ -300,29 +246,21 @@ class EventsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
                     }
                 }
 
-                EventsList()
+                EventsList(items)
             }
 
-            if (showEmptyState) {
+            val showEmpty =
+                items.itemCount == 0 && items.loadState.append.endOfPaginationReached
+            if (showEmpty) {
                 EmptyState()
-            }
-
-            if (scrollHeaderVisible) {
-                Text(
-                    text = scrollHeaderText,
-                    modifier = Modifier
-                        .align(Alignment.TopCenter)
-                        .padding(top = 100.dp)
-                    .background(MaterialTheme.colorScheme.surface)
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
-                style = MaterialTheme.typography.bodySmall
-            )
             }
         }
     }
 
     @Composable
     private fun SearchRow(
+        query: String,
+        onQueryChange: (String) -> Unit,
         onFilterClick: () -> Unit,
         onRefreshClick: () -> Unit,
         onDeleteClick: () -> Unit
@@ -334,19 +272,12 @@ class EventsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            AndroidView(
-                factory = { ctx ->
-                    SearchView(ctx).apply {
-                        isIconified = false
-                        queryHint = ctx.getString(R.string.search_event_logs)
-                        setOnQueryTextListener(this@EventsActivity)
-                        setOnSearchClickListener {
-                            showSeverityChips = true
-                        }
-                        searchViewRef = this
-                    }
-                },
-                modifier = Modifier.weight(1f)
+            OutlinedTextField(
+                value = query,
+                onValueChange = onQueryChange,
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                label = { Text(text = getString(R.string.search_event_logs)) }
             )
 
             IconButton(onClick = onFilterClick) {
@@ -464,22 +395,14 @@ class EventsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     }
 
     @Composable
-    private fun EventsList() {
-        val adapter = recyclerAdapter
-        if (adapter == null) return
-        AndroidView(
-            factory = { ctx ->
-                FastScrollRecyclerView(ctx).apply {
-                    layoutManager = this@EventsActivity.layoutManager
-                    this.adapter = adapter
-                    if (recyclerViewRef == null) {
-                        recyclerViewRef = this
-                        setupRecyclerScrollListener()
-                    }
-                }
-            },
-            modifier = Modifier.fillMaxSize()
-        )
+    private fun EventsList(items: androidx.paging.compose.LazyPagingItems<com.celzero.bravedns.database.Event>) {
+        val adapter = remember { EventsAdapter(this@EventsActivity) }
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            items(count = items.itemCount) { index ->
+                val item = items[index] ?: return@items
+                adapter.EventCard(event = item, onCopy = { copyEventToClipboard(it) })
+            }
+        }
     }
 
     @Composable
@@ -520,5 +443,12 @@ class EventsActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
     private fun sourceLabel(source: EventSource): String {
         val text = source.name.lowercase().replace('_', ' ')
         return text.replaceFirstChar { it.titlecase() }
+    }
+
+    private fun copyEventToClipboard(text: String) {
+        val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+        val clip = ClipData.newPlainText("Event Message", text)
+        clipboard.setPrimaryClip(clip)
+        Toast.makeText(this, "Copied to clipboard", Toast.LENGTH_SHORT).show()
     }
 }

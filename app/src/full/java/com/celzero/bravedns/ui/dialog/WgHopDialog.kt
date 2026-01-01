@@ -27,6 +27,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -34,12 +36,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.WgHopAdapter
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
+import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.wireguard.Config
 import org.koin.core.component.KoinComponent
 
@@ -92,15 +92,15 @@ class WgHopDialog(
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.primary
             )
-            AndroidView(
+            LazyColumn(
                 modifier = Modifier.weight(1f).fillMaxWidth(),
-                factory = { ctx ->
-                    RecyclerView(ctx).apply {
-                        layoutManager = LinearLayoutManager(ctx)
-                        adapter = this@WgHopDialog.adapter
-                    }
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(hopables) { config ->
+                    val mapping = WireguardManager.getConfigFilesById(config.getId()) ?: return@items
+                    adapter.HopRow(config = config, isActive = mapping.isActive)
                 }
-            )
+            }
             Button(
                 onClick = {
                     Logger.d(LOG_TAG_UI, "$TAG; dismiss hop dialog")

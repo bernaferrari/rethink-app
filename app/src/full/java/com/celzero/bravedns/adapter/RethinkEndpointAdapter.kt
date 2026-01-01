@@ -125,7 +125,7 @@ class RethinkEndpointAdapter(private val context: Context, private val appConfig
     }
 
     @Composable
-    private fun RethinkEndpointRow(endpoint: RethinkDnsEndpoint) {
+    fun RethinkEndpointRow(endpoint: RethinkDnsEndpoint) {
         var explanation by remember(endpoint.url) { mutableStateOf("") }
 
         LaunchedEffect(endpoint.url, endpoint.isActive, endpoint.blocklistCount) {

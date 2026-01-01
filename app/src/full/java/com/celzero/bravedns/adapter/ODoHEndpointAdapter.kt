@@ -121,7 +121,7 @@ class ODoHEndpointAdapter(private val context: Context, private val appConfig: A
     }
 
     @Composable
-    private fun ODoHEndpointRow(endpoint: ODoHEndpoint) {
+    fun ODoHEndpointRow(endpoint: ODoHEndpoint) {
         var explanation by remember(endpoint.id) { mutableStateOf("") }
 
         LaunchedEffect(endpoint.id, endpoint.isSelected) {

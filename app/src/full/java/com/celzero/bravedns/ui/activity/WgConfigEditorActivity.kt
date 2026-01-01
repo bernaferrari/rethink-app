@@ -15,22 +15,52 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import Logger
-import Logger.LOG_TAG_PROXY
-import Logger.throwableToException
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.compose.setContent
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
-import by.kirich1409.viewbindingdelegate.viewBinding
+import androidx.appcompat.app.AppCompatActivity
 import com.celzero.bravedns.R
-import com.celzero.bravedns.databinding.ActivityWgConfigEditorBinding
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.ui.activity.WgConfigDetailActivity.Companion.INTENT_EXTRA_WG_TYPE
+import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.Utilities
@@ -41,19 +71,29 @@ import com.celzero.bravedns.wireguard.Config
 import com.celzero.bravedns.wireguard.WgInterface
 import com.celzero.bravedns.wireguard.util.ErrorMessages
 import com.celzero.firestack.backend.Backend
+import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
-class WgConfigEditorActivity : AppCompatActivity(R.layout.activity_wg_config_editor) {
-    private val b by viewBinding(ActivityWgConfigEditorBinding::bind)
+class WgConfigEditorActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
 
     private var wgConfig: Config? = null
     private var wgInterface: WgInterface? = null
     private var configId: Int = -1
     private var wgType: WgConfigDetailActivity.WgType = WgConfigDetailActivity.WgType.DEFAULT
+
+    private var interfaceName by mutableStateOf("")
+    private var privateKey by mutableStateOf("")
+    private var publicKey by mutableStateOf("")
+    private var addresses by mutableStateOf("")
+    private var listenPort by mutableStateOf("")
+    private var dnsServers by mutableStateOf("")
+    private var mtu by mutableStateOf("")
+    private var amzProps by mutableStateOf("")
+    private var showListenPortState by mutableStateOf(false)
 
     companion object {
         const val INTENT_EXTRA_WG_ID = "WIREGUARD_TUNNEL_ID"
@@ -85,12 +125,17 @@ class WgConfigEditorActivity : AppCompatActivity(R.layout.activity_wg_config_edi
                     WgConfigDetailActivity.WgType.DEFAULT.value
                 )
             )
+
+        setContent {
+            RethinkTheme {
+                WgConfigEditorScreen()
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
         init()
-        setupClickListeners()
     }
 
     private fun Context.isDarkThemeOn(): Boolean {
@@ -104,10 +149,10 @@ class WgConfigEditorActivity : AppCompatActivity(R.layout.activity_wg_config_edi
             wgInterface = wgConfig?.getInterface()
 
             uiCtx {
-                b.interfaceNameText.setText(wgConfig?.getName())
+                interfaceName = wgConfig?.getName().orEmpty()
+                privateKey = wgInterface?.getKeyPair()?.getPrivateKey()?.base64()?.tos().orEmpty()
+                publicKey = wgInterface?.getKeyPair()?.getPublicKey()?.base64()?.tos().orEmpty()
 
-                b.privateKeyText.setText(wgInterface?.getKeyPair()?.getPrivateKey()?.base64().tos())
-                b.publicKeyText.setText(wgInterface?.getKeyPair()?.getPublicKey()?.base64().tos())
                 var dns = wgInterface?.dnsServers?.joinToString { it.hostAddress?.toString() ?: "" }
                 val searchDomains = wgInterface?.dnsSearchDomains?.joinToString { it }
                 dns =
@@ -116,86 +161,70 @@ class WgConfigEditorActivity : AppCompatActivity(R.layout.activity_wg_config_edi
                     } else {
                         dns
                     }
-                b.dnsServersText.setText(dns)
-                if (wgInterface?.getAddresses()?.isEmpty() != true) {
-                    b.addressesLabelText.setText(
-                        wgInterface?.getAddresses()?.joinToString { it.toString() }
-                    )
-                }
-                if (showListenPort()) {
-                    b.listenPortText.setText(wgInterface?.listenPort?.get().toString())
-                }
-                if (wgInterface?.mtu?.isPresent == true) {
-                    b.mtuText.setText(wgInterface?.mtu?.get().toString())
-                }
-                if (wgInterface?.isAmnezia() == true) {
-                    b.amzProps.visibility = android.view.View.VISIBLE
-                    b.amzProps.text = wgInterface?.getAmzProps()
+                dnsServers = dns.orEmpty()
+
+                addresses =
+                    if (wgInterface?.getAddresses()?.isEmpty() != true) {
+                        wgInterface?.getAddresses()?.joinToString { it.toString() }.orEmpty()
+                    } else {
+                        ""
+                    }
+
+                showListenPortState = showListenPort()
+                listenPort = if (showListenPortState) {
+                    wgInterface?.listenPort?.get()?.toString().orEmpty()
                 } else {
-                    b.amzProps.visibility = android.view.View.GONE
+                    ""
+                }
+
+                mtu = if (wgInterface?.mtu?.isPresent == true) {
+                    wgInterface?.mtu?.get()?.toString().orEmpty()
+                } else {
+                    ""
+                }
+
+                amzProps = if (wgInterface?.isAmnezia() == true) {
+                    wgInterface?.getAmzProps().orEmpty()
+                } else {
+                    ""
                 }
             }
         }
     }
 
     private fun showListenPort(): Boolean {
-        val isPresent = wgInterface?.listenPort?.isPresent == true && wgInterface?.listenPort?.get() != 1
+        val isPresent =
+            wgInterface?.listenPort?.isPresent == true && wgInterface?.listenPort?.get() != 1
         val byType = wgType.isOneWg() || (!persistentState.randomizeListenPort && wgType.isDefault())
         return isPresent && byType
     }
 
-    private fun setupClickListeners() {
-        b.privateKeyTextLayout.setEndIconOnClickListener {
-            val key = Backend.newWgPrivateKey()
-            val privateKey = key.base64()
-            val publicKey = key.mult().base64()
-            b.privateKeyText.setText(privateKey.toString())
-            b.publicKeyText.setText(publicKey.toString())
-        }
+    private fun generateKeys() {
+        val key = Backend.newWgPrivateKey()
+        privateKey = key.base64().toString()
+        publicKey = key.mult().base64().toString()
+    }
 
-        b.saveTunnel.setOnClickListener {
-            val name = b.interfaceNameText.text.toString()
-            val addresses = b.addressesLabelText.text.toString()
-            val mtu = b.mtuText.text.toString().ifEmpty { DEFAULT_MTU }
-            val listenPort = b.listenPortText.text.toString().ifEmpty { DEFAULT_LISTEN_PORT }
-            val dnsServers = b.dnsServersText.text.toString().ifEmpty { DEFAULT_DNS }
-            val privateKey = b.privateKeyText.text.toString()
-            io {
-                val isInterfaceAdded =
-                    addWgInterface(name, addresses, mtu, listenPort, dnsServers, privateKey)
-                if (isInterfaceAdded != null) {
-                    uiCtx {
-                        Utilities.showToastUiCentered(
-                            this,
-                            getString(R.string.config_add_success_toast),
-                            Toast.LENGTH_LONG
-                        )
-                        finish()
-                    }
-                } else {
-                    // no-op, addWgInterface() will show the error message
+    private fun saveConfig() {
+        val name = interfaceName
+        val addr = addresses
+        val mtuValue = mtu.ifEmpty { DEFAULT_MTU }
+        val listenPortValue = listenPort.ifEmpty { DEFAULT_LISTEN_PORT }
+        val dns = dnsServers.ifEmpty { DEFAULT_DNS }
+        val privateKeyValue = privateKey
+        io {
+            val isInterfaceAdded =
+                addWgInterface(name, addr, mtuValue, listenPortValue, dns, privateKeyValue)
+            if (isInterfaceAdded != null) {
+                uiCtx {
+                    Utilities.showToastUiCentered(
+                        this,
+                        getString(R.string.config_add_success_toast),
+                        Toast.LENGTH_LONG
+                    )
+                    finish()
                 }
             }
-        }
-
-        b.dismissBtn.setOnClickListener { finish() }
-
-        b.publicKeyLabelLayout.setOnClickListener {
-            clipboardCopy(this, b.publicKeyText.text.toString(), CLIPBOARD_PUBLIC_KEY_LBL)
-            Utilities.showToastUiCentered(
-                this,
-                getString(R.string.public_key_copy_toast_msg),
-                Toast.LENGTH_SHORT
-            )
-        }
-
-        b.publicKeyText.setOnClickListener {
-            clipboardCopy(this, b.publicKeyText.text.toString(), CLIPBOARD_PUBLIC_KEY_LBL)
-            Utilities.showToastUiCentered(
-                this,
-                getString(R.string.public_key_copy_toast_msg),
-                Toast.LENGTH_SHORT
-            )
         }
     }
 
@@ -208,7 +237,6 @@ class WgConfigEditorActivity : AppCompatActivity(R.layout.activity_wg_config_edi
         privateKey: String
     ): Config? {
         try {
-            // parse the wg interface to check for errors
             val wgInterface =
                 WgInterface.Builder()
                     .parsePrivateKey(privateKey)
@@ -221,11 +249,19 @@ class WgConfigEditorActivity : AppCompatActivity(R.layout.activity_wg_config_edi
             return wgConfig
         } catch (e: Throwable) {
             val error = ErrorMessages[this, e]
-            val ex = throwableToException(e)
-            Logger.e(LOG_TAG_PROXY, "err while parsing wg interface: $error", ex)
+            Napier.e("err while parsing wg interface: $error", e)
             uiCtx { Utilities.showToastUiCentered(this, error, Toast.LENGTH_LONG) }
             return null
         }
+    }
+
+    private fun copyPublicKey() {
+        clipboardCopy(this, publicKey, CLIPBOARD_PUBLIC_KEY_LBL)
+        Utilities.showToastUiCentered(
+            this,
+            getString(R.string.public_key_copy_toast_msg),
+            Toast.LENGTH_SHORT
+        )
     }
 
     private fun io(f: suspend () -> Unit) {
@@ -234,5 +270,126 @@ class WgConfigEditorActivity : AppCompatActivity(R.layout.activity_wg_config_edi
 
     private suspend fun uiCtx(f: suspend () -> Unit) {
         withContext(Dispatchers.Main) { f() }
+    }
+
+    @OptIn(ExperimentalMaterial3Api::class)
+    @Composable
+    private fun WgConfigEditorScreen() {
+        val scrollState = rememberScrollState()
+
+        Scaffold(
+            topBar = {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.lbl_configure),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                )
+            }
+        ) { padding ->
+            Column(
+                modifier =
+                    Modifier.fillMaxSize()
+                        .verticalScroll(scrollState)
+                        .padding(padding)
+                        .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedTextField(
+                    value = interfaceName,
+                    onValueChange = { interfaceName = it },
+                    label = { Text(stringResource(R.string.cd_dns_crypt_dialog_name)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = privateKey,
+                    onValueChange = { privateKey = it },
+                    label = { Text(stringResource(R.string.lbl_private_key)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(onClick = { generateKeys() }) {
+                            Icon(imageVector = Icons.Filled.Refresh, contentDescription = null)
+                        }
+                    }
+                )
+
+                OutlinedTextField(
+                    value = publicKey,
+                    onValueChange = { },
+                    label = { Text(stringResource(R.string.lbl_public_key)) },
+                    modifier =
+                        Modifier.fillMaxWidth().clickable(enabled = publicKey.isNotEmpty()) {
+                            copyPublicKey()
+                        },
+                    readOnly = true,
+                    singleLine = true,
+                    trailingIcon = {
+                        IconButton(onClick = { copyPublicKey() }, enabled = publicKey.isNotEmpty()) {
+                            Icon(imageVector = Icons.Filled.ContentCopy, contentDescription = null)
+                        }
+                    }
+                )
+
+                OutlinedTextField(
+                    value = addresses,
+                    onValueChange = { addresses = it },
+                    label = { Text(stringResource(R.string.lbl_addresses)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                if (showListenPortState) {
+                    OutlinedTextField(
+                        value = listenPort,
+                        onValueChange = { listenPort = it },
+                        label = { Text(stringResource(R.string.lbl_listen_port)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+
+                OutlinedTextField(
+                    value = dnsServers,
+                    onValueChange = { dnsServers = it },
+                    label = { Text(stringResource(R.string.lbl_dns_servers)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                OutlinedTextField(
+                    value = mtu,
+                    onValueChange = { mtu = it },
+                    label = { Text(stringResource(R.string.lbl_mtu)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
+                )
+
+                if (amzProps.isNotEmpty()) {
+                    Text(
+                        text = amzProps,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                    Button(onClick = { finish() }) {
+                        Text(text = stringResource(R.string.lbl_cancel))
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Button(onClick = { saveConfig() }) {
+                        Text(text = stringResource(R.string.lbl_save))
+                    }
+                }
+            }
+        }
     }
 }

@@ -24,12 +24,10 @@ import android.content.pm.PackageInfo
 import android.content.res.Configuration
 import android.net.Uri
 import android.os.Bundle
-import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.widget.SearchView
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -39,28 +37,31 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowInsetsControllerCompat
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
-import androidx.paging.PagingData
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
+import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.celzero.bravedns.R
@@ -81,27 +82,20 @@ import com.celzero.bravedns.util.restoreFrost
 import com.celzero.bravedns.viewmodel.ConsoleLogViewModel
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.FlowPreview
 import org.koin.android.ext.android.inject
 import java.io.File
 
-class ConsoleLogActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
-
-    private var layoutManager: RecyclerView.LayoutManager? = null
+class ConsoleLogActivity : AppCompatActivity() {
     private val persistentState by inject<PersistentState>()
 
     private val viewModel by inject<ConsoleLogViewModel>()
     private val consoleLogRepository by inject<ConsoleLogRepository>()
     private val workScheduler by inject<WorkScheduler>()
-
-    private var recyclerAdapter: ConsoleLogAdapter? = null
-    private var recyclerViewRef: RecyclerView? = null
-    private var searchViewRef: SearchView? = null
 
     private var infoText by mutableStateOf("")
     private var progressVisible by mutableStateOf(false)
@@ -130,7 +124,6 @@ class ConsoleLogActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         }
 
         initView()
-        setupQueryFilter()
 
         setContent {
             RethinkTheme {
@@ -139,30 +132,12 @@ class ConsoleLogActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         }
     }
 
-    @OptIn(FlowPreview::class)
-    private fun setupQueryFilter() {
-        lifecycleScope.launch {
-            searchQuery
-                .debounce(QUERY_TEXT_DELAY)
-                .distinctUntilChanged()
-                .collect { query ->
-                    viewModel.setFilter(query)
-                }
-        }
-    }
-
     override fun onResume() {
         super.onResume()
         val themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
         restoreFrost(themeId)
-        searchViewRef?.setQuery("", false)
-        searchViewRef?.clearFocus()
-        val imm = this.getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
-        searchViewRef?.let { imm.restartInput(it) }
     }
-
     private fun initView() {
-        setAdapter()
         io {
             val sinceTime = viewModel.sinceTime()
             if (sinceTime == 0L) return@io
@@ -173,51 +148,6 @@ class ConsoleLogActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
                 val sinceTxt = getString(R.string.logs_card_duration, since)
                 infoText = getString(R.string.two_argument_space, desc, sinceTxt)
             }
-        }
-    }
-
-    private fun setAdapter() {
-        try {
-            layoutManager = object : LinearLayoutManager(this@ConsoleLogActivity) {
-                override fun onLayoutChildren(recycler: RecyclerView.Recycler?, state: RecyclerView.State?) {
-                    try {
-                        super.onLayoutChildren(recycler, state)
-                    } catch (e: IndexOutOfBoundsException) {
-                        Logger.w(LOG_TAG_UI, "err(console) layout children: ${e.message}")
-                    }
-                }
-            }
-
-            recyclerAdapter = ConsoleLogAdapter(this)
-            viewModel.setLogLevel(Logger.uiLogLevel)
-            observeLog()
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "err setting up console, recycler: ${e.message}")
-        }
-    }
-
-    private fun observeLog() {
-        viewModel.logs.observe(this) { pagingData ->
-            lifecycleScope.launch {
-                try {
-                    recyclerAdapter?.submitData(pagingData)
-                } catch (e: Exception) {
-                    Logger.e(LOG_TAG_UI, "err submitting data: ${e.message}")
-                    if (e is IndexOutOfBoundsException) {
-                        recreateAdapter()
-                    }
-                }
-            }
-        }
-    }
-
-    private fun recreateAdapter() {
-        try {
-            recyclerAdapter = ConsoleLogAdapter(this)
-            recyclerViewRef?.adapter = recyclerAdapter
-            Logger.i(LOG_TAG_UI, "adapter recreated due to consistency error")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "err; recreate adapter: ${e.message}")
         }
     }
 
@@ -366,22 +296,25 @@ class ConsoleLogActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
         withContext(Dispatchers.Main) { f() }
     }
 
-    val searchQuery = MutableStateFlow("")
-    override fun onQueryTextSubmit(query: String): Boolean {
-        searchQuery.value = query
-        return true
-    }
-
-    override fun onQueryTextChange(query: String): Boolean {
-        searchQuery.value = query
-        return true
-    }
-
+    @OptIn(FlowPreview::class)
     @Composable
     private fun ConsoleLogScreen() {
+        var query by remember { mutableStateOf("") }
+        LaunchedEffect(Unit) {
+            viewModel.setLogLevel(Logger.uiLogLevel)
+            snapshotFlow { query }
+                .debounce(QUERY_TEXT_DELAY)
+                .distinctUntilChanged()
+                .collect { value ->
+                    viewModel.setFilter(value)
+                }
+        }
+
         Box(modifier = Modifier.fillMaxSize()) {
             Column(modifier = Modifier.fillMaxSize()) {
                 SearchRow(
+                    query = query,
+                    onQueryChange = { query = it },
                     onFilterClick = { showFilterDialog() },
                     onShareClick = {
                         val filePath = makeConsoleLogFile()
@@ -392,9 +325,6 @@ class ConsoleLogActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
                         handleShareLogs(filePath)
                     },
                     onDeleteClick = {
-                        lifecycleScope.launch {
-                            recyclerAdapter?.submitData(PagingData.empty())
-                        }
                         io {
                             Logger.i(LOG_TAG_BUG_REPORT, "deleting all console logs")
                             consoleLogRepository.deleteAllLogs()
@@ -454,6 +384,8 @@ class ConsoleLogActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
     @Composable
     private fun SearchRow(
+        query: String,
+        onQueryChange: (String) -> Unit,
         onFilterClick: () -> Unit,
         onShareClick: () -> Unit,
         onDeleteClick: () -> Unit
@@ -465,16 +397,12 @@ class ConsoleLogActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            AndroidView(
-                factory = { ctx ->
-                    SearchView(ctx).apply {
-                        isIconified = false
-                        queryHint = ctx.getString(R.string.lbl_search)
-                        setOnQueryTextListener(this@ConsoleLogActivity)
-                        searchViewRef = this
-                    }
-                },
-                modifier = Modifier.weight(1f)
+            OutlinedTextField(
+                value = query,
+                onValueChange = onQueryChange,
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                label = { Text(text = getString(R.string.lbl_search)) }
             )
 
             IconButton(onClick = onFilterClick) {
@@ -502,22 +430,19 @@ class ConsoleLogActivity : AppCompatActivity(), SearchView.OnQueryTextListener {
 
     @Composable
     private fun ConsoleLogList() {
-        val adapter = recyclerAdapter
-        if (adapter == null) return
-        AndroidView(
-            factory = { ctx ->
-                RecyclerView(ctx).apply {
-                    setHasFixedSize(true)
-                    itemAnimator = null
-                    layoutManager = this@ConsoleLogActivity.layoutManager
-                    this.adapter = adapter
-                    recyclerViewRef = this
-                }
-            },
+        val adapter = remember { ConsoleLogAdapter(this@ConsoleLogActivity) }
+        val items = viewModel.logs.asFlow().collectAsLazyPagingItems()
+
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 2.dp, vertical = 2.dp)
-        )
+        ) {
+            items(count = items.itemCount) { index ->
+                val item = items[index] ?: return@items
+                adapter.ConsoleLogRow(item)
+            }
+        }
     }
 
     @Composable
