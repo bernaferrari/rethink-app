@@ -17,7 +17,6 @@ limitations under the License.
 package com.celzero.bravedns.adapter
 
 import android.content.Context
-import android.content.DialogInterface
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -26,11 +25,13 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,8 +43,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LifecycleOwner
-import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.DnsCryptRelayEndpoint
@@ -52,11 +51,15 @@ import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.Utilities
 import com.celzero.firestack.backend.Backend
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+private sealed class RelayDialogState {
+    data class Info(val title: String, val url: String, val message: String?) : RelayDialogState()
+    data class Delete(val id: Int) : RelayDialogState()
+}
 
 @Composable
 fun RelayRow(endpoint: DnsCryptRelayEndpoint, appConfig: AppConfig) {
@@ -64,6 +67,7 @@ fun RelayRow(endpoint: DnsCryptRelayEndpoint, appConfig: AppConfig) {
     val scope = rememberCoroutineScope()
     var isSelected by remember(endpoint.id) { mutableStateOf(endpoint.isSelected) }
     var explanation by remember(endpoint.id) { mutableStateOf("") }
+    var dialogState by remember(endpoint.id) { mutableStateOf<RelayDialogState?>(null) }
 
     LaunchedEffect(endpoint.id, isSelected) {
         if (isSelected && !appConfig.isSmartDnsEnabled()) {
@@ -110,7 +114,20 @@ fun RelayRow(endpoint: DnsCryptRelayEndpoint, appConfig: AppConfig) {
                 Text(text = explanation, style = MaterialTheme.typography.bodySmall)
             }
         }
-        IconButton(onClick = { promptUser(context, endpoint, appConfig) }) {
+        IconButton(
+            onClick = {
+                dialogState =
+                    if (endpoint.isDeletable()) {
+                        RelayDialogState.Delete(endpoint.id)
+                    } else {
+                        RelayDialogState.Info(
+                            endpoint.dnsCryptRelayName,
+                            endpoint.dnsCryptRelayURL,
+                            endpoint.dnsCryptRelayExplanation
+                        )
+                    }
+            }
+        ) {
             Icon(painter = painterResource(id = infoIcon), contentDescription = null)
         }
         Checkbox(
@@ -118,44 +135,69 @@ fun RelayRow(endpoint: DnsCryptRelayEndpoint, appConfig: AppConfig) {
             onCheckedChange = updateSelection
         )
     }
-}
 
-private fun promptUser(
-    context: Context,
-    endpoint: DnsCryptRelayEndpoint,
-    appConfig: AppConfig
-) {
-    if (endpoint.isDeletable()) {
-        showDeleteDialog(context, appConfig, endpoint.id)
-    } else {
-        showDialogExplanation(
-            context,
-            endpoint.dnsCryptRelayName,
-            endpoint.dnsCryptRelayURL,
-            endpoint.dnsCryptRelayExplanation
-        )
+    dialogState?.let { state ->
+        when (state) {
+            is RelayDialogState.Delete -> {
+                AlertDialog(
+                    onDismissRequest = { dialogState = null },
+                    title = { Text(text = context.getString(R.string.dns_crypt_relay_remove_dialog_title)) },
+                    text = { Text(text = context.getString(R.string.dns_crypt_relay_remove_dialog_message)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                deleteRelayEndpoint(context, scope, appConfig, state.id)
+                                dialogState = null
+                            }
+                        ) {
+                            Text(text = context.getString(R.string.lbl_delete))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialogState = null }) {
+                            Text(text = context.getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
+            is RelayDialogState.Info -> {
+                val desc =
+                    if (state.message != null) {
+                        state.url + "\n\n" + relayDesc(context, state.message)
+                    } else {
+                        state.url
+                    }
+                AlertDialog(
+                    onDismissRequest = { dialogState = null },
+                    title = { Text(text = state.title) },
+                    text = { Text(text = desc) },
+                    confirmButton = {
+                        TextButton(onClick = { dialogState = null }) {
+                            Text(text = context.getString(R.string.dns_info_positive))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                clipboardCopy(
+                                    context,
+                                    state.url,
+                                    context.getString(R.string.copy_clipboard_label)
+                                )
+                                Utilities.showToastUiCentered(
+                                    context,
+                                    context.getString(R.string.info_dialog_url_copy_toast_msg),
+                                    Toast.LENGTH_SHORT
+                                )
+                            }
+                        ) {
+                            Text(text = context.getString(R.string.dns_info_neutral))
+                        }
+                    }
+                )
+            }
+        }
     }
-}
-
-private fun showDialogExplanation(context: Context, title: String, url: String, message: String?) {
-    val builder = MaterialAlertDialogBuilder(context, R.style.App_Dialog_NoDim)
-    builder.setTitle(title)
-    if (message != null) builder.setMessage(url + "\n\n" + relayDesc(context, message))
-    else builder.setMessage(url)
-    builder.setCancelable(true)
-    builder.setPositiveButton(context.getString(R.string.dns_info_positive)) { dialogInterface, _ ->
-        dialogInterface.dismiss()
-    }
-
-    builder.setNeutralButton(context.getString(R.string.dns_info_neutral)) { _: DialogInterface, _: Int ->
-        clipboardCopy(context, url, context.getString(R.string.copy_clipboard_label))
-        Utilities.showToastUiCentered(
-            context,
-            context.getString(R.string.info_dialog_url_copy_toast_msg),
-            Toast.LENGTH_SHORT
-        )
-    }
-    builder.create().show()
 }
 
 private fun relayDesc(context: Context, message: String?): String {
@@ -176,28 +218,20 @@ private fun relayDesc(context: Context, message: String?): String {
     }
 }
 
-private fun showDeleteDialog(context: Context, appConfig: AppConfig, id: Int) {
-    val builder = MaterialAlertDialogBuilder(context, R.style.App_Dialog_NoDim)
-    builder.setCancelable(true)
-    builder.setTitle(context.getString(R.string.dns_crypt_relay_remove_dialog_title))
-    builder.setMessage(context.getString(R.string.dns_crypt_relay_remove_dialog_message))
-    builder.setPositiveButton(context.getString(R.string.lbl_delete)) { dialog, _ ->
-        val scope =
-            (context as? LifecycleOwner)?.lifecycleScope ?: CoroutineScope(Dispatchers.Main)
-        scope.launch(Dispatchers.IO) {
-            appConfig.deleteDnscryptRelayEndpoint(id)
-            withContext(Dispatchers.Main) {
-                dialog.dismiss()
-                Utilities.showToastUiCentered(
-                    context,
-                    context.getString(R.string.dns_crypt_relay_remove_success),
-                    Toast.LENGTH_SHORT
-                )
-            }
+private fun deleteRelayEndpoint(
+    context: Context,
+    scope: CoroutineScope,
+    appConfig: AppConfig,
+    id: Int
+) {
+    scope.launch(Dispatchers.IO) {
+        appConfig.deleteDnscryptRelayEndpoint(id)
+        withContext(Dispatchers.Main) {
+            Utilities.showToastUiCentered(
+                context,
+                context.getString(R.string.dns_crypt_relay_remove_success),
+                Toast.LENGTH_SHORT
+            )
         }
     }
-    builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { dialog, _ ->
-        dialog.dismiss()
-    }
-    builder.create().show()
 }
