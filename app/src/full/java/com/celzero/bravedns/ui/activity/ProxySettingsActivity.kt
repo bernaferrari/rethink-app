@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.activity
 
+import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -46,6 +47,7 @@ import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -99,7 +101,6 @@ import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.RouterStats
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -181,17 +182,40 @@ class ProxySettingsActivity : AppCompatActivity() {
 
     /** Prompt user to download the Orbot app based on the current BUILDCONFIG flavor. */
     private fun showOrbotInstallDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.orbot_install_dialog_title)
-        builder.setMessage(R.string.orbot_install_dialog_message)
-        builder.setPositiveButton(getString(R.string.orbot_install_dialog_positive)) { _, _ ->
-            handleOrbotInstall()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = getString(R.string.orbot_install_dialog_title)) },
+                    text = { Text(text = getString(R.string.orbot_install_dialog_message)) },
+                    confirmButton = {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            TextButton(onClick = {
+                                dialog.dismiss()
+                                handleOrbotInstall()
+                            }) {
+                                Text(text = getString(R.string.orbot_install_dialog_positive))
+                            }
+                            TextButton(onClick = {
+                                dialog.dismiss()
+                                launchOrbotWebsite()
+                            }) {
+                                Text(text = getString(R.string.orbot_install_dialog_neutral))
+                            }
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_dismiss))
+                        }
+                    }
+                )
+            }
         }
-        builder.setNegativeButton(getString(R.string.lbl_dismiss)) { dialog, _ -> dialog.dismiss() }
-        builder.setNeutralButton(getString(R.string.orbot_install_dialog_neutral)) { _, _ ->
-            launchOrbotWebsite()
-        }
-        val dialog = builder.create()
+        dialog.setContentView(composeView)
         dialog.show()
     }
 
@@ -483,9 +507,8 @@ class ProxySettingsActivity : AppCompatActivity() {
         appNames: List<String>,
         appName: String
     ) {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         val lp = WindowManager.LayoutParams()
-        val dialog = builder.create()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
         dialog.show()
         lp.copyFrom(dialog.window?.attributes)
         lp.width = WindowManager.LayoutParams.MATCH_PARENT
@@ -535,7 +558,7 @@ class ProxySettingsActivity : AppCompatActivity() {
                 )
             }
         }
-        dialog.setView(composeView)
+        dialog.setContentView(composeView)
     }
 
     private fun handleProxyUi() {
@@ -549,9 +572,8 @@ class ProxySettingsActivity : AppCompatActivity() {
         appNames: List<String>,
         appName: String?
     ) {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         val lp = WindowManager.LayoutParams()
-        val dialog = builder.create()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
         dialog.show()
         lp.copyFrom(dialog.window?.attributes)
         lp.width = WindowManager.LayoutParams.MATCH_PARENT
@@ -577,7 +599,7 @@ class ProxySettingsActivity : AppCompatActivity() {
                 )
             }
         }
-        dialog.setView(composeView)
+        dialog.setContentView(composeView)
     }
 
     @OptIn(ExperimentalMaterial3Api::class)

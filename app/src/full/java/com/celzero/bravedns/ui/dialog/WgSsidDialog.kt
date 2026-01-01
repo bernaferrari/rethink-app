@@ -33,6 +33,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,7 +59,6 @@ import com.celzero.bravedns.data.SsidItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 class WgSsidDialog(
     private val activity: Activity,
@@ -327,18 +327,42 @@ class WgSsidDialog(
     }
 
     private fun showDeleteConfirmation(ssidItem: SsidItem, items: MutableList<SsidItem>) {
-        val builder = MaterialAlertDialogBuilder(activity, R.style.App_Dialog_NoDim)
-        builder.setTitle(activity.getString(R.string.lbl_delete))
-        builder.setMessage(
-            activity.getString(R.string.two_argument_space, activity.getString(R.string.lbl_delete), ssidItem.name)
-        )
-        builder.setCancelable(true)
-        builder.setPositiveButton(activity.getString(R.string.lbl_delete)) { _, _ ->
-            items.remove(ssidItem)
+        val dialog = Dialog(activity, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(activity)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = activity.getString(R.string.lbl_delete)) },
+                    text = {
+                        Text(
+                            text = activity.getString(
+                                R.string.two_argument_space,
+                                activity.getString(R.string.lbl_delete),
+                                ssidItem.name
+                            )
+                        )
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                items.remove(ssidItem)
+                                dialog.dismiss()
+                            }
+                        ) {
+                            Text(text = activity.getString(R.string.lbl_delete))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = activity.getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
         }
-        builder.setNegativeButton(activity.getString(R.string.lbl_cancel)) { _, _ ->
-            // no-op
-        }
-        builder.create().show()
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 }
