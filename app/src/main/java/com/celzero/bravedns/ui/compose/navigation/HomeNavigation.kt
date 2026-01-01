@@ -43,6 +43,7 @@ import com.celzero.bravedns.ui.compose.about.AboutUiState
 import com.celzero.bravedns.ui.compose.configure.ConfigureScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreenUiState
+import com.celzero.bravedns.ui.compose.rpn.RpnCountriesScreen
 import com.celzero.bravedns.ui.compose.statistics.DetailedStatisticsScreen
 import com.celzero.bravedns.ui.compose.statistics.SummaryStatisticsScreen
 import com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel
@@ -65,10 +66,12 @@ sealed interface HomeNavRequest {
         val timeCategory: SummaryStatisticsViewModel.TimeCategory
     ) : HomeNavRequest
     data object Alerts : HomeNavRequest
+    data object RpnCountries : HomeNavRequest
 }
 
 private const val ROUTE_DETAILED_STATS = "detailedStats"
 private const val ROUTE_ALERTS = "alerts"
+private const val ROUTE_RPN_COUNTRIES = "rpnCountries"
 
 private fun detailedStatsRoute(typeId: Int, timeCategory: Int): String {
     return "$ROUTE_DETAILED_STATS/$typeId/$timeCategory"
@@ -147,6 +150,9 @@ fun HomeScreenRoot(
             HomeNavRequest.Alerts -> {
                 navController.navigate(ROUTE_ALERTS)
             }
+            HomeNavRequest.RpnCountries -> {
+                navController.navigate(ROUTE_RPN_COUNTRIES)
+            }
         }
         onHomeNavConsumed()
     }
@@ -215,6 +221,9 @@ fun HomeScreenRoot(
             }
             composable(ROUTE_ALERTS) {
                 AlertsScreen(onBackClick = { navController.popBackStack() })
+            }
+            composable(ROUTE_RPN_COUNTRIES) {
+                RpnCountriesScreen(onBackClick = { navController.popBackStack() })
             }
             composable(
                 route = "$ROUTE_DETAILED_STATS/{typeId}/{timeCategory}",
