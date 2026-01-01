@@ -17,7 +17,6 @@ limitations under the License.
 package com.celzero.bravedns.adapter
 
 import android.content.Context
-import android.content.DialogInterface
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,11 +24,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -47,17 +48,22 @@ import com.celzero.bravedns.database.DnsProxyEndpoint
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.Utilities
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+private sealed class DnsProxyDialogState {
+    data class Details(val title: String, val message: String, val ip: String?) : DnsProxyDialogState()
+    data class Delete(val id: Int) : DnsProxyDialogState()
+}
 
 @Composable
 fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var explanation by remember(endpoint.id) { mutableStateOf("") }
+    var dialogState by remember(endpoint.id) { mutableStateOf<DnsProxyDialogState?>(null) }
 
     LaunchedEffect(endpoint.id, endpoint.proxyName, endpoint.proxyAppName) {
         val appName =
@@ -95,7 +101,41 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
                 Text(text = explanation, style = MaterialTheme.typography.bodySmall)
             }
         }
-        IconButton(onClick = { promptUser(context, scope, endpoint, appConfig) }) {
+        IconButton(
+            onClick = {
+                if (endpoint.isDeletable()) {
+                    dialogState = DnsProxyDialogState.Delete(endpoint.id)
+                } else {
+                    scope.launch(Dispatchers.IO) {
+                        val app =
+                            FirewallManager.getAppInfoByPackage(endpoint.getPackageName())?.appName
+                        val message =
+                            if (!app.isNullOrEmpty()) {
+                                context.getString(
+                                    R.string.dns_proxy_dialog_message,
+                                    app,
+                                    endpoint.proxyIP,
+                                    endpoint.proxyPort.toString()
+                                )
+                            } else {
+                                context.getString(
+                                    R.string.dns_proxy_dialog_message_no_app,
+                                    endpoint.proxyIP,
+                                    endpoint.proxyPort.toString()
+                                )
+                            }
+                        withContext(Dispatchers.Main) {
+                            dialogState =
+                                DnsProxyDialogState.Details(
+                                    endpoint.proxyName,
+                                    message,
+                                    endpoint.proxyIP
+                                )
+                        }
+                    }
+                }
+            }
+        ) {
             Icon(painter = painterResource(id = infoIcon), contentDescription = null)
         }
         Checkbox(
@@ -103,74 +143,65 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
             onCheckedChange = { updateDnsProxyDetails(scope, endpoint, appConfig) }
         )
     }
-}
 
-private fun promptUser(
-    context: Context,
-    scope: CoroutineScope,
-    endpoint: DnsProxyEndpoint,
-    appConfig: AppConfig
-) {
-    if (endpoint.isDeletable()) showDeleteDialog(context, scope, endpoint, appConfig)
-    else {
-        scope.launch(Dispatchers.IO) {
-            val app = FirewallManager.getAppInfoByPackage(endpoint.getPackageName())?.appName
-            withContext(Dispatchers.Main) {
-                showDetailsDialog(
-                    context,
-                    endpoint.proxyName,
-                    endpoint.proxyIP,
-                    endpoint.proxyPort.toString(),
-                    app
+    dialogState?.let { state ->
+        when (state) {
+            is DnsProxyDialogState.Delete -> {
+                AlertDialog(
+                    onDismissRequest = { dialogState = null },
+                    title = { Text(text = context.getString(R.string.dns_proxy_remove_dialog_title)) },
+                    text = { Text(text = context.getString(R.string.dns_proxy_remove_dialog_message)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                deleteProxyEndpoint(context, scope, appConfig, state.id)
+                                dialogState = null
+                            }
+                        ) {
+                            Text(text = context.getString(R.string.lbl_delete))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialogState = null }) {
+                            Text(text = context.getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
+            is DnsProxyDialogState.Details -> {
+                AlertDialog(
+                    onDismissRequest = { dialogState = null },
+                    title = { Text(text = state.title) },
+                    text = { Text(text = state.message) },
+                    confirmButton = {
+                        TextButton(onClick = { dialogState = null }) {
+                            Text(text = context.getString(R.string.dns_info_positive))
+                        }
+                    },
+                    dismissButton = {
+                        if (!state.ip.isNullOrEmpty()) {
+                            TextButton(
+                                onClick = {
+                                    clipboardCopy(
+                                        context,
+                                        state.ip,
+                                        context.getString(R.string.copy_clipboard_label)
+                                    )
+                                    Utilities.showToastUiCentered(
+                                        context,
+                                        context.getString(R.string.info_dialog_copy_toast_msg),
+                                        Toast.LENGTH_SHORT
+                                    )
+                                }
+                            ) {
+                                Text(text = context.getString(R.string.dns_info_neutral))
+                            }
+                        }
+                    }
                 )
             }
         }
     }
-}
-
-private fun showDetailsDialog(context: Context, title: String, ip: String?, port: String, app: String?) {
-    val builder = MaterialAlertDialogBuilder(context)
-    builder.setTitle(title)
-
-    if (!app.isNullOrEmpty()) {
-        builder.setMessage(context.getString(R.string.dns_proxy_dialog_message, app, ip, port))
-    } else {
-        builder.setMessage(
-            context.getString(R.string.dns_proxy_dialog_message_no_app, ip, port)
-        )
-    }
-    builder.setCancelable(true)
-    builder.setPositiveButton(context.getString(R.string.dns_info_positive)) { dialogInterface, _ ->
-        dialogInterface.dismiss()
-    }
-    builder.setNeutralButton(context.getString(R.string.dns_info_neutral)) { _: DialogInterface, _: Int ->
-        if (ip != null) {
-            clipboardCopy(context, ip, context.getString(R.string.copy_clipboard_label))
-            Utilities.showToastUiCentered(
-                context,
-                context.getString(R.string.info_dialog_copy_toast_msg),
-                Toast.LENGTH_SHORT
-            )
-        }
-    }
-    builder.create().show()
-}
-
-private fun showDeleteDialog(
-    context: Context,
-    scope: CoroutineScope,
-    dnsProxyEndpoint: DnsProxyEndpoint,
-    appConfig: AppConfig
-) {
-    val builder = MaterialAlertDialogBuilder(context)
-    builder.setTitle(R.string.dns_proxy_remove_dialog_title)
-    builder.setMessage(R.string.dns_proxy_remove_dialog_message)
-    builder.setCancelable(true)
-    builder.setPositiveButton(context.getString(R.string.lbl_delete)) { _, _ ->
-        deleteProxyEndpoint(context, scope, appConfig, dnsProxyEndpoint.id)
-    }
-    builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ -> }
-    builder.create().show()
 }
 
 private fun updateDnsProxyDetails(

@@ -17,7 +17,6 @@ limitations under the License.
 package com.celzero.bravedns.adapter
 
 import android.content.Context
-import android.content.DialogInterface
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -25,11 +24,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,7 +50,6 @@ import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.UIUtils.getDnsStatusStringRes
 import com.celzero.bravedns.util.Utilities
 import com.celzero.firestack.backend.Backend
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -61,11 +61,17 @@ import kotlinx.coroutines.withContext
 private const val ONE_SEC = 1000L
 private const val TAG = "DoTEndpointAdapter"
 
+private sealed class DoTDialogState {
+    data class Info(val title: String, val url: String, val message: String?) : DoTDialogState()
+    data class Delete(val id: Int) : DoTDialogState()
+}
+
 @Composable
 fun DoTEndpointRow(endpoint: DoTEndpoint, appConfig: AppConfig) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var explanation by remember(endpoint.id) { mutableStateOf("") }
+    var dialogState by remember(endpoint.id) { mutableStateOf<DoTDialogState?>(null) }
 
     LaunchedEffect(endpoint.id, endpoint.isSelected) {
         if (endpoint.isSelected && VpnController.hasTunnel() && !appConfig.isSmartDnsEnabled()) {
@@ -116,13 +122,89 @@ fun DoTEndpointRow(endpoint: DoTEndpoint, appConfig: AppConfig) {
                 Text(text = explanation, style = MaterialTheme.typography.bodySmall)
             }
         }
-        IconButton(onClick = { showExplanationOnImageClick(context, scope, endpoint, appConfig) }) {
+        IconButton(
+            onClick = {
+                if (endpoint.isDeletable()) {
+                    dialogState = DoTDialogState.Delete(endpoint.id)
+                } else {
+                    dialogState =
+                        DoTDialogState.Info(
+                            endpoint.name,
+                            endpoint.url,
+                            endpoint.desc
+                        )
+                }
+            }
+        ) {
             Icon(painter = painterResource(id = infoIcon), contentDescription = null)
         }
         Checkbox(
             checked = endpoint.isSelected,
             onCheckedChange = { updateConnection(scope, endpoint, appConfig) }
         )
+    }
+
+    dialogState?.let { state ->
+        when (state) {
+            is DoTDialogState.Delete -> {
+                AlertDialog(
+                    onDismissRequest = { dialogState = null },
+                    title = { Text(text = context.getString(R.string.doh_custom_url_remove_dialog_title)) },
+                    text = { Text(text = context.getString(R.string.dot_custom_url_remove_dialog_message)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                deleteEndpoint(context, scope, appConfig, state.id)
+                                dialogState = null
+                            }
+                        ) {
+                            Text(text = context.getString(R.string.lbl_delete))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialogState = null }) {
+                            Text(text = context.getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
+            is DoTDialogState.Info -> {
+                val desc =
+                    if (state.message == null) {
+                        state.url
+                    } else {
+                        state.url + "\n\n" + dotDesc(context, state.message)
+                    }
+                AlertDialog(
+                    onDismissRequest = { dialogState = null },
+                    title = { Text(text = state.title) },
+                    text = { Text(text = desc) },
+                    confirmButton = {
+                        TextButton(onClick = { dialogState = null }) {
+                            Text(text = context.getString(R.string.dns_info_positive))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                clipboardCopy(
+                                    context,
+                                    state.url,
+                                    context.getString(R.string.copy_clipboard_label)
+                                )
+                                Utilities.showToastUiCentered(
+                                    context,
+                                    context.getString(R.string.info_dialog_url_copy_toast_msg),
+                                    Toast.LENGTH_SHORT
+                                )
+                            }
+                        ) {
+                            Text(text = context.getString(R.string.dns_info_neutral))
+                        }
+                    }
+                )
+            }
+        }
     }
 }
 
@@ -150,61 +232,6 @@ private fun deleteEndpoint(
             )
         }
     }
-}
-
-private fun showExplanationOnImageClick(
-    context: Context,
-    scope: CoroutineScope,
-    endpoint: DoTEndpoint,
-    appConfig: AppConfig
-) {
-    if (endpoint.isDeletable()) showDeleteDialog(context, scope, appConfig, endpoint.id)
-    else {
-        showDialogExplanation(
-            context,
-            endpoint.name,
-            endpoint.url,
-            endpoint.desc
-        )
-    }
-}
-
-private fun showDeleteDialog(
-    context: Context,
-    scope: CoroutineScope,
-    appConfig: AppConfig,
-    id: Int
-) {
-    val builder = MaterialAlertDialogBuilder(context)
-    builder.setTitle(R.string.doh_custom_url_remove_dialog_title)
-    builder.setMessage(R.string.dot_custom_url_remove_dialog_message)
-    builder.setCancelable(true)
-    builder.setPositiveButton(context.getString(R.string.lbl_delete)) { _, _ ->
-        deleteEndpoint(context, scope, appConfig, id)
-    }
-    builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ -> }
-    builder.create().show()
-}
-
-private fun showDialogExplanation(context: Context, title: String, url: String, message: String?) {
-    val builder = MaterialAlertDialogBuilder(context)
-    builder.setTitle(title)
-    if (message == null) builder.setMessage(url)
-    else builder.setMessage(url + "\n\n" + dotDesc(context, message))
-    builder.setCancelable(true)
-    builder.setPositiveButton(context.getString(R.string.dns_info_positive)) { dialogInterface, _ ->
-        dialogInterface.dismiss()
-    }
-
-    builder.setNeutralButton(context.getString(R.string.dns_info_neutral)) { _: DialogInterface, _: Int ->
-        clipboardCopy(context, url, context.getString(R.string.copy_clipboard_label))
-        Utilities.showToastUiCentered(
-            context,
-            context.getString(R.string.info_dialog_url_copy_toast_msg),
-            Toast.LENGTH_SHORT
-        )
-    }
-    builder.create().show()
 }
 
 private fun dotDesc(context: Context, message: String?): String {
