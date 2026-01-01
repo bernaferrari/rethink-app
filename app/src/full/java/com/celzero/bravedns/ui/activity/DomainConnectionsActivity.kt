@@ -49,7 +49,7 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.asFlow
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.DomainConnectionsAdapter
+import com.celzero.bravedns.adapter.ConnectionRow
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
@@ -220,7 +220,6 @@ class DomainConnectionsActivity : AppCompatActivity() {
 
     @Composable
     private fun ConnectionsList() {
-        val adapter = remember { DomainConnectionsAdapter(this@DomainConnectionsActivity, type) }
         val liveData =
             when (type) {
                 InputType.DOMAIN -> viewModel.domainConnectionList
@@ -234,7 +233,7 @@ class DomainConnectionsActivity : AppCompatActivity() {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(count = items.itemCount) { index ->
                 val item = items[index] ?: return@items
-                adapter.ConnectionRow(item)
+                ConnectionRow(item)
             }
         }
     }

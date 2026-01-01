@@ -58,7 +58,8 @@ import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.EventsAdapter
+import com.celzero.bravedns.adapter.EventCard
+import com.celzero.bravedns.adapter.copyEventToClipboard
 import com.celzero.bravedns.database.EventDao
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.Severity
@@ -396,11 +397,11 @@ class EventsActivity : AppCompatActivity() {
 
     @Composable
     private fun EventsList(items: androidx.paging.compose.LazyPagingItems<com.celzero.bravedns.database.Event>) {
-        val adapter = remember { EventsAdapter(this@EventsActivity) }
+        val context = LocalContext.current
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             items(count = items.itemCount) { index ->
                 val item = items[index] ?: return@items
-                adapter.EventCard(event = item, onCopy = { copyEventToClipboard(it) })
+                EventCard(event = item, onCopy = { copyEventToClipboard(context, it) })
             }
         }
     }

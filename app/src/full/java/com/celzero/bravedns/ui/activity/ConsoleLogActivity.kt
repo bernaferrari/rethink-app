@@ -65,7 +65,7 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.ConsoleLogAdapter
+import com.celzero.bravedns.adapter.ConsoleLogRow
 import com.celzero.bravedns.database.ConsoleLogRepository
 import com.celzero.bravedns.net.go.GoVpnAdapter
 import com.celzero.bravedns.scheduler.WorkScheduler
@@ -430,7 +430,6 @@ class ConsoleLogActivity : AppCompatActivity() {
 
     @Composable
     private fun ConsoleLogList() {
-        val adapter = remember { ConsoleLogAdapter(this@ConsoleLogActivity) }
         val items = viewModel.logs.asFlow().collectAsLazyPagingItems()
 
         LazyColumn(
@@ -440,7 +439,7 @@ class ConsoleLogActivity : AppCompatActivity() {
         ) {
             items(count = items.itemCount) { index ->
                 val item = items[index] ?: return@items
-                adapter.ConsoleLogRow(item)
+                ConsoleLogRow(item)
             }
         }
     }
