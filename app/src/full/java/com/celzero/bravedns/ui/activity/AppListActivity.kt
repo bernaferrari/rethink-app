@@ -18,7 +18,6 @@ package com.celzero.bravedns.ui.activity
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
-import android.util.TypedValue
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -59,6 +58,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -743,23 +743,16 @@ class AppListActivity :
     @Composable
     private fun FilterLabelText() {
         val context = LocalContext.current
-        androidx.compose.ui.viewinterop.AndroidView(
-            factory = { ctx ->
-                android.widget.TextView(ctx).apply {
-                    isSelected = true
-                    setTextColor(fetchColor(ctx, R.attr.primaryTextColor))
-                }
-            },
-            update = { view ->
-                view.text = filterLabelText
-                view.setTextSize(
-                    TypedValue.COMPLEX_UNIT_PX,
-                    context.resources.getDimension(R.dimen.default_font_text_view)
-                )
-            },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 4.dp)
+        Text(
+            text = filterLabelText.toString(),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 4.dp),
+            style = MaterialTheme.typography.bodySmall,
+            color = Color(fetchColor(context, R.attr.primaryTextColor)),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 

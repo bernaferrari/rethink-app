@@ -19,7 +19,6 @@ import android.content.Context
 import android.content.res.Configuration
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.widget.ImageView
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +29,9 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.Image
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -46,16 +47,16 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.bumptech.glide.Glide
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.AppWiseDomainsAdapter
 import com.celzero.bravedns.database.AppInfo
@@ -307,20 +308,18 @@ class AppWiseDomainLogsActivity : AppCompatActivity() {
                 .padding(horizontal = 8.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AndroidView(
-                factory = { ctx ->
-                    ImageView(ctx).apply {
-                        layoutParams = android.view.ViewGroup.LayoutParams(24, 24)
-                        alpha = 0.75f
-                    }
-                },
-                update = { imageView ->
-                    Glide.with(imageView)
-                        .load(appIcon)
-                        .error(Utilities.getDefaultIcon(this@AppWiseDomainLogsActivity))
-                        .into(imageView)
-                }
-            )
+            val iconDrawable =
+                appIcon ?: Utilities.getDefaultIcon(this@AppWiseDomainLogsActivity)
+            val bitmap = remember(iconDrawable) {
+                iconDrawable?.toBitmap(width = 48, height = 48)
+            }
+            if (bitmap != null) {
+                Image(
+                    bitmap = bitmap.asImageBitmap(),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
 
             OutlinedTextField(
                 value = query,
