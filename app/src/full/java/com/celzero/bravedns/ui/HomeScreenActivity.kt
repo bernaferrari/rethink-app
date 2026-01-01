@@ -24,6 +24,7 @@ import Logger.LOG_TAG_VPN
 import android.Manifest
 import android.app.UiModeManager
 import android.app.Activity
+import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.ClipData
 import android.content.ClipboardManager
@@ -59,6 +60,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -398,21 +400,35 @@ class HomeScreenActivity : AppCompatActivity() {
 
     private fun showRestoreDialog(uri: Uri) {
         if (!isInForeground()) return
-
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.brbs_restore_dialog_title)
-        builder.setMessage(R.string.brbs_restore_dialog_message)
-        builder.setPositiveButton(getString(R.string.brbs_restore_dialog_positive)) { _, _ ->
-            startRestore(uri)
-            observeRestoreWorker()
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(true)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = { dialog.dismiss() },
+                    title = { Text(text = getString(R.string.brbs_restore_dialog_title)) },
+                    text = { Text(text = getString(R.string.brbs_restore_dialog_message)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                startRestore(uri)
+                                observeRestoreWorker()
+                            }
+                        ) {
+                            Text(text = getString(R.string.brbs_restore_dialog_positive))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
         }
-
-        builder.setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
-            // no-op
-        }
-
-        builder.setCancelable(true)
-        val dialog = builder.create()
+        dialog.setContentView(composeView)
         dialog.show()
     }
 
@@ -998,16 +1014,35 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun showPrivateDnsDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.private_dns_dialog_heading)
-        builder.setMessage(R.string.private_dns_dialog_desc)
-        builder.setCancelable(false)
-        builder.setPositiveButton(R.string.private_dns_dialog_positive) { _, _ ->
-            openNetworkSettings(this, Settings.ACTION_WIRELESS_SETTINGS)
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(false)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = getString(R.string.private_dns_dialog_heading)) },
+                    text = { Text(text = getString(R.string.private_dns_dialog_desc)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                openNetworkSettings(this@HomeScreenActivity, Settings.ACTION_WIRELESS_SETTINGS)
+                            }
+                        ) {
+                            Text(text = getString(R.string.private_dns_dialog_positive))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_dismiss))
+                        }
+                    }
+                )
+            }
         }
-
-        builder.setNegativeButton(R.string.lbl_dismiss) { _, _ -> }
-        builder.create().show()
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun startFirewallActivity(screenToLoad: Int) {
@@ -1121,25 +1156,44 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun showFirstTimeVpnDialog(prepareVpnIntent: Intent) {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.hsf_vpn_dialog_header)
-        builder.setMessage(R.string.hsf_vpn_dialog_message)
-        builder.setCancelable(false)
-        builder.setPositiveButton(R.string.lbl_proceed) { _, _ ->
-            try {
-                startForResult.launch(prepareVpnIntent)
-            } catch (e: ActivityNotFoundException) {
-                Logger.e(LOG_TAG_VPN, "Activity not found to start VPN service", e)
-                showToastUiCentered(
-                    this,
-                    getString(R.string.hsf_vpn_prepare_failure),
-                    Toast.LENGTH_LONG
+        val dialog = Dialog(this, R.style.App_Dialog_NoDim)
+        dialog.setCancelable(false)
+        val composeView = ComposeView(this)
+        composeView.setContent {
+            RethinkTheme {
+                AlertDialog(
+                    onDismissRequest = {},
+                    title = { Text(text = getString(R.string.hsf_vpn_dialog_header)) },
+                    text = { Text(text = getString(R.string.hsf_vpn_dialog_message)) },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                dialog.dismiss()
+                                try {
+                                    startForResult.launch(prepareVpnIntent)
+                                } catch (e: ActivityNotFoundException) {
+                                    Logger.e(LOG_TAG_VPN, "Activity not found to start VPN service", e)
+                                    showToastUiCentered(
+                                        this@HomeScreenActivity,
+                                        getString(R.string.hsf_vpn_prepare_failure),
+                                        Toast.LENGTH_LONG
+                                    )
+                                }
+                            }
+                        ) {
+                            Text(text = getString(R.string.lbl_proceed))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { dialog.dismiss() }) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
                 )
             }
         }
-
-        builder.setNegativeButton(R.string.lbl_cancel) { _, _ -> }
-        builder.create().show()
+        dialog.setContentView(composeView)
+        dialog.show()
     }
 
     private fun registerForActivityResult() {
