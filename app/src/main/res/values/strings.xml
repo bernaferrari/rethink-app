@@ -1773,6 +1773,15 @@
     <string name="ac_tcp_proxy" translatable="false">Hybrid</string>
     <string name="ac_tcp_proxy_desc" translatable="false">Also uses proxy as necessary.</string>
 
+    <!-- TCP Proxy Screen -->
+    <string name="tcp_proxy_warp_active_error" translatable="true">Warp is active. Please disable it first.</string>
+    <string name="tcp_proxy_no_apps_error" translatable="true">Please add at least one app to enable Rethink Proxy.</string>
+    <string name="tcp_proxy_rethink_proxy_title" translatable="true">Rethink\'s Proxy</string>
+    <string name="tcp_proxy_enable_udp_relay" translatable="true">Enable UDP Relay</string>
+    <string name="tcp_proxy_cloudflare_warp_title" translatable="true">Cloudflare WARP</string>
+    <string name="tcp_proxy_cloudflare_warp_desc" translatable="true">Modern, fast, and secure way to connect to a VPN server. Secure all your internet traffic with an ultra-secure, lightning-quick VPN service that lets you connect with the WireGuard protocol.</string>
+    <string name="something_went_wrong" translatable="true">Something went wrong</string>
+
     <string name="ac_retry_options_title" translatable="true">strategy</string>
     <string name="ac_retry_options_desc" translatable="true">Set how retries work for censored connections.</string>
 

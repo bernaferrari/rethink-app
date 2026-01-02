@@ -18,6 +18,7 @@ package com.celzero.bravedns.ui.compose.app
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,6 +50,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
@@ -92,7 +94,8 @@ fun AppInfoScreen(
     ipRulesViewModel: CustomIpViewModel,
     domainRulesViewModel: CustomDomainViewModel,
     networkLogsViewModel: AppConnectionsViewModel,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onAppWiseIpLogsClick: (Int, Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -489,7 +492,20 @@ fun AppInfoScreen(
             }
 
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = stringResource(id = R.string.top_active_conns), style = MaterialTheme.typography.titleMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable { onAppWiseIpLogsClick(uid, false) },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(id = R.string.top_active_conns),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_right_arrow_small),
+                    contentDescription = null
+                )
+            }
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.height(200.dp)
@@ -500,7 +516,20 @@ fun AppInfoScreen(
                 }
             }
 
-            Text(text = stringResource(id = R.string.ssv_most_contacted_domain_heading), style = MaterialTheme.typography.titleMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable { onAppWiseIpLogsClick(uid, false) },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(id = R.string.ssv_most_contacted_domain_heading),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_right_arrow_small),
+                    contentDescription = null
+                )
+            }
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.height(200.dp)
@@ -511,7 +540,20 @@ fun AppInfoScreen(
                 }
             }
 
-            Text(text = stringResource(id = R.string.ssv_most_contacted_ips_heading), style = MaterialTheme.typography.titleMedium)
+            Row(
+                modifier = Modifier.fillMaxWidth().clickable { onAppWiseIpLogsClick(uid, false) },
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(id = R.string.ssv_most_contacted_ips_heading),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_right_arrow_small),
+                    contentDescription = null
+                )
+            }
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(6.dp),
                 modifier = Modifier.height(200.dp)

@@ -38,6 +38,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.SummaryStatisticsType
+import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.ui.compose.alerts.AlertsScreen
 import com.celzero.bravedns.ui.compose.about.AboutScreen
 import com.celzero.bravedns.ui.compose.about.AboutUiState
@@ -47,7 +48,25 @@ import com.celzero.bravedns.ui.compose.events.EventsScreen
 import com.celzero.bravedns.ui.compose.firewall.FirewallSettingsScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreen
 import com.celzero.bravedns.ui.compose.settings.AdvancedSettingsScreen
+import com.celzero.bravedns.ui.compose.settings.AntiCensorshipScreen
+import com.celzero.bravedns.ui.compose.settings.AppLockScreen
+import com.celzero.bravedns.ui.compose.settings.AppLockResult
+import com.celzero.bravedns.ui.compose.settings.MiscSettingsScreen
+import com.celzero.bravedns.ui.compose.settings.TunnelSettingsScreen
+import com.celzero.bravedns.ui.compose.settings.ConsoleLogScreen
+import com.celzero.bravedns.ui.compose.settings.ProxySettingsScreen
+import com.celzero.bravedns.ui.compose.proxy.TcpProxyMainScreen
+import com.celzero.bravedns.ui.compose.logs.NetworkLogsScreen
+import com.celzero.bravedns.ui.compose.settings.PingTestScreen
+import com.celzero.bravedns.ui.compose.logs.AppWiseIpLogsScreen
+import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
+import com.celzero.bravedns.ui.compose.apps.AppListScreen
+import com.celzero.bravedns.ui.compose.firewall.CustomRulesScreen
+import com.celzero.bravedns.ui.compose.home.WelcomeScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreenUiState
+import com.celzero.bravedns.ui.compose.wireguard.WgConfigDetailScreen
+import com.celzero.bravedns.ui.compose.wireguard.WgConfigEditorScreen
+import com.celzero.bravedns.ui.compose.wireguard.WgType
 import com.celzero.bravedns.ui.compose.rpn.RpnAvailabilityScreen
 import com.celzero.bravedns.ui.compose.rpn.RpnCountriesScreen
 import com.celzero.bravedns.ui.compose.rpn.RpnWinProxyDetailsScreen
@@ -65,6 +84,19 @@ import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
 import com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel
 import com.celzero.bravedns.viewmodel.EventsViewModel
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
+import com.celzero.bravedns.viewmodel.ConsoleLogViewModel
+import com.celzero.bravedns.database.ConsoleLogRepository
+import com.celzero.bravedns.download.AppDownloadManager
+import com.celzero.bravedns.ui.compose.dns.ConfigureRethinkBasicScreen
+import com.celzero.bravedns.ui.compose.dns.ConfigureRethinkScreenType
+import com.celzero.bravedns.ui.compose.dns.DnsDetailScreen
+import com.celzero.bravedns.ui.compose.dns.DnsListScreen
+import com.celzero.bravedns.ui.compose.dns.DnsSettingsViewModel
+import com.celzero.bravedns.viewmodel.LocalBlocklistPacksMapViewModel
+import com.celzero.bravedns.viewmodel.RemoteBlocklistPacksMapViewModel
+import com.celzero.bravedns.viewmodel.RethinkEndpointViewModel
+import com.celzero.bravedns.viewmodel.RethinkLocalFileTagViewModel
+import com.celzero.bravedns.viewmodel.RethinkRemoteFileTagViewModel
 
 enum class HomeDestination(
     val route: String,
@@ -88,6 +120,21 @@ sealed interface HomeNavRequest {
     data object Events : HomeNavRequest
     data object FirewallSettings : HomeNavRequest
     data object AdvancedSettings : HomeNavRequest
+    data object AntiCensorship : HomeNavRequest
+    data object TunnelSettings : HomeNavRequest
+    data object MiscSettings : HomeNavRequest
+    data object ConsoleLogs : HomeNavRequest
+    data object NetworkLogs : HomeNavRequest
+    data object AppList : HomeNavRequest
+    data object CustomRules : HomeNavRequest
+    data object ProxySettings : HomeNavRequest
+    data object TcpProxyMain : HomeNavRequest
+    data object Welcome : HomeNavRequest
+    data object AppLock : HomeNavRequest
+    data object PingTest : HomeNavRequest
+    data object DnsDetail : HomeNavRequest
+    data class WgConfigDetail(val configId: Int, val wgType: WgType) : HomeNavRequest
+    data class WgConfigEditor(val configId: Int, val wgType: WgType) : HomeNavRequest
     data class RpnWinProxyDetails(val countryCode: String) : HomeNavRequest
     data class AppInfo(val uid: Int) : HomeNavRequest
     data class DomainConnections(
@@ -98,6 +145,14 @@ sealed interface HomeNavRequest {
         val ip: String,
         val isBlocked: Boolean,
         val timeCategory: DomainConnectionsViewModel.TimeCategory
+    ) : HomeNavRequest
+    data object DnsList : HomeNavRequest
+    data class AppWiseIpLogs(val uid: Int, val isAsn: Boolean) : HomeNavRequest
+    data class ConfigureRethinkBasic(
+        val screenType: ConfigureRethinkScreenType,
+        val remoteName: String = "",
+        val remoteUrl: String = "",
+        val uid: Int = -1
     ) : HomeNavRequest
 }
 
@@ -111,6 +166,24 @@ private const val ROUTE_RPN_WIN_PROXY_DETAILS = "rpnWinProxyDetails"
 private const val ROUTE_APP_INFO = "appInfo"
 private const val ROUTE_FIREWALL_SETTINGS = "firewallSettings"
 private const val ROUTE_ADVANCED_SETTINGS = "advancedSettings"
+private const val ROUTE_ANTI_CENSORSHIP = "antiCensorship"
+private const val ROUTE_TUNNEL_SETTINGS = "tunnelSettings"
+private const val ROUTE_MISC_SETTINGS = "miscSettings"
+private const val ROUTE_CONSOLE_LOGS = "consoleLogs"
+private const val ROUTE_NETWORK_LOGS = "networkLogs"
+private const val ROUTE_APP_LIST = "appList"
+private const val ROUTE_CUSTOM_RULES = "customRules"
+private const val ROUTE_PROXY_SETTINGS = "proxySettings"
+private const val ROUTE_TCP_PROXY_MAIN = "tcpProxyMain"
+private const val ROUTE_WELCOME = "welcome"
+private const val ROUTE_APP_LOCK = "appLock"
+private const val ROUTE_PING_TEST = "pingTest"
+private const val ROUTE_DNS_DETAIL = "dnsDetail"
+private const val ROUTE_WG_CONFIG_DETAIL = "wgConfigDetail"
+private const val ROUTE_WG_CONFIG_EDITOR = "wgConfigEditor"
+private const val ROUTE_CONFIGURE_RETHINK_BASIC = "configureRethinkBasic"
+private const val ROUTE_DNS_LIST = "dnsList"
+private const val ROUTE_APP_WISE_IP_LOGS = "appWiseIpLogs"
 
 private fun domainConnectionsRoute(
     type: DomainConnectionsInputType,
@@ -199,8 +272,29 @@ fun HomeScreenRoot(
     appInfoDomainRulesViewModel: CustomDomainViewModel,
     appInfoNetworkLogsViewModel: AppConnectionsViewModel,
     persistentState: PersistentState,
+    appConfig: AppConfig,
+    onOpenVpnProfile: () -> Unit,
+    onRefreshDatabase: (() -> Unit)? = null,
+    consoleLogViewModel: ConsoleLogViewModel,
+    consoleLogRepository: ConsoleLogRepository,
+    onShareConsoleLogs: () -> Unit,
+    onConsoleLogsDeleteComplete: () -> Unit,
+    proxyAppsMappingViewModel: ProxyAppsMappingViewModel,
+    dnsSettingsViewModel: DnsSettingsViewModel,
+    appDownloadManager: AppDownloadManager,
+    onDnsCustomDnsClick: () -> Unit,
+    onDnsRethinkPlusDnsClick: () -> Unit,
+    onDnsLocalBlocklistConfigureClick: () -> Unit,
     homeNavRequest: HomeNavRequest?,
-    onHomeNavConsumed: () -> Unit
+    onHomeNavConsumed: () -> Unit,
+    onAppLockResult: (AppLockResult) -> Unit = {},
+    // ConfigureRethinkBasic dependencies
+    rethinkEndpointViewModel: RethinkEndpointViewModel,
+    remoteFileTagViewModel: RethinkRemoteFileTagViewModel,
+    localFileTagViewModel: RethinkLocalFileTagViewModel,
+    remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel,
+    localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel,
+    onConfigureOtherDns: (Int) -> Unit
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -232,6 +326,45 @@ fun HomeScreenRoot(
             HomeNavRequest.AdvancedSettings -> {
                 navController.navigate(ROUTE_ADVANCED_SETTINGS)
             }
+            HomeNavRequest.AntiCensorship -> {
+                navController.navigate(ROUTE_ANTI_CENSORSHIP)
+            }
+            HomeNavRequest.TunnelSettings -> {
+                navController.navigate(ROUTE_TUNNEL_SETTINGS)
+            }
+            HomeNavRequest.MiscSettings -> {
+                navController.navigate(ROUTE_MISC_SETTINGS)
+            }
+            HomeNavRequest.ConsoleLogs -> {
+                navController.navigate(ROUTE_CONSOLE_LOGS)
+            }
+            HomeNavRequest.NetworkLogs -> {
+                navController.navigate(ROUTE_NETWORK_LOGS)
+            }
+            HomeNavRequest.AppList -> {
+                navController.navigate(ROUTE_APP_LIST)
+            }
+            HomeNavRequest.CustomRules -> {
+                navController.navigate(ROUTE_CUSTOM_RULES)
+            }
+            HomeNavRequest.ProxySettings -> {
+                navController.navigate(ROUTE_PROXY_SETTINGS)
+            }
+            HomeNavRequest.TcpProxyMain -> {
+                navController.navigate(ROUTE_TCP_PROXY_MAIN)
+            }
+            HomeNavRequest.Welcome -> {
+                navController.navigate(ROUTE_WELCOME)
+            }
+            HomeNavRequest.PingTest -> {
+                navController.navigate(ROUTE_PING_TEST)
+            }
+            HomeNavRequest.AppLock -> {
+                navController.navigate(ROUTE_APP_LOCK)
+            }
+            HomeNavRequest.DnsDetail -> {
+                navController.navigate(ROUTE_DNS_DETAIL)
+            }
             is HomeNavRequest.RpnWinProxyDetails -> {
                 navController.navigate("$ROUTE_RPN_WIN_PROXY_DETAILS/${Uri.encode(request.countryCode)}")
             }
@@ -250,6 +383,25 @@ fun HomeScreenRoot(
             }
             is HomeNavRequest.AppInfo -> {
                 navController.navigate("$ROUTE_APP_INFO/${request.uid}")
+            }
+            is HomeNavRequest.WgConfigDetail -> {
+                navController.navigate("$ROUTE_WG_CONFIG_DETAIL/${request.configId}/${request.wgType.value}")
+            }
+            is HomeNavRequest.WgConfigEditor -> {
+                navController.navigate("$ROUTE_WG_CONFIG_EDITOR/${request.configId}/${request.wgType.value}")
+            }
+            is HomeNavRequest.ConfigureRethinkBasic -> {
+                val encodedName = Uri.encode(request.remoteName)
+                val encodedUrl = Uri.encode(request.remoteUrl)
+                navController.navigate(
+                    "$ROUTE_CONFIGURE_RETHINK_BASIC/${request.screenType.ordinal}?name=$encodedName&url=$encodedUrl&uid=${request.uid}"
+                )
+            }
+            HomeNavRequest.DnsList -> {
+                navController.navigate(ROUTE_DNS_LIST)
+            }
+            is HomeNavRequest.AppWiseIpLogs -> {
+                navController.navigate("$ROUTE_APP_WISE_IP_LOGS/${request.uid}/${request.isAsn}")
             }
         }
         onHomeNavConsumed()
@@ -347,6 +499,97 @@ fun HomeScreenRoot(
                     onBackClick = { navController.popBackStack() }
                 )
             }
+            composable(ROUTE_ANTI_CENSORSHIP) {
+                AntiCensorshipScreen(
+                    persistentState = persistentState,
+                    eventLogger = appInfoEventLogger,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_TUNNEL_SETTINGS) {
+                TunnelSettingsScreen(
+                    persistentState = persistentState,
+                    appConfig = appConfig,
+                    eventLogger = appInfoEventLogger,
+                    onOpenVpnProfile = onOpenVpnProfile,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_MISC_SETTINGS) {
+                MiscSettingsScreen(
+                    persistentState = persistentState,
+                    eventLogger = appInfoEventLogger,
+                    onBackClick = { navController.popBackStack() },
+                    onRefreshDatabase = onRefreshDatabase
+                )
+            }
+            composable(ROUTE_PING_TEST) {
+                PingTestScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_CONSOLE_LOGS) {
+                ConsoleLogScreen(
+                    viewModel = consoleLogViewModel,
+                    consoleLogRepository = consoleLogRepository,
+                    persistentState = persistentState,
+                    onShareClick = onShareConsoleLogs,
+                    onDeleteComplete = onConsoleLogsDeleteComplete,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_NETWORK_LOGS) {
+                NetworkLogsScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_APP_LIST) {
+                AppListScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_CUSTOM_RULES) {
+                CustomRulesScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_PROXY_SETTINGS) {
+                ProxySettingsScreen(
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_TCP_PROXY_MAIN) {
+                TcpProxyMainScreen(
+                    appConfig = appConfig,
+                    mappingViewModel = proxyAppsMappingViewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_WELCOME) {
+                WelcomeScreen(
+                    onFinish = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_APP_LOCK) {
+                AppLockScreen(
+                    persistentState = persistentState,
+                    onAuthResult = { result ->
+                        onAppLockResult(result)
+                        navController.popBackStack()
+                    }
+                )
+            }
+            composable(ROUTE_DNS_DETAIL) {
+                DnsDetailScreen(
+                    viewModel = dnsSettingsViewModel,
+                    persistentState = persistentState,
+                    appDownloadManager = appDownloadManager,
+                    onCustomDnsClick = onDnsCustomDnsClick,
+                    onRethinkPlusDnsClick = onDnsRethinkPlusDnsClick,
+                    onLocalBlocklistConfigureClick = onDnsLocalBlocklistConfigureClick,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
             composable(
                 route = "$ROUTE_APP_INFO/{uid}",
                 arguments = listOf(navArgument("uid") { type = NavType.IntType })
@@ -358,6 +601,45 @@ fun HomeScreenRoot(
                     ipRulesViewModel = appInfoIpRulesViewModel,
                     domainRulesViewModel = appInfoDomainRulesViewModel,
                     networkLogsViewModel = appInfoNetworkLogsViewModel,
+                    onBackClick = { navController.popBackStack() },
+                    onAppWiseIpLogsClick = { u, isAsn ->
+                        navController.navigate("$ROUTE_APP_WISE_IP_LOGS/$u/$isAsn")
+                    }
+                )
+            }
+            composable(ROUTE_DNS_LIST) {
+                DnsListScreen(
+                    appConfig = appConfig,
+                    onConfigureOtherDns = onConfigureOtherDns,
+                    onConfigureRethinkBasic = { type ->
+                        val request = HomeNavRequest.ConfigureRethinkBasic(
+                            ConfigureRethinkScreenType.entries[type]
+                        )
+                        // Trigger navigation via state update or direct navigate?
+                        // Using direct navigate similar to other screens
+                        // We need to encode if we use the URL builder
+                        // But wait, here we are inside NavHost.
+                        // We can construct the route directly or use the HomeNavRequest logic if we expose a handler?
+                        // Or just navigate manually.
+                        navController.navigate("$ROUTE_CONFIGURE_RETHINK_BASIC/$type?name=&url=&uid=-1")
+                    },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = "$ROUTE_APP_WISE_IP_LOGS/{uid}/{isAsn}",
+                arguments = listOf(
+                    navArgument("uid") { type = NavType.IntType },
+                    navArgument("isAsn") { type = NavType.BoolType }
+                )
+            ) { entry ->
+                val uid = entry.arguments?.getInt("uid") ?: -1
+                val isAsn = entry.arguments?.getBoolean("isAsn") ?: false
+                AppWiseIpLogsScreen(
+                    uid = uid,
+                    isAsn = isAsn,
+                    viewModel = appInfoNetworkLogsViewModel,
+                    eventLogger = appInfoEventLogger,
                     onBackClick = { navController.popBackStack() }
                 )
             }
@@ -431,6 +713,46 @@ fun HomeScreenRoot(
                     onBackClick = { navController.popBackStack() }
                 )
             }
+            composable(
+                route = "$ROUTE_WG_CONFIG_DETAIL/{configId}/{wgType}",
+                arguments = listOf(
+                    navArgument("configId") { type = NavType.IntType },
+                    navArgument("wgType") { type = NavType.IntType }
+                )
+            ) { entry ->
+                val configId = entry.arguments?.getInt("configId") ?: -1
+                val wgTypeValue = entry.arguments?.getInt("wgType") ?: 0
+                val wgType = WgType.fromInt(wgTypeValue)
+                WgConfigDetailScreen(
+                    configId = configId,
+                    wgType = wgType,
+                    persistentState = persistentState,
+                    eventLogger = appInfoEventLogger,
+                    mappingViewModel = proxyAppsMappingViewModel,
+                    onEditConfig = { id, type ->
+                        navController.navigate("$ROUTE_WG_CONFIG_EDITOR/$id/${type.value}")
+                    },
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = "$ROUTE_WG_CONFIG_EDITOR/{configId}/{wgType}",
+                arguments = listOf(
+                    navArgument("configId") { type = NavType.IntType },
+                    navArgument("wgType") { type = NavType.IntType }
+                )
+            ) { entry ->
+                val configId = entry.arguments?.getInt("configId") ?: 0
+                val wgTypeValue = entry.arguments?.getInt("wgType") ?: 0
+                val wgType = WgType.fromInt(wgTypeValue)
+                WgConfigEditorScreen(
+                    configId = configId,
+                    wgType = wgType,
+                    persistentState = persistentState,
+                    onBackClick = { navController.popBackStack() },
+                    onSaveSuccess = { navController.popBackStack() }
+                )
+            }
             composable(HomeDestination.CONFIGURE.route) {
                 ConfigureScreen(
                     isDebug = isDebug,
@@ -478,6 +800,38 @@ fun HomeScreenRoot(
                     onTokenDoubleTap = onTokenDoubleTap,
                     onFossClick = onFossClick,
                     onFlossFundsClick = onFlossFundsClick
+                )
+            }
+            composable(
+                route = "$ROUTE_CONFIGURE_RETHINK_BASIC/{screenType}?name={name}&url={url}&uid={uid}",
+                arguments = listOf(
+                    navArgument("screenType") { type = NavType.IntType },
+                    navArgument("name") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("url") { type = NavType.StringType; defaultValue = "" },
+                    navArgument("uid") { type = NavType.IntType; defaultValue = -1 }
+                )
+            ) { entry ->
+                val screenTypeOrdinal = entry.arguments?.getInt("screenType") ?: 0
+                val screenType = ConfigureRethinkScreenType.entries.getOrElse(screenTypeOrdinal) {
+                    ConfigureRethinkScreenType.REMOTE
+                }
+                val remoteName = entry.arguments?.getString("name").orEmpty()
+                val remoteUrl = entry.arguments?.getString("url").orEmpty()
+                val uid = entry.arguments?.getInt("uid") ?: -1
+                ConfigureRethinkBasicScreen(
+                    screenType = screenType,
+                    remoteName = remoteName,
+                    remoteUrl = remoteUrl,
+                    uid = uid,
+                    persistentState = persistentState,
+                    appConfig = appConfig,
+                    appDownloadManager = appDownloadManager,
+                    rethinkEndpointViewModel = rethinkEndpointViewModel,
+                    remoteFileTagViewModel = remoteFileTagViewModel,
+                    localFileTagViewModel = localFileTagViewModel,
+                    remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
+                    localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
+                    onBackClick = { navController.popBackStack() }
                 )
             }
         }

@@ -138,6 +138,8 @@ import com.celzero.bravedns.ui.activity.ConfigureRethinkBasicActivity
 import com.celzero.bravedns.ui.activity.CustomRulesActivity
 import com.celzero.bravedns.ui.compose.navigation.HomeNavRequest
 import com.celzero.bravedns.ui.activity.DnsDetailActivity
+import com.celzero.bravedns.ui.activity.DnsListActivity
+import com.celzero.bravedns.ui.activity.ConfigureOtherDnsActivity
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
 import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
 import com.celzero.bravedns.viewmodel.EventsViewModel
@@ -220,6 +222,16 @@ class HomeScreenActivity : AppCompatActivity() {
     private val appInfoIpRulesViewModel by viewModel<CustomIpViewModel>()
     private val appInfoDomainRulesViewModel by viewModel<CustomDomainViewModel>()
     private val appInfoNetworkLogsViewModel by viewModel<AppConnectionsViewModel>()
+    private val consoleLogViewModel by inject<com.celzero.bravedns.viewmodel.ConsoleLogViewModel>()
+    private val consoleLogRepository by inject<com.celzero.bravedns.database.ConsoleLogRepository>()
+    private val proxyAppsMappingViewModel by viewModel<com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel>()
+    private val dnsSettingsViewModel by viewModel<com.celzero.bravedns.ui.compose.dns.DnsSettingsViewModel>()
+    private val appDownloadManager by inject<com.celzero.bravedns.download.AppDownloadManager>()
+    private val rethinkEndpointViewModel by viewModel<com.celzero.bravedns.viewmodel.RethinkEndpointViewModel>()
+    private val remoteFileTagViewModel by viewModel<com.celzero.bravedns.viewmodel.RethinkRemoteFileTagViewModel>()
+    private val localFileTagViewModel by viewModel<com.celzero.bravedns.viewmodel.RethinkLocalFileTagViewModel>()
+    private val remoteBlocklistPacksMapViewModel by viewModel<com.celzero.bravedns.viewmodel.RemoteBlocklistPacksMapViewModel>()
+    private val localBlocklistPacksMapViewModel by viewModel<com.celzero.bravedns.viewmodel.LocalBlocklistPacksMapViewModel>()
 
     // TODO: see if this can be replaced with a more robust solution
     // keep track of when app went to background
@@ -231,7 +243,6 @@ class HomeScreenActivity : AppCompatActivity() {
 
     private lateinit var startForResult: androidx.activity.result.ActivityResultLauncher<Intent>
     private lateinit var notificationPermissionResult: androidx.activity.result.ActivityResultLauncher<String>
-    private lateinit var miscSettingsResultLauncher: androidx.activity.result.ActivityResultLauncher<Intent>
 
     // TODO - #324 - Usage of isDarkTheme() in all activities.
     private fun Context.isDarkThemeOn(): Boolean {
@@ -291,7 +302,7 @@ class HomeScreenActivity : AppCompatActivity() {
                 HomeScreenRoot(
                     homeUiState = homeState,
                     onHomeStartStopClick = { handleMainScreenBtnClickEvent() },
-                    onHomeDnsClick = { startDnsActivity(0) },
+                    onHomeDnsClick = { navigateToDnsDetailIfAllowed() },
                     onHomeFirewallClick = { homeNavRequest = HomeNavRequest.FirewallSettings },
                     onHomeProxyClick = {
                         if (appConfig.isWireGuardEnabled()) {
@@ -300,23 +311,23 @@ class HomeScreenActivity : AppCompatActivity() {
                             startActivity(ScreenType.PROXY)
                         }
                     },
-                    onHomeLogsClick = { startActivity(ScreenType.LOGS, NetworkLogsActivity.Tabs.NETWORK_LOGS.screen) },
+                    onHomeLogsClick = { homeNavRequest = HomeNavRequest.NetworkLogs },
                     onHomeAppsClick = { startAppsActivity() },
                     onHomeSponsorClick = { promptForAppSponsorship() },
                     summaryViewModel = summaryViewModel,
                     onOpenDetailedStats = { type -> openDetailedStatsUi(type) },
                     isDebug = DEBUG,
-                    onConfigureAppsClick = { startActivity(ConfigureScreenType.APPS) },
-                    onConfigureDnsClick = { startActivity(ConfigureScreenType.DNS) },
+                    onConfigureAppsClick = { homeNavRequest = HomeNavRequest.AppList },
+                    onConfigureDnsClick = { navigateToDnsDetailIfAllowed() },
                     onConfigureFirewallClick = { homeNavRequest = HomeNavRequest.FirewallSettings },
                     onFirewallUniversalClick = { openUniversalFirewallScreen() },
                     onFirewallCustomIpClick = { openCustomIpScreen() },
                     onFirewallAppWiseIpClick = { openAppWiseIpScreen() },
-                    onConfigureProxyClick = { startActivity(ConfigureScreenType.PROXY) },
-                    onConfigureNetworkClick = { startActivity(ConfigureScreenType.VPN) },
-                    onConfigureOthersClick = { startActivity(ConfigureScreenType.OTHERS) },
-                    onConfigureLogsClick = { startActivity(ConfigureScreenType.LOGS) },
-                    onConfigureAntiCensorshipClick = { startActivity(ConfigureScreenType.ANTI_CENSORSHIP) },
+                    onConfigureProxyClick = { homeNavRequest = HomeNavRequest.ProxySettings },
+                    onConfigureNetworkClick = { homeNavRequest = HomeNavRequest.TunnelSettings },
+                    onConfigureOthersClick = { homeNavRequest = HomeNavRequest.MiscSettings },
+                    onConfigureLogsClick = { homeNavRequest = HomeNavRequest.NetworkLogs },
+                    onConfigureAntiCensorshipClick = { homeNavRequest = HomeNavRequest.AntiCensorship },
                     onConfigureAdvancedClick = { homeNavRequest = HomeNavRequest.AdvancedSettings },
                     aboutUiState = aboutState,
                     onSponsorClick = { openUrl(this, RETHINKDNS_SPONSOR_LINK) },
@@ -359,8 +370,32 @@ class HomeScreenActivity : AppCompatActivity() {
                     appInfoDomainRulesViewModel = appInfoDomainRulesViewModel,
                     appInfoNetworkLogsViewModel = appInfoNetworkLogsViewModel,
                     persistentState = persistentState,
+                    appConfig = appConfig,
+                    onOpenVpnProfile = { UIUtils.openVpnProfile(this@HomeScreenActivity) },
+                    onRefreshDatabase = { lifecycleScope.launch { rdb.refresh(RefreshDatabase.ACTION_REFRESH_INTERACTIVE) } },
+                    consoleLogViewModel = consoleLogViewModel,
+                    consoleLogRepository = consoleLogRepository,
+                    onShareConsoleLogs = { startActivity(ConfigureScreenType.LOGS) }, // Fallback to Activity for complex share
+                    onConsoleLogsDeleteComplete = {
+                        showToastUiCentered(this@HomeScreenActivity, getString(R.string.config_add_success_toast), Toast.LENGTH_SHORT)
+                    },
+                    proxyAppsMappingViewModel = proxyAppsMappingViewModel,
+                    dnsSettingsViewModel = dnsSettingsViewModel,
+                    appDownloadManager = appDownloadManager,
+                    onDnsCustomDnsClick = { startCustomDnsActivity() },
+                    onDnsRethinkPlusDnsClick = { startRethinkPlusDnsActivity() },
+                    onDnsLocalBlocklistConfigureClick = { startLocalBlocklistConfigureActivity() },
                     homeNavRequest = homeNavRequest,
-                    onHomeNavConsumed = { homeNavRequest = null }
+                    onHomeNavConsumed = { homeNavRequest = null },
+                    rethinkEndpointViewModel = rethinkEndpointViewModel,
+                    remoteFileTagViewModel = remoteFileTagViewModel,
+                    localFileTagViewModel = localFileTagViewModel,
+                    remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
+                    localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
+                    onConfigureOtherDns = { index ->
+                        val intent = ConfigureOtherDnsActivity.getIntent(this@HomeScreenActivity, index)
+                        startActivity(intent)
+                    }
                 )
                 if (showBugReportSheet) {
                     BugReportFilesSheet(onDismiss = { showBugReportSheet = false })
@@ -1004,6 +1039,31 @@ class HomeScreenActivity : AppCompatActivity() {
         startActivity(ScreenType.DNS, screenToLoad)
     }
 
+    private fun navigateToDnsDetailIfAllowed() {
+        if (Utilities.isPrivateDnsActive(this)) {
+            showPrivateDnsDialog()
+            return
+        }
+        homeNavRequest = HomeNavRequest.DnsDetail
+    }
+
+    private fun startCustomDnsActivity() {
+        val intent = Intent(this, DnsListActivity::class.java)
+        startActivity(intent)
+    }
+
+    private fun startRethinkPlusDnsActivity() {
+        val intent = Intent(this, ConfigureRethinkBasicActivity::class.java)
+        intent.putExtra(ConfigureRethinkBasicActivity.INTENT, ConfigureRethinkBasicActivity.FragmentLoader.DB_LIST.ordinal)
+        startActivity(intent)
+    }
+
+    private fun startLocalBlocklistConfigureActivity() {
+        val intent = Intent(this, ConfigureRethinkBasicActivity::class.java)
+        intent.putExtra(ConfigureRethinkBasicActivity.INTENT, ConfigureRethinkBasicActivity.FragmentLoader.LOCAL.ordinal)
+        startActivity(intent)
+    }
+
     private fun canStartRethinkActivity(): Boolean {
         val dns = appConfig.getDnsType()
         return dns.isRethinkRemote() && !WireguardManager.oneWireGuardEnabled()
@@ -1096,11 +1156,7 @@ class HomeScreenActivity : AppCompatActivity() {
                 ConfigureScreenType.ADVANCED -> Intent(this, AdvancedSettingActivity::class.java)
             }
 
-        if (type == ConfigureScreenType.OTHERS) {
-            miscSettingsResultLauncher.launch(intent)
-        } else {
-            startActivity(intent)
-        }
+        startActivity(intent)
     }
 
     private fun prepareAndStartVpn() {
@@ -1193,13 +1249,6 @@ class HomeScreenActivity : AppCompatActivity() {
                             duration = SnackbarDuration.Long
                         )
                     }
-                }
-            }
-
-        miscSettingsResultLauncher =
-            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-                if (result.resultCode == MiscSettingsActivity.THEME_CHANGED_RESULT) {
-                    recreate()
                 }
             }
     }

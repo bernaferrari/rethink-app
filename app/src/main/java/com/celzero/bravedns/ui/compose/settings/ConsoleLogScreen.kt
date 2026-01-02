@@ -1,0 +1,310 @@
+/*
+ * Copyright 2024 RethinkDNS and its authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.celzero.bravedns.ui.compose.settings
+
+import Logger
+import Logger.LOG_TAG_BUG_REPORT
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.asFlow
+import androidx.paging.compose.collectAsLazyPagingItems
+import com.celzero.bravedns.R
+import com.celzero.bravedns.adapter.ConsoleLogRow
+import com.celzero.bravedns.database.ConsoleLogRepository
+import com.celzero.bravedns.net.go.GoVpnAdapter
+import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.viewmodel.ConsoleLogViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
+
+private const val QUERY_TEXT_DELAY: Long = 1000
+
+@OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
+@Composable
+fun ConsoleLogScreen(
+    viewModel: ConsoleLogViewModel,
+    consoleLogRepository: ConsoleLogRepository,
+    persistentState: PersistentState,
+    onShareClick: () -> Unit,
+    onDeleteComplete: () -> Unit,
+    onBackClick: (() -> Unit)? = null
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    
+    var query by remember { mutableStateOf("") }
+    var infoText by remember { mutableStateOf("") }
+    var progressVisible by remember { mutableStateOf(false) }
+    var showFilterDialog by remember { mutableStateOf(false) }
+    var selectedLogLevel by remember { mutableIntStateOf(Logger.uiLogLevel.toInt()) }
+
+    val filterOptions = listOf(
+        stringResource(R.string.settings_gologger_dialog_option_0),
+        stringResource(R.string.settings_gologger_dialog_option_1),
+        stringResource(R.string.settings_gologger_dialog_option_2),
+        stringResource(R.string.settings_gologger_dialog_option_3),
+        stringResource(R.string.settings_gologger_dialog_option_4),
+        stringResource(R.string.settings_gologger_dialog_option_5),
+        stringResource(R.string.settings_gologger_dialog_option_6),
+        stringResource(R.string.settings_gologger_dialog_option_7)
+    )
+
+    // Initialize info text
+    LaunchedEffect(Unit) {
+        scope.launch(Dispatchers.IO) {
+            val sinceTime = viewModel.sinceTime()
+            if (sinceTime != 0L) {
+                val since = Utilities.convertLongToTime(sinceTime, Constants.TIME_FORMAT_3)
+                val desc = context.getString(R.string.console_log_desc)
+                val sinceTxt = context.getString(R.string.logs_card_duration, since)
+                infoText = context.getString(R.string.two_argument_space, desc, sinceTxt)
+            }
+        }
+    }
+
+    // Set up log level and query filtering
+    LaunchedEffect(Unit) {
+        viewModel.setLogLevel(Logger.uiLogLevel)
+        snapshotFlow { query }
+            .debounce(QUERY_TEXT_DELAY)
+            .distinctUntilChanged()
+            .collect { value ->
+                viewModel.setFilter(value)
+            }
+    }
+
+    if (showFilterDialog) {
+        AlertDialog(
+            onDismissRequest = { showFilterDialog = false },
+            title = { Text(text = stringResource(R.string.console_log_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    filterOptions.forEachIndexed { index, label ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            RadioButton(
+                                selected = selectedLogLevel == index,
+                                onClick = {
+                                    selectedLogLevel = index
+                                    Logger.uiLogLevel = index.toLong()
+                                    GoVpnAdapter.setLogLevel(
+                                        persistentState.goLoggerLevel.toInt(),
+                                        Logger.uiLogLevel.toInt()
+                                    )
+                                    viewModel.setLogLevel(index.toLong())
+                                    if (index < Logger.LoggerLevel.ERROR.id) {
+                                        consoleLogRepository.setStartTimestamp(System.currentTimeMillis())
+                                    }
+                                    Logger.i(LOG_TAG_BUG_REPORT, "Log level set to $label")
+                                }
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = label, style = MaterialTheme.typography.bodyMedium)
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showFilterDialog = false }) {
+                    Text(text = stringResource(R.string.fapps_info_dialog_positive_btn))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showFilterDialog = false }) {
+                    Text(text = stringResource(R.string.lbl_cancel))
+                }
+            }
+        )
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text(text = stringResource(R.string.console_log_title)) },
+                navigationIcon = {
+                    if (onBackClick != null) {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
+                                contentDescription = "Back"
+                            )
+                        }
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                text = { Text(text = stringResource(R.string.about_bug_report_desc)) },
+                icon = {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_share),
+                        contentDescription = null
+                    )
+                },
+                onClick = onShareClick
+            )
+        }
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            SearchRow(
+                query = query,
+                onQueryChange = { query = it },
+                onFilterClick = { 
+                    selectedLogLevel = Logger.uiLogLevel.toInt()
+                    showFilterDialog = true 
+                },
+                onShareClick = onShareClick,
+                onDeleteClick = {
+                    scope.launch(Dispatchers.IO) {
+                        Logger.i(LOG_TAG_BUG_REPORT, "deleting all console logs")
+                        consoleLogRepository.deleteAllLogs()
+                        onDeleteComplete()
+                    }
+                }
+            )
+
+            if (progressVisible) {
+                LinearProgressIndicator(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
+                )
+            }
+
+            Text(
+                text = if (infoText.isEmpty()) stringResource(R.string.console_log_desc) else infoText,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+            )
+
+            Box(modifier = Modifier.weight(1f)) {
+                ConsoleLogList(viewModel = viewModel)
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchRow(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onFilterClick: () -> Unit,
+    onShareClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        OutlinedTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            modifier = Modifier.weight(1f),
+            singleLine = true,
+            label = { Text(text = stringResource(R.string.lbl_search)) }
+        )
+
+        IconButton(onClick = onFilterClick) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_filter),
+                contentDescription = null
+            )
+        }
+
+        IconButton(onClick = onShareClick) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_share),
+                contentDescription = null
+            )
+        }
+
+        IconButton(onClick = onDeleteClick) {
+            Icon(
+                painter = painterResource(id = R.drawable.ic_delete),
+                contentDescription = null
+            )
+        }
+    }
+}
+
+@Composable
+private fun ConsoleLogList(viewModel: ConsoleLogViewModel) {
+    val items = viewModel.logs.asFlow().collectAsLazyPagingItems()
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 2.dp, vertical = 2.dp)
+    ) {
+        items(count = items.itemCount) { index ->
+            val item = items[index] ?: return@items
+            ConsoleLogRow(item)
+        }
+    }
+}
