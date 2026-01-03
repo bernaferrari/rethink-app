@@ -22,6 +22,7 @@ import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -64,9 +65,7 @@ import com.celzero.bravedns.service.WireguardManager.ERR_CODE_VPN_NOT_ACTIVE
 import com.celzero.bravedns.service.WireguardManager.ERR_CODE_VPN_NOT_FULL
 import com.celzero.bravedns.service.WireguardManager.ERR_CODE_WG_INVALID
 import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
-import com.celzero.bravedns.ui.activity.WgConfigDetailActivity
-import com.celzero.bravedns.ui.activity.WgConfigDetailActivity.Companion.INTENT_EXTRA_WG_TYPE
-import com.celzero.bravedns.ui.activity.WgConfigEditorActivity.Companion.INTENT_EXTRA_WG_ID
+import com.celzero.bravedns.ui.compose.wireguard.WgType
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities
@@ -78,499 +77,479 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class OneWgConfigAdapter(
-    private val context: Context,
-    private val listener: DnsStatusListener,
-    private val eventLogger: EventLogger
+
+private const val DELAY_MS = 1500L
+
+data class ProtocolChips(
+    val ipv4: Boolean = false,
+    val ipv6: Boolean = false,
+    val splitTunnel: Boolean = false
 ) {
-
-    interface DnsStatusListener {
-        fun onDnsStatusChanged()
+    fun hasAny(): Boolean {
+        return ipv4 || ipv6 || splitTunnel
     }
+}
 
-    companion object {
-        private const val DELAY_MS = 1500L
-        private const val TAG = "OneWgCfgAdapter"
+data class OneWgUiState(
+    val isActive: Boolean,
+    val statusText: String,
+    val appsText: String,
+    val showAppsCount: Boolean,
+    val showActiveLayout: Boolean,
+    val uptimeText: String,
+    val rxtxText: String,
+    val strokeColor: Color,
+    val strokeWidth: Dp
+)
+
+@Composable
+fun OneWgConfigRow(
+    config: WgConfigFiles,
+    eventLogger: EventLogger,
+    onDnsStatusChanged: () -> Unit,
+    onConfigDetailClick: (Int, WgType) -> Unit
+) {
+    val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val scope = rememberCoroutineScope()
+    var isChecked by remember(config.id, config.isActive) {
+        mutableStateOf(config.isActive && VpnController.hasTunnel())
     }
+    var statusText by remember(config.id) {
+        mutableStateOf(context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase))
+    }
+    var appsText by remember(config.id) { mutableStateOf("") }
+    var showAppsCount by remember(config.id) { mutableStateOf(false) }
+    var showActiveLayout by remember(config.id) { mutableStateOf(false) }
+    var uptimeText by remember(config.id) { mutableStateOf("") }
+    var rxtxText by remember(config.id) { mutableStateOf("") }
+    var strokeColor by remember(config.id) {
+        mutableStateOf(Color(fetchColor(context, R.attr.chipTextNegative)))
+    }
+    var strokeWidth by remember(config.id) { mutableStateOf(0.dp) }
+    var protocolChips by remember(config.id) { mutableStateOf(ProtocolChips()) }
+    var inProgress by remember(config.id) { mutableStateOf(false) }
 
-    @Composable
-    fun ConfigRow(config: WgConfigFiles) {
-        val lifecycleOwner = LocalLifecycleOwner.current
-        val scope = rememberCoroutineScope()
-        var isChecked by remember(config.id, config.isActive) {
-            mutableStateOf(config.isActive && VpnController.hasTunnel())
-        }
-        var statusText by remember(config.id) {
-            mutableStateOf(context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase))
-        }
-        var appsText by remember(config.id) { mutableStateOf("") }
-        var showAppsCount by remember(config.id) { mutableStateOf(false) }
-        var showActiveLayout by remember(config.id) { mutableStateOf(false) }
-        var uptimeText by remember(config.id) { mutableStateOf("") }
-        var rxtxText by remember(config.id) { mutableStateOf("") }
-        var strokeColor by remember(config.id) {
-            mutableStateOf(Color(fetchColor(context, R.attr.chipTextNegative)))
-        }
-        var strokeWidth by remember(config.id) { mutableStateOf(0.dp) }
-        var protocolChips by remember(config.id) { mutableStateOf(ProtocolChips()) }
-        var inProgress by remember(config.id) { mutableStateOf(false) }
-
-        LaunchedEffect(config.id, config.isActive) {
-            protocolChips = withContext(Dispatchers.IO) { computeProtocolChips(config) }
-            while (isActive) {
-                if (!lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-                    delay(DELAY_MS)
-                    continue
-                }
-                val uiState = withContext(Dispatchers.IO) { computeStatusUi(config) }
-                isChecked = uiState.isActive
-                statusText = uiState.statusText
-                appsText = uiState.appsText
-                showAppsCount = uiState.showAppsCount
-                showActiveLayout = uiState.showActiveLayout
-                uptimeText = uiState.uptimeText
-                rxtxText = uiState.rxtxText
-                strokeColor = uiState.strokeColor
-                strokeWidth = uiState.strokeWidth
+    LaunchedEffect(config.id, config.isActive) {
+        protocolChips = withContext(Dispatchers.IO) { computeProtocolChips(config) }
+        while (isActive) {
+            if (!lifecycleOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
                 delay(DELAY_MS)
+                continue
             }
+            val uiState = withContext(Dispatchers.IO) { computeOneWgStatusUi(context, config) }
+            isChecked = uiState.isActive
+            statusText = uiState.statusText
+            appsText = uiState.appsText
+            showAppsCount = uiState.showAppsCount
+            showActiveLayout = uiState.showActiveLayout
+            uptimeText = uiState.uptimeText
+            rxtxText = uiState.rxtxText
+            strokeColor = uiState.strokeColor
+            strokeWidth = uiState.strokeWidth
+            delay(DELAY_MS)
         }
+    }
 
-        Card(
+    Card(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 6.dp)
+                .clickable { launchOneWgConfigDetail(context, config.id, onConfigDetailClick) },
+        shape = CardDefaults.shape,
+        colors = CardDefaults.cardColors(),
+        border = if (strokeWidth > 0.dp) BorderStroke(strokeWidth, strokeColor) else null
+    ) {
+        Column(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 8.dp, vertical = 6.dp)
-                    .clickable { launchConfigDetail(config.id) },
-            shape = CardDefaults.shape,
-            colors = CardDefaults.cardColors(),
-            border = if (strokeWidth > 0.dp) BorderStroke(strokeWidth, strokeColor) else null
+                    .padding(12.dp)
         ) {
-            Column(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = config.name,
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text =
-                                    context.getString(
-                                        R.string.single_argument_parenthesis,
-                                        config.id.toString()
-                                    ),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                            )
-                        }
-                        if (isChecked && protocolChips.hasAny()) {
-                            Row(
-                                modifier = Modifier.padding(top = 6.dp),
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                if (protocolChips.ipv4) {
-                                    WgChip(text = context.getString(R.string.settings_ip_text_ipv4))
-                                }
-                                if (protocolChips.ipv6) {
-                                    WgChip(text = context.getString(R.string.settings_ip_text_ipv6))
-                                }
-                                if (protocolChips.splitTunnel) {
-                                    WgChip(text = context.getString(R.string.lbl_split))
-                                }
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = config.name,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text =
+                                context.getString(
+                                    R.string.single_argument_parenthesis,
+                                    config.id.toString()
+                                ),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+                    if (isChecked && protocolChips.hasAny()) {
+                        Row(
+                            modifier = Modifier.padding(top = 6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            if (protocolChips.ipv4) {
+                                WgChip(text = context.getString(R.string.settings_ip_text_ipv4))
+                            }
+                            if (protocolChips.ipv6) {
+                                WgChip(text = context.getString(R.string.settings_ip_text_ipv6))
+                            }
+                            if (protocolChips.splitTunnel) {
+                                WgChip(text = context.getString(R.string.lbl_split))
                             }
                         }
                     }
-
-                    Checkbox(
-                        checked = isChecked,
-                        onCheckedChange = { checked ->
-                            if (inProgress) return@Checkbox
-                            inProgress = true
-                            scope.launch(Dispatchers.IO) {
-                                val success =
-                                    if (checked) {
-                                        enableWgIfPossible(config)
-                                    } else {
-                                        disableWgIfPossible(config)
-                                    }
-                                withContext(Dispatchers.Main) {
-                                    isChecked = if (checked) success else !success
-                                    inProgress = false
-                                }
-                            }
-                        }
-                    )
                 }
 
+                Checkbox(
+                    checked = isChecked,
+                    onCheckedChange = { checked ->
+                        if (inProgress) return@Checkbox
+                        inProgress = true
+                        scope.launch(Dispatchers.IO) {
+                            val success =
+                                if (checked) {
+                                    enableOneWgIfPossible(context, config, onDnsStatusChanged, eventLogger)
+                                } else {
+                                    disableOneWgIfPossible(context, config, onDnsStatusChanged, eventLogger)
+                                }
+                            withContext(Dispatchers.Main) {
+                                isChecked = if (checked) success else !success
+                                inProgress = false
+                            }
+                        }
+                    }
+                )
+            }
+
+            Text(
+                text = statusText,
+                style = MaterialTheme.typography.bodySmall,
+                fontStyle = FontStyle.Italic,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                modifier = Modifier.padding(top = 4.dp)
+            )
+
+            if (showAppsCount) {
                 Text(
-                    text = statusText,
+                    text = appsText,
                     style = MaterialTheme.typography.bodySmall,
-                    fontStyle = FontStyle.Italic,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     modifier = Modifier.padding(top = 4.dp)
                 )
+            }
 
-                if (showAppsCount) {
+            if (showActiveLayout) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = appsText,
+                        text = uptimeText,
                         style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(top = 4.dp)
+                        modifier = Modifier.weight(1f)
+                    )
+                    Text(
+                        text = rxtxText,
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
-
-                if (showActiveLayout) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = uptimeText,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Text(
-                            text = rxtxText,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                }
             }
         }
     }
+}
 
-    @Composable
-    private fun WgChip(text: String) {
-        AssistChip(onClick = {}, label = { Text(text = text) })
-    }
-
-    private data class ProtocolChips(
-        val ipv4: Boolean = false,
-        val ipv6: Boolean = false,
-        val splitTunnel: Boolean = false
-    ) {
-        fun hasAny(): Boolean {
-            return ipv4 || ipv6 || splitTunnel
-        }
-    }
-
-    private data class OneWgUiState(
-        val isActive: Boolean,
-        val statusText: String,
-        val appsText: String,
-        val showAppsCount: Boolean,
-        val showActiveLayout: Boolean,
-        val uptimeText: String,
-        val rxtxText: String,
-        val strokeColor: Color,
-        val strokeWidth: Dp
-    )
-
-    private suspend fun computeProtocolChips(config: WgConfigFiles): ProtocolChips {
-        val id = ProxyManager.ID_WG_BASE + config.id
-        val pair = VpnController.getSupportedIpVersion(id)
-        val cfg = WireguardManager.getConfigById(config.id)
-        val splitTunnel =
-            if (cfg?.getPeers()?.isNotEmpty() == true && pair != null) {
-                VpnController.isSplitTunnelProxy(id, pair)
-            } else {
-                false
-            }
-        return ProtocolChips(
-            ipv4 = pair?.first == true,
-            ipv6 = pair?.second == true,
-            splitTunnel = splitTunnel
-        )
-    }
-
-    private suspend fun computeStatusUi(config: WgConfigFiles): OneWgUiState {
-        if (config.isActive && !VpnController.hasTunnel()) {
-            return OneWgUiState(
-                isActive = false,
-                statusText = context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase),
-                appsText = "",
-                showAppsCount = false,
-                showActiveLayout = false,
-                uptimeText = "",
-                rxtxText = "",
-                strokeColor = Color(fetchColor(context, R.attr.chipTextNegative)),
-                strokeWidth = 0.dp
-            )
-        }
-
-        if (!config.isActive || !VpnController.hasTunnel()) {
-            return OneWgUiState(
-                isActive = false,
-                statusText = context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase),
-                appsText = "",
-                showAppsCount = false,
-                showActiveLayout = false,
-                uptimeText = "",
-                rxtxText = "",
-                strokeColor = Color(fetchColor(context, R.attr.chipTextNegative)),
-                strokeWidth = 0.dp
-            )
-        }
-
-        val id = ProxyManager.ID_WG_BASE + config.id
-        val statusPair = VpnController.getProxyStatusById(id)
-        val stats = VpnController.getProxyStats(id)
-        val dnsStatusId = VpnController.getDnsStatus(id)
-        val statusText =
-            if (dnsStatusId != null && isDnsError(dnsStatusId)) {
-                context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
-            } else {
-                getStatusText(
-                    UIUtils.ProxyStatus.entries.find { it.id == statusPair.first },
-                    getHandshakeTime(stats).toString(),
-                    stats,
-                    statusPair.second
-                )
-            }
-
-        val strokeColor =
-            if (dnsStatusId != null && isDnsError(dnsStatusId)) {
-                Color(fetchColor(context, R.attr.chipTextNegative))
-            } else {
-                val status =
-                    UIUtils.ProxyStatus.entries.find { it.id == statusPair.first }
-                Color(fetchColor(context, getStrokeColorForStatus(status, stats)))
-            }
-
-        val rxtx = getRxTx(stats)
-        val time = getUpTime(stats)
-        val uptimeText =
-            if (time.isNotEmpty()) {
-                val t = context.getString(R.string.logs_card_duration, time)
-                context.getString(
-                    R.string.two_argument_space,
-                    context.getString(R.string.lbl_active),
-                    t
-                )
-            } else {
-                context.getString(R.string.lbl_active)
-            }
-
-        return OneWgUiState(
-            isActive = true,
-            statusText = statusText,
-            appsText = context.getString(R.string.one_wg_apps_added),
-            showAppsCount = true,
-            showActiveLayout = true,
-            uptimeText = uptimeText,
-            rxtxText = rxtx,
-            strokeColor = strokeColor,
-            strokeWidth = 2.dp
-        )
-    }
-
-    private fun isDnsError(statusId: Long?): Boolean {
-        if (statusId == null) return true
-        val s = Transaction.Status.fromId(statusId)
-        return s == Transaction.Status.BAD_QUERY ||
-            s == Transaction.Status.BAD_RESPONSE ||
-            s == Transaction.Status.NO_RESPONSE ||
-            s == Transaction.Status.SEND_FAIL ||
-            s == Transaction.Status.CLIENT_ERROR ||
-            s == Transaction.Status.INTERNAL_ERROR ||
-            s == Transaction.Status.TRANSPORT_ERROR
-    }
-
-    private fun getStrokeColorForStatus(status: UIUtils.ProxyStatus?, stats: RouterStats?): Int {
-        val now = System.currentTimeMillis()
-        val lastOk = stats?.lastOK ?: 0L
-        val since = stats?.since ?: 0L
-        val isFailing = now - since > WG_UPTIME_THRESHOLD && lastOk == 0L
-        return when (status) {
-            UIUtils.ProxyStatus.TOK -> if (isFailing) R.attr.chipTextNeutral else R.attr.accentGood
-            UIUtils.ProxyStatus.TUP,
-            UIUtils.ProxyStatus.TZZ,
-            UIUtils.ProxyStatus.TNT -> R.attr.chipTextNeutral
-            else -> R.attr.chipTextNegative
-        }
-    }
-
-    private fun getStatusText(
-        status: UIUtils.ProxyStatus?,
-        handshakeTime: String? = null,
-        stats: RouterStats?,
-        errMsg: String? = null
-    ): String {
-        if (status == null) {
-            val txt =
-                if (errMsg != null) {
-                    context.getString(R.string.status_waiting) + " ($errMsg)"
-                } else {
-                    context.getString(R.string.status_waiting)
-                }
-            return txt.replaceFirstChar(Char::titlecase)
-        }
-
-        val now = System.currentTimeMillis()
-        val lastOk = stats?.lastOK ?: 0L
-        val since = stats?.since ?: 0L
-        if (now - since > WG_UPTIME_THRESHOLD && lastOk == 0L) {
-            return context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
-        }
-
-        val baseText =
-            context.getString(UIUtils.getProxyStatusStringRes(status.id))
-                .replaceFirstChar(Char::titlecase)
-        return if (stats?.lastOK != 0L && handshakeTime != null) {
-            context.getString(R.string.about_version_install_source, baseText, handshakeTime)
+suspend fun computeProtocolChips(config: WgConfigFiles): ProtocolChips {
+    val id = ProxyManager.ID_WG_BASE + config.id
+    val pair = VpnController.getSupportedIpVersion(id)
+    val cfg = WireguardManager.getConfigById(config.id)
+    val splitTunnel =
+        if (cfg?.getPeers()?.isNotEmpty() == true && pair != null) {
+            VpnController.isSplitTunnelProxy(id, pair)
         } else {
-            baseText
+            false
         }
-    }
+    return ProtocolChips(
+        ipv4 = pair?.first == true,
+        ipv6 = pair?.second == true,
+        splitTunnel = splitTunnel
+    )
+}
 
-    private fun getUpTime(stats: RouterStats?): CharSequence {
-        if (stats == null) return ""
-        if (stats.since <= 0L) return ""
-        val now = System.currentTimeMillis()
-        return DateUtils.getRelativeTimeSpanString(
-            stats.since,
-            now,
-            DateUtils.MINUTE_IN_MILLIS,
-            DateUtils.FORMAT_ABBREV_RELATIVE
+suspend fun computeOneWgStatusUi(context: Context, config: WgConfigFiles): OneWgUiState {
+    if (config.isActive && !VpnController.hasTunnel()) {
+        return OneWgUiState(
+            isActive = false,
+            statusText = context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase),
+            appsText = "",
+            showAppsCount = false,
+            showActiveLayout = false,
+            uptimeText = "",
+            rxtxText = "",
+            strokeColor = Color(fetchColor(context, R.attr.chipTextNegative)),
+            strokeWidth = 0.dp
         )
     }
 
-    private fun getRxTx(stats: RouterStats?): String {
-        if (stats == null) return ""
-        val rx =
-            context.getString(
-                R.string.symbol_download,
-                Utilities.humanReadableByteCount(stats.rx, true)
-            )
-        val tx =
-            context.getString(
-                R.string.symbol_upload,
-                Utilities.humanReadableByteCount(stats.tx, true)
-            )
-        return context.getString(R.string.two_argument_space, tx, rx)
-    }
-
-    private fun getHandshakeTime(stats: RouterStats?): CharSequence {
-        if (stats == null) return ""
-        if (stats.lastOK == 0L) return ""
-        val now = System.currentTimeMillis()
-        return DateUtils.getRelativeTimeSpanString(
-            stats.lastOK,
-            now,
-            DateUtils.MINUTE_IN_MILLIS,
-            DateUtils.FORMAT_ABBREV_RELATIVE
+    if (!config.isActive || !VpnController.hasTunnel()) {
+        return OneWgUiState(
+            isActive = false,
+            statusText = context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase),
+            appsText = "",
+            showAppsCount = false,
+            showActiveLayout = false,
+            uptimeText = "",
+            rxtxText = "",
+            strokeColor = Color(fetchColor(context, R.attr.chipTextNegative)),
+            strokeWidth = 0.dp
         )
     }
 
-    private suspend fun enableWgIfPossible(config: WgConfigFiles): Boolean {
-        if (!VpnController.hasTunnel()) {
-            Napier.i(tag = TAG, message = "VPN not active, cannot enable WireGuard")
-            withContext(Dispatchers.Main) {
-                Utilities.showToastUiCentered(
-                    context,
-                    ERR_CODE_VPN_NOT_ACTIVE +
-                        context.getString(R.string.settings_socks5_vpn_disabled_error),
-                    Toast.LENGTH_LONG
-                )
-            }
-            return false
+    val id = ProxyManager.ID_WG_BASE + config.id
+    val statusPair = VpnController.getProxyStatusById(id)
+    val stats = VpnController.getProxyStats(id)
+    val dnsStatusId = VpnController.getDnsStatus(id)
+    val statusText =
+        if (dnsStatusId != null && isOneWgDnsError(dnsStatusId)) {
+            context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
+        } else {
+            getOneWgStatusText(
+                context,
+                UIUtils.ProxyStatus.entries.find { it.id == statusPair.first },
+                getOneWgHandshakeTime(stats).toString(),
+                stats,
+                statusPair.second
+            )
         }
 
-        if (!WireguardManager.canEnableProxy()) {
-            Napier.i(tag = TAG, message = "not in DNS+Firewall mode, cannot enable WireGuard")
-            withContext(Dispatchers.Main) {
-                Utilities.showToastUiCentered(
-                    context,
-                    ERR_CODE_VPN_NOT_FULL + context.getString(R.string.wireguard_enabled_failure),
-                    Toast.LENGTH_LONG
-                )
-            }
-            return false
+    val strokeColor =
+        if (dnsStatusId != null && isOneWgDnsError(dnsStatusId)) {
+            Color(fetchColor(context, R.attr.chipTextNegative))
+        } else {
+            val status =
+                UIUtils.ProxyStatus.entries.find { it.id == statusPair.first }
+            Color(fetchColor(context, getOneWgStrokeColorForStatus(status, stats)))
         }
 
-        if (WireguardManager.isAnyOtherOneWgEnabled(config.id)) {
-            Napier.i(tag = TAG, message = "another WireGuard is already enabled")
-            withContext(Dispatchers.Main) {
-                Utilities.showToastUiCentered(
-                    context,
-                    ERR_CODE_OTHER_WG_ACTIVE + context.getString(R.string.wireguard_enabled_failure),
-                    Toast.LENGTH_LONG
-                )
-            }
-            return false
+    val rxtx = getOneWgRxTx(context, stats)
+    val time = getOneWgUpTime(stats)
+    val uptimeText =
+        if (time.isNotEmpty()) {
+            val t = context.getString(R.string.logs_card_duration, time)
+            context.getString(
+                R.string.two_argument_space,
+                context.getString(R.string.lbl_active),
+                t
+            )
+        } else {
+            context.getString(R.string.lbl_active)
         }
 
-        if (!WireguardManager.isValidConfig(config.id)) {
-            Napier.i(tag = TAG, message = "invalid WireGuard config")
-            withContext(Dispatchers.Main) {
-                Utilities.showToastUiCentered(
-                    context,
-                    ERR_CODE_WG_INVALID + context.getString(R.string.wireguard_enabled_failure),
-                    Toast.LENGTH_LONG
-                )
-            }
-            return false
-        }
+    return OneWgUiState(
+        isActive = true,
+        statusText = statusText,
+        appsText = context.getString(R.string.one_wg_apps_added),
+        showAppsCount = true,
+        showActiveLayout = true,
+        uptimeText = uptimeText,
+        rxtxText = rxtx,
+        strokeColor = strokeColor,
+        strokeWidth = 2.dp
+    )
+}
 
-        Napier.i(tag = TAG, message = "enabling WireGuard, id: ${config.id}")
-        WireguardManager.updateOneWireGuardConfig(config.id, owg = true)
-        config.oneWireGuard = true
-        WireguardManager.enableConfig(config.toImmutable())
-        withContext(Dispatchers.Main) { listener.onDnsStatusChanged() }
-        logEvent("One-WireGuard enabled", "WG ID: ${config.id}")
-        return true
+private fun isOneWgDnsError(statusId: Long?): Boolean {
+    if (statusId == null) return true
+    val s = Transaction.Status.fromId(statusId)
+    return s == Transaction.Status.BAD_QUERY ||
+        s == Transaction.Status.BAD_RESPONSE ||
+        s == Transaction.Status.NO_RESPONSE ||
+        s == Transaction.Status.SEND_FAIL ||
+        s == Transaction.Status.CLIENT_ERROR ||
+        s == Transaction.Status.INTERNAL_ERROR ||
+        s == Transaction.Status.TRANSPORT_ERROR
+}
+
+private fun getOneWgStrokeColorForStatus(status: UIUtils.ProxyStatus?, stats: RouterStats?): Int {
+    val now = System.currentTimeMillis()
+    val lastOk = stats?.lastOK ?: 0L
+    val since = stats?.since ?: 0L
+    val isFailing = now - since > WG_UPTIME_THRESHOLD && lastOk == 0L
+    return when (status) {
+        UIUtils.ProxyStatus.TOK -> if (isFailing) R.attr.chipTextNeutral else R.attr.accentGood
+        UIUtils.ProxyStatus.TUP,
+        UIUtils.ProxyStatus.TZZ,
+        UIUtils.ProxyStatus.TNT -> R.attr.chipTextNeutral
+        else -> R.attr.chipTextNegative
+    }
+}
+
+private fun getOneWgStatusText(
+    context: Context,
+    status: UIUtils.ProxyStatus?,
+    handshakeTime: String? = null,
+    stats: RouterStats?,
+    errMsg: String? = null
+): String {
+    if (status == null) {
+        val txt =
+            if (errMsg != null) {
+                context.getString(R.string.status_waiting) + " ($errMsg)"
+            } else {
+                context.getString(R.string.status_waiting)
+            }
+        return txt.replaceFirstChar(Char::titlecase)
     }
 
-    private suspend fun disableWgIfPossible(config: WgConfigFiles): Boolean {
-        if (!VpnController.hasTunnel()) {
-            Napier.i(tag = TAG, message = "VPN not active, cannot disable WireGuard")
-            withContext(Dispatchers.Main) {
-                Utilities.showToastUiCentered(
-                    context,
-                    ERR_CODE_VPN_NOT_ACTIVE +
-                        context.getString(R.string.settings_socks5_vpn_disabled_error),
-                    Toast.LENGTH_LONG
-                )
-            }
-            return false
-        }
-
-        Napier.i(tag = TAG, message = "disabling WireGuard, id: ${config.id}")
-        WireguardManager.updateOneWireGuardConfig(config.id, owg = false)
-        config.oneWireGuard = false
-        WireguardManager.disableConfig(config.toImmutable())
-        withContext(Dispatchers.Main) { listener.onDnsStatusChanged() }
-        logEvent("One-WireGuard disabled", "WG ID: ${config.id}")
-        return true
+    val now = System.currentTimeMillis()
+    val lastOk = stats?.lastOK ?: 0L
+    val since = stats?.since ?: 0L
+    if (now - since > WG_UPTIME_THRESHOLD && lastOk == 0L) {
+        return context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
     }
 
-    private fun launchConfigDetail(id: Int) {
-        if (!VpnController.hasTunnel()) {
+    val baseText =
+        context.getString(UIUtils.getProxyStatusStringRes(status.id))
+            .replaceFirstChar(Char::titlecase)
+    return if (stats?.lastOK != 0L && handshakeTime != null) {
+        context.getString(R.string.about_version_install_source, baseText, handshakeTime)
+    } else {
+        baseText
+    }
+}
+
+private fun getOneWgUpTime(stats: RouterStats?): CharSequence {
+    if (stats == null) return ""
+    if (stats.since <= 0L) return ""
+    val now = System.currentTimeMillis()
+    return DateUtils.getRelativeTimeSpanString(
+        stats.since,
+        now,
+        DateUtils.MINUTE_IN_MILLIS,
+        DateUtils.FORMAT_ABBREV_RELATIVE
+    )
+}
+
+private fun getOneWgRxTx(context: Context, stats: RouterStats?): String {
+    if (stats == null) return ""
+    val rx =
+        context.getString(
+            R.string.symbol_download,
+            Utilities.humanReadableByteCount(stats.rx, true)
+        )
+    val tx =
+        context.getString(
+            R.string.symbol_upload,
+            Utilities.humanReadableByteCount(stats.tx, true)
+        )
+    return context.getString(R.string.two_argument_space, tx, rx)
+}
+
+private fun getOneWgHandshakeTime(stats: RouterStats?): CharSequence {
+    if (stats == null) return ""
+    if (stats.lastOK == 0L) return ""
+    val now = System.currentTimeMillis()
+    return DateUtils.getRelativeTimeSpanString(
+        stats.lastOK,
+        now,
+        DateUtils.MINUTE_IN_MILLIS,
+        DateUtils.FORMAT_ABBREV_RELATIVE
+    )
+}
+
+suspend fun enableOneWgIfPossible(context: Context, config: WgConfigFiles, onDnsStatusChanged: () -> Unit, eventLogger: EventLogger): Boolean {
+    if (!VpnController.hasTunnel()) {
+        withContext(Dispatchers.Main) {
             Utilities.showToastUiCentered(
                 context,
-                context.getString(R.string.ssv_toast_start_rethink),
-                Toast.LENGTH_SHORT
+                ERR_CODE_VPN_NOT_ACTIVE +
+                    context.getString(R.string.settings_socks5_vpn_disabled_error),
+                Toast.LENGTH_LONG
             )
-            return
         }
-
-        val intent = Intent(context, WgConfigDetailActivity::class.java)
-        intent.putExtra(INTENT_EXTRA_WG_ID, id)
-        intent.putExtra(INTENT_EXTRA_WG_TYPE, WgConfigDetailActivity.WgType.ONE_WG.value)
-        context.startActivity(intent)
+        return false
     }
 
-    private fun logEvent(msg: String, details: String) {
-        eventLogger.log(EventType.PROXY_SWITCH, Severity.LOW, msg, EventSource.UI, false, details)
+    if (!WireguardManager.canEnableProxy()) {
+        withContext(Dispatchers.Main) {
+            Utilities.showToastUiCentered(
+                context,
+                ERR_CODE_VPN_NOT_FULL + context.getString(R.string.wireguard_enabled_failure),
+                Toast.LENGTH_LONG
+            )
+        }
+        return false
     }
+
+    if (WireguardManager.isAnyOtherOneWgEnabled(config.id)) {
+        withContext(Dispatchers.Main) {
+            Utilities.showToastUiCentered(
+                context,
+                ERR_CODE_OTHER_WG_ACTIVE + context.getString(R.string.wireguard_enabled_failure),
+                Toast.LENGTH_LONG
+            )
+        }
+        return false
+    }
+
+    if (!WireguardManager.isValidConfig(config.id)) {
+        withContext(Dispatchers.Main) {
+            Utilities.showToastUiCentered(
+                context,
+                ERR_CODE_WG_INVALID + context.getString(R.string.wireguard_enabled_failure),
+                Toast.LENGTH_LONG
+            )
+        }
+        return false
+    }
+
+    WireguardManager.updateOneWireGuardConfig(config.id, owg = true)
+    config.oneWireGuard = true
+    WireguardManager.enableConfig(config.toImmutable())
+    withContext(Dispatchers.Main) { onDnsStatusChanged() }
+    logOneWgEvent(eventLogger, "One-WireGuard enabled", "WG ID: ${config.id}")
+    return true
+}
+
+suspend fun disableOneWgIfPossible(context: Context, config: WgConfigFiles, onDnsStatusChanged: () -> Unit, eventLogger: EventLogger): Boolean {
+    if (!VpnController.hasTunnel()) {
+        withContext(Dispatchers.Main) {
+            Utilities.showToastUiCentered(
+                context,
+                ERR_CODE_VPN_NOT_ACTIVE +
+                    context.getString(R.string.settings_socks5_vpn_disabled_error),
+                Toast.LENGTH_LONG
+            )
+        }
+        return false
+    }
+
+    WireguardManager.updateOneWireGuardConfig(config.id, owg = false)
+    config.oneWireGuard = false
+    WireguardManager.disableConfig(config.toImmutable())
+    withContext(Dispatchers.Main) { onDnsStatusChanged() }
+    logOneWgEvent(eventLogger, "One-WireGuard disabled", "WG ID: ${config.id}")
+    return true
+}
+
+private fun launchOneWgConfigDetail(context: Context, id: Int, onConfigDetailClick: (Int, WgType) -> Unit) {
+    if (!VpnController.hasTunnel()) {
+        Utilities.showToastUiCentered(
+            context,
+            context.getString(R.string.ssv_toast_start_rethink),
+            Toast.LENGTH_SHORT
+        )
+        return
+    }
+
+    onConfigDetailClick(id, WgType.ONE_WG)
+}
+
+private fun logOneWgEvent(eventLogger: EventLogger, msg: String, details: String) {
+    eventLogger.log(EventType.PROXY_SWITCH, Severity.LOW, msg, EventSource.UI, false, details)
 }

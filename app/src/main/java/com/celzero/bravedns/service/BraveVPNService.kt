@@ -85,11 +85,10 @@ import com.celzero.bravedns.scheduler.EnhancedBugReport
 import com.celzero.bravedns.service.FirewallManager.NOTIF_CHANNEL_ID_FIREWALL_ALERTS
 import com.celzero.bravedns.service.ProxyManager.ID_WG_BASE
 import com.celzero.bravedns.service.ProxyManager.isNotLocalAndRpnProxy
-import com.celzero.bravedns.ui.NotificationHandlerActivity
-import com.celzero.bravedns.ui.activity.AppLockActivity
-import com.celzero.bravedns.ui.activity.MiscSettingsActivity
+import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.AndroidUidConfig
 import com.celzero.bravedns.util.BackgroundAccessibilityService
+import com.celzero.bravedns.util.BioMetricType
 import com.celzero.bravedns.util.BubbleHelper
 import com.celzero.bravedns.util.CoFactory
 import com.celzero.bravedns.util.ConnectivityCheckHelper
@@ -1267,7 +1266,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     private fun showAccessibilityStoppedNotification() {
         Logger.i(LOG_TAG_VPN, "app not in use failure, show notification")
 
-        val intent = Intent(this, NotificationHandlerActivity::class.java)
+        val intent = Intent(this, HomeScreenActivity::class.java)
         intent.putExtra(
             NOTIF_INTENT_EXTRA_ACCESSIBILITY_NAME,
             NOTIF_INTENT_EXTRA_ACCESSIBILITY_VALUE
@@ -1632,7 +1631,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         if (isAppRunningOnTv()) return false
 
         // TODO: should we check for last unlock time here?
-        MiscSettingsActivity.BioMetricType.fromValue(persistentState.biometricAuthType).let {
+        BioMetricType.fromValue(persistentState.biometricAuthType).let {
             return it.enabled()
         }
     }
@@ -1641,7 +1640,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         val pendingIntent =
             Utilities.getActivityPendingIntent(
                 this,
-                Intent(this, AppLockActivity::class.java),
+                Intent(this, HomeScreenActivity::class.java),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 mutable = false
             )
@@ -3394,7 +3393,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             val pendingIntent =
                 Utilities.getActivityPendingIntent(
                     this,
-                    Intent(this, AppLockActivity::class.java),
+                    Intent(this, HomeScreenActivity::class.java),
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                     mutable = false
                 )
@@ -3570,7 +3569,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             val pendingIntent =
                 Utilities.getActivityPendingIntent(
                     this,
-                    Intent(this, AppLockActivity::class.java),
+                    Intent(this, HomeScreenActivity::class.java),
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                     mutable = false
                 )
@@ -4709,7 +4708,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         val pendingIntent =
             Utilities.getActivityPendingIntent(
                 this,
-                Intent(this, AppLockActivity::class.java),
+                Intent(this, HomeScreenActivity::class.java),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 mutable = false
             )
@@ -5745,7 +5744,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         val pendingIntent =
             Utilities.getActivityPendingIntent(
                 this,
-                Intent(this, AppLockActivity::class.java),
+                Intent(this, HomeScreenActivity::class.java),
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                 mutable = false
             )

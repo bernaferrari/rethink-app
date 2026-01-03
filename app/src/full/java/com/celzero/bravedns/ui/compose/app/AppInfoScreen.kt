@@ -60,8 +60,9 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.AppWiseDomainsAdapter
-import com.celzero.bravedns.adapter.AppWiseIpsAdapter
+import com.celzero.bravedns.adapter.DomainRow
+import com.celzero.bravedns.adapter.CloseConnsDialog
+import com.celzero.bravedns.adapter.IpRow
 import com.celzero.bravedns.database.AppInfo
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
@@ -71,7 +72,6 @@ import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.ProxyManager.ID_NONE
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.activity.CustomRulesActivity
 import com.celzero.bravedns.ui.bottomsheet.AppDomainRulesSheet
 import com.celzero.bravedns.ui.bottomsheet.AppIpRulesSheet
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
@@ -95,7 +95,8 @@ fun AppInfoScreen(
     domainRulesViewModel: CustomDomainViewModel,
     networkLogsViewModel: AppConnectionsViewModel,
     onBackClick: () -> Unit,
-    onAppWiseIpLogsClick: (Int, Boolean) -> Unit
+    onAppWiseIpLogsClick: (Int, Boolean) -> Unit,
+    onCustomRulesClick: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -116,41 +117,8 @@ fun AppInfoScreen(
     var selectedIp by remember { mutableStateOf("") }
     var selectedDomains by remember { mutableStateOf("") }
 
-    val domainAdapter =
-        remember(uid) {
-            AppWiseDomainsAdapter(
-                context,
-                lifecycleOwner,
-                uid,
-                onShowDomainRules = { domain ->
-                    selectedDomain = domain
-                    showDomainRulesSheet = true
-                }
-            )
-        }
-    val ipAdapter =
-        remember(uid) {
-            AppWiseIpsAdapter(
-                context,
-                lifecycleOwner,
-                uid,
-                onShowIpRules = { ip, domains ->
-                    selectedIp = ip
-                    selectedDomains = domains
-                    showIpRulesSheet = true
-                }
-            )
-        }
-    val activeAdapter =
-        remember(uid) {
-            AppWiseDomainsAdapter(
-                context,
-                lifecycleOwner,
-                uid,
-                isActiveConn = true,
-                onShowDomainRules = { }
-            )
-        }
+    var refreshToken by remember(uid) { mutableStateOf(0) }
+    var closeDialogConn by remember(uid) { mutableStateOf<com.celzero.bravedns.data.AppConnection?>(null) }
 
     LaunchedEffect(uid) {
         if (uid == INVALID_UID) {
@@ -176,7 +144,17 @@ fun AppInfoScreen(
         )
     }
 
-    activeAdapter.CloseDialogHost()
+    // CloseConnsDialog displayed when user long-presses an active connection
+    closeDialogConn?.let { conn ->
+        CloseConnsDialog(
+            conn = conn,
+            onConfirm = {
+                closeDialogConn = null
+                refreshToken++
+            },
+            onDismiss = { closeDialogConn = null }
+        )
+    }
 
     if (showNoAppFoundDialog) {
         AlertDialog(
@@ -202,7 +180,7 @@ fun AppInfoScreen(
             domain = selectedDomain,
             eventLogger = eventLogger,
             onDismiss = { showDomainRulesSheet = false },
-            onUpdated = { domainAdapter.notifyRulesChanged() }
+            onUpdated = { refreshToken++ }
         )
     }
     if (showIpRulesSheet && selectedIp.isNotEmpty()) {
@@ -212,7 +190,7 @@ fun AppInfoScreen(
             domains = selectedDomains,
             eventLogger = eventLogger,
             onDismiss = { showIpRulesSheet = false },
-            onUpdated = { ipAdapter.notifyRulesChanged() }
+            onUpdated = { refreshToken++ }
         )
     }
 
@@ -288,9 +266,7 @@ fun AppInfoScreen(
                     Text(text = stringResource(id = R.string.about_settings_app_info))
                 }
                 Button(onClick = {
-                    val intent = Intent(context, CustomRulesActivity::class.java)
-                    intent.putExtra(AppInfoNav.EXTRA_UID, uid)
-                    context.startActivity(intent)
+                    onCustomRulesClick(uid)
                 }) {
                     Text(text = stringResource(id = R.string.ada_app_dns_settings))
                 }
@@ -512,7 +488,13 @@ fun AppInfoScreen(
             ) {
                 items(count = activeItems.itemCount) { index ->
                     val item = activeItems[index] ?: return@items
-                    activeAdapter.DomainRow(item)
+                    DomainRow(
+                        conn = item,
+                        uid = uid,
+                        isActiveConn = true,
+                        refreshToken = refreshToken,
+                        onIpClick = { closeDialogConn = it }
+                    )
                 }
             }
 
@@ -536,7 +518,16 @@ fun AppInfoScreen(
             ) {
                 items(count = domainItems.itemCount) { index ->
                     val item = domainItems[index] ?: return@items
-                    domainAdapter.DomainRow(item)
+                    DomainRow(
+                        conn = item,
+                        uid = uid,
+                        isActiveConn = false,
+                        refreshToken = refreshToken,
+                        onIpClick = {
+                            selectedDomain = it.appOrDnsName.orEmpty()
+                            showDomainRulesSheet = true
+                        }
+                    )
                 }
             }
 
@@ -560,7 +551,16 @@ fun AppInfoScreen(
             ) {
                 items(count = ipItems.itemCount) { index ->
                     val item = ipItems[index] ?: return@items
-                    ipAdapter.IpRow(item)
+                    IpRow(
+                        conn = item,
+                        isAsn = false,
+                        refreshToken = refreshToken,
+                        onIpClick = {
+                            selectedIp = it.ipAddress
+                            selectedDomains = it.appOrDnsName.orEmpty()
+                            showIpRulesSheet = true
+                        }
+                    )
                 }
             }
         }

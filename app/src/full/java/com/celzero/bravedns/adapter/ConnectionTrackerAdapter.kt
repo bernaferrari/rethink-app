@@ -21,6 +21,7 @@ import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,285 +65,217 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
-class ConnectionTrackerAdapter(
-    private val context: Context,
-    private val onShowConnTracker: (ConnectionTracker) -> Unit
+
+private const val MAX_BYTES = 500000 // 500 KB
+private const val MAX_TIME_TCP = 135 // seconds
+private const val MAX_TIME_UDP = 135 // seconds
+private const val NO_USER_ID = 0
+
+@Composable
+fun ConnectionRow(
+    ct: ConnectionTracker,
+    onShowConnTracker: (ConnectionTracker) -> Unit
 ) {
+    val context = LocalContext.current
+    val time = Utilities.convertLongToTime(ct.timeStamp, TIME_FORMAT_1)
+    val protocolLabel = protocolLabel(context, ct.port, ct.protocol)
+    val indicatorColor = hintColor(context, ct)
+    val summary = summaryInfo(context, ct)
+    val domain = ct.dnsQuery
+    val ipAddress = ct.ipAddress
+    val flag = ct.flag
 
-    companion object {
-        private const val MAX_BYTES = 500000 // 500 KB
-        private const val MAX_TIME_TCP = 135 // seconds
-        private const val MAX_TIME_UDP = 135 // seconds
-        private const val NO_USER_ID = 0
-        private const val TAG = "ConnTrackAdapter"
+    var appName by remember(ct.uid, ct.appName, ct.usrId) { mutableStateOf(ct.appName) }
+    var appIcon by remember(ct.uid) { mutableStateOf<Drawable?>(null) }
+
+    LaunchedEffect(ct.uid, ct.appName, ct.usrId) {
+        val apps =
+            withContext(Dispatchers.IO) { FirewallManager.getPackageNamesByUid(ct.uid) }
+        val count = apps.count()
+        appName =
+            when {
+                ct.usrId != NO_USER_ID ->
+                    context.getString(
+                        R.string.about_version_install_source,
+                        ct.appName,
+                        ct.usrId.toString()
+                    )
+                count > 1 ->
+                    context.getString(
+                        R.string.ctbs_app_other_apps,
+                        ct.appName,
+                        "${count - 1}"
+                    )
+                else -> ct.appName
+            }
+        appIcon =
+            if (apps.isEmpty()) {
+                getDefaultIcon(context)
+            } else {
+                getIcon(context, apps[0])
+            }
     }
 
-    @Composable
-    fun ConnectionRow(ct: ConnectionTracker) {
-        val time = Utilities.convertLongToTime(ct.timeStamp, TIME_FORMAT_1)
-        val protocolLabel = protocolLabel(ct.port, ct.protocol)
-        val indicatorColor = hintColor(ct)
-        val summary = summaryInfo(ct)
-        val domain = ct.dnsQuery
-        val ipAddress = ct.ipAddress
-        val flag = ct.flag
-
-        var appName by remember(ct.uid, ct.appName, ct.usrId) { mutableStateOf(ct.appName) }
-        var appIcon by remember(ct.uid) { mutableStateOf<Drawable?>(null) }
-
-        LaunchedEffect(ct.uid, ct.appName, ct.usrId) {
-            val apps =
-                withContext(Dispatchers.IO) { FirewallManager.getPackageNamesByUid(ct.uid) }
-            val count = apps.count()
-            appName =
-                when {
-                    ct.usrId != NO_USER_ID ->
-                        context.getString(
-                            R.string.about_version_install_source,
-                            ct.appName,
-                            ct.usrId.toString()
-                        )
-                    count > 1 ->
-                        context.getString(
-                            R.string.ctbs_app_other_apps,
-                            ct.appName,
-                            "${count - 1}"
-                        )
-                    else -> ct.appName
-                }
-            appIcon =
-                if (apps.isEmpty()) {
-                    getDefaultIcon(context)
-                } else {
-                    getIcon(context, apps[0])
-                }
-        }
-
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clickable { openBottomSheet(ct) }
-                    .padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable { onShowConnTracker(ct) }
+                .padding(horizontal = 10.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Box(
-                    modifier =
-                        Modifier
-                            .width(1.5.dp)
-                            .fillMaxHeight()
-                            .background(indicatorColor ?: Color.Transparent)
+            Box(
+                modifier =
+                    Modifier
+                        .width(1.5.dp)
+                        .fillMaxHeight()
+                        .background(indicatorColor ?: Color.Transparent)
+            )
+            val iconDrawable = appIcon ?: getDefaultIcon(context)
+            val iconPainter = rememberDrawablePainter(iconDrawable)
+            iconPainter?.let { painter ->
+                Image(
+                    painter = painter,
+                    contentDescription = null,
+                    modifier = Modifier.size(32.dp)
                 )
-                val iconDrawable = appIcon ?: getDefaultIcon(context)
-                val iconPainter = rememberDrawablePainter(iconDrawable)
-                iconPainter?.let { painter ->
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = appName,
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Text(
-                            text = protocolLabel,
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(horizontal = 6.dp)
-                        )
-                        Text(
-                            text = flag,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = ipAddress,
-                        style = MaterialTheme.typography.bodyMedium
+                        text = appName,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.weight(1f)
                     )
-                    if (!domain.isNullOrEmpty()) {
-                        Text(
-                            text = domain,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                    }
+                    Text(
+                        text = protocolLabel,
+                        style = MaterialTheme.typography.labelSmall,
+                        modifier = Modifier.padding(horizontal = 6.dp)
+                    )
+                    Text(
+                        text = flag,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                Text(
+                    text = ipAddress,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                if (!domain.isNullOrEmpty()) {
+                    Text(
+                        text = domain,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                    )
                 }
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(text = time, style = MaterialTheme.typography.bodySmall)
-                Text(
-                    text = summary.duration,
-                    style = MaterialTheme.typography.bodySmall
-                )
-                Text(
-                    text = summary.delay,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
-            if (summary.showSummary) {
-                Text(
-                    text = summary.dataUsage,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-            }
-            Spacer(modifier = Modifier.fillMaxWidth())
         }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(text = time, style = MaterialTheme.typography.bodySmall)
+            Text(
+                text = summary.duration,
+                style = MaterialTheme.typography.bodySmall
+            )
+            Text(
+                text = summary.delay,
+                style = MaterialTheme.typography.bodySmall
+            )
+        }
+        if (summary.showSummary) {
+            Text(
+                text = summary.dataUsage,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+            )
+        }
+        Spacer(modifier = Modifier.fillMaxWidth())
+    }
+}
+
+private fun protocolLabel(context: Context, port: Int, proto: Int): String {
+    if (Protocol.UDP.protocolType != proto && Protocol.TCP.protocolType != proto) {
+        return Protocol.getProtocolName(proto).name
     }
 
-    private fun protocolLabel(port: Int, proto: Int): String {
-        if (Protocol.UDP.protocolType != proto && Protocol.TCP.protocolType != proto) {
-            return Protocol.getProtocolName(proto).name
-        }
+    val resolvedPort = KnownPorts.resolvePort(port)
+    return if (port == KnownPorts.HTTPS_PORT && proto == Protocol.UDP.protocolType) {
+        context.getString(R.string.connection_http3)
+    } else if (resolvedPort != KnownPorts.PORT_VAL_UNKNOWN) {
+        resolvedPort.uppercase(Locale.ROOT)
+    } else {
+        Protocol.getProtocolName(proto).name
+    }
+}
 
-        val resolvedPort = KnownPorts.resolvePort(port)
-        return if (port == KnownPorts.HTTPS_PORT && proto == Protocol.UDP.protocolType) {
-            context.getString(R.string.connection_http3)
-        } else if (resolvedPort != KnownPorts.PORT_VAL_UNKNOWN) {
-            resolvedPort.uppercase(Locale.ROOT)
+private fun hintColor(context: Context, ct: ConnectionTracker): Color? {
+    val blocked =
+        if (ct.blockedByRule == FirewallRuleset.RULE12.id) {
+            ct.proxyDetails.isEmpty()
         } else {
-            Protocol.getProtocolName(proto).name
+            ct.isBlocked
         }
-    }
-
-    private fun hintColor(ct: ConnectionTracker): Color? {
-        val blocked =
-            if (ct.blockedByRule == FirewallRuleset.RULE12.id) {
-                ct.proxyDetails.isEmpty()
+    val rule =
+        if (ct.blockedByRule == FirewallRuleset.RULE12.id && ct.proxyDetails.isEmpty()) {
+            FirewallRuleset.RULE18.id
+        } else {
+            ct.blockedByRule
+        }
+    return when {
+        blocked -> {
+            val isError = FirewallRuleset.isProxyError(rule)
+            if (isError) {
+                Color(UIUtils.fetchColor(context, R.attr.chipTextNeutral))
             } else {
-                ct.isBlocked
+                Color(ContextCompat.getColor(context, R.color.colorRed_A400))
             }
-        val rule =
-            if (ct.blockedByRule == FirewallRuleset.RULE12.id && ct.proxyDetails.isEmpty()) {
-                FirewallRuleset.RULE18.id
-            } else {
-                ct.blockedByRule
-            }
-        return when {
-            blocked -> {
-                val isError = FirewallRuleset.isProxyError(rule)
-                if (isError) {
-                    Color(UIUtils.fetchColor(context, R.attr.chipTextNeutral))
-                } else {
-                    Color(ContextCompat.getColor(context, R.color.colorRed_A400))
-                }
-            }
-            FirewallRuleset.shouldShowHint(rule) -> {
-                Color(ContextCompat.getColor(context, R.color.primaryLightColorText))
-            }
-            else -> null
         }
+        FirewallRuleset.shouldShowHint(rule) -> {
+            Color(ContextCompat.getColor(context, R.color.primaryLightColorText))
+        }
+        else -> null
     }
+}
 
-    private data class Summary(val dataUsage: String, val duration: String, val delay: String, val showSummary: Boolean)
+private data class Summary(val dataUsage: String, val duration: String, val delay: String, val showSummary: Boolean)
 
-    private fun summaryInfo(ct: ConnectionTracker): Summary {
-        val connType = ConnectionTracker.ConnType.get(ct.connType)
-        var dataUsage = ""
-        var delay = ""
-        var duration = ""
-        var showSummary = false
+private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary {
+    val connType = ConnectionTracker.ConnType.get(ct.connType)
+    var dataUsage = ""
+    var delay = ""
+    var duration = ""
+    var showSummary = false
 
-        if (ct.duration == 0 && ct.downloadBytes == 0L && ct.uploadBytes == 0L && ct.message.isEmpty()) {
-            var hasMinSummary = false
-            if (VpnController.hasCid(ct.connId, ct.uid)) {
-                dataUsage = context.getString(R.string.lbl_active)
-                duration = context.getString(R.string.symbol_green_circle)
-                hasMinSummary = true
-            }
-
-            if (connType.isMetered()) {
-                delay = context.getString(R.string.symbol_currency)
-                hasMinSummary = true
-            }
-
-            if (isRpnProxy(ct.rpid)) {
-                delay =
-                    context.getString(
-                        R.string.ci_desc,
-                        delay,
-                        context.getString(R.string.symbol_sparkle)
-                    )
-            } else if (isConnectionProxied(ct.blockedByRule, ct.proxyDetails)) {
-                delay =
-                    context.getString(
-                        R.string.ci_desc,
-                        delay,
-                        context.getString(R.string.symbol_key)
-                    )
-                hasMinSummary = true
-            }
-            showSummary = hasMinSummary
-            return Summary(dataUsage, duration, delay, showSummary)
+    if (ct.duration == 0 && ct.downloadBytes == 0L && ct.uploadBytes == 0L && ct.message.isEmpty()) {
+        var hasMinSummary = false
+        if (VpnController.hasCid(ct.connId, ct.uid)) {
+            dataUsage = context.getString(R.string.lbl_active)
+            duration = context.getString(R.string.symbol_green_circle)
+            hasMinSummary = true
         }
-
-        showSummary = true
-        duration = context.getString(R.string.single_argument, getDurationInHumanReadableFormat(context, ct.duration))
-        val download =
-            context.getString(
-                R.string.symbol_download,
-                Utilities.humanReadableByteCount(ct.downloadBytes, true)
-            )
-        val upload =
-            context.getString(
-                R.string.symbol_upload,
-                Utilities.humanReadableByteCount(ct.uploadBytes, true)
-            )
-        dataUsage = context.getString(R.string.two_argument, upload, download)
 
         if (connType.isMetered()) {
-            delay =
-                context.getString(
-                    R.string.ci_desc,
-                    delay,
-                    context.getString(R.string.symbol_currency)
-                )
+            delay = context.getString(R.string.symbol_currency)
+            hasMinSummary = true
         }
-        if (isConnectionHeavier(ct)) {
-            delay =
-                context.getString(
-                    R.string.ci_desc,
-                    delay,
-                    context.getString(R.string.symbol_heavy)
-                )
-        }
-        if (isConnectionSlower(ct)) {
-            delay =
-                context.getString(
-                    R.string.ci_desc,
-                    delay,
-                    context.getString(R.string.symbol_turtle)
-                )
-        }
+
         if (isRpnProxy(ct.rpid)) {
             delay =
                 context.getString(
                     R.string.ci_desc,
                     delay,
                     context.getString(R.string.symbol_sparkle)
-                )
-        } else if (containsRelayProxy(ct.rpid)) {
-            delay =
-                context.getString(
-                    R.string.ci_desc,
-                    delay,
-                    context.getString(R.string.symbol_bunny)
                 )
         } else if (isConnectionProxied(ct.blockedByRule, ct.proxyDetails)) {
             delay =
@@ -351,49 +284,109 @@ class ConnectionTrackerAdapter(
                     delay,
                     context.getString(R.string.symbol_key)
                 )
+            hasMinSummary = true
         }
-        if (isRoundTripShorter(ct.synack, ct.isBlocked)) {
-            delay =
-                context.getString(
-                    R.string.ci_desc,
-                    delay,
-                    context.getString(R.string.symbol_rocket)
-                )
-        }
-        showSummary = delay.isNotEmpty() || dataUsage.isNotEmpty()
+        showSummary = hasMinSummary
         return Summary(dataUsage, duration, delay, showSummary)
     }
 
-    private fun isRoundTripShorter(rtt: Long, blocked: Boolean): Boolean {
-        return rtt in 1..20 && !blocked
-    }
+    showSummary = true
+    duration = context.getString(R.string.single_argument, getDurationInHumanReadableFormat(context, ct.duration))
+    val download =
+        context.getString(
+            R.string.symbol_download,
+            Utilities.humanReadableByteCount(ct.downloadBytes, true)
+        )
+    val upload =
+        context.getString(
+            R.string.symbol_upload,
+            Utilities.humanReadableByteCount(ct.uploadBytes, true)
+        )
+    dataUsage = context.getString(R.string.two_argument, upload, download)
 
-    private fun containsRelayProxy(rpid: String): Boolean {
-        return rpid.isNotEmpty()
+    if (connType.isMetered()) {
+        delay =
+            context.getString(
+                R.string.ci_desc,
+                delay,
+                context.getString(R.string.symbol_currency)
+            )
     }
+    if (isConnectionHeavier(ct)) {
+        delay =
+            context.getString(
+                R.string.ci_desc,
+                delay,
+                context.getString(R.string.symbol_heavy)
+            )
+    }
+    if (isConnectionSlower(ct)) {
+        delay =
+            context.getString(
+                R.string.ci_desc,
+                delay,
+                context.getString(R.string.symbol_turtle)
+            )
+    }
+    if (isRpnProxy(ct.rpid)) {
+        delay =
+            context.getString(
+                R.string.ci_desc,
+                delay,
+                context.getString(R.string.symbol_sparkle)
+            )
+    } else if (containsRelayProxy(ct.rpid)) {
+        delay =
+            context.getString(
+                R.string.ci_desc,
+                delay,
+                context.getString(R.string.symbol_bunny)
+            )
+    } else if (isConnectionProxied(ct.blockedByRule, ct.proxyDetails)) {
+        delay =
+            context.getString(
+                R.string.ci_desc,
+                delay,
+                context.getString(R.string.symbol_key)
+            )
+    }
+    if (isRoundTripShorter(ct.synack, ct.isBlocked)) {
+        delay =
+            context.getString(
+                R.string.ci_desc,
+                delay,
+                context.getString(R.string.symbol_rocket)
+            )
+    }
+    showSummary = delay.isNotEmpty() || dataUsage.isNotEmpty()
+    return Summary(dataUsage, duration, delay, showSummary)
+}
 
-    private fun isConnectionProxied(ruleName: String?, proxyDetails: String): Boolean {
-        if (ruleName == null) return false
-        val rule = FirewallRuleset.getFirewallRule(ruleName) ?: return false
-        val proxy = ProxyManager.isNotLocalAndRpnProxy(proxyDetails)
-        val isProxyError = FirewallRuleset.isProxyError(ruleName)
-        return (FirewallRuleset.isProxied(rule) && proxyDetails.isNotEmpty() && proxy) || isProxyError
-    }
+private fun isRoundTripShorter(rtt: Long, blocked: Boolean): Boolean {
+    return rtt in 1..20 && !blocked
+}
 
-    private fun isRpnProxy(pid: String): Boolean {
-        return pid.isNotEmpty() && ProxyManager.isRpnProxy(pid)
-    }
+private fun containsRelayProxy(rpid: String): Boolean {
+    return rpid.isNotEmpty()
+}
 
-    private fun isConnectionHeavier(ct: ConnectionTracker): Boolean {
-        return ct.downloadBytes + ct.uploadBytes > MAX_BYTES
-    }
+private fun isConnectionProxied(ruleName: String?, proxyDetails: String): Boolean {
+    if (ruleName == null) return false
+    val rule = FirewallRuleset.getFirewallRule(ruleName) ?: return false
+    val proxy = ProxyManager.isNotLocalAndRpnProxy(proxyDetails)
+    val isProxyError = FirewallRuleset.isProxyError(ruleName)
+    return (FirewallRuleset.isProxied(rule) && proxyDetails.isNotEmpty() && proxy) || isProxyError
+}
 
-    private fun isConnectionSlower(ct: ConnectionTracker): Boolean {
-        return (ct.protocol == Protocol.UDP.protocolType && ct.duration > MAX_TIME_UDP) ||
-            (ct.protocol == Protocol.TCP.protocolType && ct.duration > MAX_TIME_TCP)
-    }
+private fun isRpnProxy(pid: String): Boolean {
+    return pid.isNotEmpty() && ProxyManager.isRpnProxy(pid)
+}
 
-    private fun openBottomSheet(ct: ConnectionTracker) {
-        onShowConnTracker(ct)
-    }
+private fun isConnectionHeavier(ct: ConnectionTracker): Boolean {
+    return ct.downloadBytes + ct.uploadBytes > MAX_BYTES
+}
+
+private fun isConnectionSlower(ct: ConnectionTracker): Boolean {
+    return (ct.protocol == Protocol.UDP.protocolType && ct.duration > MAX_TIME_UDP) ||
+        (ct.protocol == Protocol.TCP.protocolType && ct.duration > MAX_TIME_TCP)
 }

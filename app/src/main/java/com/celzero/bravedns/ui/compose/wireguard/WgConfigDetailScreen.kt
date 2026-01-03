@@ -62,7 +62,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.WgIncludeAppsAdapter
 import com.celzero.bravedns.adapter.WgPeerRow
 import com.celzero.bravedns.data.SsidItem
 import com.celzero.bravedns.database.EventSource
@@ -131,7 +130,6 @@ fun WgConfigDetailScreen(
     var showSsidDialog by remember { mutableStateOf(false) }
     var ssidDialogCurrent by remember { mutableStateOf("") }
     var showIncludeAppsDialog by remember { mutableStateOf(false) }
-    var includeAppsAdapter by remember { mutableStateOf<WgIncludeAppsAdapter?>(null) }
     var includeAppsProxyId by remember { mutableStateOf("") }
     var includeAppsProxyName by remember { mutableStateOf("") }
 
@@ -284,7 +282,6 @@ fun WgConfigDetailScreen(
 
     fun openAppsDialog(proxyName: String) {
         val proxyId = ID_WG_BASE + configId
-        includeAppsAdapter = WgIncludeAppsAdapter(context, proxyId, proxyName)
         includeAppsProxyId = proxyId
         includeAppsProxyName = proxyName
         showIncludeAppsDialog = true
@@ -447,10 +444,8 @@ fun WgConfigDetailScreen(
         )
     }
 
-    val appsAdapter = includeAppsAdapter
-    if (showIncludeAppsDialog && appsAdapter != null) {
+    if (showIncludeAppsDialog) {
         WgIncludeAppsDialog(
-            adapter = appsAdapter,
             viewModel = mappingViewModel,
             proxyId = includeAppsProxyId,
             proxyName = includeAppsProxyName,

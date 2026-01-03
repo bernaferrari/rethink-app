@@ -70,7 +70,11 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.asFlow
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.WgIncludeAppsAdapter
+import com.celzero.bravedns.adapter.IncludeAppRow
+import com.celzero.bravedns.adapter.IncludeDialogHost
+import com.celzero.bravedns.adapter.IncludeDialogState
+import com.celzero.bravedns.adapter.updateProxyIdForApp
+import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.database.RefreshDatabase
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.util.Utilities
@@ -79,12 +83,12 @@ import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
 @Composable
 fun WgIncludeAppsDialog(
-    adapter: WgIncludeAppsAdapter,
     viewModel: ProxyAppsMappingViewModel,
     proxyId: String,
     proxyName: String,
@@ -96,7 +100,6 @@ fun WgIncludeAppsDialog(
     ) {
         Surface(color = MaterialTheme.colorScheme.background) {
             WgIncludeAppsDialogScreen(
-                adapter = adapter,
                 viewModel = viewModel,
                 proxyId = proxyId,
                 proxyName = proxyName,
@@ -124,7 +127,6 @@ enum class TopLevelFilter(val id: Int) {
 
 @Composable
 private fun WgIncludeAppsDialogScreen(
-    adapter: WgIncludeAppsAdapter,
     viewModel: ProxyAppsMappingViewModel,
     proxyId: String,
     proxyName: String,
@@ -139,11 +141,35 @@ private fun WgIncludeAppsDialogScreen(
     var selectAllChecked by remember { mutableStateOf(false) }
     var pendingSelectAll by remember { mutableStateOf<Boolean?>(null) }
     var showRemainingDialog by remember { mutableStateOf(false) }
-    var isRefreshing by remember { mutableStateOf(false) }
+    var pendingDialog by remember { mutableStateOf<IncludeDialogState?>(null) }
     val appCount =
         viewModel.getAppCountById(proxyId).asFlow().collectAsState(initial = 0).value
     val apps = viewModel.apps.asFlow().collectAsLazyPagingItems()
     var isDialogVisible by remember { mutableStateOf(true) }
+    var isRefreshing by remember { mutableStateOf(false) }
+
+    fun updateInterfaceDetails(mapping: com.celzero.bravedns.database.ProxyApplicationMapping, include: Boolean) {
+        scope.launch(Dispatchers.IO) {
+            val appUidList = FirewallManager.getAppNamesByUid(mapping.uid)
+            if (FirewallManager.isAppExcludedFromProxy(mapping.uid)) {
+                withContext(Dispatchers.Main) {
+                    Utilities.showToastUiCentered(
+                        context,
+                        context.getString(R.string.exclude_apps_from_proxy_failure_toast),
+                        Toast.LENGTH_LONG
+                    )
+                }
+                return@launch
+            }
+            withContext(Dispatchers.Main) {
+                if (appUidList.count() > 1) {
+                    pendingDialog = IncludeDialogState(appUidList, mapping, include)
+                } else {
+                    updateProxyIdForApp(mapping.uid, proxyId, proxyName, include)
+                }
+            }
+        }
+    }
 
     DisposableEffect(Unit) {
         onDispose { isDialogVisible = false }
@@ -163,7 +189,13 @@ private fun WgIncludeAppsDialogScreen(
                 overflow = TextOverflow.Ellipsis
             )
 
-            adapter.IncludeDialogHost()
+            IncludeDialogHost(
+                state = pendingDialog,
+                onDismiss = { pendingDialog = null },
+                onConfirm = { mapping, include ->
+                    updateProxyIdForApp(mapping.uid, proxyId, proxyName, include)
+                }
+            )
             Spacer(modifier = Modifier.height(8.dp))
 
             Column(
@@ -269,7 +301,14 @@ private fun WgIncludeAppsDialogScreen(
             ) {
                 items(count = apps.itemCount) { index ->
                     val item = apps[index] ?: return@items
-                    adapter.IncludeAppRow(item)
+                    IncludeAppRow(
+                        mapping = item,
+                        proxyId = proxyId,
+                        proxyName = proxyName,
+                        onInterfaceUpdate = { mapping, include ->
+                            updateInterfaceDetails(mapping, include)
+                        }
+                    )
                 }
             }
 

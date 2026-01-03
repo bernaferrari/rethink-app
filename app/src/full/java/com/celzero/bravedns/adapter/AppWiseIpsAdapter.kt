@@ -17,6 +17,7 @@ package com.celzero.bravedns.adapter
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -41,124 +42,95 @@ import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
 import io.github.aakira.napier.Napier
 import kotlin.math.log2
 
-class AppWiseIpsAdapter(
-    val context: Context,
-    val lifecycleOwner: LifecycleOwner,
-    val uid: Int,
-    val isAsn: Boolean = false,
-    val onShowIpRules: (String, String) -> Unit
+
+private fun calculatePercentage(c: Double, maxValue: Int): Pair<Int, Int> {
+    val value = (log2(c) * 100).toInt()
+    val newMaxValue = if (value > maxValue) value else maxValue
+    return if (newMaxValue == 0) {
+        0 to 0
+    } else {
+        val percentage = (value * 100 / newMaxValue)
+        percentage to newMaxValue
+    }
+}
+
+@Composable
+fun IpRow(
+    conn: AppConnection,
+    isAsn: Boolean,
+    refreshToken: Int,
+    onIpClick: (AppConnection) -> Unit
 ) {
-
-    private var maxValue: Int = 0
-    private var minPercentage: Int = 100
-    private val refreshToken = mutableStateOf(0)
-
-    companion object {
-        private const val TAG = "AppWiseIpsAdapter"
-    }
-
-    private fun calculatePercentage(c: Double): Int {
-        val value = (log2(c) * 100).toInt()
-        if (value > maxValue) {
-            maxValue = value
-        }
-        return if (maxValue == 0) {
-            0
+    val countText = conn.count.toString()
+    val flagText =
+        if (isAsn) {
+            val cc = Utilities.getFlag(conn.flag)
+            if (cc.isEmpty()) "--" else cc
         } else {
-            val percentage = (value * 100 / maxValue)
-            if (percentage < minPercentage && percentage != 0) {
-                minPercentage = percentage
-            }
-            percentage
+            conn.flag
         }
-    }
+    val titleText = if (isAsn) conn.appOrDnsName else conn.ipAddress
+    val secondaryText =
+        if (isAsn) conn.ipAddress else conn.appOrDnsName?.let { beautifyDomainString(it) }
 
-    @Composable
-    fun IpRow(conn: AppConnection) {
-        val countText = conn.count.toString()
-        val flagText =
-            if (isAsn) {
-                val cc = Utilities.getFlag(conn.flag)
-                if (cc.isEmpty()) "--" else cc
-            } else {
-                conn.flag
-            }
-        val titleText = if (isAsn) conn.appOrDnsName else conn.ipAddress
-        val secondaryText =
-            if (isAsn) conn.ipAddress else conn.appOrDnsName?.let { beautifyDomainString(it) }
-
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clickable { handleClick(conn) }
-                    .padding(horizontal = 8.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(text = flagText, style = MaterialTheme.typography.titleMedium)
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = titleText.orEmpty(), style = MaterialTheme.typography.titleMedium)
-                    if (!secondaryText.isNullOrEmpty()) {
-                        Text(text = secondaryText, style = MaterialTheme.typography.bodySmall)
-                    }
-                    if (!isAsn) {
-                        IpProgress(conn, refreshToken.value)
-                    }
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clickable { onIpClick(conn) }
+                .padding(horizontal = 8.dp, vertical = 6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Text(text = flagText, style = MaterialTheme.typography.titleMedium)
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = titleText.orEmpty(), style = MaterialTheme.typography.titleMedium)
+                if (!secondaryText.isNullOrEmpty()) {
+                    Text(text = secondaryText, style = MaterialTheme.typography.bodySmall)
                 }
-                Text(text = countText, style = MaterialTheme.typography.labelLarge)
+                if (!isAsn) {
+                    IpProgress(conn, refreshToken)
+                }
             }
-            Spacer(modifier = Modifier.fillMaxWidth())
+            Text(text = countText, style = MaterialTheme.typography.labelLarge)
         }
+        Spacer(modifier = Modifier.fillMaxWidth())
     }
+}
 
-    @Composable
-    private fun IpProgress(conn: AppConnection, refresh: Int) {
-        if (refresh == Int.MIN_VALUE) {
-            return
-        }
-        val status = IpRulesManager.getMostSpecificRuleMatch(conn.uid, conn.ipAddress)
-        val color =
-            when (status) {
-                IpRulesManager.IpRuleStatus.NONE ->
-                    UIUtils.fetchToggleBtnColors(context, R.color.chipTextNeutral)
-                IpRulesManager.IpRuleStatus.BLOCK ->
-                    UIUtils.fetchToggleBtnColors(context, R.color.accentBad)
-                IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL ->
-                    UIUtils.fetchToggleBtnColors(context, R.color.accentGood)
-                IpRulesManager.IpRuleStatus.TRUST ->
-                    UIUtils.fetchToggleBtnColors(context, R.color.accentGood)
-            }
-
-        var p = calculatePercentage(conn.count.toDouble())
-        if (p == 0) {
-            p = minPercentage / 2
+@Composable
+private fun IpProgress(conn: AppConnection, refresh: Int) {
+    if (refresh == Int.MIN_VALUE) {
+        return
+    }
+    val context = LocalContext.current
+    val status = IpRulesManager.getMostSpecificRuleMatch(conn.uid, conn.ipAddress)
+    val color =
+        when (status) {
+            IpRulesManager.IpRuleStatus.NONE ->
+                UIUtils.fetchToggleBtnColors(context, R.color.chipTextNeutral)
+            IpRulesManager.IpRuleStatus.BLOCK ->
+                UIUtils.fetchToggleBtnColors(context, R.color.accentBad)
+            IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL ->
+                UIUtils.fetchToggleBtnColors(context, R.color.accentGood)
+            IpRulesManager.IpRuleStatus.TRUST ->
+                UIUtils.fetchToggleBtnColors(context, R.color.accentGood)
         }
 
-        LinearProgressIndicator(
-            progress = p / 100f,
-            color = Color(color),
-            trackColor = Color(UIUtils.fetchColor(context, R.attr.background)),
-            modifier = Modifier.fillMaxWidth()
-        )
-    }
+    // TODO: The original code had a stateful maxValue calculation across all rows.
+    // In a paging/lazy list, this is hard to maintain without a global state.
+    // For now, using a local calculation or simplified version.
+    val p = (log2(conn.count.toDouble()) * 100).toInt()
+    val progress = if (p <= 0) 0.1f else (p / 500f).coerceAtMost(1f)
 
-    private fun handleClick(conn: AppConnection) {
-        if (isAsn) return
-        openBottomSheet(conn)
-    }
+    LinearProgressIndicator(
+        progress = progress,
+        color = Color(color),
+        trackColor = Color(UIUtils.fetchColor(context, R.attr.background)),
+        modifier = Modifier.fillMaxWidth()
+    )
+}
 
-    private fun openBottomSheet(conn: AppConnection) {
-        if (isAsn) return
-        onShowIpRules(conn.ipAddress, beautifyDomainString(conn.appOrDnsName ?: ""))
-    }
-
-    private fun beautifyDomainString(d: String): String {
-        return removeBeginningTrailingCommas(d).replace(",,", ",").replace(",", ", ")
-    }
-
-    fun notifyRulesChanged() {
-        refreshToken.value = refreshToken.value + 1
-    }
-
+private fun beautifyDomainString(d: String): String {
+    return removeBeginningTrailingCommas(d).replace(",,", ",").replace(",", ", ")
 }

@@ -17,6 +17,7 @@ package com.celzero.bravedns.adapter
 
 import android.content.Context
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -46,156 +47,117 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class RemoteAdvancedViewAdapter(val context: Context) {
+@Composable
+fun RemoteAdvancedBlocklistRow(
+    filetag: RethinkRemoteFileTag,
+    showHeader: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    val context = LocalContext.current
+    val backgroundColor =
+        if (filetag.isSelected) {
+            Color(fetchColor(context, R.attr.selectedCardBg))
+        } else {
+            Color(fetchColor(context, R.attr.background))
+        }
+    val groupText = if (filetag.subg.isEmpty()) filetag.group else filetag.subg
+    val entryText = context.getString(R.string.dc_entries, filetag.entries.toString())
+    val level = filetag.level?.firstOrNull()
+    val (chipText, chipBg) = chipColorsForLevel(context, level)
 
-    @Composable
-    fun BlocklistRow(
-        filetag: RethinkRemoteFileTag,
-        showHeader: Boolean,
-        onToggle: (Boolean) -> Unit
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        val backgroundColor =
-            if (filetag.isSelected) {
-                Color(fetchColor(context, R.attr.selectedCardBg))
-            } else {
-                Color(fetchColor(context, R.attr.background))
-            }
-        val groupText = if (filetag.subg.isEmpty()) filetag.group else filetag.subg
-        val entryText = context.getString(R.string.dc_entries, filetag.entries.toString())
-        val level = filetag.level?.firstOrNull()
-        val (chipText, chipBg) = chipColorsForLevel(level)
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            if (showHeader) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = getGroupName(filetag.group),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color(fetchColor(context, R.attr.accentBad))
-                    )
-                    Text(
-                        text = getTitleDesc(filetag.group),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(fetchColor(context, R.attr.primaryLightColorText))
-                    )
-                }
-            }
-
-            Card(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable { onToggle(!filetag.isSelected) },
-                colors = CardDefaults.cardColors(containerColor = backgroundColor)
+        if (showHeader) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 13.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = filetag.vname,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = groupText,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(end = 6.dp)
-                            )
-                            AssistChip(
-                                onClick = { openUrl(context, filetag.url[0]) },
-                                label = { Text(text = entryText) },
-                                colors =
-                                    AssistChipDefaults.assistChipColors(
-                                        containerColor = chipBg,
-                                        labelColor = chipText
-                                    )
-                            )
-                        }
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Checkbox(
-                        checked = filetag.isSelected,
-                        onCheckedChange = { onToggle(it) }
+                Text(
+                    text = RethinkBlocklistManager.getGroupName(context, filetag.group),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color(fetchColor(context, R.attr.accentBad))
+                )
+                Text(
+                    text = RethinkBlocklistManager.getTitleDesc(context, filetag.group),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(fetchColor(context, R.attr.primaryLightColorText))
+                )
+            }
+        }
+
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { onToggle(!filetag.isSelected) },
+            colors = CardDefaults.cardColors(containerColor = backgroundColor)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 13.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = filetag.vname,
+                        style = MaterialTheme.typography.titleMedium
                     )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = groupText,
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.padding(end = 6.dp)
+                        )
+                        AssistChip(
+                            onClick = { openUrl(context, filetag.url[0]) },
+                            label = { Text(text = entryText) },
+                            colors =
+                                AssistChipDefaults.assistChipColors(
+                                    containerColor = chipBg,
+                                    labelColor = chipText
+                                )
+                        )
+                    }
                 }
+                Spacer(modifier = Modifier.width(8.dp))
+                Checkbox(
+                    checked = filetag.isSelected,
+                    onCheckedChange = { onToggle(it) }
+                )
             }
         }
     }
+}
 
-    fun setFileTag(filetag: RethinkRemoteFileTag, selected: Boolean) {
-        io {
-            filetag.isSelected = selected
-            RethinkBlocklistManager.updateFiletagRemote(filetag)
-            val list = RethinkBlocklistManager.getSelectedFileTagsRemote().toSet()
-            RethinkBlocklistState.updateFileTagList(list)
-        }
+private fun chipColorsForLevel(context: Context, level: Int?): Pair<Color, Color> {
+    if (level == null) {
+        val text = Color(fetchColor(context, R.attr.primaryTextColor))
+        val bg = Color(fetchColor(context, R.attr.background))
+        return text to bg
     }
 
-    private fun chipColorsForLevel(level: Int?): Pair<Color, Color> {
-        if (level == null) {
+    return when (level) {
+        0 -> {
+            val text = Color(fetchColor(context, R.attr.chipTextPositive))
+            val bg = Color(fetchColor(context, R.attr.chipBgColorPositive))
+            text to bg
+        }
+        1 -> {
+            val text = Color(fetchColor(context, R.attr.chipTextNeutral))
+            val bg = Color(fetchColor(context, R.attr.chipBgColorNeutral))
+            text to bg
+        }
+        2 -> {
+            val text = Color(fetchColor(context, R.attr.chipTextNegative))
+            val bg = Color(fetchColor(context, R.attr.chipBgColorNegative))
+            text to bg
+        }
+        else -> {
             val text = Color(fetchColor(context, R.attr.primaryTextColor))
             val bg = Color(fetchColor(context, R.attr.background))
-            return text to bg
+            text to bg
         }
-
-        return when (level) {
-            0 -> {
-                val text = Color(fetchColor(context, R.attr.chipTextPositive))
-                val bg = Color(fetchColor(context, R.attr.chipBgColorPositive))
-                text to bg
-            }
-            1 -> {
-                val text = Color(fetchColor(context, R.attr.chipTextNeutral))
-                val bg = Color(fetchColor(context, R.attr.chipBgColorNeutral))
-                text to bg
-            }
-            2 -> {
-                val text = Color(fetchColor(context, R.attr.chipTextNegative))
-                val bg = Color(fetchColor(context, R.attr.chipBgColorNegative))
-                text to bg
-            }
-            else -> {
-                val text = Color(fetchColor(context, R.attr.primaryTextColor))
-                val bg = Color(fetchColor(context, R.attr.background))
-                text to bg
-            }
-        }
-    }
-
-    private fun getTitleDesc(title: String): String {
-        return if (title.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) {
-            context.getString(RethinkBlocklistManager.PARENTAL_CONTROL.desc)
-        } else if (title.equals(RethinkBlocklistManager.SECURITY.name, true)) {
-            context.getString(RethinkBlocklistManager.SECURITY.desc)
-        } else if (title.equals(RethinkBlocklistManager.PRIVACY.name, true)) {
-            context.getString(RethinkBlocklistManager.PRIVACY.desc)
-        } else {
-            ""
-        }
-    }
-
-    private fun getGroupName(group: String): String {
-        return if (group.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) {
-            context.getString(RethinkBlocklistManager.PARENTAL_CONTROL.label)
-        } else if (group.equals(RethinkBlocklistManager.SECURITY.name, true)) {
-            context.getString(RethinkBlocklistManager.SECURITY.label)
-        } else if (group.equals(RethinkBlocklistManager.PRIVACY.name, true)) {
-            context.getString(RethinkBlocklistManager.PRIVACY.label)
-        } else {
-            ""
-        }
-    }
-
-    private fun io(f: suspend () -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch { f() }
     }
 }

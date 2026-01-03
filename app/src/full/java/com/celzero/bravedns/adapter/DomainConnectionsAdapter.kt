@@ -28,7 +28,6 @@ import androidx.compose.ui.platform.LocalContext
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.service.FirewallManager
-import com.celzero.bravedns.ui.activity.NetworkLogsActivity
 import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.ui.compose.statistics.StatisticsSummaryItem
 import com.celzero.bravedns.util.Constants
@@ -91,11 +90,9 @@ fun ConnectionRow(dc: AppConnection) {
     val onClick = {
         scope.launch(Dispatchers.IO) {
             if (isUnknown) {
-                val intent = Intent(context, NetworkLogsActivity::class.java)
-                intent.putExtra(
-                    Constants.VIEW_PAGER_SCREEN_TO_LOAD,
-                    NetworkLogsActivity.Tabs.NETWORK_LOGS.screen
-                )
+                // Navigate to network logs via HomeScreenActivity
+                val intent = Intent(context, HomeScreenActivity::class.java)
+                intent.putExtra(HomeScreenActivity.EXTRA_NAV_TARGET, HomeScreenActivity.NAV_TARGET_NETWORK_LOGS)
                 intent.putExtra(Constants.SEARCH_QUERY, dc.appOrDnsName)
                 withContext(Dispatchers.Main) { context.startActivity(intent) }
             } else {

@@ -57,7 +57,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.WgIncludeAppsAdapter
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.TcpProxyHelper
@@ -90,7 +89,6 @@ fun TcpProxyMainScreen(
     var enableUdpRelayChecked by remember { mutableStateOf(false) }
     var warpSwitchChecked by remember { mutableStateOf(false) }
     var showIncludeAppsDialog by remember { mutableStateOf(false) }
-    var includeAppsAdapter by remember { mutableStateOf<WgIncludeAppsAdapter?>(null) }
     var includeAppsProxyId by remember { mutableStateOf("") }
     var includeAppsProxyName by remember { mutableStateOf("") }
 
@@ -192,16 +190,13 @@ fun TcpProxyMainScreen(
     fun openAppsDialog() {
         val proxyId = ProxyManager.ID_TCP_BASE
         val proxyName = ProxyManager.TCP_PROXY_NAME
-        includeAppsAdapter = WgIncludeAppsAdapter(context, proxyId, proxyName)
         includeAppsProxyId = proxyId
         includeAppsProxyName = proxyName
         showIncludeAppsDialog = true
     }
 
-    val appsAdapter = includeAppsAdapter
-    if (showIncludeAppsDialog && appsAdapter != null) {
+    if (showIncludeAppsDialog) {
         WgIncludeAppsDialog(
-            adapter = appsAdapter,
             viewModel = mappingViewModel,
             proxyId = includeAppsProxyId,
             proxyName = includeAppsProxyName,

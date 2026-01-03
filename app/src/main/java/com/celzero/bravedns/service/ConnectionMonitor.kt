@@ -42,7 +42,7 @@ import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.service.FirewallManager.NOTIF_CHANNEL_ID_FIREWALL_ALERTS
 import com.celzero.bravedns.service.VpnBuilderPolicy.Companion.getNetworkBehaviourDuration
 import com.celzero.bravedns.service.WireguardManager.NOTIF_CHANNEL_ID_WIREGUARD_ALERTS
-import com.celzero.bravedns.ui.NotificationHandlerActivity
+import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.ConnectivityCheckHelper
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_WG_PERMISSION_NAME
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_WG_PERMISSION_VALUE
@@ -448,7 +448,7 @@ class ConnectionMonitor(private val context: Context, private val networkListene
         }
 
         Logger.w(LOG_TAG_VPN, "ssid wgs: missing permissions, show notification")
-        val intent = Intent(context, NotificationHandlerActivity::class.java)
+        val intent = Intent(context, HomeScreenActivity::class.java)
         intent.putExtra(
             NOTIF_WG_PERMISSION_NAME,
             NOTIF_WG_PERMISSION_VALUE

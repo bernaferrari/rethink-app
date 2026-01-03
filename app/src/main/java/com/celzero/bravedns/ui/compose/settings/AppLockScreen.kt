@@ -45,7 +45,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.activity.MiscSettingsActivity
+import com.celzero.bravedns.util.BioMetricType
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import io.github.aakira.napier.Napier
 import java.util.concurrent.TimeUnit
@@ -193,7 +193,7 @@ private fun checkBiometricRequired(
     persistentState: PersistentState
 ): Boolean {
     // Check if biometric is enabled
-    val bioMetricType = MiscSettingsActivity.BioMetricType.fromValue(persistentState.biometricAuthType)
+    val bioMetricType = BioMetricType.fromValue(persistentState.biometricAuthType)
     if (!bioMetricType.enabled()) {
         Napier.v("$TAG biometric authentication disabled")
         return false
@@ -211,7 +211,7 @@ private fun checkBiometricRequired(
 
     // Default to 15 minutes if delay is invalid
     delay = if (delay == -1L) {
-        MiscSettingsActivity.BioMetricType.FIFTEEN_MIN.mins
+        BioMetricType.FIFTEEN_MIN.mins
     } else {
         delay
     }

@@ -25,7 +25,10 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import android.net.Uri
@@ -97,6 +100,36 @@ import com.celzero.bravedns.viewmodel.RemoteBlocklistPacksMapViewModel
 import com.celzero.bravedns.viewmodel.RethinkEndpointViewModel
 import com.celzero.bravedns.viewmodel.RethinkLocalFileTagViewModel
 import com.celzero.bravedns.viewmodel.RethinkRemoteFileTagViewModel
+import com.celzero.bravedns.viewmodel.AppInfoViewModel
+import com.celzero.bravedns.database.RefreshDatabase
+import com.celzero.bravedns.viewmodel.ConnectionTrackerViewModel
+import com.celzero.bravedns.viewmodel.DnsLogViewModel
+import com.celzero.bravedns.viewmodel.RethinkLogViewModel
+import com.celzero.bravedns.database.ConnectionTrackerRepository
+import com.celzero.bravedns.database.DnsLogRepository
+import com.celzero.bravedns.database.RethinkLogRepository
+import com.celzero.bravedns.ui.compose.dns.ConfigureOtherDnsScreen
+import com.celzero.bravedns.ui.compose.dns.DnsScreenType
+import com.celzero.bravedns.ui.compose.firewall.UniversalFirewallSettingsScreen
+import com.celzero.bravedns.ui.compose.settings.CheckoutScreen
+import com.celzero.bravedns.service.TcpProxyHelper
+import com.celzero.bravedns.viewmodel.DoHEndpointViewModel
+import com.celzero.bravedns.viewmodel.DoTEndpointViewModel
+import com.celzero.bravedns.viewmodel.DnsProxyEndpointViewModel
+import com.celzero.bravedns.viewmodel.DnsCryptEndpointViewModel
+import com.celzero.bravedns.viewmodel.DnsCryptRelayEndpointViewModel
+import com.celzero.bravedns.viewmodel.ODoHEndpointViewModel
+import com.celzero.bravedns.viewmodel.CheckoutViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.asFlow
+import com.celzero.bravedns.ui.compose.logs.AppWiseDomainLogsScreen
+import com.celzero.bravedns.ui.compose.logs.AppWiseDomainLogsState
+import androidx.paging.compose.collectAsLazyPagingItems
+import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.viewmodel.WgConfigViewModel
+import com.celzero.bravedns.ui.compose.wireguard.WgMainScreen
+
+
 
 enum class HomeDestination(
     val route: String,
@@ -154,6 +187,11 @@ sealed interface HomeNavRequest {
         val remoteUrl: String = "",
         val uid: Int = -1
     ) : HomeNavRequest
+    data class ConfigureOtherDns(val dnsType: Int) : HomeNavRequest
+    data object UniversalFirewallSettings : HomeNavRequest
+    data class AppWiseDomainLogs(val uid: Int) : HomeNavRequest
+    data object Checkout : HomeNavRequest
+    data object WgMain : HomeNavRequest
 }
 
 private const val ROUTE_DETAILED_STATS = "detailedStats"
@@ -184,6 +222,11 @@ private const val ROUTE_WG_CONFIG_EDITOR = "wgConfigEditor"
 private const val ROUTE_CONFIGURE_RETHINK_BASIC = "configureRethinkBasic"
 private const val ROUTE_DNS_LIST = "dnsList"
 private const val ROUTE_APP_WISE_IP_LOGS = "appWiseIpLogs"
+private const val ROUTE_CONFIGURE_OTHER_DNS = "configureOtherDns"
+private const val ROUTE_UNIVERSAL_FIREWALL_SETTINGS = "universalFirewallSettings"
+private const val ROUTE_APP_WISE_DOMAIN_LOGS = "appWiseDomainLogs"
+private const val ROUTE_CHECKOUT = "checkout"
+private const val ROUTE_WG_MAIN = "wgMain"
 
 private fun domainConnectionsRoute(
     type: DomainConnectionsInputType,
@@ -294,8 +337,37 @@ fun HomeScreenRoot(
     localFileTagViewModel: RethinkLocalFileTagViewModel,
     remoteBlocklistPacksMapViewModel: RemoteBlocklistPacksMapViewModel,
     localBlocklistPacksMapViewModel: LocalBlocklistPacksMapViewModel,
-    onConfigureOtherDns: (Int) -> Unit
+    appInfoViewModel: AppInfoViewModel,
+    refreshDatabase: RefreshDatabase,
+    connectionTrackerViewModel: ConnectionTrackerViewModel,
+    dnsLogViewModel: DnsLogViewModel,
+    rethinkLogViewModel: RethinkLogViewModel,
+    connectionTrackerRepository: ConnectionTrackerRepository,
+    dnsLogRepository: DnsLogRepository,
+    rethinkLogRepository: RethinkLogRepository,
+    onConfigureOtherDns: (Int) -> Unit,
+    // ConfigureOtherDns dependencies
+    dohViewModel: DoHEndpointViewModel,
+    dotViewModel: DoTEndpointViewModel,
+    dnsProxyViewModel: DnsProxyEndpointViewModel,
+    dnsCryptViewModel: DnsCryptEndpointViewModel,
+    dnsCryptRelayViewModel: DnsCryptRelayEndpointViewModel,
+    oDohViewModel: ODoHEndpointViewModel,
+    // UniversalFirewallSettings callbacks
+    onNavigateToLogs: (String) -> Unit,
+    onOpenAccessibilitySettings: () -> Unit,
+    // WireGuard dependencies
+    wgConfigViewModel: WgConfigViewModel,
+    // Checkout dependencies
+    checkoutViewModel: CheckoutViewModel,
+    onNavigateToProxy: () -> Unit,
+    // WgMain callbacks
+    onWgCreateClick: () -> Unit,
+    onWgImportClick: () -> Unit,
+    onWgQrScanClick: () -> Unit
 ) {
+
+
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: HomeDestination.HOME.route
@@ -402,6 +474,21 @@ fun HomeScreenRoot(
             }
             is HomeNavRequest.AppWiseIpLogs -> {
                 navController.navigate("$ROUTE_APP_WISE_IP_LOGS/${request.uid}/${request.isAsn}")
+            }
+            is HomeNavRequest.ConfigureOtherDns -> {
+                navController.navigate("$ROUTE_CONFIGURE_OTHER_DNS/${request.dnsType}")
+            }
+            HomeNavRequest.UniversalFirewallSettings -> {
+                navController.navigate(ROUTE_UNIVERSAL_FIREWALL_SETTINGS)
+            }
+            is HomeNavRequest.AppWiseDomainLogs -> {
+                navController.navigate("$ROUTE_APP_WISE_DOMAIN_LOGS/${request.uid}")
+            }
+            HomeNavRequest.Checkout -> {
+                navController.navigate(ROUTE_CHECKOUT)
+            }
+            HomeNavRequest.WgMain -> {
+                navController.navigate(ROUTE_WG_MAIN)
             }
         }
         onHomeNavConsumed()
@@ -540,24 +627,45 @@ fun HomeScreenRoot(
             }
             composable(ROUTE_NETWORK_LOGS) {
                 NetworkLogsScreen(
+                    connectionTrackerViewModel = connectionTrackerViewModel,
+                    dnsLogViewModel = dnsLogViewModel,
+                    rethinkLogViewModel = rethinkLogViewModel,
+                    connectionTrackerRepository = connectionTrackerRepository,
+                    dnsLogRepository = dnsLogRepository,
+                    rethinkLogRepository = rethinkLogRepository,
+                    persistentState = persistentState,
+                    eventLogger = appInfoEventLogger,
                     onBackClick = { navController.popBackStack() }
                 )
             }
+
             composable(ROUTE_APP_LIST) {
                 AppListScreen(
+                    viewModel = appInfoViewModel,
+                    eventLogger = appInfoEventLogger,
+                    refreshDatabase = refreshDatabase,
                     onBackClick = { navController.popBackStack() }
                 )
             }
+
             composable(ROUTE_CUSTOM_RULES) {
                 CustomRulesScreen(
+                    domainViewModel = appInfoDomainRulesViewModel,
+                    ipViewModel = appInfoIpRulesViewModel,
+                    eventLogger = appInfoEventLogger,
                     onBackClick = { navController.popBackStack() }
                 )
             }
+
             composable(ROUTE_PROXY_SETTINGS) {
                 ProxySettingsScreen(
+                    appConfig = appConfig,
+                    persistentState = persistentState,
+                    eventLogger = appInfoEventLogger,
                     onBackClick = { navController.popBackStack() }
                 )
             }
+
             composable(ROUTE_TCP_PROXY_MAIN) {
                 TcpProxyMainScreen(
                     appConfig = appConfig,
@@ -604,6 +712,9 @@ fun HomeScreenRoot(
                     onBackClick = { navController.popBackStack() },
                     onAppWiseIpLogsClick = { u, isAsn ->
                         navController.navigate("$ROUTE_APP_WISE_IP_LOGS/$u/$isAsn")
+                    },
+                    onCustomRulesClick = { u ->
+                        navController.navigate(ROUTE_CUSTOM_RULES)
                     }
                 )
             }
@@ -832,6 +943,103 @@ fun HomeScreenRoot(
                     remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
                     localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
                     onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = "$ROUTE_CONFIGURE_OTHER_DNS/{dnsType}",
+                arguments = listOf(navArgument("dnsType") { type = NavType.IntType })
+            ) { entry ->
+                val dnsType = entry.arguments?.getInt("dnsType") ?: 0
+                ConfigureOtherDnsScreen(
+                    dnsType = DnsScreenType.fromIndex(dnsType),
+                    appConfig = appConfig,
+                    persistentState = persistentState,
+                    dohViewModel = dohViewModel,
+                    dotViewModel = dotViewModel,
+                    dnsProxyViewModel = dnsProxyViewModel,
+                    dnsCryptViewModel = dnsCryptViewModel,
+                    dnsCryptRelayViewModel = dnsCryptRelayViewModel,
+                    oDohViewModel = oDohViewModel,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_UNIVERSAL_FIREWALL_SETTINGS) {
+                UniversalFirewallSettingsScreen(
+                    persistentState = persistentState,
+                    eventLogger = appInfoEventLogger,
+                    connTrackerRepository = connectionTrackerRepository,
+                    onNavigateToLogs = onNavigateToLogs,
+                    onOpenAccessibilitySettings = onOpenAccessibilitySettings,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(ROUTE_CHECKOUT) {
+                val paymentStatus by checkoutViewModel.paymentStatus.collectAsState()
+                val workInfoList by checkoutViewModel.paymentWorkInfo.asFlow().collectAsState(emptyList())
+                
+                LaunchedEffect(workInfoList) {
+                    checkoutViewModel.updatePaymentStatusFromWorkInfo(workInfoList)
+                }
+                
+                CheckoutScreen(
+                    paymentStatus = paymentStatus,
+                    onStartPayment = { checkoutViewModel.startPayment() },
+                    onNavigateToProxy = onNavigateToProxy,
+                    onBackClick = { navController.popBackStack() }
+                )
+            }
+            composable(
+                route = "$ROUTE_APP_WISE_DOMAIN_LOGS/{uid}",
+                arguments = listOf(navArgument("uid") { type = NavType.IntType })
+            ) { entry ->
+                val uid = entry.arguments?.getInt("uid") ?: 0
+                val context = LocalContext.current
+                
+                LaunchedEffect(uid) {
+                    appInfoNetworkLogsViewModel.setUid(uid)
+                    appInfoNetworkLogsViewModel.setFilter("", AppConnectionsViewModel.FilterType.DOMAIN)
+                }
+
+                val appName = remember(uid) { "App $uid" } // TODO: Fetch app name asynchronously
+                // Flow<PagingData>
+                val items = remember(uid) { 
+                    appInfoNetworkLogsViewModel.appDomainLogs.asFlow() 
+                }.collectAsLazyPagingItems()
+
+                val state = AppWiseDomainLogsState(
+                    uid = uid,
+                    isActiveConns = false,
+                    isRethinkApp = appName == "com.celzero.bravedns",
+                    searchHint = stringResource(R.string.search_custom_domains),
+                    appIcon = null, // TODO: Load icon if needed
+                    showToggleGroup = true,
+                    showDeleteIcon = true,
+                    selectedCategory = AppConnectionsViewModel.TimeCategory.SEVEN_DAYS
+                )
+                
+                AppWiseDomainLogsScreen(
+                    state = state,
+                    items = items,
+                    eventLogger = appInfoEventLogger,
+                    onTimeCategoryChange = { appInfoNetworkLogsViewModel.timeCategoryChanged(it, true) },
+                    onFilterChange = { appInfoNetworkLogsViewModel.setFilter(it, AppConnectionsViewModel.FilterType.DOMAIN) },
+                    onDeleteLogs = { appInfoNetworkLogsViewModel.deleteLogs(uid) },
+                    defaultIcon = null
+                )
+            }
+            composable(ROUTE_WG_MAIN) {
+                WgMainScreen(
+                    wgConfigViewModel = wgConfigViewModel,
+                    persistentState = persistentState,
+                    appConfig = appConfig,
+                    eventLogger = appInfoEventLogger,
+                    onBackClick = { navController.popBackStack() },
+                    onCreateClick = onWgCreateClick,
+                    onImportClick = onWgImportClick,
+                    onQrScanClick = onWgQrScanClick,
+                    onConfigDetailClick = { configId, wgType ->
+                        navController.navigate("$ROUTE_WG_CONFIG_DETAIL/$configId/${wgType.value}")
+                    }
                 )
             }
         }

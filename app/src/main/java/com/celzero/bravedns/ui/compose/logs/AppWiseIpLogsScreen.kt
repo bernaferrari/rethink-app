@@ -62,7 +62,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.asFlow
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.AppWiseIpsAdapter
+import com.celzero.bravedns.adapter.IpRow
 import com.celzero.bravedns.database.AppInfo
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
@@ -70,6 +70,7 @@ import com.celzero.bravedns.ui.bottomsheet.AppIpRulesSheet
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
 import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -359,20 +360,8 @@ private fun AppWiseIpList(
     var selectedIp by remember { mutableStateOf("") }
     var selectedDomains by remember { mutableStateOf("") }
     
-    val adapter = remember {
-        AppWiseIpsAdapter(
-            context,
-            lifecycleOwner,
-            uid,
-            isAsn,
-            onShowIpRules = { ip, domains ->
-                selectedIp = ip
-                selectedDomains = domains
-                showIpRulesSheet = true
-            }
-        )
-    }
-
+    var refreshToken by remember { mutableStateOf(0) }
+    
     if (showIpRulesSheet && selectedIp.isNotEmpty()) {
         AppIpRulesSheet(
             uid = uid,
@@ -380,7 +369,7 @@ private fun AppWiseIpList(
             domains = selectedDomains,
             eventLogger = eventLogger,
             onDismiss = { showIpRulesSheet = false },
-            onUpdated = { adapter.notifyRulesChanged() }
+            onUpdated = { refreshToken++ }
         )
     }
 
@@ -409,7 +398,18 @@ private fun AppWiseIpList(
     LazyColumn(modifier = Modifier.fillMaxSize().padding(2.dp)) {
         items(count = items.itemCount) { index ->
             val item = items[index] ?: return@items
-            adapter.IpRow(item)
+            IpRow(
+                conn = item,
+                isAsn = isAsn,
+                refreshToken = refreshToken,
+                onIpClick = { conn ->
+                    if (!isAsn) {
+                        selectedIp = conn.ipAddress
+                        selectedDomains = removeBeginningTrailingCommas(conn.appOrDnsName ?: "").replace(",,", ",").replace(",", ", ")
+                        showIpRulesSheet = true
+                    }
+                }
+            )
         }
     }
 }

@@ -131,30 +131,22 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
-import com.celzero.bravedns.ui.activity.AdvancedSettingActivity
-import com.celzero.bravedns.ui.activity.AntiCensorshipActivity
-import com.celzero.bravedns.ui.activity.AppListActivity
-import com.celzero.bravedns.ui.activity.ConfigureRethinkBasicActivity
-import com.celzero.bravedns.ui.activity.CustomRulesActivity
+
+import com.celzero.bravedns.ui.compose.dns.ConfigureRethinkScreenType
 import com.celzero.bravedns.ui.compose.navigation.HomeNavRequest
-import com.celzero.bravedns.ui.activity.DnsDetailActivity
-import com.celzero.bravedns.ui.activity.DnsListActivity
-import com.celzero.bravedns.ui.activity.ConfigureOtherDnsActivity
-import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
-import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
-import com.celzero.bravedns.viewmodel.EventsViewModel
-import com.celzero.bravedns.ui.activity.FirewallActivity
-import com.celzero.bravedns.ui.activity.MiscSettingsActivity
-import com.celzero.bravedns.ui.activity.NetworkLogsActivity
-import com.celzero.bravedns.ui.activity.PauseActivity
-import com.celzero.bravedns.ui.activity.ProxySettingsActivity
-import com.celzero.bravedns.ui.activity.TunnelSettingsActivity
-import com.celzero.bravedns.ui.activity.UniversalFirewallSettingsActivity
-import com.celzero.bravedns.ui.activity.WelcomeActivity
-import com.celzero.bravedns.ui.activity.WgMainActivity
+import com.celzero.bravedns.ui.compose.wireguard.WgType
 import com.celzero.bravedns.ui.compose.navigation.HomeScreenRoot
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
+import com.celzero.bravedns.ui.compose.settings.AppLockScreen
+import com.celzero.bravedns.ui.compose.settings.AppLockResult
+import com.celzero.bravedns.ui.compose.home.PauseScreen
+import com.celzero.bravedns.util.BioMetricType
+import androidx.lifecycle.asFlow
 import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
+import com.celzero.bravedns.util.Constants.Companion.PKG_NAME_PLAY_STORE
+import com.celzero.bravedns.util.Constants.Companion.RETHINKDNS_SPONSOR_LINK
+import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.Constants.Companion.PKG_NAME_PLAY_STORE
 import com.celzero.bravedns.util.Constants.Companion.RETHINKDNS_SPONSOR_LINK
@@ -165,7 +157,11 @@ import com.celzero.bravedns.util.NewSettingsManager
 import com.celzero.bravedns.util.RemoteFileTagUtil
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
-import com.celzero.bravedns.util.UIUtils.openAppInfo
+import com.journeyapps.barcodescanner.ScanContract
+import com.journeyapps.barcodescanner.ScanOptions
+import com.celzero.bravedns.util.QrCodeFromFileScanner
+import com.celzero.bravedns.util.TunnelImporter
+import com.google.zxing.qrcode.QRCodeReader
 import com.celzero.bravedns.util.UIUtils.openNetworkSettings
 import com.celzero.bravedns.util.UIUtils.openUrl
 import com.celzero.bravedns.util.UIUtils.openVpnProfile
@@ -184,6 +180,10 @@ import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
 import com.celzero.bravedns.viewmodel.CustomDomainViewModel
 import com.celzero.bravedns.viewmodel.CustomIpViewModel
+import com.celzero.bravedns.viewmodel.CheckoutViewModel
+import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
+import com.celzero.bravedns.viewmodel.EventsViewModel
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -232,6 +232,25 @@ class HomeScreenActivity : AppCompatActivity() {
     private val localFileTagViewModel by viewModel<com.celzero.bravedns.viewmodel.RethinkLocalFileTagViewModel>()
     private val remoteBlocklistPacksMapViewModel by viewModel<com.celzero.bravedns.viewmodel.RemoteBlocklistPacksMapViewModel>()
     private val localBlocklistPacksMapViewModel by viewModel<com.celzero.bravedns.viewmodel.LocalBlocklistPacksMapViewModel>()
+    private val appInfoViewModel by viewModel<com.celzero.bravedns.viewmodel.AppInfoViewModel>()
+    private val connectionTrackerViewModel by viewModel<com.celzero.bravedns.viewmodel.ConnectionTrackerViewModel>()
+    private val dnsLogViewModel by viewModel<com.celzero.bravedns.viewmodel.DnsLogViewModel>()
+    private val rethinkLogViewModel by viewModel<com.celzero.bravedns.viewmodel.RethinkLogViewModel>()
+    private val connectionTrackerRepository by inject<com.celzero.bravedns.database.ConnectionTrackerRepository>()
+    private val dnsLogRepository by inject<com.celzero.bravedns.database.DnsLogRepository>()
+    private val rethinkLogRepository by inject<com.celzero.bravedns.database.RethinkLogRepository>()
+
+    // ConfigureOtherDns ViewModels
+    private val dohViewModel by viewModel<com.celzero.bravedns.viewmodel.DoHEndpointViewModel>()
+    private val dotViewModel by viewModel<com.celzero.bravedns.viewmodel.DoTEndpointViewModel>()
+    private val dnsProxyViewModel by viewModel<com.celzero.bravedns.viewmodel.DnsProxyEndpointViewModel>()
+    private val dnsCryptViewModel by viewModel<com.celzero.bravedns.viewmodel.DnsCryptEndpointViewModel>()
+    private val dnsCryptRelayViewModel by viewModel<com.celzero.bravedns.viewmodel.DnsCryptRelayEndpointViewModel>()
+    private val oDohViewModel by viewModel<com.celzero.bravedns.viewmodel.ODoHEndpointViewModel>()
+    private val checkoutViewModel by viewModel<CheckoutViewModel>()
+    private val wgConfigViewModel by viewModel<com.celzero.bravedns.viewmodel.WgConfigViewModel>()
+
+
 
     // TODO: see if this can be replaced with a more robust solution
     // keep track of when app went to background
@@ -243,6 +262,55 @@ class HomeScreenActivity : AppCompatActivity() {
 
     private lateinit var startForResult: androidx.activity.result.ActivityResultLauncher<Intent>
     private lateinit var notificationPermissionResult: androidx.activity.result.ActivityResultLauncher<String>
+    
+    // WireGuard Import Launchers
+    private val tunnelFileImportResultLauncher =
+        registerForActivityResult(ActivityResultContracts.GetContent()) { data ->
+            if (data == null) return@registerForActivityResult
+            val contentResolver = contentResolver ?: return@registerForActivityResult
+            lifecycleScope.launch {
+                if (QrCodeFromFileScanner.validContentType(contentResolver, data)) {
+                    try {
+                        val qrCodeFromFileScanner =
+                            QrCodeFromFileScanner(contentResolver, QRCodeReader())
+                        val result = qrCodeFromFileScanner.scan(data)
+                        if (result != null) {
+                            withContext(Dispatchers.Main) {
+                                TunnelImporter.importTunnel(result.text) {
+                                    showToastUiCentered(
+                                        this@HomeScreenActivity,
+                                        it.toString(),
+                                        Toast.LENGTH_LONG
+                                    )
+                                }
+                            }
+                        } else {
+                            val message = resources.getString(R.string.invalid_file_error)
+                            showToastUiCentered(this@HomeScreenActivity, message, Toast.LENGTH_LONG)
+                        }
+                    } catch (e: Exception) {
+                        val message = resources.getString(R.string.invalid_file_error)
+                        showToastUiCentered(this@HomeScreenActivity, message, Toast.LENGTH_LONG)
+                    }
+                } else {
+                    TunnelImporter.importTunnel(contentResolver, data) {
+                        showToastUiCentered(this@HomeScreenActivity, it.toString(), Toast.LENGTH_LONG)
+                    }
+                }
+            }
+        }
+
+    private val qrImportResultLauncher =
+        registerForActivityResult(ScanContract()) { result ->
+            val qrCode = result.contents
+            if (qrCode != null) {
+                lifecycleScope.launch {
+                    TunnelImporter.importTunnel(qrCode) {
+                        showToastUiCentered(this@HomeScreenActivity, it.toString(), Toast.LENGTH_LONG)
+                    }
+                }
+            }
+        }
 
     // TODO - #324 - Usage of isDarkTheme() in all activities.
     private fun Context.isDarkThemeOn(): Boolean {
@@ -262,8 +330,7 @@ class HomeScreenActivity : AppCompatActivity() {
 
         // do not launch on board activity when app is running on TV
         if (persistentState.firstTimeLaunch && !isAppRunningOnTv()) {
-            launchOnboardActivity()
-            return
+            homeNavRequest = HomeNavRequest.Welcome
         }
 
         handleFrostEffectIfNeeded(persistentState.theme)
@@ -299,20 +366,27 @@ class HomeScreenActivity : AppCompatActivity() {
                 }
                 val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
                 val aboutState by aboutViewModel.uiState.collectAsStateWithLifecycle()
-                HomeScreenRoot(
-                    homeUiState = homeState,
+                
+                var isUnlocked by remember { mutableStateOf(false) }
+                val vpnState by remember { VpnController.connectionStatus.asFlow() }.collectAsStateWithLifecycle(initialValue = null)
+
+                if (vpnState == BraveVPNService.State.PAUSED) {
+                    PauseScreen(onFinish = { })
+                } else if (isUnlocked) {
+                    HomeScreenRoot(
+                        homeUiState = homeState,
                     onHomeStartStopClick = { handleMainScreenBtnClickEvent() },
                     onHomeDnsClick = { navigateToDnsDetailIfAllowed() },
                     onHomeFirewallClick = { homeNavRequest = HomeNavRequest.FirewallSettings },
                     onHomeProxyClick = {
                         if (appConfig.isWireGuardEnabled()) {
-                            startActivity(ScreenType.PROXY_WIREGUARD)
+                            homeNavRequest = HomeNavRequest.WgMain
                         } else {
-                            startActivity(ScreenType.PROXY)
+                            homeNavRequest = HomeNavRequest.ProxySettings
                         }
                     },
                     onHomeLogsClick = { homeNavRequest = HomeNavRequest.NetworkLogs },
-                    onHomeAppsClick = { startAppsActivity() },
+                    onHomeAppsClick = { homeNavRequest = HomeNavRequest.AppList },
                     onHomeSponsorClick = { promptForAppSponsorship() },
                     summaryViewModel = summaryViewModel,
                     onOpenDetailedStats = { type -> openDetailedStatsUi(type) },
@@ -320,8 +394,8 @@ class HomeScreenActivity : AppCompatActivity() {
                     onConfigureAppsClick = { homeNavRequest = HomeNavRequest.AppList },
                     onConfigureDnsClick = { navigateToDnsDetailIfAllowed() },
                     onConfigureFirewallClick = { homeNavRequest = HomeNavRequest.FirewallSettings },
-                    onFirewallUniversalClick = { openUniversalFirewallScreen() },
-                    onFirewallCustomIpClick = { openCustomIpScreen() },
+                    onFirewallUniversalClick = { homeNavRequest = HomeNavRequest.UniversalFirewallSettings },
+                    onFirewallCustomIpClick = { homeNavRequest = HomeNavRequest.CustomRules },
                     onFirewallAppWiseIpClick = { openAppWiseIpScreen() },
                     onConfigureProxyClick = { homeNavRequest = HomeNavRequest.ProxySettings },
                     onConfigureNetworkClick = { homeNavRequest = HomeNavRequest.TunnelSettings },
@@ -349,7 +423,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     onRedditClick = { openUrl(this, getString(R.string.about_reddit_handle)) },
                     onElementClick = { openUrl(this, getString(R.string.about_matrix_handle)) },
                     onMastodonClick = { openUrl(this, getString(R.string.about_mastodom_handle)) },
-                    onAppInfoClick = { openAppInfo(this) },
+                    onAppInfoClick = { UIUtils.openAndroidAppInfo(this, packageName) },
                     onVpnProfileClick = { openVpnProfile(this) },
                     onNotificationClick = { openNotificationSettings() },
                     onStatsClick = { openStatsDialog() },
@@ -375,7 +449,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     onRefreshDatabase = { lifecycleScope.launch { rdb.refresh(RefreshDatabase.ACTION_REFRESH_INTERACTIVE) } },
                     consoleLogViewModel = consoleLogViewModel,
                     consoleLogRepository = consoleLogRepository,
-                    onShareConsoleLogs = { startActivity(ConfigureScreenType.LOGS) }, // Fallback to Activity for complex share
+                    onShareConsoleLogs = { homeNavRequest = HomeNavRequest.NetworkLogs }, // Fallback to Activity for complex share
                     onConsoleLogsDeleteComplete = {
                         showToastUiCentered(this@HomeScreenActivity, getString(R.string.config_add_success_toast), Toast.LENGTH_SHORT)
                     },
@@ -383,8 +457,8 @@ class HomeScreenActivity : AppCompatActivity() {
                     dnsSettingsViewModel = dnsSettingsViewModel,
                     appDownloadManager = appDownloadManager,
                     onDnsCustomDnsClick = { startCustomDnsActivity() },
-                    onDnsRethinkPlusDnsClick = { startRethinkPlusDnsActivity() },
                     onDnsLocalBlocklistConfigureClick = { startLocalBlocklistConfigureActivity() },
+                    onDnsRethinkPlusDnsClick = { startRethinkPlusDnsActivity() },
                     homeNavRequest = homeNavRequest,
                     onHomeNavConsumed = { homeNavRequest = null },
                     rethinkEndpointViewModel = rethinkEndpointViewModel,
@@ -392,11 +466,61 @@ class HomeScreenActivity : AppCompatActivity() {
                     localFileTagViewModel = localFileTagViewModel,
                     remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
                     localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
+                    appInfoViewModel = appInfoViewModel,
+                    refreshDatabase = rdb,
+                    connectionTrackerViewModel = connectionTrackerViewModel,
+                    dnsLogViewModel = dnsLogViewModel,
+                    rethinkLogViewModel = rethinkLogViewModel,
+                    connectionTrackerRepository = connectionTrackerRepository,
+                    dnsLogRepository = dnsLogRepository,
+                    rethinkLogRepository = rethinkLogRepository,
                     onConfigureOtherDns = { index ->
-                        val intent = ConfigureOtherDnsActivity.getIntent(this@HomeScreenActivity, index)
-                        startActivity(intent)
-                    }
+                        homeNavRequest = HomeNavRequest.ConfigureOtherDns(index)
+                    },
+                    // ConfigureOtherDns ViewModels
+                    dohViewModel = dohViewModel,
+                    dotViewModel = dotViewModel,
+                    dnsProxyViewModel = dnsProxyViewModel,
+                    dnsCryptViewModel = dnsCryptViewModel,
+                    dnsCryptRelayViewModel = dnsCryptRelayViewModel,
+                    oDohViewModel = oDohViewModel,
+                    // UniversalFirewallSettings callbacks
+                    onNavigateToLogs = { searchQuery ->
+                        homeNavRequest = HomeNavRequest.NetworkLogs
+                    },
+                    onOpenAccessibilitySettings = {
+                        startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                    },
+                    // WireGuard dependencies
+                    wgConfigViewModel = wgConfigViewModel,
+                    // Checkout dependencies
+                    checkoutViewModel = checkoutViewModel,
+                    onNavigateToProxy = { homeNavRequest = HomeNavRequest.ProxySettings },
+                    // WgMain callbacks
+                    onWgCreateClick = { homeNavRequest = HomeNavRequest.WgConfigEditor(com.celzero.bravedns.service.WireguardManager.INVALID_CONF_ID, com.celzero.bravedns.ui.compose.wireguard.WgType.DEFAULT) },
+                    onWgImportClick = { launchFileImport() },
+                    onWgQrScanClick = { launchQrScanner() }
                 )
+                } else {
+                    AppLockScreen(
+                        persistentState = persistentState,
+                        onAuthResult = { result ->
+                            when (result) {
+                                AppLockResult.Success, AppLockResult.NotRequired -> {
+                                    isUnlocked = true
+                                }
+                                AppLockResult.Failure -> {
+                                    finish()
+                                }
+                                AppLockResult.Pending -> {
+                                    // Waiting for user interaction
+                                }
+                            }
+                        }
+                    )
+                }
+
+
                 if (showBugReportSheet) {
                     BugReportFilesSheet(onDismiss = { showBugReportSheet = false })
                 }
@@ -476,7 +600,9 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun handleNavigationIntent(intent: Intent?) {
-        val target = intent?.getStringExtra(EXTRA_NAV_TARGET) ?: return
+        if (intent == null) return
+        handleNotificationAction(intent)
+        val target = intent.getStringExtra(EXTRA_NAV_TARGET) ?: return
         when (target) {
             NAV_TARGET_DOMAIN_CONNECTIONS -> {
                 val typeValue = intent.getIntExtra(EXTRA_DC_TYPE, 0)
@@ -507,8 +633,41 @@ class HomeScreenActivity : AppCompatActivity() {
                 if (uid == Constants.INVALID_UID) return
                 homeNavRequest = HomeNavRequest.AppInfo(uid = uid)
             }
+            NAV_TARGET_NETWORK_LOGS -> {
+                // Navigate to network logs screen
+                homeNavRequest = HomeNavRequest.NetworkLogs
+            }
+            NAV_TARGET_WG_MAIN -> {
+                homeNavRequest = HomeNavRequest.WgMain
+            }
         }
     }
+
+    private fun handleNotificationAction(intent: Intent) {
+         if (intent.extras == null) return
+
+         val accessibility = intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_ACCESSIBILITY_NAME)
+         if (Constants.NOTIF_INTENT_EXTRA_ACCESSIBILITY_VALUE == accessibility) {
+             homeDialogState = HomeDialog.AccessibilityCrash
+             return
+         }
+
+         val newApp = intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_NEW_APP_NAME)
+         if (Constants.NOTIF_INTENT_EXTRA_NEW_APP_VALUE == newApp) {
+             val uid = intent.getIntExtra(Constants.NOTIF_INTENT_EXTRA_APP_UID, Constants.INVALID_UID)
+             if (uid > 0) {
+                 homeNavRequest = HomeNavRequest.AppInfo(uid = uid)
+             }
+             return
+         }
+
+         val wg = intent.getStringExtra(Constants.NOTIF_WG_PERMISSION_NAME)
+         if (Constants.NOTIF_WG_PERMISSION_VALUE == wg) {
+             homeNavRequest = HomeNavRequest.WgMain
+             return
+         }
+    }
+
 
     private fun handleRestoreProcess(uri: Uri?) {
         if (uri == null) {
@@ -601,8 +760,7 @@ class HomeScreenActivity : AppCompatActivity() {
     private fun observeAppState() {
         VpnController.connectionStatus.observe(this) {
             if (it == BraveVPNService.State.PAUSED) {
-                startActivity(Intent().setClass(this, PauseActivity::class.java))
-                finish()
+                // Handled in setContent
             }
         }
     }
@@ -631,7 +789,7 @@ class HomeScreenActivity : AppCompatActivity() {
         // if biometric auth is enabled, then set the biometric auth type to 3 (15 minutes)
         if (persistentState.biometricAuth) {
             persistentState.biometricAuthType =
-                MiscSettingsActivity.BioMetricType.FIFTEEN_MIN.action
+                BioMetricType.FIFTEEN_MIN.action
             // reset the bio metric auth time, as now the value is changed from System.currentTimeMillis
             // to SystemClock.elapsedRealtime
             persistentState.biometricAuthTime = SystemClock.elapsedRealtime()
@@ -677,11 +835,7 @@ class HomeScreenActivity : AppCompatActivity() {
         }
     }
 
-    private fun launchOnboardActivity() {
-        val intent = Intent(this, WelcomeActivity::class.java)
-        startActivity(intent)
-        finish()
-    }
+
 
     private fun updateNewVersion() {
         if (!isNewVersion()) return
@@ -918,28 +1072,7 @@ class HomeScreenActivity : AppCompatActivity() {
         Logger.v(LOG_TAG_UI, "home screen activity is stopped, app going to background")
     }
 
-    enum class ScreenType {
-        DNS,
-        FIREWALL,
-        LOGS,
-        RULES,
-        PROXY,
-        ALERTS,
-        RETHINK,
-        PROXY_WIREGUARD
-    }
 
-    enum class ConfigureScreenType {
-        APPS,
-        DNS,
-        FIREWALL,
-        PROXY,
-        VPN,
-        OTHERS,
-        LOGS,
-        ANTI_CENSORSHIP,
-        ADVANCED
-    }
 
     private sealed interface HomeDialog {
         data class Restore(val uri: Uri) : HomeDialog
@@ -958,6 +1091,7 @@ class HomeScreenActivity : AppCompatActivity() {
         data class DatabaseTables(val tables: List<String>) : HomeDialog
         data class DatabaseDump(val title: String, val dump: String) : HomeDialog
         data object NoLog : HomeDialog
+        data object AccessibilityCrash : HomeDialog
         data class NewFeatures(val title: String) : HomeDialog
     }
 
@@ -1032,11 +1166,22 @@ class HomeScreenActivity : AppCompatActivity() {
         }
 
         if (canStartRethinkActivity()) {
-            startActivity(ScreenType.RETHINK, screenToLoad)
+            io {
+                val endpoint = appConfig.getRemoteRethinkEndpoint()
+                val url = endpoint?.url ?: ""
+                val name = endpoint?.name ?: ""
+                uiCtx {
+                    homeNavRequest = HomeNavRequest.ConfigureRethinkBasic(
+                        ConfigureRethinkScreenType.DB_LIST,
+                        name,
+                        url
+                    )
+                }
+            }
             return
         }
 
-        startActivity(ScreenType.DNS, screenToLoad)
+        homeNavRequest = HomeNavRequest.DnsDetail
     }
 
     private fun navigateToDnsDetailIfAllowed() {
@@ -1048,20 +1193,15 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun startCustomDnsActivity() {
-        val intent = Intent(this, DnsListActivity::class.java)
-        startActivity(intent)
+        homeNavRequest = HomeNavRequest.DnsList
     }
 
     private fun startRethinkPlusDnsActivity() {
-        val intent = Intent(this, ConfigureRethinkBasicActivity::class.java)
-        intent.putExtra(ConfigureRethinkBasicActivity.INTENT, ConfigureRethinkBasicActivity.FragmentLoader.DB_LIST.ordinal)
-        startActivity(intent)
+        homeNavRequest = HomeNavRequest.ConfigureRethinkBasic(ConfigureRethinkScreenType.DB_LIST)
     }
 
     private fun startLocalBlocklistConfigureActivity() {
-        val intent = Intent(this, ConfigureRethinkBasicActivity::class.java)
-        intent.putExtra(ConfigureRethinkBasicActivity.INTENT, ConfigureRethinkBasicActivity.FragmentLoader.LOCAL.ordinal)
-        startActivity(intent)
+        homeNavRequest = HomeNavRequest.ConfigureRethinkBasic(ConfigureRethinkScreenType.LOCAL)
     }
 
     private fun canStartRethinkActivity(): Boolean {
@@ -1074,89 +1214,23 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun startFirewallActivity(screenToLoad: Int) {
-        startActivity(ScreenType.FIREWALL, screenToLoad)
+        homeNavRequest = HomeNavRequest.FirewallSettings
     }
 
     private fun openUniversalFirewallScreen() {
-        val intent = Intent(this, UniversalFirewallSettingsActivity::class.java)
-        startActivity(intent)
+        homeNavRequest = HomeNavRequest.UniversalFirewallSettings
     }
 
     private fun openCustomIpScreen() {
-        val intent = Intent(this, CustomRulesActivity::class.java)
-        intent.putExtra(
-            Constants.VIEW_PAGER_SCREEN_TO_LOAD,
-            CustomRulesActivity.Tabs.IP_RULES.screen
-        )
-        intent.putExtra(
-            CustomRulesActivity.INTENT_RULES,
-            CustomRulesActivity.RULES.APP_SPECIFIC_RULES.type
-        )
-        intent.putExtra(Constants.INTENT_UID, Constants.UID_EVERYBODY)
-        startActivity(intent)
+        homeNavRequest = HomeNavRequest.CustomRules
     }
 
     private fun openAppWiseIpScreen() {
-        val intent = Intent(this, CustomRulesActivity::class.java)
-        intent.putExtra(
-            Constants.VIEW_PAGER_SCREEN_TO_LOAD,
-            CustomRulesActivity.Tabs.IP_RULES.screen
-        )
-        intent.putExtra(CustomRulesActivity.INTENT_RULES, CustomRulesActivity.RULES.ALL_RULES.type)
-        intent.putExtra(Constants.INTENT_UID, Constants.UID_EVERYBODY)
-        startActivity(intent)
+        homeNavRequest = HomeNavRequest.CustomRules
     }
 
     private fun startAppsActivity() {
-        val intent = Intent(this, AppListActivity::class.java)
-        startActivity(intent)
-    }
-
-    private fun startActivity(type: ScreenType, screenToLoad: Int = 0) {
-        if (type == ScreenType.ALERTS) {
-            homeNavRequest = HomeNavRequest.Alerts
-            return
-        }
-        val intent =
-            when (type) {
-                ScreenType.DNS -> Intent(this, DnsDetailActivity::class.java)
-                ScreenType.FIREWALL -> Intent(this, FirewallActivity::class.java)
-                ScreenType.LOGS -> Intent(this, NetworkLogsActivity::class.java)
-                ScreenType.RULES -> Intent(this, CustomRulesActivity::class.java)
-                ScreenType.PROXY -> Intent(this, ProxySettingsActivity::class.java)
-                ScreenType.RETHINK -> Intent(this, ConfigureRethinkBasicActivity::class.java)
-                ScreenType.PROXY_WIREGUARD -> Intent(this, WgMainActivity::class.java)
-            }
-        if (type == ScreenType.RETHINK) {
-            io {
-                val endpoint = appConfig.getRemoteRethinkEndpoint()
-                val url = endpoint?.url
-                val name = endpoint?.name
-                intent.putExtra(ConfigureRethinkBasicActivity.RETHINK_BLOCKLIST_NAME, name)
-                intent.putExtra(ConfigureRethinkBasicActivity.RETHINK_BLOCKLIST_URL, url)
-                uiCtx { startActivity(intent) }
-            }
-        } else {
-            intent.putExtra(Constants.VIEW_PAGER_SCREEN_TO_LOAD, screenToLoad)
-            startActivity(intent)
-        }
-    }
-
-    private fun startActivity(type: ConfigureScreenType) {
-        val intent =
-            when (type) {
-                ConfigureScreenType.APPS -> Intent(this, AppListActivity::class.java)
-                ConfigureScreenType.DNS -> Intent(this, DnsDetailActivity::class.java)
-                ConfigureScreenType.FIREWALL -> Intent(this, FirewallActivity::class.java)
-                ConfigureScreenType.PROXY -> Intent(this, ProxySettingsActivity::class.java)
-                ConfigureScreenType.VPN -> Intent(this, TunnelSettingsActivity::class.java)
-                ConfigureScreenType.OTHERS -> Intent(this, MiscSettingsActivity::class.java)
-                ConfigureScreenType.LOGS -> Intent(this, NetworkLogsActivity::class.java)
-                ConfigureScreenType.ANTI_CENSORSHIP -> Intent(this, AntiCensorshipActivity::class.java)
-                ConfigureScreenType.ADVANCED -> Intent(this, AdvancedSettingActivity::class.java)
-            }
-
-        startActivity(intent)
+        homeNavRequest = HomeNavRequest.AppList
     }
 
     private fun prepareAndStartVpn() {
@@ -1959,6 +2033,8 @@ class HomeScreenActivity : AppCompatActivity() {
         const val EXTRA_NAV_TARGET = "extra_nav_target"
         const val NAV_TARGET_DOMAIN_CONNECTIONS = "nav_target_domain_connections"
         const val NAV_TARGET_APP_INFO = "nav_target_app_info"
+        const val NAV_TARGET_NETWORK_LOGS = "nav_target_network_logs"
+        const val NAV_TARGET_WG_MAIN = "nav_target_wg_main"
         const val EXTRA_DC_TYPE = "extra_dc_type"
         const val EXTRA_DC_FLAG = "extra_dc_flag"
         const val EXTRA_DC_DOMAIN = "extra_dc_domain"
@@ -2358,6 +2434,34 @@ class HomeScreenActivity : AppCompatActivity() {
                     }
                 )
             }
+            HomeDialog.AccessibilityCrash -> {
+                AlertDialog(
+                    onDismissRequest = { homeDialogState = null },
+                    title = { Text(text = getString(R.string.lbl_action_required)) },
+                    text = {
+                        Text(text = getString(R.string.alert_firewall_accessibility_regrant_explanation))
+                    },
+                    confirmButton = {
+                        TextButton(
+                            onClick = {
+                                UIUtils.openAndroidAppInfo(this@HomeScreenActivity, packageName)
+                                homeDialogState = null
+                            }
+                        ) {
+                            Text(text = getString(R.string.univ_accessibility_crash_dialog_positive))
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(
+                            onClick = {
+                                homeDialogState = null
+                            }
+                        ) {
+                            Text(text = getString(R.string.lbl_cancel))
+                        }
+                    }
+                )
+            }
             null -> Unit
         }
     }
@@ -2463,5 +2567,29 @@ class HomeScreenActivity : AppCompatActivity() {
 
     private suspend fun uiCtx(f: suspend () -> Unit) {
         withContext(Dispatchers.Main) { f() }
+    }
+    private fun launchFileImport() {
+        try {
+            tunnelFileImportResultLauncher.launch("*/*")
+        } catch (e: ActivityNotFoundException) {
+            showToastUiCentered(this, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
+        } catch (e: Exception) {
+            showToastUiCentered(this, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
+        }
+    }
+
+    private fun launchQrScanner() {
+        try {
+            qrImportResultLauncher.launch(
+                ScanOptions()
+                    .setOrientationLocked(false)
+                    .setBeepEnabled(false)
+                    .setPrompt(resources.getString(R.string.lbl_qr_code))
+            )
+        } catch (e: ActivityNotFoundException) {
+            showToastUiCentered(this, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
+        } catch (e: Exception) {
+            showToastUiCentered(this, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
+        }
     }
 }

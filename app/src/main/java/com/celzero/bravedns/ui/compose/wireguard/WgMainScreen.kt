@@ -70,8 +70,8 @@ import androidx.lifecycle.asFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.OneWgConfigAdapter
-import com.celzero.bravedns.adapter.WgConfigAdapter
+import com.celzero.bravedns.adapter.OneWgConfigRow
+import com.celzero.bravedns.adapter.WgConfigRow
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
@@ -104,7 +104,8 @@ fun WgMainScreen(
     onBackClick: () -> Unit,
     onCreateClick: () -> Unit,
     onImportClick: () -> Unit,
-    onQrScanClick: () -> Unit
+    onQrScanClick: () -> Unit,
+    onConfigDetailClick: (Int, WgType) -> Unit
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -160,31 +161,7 @@ fun WgMainScreen(
         updateDisclaimerText()
     }
 
-    // Create adapters with listener
-    val oneWgAdapter = remember {
-        OneWgConfigAdapter(
-            context = context,
-            listener = object : OneWgConfigAdapter.DnsStatusListener {
-                override fun onDnsStatusChanged() {
-                    dnsRefreshTrigger++
-                }
-            },
-            eventLogger = eventLogger
-        )
-    }
 
-    val wgAdapter = remember {
-        WgConfigAdapter(
-            context = context,
-            listener = object : OneWgConfigAdapter.DnsStatusListener {
-                override fun onDnsStatusChanged() {
-                    dnsRefreshTrigger++
-                }
-            },
-            splitDns = persistentState.splitDns,
-            eventLogger = eventLogger
-        )
-    }
 
     BackHandler(enabled = isFabExpanded) {
         isFabExpanded = false
@@ -255,8 +232,9 @@ fun WgMainScreen(
                     selectedTab = selectedTab,
                     disclaimerText = disclaimerText,
                     wgConfigViewModel = wgConfigViewModel,
-                    oneWgAdapter = oneWgAdapter,
-                    wgAdapter = wgAdapter,
+                    eventLogger = eventLogger,
+                    onDnsStatusChanged = { dnsRefreshTrigger++ },
+                    onConfigDetailClick = onConfigDetailClick,
                     onOneWgToggleClick = {
                         val activeConfigs = WireguardManager.getActiveConfigs()
                         val isAnyConfigActive = activeConfigs.isNotEmpty()
@@ -307,8 +285,9 @@ private fun WgConfigContent(
     selectedTab: WgTab,
     disclaimerText: String,
     wgConfigViewModel: WgConfigViewModel,
-    oneWgAdapter: OneWgConfigAdapter,
-    wgAdapter: WgConfigAdapter,
+    eventLogger: EventLogger,
+    onDnsStatusChanged: () -> Unit,
+    onConfigDetailClick: (Int, WgType) -> Unit,
     onOneWgToggleClick: () -> Unit,
     onGeneralToggleClick: () -> Unit
 ) {
@@ -340,7 +319,12 @@ private fun WgConfigContent(
                 ) {
                     items(count = items.itemCount) { index ->
                         val item = items[index] ?: return@items
-                        wgAdapter.ConfigRow(item)
+                        WgConfigRow(
+                            config = item,
+                            eventLogger = eventLogger,
+                            onDnsStatusChanged = onDnsStatusChanged,
+                            onConfigDetailClick = onConfigDetailClick
+                        )
                     }
                 }
             }
@@ -352,7 +336,12 @@ private fun WgConfigContent(
                 ) {
                     items(count = items.itemCount) { index ->
                         val item = items[index] ?: return@items
-                        oneWgAdapter.ConfigRow(item)
+                        OneWgConfigRow(
+                            config = item,
+                            eventLogger = eventLogger,
+                            onDnsStatusChanged = onDnsStatusChanged,
+                            onConfigDetailClick = onConfigDetailClick
+                        )
                     }
                 }
             }

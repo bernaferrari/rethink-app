@@ -76,10 +76,10 @@ import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.LocalAdvancedViewAdapter
-import com.celzero.bravedns.adapter.LocalSimpleViewAdapter
-import com.celzero.bravedns.adapter.RemoteAdvancedViewAdapter
-import com.celzero.bravedns.adapter.RemoteSimpleViewAdapter
+import com.celzero.bravedns.adapter.LocalAdvancedBlocklistRow
+import com.celzero.bravedns.adapter.LocalSimpleBlocklistRow
+import com.celzero.bravedns.adapter.RemoteAdvancedBlocklistRow
+import com.celzero.bravedns.adapter.RemoteSimpleBlocklistRow
 import com.celzero.bravedns.adapter.RethinkEndpointRow
 import com.celzero.bravedns.customdownloader.LocalBlocklistCoordinator.Companion.CUSTOM_DOWNLOAD
 import com.celzero.bravedns.customdownloader.RemoteBlocklistCoordinator
@@ -1029,7 +1029,6 @@ private fun RethinkBlocklistContent(
                 )
 
                 if (blocklistType.isLocal()) {
-                    val advancedAdapter = remember { LocalAdvancedViewAdapter(context) }
                     val advancedItems = localFileTagViewModel.localFiletags.asFlow().collectAsLazyPagingItems()
                     LazyColumn(
                         modifier = Modifier.weight(1f),
@@ -1039,7 +1038,7 @@ private fun RethinkBlocklistContent(
                             val item = advancedItems[index] ?: return@items
                             val previous = if (index > 0) advancedItems.peek(index - 1) else null
                             val showHeader = previous?.group != item.group
-                            advancedAdapter.BlocklistRow(
+                            LocalAdvancedBlocklistRow(
                                 filetag = item,
                                 showHeader = showHeader
                             ) { isSelected ->
@@ -1048,7 +1047,6 @@ private fun RethinkBlocklistContent(
                         }
                     }
                 } else {
-                    val advancedAdapter = remember { RemoteAdvancedViewAdapter(context) }
                     val advancedItems = remoteFileTagViewModel.remoteFileTags.asFlow().collectAsLazyPagingItems()
                     LazyColumn(
                         modifier = Modifier.weight(1f),
@@ -1058,7 +1056,7 @@ private fun RethinkBlocklistContent(
                             val item = advancedItems[index] ?: return@items
                             val previous = if (index > 0) advancedItems.peek(index - 1) else null
                             val showHeader = previous?.group != item.group
-                            advancedAdapter.BlocklistRow(
+                            RemoteAdvancedBlocklistRow(
                                 filetag = item,
                                 showHeader = showHeader
                             ) { isSelected ->
@@ -1069,7 +1067,6 @@ private fun RethinkBlocklistContent(
                 }
             } else {
                 if (blocklistType.isLocal()) {
-                    val simpleAdapter = remember { LocalSimpleViewAdapter(context) }
                     val simpleItems = localBlocklistPacksMapViewModel.simpleTags.asFlow().collectAsLazyPagingItems()
                     LazyColumn(
                         modifier = Modifier.weight(1f),
@@ -1081,7 +1078,7 @@ private fun RethinkBlocklistContent(
                             val showHeader = previous?.group != item.group
                             val valid = !item.pack.contains(DEAD_PACK) && item.pack.isNotEmpty()
                             if (!valid) return@items
-                            simpleAdapter.BlocklistRow(
+                            LocalSimpleBlocklistRow(
                                 map = item,
                                 showHeader = showHeader
                             ) { isSelected ->
@@ -1090,7 +1087,6 @@ private fun RethinkBlocklistContent(
                         }
                     }
                 } else {
-                    val simpleAdapter = remember { RemoteSimpleViewAdapter(context) }
                     val simpleItems = remoteBlocklistPacksMapViewModel.simpleTags.asFlow().collectAsLazyPagingItems()
                     LazyColumn(
                         modifier = Modifier.weight(1f),
@@ -1102,7 +1098,7 @@ private fun RethinkBlocklistContent(
                             val showHeader = previous?.group != item.group
                             val valid = !item.pack.contains(DEAD_PACK) && item.pack.isNotEmpty()
                             if (!valid) return@items
-                            simpleAdapter.BlocklistRow(
+                            RemoteSimpleBlocklistRow(
                                 map = item,
                                 showHeader = showHeader
                             ) { isSelected ->

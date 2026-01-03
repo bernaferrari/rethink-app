@@ -13,7 +13,9 @@ import androidx.paging.liveData
 import com.celzero.bravedns.database.AppInfo
 import com.celzero.bravedns.database.AppInfoDAO
 import com.celzero.bravedns.service.FirewallManager
-import com.celzero.bravedns.ui.activity.AppListActivity
+import com.celzero.bravedns.ui.compose.firewall.Filters
+import com.celzero.bravedns.ui.compose.firewall.FirewallFilter
+import com.celzero.bravedns.ui.compose.firewall.TopLevelFilter
 import com.celzero.bravedns.util.Constants
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -23,8 +25,8 @@ class AppInfoViewModel(private val appInfoDAO: AppInfoDAO) : ViewModel() {
 
     private var filter: MutableLiveData<String> = MutableLiveData()
     private var category: MutableSet<String> = mutableSetOf()
-    private var topLevelFilter = AppListActivity.TopLevelFilter.ALL
-    private var firewallFilter = AppListActivity.FirewallFilter.ALL
+    private var topLevelFilter = TopLevelFilter.ALL
+    private var firewallFilter = FirewallFilter.ALL
     private var search: String = ""
 
     init {
@@ -48,7 +50,7 @@ class AppInfoViewModel(private val appInfoDAO: AppInfoDAO) : ViewModel() {
         }
     }
 
-    fun setFilter(filters: AppListActivity.Filters) {
+    fun setFilter(filters: Filters) {
         this.category.clear()
         this.category.addAll(filters.categoryFilters)
 
@@ -62,13 +64,13 @@ class AppInfoViewModel(private val appInfoDAO: AppInfoDAO) : ViewModel() {
     private fun getAppInfo(searchString: String): LiveData<PagingData<AppInfo>> {
         return when (topLevelFilter) {
             // get the app info based on the filter
-            AppListActivity.TopLevelFilter.ALL -> {
+            TopLevelFilter.ALL -> {
                 allApps(searchString)
             }
-            AppListActivity.TopLevelFilter.INSTALLED -> {
+            TopLevelFilter.INSTALLED -> {
                 installedApps(searchString)
             }
-            AppListActivity.TopLevelFilter.SYSTEM -> {
+            TopLevelFilter.SYSTEM -> {
                 systemApps(searchString)
             }
         }
@@ -409,13 +411,13 @@ class AppInfoViewModel(private val appInfoDAO: AppInfoDAO) : ViewModel() {
     private fun getFilteredApps(): List<AppInfo> {
         val appType =
             when (topLevelFilter) {
-                AppListActivity.TopLevelFilter.ALL -> {
+                TopLevelFilter.ALL -> {
                     setOf(0, 1)
                 }
-                AppListActivity.TopLevelFilter.INSTALLED -> {
+                TopLevelFilter.INSTALLED -> {
                     setOf(0)
                 }
-                AppListActivity.TopLevelFilter.SYSTEM -> {
+                TopLevelFilter.SYSTEM -> {
                     setOf(1)
                 }
             }

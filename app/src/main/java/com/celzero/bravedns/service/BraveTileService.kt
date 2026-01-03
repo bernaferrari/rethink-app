@@ -27,8 +27,8 @@ import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
 import com.celzero.bravedns.ui.PrepareVpnActivity
-import com.celzero.bravedns.ui.activity.AppLockActivity
-import com.celzero.bravedns.ui.activity.MiscSettingsActivity
+import com.celzero.bravedns.ui.HomeScreenActivity
+import com.celzero.bravedns.util.BioMetricType
 import com.celzero.bravedns.util.Utilities
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -89,7 +89,7 @@ class BraveTileService : TileService(), KoinComponent {
         if (isAppRunningOnTv()) return false
 
         // TODO: should we check for last unlock time here?
-        MiscSettingsActivity.BioMetricType.fromValue(persistentState.biometricAuthType).let {
+        BioMetricType.fromValue(persistentState.biometricAuthType).let {
             return it.enabled()
         }
     }
@@ -108,7 +108,7 @@ class BraveTileService : TileService(), KoinComponent {
                 if (Utilities.isHeadlessFlavour()) {
                     Intent(this, PrepareVpnActivity::class.java)
                 } else {
-                    Intent(this, AppLockActivity::class.java)
+                    Intent(this, HomeScreenActivity::class.java)
                 }
             val pendingIntent = PendingIntent.getActivity(this, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)

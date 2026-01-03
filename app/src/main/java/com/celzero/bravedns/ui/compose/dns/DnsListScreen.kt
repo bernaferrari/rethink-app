@@ -58,8 +58,6 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.activity.ConfigureOtherDnsActivity
-import com.celzero.bravedns.ui.activity.ConfigureRethinkBasicActivity
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.firestack.backend.Backend
@@ -136,7 +134,7 @@ fun DnsListScreen(
                     selectedWorking = selectedWorking,
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        onConfigureOtherDns(ConfigureOtherDnsActivity.DnsScreen.DOH.index)
+                        onConfigureOtherDns(DnsScreenType.DOH.index)
                     }
                 )
                 DnsCard(
@@ -148,7 +146,7 @@ fun DnsListScreen(
                     selectedWorking = selectedWorking,
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        onConfigureOtherDns(ConfigureOtherDnsActivity.DnsScreen.DOT.index)
+                        onConfigureOtherDns(DnsScreenType.DOT.index)
                     }
                 )
             }
@@ -163,7 +161,7 @@ fun DnsListScreen(
                     selectedWorking = selectedWorking,
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        onConfigureOtherDns(ConfigureOtherDnsActivity.DnsScreen.DNS_CRYPT.index)
+                        onConfigureOtherDns(DnsScreenType.DNS_CRYPT.index)
                     }
                 )
                 DnsCard(
@@ -175,7 +173,7 @@ fun DnsListScreen(
                     selectedWorking = selectedWorking,
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        onConfigureOtherDns(ConfigureOtherDnsActivity.DnsScreen.DNS_PROXY.index)
+                        onConfigureOtherDns(DnsScreenType.DNS_PROXY.index)
                     }
                 )
             }
@@ -190,7 +188,7 @@ fun DnsListScreen(
                     selectedWorking = selectedWorking,
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        onConfigureOtherDns(ConfigureOtherDnsActivity.DnsScreen.ODOH.index)
+                        onConfigureOtherDns(DnsScreenType.ODOH.index)
                     }
                 )
                 DnsCard(
@@ -202,7 +200,7 @@ fun DnsListScreen(
                     selectedWorking = selectedWorking,
                     modifier = Modifier.weight(1f),
                     onClick = {
-                        onConfigureRethinkBasic(ConfigureRethinkBasicActivity.FragmentLoader.DB_LIST.ordinal)
+                        onConfigureRethinkBasic(0) // FragmentLoader.DB_LIST ordinal
                     }
                 )
             }

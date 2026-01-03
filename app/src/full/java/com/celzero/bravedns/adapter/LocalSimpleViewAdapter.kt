@@ -18,6 +18,7 @@ package com.celzero.bravedns.adapter
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,118 +45,92 @@ import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
 
-class LocalSimpleViewAdapter(val context: Context) {
+@Composable
+fun LocalSimpleBlocklistRow(
+    map: LocalBlocklistPacksMap,
+    showHeader: Boolean,
+    onToggle: (Boolean) -> Unit
+) {
+    val context = LocalContext.current
+    val selectedTags = RethinkBlocklistState.getSelectedFileTags()
+    val isSelected = selectedTags.containsAll(map.blocklistIds)
+    val backgroundColor =
+        if (isSelected) {
+            Color(fetchColor(context, R.attr.selectedCardBg))
+        } else {
+            Color(fetchColor(context, R.attr.background))
+        }
+    val indicatorColor = getLevelIndicatorColor(context, map.level)
 
-    @Composable
-    fun BlocklistRow(
-        map: LocalBlocklistPacksMap,
-        showHeader: Boolean,
-        onToggle: (Boolean) -> Unit
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
     ) {
-        val selectedTags = RethinkBlocklistState.getSelectedFileTags()
-        val isSelected = selectedTags.containsAll(map.blocklistIds)
-        val backgroundColor =
-            if (isSelected) {
-                Color(fetchColor(context, R.attr.selectedCardBg))
-            } else {
-                Color(fetchColor(context, R.attr.background))
-            }
-        val indicatorColor = getLevelIndicatorColor(map.level)
-
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            if (showHeader) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = getGroupName(map.group),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = Color(fetchColor(context, R.attr.accentBad))
-                    )
-                    Text(
-                        text = getTitleDesc(map.group),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color(fetchColor(context, R.attr.primaryLightColorText))
-                    )
-                }
-            }
-
-            Card(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable { onToggle(!isSelected) },
-                colors = CardDefaults.cardColors(containerColor = backgroundColor)
+        if (showHeader) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Row(
-                    modifier = Modifier.padding(10.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .width(2.5.dp)
-                                .fillMaxHeight()
-                                .background(indicatorColor)
+                Text(
+                    text = RethinkBlocklistManager.getGroupName(context, map.group),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = Color(fetchColor(context, R.attr.accentBad))
+                )
+                Text(
+                    text = RethinkBlocklistManager.getTitleDesc(context, map.group),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color(fetchColor(context, R.attr.primaryLightColorText))
+                )
+            }
+        }
+
+        Card(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .clickable { onToggle(!isSelected) },
+            colors = CardDefaults.cardColors(containerColor = backgroundColor)
+        ) {
+            Row(
+                modifier = Modifier.padding(10.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Box(
+                    modifier =
+                        Modifier
+                            .width(2.5.dp)
+                            .fillMaxHeight()
+                            .background(indicatorColor)
+                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = map.pack.replaceFirstChar(Char::titlecase),
+                        style = MaterialTheme.typography.titleMedium
                     )
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = map.pack.replaceFirstChar(Char::titlecase),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text =
-                                context.getString(
-                                    R.string.rsv_blocklist_count_text,
-                                    map.blocklistIds.size.toString()
-                                ),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Checkbox(checked = isSelected, onCheckedChange = { onToggle(it) })
+                    Text(
+                        text =
+                            context.getString(
+                                R.string.rsv_blocklist_count_text,
+                                map.blocklistIds.size.toString()
+                            ),
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
+                Spacer(modifier = Modifier.width(8.dp))
+                Checkbox(checked = isSelected, onCheckedChange = { onToggle(it) })
             }
         }
     }
+}
 
-    private fun getLevelIndicatorColor(level: Int): Color {
-        val resId =
-            when (level) {
-                0 -> R.color.firewallNoRuleToggleBtnBg
-                1 -> R.color.firewallWhiteListToggleBtnTxt
-                2 -> R.color.firewallBlockToggleBtnTxt
-                else -> R.color.firewallNoRuleToggleBtnBg
-            }
-        return Color(fetchToggleBtnColors(context, resId))
-    }
-
-    private fun getTitleDesc(title: String): String {
-        return if (title.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) {
-            context.getString(RethinkBlocklistManager.PARENTAL_CONTROL.desc)
-        } else if (title.equals(RethinkBlocklistManager.SECURITY.name, true)) {
-            context.getString(RethinkBlocklistManager.SECURITY.desc)
-        } else if (title.equals(RethinkBlocklistManager.PRIVACY.name, true)) {
-            context.getString(RethinkBlocklistManager.PRIVACY.desc)
-        } else {
-            ""
+private fun getLevelIndicatorColor(context: Context, level: Int): Color {
+    val resId =
+        when (level) {
+            0 -> R.color.firewallNoRuleToggleBtnBg
+            1 -> R.color.firewallWhiteListToggleBtnTxt
+            2 -> R.color.firewallBlockToggleBtnTxt
+            else -> R.color.firewallNoRuleToggleBtnBg
         }
-    }
-
-    private fun getGroupName(group: String): String {
-        return if (group.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) {
-            context.getString(RethinkBlocklistManager.PARENTAL_CONTROL.label)
-        } else if (group.equals(RethinkBlocklistManager.SECURITY.name, true)) {
-            context.getString(RethinkBlocklistManager.SECURITY.label)
-        } else if (group.equals(RethinkBlocklistManager.PRIVACY.name, true)) {
-            context.getString(RethinkBlocklistManager.PRIVACY.label)
-        } else {
-            ""
-        }
-    }
+    return Color(fetchToggleBtnColors(context, resId))
 }
