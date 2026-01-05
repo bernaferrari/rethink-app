@@ -7,6 +7,7 @@ plugins {
     alias(libs.plugins.ksp)
 
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 java {
@@ -245,6 +246,7 @@ dependencies {
 
     "fullImplementation"(libs.kotlinx.coroutines.core)
     "fullImplementation"(libs.kotlinx.coroutines.android)
+    implementation(libs.kotlinx.serialization.json)
 
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.gson)

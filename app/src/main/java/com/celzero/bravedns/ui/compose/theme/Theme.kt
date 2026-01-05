@@ -86,14 +86,8 @@ fun RethinkTheme(
         else -> LightColorScheme
     }
 
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = themeMode == RethinkThemeMode.LIGHT || themeMode == RethinkThemeMode.LIGHT_PLUS
-        }
-    }
+    // SideEffect removed for manual edge-to-edge handling. 
+    // Handled by ComponentActivity.enableEdgeToEdge() in HomeScreenActivity.
 
     MaterialTheme(
         colorScheme = colorScheme,
