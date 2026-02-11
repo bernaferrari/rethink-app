@@ -104,7 +104,7 @@ class WgInterface private constructor(builder: Builder) {
             Collections.unmodifiableSet(LinkedHashSet(builder.excludedApplications))
         includedApplications =
             Collections.unmodifiableSet(LinkedHashSet(builder.includedApplications))
-        keyPair = Objects.requireNonNull(builder.keyPair, "Interfaces must have a private key")!!
+        keyPair = requireNotNull(builder.keyPair) { "Interfaces must have a private key" }
         listenPort = builder.listenPort
         mtu = builder.mtu
         clientId = builder.clientId
@@ -442,7 +442,7 @@ class WgInterface private constructor(builder: Builder) {
         }
 
         fun addAddresses(addresses: Collection<InetNetwork>?): Builder {
-            this.addresses.addAll(addresses!!)
+            addresses?.let { this.addresses.addAll(it) }
             return this
         }
 
@@ -452,7 +452,7 @@ class WgInterface private constructor(builder: Builder) {
         }
 
         fun addDnsServers(dnsServers: Collection<InetAddress>?): Builder {
-            this.dnsServers.addAll(dnsServers!!)
+            dnsServers?.let { this.dnsServers.addAll(it) }
             return this
         }
 
@@ -462,7 +462,7 @@ class WgInterface private constructor(builder: Builder) {
         }
 
         fun addDnsSearchDomains(dnsSearchDomains: Collection<String>?): Builder {
-            this.dnsSearchDomains.addAll(dnsSearchDomains!!)
+            dnsSearchDomains?.let { this.dnsSearchDomains.addAll(it) }
             return this
         }
 
@@ -541,7 +541,7 @@ class WgInterface private constructor(builder: Builder) {
         }
 
         fun excludeApplications(applications: Collection<String>?): Builder {
-            excludedApplications.addAll(applications!!)
+            applications?.let { excludedApplications.addAll(it) }
             return this
         }
 
@@ -551,7 +551,7 @@ class WgInterface private constructor(builder: Builder) {
         }
 
         fun includeApplications(applications: Collection<String>?): Builder {
-            includedApplications.addAll(applications!!)
+            applications?.let { includedApplications.addAll(it) }
             return this
         }
 

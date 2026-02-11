@@ -15,6 +15,10 @@ limitations under the License.
 */
 package com.celzero.bravedns.service
 
+/**
+ * Represents the state of the VPN connection.
+ * Enhanced to provide computed properties for status evaluation.
+ */
 class VpnState(requested: Boolean, on: Boolean, connectionState: BraveVPNService.State?, server: String?) {
 
     var activationRequested = false
@@ -35,4 +39,35 @@ class VpnState(requested: Boolean, on: Boolean, connectionState: BraveVPNService
         this.connectionState = connectionState
         this.serverName = server
     }
+
+    // Computed properties for easier state evaluation
+    val isWorking: Boolean
+        get() = on && connectionState == BraveVPNService.State.WORKING
+
+    val isFailing: Boolean
+        get() = connectionState in listOf(
+            BraveVPNService.State.APP_ERROR,
+            BraveVPNService.State.DNS_ERROR,
+            BraveVPNService.State.DNS_SERVER_DOWN,
+            BraveVPNService.State.NO_INTERNET
+        )
+
+    val isNew: Boolean
+        get() = connectionState == BraveVPNService.State.NEW
+
+    val isPaused: Boolean
+        get() = connectionState == BraveVPNService.State.PAUSED
+
+    val hasValidConnection: Boolean
+        get() = on && (connectionState == BraveVPNService.State.WORKING || connectionState == BraveVPNService.State.NEW)
+
+    val statusText: String
+        get() = when {
+            isPaused -> "Paused"
+            isFailing -> "Failing"
+            isWorking -> "Protected"
+            isNew -> "Starting"
+            on -> "Connecting"
+            else -> "Disconnected"
+        }
 }

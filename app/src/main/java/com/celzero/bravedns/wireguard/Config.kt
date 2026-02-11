@@ -146,7 +146,7 @@ class Config private constructor(builder: Builder) {
         }
 
         fun addPeers(peers: Collection<Peer>?): Builder {
-            this.peers.addAll(peers!!)
+            peers?.let { this.peers.addAll(it) }
             return this
         }
 
@@ -167,7 +167,7 @@ class Config private constructor(builder: Builder) {
 
         @Throws(BadConfigException::class)
         fun parseInterface(lines: Iterable<CharSequence?>?): Builder {
-            return setInterface(WgInterface.parse(lines!!))
+            return setInterface(WgInterface.parse(lines ?: emptyList()))
         }
 
         @Throws(BadConfigException::class)
@@ -212,13 +212,14 @@ class Config private constructor(builder: Builder) {
             var inInterfaceSection = false
             var inPeerSection = false
             var seenInterfaceSection = false
-            var line: String?
-            while (reader.readLine().also { line = it } != null) {
-                val commentIndex = line!!.indexOf('#')
-                if (commentIndex != -1) line = line!!.substring(0, commentIndex)
-                line = line!!.trim { it <= ' ' }
-                if (line!!.isEmpty()) continue
-                if (line!!.startsWith("[")) {
+            
+            reader.lineSequence().forEach { rawLine ->
+                var line = rawLine
+                val commentIndex = line.indexOf('#')
+                if (commentIndex != -1) line = line.substring(0, commentIndex)
+                line = line.trim { it <= ' ' }
+                if (line.isEmpty()) return@forEach
+                if (line.startsWith("[")) {
                     // Consume all [Peer] lines read so far.
                     if (inPeerSection) {
                         builder.parsePeer(peerLines)

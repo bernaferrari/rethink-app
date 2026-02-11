@@ -21,8 +21,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.celzero.bravedns.R
@@ -96,13 +98,25 @@ fun StartStopButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val containerColor = if (isPlaying) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.primary
+    }
+    
+    val text = if (isPlaying) {
+        stringResource(R.string.lbl_stop)
+    } else {
+        stringResource(R.string.lbl_start)
+    }
+
     Surface(
         modifier = modifier
             .fillMaxWidth()
             .height(72.dp)
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(36.dp), // Fully rounded pill
-        color = if (isPlaying) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+        shape = RoundedCornerShape(36.dp),
+        color = containerColor
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -110,11 +124,12 @@ fun StartStopButton(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = if (isPlaying) "STOP" else "START",
+                text = text,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onPrimary,
-                letterSpacing = 2.sp
+                textAlign = TextAlign.Center,
+                letterSpacing = 1.5.sp
             )
         }
     }

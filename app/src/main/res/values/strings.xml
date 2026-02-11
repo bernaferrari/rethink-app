@@ -2073,4 +2073,19 @@
     <string name="custom_lan_ip_save_error" translatable="false">Could not save custom LAN IPs</string>
     <string name="custom_lan_ip_open_error" translatable="false">Could not open Custom LAN IPs dialog</string>
     <string name="custom_lan_ip_validation_error" translatable="false">Invalid IP addresses. Ensure:\n• IPv4 must be private (10.x.x.x, 172.16-31.x.x, or 192.168.x.x)\n• IPv6 must be unique local (fc00::/7)\n• Both IP and prefix must be provided together</string>
+
+    <!-- Home Screen Labels -->
+    <string name="lbl_start" translatable="true">Start</string>
+    <string name="lbl_stop" translatable="true">Stop</string>
+    <string name="lbl_dns" translatable="true">DNS</string>
+    <string name="lbl_firewall" translatable="true">Firewall</string>
+    <string name="lbl_proxy" translatable="true">Proxy</string>
+    <string name="lbl_apps" translatable="true">Apps</string>
+    <string name="lbl_bypassed" translatable="true">Bypassed</string>
+    <string name="lbl_isolated" translatable="true">Isolated</string>
+    <string name="lbl_excluded" translatable="true">Excluded</string>
+    <string name="lbl_total" translatable="true">Total</string>
+    <string name="lbl_universal_rules" translatable="true">Universal Rules</string>
+    <string name="dns_detail_latency" translatable="true">Latency</string>
+    <string name="lbl_connected" translatable="true">Connected</string>
 </resources>

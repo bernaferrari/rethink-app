@@ -18,6 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
@@ -26,11 +27,11 @@ import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 data class HomeScreenUiState(
     val isVpnActive: Boolean = false,
     val dnsLatency: String = "-- ms",
-    val dnsConnectedName: String = "Loading...",
+    val dnsConnectedName: String = "",
     val firewallUniversalRules: Int = 0,
     val firewallIpRules: Int = 0,
     val firewallDomainRules: Int = 0,
-    val proxyStatus: String = "Inactive",
+    val proxyStatus: String = "",
     val networkLogsCount: Long = 0,
     val dnsLogsCount: Long = 0,
     val appsAllowed: Int = 0,
@@ -39,7 +40,7 @@ data class HomeScreenUiState(
     val appsBypassed: Int = 0,
     val appsIsolated: Int = 0,
     val appsExcluded: Int = 0,
-    val protectionStatus: String = "Protected",
+    val protectionStatus: String = "",
     val isProtectionFailing: Boolean = false
 )
 
@@ -74,7 +75,7 @@ fun HomeScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "rethink",
+                    text = stringResource(R.string.app_name_small_case),
                     style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
                     modifier = Modifier.clickable { onSponsorClick() }
@@ -99,30 +100,47 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 DashboardCard(
-                    title = "DNS",
+                    title = stringResource(R.string.lbl_dns),
                     iconId = R.drawable.dns_home_screen,
                     modifier = Modifier.weight(1f),
                     onClick = onDnsClick
                 ) {
                     Column {
-                        StatItem(label = "Latency", value = uiState.dnsLatency)
+                        StatItem(
+                            label = stringResource(R.string.dns_detail_latency),
+                            value = uiState.dnsLatency
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
-                        StatItem(label = "Connected", value = uiState.dnsConnectedName)
+                        StatItem(
+                            label = stringResource(R.string.lbl_connected),
+                            value = uiState.dnsConnectedName
+                        )
                     }
                 }
                 
                 DashboardCard(
-                    title = "Firewall",
+                    title = stringResource(R.string.lbl_firewall),
                     iconId = R.drawable.firewall_home_screen,
                     modifier = Modifier.weight(1f),
                     onClick = onFirewallClick
                 ) {
                      Column {
-                        StatItem(label = "Universal Rules", value = uiState.firewallUniversalRules.toString())
+                        StatItem(
+                            label = stringResource(R.string.lbl_universal_rules),
+                            value = uiState.firewallUniversalRules.toString()
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                             StatItem(label = "IP", value = uiState.firewallIpRules.toString(), modifier = Modifier.weight(1f))
-                             StatItem(label = "Domain", value = uiState.firewallDomainRules.toString(), modifier = Modifier.weight(1f))
+                             StatItem(
+                                 label = stringResource(R.string.lbl_ip),
+                                 value = uiState.firewallIpRules.toString(),
+                                 modifier = Modifier.weight(1f)
+                             )
+                             StatItem(
+                                 label = stringResource(R.string.lbl_domain),
+                                 value = uiState.firewallDomainRules.toString(),
+                                 modifier = Modifier.weight(1f)
+                             )
                         }
                     }
                 }
@@ -134,35 +152,41 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 DashboardCard(
-                    title = "Proxy",
+                    title = stringResource(R.string.lbl_proxy),
                     iconId = R.drawable.ic_vpn,
                     modifier = Modifier.weight(1f),
                     onClick = onProxyClick
                 ) {
                     Text(
-                        text = uiState.proxyStatus,
+                        text = uiState.proxyStatus.ifEmpty { stringResource(R.string.lbl_inactive) },
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
 
                 DashboardCard(
-                    title = "Logs",
+                    title = stringResource(R.string.lbl_logs),
                     iconId = R.drawable.ic_logs_accent,
                     modifier = Modifier.weight(1f),
                     onClick = onLogsClick
                 ) {
                    Column {
-                        StatItem(label = "Network", value = uiState.networkLogsCount.toString())
+                        StatItem(
+                            label = stringResource(R.string.lbl_network),
+                            value = uiState.networkLogsCount.toString()
+                        )
                         Spacer(modifier = Modifier.height(8.dp))
-                        StatItem(label = "DNS", value = uiState.dnsLogsCount.toString())
+                        StatItem(
+                            label = stringResource(R.string.lbl_dns),
+                            value = uiState.dnsLogsCount.toString()
+                        )
                     }
                 }
             }
             
             // Apps Card
             DashboardCard(
-                title = "Apps",
+                title = stringResource(R.string.lbl_apps),
                 iconId = R.drawable.ic_app_info_accent,
                 onClick = onAppsClick
             ) {
@@ -171,19 +195,42 @@ fun HomeScreen(
                    horizontalArrangement = Arrangement.SpaceBetween,
                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    StatItem(label = "Allowed", value = uiState.appsAllowed.toString(), isHighlighted = true)
-                    Text("/", style = MaterialTheme.typography.displaySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    StatItem(label = "Total", value = uiState.appsTotal.toString())
+                    StatItem(
+                        label = stringResource(R.string.lbl_allowed),
+                        value = uiState.appsAllowed.toString(),
+                        isHighlighted = true
+                    )
+                    Text(
+                        "/",
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    StatItem(
+                        label = stringResource(R.string.lbl_total),
+                        value = uiState.appsTotal.toString()
+                    )
                 }
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                     StatItem(label = "Blocked", value = uiState.appsBlocked.toString())
-                     StatItem(label = "Bypassed", value = uiState.appsBypassed.toString())
-                     StatItem(label = "Isolated", value = uiState.appsIsolated.toString())
-                     StatItem(label = "Excluded", value = uiState.appsExcluded.toString())
+                     StatItem(
+                         label = stringResource(R.string.lbl_blocked),
+                         value = uiState.appsBlocked.toString()
+                     )
+                     StatItem(
+                         label = stringResource(R.string.lbl_bypassed),
+                         value = uiState.appsBypassed.toString()
+                     )
+                     StatItem(
+                         label = stringResource(R.string.lbl_isolated),
+                         value = uiState.appsIsolated.toString()
+                     )
+                     StatItem(
+                         label = stringResource(R.string.lbl_excluded),
+                         value = uiState.appsExcluded.toString()
+                     )
                 }
             }
 

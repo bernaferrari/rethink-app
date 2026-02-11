@@ -28,14 +28,22 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.lifecycle.asFlow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.navigation.toRoute
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.SummaryStatisticsType
 import com.celzero.bravedns.data.AppConfig
@@ -106,6 +114,7 @@ import com.celzero.bravedns.database.ConnectionTrackerRepository
 import com.celzero.bravedns.database.DnsLogRepository
 import com.celzero.bravedns.database.RethinkLogRepository
 import com.celzero.bravedns.ui.compose.dns.ConfigureOtherDnsScreen
+import com.celzero.bravedns.ui.compose.dns.DnsScreenType
 import com.celzero.bravedns.ui.compose.firewall.UniversalFirewallSettingsScreen
 import com.celzero.bravedns.ui.compose.settings.CheckoutScreen
 import com.celzero.bravedns.viewmodel.DoHEndpointViewModel
@@ -116,6 +125,7 @@ import com.celzero.bravedns.viewmodel.DnsCryptRelayEndpointViewModel
 import com.celzero.bravedns.viewmodel.ODoHEndpointViewModel
 import com.celzero.bravedns.viewmodel.CheckoutViewModel
 import com.celzero.bravedns.ui.compose.logs.AppWiseDomainLogsScreen
+import com.celzero.bravedns.ui.compose.logs.AppWiseDomainLogsState
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
 import com.celzero.bravedns.ui.compose.wireguard.WgMainScreen
 
@@ -487,7 +497,7 @@ fun HomeScreenRoot(
         onHomeNavConsumed()
     }
 
-    BackHandler(enabled = currentDestination?.hasRoute<HomeRoute.Home>() == false) {
+    BackHandler(enabled = currentDestination?.route != "home") {
         navController.navigate(HomeRoute.Home) {
             popUpTo(navController.graph.findStartDestination().id) { inclusive = false }
             launchSingleTop = true
@@ -500,7 +510,7 @@ fun HomeScreenRoot(
         bottomBar = {
             NavigationBar {
                 HomeDestination.entries.forEach { destination ->
-                    val isSelected = currentDestination?.hasRoute(destination.route::class) == true
+                    val isSelected = currentDestination?.route == destination.route::class.qualifiedName
                     NavigationBarItem(
                         selected = isSelected,
                         onClick = {
@@ -771,7 +781,7 @@ fun HomeScreenRoot(
                 
                 DetailedStatisticsScreen(
                     type = type,
-                    timeCategory = timeCategory,
+                    timeCategory = timeCategory ?: SummaryStatisticsViewModel.TimeCategory.TWENTY_FOUR_HOUR,
                     viewModel = detailedStatsViewModel,
                     onBackClick = { navController.popBackStack() }
                 )
@@ -858,7 +868,7 @@ fun HomeScreenRoot(
                 }
                 ConfigureRethinkBasicScreen(
                     screenType = screenType,
-                    uid = uid,
+                    uid = args.uid,
                     persistentState = persistentState,
                     appConfig = appConfig,
                     appDownloadManager = appDownloadManager,
@@ -899,8 +909,8 @@ fun HomeScreenRoot(
                 )
             }
             composable(ROUTE_CHECKOUT) {
-                val paymentStatus by checkoutViewModel.paymentStatus.collectAsState()
-                val workInfoList by checkoutViewModel.paymentWorkInfo.asFlow().collectAsState(emptyList())
+                val paymentStatus by checkoutViewModel.paymentStatus.collectAsStateWithLifecycle()
+                val workInfoList by checkoutViewModel.paymentWorkInfo.asFlow().collectAsStateWithLifecycle(initialValue = emptyList())
                 
                 LaunchedEffect(workInfoList) {
                     checkoutViewModel.updatePaymentStatusFromWorkInfo(workInfoList)

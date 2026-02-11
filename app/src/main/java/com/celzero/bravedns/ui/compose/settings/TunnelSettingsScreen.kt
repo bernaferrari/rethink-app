@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.Settings
@@ -624,7 +625,7 @@ private fun SettingActionRow(
             Text(text = title, style = MaterialTheme.typography.titleSmall)
             Text(text = description, style = MaterialTheme.typography.bodySmall)
         }
-        Icon(imageVector = Icons.Filled.ArrowForward, contentDescription = null)
+        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
     }
 }
 

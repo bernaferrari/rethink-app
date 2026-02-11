@@ -54,7 +54,7 @@ import com.celzero.bravedns.util.Constants
         SubscriptionStateHistory::class
     ],
     version = 27,
-    exportSchema = false
+    exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {

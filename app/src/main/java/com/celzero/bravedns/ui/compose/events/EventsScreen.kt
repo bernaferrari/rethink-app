@@ -57,7 +57,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.asFlow
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.EventCard
@@ -92,7 +91,7 @@ fun EventsScreen(
     var showSourceChips by remember { mutableStateOf(false) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
-    val items = viewModel.eventsList.asFlow().collectAsLazyPagingItems()
+    val items = viewModel.eventsFlow.collectAsLazyPagingItems()
 
     LaunchedEffect(Unit) {
         snapshotFlow { query }

@@ -300,6 +300,16 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     private lateinit var dnscryptRelayObserver: Observer<PersistentState.DnsCryptRelayDetails>
     private lateinit var blockedConnsObserver: Observer<Int>
 
+    // Modular service managers
+    private lateinit var vpnNotificationManager: VpnNotificationManager
+    private lateinit var pauseStateManager: PauseStateManager
+    private lateinit var dnsConfigurationManager: DnsConfigurationManager
+    private lateinit var underlyingNetworkManager: UnderlyingNetworkManager
+    private lateinit var proxyStateManager: ProxyStateManager
+    private lateinit var appsStatsManager: AppsStatsManager
+    private lateinit var logsCountManager: LogsCountManager
+    private lateinit var firewallStatsManager: FirewallStatsManager
+
     private var rethinkUid: Int = INVALID_UID
 
     // used to store the conn-ids that are allowed and active, to show in network logs
@@ -1538,6 +1548,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         cm =
             this.getSystemService(CONNECTIVITY_SERVICE) as ConnectivityManager
 
+        // Initialize modular service managers
+        initializeModularManagers()
+
         if (persistentState.getBlockAppWhenBackground()) {
             registerAccessibilityServiceState()
         }
@@ -1545,6 +1558,37 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         if (isAtleastQ()) {
             handleFirewallBubbleIfNeeded()
         }
+    }
+
+    private fun initializeModularManagers() {
+        vpnNotificationManager = VpnNotificationManager(this, persistentState)
+        pauseStateManager = PauseStateManager(this, persistentState, vpnScope)
+        dnsConfigurationManager = DnsConfigurationManager(this, persistentState, appConfig, vpnScope)
+        underlyingNetworkManager = UnderlyingNetworkManager(this, vpnScope)
+        proxyStateManager = ProxyStateManager(appConfig, persistentState, WireguardManager, vpnScope)
+        appsStatsManager = AppsStatsManager(FirewallManager, vpnScope)
+        logsCountManager = LogsCountManager(appConfig, vpnScope)
+        firewallStatsManager = FirewallStatsManager(persistentState, IpRulesManager, DomainRulesManager, vpnScope)
+        
+        underlyingNetworkManager.initialize()
+        Logger.i(LOG_TAG_VPN, "Modular managers initialized")
+    }
+
+    // Public accessors for modular manager states
+    fun getProxyStatusFlow() = proxyStateManager.proxyStatus
+    fun getAppsStatsFlow() = appsStatsManager.appsStats
+    fun getFirewallStatsFlow() = firewallStatsManager.firewallStats
+    fun getLogsCountFlow() = logsCountManager.dnsLogsCount
+    fun getNetworkLogsCountFlow() = logsCountManager.networkLogsCount
+    fun getUnderlyingNetworkFlow() = underlyingNetworkManager.activeNetwork
+    fun getDnsStatusFlow() = dnsConfigurationManager.dnsStatus
+
+    suspend fun refreshProxyStatus() {
+        proxyStateManager.updateProxyStatus()
+    }
+
+    fun refreshAppsStats() {
+        vpnScope.launch { appsStatsManager.refreshStats() }
     }
 
 
@@ -3422,9 +3466,12 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             Logger.w(LOG_TAG_VPN, "Unregister receiver error: ${e.message}")
         }
         persistentState.setVpnEnabled(false)
-        stopPauseTimer()
+        pauseStateManager.stopPause()
         // reset the underlying networks
         underlyingNetworks = null
+
+        // Cleanup modular managers
+        cleanupModularManagers()
 
         unobserveOrbotStartStatus()
         unobserveAppInfos()
@@ -3450,38 +3497,39 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)
     }
 
-    private fun startPauseTimer() {
-        PauseTimer.start(PauseTimer.DEFAULT_PAUSE_TIME_MS)
-    }
-
-    private fun stopPauseTimer() {
-        PauseTimer.stop()
+    private fun cleanupModularManagers() {
+        dnsConfigurationManager.cleanup()
+        underlyingNetworkManager.cleanup()
+        Logger.i(LOG_TAG_VPN, "Modular managers cleaned up")
     }
 
     fun increasePauseDuration(durationMs: Long) {
-        PauseTimer.addDuration(durationMs)
+        pauseStateManager.increasePauseDuration(durationMs)
     }
 
     fun decreasePauseDuration(durationMs: Long) {
-        PauseTimer.subtractDuration(durationMs)
+        pauseStateManager.decreasePauseDuration(durationMs)
     }
 
     fun getPauseCountDownObserver(): MutableLiveData<Long> {
         return PauseTimer.getPauseCountDownObserver()
     }
 
+    // Expose pause state flow for reactive UI updates
+    fun getPauseStateFlow() = pauseStateManager.isPaused
+
     private fun isAppPaused(): Boolean {
         return VpnController.isAppPaused()
     }
 
     fun pauseApp() {
-        startPauseTimer()
+        pauseStateManager.startPause()
         handleVpnServiceOnAppStateChange()
         Logger.i(LOG_TAG_VPN, "App paused")
     }
 
     fun resumeApp() {
-        stopPauseTimer()
+        pauseStateManager.stopPause()
         handleVpnServiceOnAppStateChange()
         Logger.i(LOG_TAG_VPN, "App resumed")
     }

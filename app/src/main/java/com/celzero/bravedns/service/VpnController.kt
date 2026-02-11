@@ -74,14 +74,16 @@ object VpnController : KoinComponent {
     // TODO: make clients listen on create, start, stop, destroy from vpn-service
     fun onVpnCreated(b: BraveVPNService) {
         braveVpnService = b
-        externalScope = CoroutineScope(Dispatchers.IO)
-        states = Channel(Channel.CONFLATED) // drop unconsumed states
+        val scope = CoroutineScope(Dispatchers.IO)
+        externalScope = scope
+        val stateChannel = Channel<BraveVPNService.State?>(Channel.CONFLATED) // drop unconsumed states
+        states = stateChannel
 
         // store app start time, used in HomeScreenBottomSheet
         vpnStartElapsedTime = SystemClock.elapsedRealtime()
 
-        externalScope!!.launch {
-            states!!.consumeEach { state ->
+        scope.launch {
+            stateChannel.consumeEach { state ->
                 // transition from paused connection state only on NEW/NULL
                 when (state) {
                     null -> {

@@ -119,7 +119,7 @@ fun WgConfigEditorScreen(
 
     fun showListenPort(wgIface: WgInterface?): Boolean {
         val isPresent =
-            wgIface?.listenPort?.isPresent == true && wgIface.listenPort?.get() != 1
+            wgIface?.listenPort?.isPresent == true && wgIface.listenPort.get() != 1
         val byType = wgType.isOneWg() || (!persistentState.randomizeListenPort && wgType.isDefault())
         return isPresent && byType
     }
@@ -138,7 +138,7 @@ fun WgConfigEditorScreen(
                 privateKey = iface?.getKeyPair()?.getPrivateKey()?.base64()?.tos().orEmpty()
                 publicKey = iface?.getKeyPair()?.getPublicKey()?.base64()?.tos().orEmpty()
 
-                var dns = iface?.dnsServers?.joinToString { it.hostAddress?.toString() ?: "" }
+                var dns = iface?.dnsServers?.joinToString { it.hostAddress ?: "" }
                 val searchDomains = iface?.dnsSearchDomains?.joinToString { it }
                 dns = if (!searchDomains.isNullOrEmpty()) {
                     "$dns,$searchDomains"
@@ -161,7 +161,7 @@ fun WgConfigEditorScreen(
                 }
 
                 mtu = if (iface?.mtu?.isPresent == true) {
-                    iface.mtu?.get()?.toString().orEmpty()
+                    iface.mtu.get().toString()
                 } else {
                     ""
                 }
