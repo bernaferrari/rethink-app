@@ -18,6 +18,7 @@ package com.celzero.bravedns.viewmodel
 import com.celzero.bravedns.ui.compose.home.HomeScreenViewModel
 import com.celzero.bravedns.ui.compose.dns.DnsSettingsViewModel
 import com.celzero.bravedns.ui.compose.about.AboutViewModel
+import org.koin.android.ext.koin.androidApplication
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -46,6 +47,7 @@ object ViewModelModule {
         viewModel { RemoteBlocklistPacksMapViewModel(get()) }
         viewModel { ProxyAppsMappingViewModel(get()) }
         viewModel { WgConfigViewModel(get()) }
+        viewModel { CheckoutViewModel(androidApplication(), get()) }
         viewModel { DoTEndpointViewModel(get()) }
         viewModel { ODoHEndpointViewModel(get()) }
         viewModel { RethinkLogViewModel(get()) }

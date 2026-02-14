@@ -29,6 +29,7 @@ import com.celzero.bravedns.database.StatsSummaryDao
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.util.Constants
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SummaryStatisticsViewModel(
     private val connectionTrackerDAO: ConnectionTrackerDAO,
@@ -95,7 +97,9 @@ class SummaryStatisticsViewModel(
     private fun updateDataUsage() {
         viewModelScope.launch {
             val to = startTime.value
-            val usage = connectionTrackerDAO.getTotalUsages(to, ConnectionTracker.ConnType.METERED.value)
+            val usage = withContext(Dispatchers.IO) {
+                connectionTrackerDAO.getTotalUsages(to, ConnectionTracker.ConnType.METERED.value)
+            }
             _uiState.update { it.copy(dataUsage = usage) }
         }
     }
@@ -197,4 +201,3 @@ class SummaryStatisticsViewModel(
                 .cachedIn(viewModelScope)
         }
 }
-

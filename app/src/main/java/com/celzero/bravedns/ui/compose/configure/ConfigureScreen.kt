@@ -1,14 +1,52 @@
+/*
+ * Copyright 2024 RethinkDNS and its authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.celzero.bravedns.ui.compose.configure
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -16,7 +54,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.celzero.bravedns.R
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 
 @Composable
 fun ConfigureScreen(
@@ -38,28 +76,33 @@ fun ConfigureScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = Dimensions.screenPaddingHorizontal)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
         ) {
             // Header
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 16.dp, horizontal = 8.dp)
+                    .padding(vertical = Dimensions.spacingLg, horizontal = Dimensions.spacingSm)
             ) {
                 Text(
                     text = stringResource(id = R.string.app_name_small_case),
                     style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                    fontWeight = FontWeight.Light,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.alpha(Dimensions.Opacity.LOW)
                 )
+                Spacer(modifier = Modifier.height(Dimensions.spacingXs))
                 Text(
                     text = stringResource(id = R.string.settings_title_desc),
                     style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.alpha(Dimensions.Opacity.MEDIUM)
                 )
             }
 
+            // Configure options
             ConfigureCard(
                 title = stringResource(id = R.string.apps_info_title),
                 iconId = R.drawable.ic_app_info_accent,
@@ -116,7 +159,7 @@ fun ConfigureScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(80.dp)) // Bottom padding for FAB/Navigation
+            Spacer(modifier = Modifier.height(Dimensions.spacing3xl))
         }
     }
 }
@@ -128,25 +171,42 @@ fun ConfigureCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        label = "cardScale"
+    )
+
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            .scale(scale)
+            .clip(RoundedCornerShape(Dimensions.cardCornerRadius))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.low)
     ) {
         Row(
             modifier = Modifier
-                .padding(20.dp)
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .padding(Dimensions.cardPadding),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(id = iconId),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(24.dp)
+                modifier = Modifier.size(Dimensions.iconSizeMd)
             )
             Text(
                 text = title,
@@ -160,8 +220,10 @@ fun ConfigureCard(
             Icon(
                 imageVector = ImageVector.vectorResource(id = R.drawable.ic_right_arrow_white),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-                modifier = Modifier.size(24.dp)
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .size(Dimensions.iconSizeMd)
+                    .alpha(Dimensions.Opacity.LOW)
             )
         }
     }

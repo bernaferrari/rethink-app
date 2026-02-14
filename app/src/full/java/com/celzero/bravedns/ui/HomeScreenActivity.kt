@@ -1120,7 +1120,7 @@ class HomeScreenActivity : AppCompatActivity() {
     private fun handleVpnActivation() {
         if (handleAlwaysOnVpn()) return
 
-        if (VpnController.isOn()) {
+        if (VpnController.hasTunnel()) {
             stopVpnService()
         } else {
             prepareAndStartVpn()
@@ -1133,7 +1133,7 @@ class HomeScreenActivity : AppCompatActivity() {
             return true
         }
 
-        if (VpnController.isAlwaysOn(this) && VpnController.isOn()) {
+        if (VpnController.isAlwaysOn(this) && VpnController.hasTunnel()) {
             showAlwaysOnStopDialog()
             return true
         }

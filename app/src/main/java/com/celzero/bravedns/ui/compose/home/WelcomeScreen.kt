@@ -32,6 +32,7 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -41,7 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -56,6 +57,9 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun WelcomeScreen(onFinish: () -> Unit) {
+    val context = LocalContext.current
+    val topGradientColor = MaterialTheme.colorScheme.primary
+    val bottomGradientColor = MaterialTheme.colorScheme.background
     val slides = remember {
         listOf(
             WelcomeSlide(
@@ -96,13 +100,15 @@ fun WelcomeScreen(onFinish: () -> Unit) {
     val pagerState = rememberPagerState { slides.size }
     val scope = rememberCoroutineScope()
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Image(
-            painter = painterResource(id = R.drawable.welcome_gradient_bg),
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier.fillMaxSize()
-        )
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(
+                brush = Brush.verticalGradient(
+                    colors = listOf(topGradientColor, bottomGradientColor)
+                )
+            )
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()

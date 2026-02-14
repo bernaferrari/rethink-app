@@ -397,6 +397,6 @@ androidComponents {
 kotlin {
     compilerOptions {
         jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
-        freeCompilerArgs.add("-Xsuppress-warning=SENSELESS_COMPARISON")
+        freeCompilerArgs.add("-Xwarning-level=SENSELESS_COMPARISON:disabled")
     }
 }
