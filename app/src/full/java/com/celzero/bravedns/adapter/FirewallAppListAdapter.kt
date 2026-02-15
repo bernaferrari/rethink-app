@@ -19,8 +19,14 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -29,7 +35,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -44,10 +54,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextDecoration
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.AppInfo
@@ -63,6 +75,7 @@ import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -103,23 +116,46 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
         } else {
             getFirewallText(context, appStatus, connStatus)
         }
+    val statusColor = getStatusColor(appStatus, connStatus)
     val wifiIcon = wifiIconRes(appStatus, connStatus, isSelfApp)
     val mobileIcon = mobileIconRes(appStatus, connStatus, isSelfApp)
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 6.dp)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        label = "rowScale"
+    )
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(scale)
+            .clip(RoundedCornerShape(Dimensions.cardCornerRadius))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = { openAppDetailActivity(context, appInfo.uid) }
+            ),
+        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        border = BorderStroke(
+            width = Dimensions.dividerThickness,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.none)
     ) {
         Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .clickable { openAppDetailActivity(context, appInfo.uid) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(Dimensions.cardPaddingSm),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
         ) {
+            // App icon — larger, clipped circle
             val iconPainter =
                 rememberDrawablePainter(appIcon)
                     ?: rememberDrawablePainter(Utilities.getDefaultIcon(context))
@@ -127,25 +163,35 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                 Image(
                     painter = painter,
                     contentDescription = null,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier
+                        .size(Dimensions.iconSizeXl)
+                        .clip(CircleShape)
                 )
             }
+
+            // App info
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = appInfo.appName + if (proxyEnabled) context.getString(R.string.symbol_key) else "",
                     style = MaterialTheme.typography.titleMedium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = nameAlpha),
-                    textDecoration = if (tombstoned) TextDecoration.LineThrough else null
+                    textDecoration = if (tombstoned) TextDecoration.LineThrough else null,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
                 Text(
                     text = statusText,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = statusColor
                 )
                 Text(
                     text = dataUsageText,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+
+            // Wifi toggle
             if (wifiIcon != null) {
                 IconButton(
                     onClick = {
@@ -153,23 +199,26 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                             scope,
                             eventLogger,
                             appInfo
-                        ) { packageList, connStatus ->
+                        ) { packageList, cs ->
                             dialogState =
                                 FirewallAppDialogState(
                                     packageList,
                                     appInfo,
                                     isWifi = true,
-                                    connStatus
+                                    cs
                                 )
                         }
                     }
                 ) {
                     Icon(
                         painter = painterResource(id = wifiIcon),
-                        contentDescription = null
+                        contentDescription = null,
+                        modifier = Modifier.size(Dimensions.iconSizeMd)
                     )
                 }
             }
+
+            // Mobile toggle
             if (mobileIcon != null) {
                 IconButton(
                     onClick = {
@@ -177,25 +226,25 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                             scope,
                             eventLogger,
                             appInfo
-                        ) { packageList, connStatus ->
+                        ) { packageList, cs ->
                             dialogState =
                                 FirewallAppDialogState(
                                     packageList,
                                     appInfo,
                                     isWifi = false,
-                                    connStatus
+                                    cs
                                 )
                         }
                     }
                 ) {
                     Icon(
                         painter = painterResource(id = mobileIcon),
-                        contentDescription = null
+                        contentDescription = null,
+                        modifier = Modifier.size(Dimensions.iconSizeMd)
                     )
                 }
             }
         }
-        Spacer(modifier = Modifier.fillMaxWidth())
     }
 
     dialogState?.let { state ->
@@ -219,7 +268,7 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                 )
             },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)) {
                     state.packageList.forEach { name ->
                         Text(text = name, style = MaterialTheme.typography.bodyMedium)
                     }
@@ -247,6 +296,25 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun getStatusColor(
+    appStatus: FirewallManager.FirewallStatus,
+    connStatus: FirewallManager.ConnectionStatus
+): Color {
+    return when (appStatus) {
+        FirewallManager.FirewallStatus.NONE ->
+            when (connStatus) {
+                FirewallManager.ConnectionStatus.ALLOW -> MaterialTheme.colorScheme.primary
+                else -> MaterialTheme.colorScheme.error
+            }
+        FirewallManager.FirewallStatus.EXCLUDE -> MaterialTheme.colorScheme.tertiary
+        FirewallManager.FirewallStatus.ISOLATE -> MaterialTheme.colorScheme.error
+        FirewallManager.FirewallStatus.BYPASS_UNIVERSAL -> MaterialTheme.colorScheme.tertiary
+        FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL -> MaterialTheme.colorScheme.tertiary
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 }
 

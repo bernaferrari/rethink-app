@@ -130,6 +130,9 @@
     <string name="lbl_rdns" translatable="false">RDNS</string>
     <string name="lbl_starting" translatable="true">Starting</string>
     <string name="lbl_overall" translatable="true">Overall</string>
+    <string name="lbl_upload" translatable="true">Upload</string>
+    <string name="lbl_info" translatable="true">Info</string>
+    <string name="lbl_mobile_data" translatable="true">Data</string>
     <string name="lbl_stopped" translatable="true">Stopped</string>
     <string name="lbl_idle" translatable="true">Idle</string>
     <string name="lbl_private" translatable="true">private</string>
@@ -1534,6 +1537,8 @@
     <string name="rt_re_download" translatable="true">Re-download blocklists</string>
 
     <string name="rt_list_simple_btn_txt" translatable="true">simple</string>
+    <string name="lbl_protection" translatable="true">protection</string>
+    <string name="lbl_system" translatable="true">system</string>
     <string name="lbl_advanced" translatable="true">advanced</string>
 
     <string name="rt_filter_parent_selected" translatable="true">Selected</string>

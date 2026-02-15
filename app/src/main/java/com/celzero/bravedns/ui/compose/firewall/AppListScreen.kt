@@ -23,9 +23,7 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -39,17 +37,32 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -60,19 +73,19 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.FirewallAppRow
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.viewmodel.AppInfoViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -274,47 +287,118 @@ fun AppListScreen(
         )
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
-    ) {
-        Card(modifier = Modifier.fillMaxWidth()) {
-            Column(modifier = Modifier.padding(12.dp)) {
+    Scaffold(
+        topBar = {
+            if (onBackClick != null) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = stringResource(R.string.apps_info_title),
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            }
+        },
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
+            // Search + action bar
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = Dimensions.screenPaddingHorizontal,
+                        vertical = Dimensions.spacingSm
+                    )
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
                 ) {
                     OutlinedTextField(
                         value = queryText,
                         onValueChange = onQueryChange,
                         modifier = Modifier.weight(1f),
                         singleLine = true,
-                        placeholder = { Text(text = stringResource(R.string.search_firewall_all_apps)) }
+                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                        placeholder = {
+                            Text(
+                                text = stringResource(R.string.search_firewall_all_apps),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Rounded.Search,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        trailingIcon = {
+                            if (queryText.isNotEmpty()) {
+                                IconButton(onClick = { onQueryChange("") }) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Close,
+                                        contentDescription = "Clear",
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                        },
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(
+                                alpha = Dimensions.Opacity.MEDIUM
+                            )
+                        )
                     )
                     IconButton(
                         onClick = onRefreshClick,
                         enabled = !isRefreshing
                     ) {
-                        Image(
-                            painter = painterResource(R.drawable.ic_refresh_white),
-                            contentDescription = null,
+                        Icon(
+                            imageVector = Icons.Rounded.Refresh,
+                            contentDescription = "Refresh",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier
-                                .size(22.dp)
+                                .size(Dimensions.iconSizeMd)
                                 .rotate(if (isRefreshing) refreshRotation.value else 0f)
                         )
                     }
                     IconButton(onClick = { showFilterSheet = true }) {
-                        Image(
-                            painter = painterResource(R.drawable.ic_filter),
-                            contentDescription = null
+                        Icon(
+                            imageVector = Icons.Rounded.FilterList,
+                            contentDescription = "Filter",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(8.dp))
+
+                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+
+                // Filter chips row
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
+                    modifier = Modifier.padding(vertical = Dimensions.spacingXs)
                 ) {
                     items(FirewallFilter.entries.size) { index ->
                         val filter = FirewallFilter.entries[index]
@@ -323,37 +407,50 @@ fun AppListScreen(
                             FilterChip(
                                 selected = selectedFirewallFilter == filter,
                                 onClick = { onFirewallFilterClick(filter) },
-                                label = { Text(text = label) }
+                                label = {
+                                    Text(
+                                        text = label,
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                }
                             )
                         }
                     }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = filterLabelText.toString(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 4.dp),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+
+                // Filter label
+                if (filterLabelText.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(Dimensions.spacingXs))
+                    Text(
+                        text = filterLabelText.toString(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = Dimensions.spacingXs),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
+
+            // Bulk toggle toolbar
+            BulkToggleRow(
+                bulkWifi = bulkWifi,
+                bulkMobile = bulkMobile,
+                bulkBypass = bulkBypass,
+                bulkBypassDns = bulkBypassDns,
+                bulkExclude = bulkExclude,
+                bulkLockdown = bulkLockdown,
+                showBypassToolTip = showBypassToolTip,
+                onShowInfoDialog = onShowInfoDialog,
+                onShowBulkDialog = onShowBulkDialog,
+                onBypassDnsTooltip = onBypassDnsTooltip
+            )
+
+            // App list
+            AppListRecycler(viewModel = viewModel, eventLogger = eventLogger)
         }
-        BulkToggleRow(
-            bulkWifi = bulkWifi,
-            bulkMobile = bulkMobile,
-            bulkBypass = bulkBypass,
-            bulkBypassDns = bulkBypassDns,
-            bulkExclude = bulkExclude,
-            bulkLockdown = bulkLockdown,
-            showBypassToolTip = showBypassToolTip,
-            onShowInfoDialog = onShowInfoDialog,
-            onShowBulkDialog = onShowBulkDialog,
-            onBypassDnsTooltip = onBypassDnsTooltip
-        )
-        AppListRecycler(viewModel = viewModel, eventLogger = eventLogger)
     }
 }
 
@@ -370,60 +467,102 @@ private fun BulkToggleRow(
     onShowBulkDialog: (BlockType) -> Unit,
     onBypassDnsTooltip: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = Dimensions.Elevation.none
     ) {
-        IconButton(onClick = onShowInfoDialog) {
-            Image(
-                painter = painterResource(R.drawable.ic_info_white),
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
+        Column {
+            HorizontalDivider(
+                thickness = Dimensions.dividerThickness,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(
+                    alpha = Dimensions.Opacity.LOW
+                )
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = Dimensions.screenPaddingHorizontal,
+                        vertical = Dimensions.spacingSm
+                    ),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                BulkActionItem(
+                    icon = R.drawable.ic_info_white,
+                    label = stringResource(R.string.lbl_info),
+                    onClick = onShowInfoDialog
+                )
+                BulkActionItem(
+                    icon = if (bulkLockdown) R.drawable.ic_firewall_lockdown_on else R.drawable.ic_firewall_lockdown_off,
+                    label = stringResource(R.string.fapps_firewall_filter_isolate),
+                    onClick = { onShowBulkDialog(BlockType.LOCKDOWN) }
+                )
+                BulkActionItem(
+                    icon = if (bulkExclude) R.drawable.ic_firewall_exclude_on else R.drawable.ic_firewall_exclude_off,
+                    label = stringResource(R.string.fapps_firewall_filter_excluded),
+                    onClick = { onShowBulkDialog(BlockType.EXCLUDE) }
+                )
+                BulkActionItem(
+                    icon = if (bulkBypass) R.drawable.ic_firewall_bypass_on else R.drawable.ic_firewall_bypass_off,
+                    label = stringResource(R.string.fapps_firewall_filter_bypass_universal),
+                    onClick = { onShowBulkDialog(BlockType.BYPASS) }
+                )
+                BulkActionItem(
+                    icon = if (bulkBypassDns) R.drawable.ic_bypass_dns_firewall_on else R.drawable.ic_bypass_dns_firewall_off,
+                    label = "DNS",
+                    onClick = {
+                        if (showBypassToolTip) {
+                            onBypassDnsTooltip()
+                        } else {
+                            onShowBulkDialog(BlockType.BYPASS_DNS_FIREWALL)
+                        }
+                    }
+                )
+                BulkActionItem(
+                    icon = if (bulkWifi) R.drawable.ic_firewall_wifi_off else R.drawable.ic_firewall_wifi_on_grey,
+                    label = "Wi-Fi",
+                    onClick = { onShowBulkDialog(BlockType.UNMETER) }
+                )
+                BulkActionItem(
+                    icon = if (bulkMobile) R.drawable.ic_firewall_data_off else R.drawable.ic_firewall_data_on_grey,
+                    label = stringResource(R.string.lbl_mobile_data),
+                    onClick = { onShowBulkDialog(BlockType.METER) }
+                )
+            }
+            HorizontalDivider(
+                thickness = Dimensions.dividerThickness,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(
+                    alpha = Dimensions.Opacity.LOW
+                )
             )
         }
-        Spacer(modifier = Modifier.width(6.dp))
-        BulkIconButton(
-            icon = if (bulkLockdown) R.drawable.ic_firewall_lockdown_on else R.drawable.ic_firewall_lockdown_off,
-            onClick = { onShowBulkDialog(BlockType.LOCKDOWN) }
-        )
-        BulkIconButton(
-            icon = if (bulkExclude) R.drawable.ic_firewall_exclude_on else R.drawable.ic_firewall_exclude_off,
-            onClick = { onShowBulkDialog(BlockType.EXCLUDE) }
-        )
-        BulkIconButton(
-            icon = if (bulkBypass) R.drawable.ic_firewall_bypass_on else R.drawable.ic_firewall_bypass_off,
-            onClick = { onShowBulkDialog(BlockType.BYPASS) }
-        )
-        BulkIconButton(
-            icon = if (bulkBypassDns) R.drawable.ic_bypass_dns_firewall_on else R.drawable.ic_bypass_dns_firewall_off,
-            onClick = {
-                if (showBypassToolTip) {
-                    onBypassDnsTooltip()
-                } else {
-                    onShowBulkDialog(BlockType.BYPASS_DNS_FIREWALL)
-                }
-            }
-        )
-        BulkIconButton(
-            icon = if (bulkWifi) R.drawable.ic_firewall_wifi_off else R.drawable.ic_firewall_wifi_on_grey,
-            onClick = { onShowBulkDialog(BlockType.UNMETER) }
-        )
-        BulkIconButton(
-            icon = if (bulkMobile) R.drawable.ic_firewall_data_off else R.drawable.ic_firewall_data_on_grey,
-            onClick = { onShowBulkDialog(BlockType.METER) }
-        )
     }
 }
 
 @Composable
-private fun BulkIconButton(icon: Int, onClick: () -> Unit) {
-    IconButton(onClick = onClick) {
-        Image(
-            painter = painterResource(icon),
-            contentDescription = null,
-            modifier = Modifier.size(24.dp)
+private fun BulkActionItem(
+    icon: Int,
+    label: String,
+    onClick: () -> Unit
+) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+    ) {
+        IconButton(onClick = onClick, modifier = Modifier.size(Dimensions.touchTargetMin)) {
+            Image(
+                painter = painterResource(icon),
+                contentDescription = label,
+                modifier = Modifier.size(Dimensions.iconSizeMd)
+            )
+        }
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -431,7 +570,14 @@ private fun BulkIconButton(icon: Int, onClick: () -> Unit) {
 @Composable
 private fun AppListRecycler(viewModel: AppInfoViewModel, eventLogger: EventLogger) {
     val items = viewModel.appInfo.asFlow().collectAsLazyPagingItems()
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+            horizontal = Dimensions.screenPaddingHorizontal,
+            vertical = Dimensions.spacingSm
+        ),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+    ) {
         items(items.itemCount) { index ->
             val item = items[index] ?: return@items
             FirewallAppRow(item, eventLogger)
@@ -441,13 +587,12 @@ private fun AppListRecycler(viewModel: AppInfoViewModel, eventLogger: EventLogge
 
 @Composable
 private fun FirewallInfoDialogContent() {
-    val context = LocalContext.current
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp)
+            .padding(Dimensions.spacingLg)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
     ) {
         Text(
             text = stringResource(R.string.fapps_info_dialog_message),
@@ -455,13 +600,9 @@ private fun FirewallInfoDialogContent() {
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        Spacer(modifier = Modifier.height(2.dp))
-
-        Spacer(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(1.dp)
-                .background(MaterialTheme.colorScheme.onSurfaceVariant)
+        HorizontalDivider(
+            thickness = Dimensions.dividerThickness,
+            color = MaterialTheme.colorScheme.outlineVariant
         )
 
         InfoRow(
@@ -493,17 +634,18 @@ private fun FirewallInfoDialogContent() {
 
 @Composable
 private fun InfoRow(icon: Int, text: String) {
-    val context = LocalContext.current
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimensions.spacingXs),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Image(
             painter = painterResource(id = icon),
             contentDescription = null,
-            modifier = Modifier.size(20.dp)
+            modifier = Modifier.size(Dimensions.iconSizeSm)
         )
-        Spacer(modifier = Modifier.width(10.dp))
+        Spacer(modifier = Modifier.width(Dimensions.spacingMd))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
@@ -542,25 +684,20 @@ fun FirewallAppFilterSheet(
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Box(
-                modifier = Modifier
-                    .width(60.dp)
-                    .height(3.dp)
-                    .background(MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small)
-                    .align(Alignment.CenterHorizontally)
+        Column(
+            modifier = Modifier.padding(
+                horizontal = Dimensions.screenPaddingHorizontal,
+                vertical = Dimensions.spacingSm
             )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = stringResource(R.string.fapps_filter_filter_heading),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
+        ) {
+            // Filter heading
+            SectionHeader(title = stringResource(R.string.fapps_filter_filter_heading))
+
+            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
 
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 TopFilterChip(
@@ -580,18 +717,16 @@ fun FirewallAppFilterSheet(
                 )
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spacingLg))
 
-            Text(
-                text = stringResource(R.string.fapps_filter_categories_heading),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.secondary,
-                modifier = Modifier.padding(vertical = 4.dp)
-            )
+            // Categories heading
+            SectionHeader(title = stringResource(R.string.fapps_filter_categories_heading))
+
+            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
 
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp),
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
                 modifier = Modifier.fillMaxWidth()
             ) {
                 categories.forEach { category ->
@@ -609,13 +744,14 @@ fun FirewallAppFilterSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spacingXl))
 
+            // Action buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd, Alignment.End)
             ) {
-                TextButton(
+                OutlinedButton(
                     onClick = {
                         selectedCategories.clear()
                         topFilter = TopLevelFilter.ALL
@@ -628,7 +764,7 @@ fun FirewallAppFilterSheet(
                 ) {
                     Text(text = stringResource(R.string.fapps_filter_clear_btn))
                 }
-                TextButton(
+                FilledTonalButton(
                     onClick = {
                         val applied = Filters().apply {
                             topLevelFilter = topFilter
@@ -641,6 +777,8 @@ fun FirewallAppFilterSheet(
                     Text(text = stringResource(R.string.lbl_apply))
                 }
             }
+
+            Spacer(modifier = Modifier.height(Dimensions.spacing2xl))
         }
     }
 }
@@ -653,7 +791,10 @@ private fun TopFilterChip(label: String, selected: Boolean, onClick: () -> Unit)
         label = {
             Text(
                 text = label,
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
+                modifier = Modifier.padding(
+                    horizontal = Dimensions.spacingMd,
+                    vertical = Dimensions.spacingSm
+                ),
                 fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal
             )
         }

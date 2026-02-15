@@ -18,10 +18,13 @@ package com.celzero.bravedns.ui.compose.configure
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,8 +34,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -44,17 +50,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 
 @Composable
 fun ConfigureScreen(
@@ -102,7 +107,9 @@ fun ConfigureScreen(
                 )
             }
 
-            // Configure options
+            // --- Protection section ---
+            SectionHeader(title = stringResource(R.string.lbl_protection))
+
             ConfigureCard(
                 title = stringResource(id = R.string.apps_info_title),
                 iconId = R.drawable.ic_app_info_accent,
@@ -127,6 +134,9 @@ fun ConfigureScreen(
                 onClick = onProxyClick
             )
 
+            // --- System section ---
+            SectionHeader(title = stringResource(R.string.lbl_system))
+
             ConfigureCard(
                 title = stringResource(id = R.string.lbl_network).replaceFirstChar { it.uppercase() },
                 iconId = R.drawable.ic_network_tunnel,
@@ -144,6 +154,9 @@ fun ConfigureScreen(
                 iconId = R.drawable.ic_logs_accent,
                 onClick = onLogsClick
             )
+
+            // --- Advanced section ---
+            SectionHeader(title = stringResource(R.string.lbl_advanced))
 
             ConfigureCard(
                 title = stringResource(id = R.string.anti_censorship_title).replaceFirstChar { it.uppercase() },
@@ -191,9 +204,13 @@ fun ConfigureCard(
             ),
         shape = RoundedCornerShape(Dimensions.cardCornerRadius),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.low)
+        border = BorderStroke(
+            width = Dimensions.dividerThickness,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.none)
     ) {
         Row(
             modifier = Modifier
@@ -202,28 +219,37 @@ fun ConfigureCard(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = iconId),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(Dimensions.iconSizeMd)
-            )
+            // Tinted icon background
+            Box(
+                modifier = Modifier
+                    .size(Dimensions.iconSizeXl)
+                    .clip(CircleShape)
+                    .background(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = ImageVector.vectorResource(id = iconId),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(Dimensions.iconSizeMd)
+                )
+            }
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                ),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.Medium,
                 color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.weight(1f)
             )
             Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.ic_right_arrow_white),
+                imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier
                     .size(Dimensions.iconSizeMd)
-                    .alpha(Dimensions.Opacity.LOW)
+                    .alpha(Dimensions.Opacity.MEDIUM)
             )
         }
     }

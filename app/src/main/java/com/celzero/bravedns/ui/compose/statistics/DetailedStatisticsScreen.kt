@@ -15,26 +15,53 @@
  */
 package com.celzero.bravedns.ui.compose.statistics
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.data.SummaryStatisticsType
+import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.util.UIUtils.formatBytes
 import com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel.TimeCategory
@@ -73,12 +100,16 @@ fun DetailedStatisticsScreen(
             if (pagingItems.loadState.refresh is LoadState.Loading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center))
             } else if (pagingItems.itemCount == 0) {
-                NoDataView(modifier = Modifier.align(Alignment.Center))
+                CompactEmptyState(
+                    message = stringResource(R.string.blocklist_update_check_failure),
+                    icon = Icons.Default.Info,
+                    modifier = Modifier.align(Alignment.Center)
+                )
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    contentPadding = PaddingValues(Dimensions.screenPaddingHorizontal),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
                 ) {
                     item {
                         if (type != SummaryStatisticsType.TOP_ACTIVE_CONNS) {
@@ -86,7 +117,7 @@ fun DetailedStatisticsScreen(
                                 text = getTimeCategoryText(timeCategory),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = 16.dp)
+                                modifier = Modifier.padding(bottom = Dimensions.spacingLg)
                             )
                         }
                     }
@@ -99,8 +130,15 @@ fun DetailedStatisticsScreen(
 
                     if (pagingItems.loadState.append is LoadState.Loading) {
                         item {
-                            Box(modifier = Modifier.fillMaxWidth().padding(16.dp), contentAlignment = Alignment.Center) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(Dimensions.spacingLg),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(Dimensions.iconSizeMd)
+                                )
                             }
                         }
                     }
@@ -136,16 +174,22 @@ private fun DetailedStatisticsTopBar(type: SummaryStatisticsType, onBackClick: (
     )
 }
 
-
 @Composable
 private fun DetailedStatItemCard(item: AppConnection, type: SummaryStatisticsType) {
     Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        border = BorderStroke(
+            width = Dimensions.dividerThickness,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.none),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.padding(Dimensions.cardPadding),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Icon
@@ -158,12 +202,12 @@ private fun DetailedStatItemCard(item: AppConnection, type: SummaryStatisticsTyp
                 Icon(
                     imageVector = ImageVector.vectorResource(id = R.drawable.ic_app_info),
                     contentDescription = null,
-                    modifier = Modifier.size(40.dp),
+                    modifier = Modifier.size(Dimensions.iconSizeXl),
                     tint = MaterialTheme.colorScheme.primary
                 )
             }
 
-            Spacer(modifier = Modifier.width(16.dp))
+            Spacer(modifier = Modifier.width(Dimensions.spacingLg))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
@@ -171,6 +215,7 @@ private fun DetailedStatItemCard(item: AppConnection, type: SummaryStatisticsTyp
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
+                Spacer(modifier = Modifier.height(Dimensions.spacingXs))
                 Text(
                     text = "Connections: ${item.count}",
                     style = MaterialTheme.typography.bodyMedium,
@@ -179,50 +224,30 @@ private fun DetailedStatItemCard(item: AppConnection, type: SummaryStatisticsTyp
                 val totalBytes = item.totalBytes ?: 0L
                 val downloadBytes = item.downloadBytes ?: 0L
                 if (totalBytes > 0) {
+                    Spacer(modifier = Modifier.height(Dimensions.spacingSm))
                     val progress = remember(downloadBytes, totalBytes) {
                         if (totalBytes > 0) (downloadBytes.toFloat() / totalBytes.toFloat()) else 0f
                     }
                     LinearProgressIndicator(
                         progress = { progress },
-                        modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(Dimensions.spacingXs)
+                            .clip(RoundedCornerShape(Dimensions.spacingXs)),
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
-                        trackColor = MaterialTheme.colorScheme.surface
+                        trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
                     )
+                    Spacer(modifier = Modifier.height(Dimensions.spacingXs))
                     Text(
                         text = "Data: ${formatBytes(totalBytes)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(top = 4.dp)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
         }
     }
 }
-
-
-@Composable
-private fun NoDataView(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            painter = painterResource(id = R.drawable.illustrations_no_record),
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(id = R.string.blocklist_update_check_failure),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-        )
-    }
-}
-
 
 private fun getTitleResId(type: SummaryStatisticsType): Int {
     return when (type) {

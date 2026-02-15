@@ -18,6 +18,7 @@ package com.celzero.bravedns.ui.compose.home
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -29,7 +30,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -50,7 +55,6 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 
@@ -59,7 +63,7 @@ fun DashboardCard(
     title: String,
     iconId: Int,
     modifier: Modifier = Modifier,
-    backgroundColor: Color = MaterialTheme.colorScheme.surfaceVariant,
+    backgroundColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
     onClick: () -> Unit,
     content: @Composable () -> Unit
 ) {
@@ -83,7 +87,11 @@ fun DashboardCard(
             ),
         shape = RoundedCornerShape(Dimensions.cardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.low)
+        border = BorderStroke(
+            width = Dimensions.dividerThickness,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.none)
     ) {
         Column(
             modifier = Modifier.padding(Dimensions.cardPadding)
@@ -155,11 +163,19 @@ fun StartStopButton(
         MaterialTheme.colorScheme.primary
     }
 
+    val contentColor = if (isPlaying) {
+        MaterialTheme.colorScheme.onError
+    } else {
+        MaterialTheme.colorScheme.onPrimary
+    }
+
     val text = if (isPlaying) {
         stringResource(R.string.lbl_stop)
     } else {
         stringResource(R.string.lbl_start)
     }
+
+    val icon = if (isPlaying) Icons.Rounded.Stop else Icons.Rounded.PlayArrow
 
     Surface(
         modifier = modifier
@@ -181,13 +197,19 @@ fun StartStopButton(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(Dimensions.iconSizeMd)
+            )
+            Spacer(modifier = Modifier.width(Dimensions.spacingSm))
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onPrimary,
-                textAlign = TextAlign.Center,
-                letterSpacing = 1.5.sp
+                color = contentColor,
+                textAlign = TextAlign.Center
             )
         }
     }

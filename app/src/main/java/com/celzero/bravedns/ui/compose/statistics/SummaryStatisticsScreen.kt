@@ -16,61 +16,53 @@
 package com.celzero.bravedns.ui.compose.statistics
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.rounded.ArrowDownward
+import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FabPosition
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
@@ -102,8 +94,8 @@ fun SummaryStatisticsScreen(
             ) {
                 ExtendedFloatingActionButton(
                     onClick = { viewModel.setLoadMoreClicked(true) },
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                     shape = RoundedCornerShape(Dimensions.buttonCornerRadiusLarge),
                     icon = {
                         Icon(
@@ -274,71 +266,45 @@ private fun TimeCategorySelector(
     selectedCategory: TimeCategory,
     onCategorySelected: (TimeCategory) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-    ) {
-        TimeCategory.entries.forEach { category ->
-            val isSelected = category == selectedCategory
-            
-            val interactionSource = remember { MutableInteractionSource() }
-            val isPressed by interactionSource.collectIsPressedAsState()
-            val scale by animateFloatAsState(
-                targetValue = if (isPressed) 0.95f else 1f,
-                animationSpec = spring(stiffness = Spring.StiffnessMedium),
-                label = "buttonScale"
-            )
-
-            val containerColor = if (isSelected) 
-                MaterialTheme.colorScheme.primary 
-            else 
-                MaterialTheme.colorScheme.surfaceVariant
-            val contentColor = if (isSelected) 
-                MaterialTheme.colorScheme.onPrimary 
-            else 
-                MaterialTheme.colorScheme.onSurfaceVariant
-
-            androidx.compose.material3.Surface(
-                modifier = Modifier
-                    .weight(1f)
-                    .scale(scale)
-                    .clip(RoundedCornerShape(Dimensions.buttonCornerRadius))
-                    .clickable(
-                        interactionSource = interactionSource,
-                        indication = null,
-                        onClick = { onCategorySelected(category) }
-                    ),
-                shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
-                color = containerColor,
-                contentColor = contentColor
-            ) {
-                Text(
-                    text = when (category) {
-                        TimeCategory.ONE_HOUR -> "1h"
-                        TimeCategory.TWENTY_FOUR_HOUR -> "24h"
-                        TimeCategory.SEVEN_DAYS -> "7d"
-                    },
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                    modifier = Modifier.padding(
-                        vertical = Dimensions.spacingSm,
-                        horizontal = Dimensions.spacingMd
+    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+        TimeCategory.entries.forEachIndexed { index, category ->
+            SegmentedButton(
+                selected = category == selectedCategory,
+                onClick = { onCategorySelected(category) },
+                shape = SegmentedButtonDefaults.itemShape(
+                    index = index,
+                    count = TimeCategory.entries.size
+                ),
+                label = {
+                    Text(
+                        text = when (category) {
+                            TimeCategory.ONE_HOUR -> "1h"
+                            TimeCategory.TWENTY_FOUR_HOUR -> "24h"
+                            TimeCategory.SEVEN_DAYS -> "7d"
+                        },
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = if (category == selectedCategory)
+                            FontWeight.Bold else FontWeight.Medium
                     )
-                )
-            }
+                }
+            )
         }
     }
 }
 
 @Composable
 private fun UsageProgressHeader(dataUsage: DataUsageSummary) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(Dimensions.cardCornerRadius),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.low)
+        border = BorderStroke(
+            width = Dimensions.dividerThickness,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.none)
     ) {
         Column(modifier = Modifier.padding(Dimensions.cardPadding)) {
             val total = dataUsage.totalDownload + dataUsage.totalUpload
@@ -353,7 +319,7 @@ private fun UsageProgressHeader(dataUsage: DataUsageSummary) {
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp)),
                 color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surface,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             )
 
             Spacer(modifier = Modifier.height(Dimensions.spacingLg))
@@ -362,20 +328,55 @@ private fun UsageProgressHeader(dataUsage: DataUsageSummary) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column {
-                    Text(
-                        text = formatBytes(dataUsage.totalDownload),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                // Download column
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Rounded.ArrowDownward,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(Dimensions.iconSizeSm)
                     )
-                    Text(
-                        text = stringResource(R.string.symbol_download).format(""),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Spacer(modifier = Modifier.width(Dimensions.spacingXs))
+                    Column {
+                        Text(
+                            text = formatBytes(dataUsage.totalDownload),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = stringResource(R.string.symbol_download).format(""),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
 
+                // Upload column
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Rounded.ArrowUpward,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(Dimensions.iconSizeSm)
+                    )
+                    Spacer(modifier = Modifier.width(Dimensions.spacingXs))
+                    Column {
+                        Text(
+                            text = formatBytes(dataUsage.totalUpload),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                        Text(
+                            text = stringResource(R.string.lbl_upload),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+
+                // Total column
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = formatBytes(total),
@@ -390,14 +391,6 @@ private fun UsageProgressHeader(dataUsage: DataUsageSummary) {
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-
-            Text(
-                text = "Upload: ${formatBytes(dataUsage.totalUpload)}",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
         }
     }
 }
@@ -420,9 +413,13 @@ private fun StatSection(
             modifier = Modifier.fillMaxWidth(),
             shape = RoundedCornerShape(Dimensions.cardCornerRadius),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.low)
+            border = BorderStroke(
+                width = Dimensions.dividerThickness,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.none)
         ) {
             if (pagingItems.itemCount == 0) {
                 CompactEmptyState(
@@ -435,10 +432,10 @@ private fun StatSection(
                         pagingItems[i]?.let { item ->
                             StatItemRow(item = item, type = type)
                             if (i < minOf(pagingItems.itemCount, 5) - 1) {
-                                androidx.compose.material3.HorizontalDivider(
+                                HorizontalDivider(
                                     modifier = Modifier.padding(horizontal = Dimensions.cardPadding),
                                     thickness = Dimensions.dividerThickness,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                    color = MaterialTheme.colorScheme.outlineVariant.copy(
                                         alpha = Dimensions.Opacity.LOW
                                     )
                                 )
@@ -456,24 +453,9 @@ private fun StatItemRow(
     item: AppConnection,
     type: SummaryStatisticsType
 ) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "rowScale"
-    )
-
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .scale(scale)
-            .clip(RoundedCornerShape(Dimensions.spacingSm))
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = { /* Handle click */ }
-            )
             .padding(Dimensions.cardPadding),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -509,7 +491,7 @@ private fun StatItemRow(
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            
+
             val totalBytes = item.totalBytes ?: 0L
             val downloadBytes = item.downloadBytes ?: 0L
             if (totalBytes > 0) {
@@ -521,10 +503,10 @@ private fun StatItemRow(
                     progress = { progress },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(4.dp)
-                        .clip(RoundedCornerShape(2.dp)),
+                        .height(Dimensions.spacingXs)
+                        .clip(RoundedCornerShape(Dimensions.spacingXs)),
                     color = MaterialTheme.colorScheme.primary.copy(alpha = Dimensions.Opacity.MEDIUM),
-                    trackColor = MaterialTheme.colorScheme.surface,
+                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                 )
                 Text(
                     text = formatBytes(totalBytes),
@@ -543,7 +525,7 @@ private fun StatItemRow(
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier
                 .size(Dimensions.iconSizeSm)
-                .alpha(Dimensions.Opacity.LOW)
+                .alpha(Dimensions.Opacity.MEDIUM)
         )
     }
 }
