@@ -16,6 +16,7 @@
 package com.celzero.bravedns.ui.compose.wireguard
 
 import android.widget.Toast
+import androidx.annotation.Keep
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -76,6 +77,7 @@ private const val DEFAULT_MTU = "-1"
 private const val DEFAULT_DNS = "1.1.1.1"
 private const val DEFAULT_LISTEN_PORT = "0"
 
+@Keep
 enum class WgType(val value: Int) {
     DEFAULT(0),
     ONE_WG(1);

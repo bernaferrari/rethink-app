@@ -48,7 +48,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
@@ -59,7 +58,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.TcpProxyHelper
-import com.celzero.bravedns.util.UIUtils
 
 enum class CheckoutPlan(val titleRes: Int, val subtitleRes: Int) {
     ONE_MONTH(R.string.checkout_plan_1m_title, R.string.checkout_plan_1m_subtitle),
@@ -214,9 +212,8 @@ private fun PlanSelector(
 
 @Composable
 private fun PlanRow(plan: CheckoutPlan, isSelected: Boolean, onClick: () -> Unit) {
-    val context = LocalContext.current
-    val accent = Color(UIUtils.fetchColor(context, R.attr.accentGood))
-    val subtle = Color(UIUtils.fetchColor(context, R.attr.primaryLightColorText))
+    val accent = MaterialTheme.colorScheme.tertiary
+    val subtle = MaterialTheme.colorScheme.onSurfaceVariant
     Row(
         modifier = Modifier
             .fillMaxWidth()

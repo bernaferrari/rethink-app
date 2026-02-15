@@ -27,7 +27,6 @@ import java.util.Collections
 import java.util.Locale
 import java.util.Objects
 import java.util.Optional
-import java.util.stream.Collectors
 
 /**
  * Represents the configuration for a WireGuard interface (an [WgInterface] block). Interfaces must
@@ -247,9 +246,8 @@ class WgInterface private constructor(builder: Builder) {
         if (dnsServers.isNotEmpty()) {
             val dnsServerStrings =
                 dnsServers
-                    .stream()
-                    .map { obj: InetAddress -> obj.hostAddress }
-                    .collect(Collectors.toList())
+                    .mapNotNull { it.hostAddress }
+                    .toMutableList()
             dnsServerStrings.addAll(dnsSearchDomains)
             sb.append("DNS = ").append(Attribute.join(dnsServerStrings)).append('\n')
         }
@@ -326,9 +324,8 @@ class WgInterface private constructor(builder: Builder) {
     fun toWgUserspaceString(skipListenPort: Boolean): String {
         val dnsServerStrings =
             dnsServers
-                .stream()
-                .map { obj: InetAddress -> obj.hostAddress }
-                .collect(Collectors.toList())
+                .mapNotNull { it.hostAddress }
+                .toMutableList()
         dnsServerStrings.addAll(dnsSearchDomains)
 
         val sb = StringBuilder()

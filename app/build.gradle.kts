@@ -1,3 +1,5 @@
+import io.gitlab.arturbosch.detekt.Detekt
+import io.gitlab.arturbosch.detekt.extensions.DetektExtension
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -5,6 +7,7 @@ import java.io.FileInputStream
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.detekt)
 
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
@@ -84,7 +87,7 @@ android {
     defaultConfig {
         applicationId = "com.celzero.bravedns"
         minSdk = 23
-        targetSdk = 35
+        targetSdk = 36
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -113,7 +116,7 @@ android {
         abi {
             isEnable = true
             reset()
-            include("x86", "armeabi", "armeabi-v7a", "arm64-v8a", "x86_64")
+            include("x86", "armeabi-v7a", "arm64-v8a", "x86_64")
             isUniversalApk = true
         }
     }
@@ -205,6 +208,37 @@ android {
 
     lint {
         abortOnError = true
+        warningsAsErrors = true
+        checkDependencies = true
+        baseline = file("lint-baseline.xml")
+        xmlReport = true
+        htmlReport = true
+        sarifReport = true
+    }
+}
+
+configure<DetektExtension> {
+    parallel = true
+    buildUponDefaultConfig = true
+    allRules = false
+    config.setFrom("$rootDir/config/detekt/detekt.yml")
+    baseline = file("$rootDir/config/detekt/baseline.xml")
+    source.setFrom(
+        files(
+            "src/main/java",
+            "src/full/java"
+        )
+    )
+}
+
+tasks.withType<Detekt>().configureEach {
+    jvmTarget = "17"
+    reports {
+        html.required.set(true)
+        xml.required.set(true)
+        sarif.required.set(true)
+        txt.required.set(false)
+        md.required.set(false)
     }
 }
 
@@ -238,11 +272,11 @@ dependencies {
     val composeBom = platform(libs.androidx.compose.bom)
     implementation(composeBom)
     implementation(libs.androidx.ui)
-    implementation("androidx.compose.ui:ui-text")
+    implementation(libs.androidx.ui.text)
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation(libs.androidx.compose.material.icons.extended)
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.lifecycle.runtime.compose)
     implementation(libs.androidx.navigation.compose)
@@ -371,7 +405,6 @@ dependencies {
 androidComponents {
     onVariants { variant ->
         val versionCodes = mapOf(
-            "armeabi" to 1,
             "armeabi-v7a" to 2,
             "arm64-v8a" to 3,
             "x86" to 8,

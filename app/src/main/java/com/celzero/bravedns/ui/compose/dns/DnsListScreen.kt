@@ -58,8 +58,6 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.util.UIUtils
-import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.firestack.backend.Backend
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -225,20 +223,19 @@ private fun DnsCard(
     val isSelected = selectedType == type
     val strokeColor =
         if (isSelected) {
-            val attr = if (selectedWorking) R.color.accentGood else R.color.accentBad
-            UIUtils.fetchToggleBtnColors(context, attr)
+            if (selectedWorking) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error
         } else {
-            0
+            Color.Transparent
         }
     val textColor =
         if (isSelected) {
-            if (selectedWorking) fetchColor(context, R.attr.secondaryTextColor) else fetchColor(context, R.attr.accentBad)
+            if (selectedWorking) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error
         } else {
-            fetchColor(context, R.attr.primaryTextColor)
+            MaterialTheme.colorScheme.onSurface
         }
     val border =
         if (isSelected) {
-            BorderStroke(2.dp, Color(strokeColor))
+            BorderStroke(2.dp, strokeColor)
         } else {
             null
         }
@@ -257,13 +254,13 @@ private fun DnsCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
-                color = Color(textColor),
+                color = textColor,
                 textAlign = TextAlign.Center
             )
             Text(
                 text = label,
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(textColor),
+                color = textColor,
                 textAlign = TextAlign.Center
             )
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {

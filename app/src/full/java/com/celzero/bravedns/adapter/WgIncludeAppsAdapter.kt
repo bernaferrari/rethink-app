@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.adapter
 
+
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
@@ -171,9 +172,9 @@ fun IncludeAppRow(
     val isClickable = !isProxyExcluded
     val backgroundColor =
         if (isIncluded) {
-            Color(UIUtils.fetchColor(context, R.attr.selectedCardBg))
+            MaterialTheme.colorScheme.surfaceVariant
         } else {
-            Color(UIUtils.fetchColor(context, R.attr.background))
+            MaterialTheme.colorScheme.surface
         }
     val contentAlpha = if (hasInternetPerm) 1f else 0.4f
 

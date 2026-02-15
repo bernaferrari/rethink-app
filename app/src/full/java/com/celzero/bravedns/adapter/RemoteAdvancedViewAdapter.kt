@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.adapter
 
+
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalContext
@@ -41,7 +42,6 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.database.RethinkRemoteFileTag
 import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
-import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.openUrl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -56,9 +56,9 @@ fun RemoteAdvancedBlocklistRow(
     val context = LocalContext.current
     val backgroundColor =
         if (filetag.isSelected) {
-            Color(fetchColor(context, R.attr.selectedCardBg))
+            MaterialTheme.colorScheme.surfaceVariant
         } else {
-            Color(fetchColor(context, R.attr.background))
+            MaterialTheme.colorScheme.surface
         }
     val groupText = if (filetag.subg.isEmpty()) filetag.group else filetag.subg
     val entryText = context.getString(R.string.dc_entries, filetag.entries.toString())
@@ -77,12 +77,12 @@ fun RemoteAdvancedBlocklistRow(
                 Text(
                     text = RethinkBlocklistManager.getGroupName(context, filetag.group),
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color(fetchColor(context, R.attr.accentBad))
+                    color = MaterialTheme.colorScheme.error
                 )
                 Text(
                     text = RethinkBlocklistManager.getTitleDesc(context, filetag.group),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(fetchColor(context, R.attr.primaryLightColorText))
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -131,32 +131,33 @@ fun RemoteAdvancedBlocklistRow(
     }
 }
 
+@Composable
 private fun chipColorsForLevel(context: Context, level: Int?): Pair<Color, Color> {
     if (level == null) {
-        val text = Color(fetchColor(context, R.attr.primaryTextColor))
-        val bg = Color(fetchColor(context, R.attr.background))
+        val text = MaterialTheme.colorScheme.onSurface
+        val bg = MaterialTheme.colorScheme.surface
         return text to bg
     }
 
     return when (level) {
         0 -> {
-            val text = Color(fetchColor(context, R.attr.chipTextPositive))
-            val bg = Color(fetchColor(context, R.attr.chipBgColorPositive))
+            val text = MaterialTheme.colorScheme.tertiary
+            val bg = MaterialTheme.colorScheme.tertiaryContainer
             text to bg
         }
         1 -> {
-            val text = Color(fetchColor(context, R.attr.chipTextNeutral))
-            val bg = Color(fetchColor(context, R.attr.chipBgColorNeutral))
+            val text = MaterialTheme.colorScheme.onSurfaceVariant
+            val bg = MaterialTheme.colorScheme.surfaceVariant
             text to bg
         }
         2 -> {
-            val text = Color(fetchColor(context, R.attr.chipTextNegative))
-            val bg = Color(fetchColor(context, R.attr.chipBgColorNegative))
+            val text = MaterialTheme.colorScheme.error
+            val bg = MaterialTheme.colorScheme.errorContainer
             text to bg
         }
         else -> {
-            val text = Color(fetchColor(context, R.attr.primaryTextColor))
-            val bg = Color(fetchColor(context, R.attr.background))
+            val text = MaterialTheme.colorScheme.onSurface
+            val bg = MaterialTheme.colorScheme.surface
             text to bg
         }
     }

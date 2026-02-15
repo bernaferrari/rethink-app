@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -285,7 +284,7 @@ fun AboutSection(title: String, content: @Composable ColumnScope.() -> Unit) {
                 fontWeight = FontWeight.Bold,
                 letterSpacing = 1.sp
             ),
-            color = Color(0xFFA5D6A7), // Placeholder for accentGood
+            color = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier.padding(start = 48.dp, bottom = 8.dp)
         )
         content()

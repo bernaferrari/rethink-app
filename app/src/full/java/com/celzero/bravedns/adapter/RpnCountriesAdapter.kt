@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.adapter
 
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,30 +33,27 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
-import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities.getFlag
 
 @Composable
 fun CountryRow(conf: String, isSelected: Boolean) {
-    val context = LocalContext.current
     val flag = getFlag(conf)
-    val strokeColor = getStrokeColorForStatus(context, isSelected)
+    val strokeColor = getStrokeColorForStatus(isSelected)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = CardDefaults.shape,
         colors = CardDefaults.cardColors(),
-        border =
-            if (isSelected) {
-                BorderStroke(2.dp, Color(strokeColor))
-            } else {
-                BorderStroke(0.dp, Color(strokeColor))
-            }
-    ) {
+                border =
+                    if (isSelected) {
+                        BorderStroke(2.dp, strokeColor)
+                    } else {
+                        BorderStroke(0.dp, strokeColor)
+                    }
+            ) {
         Row(
             modifier = Modifier.padding(10.dp),
             verticalAlignment = Alignment.CenterVertically
@@ -104,7 +102,11 @@ fun CountryRow(conf: String, isSelected: Boolean) {
     }
 }
 
-private fun getStrokeColorForStatus(context: android.content.Context, isActive: Boolean): Int {
-    if (!isActive) return fetchColor(context, R.attr.chipTextNegative)
-    return fetchColor(context, R.attr.accentGood)
+@Composable
+private fun getStrokeColorForStatus(isActive: Boolean): Color {
+    return if (isActive) {
+        MaterialTheme.colorScheme.tertiary
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
 }

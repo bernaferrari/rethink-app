@@ -22,144 +22,186 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.lerp
 import com.celzero.bravedns.R
-import com.celzero.bravedns.util.UIUtils.fetchColor
 import kotlinx.coroutines.launch
+import kotlin.math.absoluteValue
 
 @Composable
 fun WelcomeScreen(onFinish: () -> Unit) {
-    val context = LocalContext.current
-    val topGradientColor = MaterialTheme.colorScheme.primary
-    val bottomGradientColor = MaterialTheme.colorScheme.background
     val slides = remember {
         listOf(
             WelcomeSlide(
                 image = R.drawable.ic_launcher,
                 title = R.string.slide_2_title,
-                desc = R.string.slide_2_desc,
-                imageSize = 120.dp,
-                topPadding = 80.dp,
-                titleTopPadding = 50.dp
+                desc = R.string.slide_2_desc
             ),
             WelcomeSlide(
                 image = R.drawable.ic_wireguard_welcome,
                 title = R.string.wireguard_title,
-                desc = R.string.wireguard_desc,
-                imageSize = 200.dp,
-                topPadding = 60.dp,
-                titleTopPadding = 30.dp
+                desc = R.string.wireguard_desc
             ),
             WelcomeSlide(
                 image = R.drawable.ic_firewall_welcome,
                 title = R.string.firewall_title,
-                desc = R.string.firewall_desc,
-                imageSize = 200.dp,
-                topPadding = 60.dp,
-                titleTopPadding = 30.dp
+                desc = R.string.firewall_desc
             ),
             WelcomeSlide(
                 image = R.drawable.ic_dns_welcome,
                 title = R.string.dns_title,
-                desc = R.string.dns_desc,
-                imageSize = 200.dp,
-                topPadding = 60.dp,
-                titleTopPadding = 30.dp
+                desc = R.string.dns_desc
             )
         )
     }
 
     val pagerState = rememberPagerState { slides.size }
     val scope = rememberCoroutineScope()
+    val isLastPage = pagerState.currentPage >= slides.lastIndex
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(topGradientColor, bottomGradientColor)
-                )
-            )
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.surface
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 20.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .windowInsetsPadding(WindowInsets.statusBars)
+                .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
+            // Skip button at the top-end
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 8.dp, vertical = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                if (!isLastPage) {
+                    TextButton(onClick = { onFinish() }) {
+                        Text(
+                            text = stringResource(R.string.skip),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                } else {
+                    // Invisible placeholder to maintain layout consistency
+                    Spacer(modifier = Modifier.height(48.dp))
+                }
+            }
+
+            // Pager content
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.weight(1f)
             ) { page ->
-                WelcomeSlideContent(slides[page])
+                val pageOffset =
+                    ((pagerState.currentPage - page) + pagerState.currentPageOffsetFraction)
+                        .absoluteValue.coerceIn(0f, 1f)
+
+                WelcomeSlideContent(
+                    slide = slides[page],
+                    pageOffset = pageOffset
+                )
             }
 
-            DotsIndicator(
-                count = slides.size,
-                currentIndex = pagerState.currentPage
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            // Bottom section: indicator + button
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp)
+                    .padding(bottom = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                if (pagerState.currentPage < slides.lastIndex) {
-                    TextButton(onClick = { onFinish() }) {
-                        Text(text = stringResource(R.string.skip))
-                    }
-                } else {
-                    Spacer(modifier = Modifier.size(1.dp))
-                }
+                // Animated pill-dot indicator
+                PillDotIndicator(
+                    count = slides.size,
+                    pagerState = pagerState
+                )
 
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Full-width CTA button
                 Button(
                     onClick = {
-                        if (pagerState.currentPage >= slides.lastIndex) {
+                        if (isLastPage) {
                             onFinish()
                         } else {
-                            scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
+                            scope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
                         }
                     },
-                    shape = RoundedCornerShape(18.dp)
-                ) {
-                    Text(
-                        text =
-                        if (pagerState.currentPage >= slides.lastIndex) {
-                            stringResource(R.string.finish)
-                        } else {
-                            stringResource(R.string.next)
-                        }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
                     )
+                ) {
+                    if (isLastPage) {
+                        Icon(
+                            imageVector = Icons.Rounded.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(R.string.finish),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                    } else {
+                        Text(
+                            text = stringResource(R.string.next),
+                            style = MaterialTheme.typography.labelLarge
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Rounded.ArrowForward,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
         }
@@ -167,53 +209,99 @@ fun WelcomeScreen(onFinish: () -> Unit) {
 }
 
 @Composable
-private fun WelcomeSlideContent(slide: WelcomeSlide) {
-    val context = LocalContext.current
+private fun WelcomeSlideContent(slide: WelcomeSlide, pageOffset: Float) {
+    // Parallax + fade effect based on page offset
+    val alpha = 1f - pageOffset * 0.5f
+    val translationY = pageOffset * 60f
+
     Column(
-        modifier = Modifier.fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp)
+            .graphicsLayer {
+                this.alpha = alpha
+                this.translationY = translationY
+            },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
     ) {
-        Spacer(modifier = Modifier.height(slide.topPadding))
-        Image(
-            painter = painterResource(id = slide.image),
-            contentDescription = null,
-            modifier = Modifier.size(slide.imageSize)
-        )
-        Spacer(modifier = Modifier.height(slide.titleTopPadding))
+        // Illustration in a tinted circle container
+        Box(
+            modifier = Modifier
+                .size(200.dp)
+                .clip(CircleShape)
+                .background(
+                    brush = Brush.radialGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+                        )
+                    )
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                painter = painterResource(id = slide.image),
+                contentDescription = null,
+                modifier = Modifier.size(160.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.height(40.dp))
+
+        // Title
         Text(
             text = stringResource(slide.title),
-            fontSize = 28.sp,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = Color(fetchColor(context, R.attr.primaryTextColor))
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth()
         )
-        Spacer(modifier = Modifier.height(20.dp))
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Description
         Text(
             text = stringResource(slide.desc),
-            fontSize = 16.sp,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            color = Color(fetchColor(context, R.attr.primaryTextColor)),
-            modifier = Modifier.padding(horizontal = 32.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp)
         )
     }
 }
 
 @Composable
-private fun DotsIndicator(count: Int, currentIndex: Int) {
-    val context = LocalContext.current
-    val activeColors = context.resources.getIntArray(R.array.array_dot_active)
-    val inactiveColors = context.resources.getIntArray(R.array.array_dot_inactive)
+private fun PillDotIndicator(count: Int, pagerState: PagerState) {
+    val activeColor = MaterialTheme.colorScheme.primary
+    val inactiveColor = MaterialTheme.colorScheme.outlineVariant
+    val dotSize = 8.dp
+    val pillWidth = 24.dp
 
-    Row(horizontalArrangement = Arrangement.Center, modifier = Modifier.fillMaxWidth()) {
+    Row(
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
         repeat(count) { index ->
-            val color =
-                if (index == currentIndex) activeColors[index] else inactiveColors[currentIndex]
+            // How "active" this dot is: 1.0 = fully active, 0.0 = inactive.
+            // Smoothly interpolated from the pager's continuous scroll position.
+            val fraction = (1f - (pagerState.currentPage + pagerState.currentPageOffsetFraction - index)
+                .absoluteValue.coerceIn(0f, 1f))
+
+            val width = lerp(dotSize, pillWidth, fraction)
+            val color = lerp(inactiveColor, activeColor, fraction)
+
             Box(
-                modifier =
-                Modifier
+                modifier = Modifier
                     .padding(horizontal = 4.dp)
-                    .size(10.dp)
-                    .clip(CircleShape)
-                    .background(Color(color))
+                    .height(dotSize)
+                    .width(width)
+                    .clip(RoundedCornerShape(4.dp))
+                    .background(color)
             )
         }
     }
@@ -222,8 +310,5 @@ private fun DotsIndicator(count: Int, currentIndex: Int) {
 private data class WelcomeSlide(
     val image: Int,
     val title: Int,
-    val desc: Int,
-    val imageSize: Dp,
-    val topPadding: Dp,
-    val titleTopPadding: Dp
+    val desc: Int
 )

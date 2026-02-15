@@ -26,7 +26,7 @@ import androidx.annotation.DrawableRes
 data class TransactionError(
     val title: String,
     val message: String,
-    @DrawableRes val image: Int? = null
+    @param:DrawableRes @field:DrawableRes val image: Int? = null
 )
 
 /**
@@ -96,4 +96,3 @@ data class TransactionError(
         }
     }
 }*/
-

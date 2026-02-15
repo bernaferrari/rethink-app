@@ -80,7 +80,7 @@ fun ConnectionRow(dc: AppConnection) {
                         appInfo?.packageName ?: "",
                         appInfo?.appName ?: ""
                     ) ?: Utilities.getDefaultIcon(context)
-                Triple(appInfo == null, displayName ?: "", resolvedIcon)
+                Triple(appInfo == null, displayName, resolvedIcon)
             }
         isUnknown = resolved.first
         title = resolved.second

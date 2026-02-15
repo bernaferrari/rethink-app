@@ -30,7 +30,6 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.database.ConsoleLog
 import com.celzero.bravedns.util.Constants.Companion.TIME_FORMAT_1
-import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 
 @Composable
@@ -44,7 +43,13 @@ fun ConsoleLogRow(log: ConsoleLog, isDebug: Boolean = DEBUG) {
             'E' -> R.attr.firewallBlockToggleBtnTxt
             else -> R.attr.primaryLightColorText
         }
-    val logColor = Color(UIUtils.fetchColor(context, colorRes))
+    val logColor =
+        when (colorRes) {
+            R.attr.defaultToggleBtnTxt -> MaterialTheme.colorScheme.onSurfaceVariant
+            R.attr.firewallWhiteListToggleBtnTxt -> MaterialTheme.colorScheme.tertiary
+            R.attr.firewallBlockToggleBtnTxt -> MaterialTheme.colorScheme.error
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        }
     val timestamp =
         if (isDebug) {
             "${log.id}\n${Utilities.convertLongToTime(log.timestamp, TIME_FORMAT_1)}"
@@ -62,7 +67,7 @@ fun ConsoleLogRow(log: ConsoleLog, isDebug: Boolean = DEBUG) {
         Text(
             text = timestamp,
             style = MaterialTheme.typography.bodySmall,
-            color = Color(UIUtils.fetchColor(context, R.attr.primaryLightColorText))
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         Text(
             text = log.message,

@@ -100,7 +100,7 @@ class PauseStateManager(
 // Extension to convert LiveData to Flow
 private fun <T> androidx.lifecycle.LiveData<T>.toFlow() = callbackFlow {
     val observer = Observer<T> { value ->
-        trySend(value as T)
+        trySend(value)
     }
     observeForever(observer)
     awaitClose { removeObserver(observer) }

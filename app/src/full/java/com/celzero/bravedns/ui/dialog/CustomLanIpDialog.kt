@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.dialog
 
+
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,8 +51,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.util.UIUtils.fetchColor
-import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
 import inet.ipaddr.IPAddressString
 import io.github.aakira.napier.Napier
 
@@ -284,10 +283,10 @@ fun CustomLanIpSheet(
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         val manualEnabled = currentMode
-        val selectedBg = Color(fetchToggleBtnColors(context, R.color.accentGood))
-        val unselectedBg = Color(fetchToggleBtnColors(context, R.color.defaultToggleBtnBg))
-        val selectedText = Color(fetchColor(context, R.attr.homeScreenHeaderTextColor))
-        val unselectedText = Color(fetchColor(context, R.attr.primaryTextColor))
+        val selectedBg = MaterialTheme.colorScheme.tertiary
+        val unselectedBg = MaterialTheme.colorScheme.surface
+        val selectedText = MaterialTheme.colorScheme.onSurface
+        val unselectedText = MaterialTheme.colorScheme.onSurface
 
         Column(
             modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
@@ -428,7 +427,7 @@ fun CustomLanIpSheet(
             if (errorMessage.isNotBlank()) {
                 Text(
                     text = errorMessage,
-                    color = Color(fetchToggleBtnColors(context, R.color.accentBad)),
+                    color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
             }

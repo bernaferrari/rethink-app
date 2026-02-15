@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.adapter
 
+
 import android.content.Context
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalContext
@@ -108,25 +109,22 @@ private fun IpProgress(conn: AppConnection, refresh: Int) {
     val color =
         when (status) {
             IpRulesManager.IpRuleStatus.NONE ->
-                UIUtils.fetchToggleBtnColors(context, R.color.chipTextNeutral)
+                MaterialTheme.colorScheme.onSurfaceVariant
             IpRulesManager.IpRuleStatus.BLOCK ->
-                UIUtils.fetchToggleBtnColors(context, R.color.accentBad)
+                MaterialTheme.colorScheme.error
             IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL ->
-                UIUtils.fetchToggleBtnColors(context, R.color.accentGood)
+                MaterialTheme.colorScheme.tertiary
             IpRulesManager.IpRuleStatus.TRUST ->
-                UIUtils.fetchToggleBtnColors(context, R.color.accentGood)
-        }
-
-    // TODO: The original code had a stateful maxValue calculation across all rows.
-    // In a paging/lazy list, this is hard to maintain without a global state.
+                MaterialTheme.colorScheme.tertiary
+        }    // In a paging/lazy list, this is hard to maintain without a global state.
     // For now, using a local calculation or simplified version.
     val p = (log2(conn.count.toDouble()) * 100).toInt()
     val progress = if (p <= 0) 0.1f else (p / 500f).coerceAtMost(1f)
 
     LinearProgressIndicator(
-        progress = progress,
-        color = Color(color),
-        trackColor = Color(UIUtils.fetchColor(context, R.attr.background)),
+        progress = { progress },
+        color = color,
+        trackColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier.fillMaxWidth()
     )
 }

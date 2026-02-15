@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.bottomsheet
 
+
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -131,7 +132,7 @@ fun AppIpRulesSheet(
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        val borderColor = Color(UIUtils.fetchColor(context, R.attr.border))
+        val borderColor = MaterialTheme.colorScheme.outline
         val trustIcon =
             if (ipRule == IpRulesManager.IpRuleStatus.TRUST) {
                 R.drawable.ic_trust_accent

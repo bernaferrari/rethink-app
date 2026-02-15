@@ -136,7 +136,7 @@ class AboutViewModel(
         workManager.getWorkInfosByTagLiveData(WorkScheduler.APP_EXIT_INFO_ONE_TIME_JOB_TAG)
             .asFlow()
             .onEach { workInfoList ->
-                val workInfo = workInfoList?.getOrNull(0) ?: return@onEach
+                val workInfo = workInfoList.getOrNull(0) ?: return@onEach
                 when (workInfo.state) {
                     WorkInfo.State.SUCCEEDED -> {
                         _uiState.update { it.copy(isBugReportRunning = false) }

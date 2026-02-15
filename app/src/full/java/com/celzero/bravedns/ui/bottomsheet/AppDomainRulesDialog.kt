@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.bottomsheet
 
+
 import android.graphics.drawable.Drawable
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -135,7 +136,7 @@ fun AppDomainRulesSheet(
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        val borderColor = Color(UIUtils.fetchColor(context, R.attr.border))
+        val borderColor = MaterialTheme.colorScheme.outline
         val trustIcon =
             if (domainRule == DomainRulesManager.Status.TRUST) {
                 R.drawable.ic_trust_accent
@@ -338,7 +339,7 @@ private fun WireguardListSheet(
 ) {
     val context = LocalContext.current
     var currentProxyId by remember(inputLabel, selectedProxyId) { mutableStateOf(selectedProxyId) }
-    val borderColor = Color(UIUtils.fetchColor(context, R.attr.border))
+    val borderColor = MaterialTheme.colorScheme.outline
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(

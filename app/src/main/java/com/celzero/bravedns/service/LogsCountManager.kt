@@ -53,14 +53,14 @@ class LogsCountManager(
     private fun observeLogCounts() {
         appConfig.dnsLogsCount.asFlow()
             .onEach { count ->
-                _dnsLogsCount.update { count ?: 0L }
+                _dnsLogsCount.update { count }
                 Logger.d(LOG_TAG_VPN, "$TAG DNS logs count: $count")
             }
             .launchIn(scope)
 
         appConfig.networkLogsCount.asFlow()
             .onEach { count ->
-                _networkLogsCount.update { count ?: 0L }
+                _networkLogsCount.update { count }
                 Logger.d(LOG_TAG_VPN, "$TAG Network logs count: $count")
             }
             .launchIn(scope)

@@ -259,6 +259,7 @@ fun HomeScreenRoot(
     onHomeSponsorClick: () -> Unit,
     summaryViewModel: SummaryStatisticsViewModel,
     onOpenDetailedStats: (SummaryStatisticsType) -> Unit,
+    startDestination: HomeRoute,
     isDebug: Boolean,
     onConfigureAppsClick: () -> Unit,
     onConfigureDnsClick: () -> Unit,
@@ -357,22 +358,19 @@ fun HomeScreenRoot(
     // WireGuard dependencies
     wgConfigViewModel: WgConfigViewModel,
     // Checkout dependencies
-    checkoutViewModel: CheckoutViewModel,
+    checkoutViewModel: CheckoutViewModel?,
     onNavigateToProxy: () -> Unit,
     // WgMain callbacks
     onWgCreateClick: () -> Unit,
     onWgImportClick: () -> Unit,
     onWgQrScanClick: () -> Unit
 ) {
-
-
-
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    
-    // Check if current route is one of the main tabs for bottom bar selection
-    // In Type-Safe nav, we check if the destination has the route class
     val currentDestination = navBackStackEntry?.destination
+    val currentRoute = currentDestination?.route
+    val isHomeRoute = currentRoute == HomeRoute.Home::class.qualifiedName
+    val isWelcomeRoute = currentRoute == HomeRoute.Welcome::class.qualifiedName
 
     LaunchedEffect(homeNavRequest) {
         val request = homeNavRequest ?: return@LaunchedEffect
@@ -497,10 +495,18 @@ fun HomeScreenRoot(
         onHomeNavConsumed()
     }
 
-    BackHandler(enabled = currentDestination?.route != "home") {
-        navController.navigate(HomeRoute.Home) {
-            popUpTo(navController.graph.findStartDestination().id) { inclusive = false }
-            launchSingleTop = true
+    BackHandler(enabled = !isHomeRoute) {
+        if (isWelcomeRoute) {
+            persistentState.firstTimeLaunch = false
+            navController.navigate(HomeRoute.Home) {
+                popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                launchSingleTop = true
+            }
+        } else {
+            navController.navigate(HomeRoute.Home) {
+                popUpTo(navController.graph.findStartDestination().id) { inclusive = false }
+                launchSingleTop = true
+            }
         }
     }
 
@@ -508,6 +514,7 @@ fun HomeScreenRoot(
         containerColor = MaterialTheme.colorScheme.background,
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
+            if (isWelcomeRoute) return@Scaffold
             NavigationBar {
                 HomeDestination.entries.forEach { destination ->
                     val isSelected = currentDestination?.route == destination.route::class.qualifiedName
@@ -540,7 +547,7 @@ fun HomeScreenRoot(
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = HomeRoute.Home
+            startDestination = startDestination
         ) {
             composable<HomeRoute.Home> {
                 HomeScreen(
@@ -679,7 +686,13 @@ fun HomeScreenRoot(
             }
             composable<HomeRoute.Welcome> {
                 WelcomeScreen(
-                    onFinish = { navController.popBackStack() }
+                    onFinish = {
+                        persistentState.firstTimeLaunch = false
+                        navController.navigate(HomeRoute.Home) {
+                            popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    }
                 )
             }
             composable<HomeRoute.AppLock> {
@@ -909,19 +922,26 @@ fun HomeScreenRoot(
                 )
             }
             composable(ROUTE_CHECKOUT) {
-                val paymentStatus by checkoutViewModel.paymentStatus.collectAsStateWithLifecycle()
-                val workInfoList by checkoutViewModel.paymentWorkInfo.asFlow().collectAsStateWithLifecycle(initialValue = emptyList())
-                
-                LaunchedEffect(workInfoList) {
-                    checkoutViewModel.updatePaymentStatusFromWorkInfo(workInfoList)
+                val currentCheckoutViewModel = checkoutViewModel
+                if (currentCheckoutViewModel == null) {
+                    Text(text = stringResource(id = R.string.coming_soon_toast))
+                } else {
+                    val paymentStatus by currentCheckoutViewModel.paymentStatus.collectAsStateWithLifecycle()
+                    val workInfoList by currentCheckoutViewModel.paymentWorkInfo
+                        .asFlow()
+                        .collectAsStateWithLifecycle(initialValue = emptyList())
+
+                    LaunchedEffect(workInfoList) {
+                        currentCheckoutViewModel.updatePaymentStatusFromWorkInfo(workInfoList)
+                    }
+
+                    CheckoutScreen(
+                        paymentStatus = paymentStatus,
+                        onStartPayment = { currentCheckoutViewModel.startPayment() },
+                        onNavigateToProxy = onNavigateToProxy,
+                        onBackClick = { navController.popBackStack() }
+                    )
                 }
-                
-                CheckoutScreen(
-                    paymentStatus = paymentStatus,
-                    onStartPayment = { checkoutViewModel.startPayment() },
-                    onNavigateToProxy = onNavigateToProxy,
-                    onBackClick = { navController.popBackStack() }
-                )
             }
             composable(
                 route = "$ROUTE_APP_WISE_DOMAIN_LOGS/{uid}",

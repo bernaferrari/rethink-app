@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.bottomsheet
 
+
 import Logger
 import android.content.Intent
 import android.graphics.drawable.Drawable
@@ -85,7 +86,6 @@ import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.Protocol
 import com.celzero.bravedns.util.UIUtils
-import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.htmlToSpannedText
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getIcon
@@ -199,18 +199,18 @@ fun ConnTrackerSheet(
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        val borderColor = Color(fetchColor(activity, R.attr.border))
+        val borderColor = MaterialTheme.colorScheme.outline
         val chipTextColor =
             if (appInfoNegative) {
-                Color(fetchColor(activity, R.attr.chipTextNegative))
+                MaterialTheme.colorScheme.error
             } else {
-                Color(fetchColor(activity, R.attr.chipTextPositive))
+                MaterialTheme.colorScheme.tertiary
             }
         val chipBackgroundColor =
             if (appInfoNegative) {
-                Color(fetchColor(activity, R.attr.chipBgColorNegative))
+                MaterialTheme.colorScheme.errorContainer
             } else {
-                Color(fetchColor(activity, R.attr.chipBgColorPositive))
+                MaterialTheme.colorScheme.tertiaryContainer
             }
         Column(
             modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
@@ -1006,7 +1006,7 @@ private fun HtmlText(spanned: Spanned, modifier: Modifier = Modifier) {
     Text(
         text = spanned.toString(),
         style = MaterialTheme.typography.bodyLarge,
-        color = Color(fetchColor(context, R.attr.primaryTextColor)),
+        color = MaterialTheme.colorScheme.onSurface,
         modifier = modifier.fillMaxWidth()
     )
 }

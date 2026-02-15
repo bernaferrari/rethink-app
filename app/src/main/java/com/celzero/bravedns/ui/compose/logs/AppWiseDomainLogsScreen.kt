@@ -165,18 +165,17 @@ private fun ToggleRow(
 
 @Composable
 private fun ToggleButton(label: String, selected: Boolean, onClick: () -> Unit) {
-    val context = LocalContext.current
     val background =
         if (selected) {
-            Color(UIUtils.fetchToggleBtnColors(context, R.color.accentGood))
+            MaterialTheme.colorScheme.tertiary
         } else {
-            Color(UIUtils.fetchToggleBtnColors(context, R.color.defaultToggleBtnBg))
+            MaterialTheme.colorScheme.surface
         }
     val content =
         if (selected) {
-            Color(UIUtils.fetchColor(context, R.attr.homeScreenHeaderTextColor))
+            MaterialTheme.colorScheme.onSurface
         } else {
-            Color(UIUtils.fetchColor(context, R.attr.primaryTextColor))
+            MaterialTheme.colorScheme.onSurface
         }
     androidx.compose.material3.Button(
         onClick = onClick,

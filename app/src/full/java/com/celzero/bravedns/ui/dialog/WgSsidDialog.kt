@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.dialog
 
+
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -287,7 +288,7 @@ private fun SsidRow(ssidItem: SsidItem, onDeleteClick: () -> Unit) {
         Text(
             text = ssidItem.type.getDisplayName(context),
             style = MaterialTheme.typography.bodySmall,
-            color = Color(UIUtils.fetchColor(context, R.attr.accentBad))
+            color = MaterialTheme.colorScheme.error
         )
         IconButton(onClick = onDeleteClick) {
             Icon(

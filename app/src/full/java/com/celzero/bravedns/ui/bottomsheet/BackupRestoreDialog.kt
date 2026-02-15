@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.bottomsheet
 
+
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
@@ -127,7 +128,7 @@ fun BackupRestoreSheet(
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        val borderColor = Color(UIUtils.fetchColor(context, R.attr.border))
+        val borderColor = MaterialTheme.colorScheme.outline
         Column(
             modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)

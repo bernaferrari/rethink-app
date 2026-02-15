@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.adapter
 
+
 import Logger
 import Logger.LOG_TAG_UI
 import android.content.Context
@@ -87,9 +88,9 @@ fun HopRow(
 
     val strokeColor =
         if (isChecked && isActive) {
-            Color(UIUtils.fetchColor(context, R.attr.chipTextPositive))
+            MaterialTheme.colorScheme.tertiary
         } else if (isChecked) {
-            Color(UIUtils.fetchColor(context, R.attr.chipTextNegative))
+            MaterialTheme.colorScheme.error
         } else {
             Color.Transparent
         }
@@ -219,7 +220,7 @@ private suspend fun computeStatusText(
         return if (statusPair.first != null) {
             context.getString(UIUtils.getProxyStatusStringRes(statusPair.first))
         } else {
-            statusPair.second ?: context.getString(R.string.lbl_inactive)
+            statusPair.second
         }
     }
     return if (map.isActive) context.getString(R.string.lbl_active) else context.getString(R.string.lbl_inactive)
@@ -247,8 +248,8 @@ private suspend fun computeChips(context: Context, config: Config): HopChips {
         }
         val amnezia = config.getInterface()?.isAmnezia() == true
         HopChips(
-            ipv4 = pair?.first == true,
-            ipv6 = pair?.second == true,
+            ipv4 = pair.first,
+            ipv6 = pair.second,
             splitTunnel = isSplitTunnel,
             amnezia = amnezia,
             hopSrc = hopSrc,

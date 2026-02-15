@@ -79,8 +79,6 @@ import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.WireguardManager
-import com.celzero.bravedns.util.UIUtils
-import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
 import kotlinx.coroutines.Dispatchers
@@ -377,16 +375,15 @@ private fun ToggleRow(
 
 @Composable
 private fun ToggleButton(text: String, selected: Boolean, onClick: () -> Unit) {
-    val context = LocalContext.current
     val background = if (selected) {
-        Color(fetchToggleBtnColors(context, R.color.accentGood))
+        MaterialTheme.colorScheme.tertiary
     } else {
-        Color(fetchToggleBtnColors(context, R.color.defaultToggleBtnBg))
+        MaterialTheme.colorScheme.surface
     }
     val content = if (selected) {
-        Color(UIUtils.fetchColor(context, R.attr.homeScreenHeaderTextColor))
+        MaterialTheme.colorScheme.onSurface
     } else {
-        Color(UIUtils.fetchColor(context, R.attr.primaryTextColor))
+        MaterialTheme.colorScheme.onSurface
     }
     Button(
         onClick = onClick,

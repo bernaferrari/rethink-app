@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.compose.dns
 
+
 import Logger
 import Logger.LOG_TAG_DNS
 import android.content.Context
@@ -60,13 +61,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.asFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.celzero.bravedns.R
@@ -152,6 +154,8 @@ fun DnsDetailScreen(
     var isChecking by remember { mutableStateOf(false) }
     var isDownloading by remember { mutableStateOf(false) }
     var isRedownloading by remember { mutableStateOf(false) }
+    val enabledBlocklistColor = MaterialTheme.colorScheme.tertiary
+    val disabledBlocklistColor = MaterialTheme.colorScheme.error
 
     // Helper functions for local blocklist UI state
     fun showCheckUpdateUi() {
@@ -183,7 +187,7 @@ fun DnsDetailScreen(
 
     fun enableBlocklistUi() {
         enableLabel = context.getString(R.string.lbbs_enabled)
-        enableColor = Color(UIUtils.fetchToggleBtnColors(context, R.color.accentGood))
+        enableColor = enabledBlocklistColor
         headingText = context.getString(
             R.string.settings_local_blocklist_in_use,
             persistentState.numberOfLocalBlocklists.toString()
@@ -195,7 +199,7 @@ fun DnsDetailScreen(
 
     fun disableBlocklistUi() {
         enableLabel = context.getString(R.string.lbl_disabled)
-        enableColor = Color(UIUtils.fetchToggleBtnColors(context, R.color.accentBad))
+        enableColor = disabledBlocklistColor
         headingText = context.getString(R.string.lbbs_heading)
         canConfigure = false
         canCopy = false
@@ -469,93 +473,84 @@ fun DnsDetailScreen(
         initLocalBlocklistVersion()
     }
 
-    // Observe download status
-    DisposableEffect(appDownloadManager) {
-        val observer = androidx.lifecycle.Observer<AppDownloadManager.DownloadManagerStatus> { status ->
-            Napier.i("Check for blocklist update, status: $status")
-            if (status != null) {
-                handleDownloadStatus(status)
-            }
-        }
-        appDownloadManager.downloadRequired.observeForever(observer)
-        onDispose {
-            appDownloadManager.downloadRequired.removeObserver(observer)
+    val workManager = WorkManager.getInstance(context)
+    val downloadRequiredStatus by appDownloadManager.downloadRequired
+        .asFlow()
+        .collectAsStateWithLifecycle(initialValue = AppDownloadManager.DownloadManagerStatus.NOT_STARTED)
+    val customDownloadWorkInfos by workManager
+        .getWorkInfosByTagLiveData(LocalBlocklistCoordinator.CUSTOM_DOWNLOAD)
+        .asFlow()
+        .collectAsStateWithLifecycle(initialValue = emptyList())
+    val downloadTagWorkInfos by workManager
+        .getWorkInfosByTagLiveData(DownloadConstants.DOWNLOAD_TAG)
+        .asFlow()
+        .collectAsStateWithLifecycle(initialValue = emptyList())
+    val fileTagWorkInfos by workManager
+        .getWorkInfosByTagLiveData(DownloadConstants.FILE_TAG)
+        .asFlow()
+        .collectAsStateWithLifecycle(initialValue = emptyList())
+
+    LaunchedEffect(downloadRequiredStatus) {
+        Napier.i("Check for blocklist update, status: $downloadRequiredStatus")
+        if (downloadRequiredStatus != AppDownloadManager.DownloadManagerStatus.NOT_STARTED) {
+            handleDownloadStatus(downloadRequiredStatus)
         }
     }
 
-    // Observe WorkManager for download progress
-    DisposableEffect(context) {
-        val workManager = WorkManager.getInstance(context)
-
-        val customDownloadObserver = androidx.lifecycle.Observer<List<WorkInfo>> { workInfoList ->
-            val workInfo = workInfoList?.getOrNull(0) ?: return@Observer
-            Napier.i("WorkManager state: ${workInfo.state} for ${LocalBlocklistCoordinator.CUSTOM_DOWNLOAD}")
-            if (workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING) {
-                isDownloading = true
-            } else if (workInfo.state == WorkInfo.State.SUCCEEDED) {
-                isDownloading = false
-                showUpdateUi()
-                workManager.pruneWork()
-            } else if (workInfo.state == WorkInfo.State.CANCELLED || workInfo.state == WorkInfo.State.FAILED) {
-                isDownloading = false
-                Utilities.showToastUiCentered(
-                    context,
-                    context.getString(R.string.blocklist_update_check_failure),
-                    Toast.LENGTH_SHORT
-                )
-                workManager.pruneWork()
-                workManager.cancelAllWorkByTag(LocalBlocklistCoordinator.CUSTOM_DOWNLOAD)
-            }
+    LaunchedEffect(customDownloadWorkInfos) {
+        val workInfo = customDownloadWorkInfos.getOrNull(0) ?: return@LaunchedEffect
+        Napier.i("WorkManager state: ${workInfo.state} for ${LocalBlocklistCoordinator.CUSTOM_DOWNLOAD}")
+        if (workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING) {
+            isDownloading = true
+        } else if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+            isDownloading = false
+            showUpdateUi()
+            workManager.pruneWork()
+        } else if (workInfo.state == WorkInfo.State.CANCELLED || workInfo.state == WorkInfo.State.FAILED) {
+            isDownloading = false
+            Utilities.showToastUiCentered(
+                context,
+                context.getString(R.string.blocklist_update_check_failure),
+                Toast.LENGTH_SHORT
+            )
+            workManager.pruneWork()
+            workManager.cancelAllWorkByTag(LocalBlocklistCoordinator.CUSTOM_DOWNLOAD)
         }
+    }
 
-        val downloadTagObserver = androidx.lifecycle.Observer<List<WorkInfo>> { workInfoList ->
-            val workInfo = workInfoList?.getOrNull(0) ?: return@Observer
-            Napier.i("WorkManager state: ${workInfo.state} for ${DownloadConstants.DOWNLOAD_TAG}")
-            if (workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING) {
-                isDownloading = true
-            } else if (workInfo.state == WorkInfo.State.CANCELLED || workInfo.state == WorkInfo.State.FAILED) {
-                isDownloading = false
-                Utilities.showToastUiCentered(
-                    context,
-                    context.getString(R.string.blocklist_update_check_failure),
-                    Toast.LENGTH_SHORT
-                )
-                workManager.pruneWork()
-                workManager.cancelAllWorkByTag(DownloadConstants.DOWNLOAD_TAG)
-                workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
-            }
+    LaunchedEffect(downloadTagWorkInfos) {
+        val workInfo = downloadTagWorkInfos.getOrNull(0) ?: return@LaunchedEffect
+        Napier.i("WorkManager state: ${workInfo.state} for ${DownloadConstants.DOWNLOAD_TAG}")
+        if (workInfo.state == WorkInfo.State.ENQUEUED || workInfo.state == WorkInfo.State.RUNNING) {
+            isDownloading = true
+        } else if (workInfo.state == WorkInfo.State.CANCELLED || workInfo.state == WorkInfo.State.FAILED) {
+            isDownloading = false
+            Utilities.showToastUiCentered(
+                context,
+                context.getString(R.string.blocklist_update_check_failure),
+                Toast.LENGTH_SHORT
+            )
+            workManager.pruneWork()
+            workManager.cancelAllWorkByTag(DownloadConstants.DOWNLOAD_TAG)
+            workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
         }
+    }
 
-        val fileTagObserver = androidx.lifecycle.Observer<List<WorkInfo>> { workInfoList ->
-            val workInfo = workInfoList?.getOrNull(0) ?: return@Observer
-            if (workInfo.state == WorkInfo.State.SUCCEEDED) {
-                isDownloading = false
-                showUpdateUi()
-                workManager.pruneWork()
-            } else if (workInfo.state == WorkInfo.State.CANCELLED || workInfo.state == WorkInfo.State.FAILED) {
-                isDownloading = false
-                Utilities.showToastUiCentered(
-                    context,
-                    context.getString(R.string.blocklist_update_check_failure),
-                    Toast.LENGTH_SHORT
-                )
-                workManager.pruneWork()
-                workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
-            }
-        }
-
-        val customDownloadLiveData = workManager.getWorkInfosByTagLiveData(LocalBlocklistCoordinator.CUSTOM_DOWNLOAD)
-        val downloadTagLiveData = workManager.getWorkInfosByTagLiveData(DownloadConstants.DOWNLOAD_TAG)
-        val fileTagLiveData = workManager.getWorkInfosByTagLiveData(DownloadConstants.FILE_TAG)
-
-        customDownloadLiveData.observeForever(customDownloadObserver)
-        downloadTagLiveData.observeForever(downloadTagObserver)
-        fileTagLiveData.observeForever(fileTagObserver)
-
-        onDispose {
-            customDownloadLiveData.removeObserver(customDownloadObserver)
-            downloadTagLiveData.removeObserver(downloadTagObserver)
-            fileTagLiveData.removeObserver(fileTagObserver)
+    LaunchedEffect(fileTagWorkInfos) {
+        val workInfo = fileTagWorkInfos.getOrNull(0) ?: return@LaunchedEffect
+        if (workInfo.state == WorkInfo.State.SUCCEEDED) {
+            isDownloading = false
+            showUpdateUi()
+            workManager.pruneWork()
+        } else if (workInfo.state == WorkInfo.State.CANCELLED || workInfo.state == WorkInfo.State.FAILED) {
+            isDownloading = false
+            Utilities.showToastUiCentered(
+                context,
+                context.getString(R.string.blocklist_update_check_failure),
+                Toast.LENGTH_SHORT
+            )
+            workManager.pruneWork()
+            workManager.cancelAllWorkByTag(DownloadConstants.FILE_TAG)
         }
     }
 
@@ -1052,7 +1047,7 @@ private fun LocalBlocklistsSheet(
     onRedownload: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val borderColor = Color(UIUtils.fetchColor(context, R.attr.border))
+    val borderColor = MaterialTheme.colorScheme.outline
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(

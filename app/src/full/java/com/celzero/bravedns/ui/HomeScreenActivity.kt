@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui
 
+
 import Logger
 import Logger.LOG_TAG_APP_UPDATE
 import Logger.LOG_TAG_BACKUP_RESTORE
@@ -135,6 +136,7 @@ import com.celzero.bravedns.service.WireguardManager
 
 import com.celzero.bravedns.ui.compose.dns.ConfigureRethinkScreenType
 import com.celzero.bravedns.ui.compose.navigation.HomeNavRequest
+import com.celzero.bravedns.ui.compose.navigation.HomeRoute
 import com.celzero.bravedns.ui.compose.wireguard.WgType
 import com.celzero.bravedns.ui.compose.navigation.HomeScreenRoot
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
@@ -157,7 +159,6 @@ import com.celzero.bravedns.util.FirebaseErrorReporting.TOKEN_REGENERATION_PERIO
 import com.celzero.bravedns.util.NewSettingsManager
 import com.celzero.bravedns.util.RemoteFileTagUtil
 import com.celzero.bravedns.util.UIUtils
-import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.journeyapps.barcodescanner.ScanContract
 import com.journeyapps.barcodescanner.ScanOptions
 import com.celzero.bravedns.util.QrCodeFromFileScanner
@@ -248,7 +249,9 @@ class HomeScreenActivity : AppCompatActivity() {
     private val dnsCryptViewModel by viewModel<com.celzero.bravedns.viewmodel.DnsCryptEndpointViewModel>()
     private val dnsCryptRelayViewModel by viewModel<com.celzero.bravedns.viewmodel.DnsCryptRelayEndpointViewModel>()
     private val oDohViewModel by viewModel<com.celzero.bravedns.viewmodel.ODoHEndpointViewModel>()
-    private val checkoutViewModel by viewModel<CheckoutViewModel>()
+    private val checkoutViewModel: CheckoutViewModel? by lazy {
+        runCatching { get<CheckoutViewModel>() }.getOrNull()
+    }
     private val wgConfigViewModel by viewModel<com.celzero.bravedns.viewmodel.WgConfigViewModel>()
 
 
@@ -324,10 +327,12 @@ class HomeScreenActivity : AppCompatActivity() {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
-        // do not launch on board activity when app is running on TV
-        if (persistentState.firstTimeLaunch && !isAppRunningOnTv()) {
-            homeNavRequest = HomeNavRequest.Welcome
-        }
+        val homeStartDestination =
+            if (persistentState.firstTimeLaunch && !isAppRunningOnTv()) {
+                HomeRoute.Welcome
+            } else {
+                HomeRoute.Home
+            }
 
         handleFrostEffectIfNeeded(persistentState.theme)
 
@@ -386,6 +391,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     onHomeSponsorClick = { promptForAppSponsorship() },
                     summaryViewModel = summaryViewModel,
                     onOpenDetailedStats = { type -> openDetailedStatsUi(type) },
+                    startDestination = homeStartDestination,
                     isDebug = DEBUG,
                     onConfigureAppsClick = { homeNavRequest = HomeNavRequest.AppList },
                     onConfigureDnsClick = { navigateToDnsDetailIfAllowed() },
@@ -2534,7 +2540,7 @@ class HomeScreenActivity : AppCompatActivity() {
             modifier = Modifier.fillMaxWidth(),
             style =
                 MaterialTheme.typography.bodyLarge.copy(
-                    color = Color(fetchColor(this@HomeScreenActivity, R.attr.primaryTextColor)),
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = textAlign
                 )
         )

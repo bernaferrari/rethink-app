@@ -44,7 +44,7 @@ class ProxyAppMappingRepository(
     }
 
     suspend fun getApps(): List<ProxyApplicationMapping> {
-        return proxyApplicationMappingDAO.getWgAppMapping() ?: emptyList()
+        return proxyApplicationMappingDAO.getWgAppMapping()
     }
 
     suspend fun updateProxyIdForApp(uid: Int, proxyId: String, proxyName: String) {

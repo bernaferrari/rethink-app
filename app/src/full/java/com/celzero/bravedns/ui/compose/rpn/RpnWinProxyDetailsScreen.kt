@@ -197,7 +197,7 @@ private fun DetailsSection(countryCode: String, proxyError: String) {
         DetailRow(label = "Latency", value = "37 ms")
         DetailRow(label = "Last connected", value = "2 min ago")
         Spacer(modifier = Modifier.height(12.dp))
-        DetailRow(label = "Status", value = "CONNECTED", valueColor = Color(0xFF2E7D32))
+        DetailRow(label = "Status", value = "CONNECTED", valueColor = MaterialTheme.colorScheme.tertiary)
     }
 }
 

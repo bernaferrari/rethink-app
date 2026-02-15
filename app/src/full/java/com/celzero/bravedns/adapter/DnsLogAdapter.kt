@@ -16,6 +16,7 @@ limitations under the License.
 
 package com.celzero.bravedns.adapter
 
+
 import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.background
@@ -46,7 +47,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
@@ -60,7 +60,6 @@ import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
-import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities.getDefaultIcon
 import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
@@ -210,11 +209,12 @@ fun DnsLogRow(
     }
 }
 
+@Composable
 private fun statusIndicatorColor(context: Context, log: DnsLog): Color? {
     return when {
-        log.isBlocked -> Color(ContextCompat.getColor(context, R.color.colorRed_A400))
+        log.isBlocked -> MaterialTheme.colorScheme.error
         determineMaybeBlocked(log) ->
-            Color(fetchColor(context, R.attr.chipTextNeutral))
+            MaterialTheme.colorScheme.onSurfaceVariant
         else -> null
     }
 }
@@ -484,4 +484,3 @@ private fun displayDuckduckgoFavIcon(
         onShowFlag()
     }
 }
-

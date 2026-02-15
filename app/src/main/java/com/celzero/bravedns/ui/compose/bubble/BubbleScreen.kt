@@ -58,7 +58,6 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AllowedAppInfo
 import com.celzero.bravedns.data.BlockedAppInfo
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
-import com.celzero.bravedns.util.UIUtils.fetchColor
 import io.github.aakira.napier.Napier
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -334,7 +333,7 @@ fun BlockedAppRow(app: BlockedAppInfo, onAllow: () -> Unit) {
                     Text(
                         text = stringResource(R.string.bubble_blocked_count, app.count),
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color(fetchColor(context, R.attr.accentBad))
+                        color = MaterialTheme.colorScheme.error
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(

@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.adapter
 
+
 import android.content.Context
 import android.widget.Toast
 import androidx.compose.material3.AlertDialog
@@ -145,38 +146,28 @@ private fun DomainProgress(conn: AppConnection, uid: Int, refresh: Int) {
     val color =
         when (status) {
             DomainRulesManager.Status.NONE ->
-                UIUtils.fetchToggleBtnColors(context, R.color.chipTextNeutral)
+                MaterialTheme.colorScheme.onSurfaceVariant
             DomainRulesManager.Status.BLOCK ->
-                UIUtils.fetchToggleBtnColors(context, R.color.accentBad)
+                MaterialTheme.colorScheme.error
             DomainRulesManager.Status.TRUST ->
-                UIUtils.fetchToggleBtnColors(context, R.color.accentGood)
-        }
-    
-    // Simplification: use a fixed max value or compute it elsewhere if needed.
-    // In many Compose use cases, 100 or 1.0f is used directly.
-    // The original calculatePercentage was using log2(c) and a global maxValue.
-    // For now, let's keep it simple or implement a similar logic if required.
-    // To match original behavior more closely, we'd need to pre-pass the max count.
-    
+                MaterialTheme.colorScheme.tertiary
+        }    // In many Compose use cases, 100 or 1.0f is used directly.    // For now, let's keep it simple or implement a similar logic if required.    
     var p = calculatePercentage(conn.count.toDouble())
     if (p == 0) {
-        p = 5 // placeholder for minPercentage / 2
+        p = 5
     }
     LinearProgressIndicator(
-        progress = p / 100f,
-        color = Color(color),
-        trackColor = Color(UIUtils.fetchColor(context, R.attr.background)),
+        progress = { p / 100f },
+        color = color,
+        trackColor = MaterialTheme.colorScheme.surface,
         modifier = Modifier.fillMaxWidth()
     )
 }
 
 private fun calculatePercentage(c: Double): Int {
-    // This needs a global maximum to be accurate across items.
     // If not available, it becomes a per-item progress which is less useful.
     // For now, let's use a reasonable default or assume max is handled elsewhere.
-    val value = (log2(c) * 100).toInt()
-    // NOTE: This simplified version doesn't have the global maxValue.
-    // In a LazyList, computing global max is expensive or requires a separate pass.
+    val value = (log2(c) * 100).toInt()    // In a LazyList, computing global max is expensive or requires a separate pass.
     return (value % 100) // Fallback
 }
 

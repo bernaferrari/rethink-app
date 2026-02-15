@@ -16,6 +16,7 @@ limitations under the License.
 
 package com.celzero.bravedns.adapter
 
+
 import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.Image
@@ -44,7 +45,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import androidx.core.content.ContextCompat
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ConnectionTracker
 import com.celzero.bravedns.database.RethinkLog
@@ -218,6 +218,7 @@ private fun protocolLabel(context: Context, port: Int, proto: Int): String {
     }
 }
 
+@Composable
 private fun hintColor(context: Context, log: RethinkLog): Color? {
     val blocked =
         if (log.blockedByRule == FirewallRuleset.RULE12.id) {
@@ -235,13 +236,13 @@ private fun hintColor(context: Context, log: RethinkLog): Color? {
         blocked -> {
             val isError = FirewallRuleset.isProxyError(rule)
             if (isError) {
-                Color(UIUtils.fetchColor(context, R.attr.chipTextNeutral))
+                MaterialTheme.colorScheme.onSurfaceVariant
             } else {
-                Color(ContextCompat.getColor(context, R.color.colorRed_A400))
+                MaterialTheme.colorScheme.error
             }
         }
         FirewallRuleset.shouldShowHint(rule) -> {
-            Color(ContextCompat.getColor(context, R.color.primaryLightColorText))
+            MaterialTheme.colorScheme.onSurfaceVariant
         }
         else -> null
     }

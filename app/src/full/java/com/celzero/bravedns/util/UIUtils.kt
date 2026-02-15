@@ -22,7 +22,6 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.content.res.TypedArray
 import android.graphics.Paint
 import android.net.Uri
 import android.os.Build
@@ -30,7 +29,6 @@ import android.provider.Settings
 import android.text.Html
 import android.text.Spanned
 import android.text.format.DateUtils
-import android.util.TypedValue
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
@@ -44,6 +42,7 @@ import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.DnsLogTracker
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.NetStat
+import java.util.Locale
 import com.google.android.material.radiobutton.MaterialRadioButton
 import java.util.Calendar
 import java.util.Date
@@ -66,7 +65,7 @@ object UIUtils {
         return if (value == value.toLong().toDouble()) {
             "${value.toLong()} ${units[unitIndex]}"
         } else {
-            String.format("%.1f %s", value, units[unitIndex])
+            String.format(Locale.US, "%.1f %s", value, units[unitIndex])
         }
     }
 
@@ -280,78 +279,6 @@ object UIUtils {
                 Toast.LENGTH_SHORT
             )
         }
-    }
-
-    fun fetchColor(context: Context, attr: Int): Int {
-        val typedValue = TypedValue()
-        val a: TypedArray = context.obtainStyledAttributes(typedValue.data, intArrayOf(attr))
-        val color = a.getColor(0, 0)
-        a.recycle()
-        return color
-    }
-
-    fun fetchToggleBtnColors(context: Context, attr: Int): Int {
-        val attributeFetch =
-            when (attr) {
-                R.color.firewallNoRuleToggleBtnTxt -> {
-                    R.attr.firewallNoRuleToggleBtnTxt
-                }
-                R.color.firewallNoRuleToggleBtnBg -> {
-                    R.attr.firewallNoRuleToggleBtnBg
-                }
-                R.color.firewallBlockToggleBtnTxt -> {
-                    R.attr.firewallBlockToggleBtnTxt
-                }
-                R.color.firewallBlockToggleBtnBg -> {
-                    R.attr.firewallBlockToggleBtnBg
-                }
-                R.color.firewallWhiteListToggleBtnTxt -> {
-                    R.attr.firewallWhiteListToggleBtnTxt
-                }
-                R.color.firewallWhiteListToggleBtnBg -> {
-                    R.attr.firewallWhiteListToggleBtnBg
-                }
-                R.color.firewallExcludeToggleBtnBg -> {
-                    R.attr.firewallExcludeToggleBtnBg
-                }
-                R.color.firewallExcludeToggleBtnTxt -> {
-                    R.attr.firewallExcludeToggleBtnTxt
-                }
-                R.color.defaultToggleBtnBg -> {
-                    R.attr.defaultToggleBtnBg
-                }
-                R.color.defaultToggleBtnTxt -> {
-                    R.attr.defaultToggleBtnTxt
-                }
-                R.color.accentGood -> {
-                    R.attr.accentGood
-                }
-                R.color.accentBad -> {
-                    R.attr.accentBad
-                }
-                R.color.chipBgNeutral -> {
-                    R.attr.chipBgColorNeutral
-                }
-                R.color.chipBgNegative -> {
-                    R.attr.chipBgColorNegative
-                }
-                R.color.chipBgPositive -> {
-                    R.attr.chipBgColorPositive
-                }
-                R.color.chipTextNeutral -> {
-                    R.attr.chipTextNeutral
-                }
-                R.color.chipTextNegative -> {
-                    R.attr.chipTextNegative
-                }
-                R.color.chipTextPositive -> {
-                    R.attr.chipTextPositive
-                }
-                else -> {
-                    R.attr.chipBgColorPositive
-                }
-            }
-        return fetchColor(context, attributeFetch)
     }
 
     suspend fun fetchFavIcon(context: Context, dnsLog: DnsLog) {

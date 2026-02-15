@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.dialog
 
+
 import Logger
 import Logger.LOG_TAG_UI
 import android.net.NetworkCapabilities
@@ -433,7 +434,7 @@ fun NetworkReachabilitySheet(
             if (errorMessage.isNotBlank()) {
                 Text(
                     text = errorMessage,
-                    color = Color(UIUtils.fetchToggleBtnColors(context, R.color.accentBad)),
+                    color = MaterialTheme.colorScheme.error,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
@@ -443,10 +444,10 @@ fun NetworkReachabilitySheet(
 
 @Composable
 private fun ToggleButton(selected: Boolean, text: String, onClick: () -> Unit) {
-    val selectedBg = Color(UIUtils.fetchToggleBtnColors(LocalContext.current, R.color.accentGood))
-    val unselectedBg = Color(UIUtils.fetchToggleBtnColors(LocalContext.current, R.color.defaultToggleBtnBg))
-    val selectedText = Color(UIUtils.fetchColor(LocalContext.current, R.attr.homeScreenHeaderTextColor))
-    val unselectedText = Color(UIUtils.fetchColor(LocalContext.current, R.attr.primaryTextColor))
+    val selectedBg = MaterialTheme.colorScheme.tertiary
+    val unselectedBg = MaterialTheme.colorScheme.surface
+    val selectedText = MaterialTheme.colorScheme.onSurface
+    val unselectedText = MaterialTheme.colorScheme.onSurface
     Button(
         onClick = onClick,
         colors =

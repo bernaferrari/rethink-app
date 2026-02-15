@@ -1,5 +1,6 @@
 package com.celzero.bravedns.ui.bottomsheet
 
+
 import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
 import android.widget.Toast
@@ -99,13 +100,13 @@ fun CustomDomainRulesSheet(
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
-        val borderColor = Color(UIUtils.fetchColor(context, R.attr.border))
-        val neutralText = Color(UIUtils.fetchColor(context, R.attr.chipTextNeutral))
-        val neutralBg = Color(UIUtils.fetchColor(context, R.attr.chipBgColorNeutral))
-        val negativeText = Color(UIUtils.fetchColor(context, R.attr.chipTextNegative))
-        val negativeBg = Color(UIUtils.fetchColor(context, R.attr.chipBgColorNegative))
-        val positiveText = Color(UIUtils.fetchColor(context, R.attr.chipTextPositive))
-        val positiveBg = Color(UIUtils.fetchColor(context, R.attr.chipBgColorPositive))
+        val borderColor = MaterialTheme.colorScheme.outline
+        val neutralText = MaterialTheme.colorScheme.onSurfaceVariant
+        val neutralBg = MaterialTheme.colorScheme.surfaceVariant
+        val negativeText = MaterialTheme.colorScheme.error
+        val negativeBg = MaterialTheme.colorScheme.errorContainer
+        val positiveText = MaterialTheme.colorScheme.tertiary
+        val positiveBg = MaterialTheme.colorScheme.tertiaryContainer
 
         Column(
             modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
@@ -123,7 +124,7 @@ fun CustomDomainRulesSheet(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                val deleteText = Color(UIUtils.fetchColor(context, R.attr.chipTextNegative))
+                val deleteText = MaterialTheme.colorScheme.error
                 TextButton(
                     onClick = { showDeleteDialog = true },
                     colors = ButtonDefaults.textButtonColors(contentColor = deleteText)

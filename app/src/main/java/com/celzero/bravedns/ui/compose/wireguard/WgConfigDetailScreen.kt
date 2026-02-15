@@ -57,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -132,6 +133,9 @@ fun WgConfigDetailScreen(
     var showIncludeAppsDialog by remember { mutableStateOf(false) }
     var includeAppsProxyId by remember { mutableStateOf("") }
     var includeAppsProxyName by remember { mutableStateOf("") }
+    val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
+    val errorColor = MaterialTheme.colorScheme.error.toArgb()
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary.toArgb()
 
     val appsCount by mappingViewModel
         .getAppCountById(ID_WG_BASE + configId)
@@ -161,6 +165,9 @@ fun WgConfigDetailScreen(
             context = context,
             id = configId,
             persistentState = persistentState,
+            onSurfaceVariantColor = onSurfaceVariantColor,
+            errorColor = errorColor,
+            tertiaryColor = tertiaryColor,
             onStatusUpdate = { text, color ->
                 statusText = text
                 statusColor = color
@@ -625,6 +632,9 @@ private suspend fun updateStatusUi(
     context: Context,
     id: Int,
     persistentState: PersistentState,
+    onSurfaceVariantColor: Int,
+    errorColor: Int,
+    tertiaryColor: Int,
     onStatusUpdate: (String, Int?) -> Unit
 ) {
     val mapping = WireguardManager.getConfigFilesById(id)
@@ -642,12 +652,12 @@ private suspend fun updateStatusUi(
             if (dnsStatusId != null && isDnsError(dnsStatusId)) {
                 val text = context.getString(R.string.status_failing)
                     .replaceFirstChar(Char::titlecase)
-                val color = UIUtils.fetchColor(context, R.attr.chipTextNegative)
+                val color = errorColor
                 onStatusUpdate(text, color)
                 return@withContext
             }
             val text = getStatusText(context, ps, getHandshakeTime(stats).toString(), stats, statusPair.second)
-            val color = UIUtils.fetchColor(context, getStrokeColorForStatus(ps, stats))
+            val color = getStrokeColorForStatus(ps, stats, onSurfaceVariantColor, errorColor, tertiaryColor)
             onStatusUpdate(text, color)
         }
     } else {
@@ -725,15 +735,28 @@ private fun getHandshakeTime(stats: RouterStats?): CharSequence {
     )
 }
 
-private fun getStrokeColorForStatus(status: UIUtils.ProxyStatus?, stats: RouterStats?): Int {
+private fun getStrokeColorForStatus(
+    status: UIUtils.ProxyStatus?,
+    stats: RouterStats?,
+    onSurfaceVariantColor: Int,
+    errorColor: Int,
+    tertiaryColor: Int
+): Int {
     val now = System.currentTimeMillis()
     val lastOk = stats?.lastOK ?: 0L
     val since = stats?.since ?: 0L
     val isFailing = now - since > WG_UPTIME_THRESHOLD && lastOk == 0L
     return when (status) {
-        UIUtils.ProxyStatus.TOK -> if (isFailing) R.attr.chipTextNeutral else R.attr.accentGood
-        UIUtils.ProxyStatus.TUP, UIUtils.ProxyStatus.TZZ, UIUtils.ProxyStatus.TNT -> R.attr.chipTextNeutral
-        else -> R.attr.chipTextNegative
+        UIUtils.ProxyStatus.TOK ->
+            if (isFailing) {
+                onSurfaceVariantColor
+            } else {
+                tertiaryColor
+            }
+        UIUtils.ProxyStatus.TUP,
+        UIUtils.ProxyStatus.TZZ,
+        UIUtils.ProxyStatus.TNT -> onSurfaceVariantColor
+        else -> errorColor
     }
 }
 

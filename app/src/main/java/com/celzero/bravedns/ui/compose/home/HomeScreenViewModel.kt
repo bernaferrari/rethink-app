@@ -126,11 +126,11 @@ class HomeScreenViewModel(
 
     private fun observeLogsCount() {
         appConfig.dnsLogsCount.asFlow().onEach { count ->
-            _uiState.update { it.copy(dnsLogsCount = count ?: 0L) }
+            _uiState.update { it.copy(dnsLogsCount = count) }
         }.launchIn(viewModelScope)
 
         appConfig.networkLogsCount.asFlow().onEach { count ->
-            _uiState.update { it.copy(networkLogsCount = count ?: 0L) }
+            _uiState.update { it.copy(networkLogsCount = count) }
         }.launchIn(viewModelScope)
     }
 

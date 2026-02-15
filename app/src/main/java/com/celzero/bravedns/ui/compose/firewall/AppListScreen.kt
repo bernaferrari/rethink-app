@@ -73,7 +73,6 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.FirewallAppRow
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
-import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.viewmodel.AppInfoViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -249,7 +248,7 @@ fun AppListScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
-                        bulkDialogType?.let { onBulkDialogConfirm(it) }
+                        onBulkDialogConfirm(bulkDialogType)
                     }
                 ) {
                     Text(text = stringResource(R.string.lbl_apply))
@@ -336,7 +335,7 @@ fun AppListScreen(
                         .fillMaxWidth()
                         .padding(horizontal = 4.dp),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(fetchColor(context, R.attr.primaryTextColor)),
+                    color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -453,7 +452,7 @@ private fun FirewallInfoDialogContent() {
         Text(
             text = stringResource(R.string.fapps_info_dialog_message),
             style = MaterialTheme.typography.bodyMedium,
-            color = Color(fetchColor(context, R.attr.primaryTextColor))
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         Spacer(modifier = Modifier.height(2.dp))
@@ -462,7 +461,7 @@ private fun FirewallInfoDialogContent() {
             modifier = Modifier
                 .fillMaxWidth()
                 .height(1.dp)
-                .background(Color(fetchColor(context, R.attr.primaryLightColorText)))
+                .background(MaterialTheme.colorScheme.onSurfaceVariant)
         )
 
         InfoRow(
@@ -508,7 +507,7 @@ private fun InfoRow(icon: Int, text: String) {
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
-            color = Color(fetchColor(context, R.attr.primaryTextColor))
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
@@ -548,14 +547,14 @@ fun FirewallAppFilterSheet(
                 modifier = Modifier
                     .width(60.dp)
                     .height(3.dp)
-                    .background(Color(fetchColor(context, R.attr.border)), MaterialTheme.shapes.small)
+                    .background(MaterialTheme.colorScheme.outline, MaterialTheme.shapes.small)
                     .align(Alignment.CenterHorizontally)
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
                 text = stringResource(R.string.fapps_filter_filter_heading),
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(fetchColor(context, R.attr.secondaryTextColor)),
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
 
@@ -586,7 +585,7 @@ fun FirewallAppFilterSheet(
             Text(
                 text = stringResource(R.string.fapps_filter_categories_heading),
                 style = MaterialTheme.typography.titleMedium,
-                color = Color(fetchColor(context, R.attr.secondaryTextColor)),
+                color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.padding(vertical = 4.dp)
             )
 

@@ -50,6 +50,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
@@ -67,7 +68,6 @@ import com.celzero.bravedns.service.WireguardManager.ERR_CODE_WG_INVALID
 import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
 import com.celzero.bravedns.ui.compose.wireguard.WgType
 import com.celzero.bravedns.util.UIUtils
-import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities
 import com.celzero.firestack.backend.RouterStats
 import io.github.aakira.napier.Napier
@@ -110,7 +110,7 @@ fun OneWgConfigRow(
     onConfigDetailClick: (Int, WgType) -> Unit
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
+    val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
     var isChecked by remember(config.id, config.isActive) {
         mutableStateOf(config.isActive && VpnController.hasTunnel())
@@ -123,9 +123,10 @@ fun OneWgConfigRow(
     var showActiveLayout by remember(config.id) { mutableStateOf(false) }
     var uptimeText by remember(config.id) { mutableStateOf("") }
     var rxtxText by remember(config.id) { mutableStateOf("") }
-    var strokeColor by remember(config.id) {
-        mutableStateOf(Color(fetchColor(context, R.attr.chipTextNegative)))
-    }
+    val errorColor = MaterialTheme.colorScheme.error
+    val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant
+    val tertiaryColor = MaterialTheme.colorScheme.tertiary
+    var strokeColor by remember(config.id, errorColor) { mutableStateOf(errorColor) }
     var strokeWidth by remember(config.id) { mutableStateOf(0.dp) }
     var protocolChips by remember(config.id) { mutableStateOf(ProtocolChips()) }
     var inProgress by remember(config.id) { mutableStateOf(false) }
@@ -137,7 +138,16 @@ fun OneWgConfigRow(
                 delay(DELAY_MS)
                 continue
             }
-            val uiState = withContext(Dispatchers.IO) { computeOneWgStatusUi(context, config) }
+            val uiState =
+                withContext(Dispatchers.IO) {
+                    computeOneWgStatusUi(
+                        context = context,
+                        config = config,
+                        errorColor = errorColor,
+                        onSurfaceVariantColor = onSurfaceVariantColor,
+                        tertiaryColor = tertiaryColor
+                    )
+                }
             isChecked = uiState.isActive
             statusText = uiState.statusText
             appsText = uiState.appsText
@@ -269,19 +279,25 @@ suspend fun computeProtocolChips(config: WgConfigFiles): ProtocolChips {
     val pair = VpnController.getSupportedIpVersion(id)
     val cfg = WireguardManager.getConfigById(config.id)
     val splitTunnel =
-        if (cfg?.getPeers()?.isNotEmpty() == true && pair != null) {
+        if (cfg?.getPeers()?.isNotEmpty() == true) {
             VpnController.isSplitTunnelProxy(id, pair)
         } else {
             false
         }
     return ProtocolChips(
-        ipv4 = pair?.first == true,
-        ipv6 = pair?.second == true,
+        ipv4 = pair.first,
+        ipv6 = pair.second,
         splitTunnel = splitTunnel
     )
 }
 
-suspend fun computeOneWgStatusUi(context: Context, config: WgConfigFiles): OneWgUiState {
+suspend fun computeOneWgStatusUi(
+    context: Context,
+    config: WgConfigFiles,
+    errorColor: Color,
+    onSurfaceVariantColor: Color,
+    tertiaryColor: Color
+): OneWgUiState {
     if (config.isActive && !VpnController.hasTunnel()) {
         return OneWgUiState(
             isActive = false,
@@ -291,7 +307,7 @@ suspend fun computeOneWgStatusUi(context: Context, config: WgConfigFiles): OneWg
             showActiveLayout = false,
             uptimeText = "",
             rxtxText = "",
-            strokeColor = Color(fetchColor(context, R.attr.chipTextNegative)),
+            strokeColor = errorColor,
             strokeWidth = 0.dp
         )
     }
@@ -305,7 +321,7 @@ suspend fun computeOneWgStatusUi(context: Context, config: WgConfigFiles): OneWg
             showActiveLayout = false,
             uptimeText = "",
             rxtxText = "",
-            strokeColor = Color(fetchColor(context, R.attr.chipTextNegative)),
+            strokeColor = errorColor,
             strokeWidth = 0.dp
         )
     }
@@ -329,11 +345,17 @@ suspend fun computeOneWgStatusUi(context: Context, config: WgConfigFiles): OneWg
 
     val strokeColor =
         if (dnsStatusId != null && isOneWgDnsError(dnsStatusId)) {
-            Color(fetchColor(context, R.attr.chipTextNegative))
+            errorColor
         } else {
             val status =
                 UIUtils.ProxyStatus.entries.find { it.id == statusPair.first }
-            Color(fetchColor(context, getOneWgStrokeColorForStatus(status, stats)))
+            getOneWgStrokeColorForStatus(
+                status = status,
+                stats = stats,
+                errorColor = errorColor,
+                onSurfaceVariantColor = onSurfaceVariantColor,
+                tertiaryColor = tertiaryColor
+            )
         }
 
     val rxtx = getOneWgRxTx(context, stats)
@@ -375,17 +397,28 @@ private fun isOneWgDnsError(statusId: Long?): Boolean {
         s == Transaction.Status.TRANSPORT_ERROR
 }
 
-private fun getOneWgStrokeColorForStatus(status: UIUtils.ProxyStatus?, stats: RouterStats?): Int {
+private fun getOneWgStrokeColorForStatus(
+    status: UIUtils.ProxyStatus?,
+    stats: RouterStats?,
+    errorColor: Color,
+    onSurfaceVariantColor: Color,
+    tertiaryColor: Color
+): Color {
     val now = System.currentTimeMillis()
     val lastOk = stats?.lastOK ?: 0L
     val since = stats?.since ?: 0L
     val isFailing = now - since > WG_UPTIME_THRESHOLD && lastOk == 0L
     return when (status) {
-        UIUtils.ProxyStatus.TOK -> if (isFailing) R.attr.chipTextNeutral else R.attr.accentGood
+        UIUtils.ProxyStatus.TOK ->
+            if (isFailing) {
+                onSurfaceVariantColor
+            } else {
+                tertiaryColor
+            }
         UIUtils.ProxyStatus.TUP,
         UIUtils.ProxyStatus.TZZ,
-        UIUtils.ProxyStatus.TNT -> R.attr.chipTextNeutral
-        else -> R.attr.chipTextNegative
+        UIUtils.ProxyStatus.TNT -> onSurfaceVariantColor
+        else -> errorColor
     }
 }
 

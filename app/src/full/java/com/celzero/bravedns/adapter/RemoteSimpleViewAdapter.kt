@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.adapter
 
+
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,25 +43,23 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.database.RemoteBlocklistPacksMap
 import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
-import com.celzero.bravedns.util.UIUtils.fetchColor
-import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
 
 @Composable
 fun RemoteSimpleBlocklistRow(
     map: RemoteBlocklistPacksMap,
     showHeader: Boolean,
-    onToggle: (Boolean) -> Unit
-) {
+            onToggle: (Boolean) -> Unit
+    ) {
     val context = LocalContext.current
     val selectedTags = RethinkBlocklistState.getSelectedFileTags()
     val isSelected = selectedTags.containsAll(map.blocklistIds)
     val backgroundColor =
         if (isSelected) {
-            Color(fetchColor(context, R.attr.selectedCardBg))
+            MaterialTheme.colorScheme.surfaceVariant
         } else {
-            Color(fetchColor(context, R.attr.background))
+            MaterialTheme.colorScheme.surface
         }
-    val indicatorColor = getLevelIndicatorColor(context, map.level)
+    val indicatorColor = getLevelIndicatorColor(map.level)
 
     Column(
         modifier = Modifier.fillMaxWidth(),
@@ -74,12 +73,12 @@ fun RemoteSimpleBlocklistRow(
                 Text(
                     text = RethinkBlocklistManager.getGroupName(context, map.group),
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color(fetchColor(context, R.attr.accentBad))
+                    color = MaterialTheme.colorScheme.error
                 )
                 Text(
                     text = RethinkBlocklistManager.getTitleDesc(context, map.group),
                     style = MaterialTheme.typography.bodySmall,
-                    color = Color(fetchColor(context, R.attr.primaryLightColorText))
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -124,16 +123,13 @@ fun RemoteSimpleBlocklistRow(
     }
 }
 
-private fun getLevelIndicatorColor(context: Context, level: Int): Color {
-    val resId =
-        when (level) {
-            0 -> R.color.firewallNoRuleToggleBtnBg
-            1 -> R.color.firewallWhiteListToggleBtnTxt
-            2 -> R.color.firewallBlockToggleBtnTxt
-            else -> R.color.firewallNoRuleToggleBtnBg
-        }
-    return Color(fetchToggleBtnColors(context, resId))
-}
+@Composable
+private fun getLevelIndicatorColor(level: Int): Color =
+    when (level) {
+        1 -> MaterialTheme.colorScheme.tertiary
+        2 -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.surfaceVariant
+    }
 
 fun RethinkBlocklistManager.getGroupName(context: Context, group: String): String {
     if (group.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) return context.getString(RethinkBlocklistManager.PARENTAL_CONTROL.label)

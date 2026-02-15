@@ -103,7 +103,6 @@ import com.celzero.bravedns.util.Constants.Companion.DEAD_PACK
 import com.celzero.bravedns.util.Constants.Companion.DEFAULT_RDNS_REMOTE_DNS_NAMES
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.Constants.Companion.RETHINK_STAMP_VERSION
-import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getRemoteBlocklistStamp
 import com.celzero.bravedns.util.Utilities.hasLocalBlocklists
@@ -633,7 +632,7 @@ private fun RethinkListContent(
     }
 
     LaunchedEffect(workInfos) {
-        val workInfo = workInfos?.getOrNull(0) ?: return@LaunchedEffect
+        val workInfo = workInfos.getOrNull(0) ?: return@LaunchedEffect
         Napier.i("Remote blocklist worker state: ${workInfo.state}")
         when (workInfo.state) {
             WorkInfo.State.SUCCEEDED -> {
@@ -840,7 +839,7 @@ private fun RethinkBlocklistContent(
     }
 
     LaunchedEffect(customDownload) {
-        val workInfo = customDownload?.getOrNull(0) ?: return@LaunchedEffect
+        val workInfo = customDownload.getOrNull(0) ?: return@LaunchedEffect
         when (workInfo.state) {
             WorkInfo.State.ENQUEUED,
             WorkInfo.State.RUNNING -> onDownloadStart()
@@ -852,7 +851,7 @@ private fun RethinkBlocklistContent(
     }
 
     LaunchedEffect(downloadTag) {
-        val workInfo = downloadTag?.getOrNull(0) ?: return@LaunchedEffect
+        val workInfo = downloadTag.getOrNull(0) ?: return@LaunchedEffect
         when (workInfo.state) {
             WorkInfo.State.ENQUEUED,
             WorkInfo.State.RUNNING -> onDownloadStart()
@@ -863,7 +862,7 @@ private fun RethinkBlocklistContent(
     }
 
     LaunchedEffect(fileTag) {
-        val workInfo = fileTag?.getOrNull(0) ?: return@LaunchedEffect
+        val workInfo = fileTag.getOrNull(0) ?: return@LaunchedEffect
         when (workInfo.state) {
             WorkInfo.State.SUCCEEDED -> onDownloadSuccess()
             WorkInfo.State.CANCELLED,
@@ -1142,7 +1141,7 @@ private fun RethinkPlusFilterSheet(
     }
     val initialFilters = filters.value
     var selectedSubgroups by remember { mutableStateOf(initialFilters?.subGroups?.toSet() ?: emptySet()) }
-    val borderColor = Color(fetchColor(context, R.attr.border))
+    val borderColor = MaterialTheme.colorScheme.outline
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
         Column(
