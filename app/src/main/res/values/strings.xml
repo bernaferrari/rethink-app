@@ -2093,4 +2093,32 @@
     <string name="lbl_universal_rules" translatable="true">Universal Rules</string>
     <string name="dns_detail_latency" translatable="true">Latency</string>
     <string name="lbl_connected" translatable="true">Connected</string>
+    <string name="cd_navigate_back" translatable="true">Navigate back</string>
+    <string name="cd_clear_search" translatable="true">Clear search</string>
+    <string name="proxy_host_label" translatable="true">Host</string>
+    <string name="proxy_port_label" translatable="true">Port</string>
+    <string name="proxy_username_optional_label" translatable="true">Username (optional)</string>
+    <string name="proxy_password_optional_label" translatable="true">Password (optional)</string>
+    <string name="rpn_no_countries_title" translatable="true">No countries available</string>
+    <string name="rpn_no_countries_desc" translatable="true">No countries available for RPN right now. Try again later.</string>
+    <string name="rpn_proxy_details_title" translatable="true">Proxy details</string>
+    <string name="rpn_no_proxy_found_title" translatable="true">No proxy found</string>
+    <string name="rpn_no_proxy_found_desc" translatable="true">Proxy information is missing for this proxy. Ensure the proxy is configured and try again.</string>
+    <string name="rpn_select_apps_for_proxy" translatable="true">Select apps for proxy</string>
+    <string name="rpn_proxy_apps_info_toast" translatable="true">Apps part of other proxy or excluded from proxy will be listed here.</string>
+    <string name="rpn_proxy_apps" translatable="true">Apps</string>
+    <string name="rpn_proxy_domains" translatable="true">Domains</string>
+    <string name="rpn_proxy_ips" translatable="true">IPs</string>
+    <string name="rpn_proxy_name" translatable="true">Proxy name</string>
+    <string name="rpn_proxy_who" translatable="true">Who</string>
+    <string name="rpn_proxy_error" translatable="true">Error</string>
+    <string name="rpn_proxy_country" translatable="true">Country</string>
+    <string name="rpn_proxy_latency" translatable="true">Latency</string>
+    <string name="rpn_proxy_last_connected" translatable="true">Last connected</string>
+    <string name="rpn_proxy_status" translatable="true">Status</string>
+    <string name="rpn_proxy_connected" translatable="true">Connected</string>
+    <string name="rpn_proxy_placeholder_who" translatable="true">who_or_service_email@domain.com</string>
+    <string name="rpn_proxy_placeholder_latency" translatable="true">37 ms</string>
+    <string name="rpn_proxy_placeholder_last_connected" translatable="true">2 min ago</string>
+    <string name="checkout_unavailable_desc" translatable="true">Checkout is unavailable in this build.</string>
 </resources>

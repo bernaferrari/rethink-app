@@ -48,7 +48,6 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -74,6 +73,7 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.dialog.CustomLanIpSheet
 import com.celzero.bravedns.ui.dialog.NetworkReachabilitySheet
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.InternetProtocol
 import com.celzero.bravedns.util.NewSettingsManager
@@ -155,7 +155,7 @@ fun TunnelSettingsScreen(
         if (hours > 0) parts.add("${hours}h")
         if (minutes > 0) parts.add("${minutes}m")
         if (seconds > 0) parts.add("${seconds}s")
-        return if (parts.isEmpty()) context.getString(R.string.lbl_disabled) else parts.joinToString(" ")
+        return if (parts.isEmpty()) context.resources.getString(R.string.lbl_disabled) else parts.joinToString(" ")
     }
 
     val ipDesc = when (internetProtocol) {
@@ -233,18 +233,9 @@ fun TunnelSettingsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(R.string.lbl_network)) },
-                navigationIcon = {
-                    if (onBackClick != null) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
-                                contentDescription = "Back"
-                            )
-                        }
-                    }
-                }
+            RethinkTopBar(
+                title = stringResource(R.string.lbl_network),
+                onBackClick = onBackClick
             )
         }
     ) { padding ->
@@ -372,7 +363,7 @@ fun TunnelSettingsScreen(
                                 persistentState.protocolTranslationType = checked
                             } else {
                                 protocolTranslation = false
-                                showToastUiCentered(context, context.getString(R.string.settings_protocol_translation_dns_inactive), Toast.LENGTH_SHORT)
+                                showToastUiCentered(context, context.resources.getString(R.string.settings_protocol_translation_dns_inactive), Toast.LENGTH_SHORT)
                             }
                             logEvent("protocol translation", "Protocol translation: $checked")
                         }
@@ -412,7 +403,7 @@ fun TunnelSettingsScreen(
                         Button(
                             onClick = {
                                 if (!VpnController.hasTunnel()) {
-                                    showToastUiCentered(context, context.getString(R.string.settings_socks5_vpn_disabled_error), Toast.LENGTH_SHORT)
+                                    showToastUiCentered(context, context.resources.getString(R.string.settings_socks5_vpn_disabled_error), Toast.LENGTH_SHORT)
                                 } else {
                                     showReachabilitySheet = true
                                 }

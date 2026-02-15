@@ -33,16 +33,16 @@ data class SsidItem(
 
         fun getDisplayName(context: Context): String {
             val actionText = if (isEqual) {
-                context.getString(R.string.lbl_connect)
+                context.resources.getString(R.string.lbl_connect)
             } else {
-                context.getString(R.string.notification_action_pause_vpn).lowercase()
+                context.resources.getString(R.string.notification_action_pause_vpn).lowercase()
                     .replaceFirstChar { it.uppercase() }
             }
 
             val matchTypeText = if (isExact) {
-                context.getString(R.string.wg_ssid_type_exact)
+                context.resources.getString(R.string.wg_ssid_type_exact)
             } else {
-                context.getString(R.string.wg_ssid_type_wildcard)
+                context.resources.getString(R.string.wg_ssid_type_wildcard)
             }
 
             return "$actionText - $matchTypeText"

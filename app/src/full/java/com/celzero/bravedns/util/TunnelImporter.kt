@@ -65,7 +65,7 @@ object TunnelImporter : KoinComponent {
                 var idx = name.lastIndexOf('/')
                 if (idx >= 0) {
                     require(idx < name.length - 1) {
-                        context.getString(R.string.illegal_filename_error, name)
+                        context.resources.getString(R.string.illegal_filename_error, name)
                     }
                     name = name.substring(idx + 1)
                 }
@@ -73,7 +73,7 @@ object TunnelImporter : KoinComponent {
                 if (name.lowercase().endsWith(".conf")) {
                     name = name.substring(0, name.length - ".conf".length)
                 } else {
-                    require(isZip) { context.getString(R.string.bad_extension_error) }
+                    require(isZip) { context.resources.getString(R.string.bad_extension_error) }
                 }
 
                 if (isZip) {
@@ -117,7 +117,7 @@ object TunnelImporter : KoinComponent {
                         throw throwables[0]
                     } else {
                         require(throwables.isNotEmpty()) {
-                            context.getString(R.string.no_configs_error)
+                            context.resources.getString(R.string.no_configs_error)
                         }
                     }
                 }
@@ -155,7 +155,7 @@ object TunnelImporter : KoinComponent {
 
         for (throwable in throwables) {
             val error = ErrorMessages[context, throwable]
-            message = context.getString(R.string.import_error, error)
+            message = context.resources.getString(R.string.import_error, error)
             val ex = Logger.throwableToException(throwable)
             Logger.e(LOG_TAG_PROXY, message, ex)
         }
@@ -165,7 +165,7 @@ object TunnelImporter : KoinComponent {
             message = message.substring(idx + 1).trim { it <= ' ' }
         }
         message =
-            if (throwables.isEmpty()) context.getString(R.string.config_add_success_toast)
+            if (throwables.isEmpty()) context.resources.getString(R.string.config_add_success_toast)
             else message
 
         messageCallback(message)

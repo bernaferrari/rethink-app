@@ -180,7 +180,7 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
     // last connected dns label name and url
     var connectedDnsName by
         stringPref("connected_dns_name")
-            .withDefault<String>(context.getString(R.string.default_dns_name))
+            .withDefault<String>(context.resources.getString(R.string.default_dns_name))
 
     // the current light/dark theme; 0's the default which is "Set by System"
     var theme by intPref("app_theme").withDefault<Int>(0)
@@ -621,7 +621,7 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
         if (!firebaseErrorReportingEnabled) {
             firebaseErrorReportingEnabled = true
             Handler(Looper.getMainLooper()).post {
-                Toast.makeText(context, context.getString(R.string.stability_program_toast), Toast.LENGTH_LONG).show()
+                Toast.makeText(context, context.resources.getString(R.string.stability_program_toast), Toast.LENGTH_LONG).show()
             }
         }
 

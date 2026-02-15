@@ -38,7 +38,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,6 +57,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.TcpProxyHelper
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 
 enum class CheckoutPlan(val titleRes: Int, val subtitleRes: Int) {
     ONE_MONTH(R.string.checkout_plan_1m_title, R.string.checkout_plan_1m_subtitle),
@@ -74,21 +74,13 @@ fun CheckoutScreen(
     onBackClick: (() -> Unit)? = null
 ) {
     var selectedPlan by remember { mutableStateOf(CheckoutPlan.SIX_MONTH) }
+    val backContentDescription = stringResource(R.string.cd_navigate_back)
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(R.string.checkout_app_name)) },
-                navigationIcon = {
-                    if (onBackClick != null) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
-                                contentDescription = "Back"
-                            )
-                        }
-                    }
-                }
+            RethinkTopBar(
+                title = stringResource(R.string.checkout_app_name),
+                onBackClick = onBackClick
             )
         }
     ) { paddingValues ->

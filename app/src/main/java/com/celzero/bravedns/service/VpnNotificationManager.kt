@@ -70,20 +70,20 @@ class VpnNotificationManager(
 
         val mainChannel = NotificationChannel(
             MAIN_CHANNEL_ID,
-            context.getString(R.string.notif_channel_vpn_notification),
+            context.resources.getString(R.string.notif_channel_vpn_notification),
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = context.getString(R.string.notif_channel_desc_vpn_notification)
+            description = context.resources.getString(R.string.notif_channel_desc_vpn_notification)
             setShowBadge(false)
         }
         notificationManager.createNotificationChannel(mainChannel)
 
         val warningChannel = NotificationChannel(
             WARNING_CHANNEL_ID,
-            context.getString(R.string.notif_channel_vpn_failure),
+            context.resources.getString(R.string.notif_channel_vpn_failure),
             NotificationManager.IMPORTANCE_LOW
         ).apply {
-            description = context.getString(R.string.notif_channel_desc_vpn_failure)
+            description = context.resources.getString(R.string.notif_channel_desc_vpn_failure)
             setShowBadge(false)
         }
         notificationManager.createNotificationChannel(warningChannel)
@@ -96,7 +96,7 @@ class VpnNotificationManager(
     fun buildNotification(): Notification {
         return NotificationCompat.Builder(context, MAIN_CHANNEL_ID).apply {
             setSmallIcon(R.drawable.ic_notification_icon)
-            setContentTitle(context.getString(R.string.app_name))
+            setContentTitle(context.resources.getString(R.string.app_name))
             setContentText(getNotificationContentText())
             setOngoing(true)
             setOnlyAlertOnce(true)
@@ -113,10 +113,10 @@ class VpnNotificationManager(
 
     private fun getNotificationContentText(): String {
         return when (_connectionState.value) {
-            BraveVPNService.State.WORKING -> context.getString(R.string.hybrid_mode_notification_title)
-            BraveVPNService.State.PAUSED -> context.getString(R.string.pause_mode_notification_title)
-            BraveVPNService.State.NEW -> context.getString(R.string.lbl_starting)
-            else -> context.getString(R.string.hybrid_mode_notification_title)
+            BraveVPNService.State.WORKING -> context.resources.getString(R.string.hybrid_mode_notification_title)
+            BraveVPNService.State.PAUSED -> context.resources.getString(R.string.pause_mode_notification_title)
+            BraveVPNService.State.NEW -> context.resources.getString(R.string.lbl_starting)
+            else -> context.resources.getString(R.string.hybrid_mode_notification_title)
         }
     }
 

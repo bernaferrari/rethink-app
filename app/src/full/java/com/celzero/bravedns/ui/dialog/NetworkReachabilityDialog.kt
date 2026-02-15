@@ -138,7 +138,7 @@ fun NetworkReachabilitySheet(
     }
 
     fun updateAutoModeUi() {
-        val autoTxt = context.getString(R.string.lbl_auto)
+        val autoTxt = context.resources.getString(R.string.lbl_auto)
         ipv4Address1 = ConnectionMonitor.SCHEME_IP + ConnectionMonitor.PROTOCOL_V4 + " " + autoTxt
         ipv4Address2 = ConnectionMonitor.SCHEME_HTTPS + ConnectionMonitor.PROTOCOL_V4 + " " + autoTxt
         ipv6Address1 = ConnectionMonitor.SCHEME_IP + ConnectionMonitor.PROTOCOL_V6 + " " + autoTxt
@@ -236,7 +236,7 @@ fun NetworkReachabilitySheet(
             } catch (e: Exception) {
                 Logger.e(LOG_TAG_UI, "NwReachability; testConnections error: ${e.message}", e)
                 withContext(Dispatchers.Main) {
-                    errorMessage = context.getString(R.string.blocklist_update_check_failure)
+                    errorMessage = context.resources.getString(R.string.blocklist_update_check_failure)
                     setAllProgressBarsVisibility(false)
                     updateButtonsEnabled(true)
                 }
@@ -256,7 +256,7 @@ fun NetworkReachabilitySheet(
             val validUrl62 = isValidUrl(urlV6Address2)
 
             if (!valid41 || !valid42 || !validUrl41 || !validUrl42 || !valid61 || !valid62 || !validUrl61 || !validUrl62) {
-                errorMessage = context.getString(R.string.cd_dns_proxy_error_text_1)
+                errorMessage = context.resources.getString(R.string.cd_dns_proxy_error_text_1)
                 return
             }
         }
@@ -282,7 +282,7 @@ fun NetworkReachabilitySheet(
         persistentState.pingv6Url = url6Txt.joinToString(",")
         Toast.makeText(
             context,
-            context.getString(R.string.config_add_success_toast),
+            context.resources.getString(R.string.config_add_success_toast),
             Toast.LENGTH_LONG
         ).show()
         scope.launch(Dispatchers.IO) {
@@ -312,18 +312,18 @@ fun NetworkReachabilitySheet(
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ToggleButton(
                     selected = useAuto,
-                    text = context.getString(R.string.settings_ip_text_ipv46),
+                    text = context.resources.getString(R.string.settings_ip_text_ipv46),
                     onClick = { useAuto = true; updateAutoModeUi() }
                 )
                 ToggleButton(
                     selected = !useAuto,
-                    text = context.getString(R.string.lbl_manual),
+                    text = context.resources.getString(R.string.lbl_manual),
                     onClick = { useAuto = false; updateManualModeUi() }
                 )
             }
 
             Text(
-                text = context.getString(R.string.bypasses_network_restrictions),
+                text = context.resources.getString(R.string.bypasses_network_restrictions),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -331,11 +331,11 @@ fun NetworkReachabilitySheet(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     StatusIcon(isOk = protocols.contains(URL4))
-                    Text(text = context.getString(R.string.settings_ip_text_ipv4))
+                    Text(text = context.resources.getString(R.string.settings_ip_text_ipv4))
                 }
                 if (!useAuto) {
                     TextButton(onClick = { resetToDefaults() }) {
-                        Text(text = context.getString(R.string.brbs_restore_title))
+                        Text(text = context.resources.getString(R.string.brbs_restore_title))
                     }
                 }
             }
@@ -375,7 +375,7 @@ fun NetworkReachabilitySheet(
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     StatusIcon(isOk = protocols.contains(URL6))
-                    Text(text = context.getString(R.string.settings_ip_text_ipv6))
+                    Text(text = context.resources.getString(R.string.settings_ip_text_ipv6))
                 }
             }
 
@@ -420,14 +420,14 @@ fun NetworkReachabilitySheet(
                     enabled = buttonsEnabled,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = context.getString(R.string.lbl_test))
+                    Text(text = context.resources.getString(R.string.lbl_test))
                 }
                 Button(
                     onClick = { saveIps() },
                     enabled = buttonsEnabled,
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = context.getString(R.string.lbl_save))
+                    Text(text = context.resources.getString(R.string.lbl_save))
                 }
             }
 

@@ -39,6 +39,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CustomDomain
@@ -69,37 +70,65 @@ fun CustomDomainRulesSheet(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var appName by remember { mutableStateOf("") }
+    var appNames by remember { mutableStateOf<List<String>>(emptyList()) }
     var appIcon by remember { mutableStateOf<Drawable?>(null) }
     var status by remember { mutableStateOf(DomainRulesManager.Status.NONE) }
-    var statusText by remember { mutableStateOf("") }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(customDomain.uid, customDomain.domain) {
         val uid = customDomain.uid
-        if (uid == UID_EVERYBODY) {
-            appName =
-                context.getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
-            appIcon = null
-        } else {
+        if (uid != UID_EVERYBODY) {
             val appNames = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(uid) }
-            val name = getAppName(context, uid, appNames)
+            this@CustomDomainRulesSheet.appNames = appNames
             val appInfo = withContext(Dispatchers.IO) { FirewallManager.getAppInfoByUid(uid) }
-            appName = name
             appIcon =
                 Utilities.getIcon(
                     context,
                     appInfo?.packageName ?: "",
                     appInfo?.appName ?: ""
                 )
+        } else {
+            appNames = emptyList()
+            appIcon = null
         }
 
         val rules = DomainRulesManager.getDomainRule(customDomain.domain, uid)
         status = rules
-        statusText = buildStatusText(context, status, customDomain.modifiedTs)
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
+        val appName =
+            when {
+                customDomain.uid == UID_EVERYBODY ->
+                    stringResource(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
+                appNames.isEmpty() ->
+                    stringResource(R.string.network_log_app_name_unknown) + " (${customDomain.uid})"
+                appNames.size >= 2 ->
+                    stringResource(
+                        R.string.ctbs_app_other_apps,
+                        appNames[0],
+                        appNames.size.minus(1).toString()
+                    )
+                else -> appNames[0]
+            }
+
+        val now = System.currentTimeMillis()
+        val time =
+            DateUtils.getRelativeTimeSpanString(
+                customDomain.modifiedTs,
+                now,
+                DateUtils.MINUTE_IN_MILLIS,
+                DateUtils.FORMAT_ABBREV_RELATIVE
+            )
+        val statusLabel =
+            when (status) {
+                DomainRulesManager.Status.TRUST -> stringResource(R.string.ci_trust_txt)
+                DomainRulesManager.Status.BLOCK -> stringResource(R.string.lbl_blocked)
+                DomainRulesManager.Status.NONE -> stringResource(R.string.cd_no_rule_txt)
+            }
+        val statusText = stringResource(R.string.ci_desc, statusLabel, time)
+        val deletedToast = stringResource(R.string.cd_toast_deleted)
+
         val borderColor = MaterialTheme.colorScheme.outline
         val neutralText = MaterialTheme.colorScheme.onSurfaceVariant
         val neutralBg = MaterialTheme.colorScheme.surfaceVariant
@@ -129,7 +158,7 @@ fun CustomDomainRulesSheet(
                     onClick = { showDeleteDialog = true },
                     colors = ButtonDefaults.textButtonColors(contentColor = deleteText)
                 ) {
-                    Text(text = context.getString(R.string.lbl_delete))
+                    Text(text = stringResource(R.string.lbl_delete))
                 }
             }
 
@@ -159,7 +188,7 @@ fun CustomDomainRulesSheet(
             }
 
             Text(
-                text = context.getString(R.string.lbl_domain),
+                text = stringResource(R.string.lbl_domain),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
@@ -185,7 +214,7 @@ fun CustomDomainRulesSheet(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 RuleChip(
-                    label = context.getString(R.string.ci_no_rule),
+                    label = stringResource(R.string.ci_no_rule),
                     selected = status == DomainRulesManager.Status.NONE,
                     selectedText = neutralText,
                     selectedContainer = neutralBg
@@ -197,11 +226,10 @@ fun CustomDomainRulesSheet(
                         eventLogger
                     ) { newStatus ->
                         status = newStatus
-                        statusText = buildStatusText(context, newStatus, customDomain.modifiedTs)
                     }
                 }
                 RuleChip(
-                    label = context.getString(R.string.ci_block),
+                    label = stringResource(R.string.ci_block),
                     selected = status == DomainRulesManager.Status.BLOCK,
                     selectedText = negativeText,
                     selectedContainer = negativeBg
@@ -213,11 +241,10 @@ fun CustomDomainRulesSheet(
                         eventLogger
                     ) { newStatus ->
                         status = newStatus
-                        statusText = buildStatusText(context, newStatus, customDomain.modifiedTs)
                     }
                 }
                 RuleChip(
-                    label = context.getString(R.string.ci_trust_rule),
+                    label = stringResource(R.string.ci_trust_rule),
                     selected = status == DomainRulesManager.Status.TRUST,
                     selectedText = positiveText,
                     selectedContainer = positiveBg
@@ -229,7 +256,6 @@ fun CustomDomainRulesSheet(
                         eventLogger
                     ) { newStatus ->
                         status = newStatus
-                        statusText = buildStatusText(context, newStatus, customDomain.modifiedTs)
                     }
                 }
             }
@@ -238,8 +264,8 @@ fun CustomDomainRulesSheet(
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text(text = context.getString(R.string.cd_remove_dialog_title)) },
-                text = { Text(text = context.getString(R.string.cd_remove_dialog_message)) },
+                title = { Text(text = stringResource(R.string.cd_remove_dialog_title)) },
+                text = { Text(text = stringResource(R.string.cd_remove_dialog_message)) },
                 confirmButton = {
                     Button(
                         onClick = {
@@ -249,7 +275,7 @@ fun CustomDomainRulesSheet(
                                 withContext(Dispatchers.Main) {
                                     Utilities.showToastUiCentered(
                                         context,
-                                        context.getString(R.string.cd_toast_deleted),
+                                        deletedToast,
                                         Toast.LENGTH_SHORT
                                     )
                                 }
@@ -259,12 +285,12 @@ fun CustomDomainRulesSheet(
                             onDismiss()
                         }
                     ) {
-                        Text(text = context.getString(R.string.lbl_delete))
+                        Text(text = stringResource(R.string.lbl_delete))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteDialog = false }) {
-                        Text(text = context.getString(R.string.lbl_cancel))
+                        Text(text = stringResource(R.string.lbl_cancel))
                     }
                 }
             )
@@ -310,47 +336,6 @@ private fun updateRule(
             onUpdated(status)
         }
         logEvent(eventLogger, "Domain rule for ${customDomain.domain} set to ${status.name}")
-    }
-}
-
-private fun buildStatusText(context: android.content.Context, status: DomainRulesManager.Status, modifiedTs: Long): String {
-    val now = System.currentTimeMillis()
-    val uptime = System.currentTimeMillis() - modifiedTs
-    val time =
-        DateUtils.getRelativeTimeSpanString(
-            now - uptime,
-            now,
-            DateUtils.MINUTE_IN_MILLIS,
-            DateUtils.FORMAT_ABBREV_RELATIVE
-        )
-    val label =
-        when (status) {
-            DomainRulesManager.Status.TRUST -> context.getString(R.string.ci_trust_txt)
-            DomainRulesManager.Status.BLOCK -> context.getString(R.string.lbl_blocked)
-            DomainRulesManager.Status.NONE -> context.getString(R.string.cd_no_rule_txt)
-        }
-    return context.getString(R.string.ci_desc, label, time)
-}
-
-private fun getAppName(context: android.content.Context, uid: Int, appNames: List<String>): String {
-    if (uid == UID_EVERYBODY) {
-        return context.getString(R.string.firewall_act_universal_tab)
-            .replaceFirstChar(Char::titlecase)
-    }
-
-    if (appNames.isEmpty()) {
-        return context.getString(R.string.network_log_app_name_unknown) + " ($uid)"
-    }
-
-    val packageCount = appNames.count()
-    return if (packageCount >= 2) {
-        context.getString(
-            R.string.ctbs_app_other_apps,
-            appNames[0],
-            packageCount.minus(1).toString()
-        )
-    } else {
-        appNames[0]
     }
 }
 

@@ -43,7 +43,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -77,6 +76,7 @@ import com.celzero.bravedns.database.DoTEndpoint
 import com.celzero.bravedns.database.ODoHEndpoint
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
@@ -128,16 +128,9 @@ fun ConfigureOtherDnsScreen(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = { Text(text = getDnsTypeName(dnsType)) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_back_24),
-                            contentDescription = null
-                        )
-                    }
-                }
+            RethinkTopBar(
+                title = getDnsTypeName(dnsType),
+                onBackClick = onBackClick
             )
         }
     ) { padding ->
@@ -215,7 +208,7 @@ private fun <T : Any> DnsEndpointListWithFab(
         ) {
             Icon(
                 painter = painterResource(R.drawable.ic_fab_without_border),
-                contentDescription = context.getString(R.string.lbl_create)
+                contentDescription = context.resources.getString(R.string.lbl_create)
             )
         }
     }
@@ -243,15 +236,15 @@ private fun DohListContent(
     if (showDialog) {
         FullWidthDialog(onDismiss = { showDialog = false }) {
             CustomDohDialogContent(
-                title = context.getString(R.string.cd_doh_dialog_heading),
-                nameLabel = context.getString(R.string.cd_doh_dialog_resolver_name),
-                urlLabel = context.getString(R.string.cd_doh_dialog_resolver_url),
-                defaultName = context.getString(R.string.cd_custom_doh_url_name_default),
+                title = context.resources.getString(R.string.cd_doh_dialog_heading),
+                nameLabel = context.resources.getString(R.string.cd_doh_dialog_resolver_name),
+                urlLabel = context.resources.getString(R.string.cd_doh_dialog_resolver_url),
+                defaultName = context.resources.getString(R.string.cd_custom_doh_url_name_default),
                 initialUrl = "https://",
-                checkboxLabel = context.getString(R.string.cd_doh_dialog_checkbox_desc),
+                checkboxLabel = context.resources.getString(R.string.cd_doh_dialog_checkbox_desc),
                 loadNextIndex = { appConfig.getDohCount().plus(1) },
                 nameForIndex = { index ->
-                    context.getString(R.string.cd_custom_doh_url_name, index.toString())
+                    context.resources.getString(R.string.cd_custom_doh_url_name, index.toString())
                 },
                 onSubmit = { name, url, isSecure ->
                     if (checkUrl(url)) {
@@ -261,10 +254,10 @@ private fun DohListContent(
                         showDialog = false
                         null
                     } else {
-                        context.getString(R.string.custom_url_error_invalid_url)
+                        context.resources.getString(R.string.custom_url_error_invalid_url)
                     }
                 },
-                invalidUrlMessage = context.getString(R.string.custom_url_error_invalid_url),
+                invalidUrlMessage = context.resources.getString(R.string.custom_url_error_invalid_url),
                 onDismiss = { showDialog = false }
             )
         }
@@ -323,21 +316,21 @@ private fun DotListContent(
     }
 
     if (showDialog) {
-        val title = context.getString(
+        val title = context.resources.getString(
             R.string.two_argument_space,
-            context.getString(R.string.lbl_add).replaceFirstChar(Char::titlecase),
-            context.getString(R.string.lbl_dot)
+            context.resources.getString(R.string.lbl_add).replaceFirstChar(Char::titlecase),
+            context.resources.getString(R.string.lbl_dot)
         )
         FullWidthDialog(onDismiss = { showDialog = false }) {
             CustomDohDialogContent(
                 title = title,
-                nameLabel = context.getString(R.string.cd_doh_dialog_resolver_name),
-                urlLabel = context.getString(R.string.cd_doh_dialog_resolver_url),
-                defaultName = context.getString(R.string.lbl_dot),
+                nameLabel = context.resources.getString(R.string.cd_doh_dialog_resolver_name),
+                urlLabel = context.resources.getString(R.string.cd_doh_dialog_resolver_url),
+                defaultName = context.resources.getString(R.string.lbl_dot),
                 initialUrl = "",
-                checkboxLabel = context.getString(R.string.cd_doh_dialog_checkbox_desc),
+                checkboxLabel = context.resources.getString(R.string.cd_doh_dialog_checkbox_desc),
                 loadNextIndex = { appConfig.getDoTCount().plus(1) },
-                nameForIndex = { index -> context.getString(R.string.lbl_dot) + index.toString() },
+                nameForIndex = { index -> context.resources.getString(R.string.lbl_dot) + index.toString() },
                 onSubmit = { name, url, isSecure ->
                     scope.launch(Dispatchers.IO) {
                         insertDotEndpoint(appConfig, name, url, isSecure)
@@ -392,7 +385,7 @@ private fun DnsProxyListContent(
             scope.launch {
                 val names = withContext(Dispatchers.IO) {
                     val list: MutableList<String> = ArrayList()
-                    list.add(context.getString(R.string.settings_app_list_default_app))
+                    list.add(context.resources.getString(R.string.settings_app_list_default_app))
                     list.addAll(FirewallManager.getAllAppNamesSortedByVpnPermission(context))
                     list
                 }
@@ -432,9 +425,9 @@ private fun DnsProxyDialogContent(
     var selectedAppIndex by remember { mutableStateOf(0) }
     var appMenuExpanded by remember { mutableStateOf(false) }
     var proxyName by remember {
-        mutableStateOf(context.getString(R.string.cd_custom_dns_proxy_name, nextIndex.toString()))
+        mutableStateOf(context.resources.getString(R.string.cd_custom_dns_proxy_name, nextIndex.toString()))
     }
-    var ipAddress by remember { mutableStateOf(context.getString(R.string.cd_custom_dns_proxy_default_ip)) }
+    var ipAddress by remember { mutableStateOf(context.resources.getString(R.string.cd_custom_dns_proxy_default_ip)) }
     var portText by remember { mutableStateOf("") }
     var errorText by remember { mutableStateOf("") }
     var excludeAppsChecked by remember { mutableStateOf(!persistentState.excludeAppsInProxy) }
@@ -446,19 +439,19 @@ private fun DnsProxyDialogContent(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text(
-            text = context.getString(R.string.dns_proxy_dialog_header_dns),
+            text = context.resources.getString(R.string.dns_proxy_dialog_header_dns),
             style = MaterialTheme.typography.titleMedium
         )
 
         if (lockdown) {
             TextButton(onClick = { onDismiss(); UIUtils.openVpnProfile(context) }) {
-                Text(text = context.getString(R.string.settings_lock_down_mode_desc))
+                Text(text = context.resources.getString(R.string.settings_lock_down_mode_desc))
             }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = context.getString(R.string.settings_dns_proxy_dialog_app),
+                text = context.resources.getString(R.string.settings_dns_proxy_dialog_app),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.weight(0.3f)
             )
@@ -484,19 +477,19 @@ private fun DnsProxyDialogContent(
         OutlinedTextField(
             value = proxyName,
             onValueChange = { proxyName = it },
-            label = { Text(text = context.getString(R.string.dns_proxy_name)) },
+            label = { Text(text = context.resources.getString(R.string.dns_proxy_name)) },
             modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(
             value = ipAddress,
             onValueChange = { ipAddress = it },
-            label = { Text(text = context.getString(R.string.dns_proxy_ip_address)) },
+            label = { Text(text = context.resources.getString(R.string.dns_proxy_ip_address)) },
             modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(
             value = portText,
             onValueChange = { portText = it },
-            label = { Text(text = context.getString(R.string.dns_proxy_port)) },
+            label = { Text(text = context.resources.getString(R.string.dns_proxy_port)) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
@@ -510,7 +503,7 @@ private fun DnsProxyDialogContent(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(text = context.getString(R.string.settings_exclude_proxy_apps_heading))
+            Text(text = context.resources.getString(R.string.settings_exclude_proxy_apps_heading))
             Checkbox(
                 checked = excludeAppsChecked,
                 onCheckedChange = { if (!lockdown) excludeAppsChecked = it },
@@ -523,16 +516,16 @@ private fun DnsProxyDialogContent(
             horizontalArrangement = Arrangement.End
         ) {
             TextButton(onClick = onDismiss) {
-                Text(text = context.getString(R.string.lbl_cancel))
+                Text(text = context.resources.getString(R.string.lbl_cancel))
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = {
-                    val mode = context.getString(R.string.cd_dns_proxy_mode_external)
+                    val mode = context.resources.getString(R.string.cd_dns_proxy_mode_external)
                     val appName = appNames.getOrNull(selectedAppIndex).orEmpty()
                     val ipAddresses = ipAddress.split(",").map { it.trim() }.filter { it.isNotEmpty() }
                     if (ipAddresses.isEmpty()) {
-                        errorText = context.getString(R.string.cd_dns_proxy_error_text_1)
+                        errorText = context.resources.getString(R.string.cd_dns_proxy_error_text_1)
                         return@Button
                     }
 
@@ -547,14 +540,14 @@ private fun DnsProxyDialogContent(
                     }
 
                     if (invalidIps.isNotEmpty()) {
-                        errorText = context.getString(R.string.cd_dns_proxy_error_text_1) +
+                        errorText = context.resources.getString(R.string.cd_dns_proxy_error_text_1) +
                             ": ${invalidIps.joinToString(", ")}"
                         return@Button
                     }
 
                     val port = portText.toIntOrNull()
                     if (port == null) {
-                        errorText = context.getString(R.string.cd_dns_proxy_error_text_3)
+                        errorText = context.resources.getString(R.string.cd_dns_proxy_error_text_3)
                         return@Button
                     }
 
@@ -567,7 +560,7 @@ private fun DnsProxyDialogContent(
                     }
 
                     if (!isPortValid) {
-                        errorText = context.getString(R.string.cd_dns_proxy_error_text_2)
+                        errorText = context.resources.getString(R.string.cd_dns_proxy_error_text_2)
                         return@Button
                     }
 
@@ -579,7 +572,7 @@ private fun DnsProxyDialogContent(
                     onDismiss()
                 }
             ) {
-                Text(text = context.getString(R.string.lbl_add))
+                Text(text = context.resources.getString(R.string.lbl_add))
             }
         }
     }
@@ -596,14 +589,14 @@ private suspend fun insertDNSProxyEndpointDB(
 ) {
     if (appName == null) return
 
-    val packageName = if (appName == context.getString(R.string.settings_app_list_default_app)) {
+    val packageName = if (appName == context.resources.getString(R.string.settings_app_list_default_app)) {
         ""
     } else {
         FirewallManager.getPackageNameByAppName(appName) ?: ""
     }
     var proxyName = name
     if (proxyName.isBlank()) {
-        proxyName = if (mode == context.getString(R.string.cd_dns_proxy_mode_internal)) {
+        proxyName = if (mode == context.resources.getString(R.string.cd_dns_proxy_mode_internal)) {
             appName
         } else ip
     }
@@ -697,7 +690,7 @@ private fun DnsCryptDialogContent(
     var isServer by remember { mutableStateOf(true) }
     var dnscryptNextIndex by remember { mutableStateOf(0) }
     var relayNextIndex by remember { mutableStateOf(0) }
-    var name by remember { mutableStateOf(context.getString(R.string.cd_dns_crypt_name_default)) }
+    var name by remember { mutableStateOf(context.resources.getString(R.string.cd_dns_crypt_name_default)) }
     var url by remember { mutableStateOf("") }
     var desc by remember { mutableStateOf("") }
     var errorText by remember { mutableStateOf("") }
@@ -709,9 +702,9 @@ private fun DnsCryptDialogContent(
 
     LaunchedEffect(isServer, dnscryptNextIndex, relayNextIndex) {
         name = if (isServer) {
-            context.getString(R.string.cd_dns_crypt_name, dnscryptNextIndex.toString())
+            context.resources.getString(R.string.cd_dns_crypt_name, dnscryptNextIndex.toString())
         } else {
-            context.getString(R.string.cd_dns_crypt_relay_name, relayNextIndex.toString())
+            context.resources.getString(R.string.cd_dns_crypt_relay_name, relayNextIndex.toString())
         }
     }
 
@@ -720,7 +713,7 @@ private fun DnsCryptDialogContent(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Text(
-            text = context.getString(R.string.cd_dns_crypt_dialog_heading),
+            text = context.resources.getString(R.string.cd_dns_crypt_dialog_heading),
             style = MaterialTheme.typography.titleMedium
         )
 
@@ -730,30 +723,30 @@ private fun DnsCryptDialogContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             TextButton(onClick = { isServer = true }) {
-                Text(text = context.getString(R.string.cd_dns_crypt_resolver_heading))
+                Text(text = context.resources.getString(R.string.cd_dns_crypt_resolver_heading))
             }
             Spacer(modifier = Modifier.width(10.dp))
             TextButton(onClick = { isServer = false }) {
-                Text(text = context.getString(R.string.cd_dns_crypt_relay_heading))
+                Text(text = context.resources.getString(R.string.cd_dns_crypt_relay_heading))
             }
         }
 
         OutlinedTextField(
             value = name,
             onValueChange = { name = it },
-            label = { Text(text = context.getString(R.string.cd_dns_crypt_dialog_name)) },
+            label = { Text(text = context.resources.getString(R.string.cd_dns_crypt_dialog_name)) },
             modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(
             value = url,
             onValueChange = { url = it },
-            label = { Text(text = context.getString(R.string.cd_dns_crypt_dialog_stamp)) },
+            label = { Text(text = context.resources.getString(R.string.cd_dns_crypt_dialog_stamp)) },
             modifier = Modifier.fillMaxWidth()
         )
         OutlinedTextField(
             value = desc,
             onValueChange = { desc = it },
-            label = { Text(text = context.getString(R.string.cd_dns_crypt_dialog_desc)) },
+            label = { Text(text = context.resources.getString(R.string.cd_dns_crypt_dialog_desc)) },
             modifier = Modifier.fillMaxWidth()
         )
 
@@ -766,13 +759,13 @@ private fun DnsCryptDialogContent(
             horizontalArrangement = Arrangement.End
         ) {
             TextButton(onClick = onDismiss) {
-                Text(text = context.getString(R.string.lbl_cancel))
+                Text(text = context.resources.getString(R.string.lbl_cancel))
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(
                 onClick = {
                     if (name.isBlank() || url.isBlank()) {
-                        errorText = context.getString(R.string.custom_url_error_invalid_url)
+                        errorText = context.resources.getString(R.string.custom_url_error_invalid_url)
                         return@Button
                     }
 
@@ -788,7 +781,7 @@ private fun DnsCryptDialogContent(
                     onDismiss()
                 }
             ) {
-                Text(text = context.getString(R.string.lbl_add))
+                Text(text = context.resources.getString(R.string.lbl_add))
             }
         }
     }
@@ -850,22 +843,22 @@ private fun OdohListContent(
     }
 
     if (showDialog) {
-        val title = context.getString(
+        val title = context.resources.getString(
             R.string.two_argument_space,
-            context.getString(R.string.lbl_add).replaceFirstChar(Char::uppercase),
-            context.getString(R.string.lbl_odoh)
+            context.resources.getString(R.string.lbl_add).replaceFirstChar(Char::uppercase),
+            context.resources.getString(R.string.lbl_odoh)
         )
         FullWidthDialog(onDismiss = { showDialog = false }) {
             CustomOdohDialogContent(
                 title = title,
-                nameLabel = context.getString(R.string.cd_doh_dialog_resolver_name),
-                proxyLabel = context.getString(R.string.settings_proxy_header).replaceFirstChar(Char::uppercase) +
-                    context.getString(R.string.lbl_optional),
-                resolverLabel = context.getString(R.string.cd_doh_dialog_resolver_url),
-                defaultName = context.getString(R.string.lbl_odoh),
+                nameLabel = context.resources.getString(R.string.cd_doh_dialog_resolver_name),
+                proxyLabel = context.resources.getString(R.string.settings_proxy_header).replaceFirstChar(Char::uppercase) +
+                    context.resources.getString(R.string.lbl_optional),
+                resolverLabel = context.resources.getString(R.string.cd_doh_dialog_resolver_url),
+                defaultName = context.resources.getString(R.string.lbl_odoh),
                 initialResolver = "https://",
                 loadNextIndex = { appConfig.getODoHCount().plus(1) },
-                invalidUrlMessage = context.getString(R.string.custom_url_error_invalid_url),
+                invalidUrlMessage = context.resources.getString(R.string.custom_url_error_invalid_url),
                 onSubmit = { name, proxy, resolver ->
                     if (checkUrl(resolver)) {
                         scope.launch(Dispatchers.IO) {
@@ -874,7 +867,7 @@ private fun OdohListContent(
                         showDialog = false
                         null
                     } else {
-                        context.getString(R.string.custom_url_error_invalid_url)
+                        context.resources.getString(R.string.custom_url_error_invalid_url)
                     }
                 },
                 onDismiss = { showDialog = false }
@@ -952,7 +945,7 @@ private fun CustomDohDialogContent(
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             TextButton(onClick = onDismiss) {
-                Text(text = context.getString(R.string.lbl_cancel))
+                Text(text = context.resources.getString(R.string.lbl_cancel))
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(
@@ -964,7 +957,7 @@ private fun CustomDohDialogContent(
                     }
                 }
             ) {
-                Text(text = context.getString(R.string.lbl_add))
+                Text(text = context.resources.getString(R.string.lbl_add))
             }
         }
     }
@@ -991,7 +984,7 @@ private fun CustomOdohDialogContent(
 
     LaunchedEffect(Unit) {
         val nextIndex = withContext(Dispatchers.IO) { loadNextIndex() }
-        name = context.getString(R.string.lbl_odoh) + nextIndex.toString()
+        name = context.resources.getString(R.string.lbl_odoh) + nextIndex.toString()
     }
 
     Column(
@@ -1024,7 +1017,7 @@ private fun CustomOdohDialogContent(
         }
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
             TextButton(onClick = onDismiss) {
-                Text(text = context.getString(R.string.lbl_cancel))
+                Text(text = context.resources.getString(R.string.lbl_cancel))
             }
             Spacer(modifier = Modifier.width(8.dp))
             Button(
@@ -1035,7 +1028,7 @@ private fun CustomOdohDialogContent(
                     }
                 }
             ) {
-                Text(text = context.getString(R.string.lbl_add))
+                Text(text = context.resources.getString(R.string.lbl_add))
             }
         }
     }

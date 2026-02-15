@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
@@ -63,6 +64,9 @@ fun AppListScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val refreshCompleteText = stringResource(R.string.refresh_complete)
+    val bypassDnsText = stringResource(R.string.bypass_dns_firewall)
+    val bypassDnsTooltipText = stringResource(R.string.bypass_dns_firewall_tooltip, bypassDnsText)
     
     // State
     var queryText by remember { mutableStateOf("") }
@@ -93,7 +97,7 @@ fun AppListScreen(
         val firewallLabel = filter.firewallFilter.getLabel(context)
         filterLabelText = if (filter.categoryFilters.isEmpty()) {
             UIUtils.htmlToSpannedText(
-                context.getString(
+                context.resources.getString(
                     R.string.fapps_firewall_filter_desc,
                     firewallLabel.lowercase(),
                     filterLabel
@@ -101,7 +105,7 @@ fun AppListScreen(
             )
         } else {
             UIUtils.htmlToSpannedText(
-                context.getString(
+                context.resources.getString(
                     R.string.fapps_firewall_filter_desc_category,
                     firewallLabel.lowercase(),
                     filterLabel,
@@ -140,28 +144,28 @@ fun AppListScreen(
     fun getBulkActionDialogTitle(type: BlockType): String {
         return when (type) {
             BlockType.UNMETER -> {
-                if (!bulkWifi) context.getString(R.string.fapps_unmetered_block_dialog_title)
-                else context.getString(R.string.fapps_unmetered_unblock_dialog_title)
+                if (!bulkWifi) context.resources.getString(R.string.fapps_unmetered_block_dialog_title)
+                else context.resources.getString(R.string.fapps_unmetered_unblock_dialog_title)
             }
             BlockType.METER -> {
-                if (!bulkMobile) context.getString(R.string.fapps_metered_block_dialog_title)
-                else context.getString(R.string.fapps_metered_unblock_dialog_title)
+                if (!bulkMobile) context.resources.getString(R.string.fapps_metered_block_dialog_title)
+                else context.resources.getString(R.string.fapps_metered_unblock_dialog_title)
             }
             BlockType.LOCKDOWN -> {
-                if (!bulkLockdown) context.getString(R.string.fapps_isolate_block_dialog_title)
-                else context.getString(R.string.fapps_unblock_dialog_title)
+                if (!bulkLockdown) context.resources.getString(R.string.fapps_isolate_block_dialog_title)
+                else context.resources.getString(R.string.fapps_unblock_dialog_title)
             }
             BlockType.BYPASS -> {
-                if (!bulkBypass) context.getString(R.string.fapps_bypass_block_dialog_title)
-                else context.getString(R.string.fapps_unblock_dialog_title)
+                if (!bulkBypass) context.resources.getString(R.string.fapps_bypass_block_dialog_title)
+                else context.resources.getString(R.string.fapps_unblock_dialog_title)
             }
             BlockType.EXCLUDE -> {
-                if (!bulkExclude) context.getString(R.string.fapps_exclude_block_dialog_title)
-                else context.getString(R.string.fapps_unblock_dialog_title)
+                if (!bulkExclude) context.resources.getString(R.string.fapps_exclude_block_dialog_title)
+                else context.resources.getString(R.string.fapps_unblock_dialog_title)
             }
             BlockType.BYPASS_DNS_FIREWALL -> {
-                if (!bulkBypassDns) context.getString(R.string.fapps_bypass_dns_firewall_dialog_title)
-                else context.getString(R.string.fapps_unblock_dialog_title)
+                if (!bulkBypassDns) context.resources.getString(R.string.fapps_bypass_dns_firewall_dialog_title)
+                else context.resources.getString(R.string.fapps_unblock_dialog_title)
             }
         }
     }
@@ -169,28 +173,28 @@ fun AppListScreen(
     fun getBulkActionDialogMessage(type: BlockType): String {
         return when (type) {
             BlockType.UNMETER -> {
-                if (!bulkWifi) context.getString(R.string.fapps_unmetered_block_dialog_message)
-                else context.getString(R.string.fapps_unmetered_unblock_dialog_message)
+                if (!bulkWifi) context.resources.getString(R.string.fapps_unmetered_block_dialog_message)
+                else context.resources.getString(R.string.fapps_unmetered_unblock_dialog_message)
             }
             BlockType.METER -> {
-                if (!bulkMobile) context.getString(R.string.fapps_metered_block_dialog_message)
-                else context.getString(R.string.fapps_metered_unblock_dialog_message)
+                if (!bulkMobile) context.resources.getString(R.string.fapps_metered_block_dialog_message)
+                else context.resources.getString(R.string.fapps_metered_unblock_dialog_message)
             }
             BlockType.LOCKDOWN -> {
-                if (!bulkLockdown) context.getString(R.string.fapps_isolate_block_dialog_message)
-                else context.getString(R.string.fapps_unblock_dialog_message)
+                if (!bulkLockdown) context.resources.getString(R.string.fapps_isolate_block_dialog_message)
+                else context.resources.getString(R.string.fapps_unblock_dialog_message)
             }
             BlockType.BYPASS -> {
-                if (!bulkBypass) context.getString(R.string.fapps_bypass_block_dialog_message)
-                else context.getString(R.string.fapps_unblock_dialog_message)
+                if (!bulkBypass) context.resources.getString(R.string.fapps_bypass_block_dialog_message)
+                else context.resources.getString(R.string.fapps_unblock_dialog_message)
             }
             BlockType.BYPASS_DNS_FIREWALL -> {
-                if (!bulkBypassDns) context.getString(R.string.fapps_bypass_dns_firewall_dialog_message)
-                else context.getString(R.string.fapps_unblock_dialog_message)
+                if (!bulkBypassDns) context.resources.getString(R.string.fapps_bypass_dns_firewall_dialog_message)
+                else context.resources.getString(R.string.fapps_unblock_dialog_message)
             }
             BlockType.EXCLUDE -> {
-                if (!bulkExclude) context.getString(R.string.fapps_exclude_block_dialog_message)
-                else context.getString(R.string.fapps_unblock_dialog_message)
+                if (!bulkExclude) context.resources.getString(R.string.fapps_exclude_block_dialog_message)
+                else context.resources.getString(R.string.fapps_unblock_dialog_message)
             }
         }
     }
@@ -297,7 +301,7 @@ fun AppListScreen(
         scope.launch {
             delay(REFRESH_TIMEOUT)
             isRefreshing = false
-            Utilities.showToastUiCentered(context, context.getString(R.string.refresh_complete), Toast.LENGTH_SHORT)
+            Utilities.showToastUiCentered(context, refreshCompleteText, Toast.LENGTH_SHORT)
         }
     }
     
@@ -353,7 +357,7 @@ fun AppListScreen(
             showBypassToolTip = false
             Utilities.showToastUiCentered(
                 context,
-                context.getString(R.string.bypass_dns_firewall_tooltip, context.getString(R.string.bypass_dns_firewall)),
+                bypassDnsTooltipText,
                 Toast.LENGTH_SHORT
             )
         },

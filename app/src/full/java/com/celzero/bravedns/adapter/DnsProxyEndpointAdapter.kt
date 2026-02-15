@@ -70,7 +70,7 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
             withContext(Dispatchers.IO) {
                 FirewallManager.getAppInfoByPackage(endpoint.proxyAppName)?.appName
             }
-        val defaultName = context.getString(R.string.cd_custom_dns_proxy_default_app)
+        val defaultName = context.resources.getString(R.string.cd_custom_dns_proxy_default_app)
         val resolvedAppName =
             if (endpoint.proxyName != defaultName) {
                 appName ?: defaultName
@@ -111,14 +111,14 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
                             FirewallManager.getAppInfoByPackage(endpoint.getPackageName())?.appName
                         val message =
                             if (!app.isNullOrEmpty()) {
-                                context.getString(
+                                context.resources.getString(
                                     R.string.dns_proxy_dialog_message,
                                     app,
                                     endpoint.proxyIP,
                                     endpoint.proxyPort.toString()
                                 )
                             } else {
-                                context.getString(
+                                context.resources.getString(
                                     R.string.dns_proxy_dialog_message_no_app,
                                     endpoint.proxyIP,
                                     endpoint.proxyPort.toString()
@@ -149,8 +149,8 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
             is DnsProxyDialogState.Delete -> {
                 AlertDialog(
                     onDismissRequest = { dialogState = null },
-                    title = { Text(text = context.getString(R.string.dns_proxy_remove_dialog_title)) },
-                    text = { Text(text = context.getString(R.string.dns_proxy_remove_dialog_message)) },
+                    title = { Text(text = context.resources.getString(R.string.dns_proxy_remove_dialog_title)) },
+                    text = { Text(text = context.resources.getString(R.string.dns_proxy_remove_dialog_message)) },
                     confirmButton = {
                         TextButton(
                             onClick = {
@@ -158,12 +158,12 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
                                 dialogState = null
                             }
                         ) {
-                            Text(text = context.getString(R.string.lbl_delete))
+                            Text(text = context.resources.getString(R.string.lbl_delete))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { dialogState = null }) {
-                            Text(text = context.getString(R.string.lbl_cancel))
+                            Text(text = context.resources.getString(R.string.lbl_cancel))
                         }
                     }
                 )
@@ -175,7 +175,7 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
                     text = { Text(text = state.message) },
                     confirmButton = {
                         TextButton(onClick = { dialogState = null }) {
-                            Text(text = context.getString(R.string.dns_info_positive))
+                            Text(text = context.resources.getString(R.string.dns_info_positive))
                         }
                     },
                     dismissButton = {
@@ -185,16 +185,16 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
                                     clipboardCopy(
                                         context,
                                         state.ip,
-                                        context.getString(R.string.copy_clipboard_label)
+                                        context.resources.getString(R.string.copy_clipboard_label)
                                     )
                                     Utilities.showToastUiCentered(
                                         context,
-                                        context.getString(R.string.info_dialog_copy_toast_msg),
+                                        context.resources.getString(R.string.info_dialog_copy_toast_msg),
                                         Toast.LENGTH_SHORT
                                     )
                                 }
                             ) {
-                                Text(text = context.getString(R.string.dns_info_neutral))
+                                Text(text = context.resources.getString(R.string.dns_info_neutral))
                             }
                         }
                     }
@@ -226,7 +226,7 @@ private fun deleteProxyEndpoint(
         withContext(Dispatchers.Main) {
             Utilities.showToastUiCentered(
                 context,
-                context.getString(R.string.dns_proxy_remove_success),
+                context.resources.getString(R.string.dns_proxy_remove_success),
                 Toast.LENGTH_SHORT
             )
         }

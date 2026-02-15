@@ -361,7 +361,7 @@ class GoVpnAdapter : KoinComponent {
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: doh failure, url: $url", e)
             removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.other_dns_list_tab1), e.message ?: context.getString(R.string.system_dns_connection_failure))
+            showDnsFailureNotification(context.resources.getString(R.string.other_dns_list_tab1), e.message ?: context.resources.getString(R.string.system_dns_connection_failure))
             showDnsFailureToast(url ?: "")
             logEvent(
                 Severity.HIGH,
@@ -402,7 +402,7 @@ class GoVpnAdapter : KoinComponent {
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dot failure, url: $url", e)
             removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.lbl_dot), e.message ?: context.getString(R.string.system_dns_connection_failure))
+            showDnsFailureNotification(context.resources.getString(R.string.lbl_dot), e.message ?: context.resources.getString(R.string.system_dns_connection_failure))
             showDnsFailureToast(url ?: "")
             logEvent(
                 Severity.HIGH,
@@ -438,7 +438,7 @@ class GoVpnAdapter : KoinComponent {
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: odoh failure, res: $resolver", e)
             removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.lbl_odoh), e.message ?: context.getString(R.string.system_dns_connection_failure))
+            showDnsFailureNotification(context.resources.getString(R.string.lbl_odoh), e.message ?: context.resources.getString(R.string.system_dns_connection_failure))
             showDnsFailureToast(resolver ?: "")
             logEvent(
                 Severity.HIGH,
@@ -473,7 +473,7 @@ class GoVpnAdapter : KoinComponent {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns crypt failure for $id", e)
             removeResolver(id)
             removeDnscryptRelaysIfAny()
-            showDnsFailureNotification(context.getString(R.string.dc_dns_crypt), e.message ?: context.getString(R.string.dns_crypt_connection_failure))
+            showDnsFailureNotification(context.resources.getString(R.string.dc_dns_crypt), e.message ?: context.resources.getString(R.string.dns_crypt_connection_failure))
             showDnscryptConnectionFailureToast()
             logEvent(
                 Severity.HIGH,
@@ -510,7 +510,7 @@ class GoVpnAdapter : KoinComponent {
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns proxy failure", e)
             removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.dc_dns_proxy), e.message ?: context.getString(R.string.dns_proxy_connection_failure))
+            showDnsFailureNotification(context.resources.getString(R.string.dc_dns_proxy), e.message ?: context.resources.getString(R.string.dns_proxy_connection_failure))
             showDnsProxyConnectionFailureToast()
             logEvent(
                 Severity.HIGH,
@@ -528,7 +528,7 @@ class GoVpnAdapter : KoinComponent {
                 context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
             if (isAtleastO()) {
-                val channelName = context.getString(R.string.status_dns_error)
+                val channelName = context.resources.getString(R.string.status_dns_error)
                 val importance = NotificationManager.IMPORTANCE_DEFAULT
                 val channel = NotificationChannel(notifChannelId, channelName, importance)
                 notificationManager.createNotificationChannel(channel)
@@ -541,7 +541,7 @@ class GoVpnAdapter : KoinComponent {
                     PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
                     mutable = false
                 )
-            val dnsErrorTxt = context.getString(R.string.status_dns_error)
+            val dnsErrorTxt = context.resources.getString(R.string.status_dns_error)
             // capitalize first 3 letter of the error message (dns error => DNS Error)
             val formattedErrTxt =
                 if (dnsErrorTxt.length >= 5) {
@@ -549,7 +549,7 @@ class GoVpnAdapter : KoinComponent {
                 } else {
                     dnsErrorTxt
                 }
-            val title = context.getString(R.string.two_argument_colon, formattedErrTxt, dnsType)
+            val title = context.resources.getString(R.string.two_argument_colon, formattedErrTxt, dnsType)
             val builder =
                 NotificationCompat.Builder(context, notifChannelId)
                     .setSmallIcon(R.drawable.ic_notification_icon)
@@ -585,7 +585,7 @@ class GoVpnAdapter : KoinComponent {
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: rdns failure, url: $url", e)
             removeResolver(id)
-            showDnsFailureNotification(context.getString(R.string.dc_rethink_dns_radio), e.message ?: context.getString(R.string.system_dns_connection_failure))
+            showDnsFailureNotification(context.resources.getString(R.string.dc_rethink_dns_radio), e.message ?: context.resources.getString(R.string.system_dns_connection_failure))
             showDnsFailureToast(url)
             logEvent(
                 Severity.HIGH,
@@ -927,7 +927,7 @@ class GoVpnAdapter : KoinComponent {
         ui {
             showToastUiCentered(
                 context.applicationContext,
-                context.getString(R.string.dns_crypt_connection_failure),
+                context.resources.getString(R.string.dns_crypt_connection_failure),
                 Toast.LENGTH_LONG
             )
         }
@@ -936,10 +936,10 @@ class GoVpnAdapter : KoinComponent {
     private fun showDnsFailureToast(url: String) {
         ui {
             val msg =
-                context.getString(
+                context.resources.getString(
                     R.string.two_argument_colon,
                     url,
-                    context.getString(R.string.dns_proxy_connection_failure)
+                    context.resources.getString(R.string.dns_proxy_connection_failure)
                 )
             showToastUiCentered(context.applicationContext, msg, Toast.LENGTH_LONG)
         }
@@ -953,7 +953,7 @@ class GoVpnAdapter : KoinComponent {
         ui {
             showToastUiCentered(
                 context.applicationContext,
-                context.getString(R.string.dns_proxy_connection_failure),
+                context.resources.getString(R.string.dns_proxy_connection_failure),
                 Toast.LENGTH_SHORT
             )
         }
@@ -1022,7 +1022,7 @@ class GoVpnAdapter : KoinComponent {
             tunnel.proxies.hop("".togs(), src.togs())
             Logger.i(LOG_TAG_VPN, "$TAG removed hop for $src -> empty")
             logEvent(Severity.LOW, "remove hop", "removed hop for $src")
-            return Pair(true, context.getString(R.string.config_add_success_toast))
+            return Pair(true, context.resources.getString(R.string.config_add_success_toast))
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG err removing hop: $src -> empty; ${e.message}")
             err = e.message ?: "err removing hop"
@@ -1051,12 +1051,12 @@ class GoVpnAdapter : KoinComponent {
                 context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
 
             if (isAtleastO()) {
-                val channelName = context.getString(R.string.hop_failure_notification_title)
+                val channelName = context.resources.getString(R.string.hop_failure_notification_title)
                 val importance = NotificationManager.IMPORTANCE_DEFAULT
                 val channel = NotificationChannel(notifChannelId, channelName, importance)
                 notificationManager.createNotificationChannel(channel)
             }
-            val msg = context.getString(
+            val msg = context.resources.getString(
                 R.string.hop_failure_toast,
                 src,
                 hop
@@ -1237,7 +1237,7 @@ class GoVpnAdapter : KoinComponent {
             // do not auto remove failed wg proxy, let the user decide hop UI
             // WireguardManager.disableConfig(id)
             showWireguardFailureToast(
-                e.message ?: context.getString(R.string.wireguard_connection_error)
+                e.message ?: context.resources.getString(R.string.wireguard_connection_error)
             )
             logEvent(Severity.HIGH, "add wg proxy error", "err adding wg proxy with id: $id, reason: ${e.message}" )
         }
@@ -2639,7 +2639,7 @@ class GoVpnAdapter : KoinComponent {
                 "Hop created",
                 "Created hop from $origin to $hop"
             )
-            Pair(true, context.getString(R.string.config_add_success_toast))
+            Pair(true, context.resources.getString(R.string.config_add_success_toast))
         } catch (e: Exception) {
             Logger.e(LOG_TAG_VPN, "$TAG err create hop: ${e.message}", e)
             logEvent(

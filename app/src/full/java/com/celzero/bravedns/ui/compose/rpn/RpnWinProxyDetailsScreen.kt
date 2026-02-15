@@ -27,20 +27,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -53,16 +49,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.service.ProxyManager
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.util.Utilities
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -70,12 +69,21 @@ fun RpnWinProxyDetailsScreen(
     countryCode: String,
     onBackClick: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val title = stringResource(R.string.rpn_proxy_details_title)
+    val noProxyTitle = stringResource(R.string.rpn_no_proxy_found_title)
+    val noProxyDesc = stringResource(R.string.rpn_no_proxy_found_desc)
+    val selectAppsLabel = stringResource(R.string.rpn_select_apps_for_proxy)
+    val appsInfoToast = stringResource(R.string.rpn_proxy_apps_info_toast)
     var appsCount by remember { mutableStateOf("-") }
     var domainsCount by remember { mutableStateOf("-") }
     var ipsCount by remember { mutableStateOf("-") }
     var proxyError by remember { mutableStateOf("") }
+    var proxyName by remember { mutableStateOf("") }
+    var proxyWho by remember { mutableStateOf("") }
+    var proxyLatencyMs by remember { mutableStateOf<Int?>(null) }
+    var proxyLastConnectedMs by remember { mutableStateOf<Long?>(null) }
+    var isProxyActive by remember { mutableStateOf(false) }
     var showNoProxyFoundDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(countryCode) {
@@ -84,29 +92,35 @@ fun RpnWinProxyDetailsScreen(
             showNoProxyFoundDialog = true
             return@LaunchedEffect
         }
-        scope.launch(Dispatchers.IO) {
-            val apps = ProxyManager.getAppsCountForProxy(countryCode)
+
+        val loaded =
+            withContext(Dispatchers.IO) {
+            val appsByCountry = ProxyManager.getAppsCountForProxy(countryCode)
+            val appsByWin = ProxyManager.getAppsCountForProxy(ProxyManager.ID_RPN_WIN)
+            val apps = if (appsByCountry > 0) appsByCountry else appsByWin
             val ipCount = IpRulesManager.getRulesCountByCC(countryCode)
             val domainCount = DomainRulesManager.getRulesCountByCC(countryCode)
-            Napier.i(tag = TAG, message = "apps: $apps, ips: $ipCount, domains: $domainCount for country code: $countryCode")
-            appsCount = apps.toString()
-            domainsCount = domainCount.toString()
-            ipsCount = ipCount.toString()
-        }
+            val details = RpnProxyManager.getWinProxyDetails(countryCode)
+            Napier.i(tag = TAG, message = "apps: $apps, ips: $ipCount, domains: $domainCount for country code: $countryCode, has details: ${details != null}")
+            Triple(apps to domainCount to ipCount, details, details == null)
+            }
+
+        appsCount = loaded.first.first.first.toString()
+        domainsCount = loaded.first.first.second.toString()
+        ipsCount = loaded.first.second.toString()
+        proxyName = loaded.second?.name.orEmpty()
+        proxyWho = loaded.second?.who.orEmpty()
+        proxyLatencyMs = loaded.second?.latencyMs
+        proxyLastConnectedMs = loaded.second?.lastConnectedMs
+        isProxyActive = loaded.second?.isActive == true
+        showNoProxyFoundDialog = loaded.third
     }
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = "Proxy details") },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
-                }
+            RethinkTopBar(
+                title = title,
+                onBackClick = onBackClick
             )
         }
     ) { paddingValues ->
@@ -119,30 +133,34 @@ fun RpnWinProxyDetailsScreen(
             if (showNoProxyFoundDialog) {
                 AlertDialog(
                     onDismissRequest = {},
-                    title = { Text(text = "No proxy found") },
-                    text = {
-                        Text(
-                            text = "Proxy information is missing for this proxy id. Please ensure that the proxy is configured correctly and try again."
-                        )
-                    },
+                    title = { Text(text = noProxyTitle) },
+                    text = { Text(text = noProxyDesc) },
                     confirmButton = {
                         TextButton(onClick = onBackClick) {
-                            Text(text = context.getString(R.string.ada_noapp_dialog_positive))
+                            Text(text = stringResource(R.string.ada_noapp_dialog_positive))
                         }
                     }
                 )
             }
             StatsRow(appsCount, domainsCount, ipsCount)
             Spacer(modifier = Modifier.height(12.dp))
-            DetailsSection(countryCode, proxyError)
+            DetailsSection(
+                countryCode = countryCode,
+                proxyError = proxyError,
+                proxyName = proxyName,
+                proxyWho = proxyWho,
+                proxyLatencyMs = proxyLatencyMs,
+                proxyLastConnectedMs = proxyLastConnectedMs,
+                isProxyActive = isProxyActive
+            )
             Spacer(modifier = Modifier.height(16.dp))
             ActionButton(onClick = {
                 Utilities.showToastUiCentered(
                     context,
-                    "Apps part of other proxy/excluded from proxy will be listed here",
+                    appsInfoToast,
                     Toast.LENGTH_LONG
                 )
-            })
+            }, label = selectAppsLabel)
         }
     }
 }
@@ -154,9 +172,9 @@ private fun StatsRow(appsCount: String, domainsCount: String, ipsCount: String) 
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        StatCard(label = "Apps", value = appsCount, modifier = Modifier.weight(1f))
-        StatCard(label = "Domains", value = domainsCount, modifier = Modifier.weight(1f))
-        StatCard(label = "IPs", value = ipsCount, modifier = Modifier.weight(1f))
+        StatCard(label = stringResource(R.string.rpn_proxy_apps), value = appsCount, modifier = Modifier.weight(1f))
+        StatCard(label = stringResource(R.string.rpn_proxy_domains), value = domainsCount, modifier = Modifier.weight(1f))
+        StatCard(label = stringResource(R.string.rpn_proxy_ips), value = ipsCount, modifier = Modifier.weight(1f))
     }
 }
 
@@ -166,7 +184,7 @@ private fun StatCard(label: String, value: String, modifier: Modifier = Modifier
         modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = CardDefaults.outlinedCardBorder()
-    ) {
+) {
         Column(
             modifier = Modifier.padding(8.dp),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -178,7 +196,32 @@ private fun StatCard(label: String, value: String, modifier: Modifier = Modifier
 }
 
 @Composable
-private fun DetailsSection(countryCode: String, proxyError: String) {
+private fun DetailsSection(
+    countryCode: String,
+    proxyError: String,
+    proxyName: String,
+    proxyWho: String,
+    proxyLatencyMs: Int?,
+    proxyLastConnectedMs: Long?,
+    isProxyActive: Boolean
+) {
+    val fallback = stringResource(R.string.symbol_hyphen)
+    val latencyText = proxyLatencyMs?.let { stringResource(R.string.dns_query_latency, it.toString()) } ?: fallback
+    val lastConnectedText =
+        if (proxyLastConnectedMs == null || proxyLastConnectedMs <= 0L) {
+            fallback
+        } else {
+            val elapsedMs = (System.currentTimeMillis() - proxyLastConnectedMs).coerceAtLeast(0L)
+            val minutes = elapsedMs / 60000L
+            when {
+                minutes < 1L -> stringResource(R.string.bubble_time_just_now)
+                minutes < 60L -> stringResource(R.string.bubble_time_minutes_ago, minutes.toInt())
+                else -> stringResource(R.string.bubble_time_hours_ago, (minutes / 60L).toInt())
+            }
+        }
+    val statusText = if (isProxyActive) stringResource(R.string.rpn_proxy_connected) else stringResource(R.string.lbl_disabled)
+    val statusColor = if (isProxyActive) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
+
     Column(
         modifier =
             Modifier
@@ -186,18 +229,21 @@ private fun DetailsSection(countryCode: String, proxyError: String) {
                 .padding(horizontal = 16.dp)
                 .verticalScroll(rememberScrollState())
     ) {
-        Text(text = "Proxy Name", style = MaterialTheme.typography.headlineSmall)
+        Text(
+            text = proxyName.ifBlank { stringResource(R.string.rpn_proxy_name) },
+            style = MaterialTheme.typography.headlineSmall
+        )
         Spacer(modifier = Modifier.height(12.dp))
-        DetailRow(label = "Who", value = "who_or_service_email@domain.com")
+        DetailRow(label = stringResource(R.string.rpn_proxy_who), value = proxyWho.ifBlank { fallback })
         if (proxyError.isNotEmpty()) {
-            DetailRow(label = "Error", value = proxyError, valueColor = MaterialTheme.colorScheme.error)
+            DetailRow(label = stringResource(R.string.rpn_proxy_error), value = proxyError, valueColor = MaterialTheme.colorScheme.error)
         }
         Spacer(modifier = Modifier.height(12.dp))
-        DetailRow(label = "Country", value = countryCode.uppercase())
-        DetailRow(label = "Latency", value = "37 ms")
-        DetailRow(label = "Last connected", value = "2 min ago")
+        DetailRow(label = stringResource(R.string.rpn_proxy_country), value = countryCode.uppercase())
+        DetailRow(label = stringResource(R.string.rpn_proxy_latency), value = latencyText)
+        DetailRow(label = stringResource(R.string.rpn_proxy_last_connected), value = lastConnectedText)
         Spacer(modifier = Modifier.height(12.dp))
-        DetailRow(label = "Status", value = "CONNECTED", valueColor = MaterialTheme.colorScheme.tertiary)
+        DetailRow(label = stringResource(R.string.rpn_proxy_status), value = statusText, valueColor = statusColor)
     }
 }
 
@@ -214,7 +260,7 @@ private fun DetailRow(label: String, value: String, valueColor: Color = Material
 }
 
 @Composable
-private fun ActionButton(onClick: () -> Unit) {
+private fun ActionButton(onClick: () -> Unit, label: String) {
     Button(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 12.dp)
@@ -225,7 +271,7 @@ private fun ActionButton(onClick: () -> Unit) {
             modifier = Modifier.size(18.dp)
         )
         Spacer(modifier = Modifier.size(8.dp))
-        Text(text = "Select Apps For Proxy")
+        Text(text = label)
     }
 }
 

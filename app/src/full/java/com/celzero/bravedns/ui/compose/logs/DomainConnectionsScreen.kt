@@ -25,15 +25,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,6 +48,7 @@ import androidx.lifecycle.asFlow
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.ConnectionRow
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.util.UIUtils.getCountryNameFromFlag
 import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
 
@@ -81,7 +78,7 @@ fun DomainConnectionsScreen(
             DomainConnectionsInputType.FLAG -> {
                 viewModel.setFlag(flag)
                 titleText =
-                    context.getString(
+                    context.resources.getString(
                         R.string.two_argument_space,
                         flag,
                         getCountryNameFromFlag(flag)
@@ -104,16 +101,9 @@ fun DomainConnectionsScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(id = R.string.app_name_small_case)) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
-                }
+            RethinkTopBar(
+                title = stringResource(id = R.string.app_name_small_case),
+                onBackClick = onBackClick
             )
         }
     ) { paddingValues ->

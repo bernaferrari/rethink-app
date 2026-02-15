@@ -48,6 +48,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -140,6 +141,7 @@ import com.celzero.bravedns.ui.compose.navigation.HomeRoute
 import com.celzero.bravedns.ui.compose.wireguard.WgType
 import com.celzero.bravedns.ui.compose.navigation.HomeScreenRoot
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
+import com.celzero.bravedns.ui.compose.theme.mapThemePreferenceToComposeMode
 import com.celzero.bravedns.ui.compose.settings.AppLockScreen
 import com.celzero.bravedns.ui.compose.settings.AppLockResult
 import com.celzero.bravedns.ui.compose.home.PauseScreen
@@ -168,6 +170,7 @@ import com.celzero.bravedns.util.UIUtils.openNetworkSettings
 import com.celzero.bravedns.util.UIUtils.openUrl
 import com.celzero.bravedns.util.UIUtils.openVpnProfile
 import com.celzero.bravedns.util.UIUtils.sendEmailIntent
+import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getPackageMetadata
@@ -355,7 +358,13 @@ class HomeScreenActivity : AppCompatActivity() {
         appConfig.getBraveModeObservable().postValue(appConfig.getBraveMode().mode)
 
         setContent {
-            RethinkTheme {
+            val isSystemDark = isSystemInDarkTheme()
+            val composeThemeMode = mapThemePreferenceToComposeMode(persistentState.theme, isSystemDark)
+            val useDynamicColors = persistentState.theme == Themes.SYSTEM_DEFAULT.id
+            RethinkTheme(
+                themeMode = composeThemeMode,
+                dynamicColor = useDynamicColors
+            ) {
                 val hostState = remember { SnackbarHostState() }
                 DisposableEffect(hostState) {
                     snackbarHostState = hostState

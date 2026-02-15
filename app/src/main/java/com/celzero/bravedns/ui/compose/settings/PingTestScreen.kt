@@ -41,7 +41,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +59,7 @@ import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.VpnController
 import com.celzero.firestack.backend.Backend
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -187,18 +187,9 @@ fun PingTestScreen(
 
     Scaffold(
         topBar = {
-             TopAppBar(
-                title = { Text(text = stringResource(R.string.settings_connectivity_checks)) },
-                navigationIcon = {
-                    if (onBackClick != null) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
-                                contentDescription = "Back"
-                            )
-                        }
-                    }
-                }
+             RethinkTopBar(
+                title = stringResource(R.string.settings_connectivity_checks),
+                onBackClick = onBackClick
             )
         }
     ) { paddingValues ->

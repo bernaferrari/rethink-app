@@ -155,7 +155,7 @@ private fun WgIncludeAppsDialogScreen(
                 withContext(Dispatchers.Main) {
                     Utilities.showToastUiCentered(
                         context,
-                        context.getString(R.string.exclude_apps_from_proxy_failure_toast),
+                        context.resources.getString(R.string.exclude_apps_from_proxy_failure_toast),
                         Toast.LENGTH_LONG
                     )
                 }
@@ -182,7 +182,7 @@ private fun WgIncludeAppsDialogScreen(
     Surface(modifier = Modifier.fillMaxSize(), color = MaterialTheme.colorScheme.background) {
         Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
             Text(
-                text = context.getString(R.string.add_remove_apps, appCount.toString()),
+                text = context.resources.getString(R.string.add_remove_apps, appCount.toString()),
                 color = MaterialTheme.colorScheme.primary,
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
@@ -229,7 +229,7 @@ private fun WgIncludeAppsDialogScreen(
                                     isRefreshing = false
                                     Utilities.showToastUiCentered(
                                         context,
-                                        context.getString(R.string.refresh_complete),
+                                        context.resources.getString(R.string.refresh_complete),
                                         Toast.LENGTH_SHORT
                                     )
                                 }

@@ -79,11 +79,11 @@ fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {
                         val state = VpnController.getDnsStatus(Backend.Preferred)
                         UIUtils.getDnsStatusStringRes(state)
                     }
-                explanation = context.getString(status).replaceFirstChar(Char::titlecase)
+                explanation = context.resources.getString(status).replaceFirstChar(Char::titlecase)
                 delay(ONE_SEC)
             }
         } else if (endpoint.isSelected) {
-            explanation = context.getString(R.string.rt_filter_parent_selected)
+            explanation = context.resources.getString(R.string.rt_filter_parent_selected)
         } else {
             explanation = ""
         }
@@ -140,8 +140,8 @@ fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {
             is DnsCryptDialogState.Delete -> {
                 AlertDialog(
                     onDismissRequest = { dialogState = null },
-                    title = { Text(text = context.getString(R.string.dns_crypt_custom_url_remove_dialog_title)) },
-                    text = { Text(text = context.getString(R.string.dns_crypt_url_remove_dialog_message)) },
+                    title = { Text(text = context.resources.getString(R.string.dns_crypt_custom_url_remove_dialog_title)) },
+                    text = { Text(text = context.resources.getString(R.string.dns_crypt_url_remove_dialog_message)) },
                     confirmButton = {
                         TextButton(
                             onClick = {
@@ -149,12 +149,12 @@ fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {
                                 dialogState = null
                             }
                         ) {
-                            Text(text = context.getString(R.string.lbl_delete))
+                            Text(text = context.resources.getString(R.string.lbl_delete))
                         }
                     },
                     dismissButton = {
                         TextButton(onClick = { dialogState = null }) {
-                            Text(text = context.getString(R.string.lbl_cancel))
+                            Text(text = context.resources.getString(R.string.lbl_cancel))
                         }
                     }
                 )
@@ -172,7 +172,7 @@ fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {
                     text = { Text(text = desc) },
                     confirmButton = {
                         TextButton(onClick = { dialogState = null }) {
-                            Text(text = context.getString(R.string.dns_info_positive))
+                            Text(text = context.resources.getString(R.string.dns_info_positive))
                         }
                     },
                     dismissButton = {
@@ -181,16 +181,16 @@ fun DnsCryptRow(endpoint: DnsCryptEndpoint, appConfig: AppConfig) {
                                 clipboardCopy(
                                     context,
                                     state.url,
-                                    context.getString(R.string.copy_clipboard_label)
+                                    context.resources.getString(R.string.copy_clipboard_label)
                                 )
                                 Utilities.showToastUiCentered(
                                     context,
-                                    context.getString(R.string.info_dialog_url_copy_toast_msg),
+                                    context.resources.getString(R.string.info_dialog_url_copy_toast_msg),
                                     Toast.LENGTH_SHORT
                                 )
                             }
                         ) {
-                            Text(text = context.getString(R.string.dns_info_neutral))
+                            Text(text = context.resources.getString(R.string.dns_info_neutral))
                         }
                     }
                 )
@@ -207,7 +207,7 @@ private fun cryptDesc(context: Context, message: String?): String {
             val m = message.substringAfter("R.string.")
             val resId: Int =
                 context.resources.getIdentifier(m, "string", context.packageName)
-            context.getString(resId)
+            context.resources.getString(resId)
         } else {
             message
         }
@@ -238,7 +238,7 @@ private fun deleteEndpoint(
         withContext(Dispatchers.Main) {
             Utilities.showToastUiCentered(
                 context,
-                context.getString(R.string.dns_crypt_url_remove_success),
+                context.resources.getString(R.string.dns_crypt_url_remove_success),
                 Toast.LENGTH_SHORT
             )
         }

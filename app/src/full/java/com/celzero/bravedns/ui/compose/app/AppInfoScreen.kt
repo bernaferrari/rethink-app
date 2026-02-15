@@ -36,13 +36,11 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -74,6 +72,7 @@ import com.celzero.bravedns.service.ProxyManager.ID_NONE
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.bottomsheet.AppDomainRulesSheet
 import com.celzero.bravedns.ui.bottomsheet.AppIpRulesSheet
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Constants.Companion.RETHINK_PACKAGE
 import com.celzero.bravedns.util.UIUtils.openAndroidAppInfo
@@ -218,16 +217,9 @@ fun AppInfoScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(id = R.string.bsct_app_info)) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_back_24),
-                            contentDescription = null
-                        )
-                    }
-                }
+            RethinkTopBar(
+                title = stringResource(id = R.string.bsct_app_info),
+                onBackClick = onBackClick
             )
         }
     ) { paddingValues ->
@@ -592,7 +584,7 @@ private suspend fun loadAppInfo(
     val conn = FirewallManager.connectionStatus(info.uid)
     val proxy =
         ProxyManager.getProxyIdForApp(uid).takeIf { it.isNotEmpty() && it != ID_NONE }
-            ?.let { context.getString(R.string.wireguard_apps_proxy_map_desc, it) }
+            ?.let { context.resources.getString(R.string.wireguard_apps_proxy_map_desc, it) }
             .orEmpty()
     val firewallStatusText = getFirewallText(context, status, conn)
     onLoaded(
@@ -621,7 +613,7 @@ private fun updateFirewallStatus(
 ) {
     val info = appInfo ?: return
     if (aStat == FirewallManager.FirewallStatus.EXCLUDE && FirewallManager.isUnknownPackage(uid)) {
-        showToastUiCentered(context, context.getString(R.string.exclude_no_package_err_toast), Toast.LENGTH_LONG)
+        showToastUiCentered(context, context.resources.getString(R.string.exclude_no_package_err_toast), Toast.LENGTH_LONG)
         return
     }
     scope.launch(Dispatchers.IO) {
@@ -650,21 +642,21 @@ private fun getFirewallText(
         FirewallManager.FirewallStatus.NONE -> {
             when (cStat) {
                 FirewallManager.ConnectionStatus.METERED ->
-                    context.getString(R.string.ada_app_status_block_md)
+                    context.resources.getString(R.string.ada_app_status_block_md)
                 FirewallManager.ConnectionStatus.UNMETERED ->
-                    context.getString(R.string.ada_app_status_block_wifi)
+                    context.resources.getString(R.string.ada_app_status_block_wifi)
                 FirewallManager.ConnectionStatus.BOTH ->
-                    context.getString(R.string.ada_app_status_block)
+                    context.resources.getString(R.string.ada_app_status_block)
                 FirewallManager.ConnectionStatus.ALLOW ->
-                    context.getString(R.string.ada_app_status_allow)
+                    context.resources.getString(R.string.ada_app_status_allow)
             }
         }
-        FirewallManager.FirewallStatus.EXCLUDE -> context.getString(R.string.ada_app_status_exclude)
+        FirewallManager.FirewallStatus.EXCLUDE -> context.resources.getString(R.string.ada_app_status_exclude)
         FirewallManager.FirewallStatus.BYPASS_UNIVERSAL ->
-            context.getString(R.string.ada_app_status_whitelist)
-        FirewallManager.FirewallStatus.ISOLATE -> context.getString(R.string.ada_app_status_isolate)
+            context.resources.getString(R.string.ada_app_status_whitelist)
+        FirewallManager.FirewallStatus.ISOLATE -> context.resources.getString(R.string.ada_app_status_isolate)
         FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL ->
-            context.getString(R.string.ada_app_status_bypass_dns_firewall)
-        FirewallManager.FirewallStatus.UNTRACKED -> context.getString(R.string.ada_app_status_unknown)
+            context.resources.getString(R.string.ada_app_status_bypass_dns_firewall)
+        FirewallManager.FirewallStatus.UNTRACKED -> context.resources.getString(R.string.ada_app_status_unknown)
     }
 }

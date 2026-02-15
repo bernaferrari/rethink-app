@@ -50,7 +50,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -62,12 +61,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.text.HtmlCompat
 import androidx.lifecycle.MutableLiveData
@@ -113,6 +109,7 @@ import com.celzero.bravedns.viewmodel.RemoteBlocklistPacksMapViewModel
 import com.celzero.bravedns.viewmodel.RethinkEndpointViewModel
 import com.celzero.bravedns.viewmodel.RethinkLocalFileTagViewModel
 import com.celzero.bravedns.viewmodel.RethinkRemoteFileTagViewModel
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -254,7 +251,7 @@ fun ConfigureRethinkBasicScreen(
         showRemoteProgress = false
         showToastUiCentered(
             context,
-            context.getString(R.string.download_update_dialog_message_success),
+            context.resources.getString(R.string.download_update_dialog_message_success),
             Toast.LENGTH_SHORT
         )
     }
@@ -386,7 +383,7 @@ fun ConfigureRethinkBasicScreen(
                 withContext(Dispatchers.Main) {
                     showToastUiCentered(
                         context,
-                        context.getString(R.string.download_update_dialog_failure_message),
+                        context.resources.getString(R.string.download_update_dialog_failure_message),
                         Toast.LENGTH_SHORT
                     )
                 }
@@ -493,27 +490,14 @@ fun ConfigureRethinkBasicScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = title,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    if (onBackClick != null) {
-                        IconButton(onClick = {
-                            if (screenType != ConfigureRethinkScreenType.DB_LIST && isStampChanged()) {
-                                showApplyChangesDialog = true
-                            } else {
-                                onBackClick()
-                            }
-                        }) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
-                                contentDescription = "Back"
-                            )
+            RethinkTopBar(
+                title = title,
+                onBackClick = if (onBackClick == null) null else {
+                    {
+                        if (screenType != ConfigureRethinkScreenType.DB_LIST && isStampChanged()) {
+                            showApplyChangesDialog = true
+                        } else {
+                            onBackClick()
                         }
                     }
                 }
@@ -647,7 +631,7 @@ private fun RethinkListContent(
                 onRefreshUpdateUi()
                 Utilities.showToastUiCentered(
                     context,
-                    context.getString(R.string.download_update_dialog_failure_message),
+                    context.resources.getString(R.string.download_update_dialog_failure_message),
                     Toast.LENGTH_SHORT
                 )
             }
@@ -662,7 +646,7 @@ private fun RethinkListContent(
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             if (persistentState.remoteBlocklistTimestamp != Constants.INIT_TIME_MS) {
                 Text(
-                    text = context.getString(
+                    text = context.resources.getString(
                         R.string.settings_local_blocklist_version,
                         Utilities.convertLongToTime(
                             persistentState.remoteBlocklistTimestamp,
@@ -1263,9 +1247,9 @@ private fun isBase64(stamp: String): Boolean {
 
 private fun buildFilterDescription(context: Context, filter: RethinkBlocklistState.Filters): String {
     val text = if (filter.subGroups.isEmpty()) {
-        context.getString(R.string.rt_filter_desc, filter.filterSelected.name.lowercase())
+        context.resources.getString(R.string.rt_filter_desc, filter.filterSelected.name.lowercase())
     } else {
-        context.getString(
+        context.resources.getString(
             R.string.rt_filter_desc_subgroups,
             filter.filterSelected.name.lowercase(),
             "",

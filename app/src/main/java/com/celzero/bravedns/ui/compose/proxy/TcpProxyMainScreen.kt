@@ -38,7 +38,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -61,6 +60,7 @@ import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.TcpProxyHelper
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
 import io.github.aakira.napier.Napier
@@ -100,16 +100,16 @@ fun TcpProxyMainScreen(
     // Update add apps text when app count changes
     LaunchedEffect(appCount) {
         tcpProxyAddAppsText = if (appCount == null || appCount == 0) {
-            context.getString(R.string.add_remove_apps, "0")
+            context.resources.getString(R.string.add_remove_apps, "0")
         } else {
-            context.getString(R.string.add_remove_apps, appCount.toString())
+            context.resources.getString(R.string.add_remove_apps, appCount.toString())
         }
     }
 
     // Initialize description
     LaunchedEffect(Unit) {
-        tcpProxyDesc = context.getString(R.string.settings_https_desc)
-        tcpProxyAddAppsText = context.getString(R.string.add_remove_apps, "0")
+        tcpProxyDesc = context.resources.getString(R.string.settings_https_desc)
+        tcpProxyAddAppsText = context.resources.getString(R.string.add_remove_apps, "0")
     }
 
     // Display TCP proxy status on launch
@@ -126,7 +126,7 @@ fun TcpProxyMainScreen(
 
     fun showTcpErrorLayout() {
         tcpErrorVisible = true
-        tcpErrorText = context.getString(R.string.something_went_wrong)
+        tcpErrorText = context.resources.getString(R.string.something_went_wrong)
     }
 
     fun onTcpProxySwitchChanged(checked: Boolean) {
@@ -138,7 +138,7 @@ fun TcpProxyMainScreen(
                     tcpProxySwitchChecked = false
                     Utilities.showToastUiCentered(
                         context,
-                        context.getString(R.string.tcp_proxy_warp_active_error),
+                        context.resources.getString(R.string.tcp_proxy_warp_active_error),
                         Toast.LENGTH_SHORT
                     )
                     return@withContext
@@ -149,7 +149,7 @@ fun TcpProxyMainScreen(
                 if (!apps) {
                     Utilities.showToastUiCentered(
                         context,
-                        context.getString(R.string.tcp_proxy_no_apps_error),
+                        context.resources.getString(R.string.tcp_proxy_no_apps_error),
                         Toast.LENGTH_SHORT
                     )
                     warpSwitchChecked = false
@@ -159,7 +159,7 @@ fun TcpProxyMainScreen(
 
                 if (!checked) {
                     scope.launch(Dispatchers.IO) { TcpProxyHelper.disable() }
-                    tcpProxyDesc = context.getString(R.string.settings_https_desc)
+                    tcpProxyDesc = context.resources.getString(R.string.settings_https_desc)
                     return@withContext
                 }
 
@@ -174,7 +174,7 @@ fun TcpProxyMainScreen(
                         .replaceFirstChar(Char::titlecase)
                     Utilities.showToastUiCentered(
                         context,
-                        context.getString(R.string.settings_https_disabled_error, s),
+                        context.resources.getString(R.string.settings_https_disabled_error, s),
                         Toast.LENGTH_SHORT
                     )
                     tcpProxySwitchChecked = false
@@ -206,18 +206,9 @@ fun TcpProxyMainScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(R.string.settings_proxy_header)) },
-                navigationIcon = {
-                    if (onBackClick != null) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
-                                contentDescription = "Back"
-                            )
-                        }
-                    }
-                }
+            RethinkTopBar(
+                title = stringResource(R.string.settings_proxy_header),
+                onBackClick = onBackClick
             )
         }
     ) { padding ->

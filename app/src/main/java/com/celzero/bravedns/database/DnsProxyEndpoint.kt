@@ -80,30 +80,30 @@ class DnsProxyEndpoint {
         return if (this.isSelected) {
             // don't show the app name if there is no app selected, earlier "Nobody" was labelled
             // for no app.
-            if (this.proxyAppName != context.getString(R.string.cd_custom_dns_proxy_default_app)) {
-                context.getString(
+            if (this.proxyAppName != context.resources.getString(R.string.cd_custom_dns_proxy_default_app)) {
+                context.resources.getString(
                     R.string.settings_socks_forwarding_desc,
                     this.proxyIP,
                     this.proxyPort.toString(),
                     appName
                 )
             } else {
-                context.getString(
+                context.resources.getString(
                     R.string.settings_socks_forwarding_desc_no_app,
                     this.proxyIP,
                     this.proxyPort.toString()
                 )
             }
         } else {
-            if (this.proxyAppName != context.getString(R.string.cd_custom_dns_proxy_default_app)) {
-                context.getString(
+            if (this.proxyAppName != context.resources.getString(R.string.cd_custom_dns_proxy_default_app)) {
+                context.resources.getString(
                     R.string.dns_proxy_desc,
                     this.proxyIP,
                     this.proxyPort.toString(),
                     appName
                 )
             } else {
-                context.getString(
+                context.resources.getString(
                     R.string.dns_proxy_desc_no_app,
                     this.proxyIP,
                     this.proxyPort.toString()
@@ -117,6 +117,6 @@ class DnsProxyEndpoint {
     }
 
     fun isInternal(context: Context): Boolean {
-        return this.proxyType == context.getString(R.string.cd_dns_proxy_mode_internal)
+        return this.proxyType == context.resources.getString(R.string.cd_dns_proxy_mode_internal)
     }
 }

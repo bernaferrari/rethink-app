@@ -57,6 +57,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
@@ -142,7 +143,7 @@ fun BackupRestoreSheet(
             )
 
             Text(
-                text = context.getString(R.string.brbs_title),
+                text = stringResource(R.string.brbs_title),
                 style = MaterialTheme.typography.titleLarge,
                 modifier = Modifier.padding(horizontal = 12.dp)
             )
@@ -150,23 +151,23 @@ fun BackupRestoreSheet(
             Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
                 ActionRow(
                     icon = R.drawable.ic_backup,
-                    title = context.getString(R.string.brbs_backup_title),
-                    description = context.getString(R.string.brbs_backup_desc)
+                    title = stringResource(R.string.brbs_backup_title),
+                    description = stringResource(R.string.brbs_backup_desc)
                 ) {
                     showBackupDialog = true
                 }
                 Spacer(modifier = Modifier.height(12.dp))
                 ActionRow(
                     icon = R.drawable.ic_restore,
-                    title = context.getString(R.string.brbs_restore_title),
-                    description = context.getString(R.string.brbs_restore_desc)
+                    title = stringResource(R.string.brbs_restore_title),
+                    description = stringResource(R.string.brbs_restore_desc)
                 ) {
                     showRestoreDialog = true
                 }
             }
 
             Text(
-                text = context.getString(R.string.brbs_backup_restore_desc),
+                text = stringResource(R.string.brbs_backup_restore_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
@@ -183,8 +184,8 @@ fun BackupRestoreSheet(
         if (showBackupDialog) {
             AlertDialog(
                 onDismissRequest = { showBackupDialog = false },
-                title = { Text(text = context.getString(R.string.brbs_backup_dialog_title)) },
-                text = { Text(text = context.getString(R.string.brbs_backup_dialog_message)) },
+                title = { Text(text = stringResource(R.string.brbs_backup_dialog_title)) },
+                text = { Text(text = stringResource(R.string.brbs_backup_dialog_message)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -192,12 +193,12 @@ fun BackupRestoreSheet(
                             backup(activity, backupLauncher)
                         }
                     ) {
-                        Text(text = context.getString(R.string.brbs_backup_dialog_positive))
+                        Text(text = stringResource(R.string.brbs_backup_dialog_positive))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showBackupDialog = false }) {
-                        Text(text = context.getString(R.string.lbl_cancel))
+                        Text(text = stringResource(R.string.lbl_cancel))
                     }
                 }
             )
@@ -206,8 +207,8 @@ fun BackupRestoreSheet(
         if (showRestoreDialog) {
             AlertDialog(
                 onDismissRequest = { showRestoreDialog = false },
-                title = { Text(text = context.getString(R.string.brbs_restore_dialog_title)) },
-                text = { Text(text = context.getString(R.string.brbs_restore_dialog_message)) },
+                title = { Text(text = stringResource(R.string.brbs_restore_dialog_title)) },
+                text = { Text(text = stringResource(R.string.brbs_restore_dialog_message)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -215,12 +216,12 @@ fun BackupRestoreSheet(
                             restore(activity, restoreLauncher)
                         }
                     ) {
-                        Text(text = context.getString(R.string.brbs_restore_dialog_positive))
+                        Text(text = stringResource(R.string.brbs_restore_dialog_positive))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showRestoreDialog = false }) {
-                        Text(text = context.getString(R.string.lbl_cancel))
+                        Text(text = stringResource(R.string.lbl_cancel))
                     }
                 }
             )
@@ -229,8 +230,8 @@ fun BackupRestoreSheet(
         if (showBackupFailureDialog) {
             AlertDialog(
                 onDismissRequest = { showBackupFailureDialog = false },
-                title = { Text(text = context.getString(R.string.brbs_backup_dialog_failure_title)) },
-                text = { Text(text = context.getString(R.string.brbs_backup_dialog_failure_message)) },
+                title = { Text(text = stringResource(R.string.brbs_backup_dialog_failure_title)) },
+                text = { Text(text = stringResource(R.string.brbs_backup_dialog_failure_message)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -238,12 +239,12 @@ fun BackupRestoreSheet(
                             backup(activity, backupLauncher)
                         }
                     ) {
-                        Text(text = context.getString(R.string.brbs_backup_dialog_failure_positive))
+                        Text(text = stringResource(R.string.brbs_backup_dialog_failure_positive))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showBackupFailureDialog = false }) {
-                        Text(text = context.getString(R.string.lbl_dismiss))
+                        Text(text = stringResource(R.string.lbl_dismiss))
                     }
                 }
             )
@@ -252,8 +253,8 @@ fun BackupRestoreSheet(
         if (showRestoreFailureDialog) {
             AlertDialog(
                 onDismissRequest = { showRestoreFailureDialog = false },
-                title = { Text(text = context.getString(R.string.brbs_restore_dialog_failure_title)) },
-                text = { Text(text = context.getString(R.string.brbs_restore_dialog_failure_message)) },
+                title = { Text(text = stringResource(R.string.brbs_restore_dialog_failure_title)) },
+                text = { Text(text = stringResource(R.string.brbs_restore_dialog_failure_message)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
@@ -261,12 +262,12 @@ fun BackupRestoreSheet(
                             restore(activity, restoreLauncher)
                         }
                     ) {
-                        Text(text = context.getString(R.string.brbs_restore_dialog_failure_positive))
+                        Text(text = stringResource(R.string.brbs_restore_dialog_failure_positive))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showRestoreFailureDialog = false }) {
-                        Text(text = context.getString(R.string.lbl_dismiss))
+                        Text(text = stringResource(R.string.lbl_dismiss))
                     }
                 }
             )

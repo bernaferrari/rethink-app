@@ -94,17 +94,17 @@ private fun SsidDialogContent(
 
     val canEdit = ssidInput.isNotBlank()
     val pauseTxt =
-        context.getString(R.string.notification_action_pause_vpn).lowercase()
+        context.resources.getString(R.string.notification_action_pause_vpn).lowercase()
             .replaceFirstChar { it.uppercase() }
     val connectTxt =
-        context.getString(R.string.lbl_connect).lowercase()
+        context.resources.getString(R.string.lbl_connect).lowercase()
             .replaceFirstChar { it.uppercase() }
     val firstArg = if (isEqual) connectTxt else pauseTxt
-    val secArg = context.getString(R.string.lbl_ssid)
-    val exactMatchTxt = context.getString(R.string.wg_ssid_type_exact).lowercase()
-    val partialMatchTxt = context.getString(R.string.wg_ssid_type_wildcard).lowercase()
+    val secArg = context.resources.getString(R.string.lbl_ssid)
+    val exactMatchTxt = context.resources.getString(R.string.wg_ssid_type_exact).lowercase()
+    val partialMatchTxt = context.resources.getString(R.string.wg_ssid_type_wildcard).lowercase()
     val thirdArg = if (isExact) exactMatchTxt else partialMatchTxt
-    val description = context.getString(R.string.wg_ssid_dialog_description, firstArg, secArg, thirdArg)
+    val description = context.resources.getString(R.string.wg_ssid_dialog_description, firstArg, secArg, thirdArg)
 
     if (deleteTarget != null) {
         val item = deleteTarget ?: return
@@ -315,7 +315,7 @@ private fun addSsid(
     if (ssidName.isBlank()) {
         Utilities.showToastUiCentered(
             context,
-            context.getString(R.string.wg_ssid_invalid_error, context.getString(R.string.lbl_ssids)),
+            context.resources.getString(R.string.wg_ssid_invalid_error, context.resources.getString(R.string.lbl_ssids)),
             Toast.LENGTH_SHORT
         )
         return
@@ -324,7 +324,7 @@ private fun addSsid(
     if (!isValidSsidName(ssidName)) {
         Utilities.showToastUiCentered(
             context,
-            context.getString(R.string.config_add_success_toast),
+            context.resources.getString(R.string.config_add_success_toast),
             Toast.LENGTH_SHORT
         )
         return

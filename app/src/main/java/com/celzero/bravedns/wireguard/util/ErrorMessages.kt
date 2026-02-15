@@ -58,33 +58,33 @@ object ErrorMessages {
         )
 
     operator fun get(context: Context, throwable: Throwable?): String {
-        if (throwable == null) return context.getString(R.string.unknown_error)
+        if (throwable == null) return context.resources.getString(R.string.unknown_error)
         val rootCause = rootCause(throwable)
         return when {
             rootCause is BadConfigException -> {
                 val reason = getBadConfigExceptionReason(context, rootCause)
                 val ctx =
                     if (rootCause.location == BadConfigException.Location.TOP_LEVEL) {
-                        context.getString(
+                        context.resources.getString(
                             R.string.bad_config_context_top_level,
                             rootCause.section.name
                         )
                     } else {
-                        context.getString(
+                        context.resources.getString(
                             R.string.bad_config_context,
                             rootCause.section.name,
                             rootCause.location.name
                         )
                     }
                 val explanation = getBadConfigExceptionExplanation(context, rootCause)
-                context.getString(R.string.bad_config_error, reason, ctx) + explanation
+                context.resources.getString(R.string.bad_config_error, reason, ctx) + explanation
             }
             rootCause.localizedMessage != null -> {
                 rootCause.localizedMessage!!
             }
             else -> {
                 val errorType = rootCause.javaClass.simpleName
-                context.getString(R.string.generic_error, errorType)
+                context.resources.getString(R.string.generic_error, errorType)
             }
         }
     }
@@ -97,16 +97,16 @@ object ErrorMessages {
             val pe = bce.cause as ParseException?
             if (pe!!.localizedMessage != null) return ": ${pe.localizedMessage}"
         } else if (bce.location == BadConfigException.Location.LISTEN_PORT) {
-            return context.getString(R.string.bad_config_explanation_udp_port)
+            return context.resources.getString(R.string.bad_config_explanation_udp_port)
         } else if (bce.location == BadConfigException.Location.MTU) {
-            return context.getString(R.string.bad_config_explanation_positive_number)
+            return context.resources.getString(R.string.bad_config_explanation_positive_number)
         } else if (bce.location == BadConfigException.Location.PERSISTENT_KEEPALIVE) {
-            return context.getString(R.string.bad_config_explanation_pka)
+            return context.resources.getString(R.string.bad_config_explanation_pka)
         } else if (bce.cause is BadConfigException) {
             val kfe = bce.cause as BadConfigException?
             return if (kfe!!.reason == BadConfigException.Reason.INVALID_KEY)
-                context.getString(KFE_FORMAT_MAP.getValue(kfe.reason))
-            else context.getString(KFE_TYPE_MAP.getValue(kfe.reason))
+                context.resources.getString(KFE_FORMAT_MAP.getValue(kfe.reason))
+            else context.resources.getString(KFE_TYPE_MAP.getValue(kfe.reason))
         } else {
             return ""
         }
@@ -119,10 +119,10 @@ object ErrorMessages {
             val type =
                 (if (PE_CLASS_MAP.containsKey(pe!!.parsingClass)) PE_CLASS_MAP[pe.parsingClass]
                     else R.string.parse_error_generic)
-                    ?.let { context.getString(it) }
-            return context.getString(R.string.parse_error_reason, type, pe.text)
+                    ?.let { context.resources.getString(it) }
+            return context.resources.getString(R.string.parse_error_reason, type, pe.text)
         }
-        return context.getString(BCE_REASON_MAP.getValue(bce.reason), bce.text)
+        return context.resources.getString(BCE_REASON_MAP.getValue(bce.reason), bce.text)
     }
 
     private fun rootCause(throwable: Throwable): Throwable {

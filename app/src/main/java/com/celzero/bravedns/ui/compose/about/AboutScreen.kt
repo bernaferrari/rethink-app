@@ -22,6 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.celzero.bravedns.R
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 
 @Composable
 fun AboutScreen(
@@ -287,32 +289,17 @@ fun AboutSection(title: String, content: @Composable ColumnScope.() -> Unit) {
             color = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier.padding(start = 48.dp, bottom = 8.dp)
         )
-        content()
+        RethinkListGroup(content = content)
     }
 }
 
 @Composable
 fun AboutItem(title: String, iconId: Int, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(vertical = 12.dp, horizontal = 8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = ImageVector.vectorResource(id = iconId),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(20.dp))
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-    }
+    RethinkListItem(
+        headline = title,
+        leadingIconPainter = painterResource(id = iconId),
+        onClick = onClick
+    )
 }
 
 @Composable

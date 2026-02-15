@@ -109,7 +109,7 @@ fun LocalSimpleBlocklistRow(
                     )
                     Text(
                         text =
-                            context.getString(
+                            context.resources.getString(
                                 R.string.rsv_blocklist_count_text,
                                 map.blocklistIds.size.toString()
                             ),

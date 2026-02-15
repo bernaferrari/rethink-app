@@ -35,15 +35,11 @@ import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -62,6 +58,7 @@ import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.data.SummaryStatisticsType
 import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.util.UIUtils.formatBytes
 import com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel.TimeCategory
@@ -148,29 +145,11 @@ fun DetailedStatisticsScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DetailedStatisticsTopBar(type: SummaryStatisticsType, onBackClick: () -> Unit) {
-    TopAppBar(
-        title = {
-            Text(
-                text = stringResource(id = getTitleResId(type)),
-                style = MaterialTheme.typography.titleLarge
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onBackClick) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
-                    contentDescription = "Back"
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            titleContentColor = MaterialTheme.colorScheme.onSurface,
-            navigationIconContentColor = MaterialTheme.colorScheme.onSurface
-        )
+    RethinkTopBar(
+        title = stringResource(id = getTitleResId(type)),
+        onBackClick = onBackClick
     )
 }
 

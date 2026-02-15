@@ -30,7 +30,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -42,6 +41,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.CountryRow
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,10 +54,21 @@ fun RpnCountriesScreen(onBackClick: () -> Unit) {
     var showNoCountriesDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        val ccs = emptyList<String>()
-        val selectedCCs = emptyList<String>()
-        countries = ccs
-        selectedCountries = selectedCCs.toSet()
+        val result =
+            withContext(Dispatchers.IO) {
+                val servers = runCatching { RpnProxyManager.getWinServers() }.getOrDefault(emptyList())
+                val selected = runCatching { RpnProxyManager.getSelectedCCs() }.getOrDefault(emptySet())
+                val serverCountries =
+                    servers
+                        .map { it.countryCode.uppercase() }
+                        .filter { it.isNotBlank() }
+                        .distinct()
+                        .sorted()
+                Pair(serverCountries, selected.map { it.uppercase() }.toSet())
+            }
+
+        countries = result.first
+        selectedCountries = result.second
         if (countries.isEmpty()) {
             showNoCountriesDialog = true
         }
@@ -62,16 +76,9 @@ fun RpnCountriesScreen(onBackClick: () -> Unit) {
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(id = R.string.lbl_countries)) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
-                }
+            RethinkTopBar(
+                title = stringResource(id = R.string.lbl_countries),
+                onBackClick = onBackClick
             )
         }
     ) { paddingValues ->
@@ -84,8 +91,8 @@ fun RpnCountriesScreen(onBackClick: () -> Unit) {
             if (showNoCountriesDialog) {
                 AlertDialog(
                     onDismissRequest = {},
-                    title = { Text(text = "No countries available") },
-                    text = { Text(text = "No countries available for RPN. Please try again later.") },
+                    title = { Text(text = stringResource(id = R.string.rpn_no_countries_title)) },
+                    text = { Text(text = stringResource(id = R.string.rpn_no_countries_desc)) },
                     confirmButton = {
                         TextButton(onClick = onBackClick) {
                             Text(text = stringResource(id = R.string.dns_info_positive))

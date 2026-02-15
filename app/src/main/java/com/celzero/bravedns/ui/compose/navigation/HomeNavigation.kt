@@ -15,33 +15,43 @@
  */
 package com.celzero.bravedns.ui.compose.navigation
 
-import android.net.Uri
+import android.graphics.drawable.Drawable
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
 import androidx.navigation.toRoute
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
@@ -84,6 +94,7 @@ import com.celzero.bravedns.ui.compose.statistics.DetailedStatisticsScreen
 import com.celzero.bravedns.ui.compose.statistics.SummaryStatisticsScreen
 import com.celzero.bravedns.database.EventDao
 import com.celzero.bravedns.service.EventLogger
+import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
 import com.celzero.bravedns.viewmodel.CustomDomainViewModel
@@ -128,6 +139,9 @@ import com.celzero.bravedns.ui.compose.logs.AppWiseDomainLogsScreen
 import com.celzero.bravedns.ui.compose.logs.AppWiseDomainLogsState
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
 import com.celzero.bravedns.ui.compose.wireguard.WgMainScreen
+import com.celzero.bravedns.util.Utilities
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 enum class HomeDestination(
     val route: HomeRoute,
@@ -190,61 +204,6 @@ sealed interface HomeNavRequest {
     data class AppWiseDomainLogs(val uid: Int) : HomeNavRequest
     data object Checkout : HomeNavRequest
     data object WgMain : HomeNavRequest
-}
-
-private const val ROUTE_DETAILED_STATS = "detailedStats"
-private const val ROUTE_ALERTS = "alerts"
-private const val ROUTE_RPN_COUNTRIES = "rpnCountries"
-private const val ROUTE_RPN_AVAILABILITY = "rpnAvailability"
-private const val ROUTE_DOMAIN_CONNECTIONS = "domainConnections"
-private const val ROUTE_EVENTS = "events"
-private const val ROUTE_RPN_WIN_PROXY_DETAILS = "rpnWinProxyDetails"
-private const val ROUTE_APP_INFO = "appInfo"
-private const val ROUTE_FIREWALL_SETTINGS = "firewallSettings"
-private const val ROUTE_ADVANCED_SETTINGS = "advancedSettings"
-private const val ROUTE_ANTI_CENSORSHIP = "antiCensorship"
-private const val ROUTE_TUNNEL_SETTINGS = "tunnelSettings"
-private const val ROUTE_MISC_SETTINGS = "miscSettings"
-private const val ROUTE_CONSOLE_LOGS = "consoleLogs"
-private const val ROUTE_NETWORK_LOGS = "networkLogs"
-private const val ROUTE_APP_LIST = "appList"
-private const val ROUTE_CUSTOM_RULES = "customRules"
-private const val ROUTE_PROXY_SETTINGS = "proxySettings"
-private const val ROUTE_TCP_PROXY_MAIN = "tcpProxyMain"
-private const val ROUTE_WELCOME = "welcome"
-private const val ROUTE_APP_LOCK = "appLock"
-private const val ROUTE_PING_TEST = "pingTest"
-private const val ROUTE_DNS_DETAIL = "dnsDetail"
-private const val ROUTE_WG_CONFIG_DETAIL = "wgConfigDetail"
-private const val ROUTE_WG_CONFIG_EDITOR = "wgConfigEditor"
-private const val ROUTE_CONFIGURE_RETHINK_BASIC = "configureRethinkBasic"
-private const val ROUTE_DNS_LIST = "dnsList"
-private const val ROUTE_APP_WISE_IP_LOGS = "appWiseIpLogs"
-private const val ROUTE_CONFIGURE_OTHER_DNS = "configureOtherDns"
-private const val ROUTE_UNIVERSAL_FIREWALL_SETTINGS = "universalFirewallSettings"
-private const val ROUTE_APP_WISE_DOMAIN_LOGS = "appWiseDomainLogs"
-private const val ROUTE_CHECKOUT = "checkout"
-private const val ROUTE_WG_MAIN = "wgMain"
-
-private fun domainConnectionsRoute(
-    type: DomainConnectionsInputType,
-    flag: String,
-    domain: String,
-    asn: String,
-    ip: String,
-    isBlocked: Boolean,
-    timeCategory: DomainConnectionsViewModel.TimeCategory
-): String {
-    val encodedFlag = Uri.encode(flag)
-    val encodedDomain = Uri.encode(domain)
-    val encodedAsn = Uri.encode(asn)
-    val encodedIp = Uri.encode(ip)
-    return "$ROUTE_DOMAIN_CONNECTIONS/${type.type}/${timeCategory.value}" +
-        "?flag=$encodedFlag&domain=$encodedDomain&asn=$encodedAsn&ip=$encodedIp&blocked=$isBlocked"
-}
-
-private fun detailedStatsRoute(typeId: Int, timeCategory: Int): String {
-    return "$ROUTE_DETAILED_STATS/$typeId/$timeCategory"
 }
 
 @Composable
@@ -515,39 +474,64 @@ fun HomeScreenRoot(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
             if (isWelcomeRoute) return@Scaffold
-            NavigationBar {
-                HomeDestination.entries.forEach { destination ->
-                    val isSelected = currentDestination?.route == destination.route::class.qualifiedName
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick = {
-                            navController.navigate(destination.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
+            Surface(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                shape = RoundedCornerShape(34.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.96f),
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
+                ),
+                tonalElevation = 6.dp
+            ) {
+                NavigationBar(
+                    modifier = Modifier.heightIn(min = 70.dp),
+                    containerColor = Color.Transparent,
+                    tonalElevation = 0.dp
+                ) {
+                    HomeDestination.entries.forEach { destination ->
+                        val isSelected = currentDestination?.route == destination.route::class.qualifiedName
+                        NavigationBarItem(
+                            selected = isSelected,
+                            onClick = {
+                                navController.navigate(destination.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
                                 }
-                                launchSingleTop = true
-                                restoreState = true
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                                selectedTextColor = MaterialTheme.colorScheme.onPrimary,
+                                indicatorColor = MaterialTheme.colorScheme.primary,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            ),
+                            icon = {
+                                Icon(
+                                    painter = painterResource(id = destination.iconRes),
+                                    contentDescription = stringResource(id = destination.labelRes)
+                                )
+                            },
+                            label = {
+                                Text(text = stringResource(id = destination.labelRes))
                             }
-                        },
-                        icon = {
-                            Icon(
-                                painter = painterResource(id = destination.iconRes),
-                                contentDescription = stringResource(id = destination.labelRes)
-                            )
-                        },
-                        label = {
-                            androidx.compose.material3.Text(
-                                text = stringResource(id = destination.labelRes)
-                            )
-                        }
-                    )
+                        )
+                    }
                 }
             }
         }
     ) { paddingValues ->
         NavHost(
             navController = navController,
-            startDestination = startDestination
+            startDestination = startDestination,
+            modifier = Modifier
+                .padding(paddingValues)
+                .consumeWindowInsets(paddingValues)
         ) {
             composable<HomeRoute.Home> {
                 HomeScreen(
@@ -673,6 +657,9 @@ fun HomeScreenRoot(
                     appConfig = appConfig,
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
+                    mappingViewModel = proxyAppsMappingViewModel,
+                    onWireguardClick = { navController.navigate(HomeRoute.WgMain) },
+                    onNavigateToDns = { navController.navigate(HomeRoute.DnsDetail) },
                     onBackClick = { navController.popBackStack() }
                 )
             }
@@ -893,13 +880,10 @@ fun HomeScreenRoot(
                     onBackClick = { navController.popBackStack() }
                 )
             }
-            composable(
-                route = "$ROUTE_CONFIGURE_OTHER_DNS/{dnsType}",
-                arguments = listOf(navArgument("dnsType") { type = NavType.IntType })
-            ) { entry ->
-                val dnsType = entry.arguments?.getInt("dnsType") ?: 0
+            composable<HomeRoute.ConfigureOtherDns> { entry ->
+                val args = entry.toRoute<HomeRoute.ConfigureOtherDns>()
                 ConfigureOtherDnsScreen(
-                    dnsType = DnsScreenType.fromIndex(dnsType),
+                    dnsType = DnsScreenType.fromIndex(args.dnsType),
                     appConfig = appConfig,
                     persistentState = persistentState,
                     dohViewModel = dohViewModel,
@@ -911,7 +895,7 @@ fun HomeScreenRoot(
                     onBackClick = { navController.popBackStack() }
                 )
             }
-            composable(ROUTE_UNIVERSAL_FIREWALL_SETTINGS) {
+            composable<HomeRoute.UniversalFirewallSettings> {
                 UniversalFirewallSettingsScreen(
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
@@ -921,10 +905,10 @@ fun HomeScreenRoot(
                     onBackClick = { navController.popBackStack() }
                 )
             }
-            composable(ROUTE_CHECKOUT) {
+            composable<HomeRoute.Checkout> {
                 val currentCheckoutViewModel = checkoutViewModel
                 if (currentCheckoutViewModel == null) {
-                    Text(text = stringResource(id = R.string.coming_soon_toast))
+                    Text(text = stringResource(id = R.string.checkout_unavailable_desc))
                 } else {
                     val paymentStatus by currentCheckoutViewModel.paymentStatus.collectAsStateWithLifecycle()
                     val workInfoList by currentCheckoutViewModel.paymentWorkInfo
@@ -943,35 +927,51 @@ fun HomeScreenRoot(
                     )
                 }
             }
-            composable(
-                route = "$ROUTE_APP_WISE_DOMAIN_LOGS/{uid}",
-                arguments = listOf(navArgument("uid") { type = NavType.IntType })
-            ) { entry ->
-                val uid = entry.arguments?.getInt("uid") ?: 0
+            composable<HomeRoute.AppWiseDomainLogs> { entry ->
+                val args = entry.toRoute<HomeRoute.AppWiseDomainLogs>()
+                val uid = args.uid
                 val context = LocalContext.current
-                
+                val searchHint = stringResource(R.string.search_custom_domains)
+                val defaultIcon = remember(context) { Utilities.getDefaultIcon(context) }
+                var appName by remember(uid) { mutableStateOf(uid.toString()) }
+                var appIcon by remember(uid) { mutableStateOf<Drawable?>(null) }
+                var isRethinkApp by remember(uid) { mutableStateOf(false) }
+
                 LaunchedEffect(uid) {
                     appInfoNetworkLogsViewModel.setUid(uid)
                     appInfoNetworkLogsViewModel.setFilter("", AppConnectionsViewModel.FilterType.DOMAIN)
                 }
 
-                val appName = remember(uid) { "App $uid" } // TODO: Fetch app name asynchronously
+                LaunchedEffect(uid, context.packageName) {
+                    val resolved =
+                        withContext(Dispatchers.IO) {
+                            val info = FirewallManager.getAppInfoByUid(uid)
+                            val packageNames = FirewallManager.getPackageNamesByUid(uid)
+                            val resolvedAppName = info?.appName?.takeIf { it.isNotBlank() } ?: uid.toString()
+                            val resolvedIcon = info?.let { Utilities.getIcon(context, it.packageName, it.appName) }
+                            Triple(resolvedAppName, resolvedIcon, packageNames.any { it == context.packageName })
+                        }
+                    appName = resolved.first
+                    appIcon = resolved.second
+                    isRethinkApp = resolved.third
+                }
+
                 // Flow<PagingData>
-                val items = remember(uid) { 
-                    appInfoNetworkLogsViewModel.appDomainLogs.asFlow() 
+                val items = remember(uid) {
+                    appInfoNetworkLogsViewModel.appDomainLogs.asFlow()
                 }.collectAsLazyPagingItems()
 
                 val state = AppWiseDomainLogsState(
                     uid = uid,
                     isActiveConns = false,
-                    isRethinkApp = appName == "com.celzero.bravedns",
-                    searchHint = stringResource(R.string.search_custom_domains),
-                    appIcon = null, // TODO: Load icon if needed
+                    isRethinkApp = isRethinkApp,
+                    searchHint = searchHint,
+                    appIcon = appIcon,
                     showToggleGroup = true,
                     showDeleteIcon = true,
                     selectedCategory = AppConnectionsViewModel.TimeCategory.SEVEN_DAYS
                 )
-                
+
                 AppWiseDomainLogsScreen(
                     state = state,
                     items = items,
@@ -979,10 +979,10 @@ fun HomeScreenRoot(
                     onTimeCategoryChange = { appInfoNetworkLogsViewModel.timeCategoryChanged(it, true) },
                     onFilterChange = { appInfoNetworkLogsViewModel.setFilter(it, AppConnectionsViewModel.FilterType.DOMAIN) },
                     onDeleteLogs = { appInfoNetworkLogsViewModel.deleteLogs(uid) },
-                    defaultIcon = null
+                    defaultIcon = defaultIcon
                 )
             }
-            composable(ROUTE_WG_MAIN) {
+            composable<HomeRoute.WgMain> {
                 WgMainScreen(
                     wgConfigViewModel = wgConfigViewModel,
                     persistentState = persistentState,
@@ -993,7 +993,7 @@ fun HomeScreenRoot(
                     onImportClick = onWgImportClick,
                     onQrScanClick = onWgQrScanClick,
                     onConfigDetailClick = { configId, wgType ->
-                        navController.navigate("$ROUTE_WG_CONFIG_DETAIL/$configId/${wgType.value}")
+                        navController.navigate(HomeRoute.WgConfigDetail(configId, wgType))
                     }
                 )
             }

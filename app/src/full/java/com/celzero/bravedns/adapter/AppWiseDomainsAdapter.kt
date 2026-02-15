@@ -103,10 +103,10 @@ fun CloseConnsDialog(
     val context = LocalContext.current
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = context.getString(R.string.close_conns_dialog_title)) },
+        title = { Text(text = context.resources.getString(R.string.close_conns_dialog_title)) },
         text = {
             Text(
-                text = context.getString(R.string.close_conns_dialog_desc, conn.ipAddress)
+                text = context.resources.getString(R.string.close_conns_dialog_desc, conn.ipAddress)
             )
         },
         confirmButton = {
@@ -119,18 +119,18 @@ fun CloseConnsDialog(
                     )
                     showToastUiCentered(
                         context,
-                        context.getString(R.string.config_add_success_toast),
+                        context.resources.getString(R.string.config_add_success_toast),
                         Toast.LENGTH_LONG
                     )
                     onConfirm()
                 }
             ) {
-                Text(text = context.getString(R.string.lbl_proceed))
+                Text(text = context.resources.getString(R.string.lbl_proceed))
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(text = context.getString(R.string.lbl_cancel))
+                Text(text = context.resources.getString(R.string.lbl_cancel))
             }
         }
     )

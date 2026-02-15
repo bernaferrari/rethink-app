@@ -86,7 +86,7 @@ class BackupHelper {
             val backupDirectoryPath: String =
                 context.filesDir.absolutePath +
                     File.separator +
-                    context.getString(R.string.app_name)
+                    context.resources.getString(R.string.app_name)
             val file = File(backupDirectoryPath)
             if (!file.exists()) {
                 file.mkdir()

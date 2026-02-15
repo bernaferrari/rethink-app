@@ -33,8 +33,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,8 +48,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
@@ -57,6 +63,7 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.glide.FavIconDownloader
 import com.celzero.bravedns.net.doh.Transaction
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
@@ -80,7 +87,7 @@ fun DnsLogRow(
     val unicodeHint = unicodeHint(context, log, isRethinkDns)
     val showSummary = unicodeHint.isNotEmpty() || log.typeName.isNotEmpty()
     val responseIp = log.responseIps.split(",").firstOrNull().orEmpty()
-    val latencyText = context.getString(R.string.dns_query_latency, log.latency.toString())
+    val latencyText = context.resources.getString(R.string.dns_query_latency, log.latency.toString())
 
     var appIcon by remember(log.packageName, log.appName) { mutableStateOf<Drawable?>(null) }
     var showFavIcon by remember(log.queryStr, loadFavIcon) { mutableStateOf(false) }
@@ -100,93 +107,171 @@ fun DnsLogRow(
         favIconDrawable = null
     }
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clickable { onShowBlocklist(log) }
-                .padding(vertical = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
+    androidx.compose.material3.Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onShowBlocklist(log) },
+        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+        colors = androidx.compose.material3.CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        border = androidx.compose.foundation.BorderStroke(
+            width = Dimensions.dividerThickness,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+        )
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        Column(
+            modifier = Modifier.padding(Dimensions.spacingMd),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
         ) {
-            Box(
-                modifier =
-                    Modifier
-                        .width(1.5.dp)
-                        .fillMaxHeight()
-                        .background(indicatorColor ?: Color.Transparent)
-            )
-            if (showFavIcon && favIconDrawable != null) {
-                val favPainter = rememberDrawablePainter(favIconDrawable)
-                favPainter?.let { painter ->
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-            } else {
-                Text(text = log.flag, style = MaterialTheme.typography.titleMedium)
-            }
-            val appPainter =
-                rememberDrawablePainter(appIcon)
-                    ?: rememberDrawablePainter(getDefaultIcon(context))
-            appPainter?.let { painter ->
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            Column(modifier = Modifier.weight(1f)) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = log.typeName,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = dnsTypeName,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-                Text(text = log.queryStr, style = MaterialTheme.typography.bodyMedium)
-                Text(
-                    text =
-                        if (log.appName.isEmpty()) {
-                            context.getString(R.string.network_log_app_name_unknown)
-                                .uppercase()
-                        } else {
-                            log.appName
-                        },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-            }
-            Text(text = log.wallTime(), style = MaterialTheme.typography.bodySmall)
-            Icon(
-                painter = painterResource(id = R.drawable.ic_keyboard_arrow_down),
-                contentDescription = null
-            )
-        }
-
-        if (showSummary) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
             ) {
-                Text(text = responseIp, style = MaterialTheme.typography.bodySmall)
-                Text(text = latencyText, style = MaterialTheme.typography.bodySmall)
-                Text(text = unicodeHint, style = MaterialTheme.typography.bodySmall)
+                // Icon/Flag with tinted circular background
+                val iconBgColor = if (log.isBlocked) {
+                    MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                } else {
+                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+                }
+
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(iconBgColor),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (showFavIcon && favIconDrawable != null) {
+                        val favPainter = rememberDrawablePainter(favIconDrawable)
+                        favPainter?.let { painter ->
+                            Image(
+                                painter = painter,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    } else {
+                        Text(
+                            text = log.flag,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = log.typeName.ifEmpty { "QUERY" },
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                        
+                        // Status Badge
+                        val badgeColor = if (log.isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        val badgeContainerColor = if (log.isBlocked) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+                        
+                        Surface(
+                            shape = CircleShape,
+                            color = badgeContainerColor.copy(alpha = 0.8f)
+                        ) {
+                            Text(
+                                text = if (log.isBlocked) "BLOCKED" else "ALLOWED",
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Black,
+                                color = badgeColor,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                    
+                    Text(
+                        text = log.queryStr, 
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                    )
+                    
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
+                        val appPainter = rememberDrawablePainter(appIcon) ?: rememberDrawablePainter(getDefaultIcon(context))
+                        appPainter?.let { painter ->
+                            Image(
+                                painter = painter,
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                        Text(
+                            text = if (log.appName.isEmpty()) {
+                                context.resources.getString(R.string.network_log_app_name_unknown)
+                            } else {
+                                log.appName
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                
+                Column(horizontalAlignment = Alignment.End) {
+                    Text(
+                        text = log.wallTime(), 
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_keyboard_arrow_down),
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            if (showSummary) {
+                HorizontalDivider(
+                    thickness = 0.5.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                )
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = responseIp, 
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
+                        Text(
+                            text = dnsTypeName, 
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = latencyText, 
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    
+                    Text(
+                        text = unicodeHint, 
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
             }
         }
     }
@@ -228,69 +313,69 @@ private fun unicodeHint(context: Context, log: DnsLog, isRethinkDns: Boolean): S
 
     if (isRoundTripShorter(log.latency, log.isBlocked)) {
         hint =
-            context.getString(
+            context.resources.getString(
                 R.string.ci_desc,
                 hint,
-                context.getString(R.string.symbol_rocket)
+                context.resources.getString(R.string.symbol_rocket)
             )
     }
     if (containsRelayProxy(log.relayIP)) {
         hint =
-            context.getString(
+            context.resources.getString(
                 R.string.ci_desc,
                 hint,
-                context.getString(R.string.symbol_bunny)
+                context.resources.getString(R.string.symbol_bunny)
             )
     } else if (isConnectionProxied(log.proxyId)) {
         hint =
-            context.getString(
+            context.resources.getString(
                 R.string.ci_desc,
                 hint,
-                context.getString(R.string.symbol_key)
+                context.resources.getString(R.string.symbol_key)
             )
     }
     if (isRethinkUsed(log, isRethinkDns)) {
         hint =
-            context.getString(
+            context.resources.getString(
                 R.string.ci_desc,
                 hint,
                 getRethinkUnicode(context, log)
             )
     } else if (isGoosOrSystemUsed(log)) {
         hint =
-            context.getString(
+            context.resources.getString(
                 R.string.ci_desc,
                 hint,
-                context.getString(R.string.symbol_duck)
+                context.resources.getString(R.string.symbol_duck)
             )
     } else if (isDefaultResolverUsed(log)) {
         hint =
-            context.getString(
+            context.resources.getString(
                 R.string.ci_desc,
                 hint,
-                context.getString(R.string.symbol_diamond)
+                context.resources.getString(R.string.symbol_diamond)
             )
     } else if (containsMultipleIPs(log)) {
         hint =
-            context.getString(
+            context.resources.getString(
                 R.string.ci_desc,
                 hint,
-                context.getString(R.string.symbol_heavy)
+                context.resources.getString(R.string.symbol_heavy)
             )
     }
     if (dnssecIndicatorRequired(log)) {
         hint =
             if (dnssecOk(log)) {
-                context.getString(
+                context.resources.getString(
                     R.string.ci_desc,
                     hint,
-                    context.getString(R.string.symbol_lock)
+                    context.resources.getString(R.string.symbol_lock)
                 )
             } else {
-                context.getString(
+                context.resources.getString(
                     R.string.ci_desc,
                     hint,
-                    context.getString(R.string.symbol_unlock)
+                    context.resources.getString(R.string.symbol_unlock)
                 )
             }
     }
@@ -301,15 +386,15 @@ private fun dnsTypeName(context: Context, log: DnsLog, isRethinkDns: Boolean): S
     return when (Transaction.TransportType.fromOrdinal(log.dnsType)) {
         Transaction.TransportType.DOH -> {
             if (isRethinkDns && isRethinkUsed(log, isRethinkDns)) {
-                context.getString(R.string.lbl_rdns)
+                context.resources.getString(R.string.lbl_rdns)
             } else {
-                context.getString(R.string.other_dns_list_tab1)
+                context.resources.getString(R.string.other_dns_list_tab1)
             }
         }
-        Transaction.TransportType.DNS_CRYPT -> context.getString(R.string.lbl_dc_abbr)
-        Transaction.TransportType.DNS_PROXY -> context.getString(R.string.lbl_dp)
-        Transaction.TransportType.DOT -> context.getString(R.string.lbl_dot)
-        Transaction.TransportType.ODOH -> context.getString(R.string.lbl_odoh)
+        Transaction.TransportType.DNS_CRYPT -> context.resources.getString(R.string.lbl_dc_abbr)
+        Transaction.TransportType.DNS_PROXY -> context.resources.getString(R.string.lbl_dp)
+        Transaction.TransportType.DOT -> context.resources.getString(R.string.lbl_dot)
+        Transaction.TransportType.ODOH -> context.resources.getString(R.string.lbl_odoh)
     }
 }
 
@@ -360,12 +445,12 @@ private fun isDefaultResolverUsed(log: DnsLog): Boolean {
 
 private fun getRethinkUnicode(context: Context, log: DnsLog): String {
     if (log.relayIP.endsWith(Backend.RPN) || log.relayIP == Backend.Auto) {
-        return context.getString(R.string.symbol_sparkle)
+        return context.resources.getString(R.string.symbol_sparkle)
     }
     return if (log.serverIP.contains(MAX_ENDPOINT)) {
-        context.getString(R.string.symbol_max)
+        context.resources.getString(R.string.symbol_max)
     } else {
-        context.getString(R.string.symbol_sky)
+        context.resources.getString(R.string.symbol_sky)
     }
 }
 

@@ -40,22 +40,22 @@ import kotlinx.coroutines.withContext
 fun ConnectionRow(dc: AppConnection) {
     val context = LocalContext.current
     val fallbackName = if (dc.appOrDnsName.isNullOrEmpty()) {
-        context.getString(R.string.network_log_app_name_unnamed, "(${dc.uid})")
+        context.resources.getString(R.string.network_log_app_name_unnamed, "(${dc.uid})")
     } else {
         dc.appOrDnsName
     }
     val totalUsageText = if (dc.downloadBytes != null && dc.uploadBytes != null) {
         val download =
-            context.getString(
+            context.resources.getString(
                 R.string.symbol_download,
                 Utilities.humanReadableByteCount(dc.downloadBytes, true)
             )
         val upload =
-            context.getString(
+            context.resources.getString(
                 R.string.symbol_upload,
                 Utilities.humanReadableByteCount(dc.uploadBytes, true)
             )
-        context.getString(R.string.two_argument, upload, download)
+        context.resources.getString(R.string.two_argument, upload, download)
     } else {
         null
     }

@@ -23,9 +23,12 @@ import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,10 +40,10 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Refresh
@@ -49,9 +52,11 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
@@ -61,8 +66,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -72,12 +75,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
@@ -85,6 +91,7 @@ import com.celzero.bravedns.adapter.FirewallAppRow
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.viewmodel.AppInfoViewModel
 import kotlinx.coroutines.Dispatchers
@@ -109,8 +116,8 @@ enum class TopLevelFilter(val id: Int) {
     fun getLabel(context: Context): String {
         return when (this) {
             ALL -> ""
-            INSTALLED -> context.getString(R.string.fapps_filter_parent_installed)
-            SYSTEM -> context.getString(R.string.fapps_filter_parent_system)
+            INSTALLED -> context.resources.getString(R.string.fapps_filter_parent_installed)
+            SYSTEM -> context.resources.getString(R.string.fapps_filter_parent_system)
         }
     }
 }
@@ -154,14 +161,14 @@ enum class FirewallFilter(val id: Int) {
 
     fun getLabel(context: Context): String {
         return when (this) {
-            ALL -> context.getString(R.string.lbl_all)
-            ALLOWED -> context.getString(R.string.lbl_allowed)
-            BLOCKED_WIFI -> context.getString(R.string.two_argument_colon, context.getString(R.string.lbl_blocked), context.getString(R.string.firewall_rule_block_unmetered))
-            BLOCKED_MOBILE_DATA -> context.getString(R.string.two_argument_colon, context.getString(R.string.lbl_blocked), context.getString(R.string.firewall_rule_block_metered))
-            BLOCKED -> context.getString(R.string.lbl_blocked)
-            BYPASS -> context.getString(R.string.fapps_firewall_filter_bypass_universal)
-            EXCLUDED -> context.getString(R.string.fapps_firewall_filter_excluded)
-            LOCKDOWN -> context.getString(R.string.fapps_firewall_filter_isolate)
+            ALL -> context.resources.getString(R.string.lbl_all)
+            ALLOWED -> context.resources.getString(R.string.lbl_allowed)
+            BLOCKED_WIFI -> context.resources.getString(R.string.two_argument_colon, context.resources.getString(R.string.lbl_blocked), context.resources.getString(R.string.firewall_rule_block_unmetered))
+            BLOCKED_MOBILE_DATA -> context.resources.getString(R.string.two_argument_colon, context.resources.getString(R.string.lbl_blocked), context.resources.getString(R.string.firewall_rule_block_metered))
+            BLOCKED -> context.resources.getString(R.string.lbl_blocked)
+            BYPASS -> context.resources.getString(R.string.fapps_firewall_filter_bypass_universal)
+            EXCLUDED -> context.resources.getString(R.string.fapps_firewall_filter_excluded)
+            LOCKDOWN -> context.resources.getString(R.string.fapps_firewall_filter_isolate)
         }
     }
 
@@ -260,9 +267,7 @@ fun AppListScreen(
             text = { Text(text = bulkDialogMessage) },
             confirmButton = {
                 TextButton(
-                    onClick = {
-                        onBulkDialogConfirm(bulkDialogType)
-                    }
+                    onClick = { onBulkDialogConfirm(bulkDialogType) }
                 ) {
                     Text(text = stringResource(R.string.lbl_apply))
                 }
@@ -290,26 +295,9 @@ fun AppListScreen(
     Scaffold(
         topBar = {
             if (onBackClick != null) {
-                TopAppBar(
-                    title = {
-                        Text(
-                            text = stringResource(R.string.apps_info_title),
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    },
-                    navigationIcon = {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.Rounded.ArrowBack,
-                                contentDescription = "Back"
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        navigationIconContentColor = MaterialTheme.colorScheme.onSurface
-                    )
+                RethinkTopBar(
+                    title = stringResource(R.string.apps_info_title),
+                    onBackClick = onBackClick
                 )
             }
         },
@@ -320,121 +308,177 @@ fun AppListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            // Search + action bar
-            Column(
+            // Search bar with gradient background
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.surfaceContainerLow,
+                                MaterialTheme.colorScheme.background
+                            )
+                        )
+                    )
                     .padding(
                         horizontal = Dimensions.screenPaddingHorizontal,
-                        vertical = Dimensions.spacingSm
+                        vertical = Dimensions.spacingMd
                     )
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-                ) {
-                    OutlinedTextField(
-                        value = queryText,
-                        onValueChange = onQueryChange,
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
+                Column {
+                    // Search field with action buttons
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                        placeholder = {
-                            Text(
-                                text = stringResource(R.string.search_firewall_all_apps),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        },
-                        leadingIcon = {
+                        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                        tonalElevation = Dimensions.Elevation.none
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = Dimensions.spacingSm),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
                             Icon(
                                 imageVector = Icons.Rounded.Search,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .padding(start = Dimensions.spacingSm)
+                                    .size(Dimensions.iconSizeMd)
                             )
-                        },
-                        trailingIcon = {
+                            OutlinedTextField(
+                                value = queryText,
+                                onValueChange = onQueryChange,
+                                modifier = Modifier.weight(1f),
+                                singleLine = true,
+                                placeholder = {
+                                    Text(
+                                        text = stringResource(R.string.search_firewall_all_apps),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                            alpha = Dimensions.Opacity.MEDIUM
+                                        )
+                                    )
+                                },
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
+                                    unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
+                                    focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                                    unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent
+                                )
+                            )
                             if (queryText.isNotEmpty()) {
                                 IconButton(onClick = { onQueryChange("") }) {
                                     Icon(
                                         imageVector = Icons.Rounded.Close,
-                                        contentDescription = "Clear",
-                                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                        contentDescription = stringResource(R.string.cd_clear_search),
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(Dimensions.iconSizeSm)
                                     )
                                 }
                             }
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(
-                                alpha = Dimensions.Opacity.MEDIUM
-                            )
-                        )
-                    )
-                    IconButton(
-                        onClick = onRefreshClick,
-                        enabled = !isRefreshing
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Refresh,
-                            contentDescription = "Refresh",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier
-                                .size(Dimensions.iconSizeMd)
-                                .rotate(if (isRefreshing) refreshRotation.value else 0f)
-                        )
-                    }
-                    IconButton(onClick = { showFilterSheet = true }) {
-                        Icon(
-                            imageVector = Icons.Rounded.FilterList,
-                            contentDescription = "Filter",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-
-                // Filter chips row
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
-                    modifier = Modifier.padding(vertical = Dimensions.spacingXs)
-                ) {
-                    items(FirewallFilter.entries.size) { index ->
-                        val filter = FirewallFilter.entries[index]
-                        val label = filter.getLabel(context)
-                        if (label.isNotEmpty()) {
-                            FilterChip(
-                                selected = selectedFirewallFilter == filter,
-                                onClick = { onFirewallFilterClick(filter) },
-                                label = {
-                                    Text(
-                                        text = label,
-                                        style = MaterialTheme.typography.labelMedium
+                            // Refresh with tinted background
+                            IconButton(
+                                onClick = onRefreshClick,
+                                enabled = !isRefreshing,
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    contentColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.Refresh,
+                                    contentDescription = "Refresh",
+                                    modifier = Modifier
+                                        .size(Dimensions.iconSizeMd)
+                                        .rotate(if (isRefreshing) refreshRotation.value else 0f)
+                                )
+                            }
+                            // Filter with tinted background when active
+                            val hasActiveFilters = currentFilters?.let {
+                                it.topLevelFilter != TopLevelFilter.ALL ||
+                                    it.categoryFilters.isNotEmpty()
+                            } ?: false
+                            IconButton(
+                                onClick = { showFilterSheet = true },
+                                colors = IconButtonDefaults.iconButtonColors(
+                                    contentColor = if (hasActiveFilters)
+                                        MaterialTheme.colorScheme.primary
+                                    else
+                                        MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            ) {
+                                Box {
+                                    Icon(
+                                        imageVector = Icons.Rounded.FilterList,
+                                        contentDescription = "Filter"
                                     )
+                                    // Active indicator dot
+                                    if (hasActiveFilters) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(8.dp)
+                                                .align(Alignment.TopEnd)
+                                                .clip(CircleShape)
+                                                .background(MaterialTheme.colorScheme.primary)
+                                        )
+                                    }
                                 }
-                            )
+                            }
                         }
                     }
-                }
 
-                // Filter label
-                if (filterLabelText.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(Dimensions.spacingXs))
-                    Text(
-                        text = filterLabelText.toString(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = Dimensions.spacingXs),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+
+                    // Filter chips with tonal coloring
+                    LazyRow(
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                    ) {
+                        items(FirewallFilter.entries.size) { index ->
+                            val filter = FirewallFilter.entries[index]
+                            val label = filter.getLabel(context)
+                            if (label.isNotEmpty()) {
+                                val selected = selectedFirewallFilter == filter
+                                FilterChip(
+                                    selected = selected,
+                                    onClick = { onFirewallFilterClick(filter) },
+                                    label = {
+                                        Text(
+                                            text = label,
+                                            style = MaterialTheme.typography.labelMedium,
+                                            fontWeight = if (selected) FontWeight.SemiBold
+                                                else FontWeight.Normal
+                                        )
+                                    },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    // Filter label
+                    if (filterLabelText.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+                        Text(
+                            text = filterLabelText.toString(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = Dimensions.spacingSm),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                alpha = Dimensions.Opacity.MEDIUM
+                            ),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
 
-            // Bulk toggle toolbar
+            // Bulk toggle toolbar — expressive with tinted icon backgrounds
             BulkToggleRow(
                 bulkWifi = bulkWifi,
                 bulkMobile = bulkMobile,
@@ -482,7 +526,7 @@ private fun BulkToggleRow(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
-                        horizontal = Dimensions.screenPaddingHorizontal,
+                        horizontal = Dimensions.spacingSm,
                         vertical = Dimensions.spacingSm
                     ),
                 verticalAlignment = Alignment.CenterVertically,
@@ -491,26 +535,31 @@ private fun BulkToggleRow(
                 BulkActionItem(
                     icon = R.drawable.ic_info_white,
                     label = stringResource(R.string.lbl_info),
+                    isActive = false,
                     onClick = onShowInfoDialog
                 )
                 BulkActionItem(
                     icon = if (bulkLockdown) R.drawable.ic_firewall_lockdown_on else R.drawable.ic_firewall_lockdown_off,
                     label = stringResource(R.string.fapps_firewall_filter_isolate),
+                    isActive = bulkLockdown,
                     onClick = { onShowBulkDialog(BlockType.LOCKDOWN) }
                 )
                 BulkActionItem(
                     icon = if (bulkExclude) R.drawable.ic_firewall_exclude_on else R.drawable.ic_firewall_exclude_off,
                     label = stringResource(R.string.fapps_firewall_filter_excluded),
+                    isActive = bulkExclude,
                     onClick = { onShowBulkDialog(BlockType.EXCLUDE) }
                 )
                 BulkActionItem(
                     icon = if (bulkBypass) R.drawable.ic_firewall_bypass_on else R.drawable.ic_firewall_bypass_off,
                     label = stringResource(R.string.fapps_firewall_filter_bypass_universal),
+                    isActive = bulkBypass,
                     onClick = { onShowBulkDialog(BlockType.BYPASS) }
                 )
                 BulkActionItem(
                     icon = if (bulkBypassDns) R.drawable.ic_bypass_dns_firewall_on else R.drawable.ic_bypass_dns_firewall_off,
                     label = "DNS",
+                    isActive = bulkBypassDns,
                     onClick = {
                         if (showBypassToolTip) {
                             onBypassDnsTooltip()
@@ -522,11 +571,13 @@ private fun BulkToggleRow(
                 BulkActionItem(
                     icon = if (bulkWifi) R.drawable.ic_firewall_wifi_off else R.drawable.ic_firewall_wifi_on_grey,
                     label = "Wi-Fi",
+                    isActive = bulkWifi,
                     onClick = { onShowBulkDialog(BlockType.UNMETER) }
                 )
                 BulkActionItem(
                     icon = if (bulkMobile) R.drawable.ic_firewall_data_off else R.drawable.ic_firewall_data_on_grey,
                     label = stringResource(R.string.lbl_mobile_data),
+                    isActive = bulkMobile,
                     onClick = { onShowBulkDialog(BlockType.METER) }
                 )
             }
@@ -544,25 +595,43 @@ private fun BulkToggleRow(
 private fun BulkActionItem(
     icon: Int,
     label: String,
+    isActive: Boolean,
     onClick: () -> Unit
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
+        modifier = Modifier.width(48.dp)
     ) {
-        IconButton(onClick = onClick, modifier = Modifier.size(Dimensions.touchTargetMin)) {
-            Image(
-                painter = painterResource(icon),
-                contentDescription = label,
-                modifier = Modifier.size(Dimensions.iconSizeMd)
-            )
+        // Tinted circle background when active (like ConfigureScreen icons)
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(
+                    if (isActive)
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                    else
+                        MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f)
+                )
+        ) {
+            IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {
+                Image(
+                    painter = painterResource(icon),
+                    contentDescription = label,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = if (isActive) MaterialTheme.colorScheme.primary
+                else MaterialTheme.colorScheme.onSurfaceVariant,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            fontWeight = if (isActive) FontWeight.SemiBold else FontWeight.Normal
         )
     }
 }
@@ -572,7 +641,7 @@ private fun AppListRecycler(viewModel: AppInfoViewModel, eventLogger: EventLogge
     val items = viewModel.appInfo.asFlow().collectAsLazyPagingItems()
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+        contentPadding = PaddingValues(
             horizontal = Dimensions.screenPaddingHorizontal,
             vertical = Dimensions.spacingSm
         ),
@@ -637,19 +706,30 @@ private fun InfoRow(icon: Int, text: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimensions.spacingXs),
-        verticalAlignment = Alignment.CenterVertically
+            .padding(vertical = Dimensions.spacingXs),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
     ) {
-        Image(
-            painter = painterResource(id = icon),
-            contentDescription = null,
-            modifier = Modifier.size(Dimensions.iconSizeSm)
-        )
-        Spacer(modifier = Modifier.width(Dimensions.spacingMd))
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(
+                    MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)
+                )
+        ) {
+            Image(
+                painter = painterResource(id = icon),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+        }
         Text(
             text = text,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.weight(1f)
         )
     }
 }
@@ -690,7 +770,6 @@ fun FirewallAppFilterSheet(
                 vertical = Dimensions.spacingSm
             )
         ) {
-            // Filter heading
             SectionHeader(title = stringResource(R.string.fapps_filter_filter_heading))
 
             Spacer(modifier = Modifier.height(Dimensions.spacingSm))
@@ -719,7 +798,6 @@ fun FirewallAppFilterSheet(
 
             Spacer(modifier = Modifier.height(Dimensions.spacingLg))
 
-            // Categories heading
             SectionHeader(title = stringResource(R.string.fapps_filter_categories_heading))
 
             Spacer(modifier = Modifier.height(Dimensions.spacingSm))
@@ -739,14 +817,17 @@ fun FirewallAppFilterSheet(
                                 selectedCategories.add(category)
                             }
                         },
-                        label = { Text(text = category) }
+                        label = { Text(text = category) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
                     )
                 }
             }
 
             Spacer(modifier = Modifier.height(Dimensions.spacingXl))
 
-            // Action buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd, Alignment.End)
@@ -795,9 +876,14 @@ private fun TopFilterChip(label: String, selected: Boolean, onClick: () -> Unit)
                     horizontal = Dimensions.spacingMd,
                     vertical = Dimensions.spacingSm
                 ),
-                fontWeight = if (selected) FontWeight.Medium else FontWeight.Normal
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
+                style = MaterialTheme.typography.labelMedium
             )
-        }
+        },
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
+        )
     )
 }
 

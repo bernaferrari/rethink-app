@@ -40,7 +40,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,6 +60,7 @@ import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.tos
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.wireguard.Config
 import com.celzero.bravedns.wireguard.WgInterface
 import com.celzero.bravedns.wireguard.util.ErrorMessages
@@ -187,7 +187,7 @@ fun WgConfigEditorScreen(
         clipboardCopy(context, publicKey, CLIPBOARD_PUBLIC_KEY_LBL)
         Utilities.showToastUiCentered(
             context,
-            context.getString(R.string.public_key_copy_toast_msg),
+            context.resources.getString(R.string.public_key_copy_toast_msg),
             Toast.LENGTH_SHORT
         )
     }
@@ -215,7 +215,7 @@ fun WgConfigEditorScreen(
                     withContext(Dispatchers.Main) {
                         Utilities.showToastUiCentered(
                             context,
-                            context.getString(R.string.config_add_success_toast),
+                            context.resources.getString(R.string.config_add_success_toast),
                             Toast.LENGTH_LONG
                         )
                         onSaveSuccess()
@@ -233,22 +233,9 @@ fun WgConfigEditorScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(R.string.lbl_configure),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
-                            contentDescription = "Back"
-                        )
-                    }
-                }
+            RethinkTopBar(
+                title = stringResource(R.string.lbl_configure),
+                onBackClick = onBackClick
             )
         }
     ) { padding ->

@@ -38,6 +38,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CustomIp
@@ -69,23 +70,20 @@ fun CustomIpRulesSheet(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var appName by remember { mutableStateOf("") }
+    var appNames by remember { mutableStateOf<List<String>>(emptyList()) }
     var appIcon by remember { mutableStateOf<Drawable?>(null) }
     var status by remember { mutableStateOf(IpRuleStatus.getStatus(customIp.status)) }
-    var statusText by remember { mutableStateOf("") }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(customIp.uid, customIp.ipAddress) {
         val uid = customIp.uid
         if (uid == UID_EVERYBODY) {
-            appName =
-                context.getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
+            appNames = emptyList()
             appIcon = null
         } else {
-            val appNames = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(uid) }
-            val name = getAppName(context, uid, appNames)
+            val loadedAppNames = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(uid) }
             val appInfo = withContext(Dispatchers.IO) { FirewallManager.getAppInfoByUid(uid) }
-            appName = name
+            appNames = loadedAppNames
             appIcon =
                 Utilities.getIcon(
                     context,
@@ -94,10 +92,41 @@ fun CustomIpRulesSheet(
                 )
         }
         status = IpRuleStatus.getStatus(customIp.status)
-        statusText = buildStatusText(context, status, customIp.modifiedDateTime)
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
+        val appName =
+            when {
+                customIp.uid == UID_EVERYBODY ->
+                    stringResource(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
+                appNames.isEmpty() ->
+                    stringResource(R.string.network_log_app_name_unknown) + " (${customIp.uid})"
+                appNames.size >= 2 ->
+                    stringResource(
+                        R.string.ctbs_app_other_apps,
+                        appNames[0],
+                        appNames.size.minus(1).toString()
+                    )
+                else -> appNames[0]
+            }
+        val now = System.currentTimeMillis()
+        val uptime = System.currentTimeMillis() - customIp.modifiedDateTime
+        val time =
+            DateUtils.getRelativeTimeSpanString(
+                now - uptime,
+                now,
+                DateUtils.MINUTE_IN_MILLIS,
+                DateUtils.FORMAT_ABBREV_RELATIVE
+            )
+        val statusLabel =
+            when (status) {
+                IpRuleStatus.TRUST -> stringResource(R.string.ci_trust_txt)
+                IpRuleStatus.BLOCK -> stringResource(R.string.lbl_blocked)
+                IpRuleStatus.NONE -> stringResource(R.string.cd_no_rule_txt)
+                IpRuleStatus.BYPASS_UNIVERSAL -> stringResource(R.string.ci_bypass_universal_txt)
+            }
+        val statusText = stringResource(R.string.ci_desc, statusLabel, time)
+        val deleteToast = stringResource(R.string.univ_ip_delete_individual_toast, customIp.ipAddress)
         val borderColor = MaterialTheme.colorScheme.outline
         val neutralText = MaterialTheme.colorScheme.onSurfaceVariant
         val neutralBg = MaterialTheme.colorScheme.surfaceVariant
@@ -127,7 +156,7 @@ fun CustomIpRulesSheet(
                     onClick = { showDeleteDialog = true },
                     colors = ButtonDefaults.textButtonColors(contentColor = deleteText)
                 ) {
-                    Text(text = context.getString(R.string.lbl_delete))
+                    Text(text = stringResource(R.string.lbl_delete))
                 }
             }
 
@@ -177,49 +206,45 @@ fun CustomIpRulesSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 RuleChip(
-                    label = context.getString(R.string.ci_no_rule),
+                    label = stringResource(R.string.ci_no_rule),
                     selected = status == IpRuleStatus.NONE,
                     selectedText = neutralText,
                     selectedContainer = neutralBg
                 ) {
                     updateRule(customIp, IpRuleStatus.NONE, scope, eventLogger) { newStatus ->
                         status = newStatus
-                        statusText = buildStatusText(context, newStatus, customIp.modifiedDateTime)
                     }
                 }
                 RuleChip(
-                    label = context.getString(R.string.ci_block),
+                    label = stringResource(R.string.ci_block),
                     selected = status == IpRuleStatus.BLOCK,
                     selectedText = negativeText,
                     selectedContainer = negativeBg
                 ) {
                     updateRule(customIp, IpRuleStatus.BLOCK, scope, eventLogger) { newStatus ->
                         status = newStatus
-                        statusText = buildStatusText(context, newStatus, customIp.modifiedDateTime)
                     }
                 }
                 if (customIp.uid == UID_EVERYBODY) {
                     RuleChip(
-                        label = context.getString(R.string.ci_bypass_universal),
+                        label = stringResource(R.string.ci_bypass_universal),
                         selected = status == IpRuleStatus.BYPASS_UNIVERSAL,
                         selectedText = positiveText,
                         selectedContainer = positiveBg
                     ) {
                         updateRule(customIp, IpRuleStatus.BYPASS_UNIVERSAL, scope, eventLogger) { newStatus ->
                             status = newStatus
-                            statusText = buildStatusText(context, newStatus, customIp.modifiedDateTime)
                         }
                     }
                 } else {
                     RuleChip(
-                        label = context.getString(R.string.ci_trust_rule),
+                        label = stringResource(R.string.ci_trust_rule),
                         selected = status == IpRuleStatus.TRUST,
                         selectedText = positiveText,
                         selectedContainer = positiveBg
                     ) {
                         updateRule(customIp, IpRuleStatus.TRUST, scope, eventLogger) { newStatus ->
                             status = newStatus
-                            statusText = buildStatusText(context, newStatus, customIp.modifiedDateTime)
                         }
                     }
                 }
@@ -229,8 +254,8 @@ fun CustomIpRulesSheet(
         if (showDeleteDialog) {
             AlertDialog(
                 onDismissRequest = { showDeleteDialog = false },
-                title = { Text(text = context.getString(R.string.univ_firewall_dialog_title)) },
-                text = { Text(text = context.getString(R.string.univ_firewall_dialog_message)) },
+                title = { Text(text = stringResource(R.string.univ_firewall_dialog_title)) },
+                text = { Text(text = stringResource(R.string.univ_firewall_dialog_message)) },
                 confirmButton = {
                     Button(
                         onClick = {
@@ -240,10 +265,7 @@ fun CustomIpRulesSheet(
                                 withContext(Dispatchers.Main) {
                                     Utilities.showToastUiCentered(
                                         context,
-                                        context.getString(
-                                            R.string.univ_ip_delete_individual_toast,
-                                            customIp.ipAddress
-                                        ),
+                                        deleteToast,
                                         Toast.LENGTH_SHORT
                                     )
                                 }
@@ -253,12 +275,12 @@ fun CustomIpRulesSheet(
                             onDismiss()
                         }
                     ) {
-                        Text(text = context.getString(R.string.lbl_delete))
+                        Text(text = stringResource(R.string.lbl_delete))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { showDeleteDialog = false }) {
-                        Text(text = context.getString(R.string.lbl_cancel))
+                        Text(text = stringResource(R.string.lbl_cancel))
                     }
                 }
             )
@@ -303,49 +325,6 @@ private fun updateRule(
             }
         onUpdated(rule)
         Napier.v("$TAG changeIpStatus: ${updated.ipAddress}, status: ${rule.name}")
-    }
-}
-
-private fun buildStatusText(context: android.content.Context, status: IpRuleStatus, modifiedTs: Long): String {
-    val now = System.currentTimeMillis()
-    val uptime = System.currentTimeMillis() - modifiedTs
-    val time =
-        DateUtils.getRelativeTimeSpanString(
-            now - uptime,
-            now,
-            DateUtils.MINUTE_IN_MILLIS,
-            DateUtils.FORMAT_ABBREV_RELATIVE
-        )
-    val label =
-        when (status) {
-            IpRuleStatus.TRUST -> context.getString(R.string.ci_trust_txt)
-            IpRuleStatus.BLOCK -> context.getString(R.string.lbl_blocked)
-            IpRuleStatus.NONE -> context.getString(R.string.cd_no_rule_txt)
-            IpRuleStatus.BYPASS_UNIVERSAL ->
-                context.getString(R.string.ci_bypass_universal_txt)
-        }
-    return context.getString(R.string.ci_desc, label, time)
-}
-
-private fun getAppName(context: android.content.Context, uid: Int, appNames: List<String>): String {
-    if (uid == UID_EVERYBODY) {
-        return context.getString(R.string.firewall_act_universal_tab)
-            .replaceFirstChar(Char::titlecase)
-    }
-
-    if (appNames.isEmpty()) {
-        return context.getString(R.string.network_log_app_name_unknown) + " ($uid)"
-    }
-
-    val packageCount = appNames.count()
-    return if (packageCount >= 2) {
-        context.getString(
-            R.string.ctbs_app_other_apps,
-            appNames[0],
-            packageCount.minus(1).toString()
-        )
-    } else {
-        appNames[0]
     }
 }
 

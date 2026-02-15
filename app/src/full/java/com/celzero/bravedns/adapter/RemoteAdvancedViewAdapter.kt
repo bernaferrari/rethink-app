@@ -61,7 +61,7 @@ fun RemoteAdvancedBlocklistRow(
             MaterialTheme.colorScheme.surface
         }
     val groupText = if (filetag.subg.isEmpty()) filetag.group else filetag.subg
-    val entryText = context.getString(R.string.dc_entries, filetag.entries.toString())
+    val entryText = context.resources.getString(R.string.dc_entries, filetag.entries.toString())
     val level = filetag.level?.firstOrNull()
     val (chipText, chipBg) = chipColorsForLevel(context, level)
 

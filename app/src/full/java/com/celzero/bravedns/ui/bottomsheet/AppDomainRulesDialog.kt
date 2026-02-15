@@ -51,6 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CustomDomain
@@ -86,11 +87,12 @@ fun AppDomainRulesSheet(
     onUpdated: () -> Unit
 ) {
     val context = LocalContext.current
+    val configAddSuccessToast = stringResource(R.string.config_add_success_toast)
     val scope = rememberCoroutineScope()
 
     var domainRule by remember { mutableStateOf(DomainRulesManager.Status.NONE) }
     var customDomain by remember { mutableStateOf<CustomDomain?>(null) }
-    var appName by remember { mutableStateOf<String?>(null) }
+    var appNames by remember { mutableStateOf<List<String>>(emptyList()) }
     var appIcon by remember { mutableStateOf<Drawable?>(null) }
     var showWgSheet by remember { mutableStateOf(false) }
     var wgConfigs by remember { mutableStateOf<List<WgConfigFilesImmutable?>>(emptyList()) }
@@ -100,28 +102,15 @@ fun AppDomainRulesSheet(
             onDismiss()
             return@LaunchedEffect
         }
-        val appNames = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(uid) }
-        val appCount = appNames.count()
+        val loadedAppNames = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(uid) }
+        val appCount = loadedAppNames.count()
         val pkgName =
-            if (appNames.isNotEmpty()) {
-                FirewallManager.getPackageNameByAppName(appNames[0])
+            if (loadedAppNames.isNotEmpty()) {
+                FirewallManager.getPackageNameByAppName(loadedAppNames[0])
             } else {
                 null
             }
-        appName =
-            if (appCount >= 1) {
-                if (appCount >= 2) {
-                    context.getString(
-                        R.string.ctbs_app_other_apps,
-                        appNames[0],
-                        appCount.minus(1).toString()
-                    )
-                } else {
-                    appNames[0]
-                }
-            } else {
-                null
-            }
+        appNames = loadedAppNames
         appIcon =
             if (pkgName != null) {
                 Utilities.getIcon(context, pkgName)
@@ -136,6 +125,17 @@ fun AppDomainRulesSheet(
     }
 
     ModalBottomSheet(onDismissRequest = onDismiss) {
+        val appName =
+            when {
+                appNames.isEmpty() -> null
+                appNames.size >= 2 ->
+                    stringResource(
+                        R.string.ctbs_app_other_apps,
+                        appNames[0],
+                        appNames.size.minus(1).toString()
+                    )
+                else -> appNames[0]
+            }
         val borderColor = MaterialTheme.colorScheme.outline
         val trustIcon =
             if (domainRule == DomainRulesManager.Status.TRUST) {
@@ -191,7 +191,7 @@ fun AppDomainRulesSheet(
             }
 
             Text(
-                text = context.getString(R.string.bsct_block_domain),
+                text = stringResource(R.string.bsct_block_domain),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
@@ -255,7 +255,7 @@ fun AppDomainRulesSheet(
             }
 
             Text(
-                text = context.getString(R.string.bsac_title_desc),
+                text = stringResource(R.string.bsac_title_desc),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
@@ -286,7 +286,7 @@ fun AppDomainRulesSheet(
                         withContext(Dispatchers.Main) {
                             Utilities.showToastUiCentered(
                                 context,
-                                context.getString(R.string.config_add_success_toast),
+                                configAddSuccessToast,
                                 Toast.LENGTH_SHORT
                             )
                         }
@@ -368,13 +368,13 @@ private fun WireguardListSheet(
                     val proxyId = conf?.let { ID_WG_BASE + it.id } ?: ""
                     val isSelected = currentProxyId == proxyId
                     val name =
-                        conf?.name ?: context.getString(R.string.settings_app_list_default_app)
+                        conf?.name ?: stringResource(R.string.settings_app_list_default_app)
                     val idSuffix = conf?.id?.toString()?.padStart(3, '0')
                     val desc =
                         if (conf == null) {
-                            context.getString(R.string.settings_app_list_default_app)
+                            stringResource(R.string.settings_app_list_default_app)
                         } else {
-                            context.getString(R.string.settings_app_list_default_app) + " $idSuffix"
+                            stringResource(R.string.settings_app_list_default_app) + " $idSuffix"
                         }
 
                     Row(

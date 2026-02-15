@@ -568,10 +568,10 @@ internal constructor(
                 postConnectedDnsName(endpoint.name, endpoint.url)
             }
             DnsType.SYSTEM_DNS -> {
-                postConnectedDnsName(context.getString(R.string.network_dns))
+                postConnectedDnsName(context.resources.getString(R.string.network_dns))
             }
             DnsType.SMART_DNS -> {
-                postConnectedDnsName(context.getString(R.string.smart_dns))
+                postConnectedDnsName(context.resources.getString(R.string.smart_dns))
             }
         }
     }

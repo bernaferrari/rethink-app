@@ -197,7 +197,7 @@ fun CustomLanIpSheet(
             onDismiss()
         } catch (e: Exception) {
             Napier.e("err saving custom lan ip (auto): ${e.message}")
-            errorMessage = context.getString(R.string.custom_lan_ip_save_error)
+            errorMessage = context.resources.getString(R.string.custom_lan_ip_save_error)
         }
     }
 
@@ -225,7 +225,7 @@ fun CustomLanIpSheet(
                 !validateIpv4WithPrefix(dnsV4, dnsV4Prefix) ||
                 !validateIpv6WithPrefix(dnsV6, dnsV6Prefix)
             ) {
-                errorMessage = context.getString(R.string.custom_lan_ip_validation_error)
+                errorMessage = context.resources.getString(R.string.custom_lan_ip_validation_error)
                 return
             }
 
@@ -266,7 +266,7 @@ fun CustomLanIpSheet(
             onDismiss()
         } catch (e: Exception) {
             Napier.e("err saving custom lan ip (manual): ${e.message}")
-            errorMessage = context.getString(R.string.custom_lan_ip_save_error)
+            errorMessage = context.resources.getString(R.string.custom_lan_ip_save_error)
         }
     }
 
@@ -294,7 +294,7 @@ fun CustomLanIpSheet(
         ) {
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 ToggleButton(
-                    text = context.getString(R.string.settings_ip_text_ipv46),
+                    text = context.resources.getString(R.string.settings_ip_text_ipv46),
                     selected = !currentMode,
                     selectedBg = selectedBg,
                     unselectedBg = unselectedBg,
@@ -307,7 +307,7 @@ fun CustomLanIpSheet(
                     hideError()
                 }
                 ToggleButton(
-                    text = context.getString(R.string.lbl_manual),
+                    text = context.resources.getString(R.string.lbl_manual),
                     selected = currentMode,
                     selectedBg = selectedBg,
                     unselectedBg = unselectedBg,
@@ -324,19 +324,19 @@ fun CustomLanIpSheet(
             Text(
                 text =
                     if (currentMode) {
-                        context.getString(R.string.custom_lan_ip_manual_desc)
+                        context.resources.getString(R.string.custom_lan_ip_manual_desc)
                     } else {
-                        context.getString(R.string.custom_lan_ip_auto_desc)
+                        context.resources.getString(R.string.custom_lan_ip_auto_desc)
                     },
                 style = MaterialTheme.typography.bodySmall
             )
 
-            SectionTitle(text = context.getString(R.string.custom_lan_ip_gateway))
+            SectionTitle(text = context.resources.getString(R.string.custom_lan_ip_gateway))
             IpRow(
                 ipValue = gatewayIpv4,
                 prefixValue = gatewayIpv4Prefix,
-                ipHint = context.getString(R.string.settings_ip_text_ipv4),
-                prefixHint = context.getString(R.string.lbl_prefix),
+                ipHint = context.resources.getString(R.string.settings_ip_text_ipv4),
+                prefixHint = context.resources.getString(R.string.lbl_prefix),
                 enabled = manualEnabled,
                 onIpChange = { gatewayIpv4 = it },
                 onPrefixChange = { gatewayIpv4Prefix = it }
@@ -344,19 +344,19 @@ fun CustomLanIpSheet(
             IpRow(
                 ipValue = gatewayIpv6,
                 prefixValue = gatewayIpv6Prefix,
-                ipHint = context.getString(R.string.settings_ip_text_ipv6),
-                prefixHint = context.getString(R.string.lbl_prefix),
+                ipHint = context.resources.getString(R.string.settings_ip_text_ipv6),
+                prefixHint = context.resources.getString(R.string.lbl_prefix),
                 enabled = manualEnabled,
                 onIpChange = { gatewayIpv6 = it },
                 onPrefixChange = { gatewayIpv6Prefix = it }
             )
 
-            SectionTitle(text = context.getString(R.string.custom_lan_ip_router))
+            SectionTitle(text = context.resources.getString(R.string.custom_lan_ip_router))
             IpRow(
                 ipValue = routerIpv4,
                 prefixValue = routerIpv4Prefix,
-                ipHint = context.getString(R.string.settings_ip_text_ipv4),
-                prefixHint = context.getString(R.string.lbl_prefix),
+                ipHint = context.resources.getString(R.string.settings_ip_text_ipv4),
+                prefixHint = context.resources.getString(R.string.lbl_prefix),
                 enabled = manualEnabled,
                 onIpChange = { routerIpv4 = it },
                 onPrefixChange = { routerIpv4Prefix = it }
@@ -364,19 +364,19 @@ fun CustomLanIpSheet(
             IpRow(
                 ipValue = routerIpv6,
                 prefixValue = routerIpv6Prefix,
-                ipHint = context.getString(R.string.settings_ip_text_ipv6),
-                prefixHint = context.getString(R.string.lbl_prefix),
+                ipHint = context.resources.getString(R.string.settings_ip_text_ipv6),
+                prefixHint = context.resources.getString(R.string.lbl_prefix),
                 enabled = manualEnabled,
                 onIpChange = { routerIpv6 = it },
                 onPrefixChange = { routerIpv6Prefix = it }
             )
 
-            SectionTitle(text = context.getString(R.string.dns_mode_info_title))
+            SectionTitle(text = context.resources.getString(R.string.dns_mode_info_title))
             IpRow(
                 ipValue = dnsIpv4,
                 prefixValue = dnsIpv4Prefix,
-                ipHint = context.getString(R.string.settings_ip_text_ipv4),
-                prefixHint = context.getString(R.string.lbl_prefix),
+                ipHint = context.resources.getString(R.string.settings_ip_text_ipv4),
+                prefixHint = context.resources.getString(R.string.lbl_prefix),
                 enabled = manualEnabled,
                 onIpChange = { dnsIpv4 = it },
                 onPrefixChange = { dnsIpv4Prefix = it }
@@ -384,8 +384,8 @@ fun CustomLanIpSheet(
             IpRow(
                 ipValue = dnsIpv6,
                 prefixValue = dnsIpv6Prefix,
-                ipHint = context.getString(R.string.settings_ip_text_ipv6),
-                prefixHint = context.getString(R.string.lbl_prefix),
+                ipHint = context.resources.getString(R.string.settings_ip_text_ipv6),
+                prefixHint = context.resources.getString(R.string.lbl_prefix),
                 enabled = manualEnabled,
                 onIpChange = { dnsIpv6 = it },
                 onPrefixChange = { dnsIpv6Prefix = it }
@@ -408,7 +408,7 @@ fun CustomLanIpSheet(
                     modifier = Modifier.weight(1f),
                     enabled = currentMode
                 ) {
-                    Text(text = context.getString(R.string.lbl_reset))
+                    Text(text = context.resources.getString(R.string.lbl_reset))
                 }
                 Button(
                     onClick = {
@@ -420,7 +420,7 @@ fun CustomLanIpSheet(
                     },
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(text = context.getString(R.string.lbl_save))
+                    Text(text = context.resources.getString(R.string.lbl_save))
                 }
             }
 

@@ -25,33 +25,21 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import com.celzero.bravedns.R
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlertsScreen(onBackClick: () -> Unit) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = R.string.notif_channel_firewall_alerts),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
-                }
+            RethinkTopBar(
+                title = stringResource(id = R.string.notif_channel_firewall_alerts),
+                onBackClick = onBackClick
             )
         }
     ) { paddingValues ->

@@ -145,15 +145,15 @@ fun WgPeerRow(
 
     if (showDeleteDialog.value) {
         val deleteTitle =
-            context.getString(
+            context.resources.getString(
                 R.string.two_argument_space,
-                context.getString(R.string.config_delete_dialog_title),
-                context.getString(R.string.lbl_peer)
+                context.resources.getString(R.string.config_delete_dialog_title),
+                context.resources.getString(R.string.lbl_peer)
             )
         AlertDialog(
             onDismissRequest = { showDeleteDialog.value = false },
             title = { Text(text = deleteTitle) },
-            text = { Text(text = context.getString(R.string.config_delete_dialog_desc)) },
+            text = { Text(text = context.resources.getString(R.string.config_delete_dialog_desc)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -166,7 +166,7 @@ fun WgPeerRow(
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog.value = false }) {
-                    Text(text = context.getString(R.string.lbl_cancel))
+                    Text(text = context.resources.getString(R.string.lbl_cancel))
                 }
             }
         )

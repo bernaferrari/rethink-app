@@ -186,9 +186,9 @@ fun DnsDetailScreen(
     }
 
     fun enableBlocklistUi() {
-        enableLabel = context.getString(R.string.lbbs_enabled)
+        enableLabel = context.resources.getString(R.string.lbbs_enabled)
         enableColor = enabledBlocklistColor
-        headingText = context.getString(
+        headingText = context.resources.getString(
             R.string.settings_local_blocklist_in_use,
             persistentState.numberOfLocalBlocklists.toString()
         )
@@ -198,9 +198,9 @@ fun DnsDetailScreen(
     }
 
     fun disableBlocklistUi() {
-        enableLabel = context.getString(R.string.lbl_disabled)
+        enableLabel = context.resources.getString(R.string.lbl_disabled)
         enableColor = disabledBlocklistColor
-        headingText = context.getString(R.string.lbbs_heading)
+        headingText = context.resources.getString(R.string.lbbs_heading)
         canConfigure = false
         canCopy = false
         canSearch = false
@@ -226,7 +226,7 @@ fun DnsDetailScreen(
             return
         }
 
-        versionText = context.getString(
+        versionText = context.resources.getString(
             R.string.settings_local_blocklist_version,
             convertLongToTime(
                 persistentState.localBlocklistTimestamp,
@@ -273,7 +273,7 @@ fun DnsDetailScreen(
                 isRedownloading = false
                 Utilities.showToastUiCentered(
                     context,
-                    context.getString(R.string.blocklist_update_check_failure),
+                    context.resources.getString(R.string.blocklist_update_check_failure),
                     Toast.LENGTH_SHORT
                 )
                 appDownloadManager.downloadRequired.postValue(
@@ -285,7 +285,7 @@ fun DnsDetailScreen(
                 isChecking = false
                 Utilities.showToastUiCentered(
                     context,
-                    context.getString(R.string.blocklist_update_check_not_required),
+                    context.resources.getString(R.string.blocklist_update_check_not_required),
                     Toast.LENGTH_SHORT
                 )
                 appDownloadManager.downloadRequired.postValue(
@@ -295,7 +295,7 @@ fun DnsDetailScreen(
             AppDownloadManager.DownloadManagerStatus.NOT_AVAILABLE -> {
                 Utilities.showToastUiCentered(
                     context,
-                    context.getString(R.string.blocklist_not_available_toast),
+                    context.resources.getString(R.string.blocklist_not_available_toast),
                     Toast.LENGTH_SHORT
                 )
             }
@@ -343,7 +343,7 @@ fun DnsDetailScreen(
             showCheckUpdateUi()
             Utilities.showToastUiCentered(
                 context,
-                context.getString(R.string.config_add_success_toast),
+                context.resources.getString(R.string.config_add_success_toast),
                 Toast.LENGTH_SHORT
             )
         }
@@ -379,7 +379,7 @@ fun DnsDetailScreen(
         if (!VpnController.hasTunnel()) {
             Utilities.showToastUiCentered(
                 context,
-                context.getString(R.string.ssv_toast_start_rethink),
+                context.resources.getString(R.string.ssv_toast_start_rethink),
                 Toast.LENGTH_SHORT
             )
             return
@@ -412,7 +412,7 @@ fun DnsDetailScreen(
         if (!VpnController.hasTunnel()) {
             Utilities.showToastUiCentered(
                 context,
-                context.getString(R.string.ssv_toast_start_rethink),
+                context.resources.getString(R.string.ssv_toast_start_rethink),
                 Toast.LENGTH_SHORT
             )
             return
@@ -455,10 +455,10 @@ fun DnsDetailScreen(
             Logger.i(LOG_TAG_DNS, "smart(plus) dns list size: ${dnsList.size}")
             withContext(Dispatchers.Main) {
                 val stringBuilder = StringBuilder()
-                val desc = context.getString(R.string.smart_dns_desc)
+                val desc = context.resources.getString(R.string.smart_dns_desc)
                 stringBuilder.append(desc).append("\n\n")
                 dnsList.forEach {
-                    val txt = context.getString(R.string.symbol_star) + " " + it
+                    val txt = context.resources.getString(R.string.symbol_star) + " " + it
                     stringBuilder.append(txt).append("\n")
                 }
                 smartDnsDialogText = stringBuilder.toString()
@@ -510,7 +510,7 @@ fun DnsDetailScreen(
             isDownloading = false
             Utilities.showToastUiCentered(
                 context,
-                context.getString(R.string.blocklist_update_check_failure),
+                context.resources.getString(R.string.blocklist_update_check_failure),
                 Toast.LENGTH_SHORT
             )
             workManager.pruneWork()
@@ -527,7 +527,7 @@ fun DnsDetailScreen(
             isDownloading = false
             Utilities.showToastUiCentered(
                 context,
-                context.getString(R.string.blocklist_update_check_failure),
+                context.resources.getString(R.string.blocklist_update_check_failure),
                 Toast.LENGTH_SHORT
             )
             workManager.pruneWork()
@@ -546,7 +546,7 @@ fun DnsDetailScreen(
             isDownloading = false
             Utilities.showToastUiCentered(
                 context,
-                context.getString(R.string.blocklist_update_check_failure),
+                context.resources.getString(R.string.blocklist_update_check_failure),
                 Toast.LENGTH_SHORT
             )
             workManager.pruneWork()
@@ -623,11 +623,11 @@ fun DnsDetailScreen(
                             UIUtils.clipboardCopy(
                                 context,
                                 systemDnsDialogText,
-                                context.getString(R.string.copy_clipboard_label)
+                                context.resources.getString(R.string.copy_clipboard_label)
                             )
                             Utilities.showToastUiCentered(
                                 context,
-                                context.getString(R.string.info_dialog_url_copy_toast_msg),
+                                context.resources.getString(R.string.info_dialog_url_copy_toast_msg),
                                 Toast.LENGTH_SHORT
                             )
                             showSystemDnsDialog = false
@@ -656,11 +656,11 @@ fun DnsDetailScreen(
                             UIUtils.clipboardCopy(
                                 context,
                                 smartDnsDialogText,
-                                context.getString(R.string.copy_clipboard_label)
+                                context.resources.getString(R.string.copy_clipboard_label)
                             )
                             Utilities.showToastUiCentered(
                                 context,
-                                context.getString(R.string.info_dialog_url_copy_toast_msg),
+                                context.resources.getString(R.string.info_dialog_url_copy_toast_msg),
                                 Toast.LENGTH_SHORT
                             )
                             showSmartDnsDialog = false
@@ -699,11 +699,11 @@ fun DnsDetailScreen(
                 UIUtils.clipboardCopy(
                     context,
                     url,
-                    context.getString(R.string.copy_clipboard_label)
+                    context.resources.getString(R.string.copy_clipboard_label)
                 )
                 Utilities.showToastUiCentered(
                     context,
-                    context.getString(R.string.info_dialog_rethink_toast_msg),
+                    context.resources.getString(R.string.info_dialog_rethink_toast_msg),
                     Toast.LENGTH_SHORT
                 )
             },

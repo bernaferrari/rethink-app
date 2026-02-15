@@ -39,7 +39,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -67,6 +66,7 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.ConsoleLogViewModel
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -111,9 +111,9 @@ fun ConsoleLogScreen(
             val sinceTime = viewModel.sinceTime()
             if (sinceTime != 0L) {
                 val since = Utilities.convertLongToTime(sinceTime, Constants.TIME_FORMAT_3)
-                val desc = context.getString(R.string.console_log_desc)
-                val sinceTxt = context.getString(R.string.logs_card_duration, since)
-                infoText = context.getString(R.string.two_argument_space, desc, sinceTxt)
+                val desc = context.resources.getString(R.string.console_log_desc)
+                val sinceTxt = context.resources.getString(R.string.logs_card_duration, since)
+                infoText = context.resources.getString(R.string.two_argument_space, desc, sinceTxt)
             }
         }
     }
@@ -177,18 +177,9 @@ fun ConsoleLogScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(R.string.console_log_title)) },
-                navigationIcon = {
-                    if (onBackClick != null) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
-                                contentDescription = "Back"
-                            )
-                        }
-                    }
-                }
+            RethinkTopBar(
+                title = stringResource(R.string.console_log_title),
+                onBackClick = onBackClick
             )
         },
         floatingActionButton = {

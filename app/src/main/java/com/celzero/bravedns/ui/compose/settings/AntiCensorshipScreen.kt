@@ -36,7 +36,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -56,6 +55,7 @@ import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isOsVersionAbove412
 import com.celzero.firestack.settings.Settings
@@ -119,18 +119,9 @@ fun AntiCensorshipScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(R.string.anti_censorship_title)) },
-                navigationIcon = {
-                    if (onBackClick != null) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
-                                contentDescription = "Back"
-                            )
-                        }
-                    }
-                }
+            RethinkTopBar(
+                title = stringResource(R.string.anti_censorship_title),
+                onBackClick = onBackClick
             )
         }
     ) { paddingValues ->
@@ -220,7 +211,7 @@ fun AntiCensorshipScreen(
                                 if (!enabled) {
                                     Utilities.showToastUiCentered(
                                         context,
-                                        context.getString(R.string.ac_toast_retry_disabled),
+                                        context.resources.getString(R.string.ac_toast_retry_disabled),
                                         Toast.LENGTH_LONG
                                     )
                                     return@OptionRow

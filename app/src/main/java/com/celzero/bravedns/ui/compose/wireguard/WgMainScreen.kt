@@ -49,7 +49,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -80,6 +79,7 @@ import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -135,7 +135,7 @@ fun WgMainScreen(
         val activeConfigs = WireguardManager.getActiveConfigs()
         disclaimerText = if (WireguardManager.oneWireGuardEnabled()) {
             val dnsName = activeConfigs.firstOrNull()?.getName() ?: ""
-            context.getString(R.string.wireguard_disclaimer, dnsName)
+            context.resources.getString(R.string.wireguard_disclaimer, dnsName)
         } else {
             var dnsNames = connectedDns
             if (persistentState.splitDns && activeConfigs.isNotEmpty()) {
@@ -145,9 +145,9 @@ fun WgMainScreen(
                 dnsNames += activeConfigs.joinToString(",") { it.getName() }
             }
             if (persistentState.useFallbackDnsToBypass) {
-                dnsNames += ", " + context.getString(R.string.lbl_fallback)
+                dnsNames += ", " + context.resources.getString(R.string.lbl_fallback)
             }
-            context.getString(R.string.wireguard_disclaimer, dnsNames)
+            context.resources.getString(R.string.wireguard_disclaimer, dnsNames)
         }
     }
 
@@ -193,7 +193,7 @@ fun WgMainScreen(
                             }
                             Utilities.showToastUiCentered(
                                 context,
-                                context.getString(msgRes),
+                                context.resources.getString(msgRes),
                                 Toast.LENGTH_LONG
                             )
                         }
@@ -205,16 +205,9 @@ fun WgMainScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(id = R.string.lbl_wireguard)) },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
-                        )
-                    }
-                }
+            RethinkTopBar(
+                title = stringResource(id = R.string.lbl_wireguard),
+                onBackClick = onBackClick
             )
         }
     ) { paddingValues ->

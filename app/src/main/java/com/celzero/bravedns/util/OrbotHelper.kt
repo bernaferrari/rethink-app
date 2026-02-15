@@ -286,7 +286,7 @@ class OrbotHelper(
 
         var builder: NotificationCompat.Builder
         if (isAtleastO()) {
-            val name: CharSequence = context.getString(R.string.notif_channel_proxy_failure)
+            val name: CharSequence = context.resources.getString(R.string.notif_channel_proxy_failure)
             val description = context.resources.getString(R.string.notif_channel_desc_proxy_failure)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(NOTIF_CHANNEL_ID_PROXY_ALERTS, name, importance)
@@ -529,7 +529,7 @@ class OrbotHelper(
     }
 
     private fun openOrbotAppInfo() {
-        val text = context.getString(R.string.orbot_app_issue)
+        val text = context.resources.getString(R.string.orbot_app_issue)
         Utilities.showToastUiCentered(context, text, Toast.LENGTH_SHORT)
         try {
             val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)

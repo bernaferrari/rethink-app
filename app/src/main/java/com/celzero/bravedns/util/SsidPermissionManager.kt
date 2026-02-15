@@ -135,7 +135,7 @@ object SsidPermissionManager {
                 if (context is Activity) {
                     Utilities.showToastUiCentered(
                         context,
-                        context.getString(R.string.intent_launch_error, "App Settings"),
+                        context.resources.getString(R.string.intent_launch_error, "App Settings"),
                         android.widget.Toast.LENGTH_LONG
                     )
                 }
@@ -161,11 +161,11 @@ object SsidPermissionManager {
      * @return Explanation message for permission request
      */
     fun getPermissionExplanation(context: Context): String {
-        return context.getString(R.string.ssid_permission_explanation, context.getString(R.string.lbl_ssids))
+        return context.resources.getString(R.string.ssid_permission_explanation, context.resources.getString(R.string.lbl_ssids))
     }
 
     fun getLocationEnableExplanation(context: Context): String {
-        return context.getString(R.string.location_enable_explanation, context.getString(R.string.lbl_ssids))
+        return context.resources.getString(R.string.location_enable_explanation, context.resources.getString(R.string.lbl_ssids))
     }
 
     /**

@@ -18,11 +18,13 @@ package com.celzero.bravedns.ui.compose.home
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -31,6 +33,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -55,6 +58,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 
@@ -79,13 +83,13 @@ fun DashboardCard(
         modifier = modifier
             .fillMaxWidth()
             .scale(scale)
-            .clip(RoundedCornerShape(Dimensions.cardCornerRadius))
+            .clip(RoundedCornerShape(Dimensions.cardCornerRadiusLarge))
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
             ),
-        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         border = BorderStroke(
             width = Dimensions.dividerThickness,
@@ -98,22 +102,31 @@ fun DashboardCard(
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
             ) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = iconId),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(Dimensions.iconSizeMd)
-                )
+                // Tinted circle background for icon
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f))
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = iconId),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(Dimensions.iconSizeMd)
+                    )
+                }
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
-            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+            Spacer(modifier = Modifier.height(Dimensions.spacingLg))
             content()
         }
     }
@@ -138,7 +151,8 @@ fun StatItem(
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            fontWeight = FontWeight.Medium
         )
     }
 }
@@ -152,8 +166,8 @@ fun StartStopButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        targetValue = if (isPressed) 0.96f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "buttonScale"
     )
 
@@ -180,17 +194,17 @@ fun StartStopButton(
     Surface(
         modifier = modifier
             .fillMaxWidth()
-            .height(Dimensions.buttonHeightLg)
+            .height(64.dp)
             .scale(scale)
-            .clip(RoundedCornerShape(Dimensions.buttonCornerRadiusLarge))
+            .clip(CircleShape) // Capsule shape
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
             ),
-        shape = RoundedCornerShape(Dimensions.buttonCornerRadiusLarge),
+        shape = CircleShape,
         color = containerColor,
-        tonalElevation = Dimensions.Elevation.none
+        tonalElevation = 4.dp // Add some elevation for prominence
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -201,15 +215,16 @@ fun StartStopButton(
                 imageVector = icon,
                 contentDescription = null,
                 tint = contentColor,
-                modifier = Modifier.size(Dimensions.iconSizeMd)
+                modifier = Modifier.size(32.dp)
             )
-            Spacer(modifier = Modifier.width(Dimensions.spacingSm))
+            Spacer(modifier = Modifier.width(Dimensions.spacingMd))
             Text(
-                text = text,
+                text = text.uppercase(),
                 style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.ExtraBold,
                 color = contentColor,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                letterSpacing = 1.sp
             )
         }
     }

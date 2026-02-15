@@ -19,22 +19,23 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -58,8 +59,10 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalContext
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.AppInfo
@@ -112,18 +115,23 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
     val dataUsageText = buildDataUsageText(context, appInfo)
     val statusText =
         if (isSelfApp) {
-            context.getString(R.string.firewall_status_allow)
+            context.resources.getString(R.string.firewall_status_allow)
         } else {
             getFirewallText(context, appStatus, connStatus)
         }
     val statusColor = getStatusColor(appStatus, connStatus)
+    val accentColor by animateColorAsState(
+        targetValue = statusColor,
+        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        label = "accentColor"
+    )
     val wifiIcon = wifiIconRes(appStatus, connStatus, isSelfApp)
     val mobileIcon = mobileIconRes(appStatus, connStatus, isSelfApp)
 
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
+        targetValue = if (isPressed) 0.97f else 1f,
         animationSpec = spring(stiffness = Spring.StiffnessMedium),
         label = "rowScale"
     )
@@ -151,97 +159,145 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Dimensions.cardPaddingSm),
+                .padding(
+                    horizontal = Dimensions.cardPaddingSm,
+                    vertical = Dimensions.spacingSm
+                ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
         ) {
-            // App icon — larger, clipped circle
-            val iconPainter =
-                rememberDrawablePainter(appIcon)
-                    ?: rememberDrawablePainter(Utilities.getDefaultIcon(context))
-            iconPainter?.let { painter ->
-                Image(
-                    painter = painter,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(Dimensions.iconSizeXl)
-                        .clip(CircleShape)
-                )
+            // App icon — circular with tinted background ring
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(Dimensions.iconSizeXl)
+                    .clip(CircleShape)
+                    .background(accentColor.copy(alpha = 0.1f))
+            ) {
+                val iconPainter =
+                    rememberDrawablePainter(appIcon)
+                        ?: rememberDrawablePainter(Utilities.getDefaultIcon(context))
+                iconPainter?.let { painter ->
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                    )
+                }
             }
 
             // App info
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
                 Text(
-                    text = appInfo.appName + if (proxyEnabled) context.getString(R.string.symbol_key) else "",
-                    style = MaterialTheme.typography.titleMedium,
+                    text = appInfo.appName + if (proxyEnabled) " 🔑" else "",
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = nameAlpha),
                     textDecoration = if (tombstoned) TextDecoration.LineThrough else null,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = statusText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = statusColor
-                )
+                // Status pill
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(Dimensions.buttonCornerRadius))
+                        .background(accentColor.copy(alpha = 0.12f))
+                        .padding(horizontal = Dimensions.spacingSm, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = statusText,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = accentColor
+                    )
+                }
                 Text(
                     text = dataUsageText,
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                        alpha = Dimensions.Opacity.MEDIUM
+                    )
                 )
             }
 
-            // Wifi toggle
+            // Wifi toggle with tinted background
             if (wifiIcon != null) {
-                IconButton(
-                    onClick = {
-                        handleWifiToggle(
-                            scope,
-                            eventLogger,
-                            appInfo
-                        ) { packageList, cs ->
-                            dialogState =
-                                FirewallAppDialogState(
-                                    packageList,
-                                    appInfo,
-                                    isWifi = true,
-                                    cs
-                                )
-                        }
-                    }
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(
+                            MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)
+                        )
                 ) {
-                    Icon(
-                        painter = painterResource(id = wifiIcon),
-                        contentDescription = null,
-                        modifier = Modifier.size(Dimensions.iconSizeMd)
-                    )
+                    IconButton(
+                        onClick = {
+                            handleWifiToggle(
+                                scope,
+                                eventLogger,
+                                appInfo
+                            ) { packageList, cs ->
+                                dialogState =
+                                    FirewallAppDialogState(
+                                        packageList,
+                                        appInfo,
+                                        isWifi = true,
+                                        cs
+                                    )
+                            }
+                        },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = wifiIcon),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
 
-            // Mobile toggle
+            // Mobile toggle with tinted background
             if (mobileIcon != null) {
-                IconButton(
-                    onClick = {
-                        handleMobileToggle(
-                            scope,
-                            eventLogger,
-                            appInfo
-                        ) { packageList, cs ->
-                            dialogState =
-                                FirewallAppDialogState(
-                                    packageList,
-                                    appInfo,
-                                    isWifi = false,
-                                    cs
-                                )
-                        }
-                    }
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(
+                            MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)
+                        )
                 ) {
-                    Icon(
-                        painter = painterResource(id = mobileIcon),
-                        contentDescription = null,
-                        modifier = Modifier.size(Dimensions.iconSizeMd)
-                    )
+                    IconButton(
+                        onClick = {
+                            handleMobileToggle(
+                                scope,
+                                eventLogger,
+                                appInfo
+                            ) { packageList, cs ->
+                                dialogState =
+                                    FirewallAppDialogState(
+                                        packageList,
+                                        appInfo,
+                                        isWifi = false,
+                                        cs
+                                    )
+                            }
+                        },
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = mobileIcon),
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
         }
@@ -260,7 +316,7 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
             title = {
                 Text(
                     text =
-                        context.getString(
+                        context.resources.getString(
                             R.string.ctbs_block_other_apps,
                             state.appInfo.appName,
                             count.toString()
@@ -287,12 +343,12 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                         dialogState = null
                     }
                 ) {
-                    Text(text = context.getString(R.string.lbl_proceed))
+                    Text(text = context.resources.getString(R.string.lbl_proceed))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { dialogState = null }) {
-                    Text(text = context.getString(R.string.ctbs_dialog_negative_btn))
+                    Text(text = context.resources.getString(R.string.ctbs_dialog_negative_btn))
                 }
             }
         )
@@ -308,13 +364,15 @@ private fun getStatusColor(
         FirewallManager.FirewallStatus.NONE ->
             when (connStatus) {
                 FirewallManager.ConnectionStatus.ALLOW -> MaterialTheme.colorScheme.primary
-                else -> MaterialTheme.colorScheme.error
+                FirewallManager.ConnectionStatus.METERED -> MaterialTheme.colorScheme.error
+                FirewallManager.ConnectionStatus.UNMETERED -> MaterialTheme.colorScheme.error
+                FirewallManager.ConnectionStatus.BOTH -> MaterialTheme.colorScheme.error
             }
         FirewallManager.FirewallStatus.EXCLUDE -> MaterialTheme.colorScheme.tertiary
         FirewallManager.FirewallStatus.ISOLATE -> MaterialTheme.colorScheme.error
         FirewallManager.FirewallStatus.BYPASS_UNIVERSAL -> MaterialTheme.colorScheme.tertiary
         FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL -> MaterialTheme.colorScheme.tertiary
-        else -> MaterialTheme.colorScheme.onSurfaceVariant
+        FirewallManager.FirewallStatus.UNTRACKED -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 }
 
@@ -327,10 +385,10 @@ private data class FirewallAppDialogState(
 
 private fun buildDataUsageText(context: Context, appInfo: AppInfo): String {
     val u = Utilities.humanReadableByteCount(appInfo.uploadBytes, true)
-    val uploadBytes = context.getString(R.string.symbol_upload, u)
+    val uploadBytes = context.resources.getString(R.string.symbol_upload, u)
     val d = Utilities.humanReadableByteCount(appInfo.downloadBytes, true)
-    val downloadBytes = context.getString(R.string.symbol_download, d)
-    return context.getString(R.string.two_argument, uploadBytes, downloadBytes)
+    val downloadBytes = context.resources.getString(R.string.symbol_download, d)
+    return context.resources.getString(R.string.two_argument, uploadBytes, downloadBytes)
 }
 
 private fun getFirewallText(
@@ -342,24 +400,24 @@ private fun getFirewallText(
         FirewallManager.FirewallStatus.NONE ->
             when (cStat) {
                 FirewallManager.ConnectionStatus.ALLOW ->
-                    context.getString(R.string.firewall_status_allow)
+                    context.resources.getString(R.string.firewall_status_allow)
                 FirewallManager.ConnectionStatus.METERED ->
-                    context.getString(R.string.firewall_status_block_metered)
+                    context.resources.getString(R.string.firewall_status_block_metered)
                 FirewallManager.ConnectionStatus.UNMETERED ->
-                    context.getString(R.string.firewall_status_block_unmetered)
+                    context.resources.getString(R.string.firewall_status_block_unmetered)
                 FirewallManager.ConnectionStatus.BOTH ->
-                    context.getString(R.string.firewall_status_blocked)
+                    context.resources.getString(R.string.firewall_status_blocked)
             }
         FirewallManager.FirewallStatus.EXCLUDE ->
-            context.getString(R.string.firewall_status_excluded)
+            context.resources.getString(R.string.firewall_status_excluded)
         FirewallManager.FirewallStatus.ISOLATE ->
-            context.getString(R.string.firewall_status_isolate)
+            context.resources.getString(R.string.firewall_status_isolate)
         FirewallManager.FirewallStatus.BYPASS_UNIVERSAL ->
-            context.getString(R.string.firewall_status_whitelisted)
+            context.resources.getString(R.string.firewall_status_whitelisted)
         FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL ->
-            context.getString(R.string.firewall_status_bypass_dns_firewall)
+            context.resources.getString(R.string.firewall_status_bypass_dns_firewall)
         FirewallManager.FirewallStatus.UNTRACKED ->
-            context.getString(R.string.firewall_status_unknown)
+            context.resources.getString(R.string.firewall_status_unknown)
     }
 }
 

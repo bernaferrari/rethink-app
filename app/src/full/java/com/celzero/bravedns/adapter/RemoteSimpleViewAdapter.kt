@@ -109,7 +109,7 @@ fun RemoteSimpleBlocklistRow(
                     )
                     Text(
                         text =
-                            context.getString(
+                            context.resources.getString(
                                 R.string.rsv_blocklist_count_text,
                                 map.blocklistIds.size.toString()
                             ),
@@ -132,15 +132,15 @@ private fun getLevelIndicatorColor(level: Int): Color =
     }
 
 fun RethinkBlocklistManager.getGroupName(context: Context, group: String): String {
-    if (group.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) return context.getString(RethinkBlocklistManager.PARENTAL_CONTROL.label)
-    if (group.equals(RethinkBlocklistManager.SECURITY.name, true)) return context.getString(RethinkBlocklistManager.SECURITY.label)
-    if (group.equals(RethinkBlocklistManager.PRIVACY.name, true)) return context.getString(RethinkBlocklistManager.PRIVACY.label)
+    if (group.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) return context.resources.getString(RethinkBlocklistManager.PARENTAL_CONTROL.label)
+    if (group.equals(RethinkBlocklistManager.SECURITY.name, true)) return context.resources.getString(RethinkBlocklistManager.SECURITY.label)
+    if (group.equals(RethinkBlocklistManager.PRIVACY.name, true)) return context.resources.getString(RethinkBlocklistManager.PRIVACY.label)
     return group
 }
 
 fun RethinkBlocklistManager.getTitleDesc(context: Context, group: String): String {
-    if (group.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) return context.getString(RethinkBlocklistManager.PARENTAL_CONTROL.desc)
-    if (group.equals(RethinkBlocklistManager.SECURITY.name, true)) return context.getString(RethinkBlocklistManager.SECURITY.desc)
-    if (group.equals(RethinkBlocklistManager.PRIVACY.name, true)) return context.getString(RethinkBlocklistManager.PRIVACY.desc)
+    if (group.equals(RethinkBlocklistManager.PARENTAL_CONTROL.name, true)) return context.resources.getString(RethinkBlocklistManager.PARENTAL_CONTROL.desc)
+    if (group.equals(RethinkBlocklistManager.SECURITY.name, true)) return context.resources.getString(RethinkBlocklistManager.SECURITY.desc)
+    if (group.equals(RethinkBlocklistManager.PRIVACY.name, true)) return context.resources.getString(RethinkBlocklistManager.PRIVACY.desc)
     return ""
 }

@@ -71,7 +71,9 @@ import com.celzero.bravedns.data.DataUsageSummary
 import com.celzero.bravedns.data.SummaryStatisticsType
 import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
+import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 import com.celzero.bravedns.util.UIUtils.formatBytes
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel.TimeCategory
@@ -82,6 +84,7 @@ fun SummaryStatisticsScreen(
     onSeeMoreClick: (SummaryStatisticsType) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val reducedMotion = rememberReducedMotion()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
@@ -89,8 +92,8 @@ fun SummaryStatisticsScreen(
         floatingActionButton = {
             AnimatedVisibility(
                 visible = !uiState.loadMoreClicked,
-                enter = fadeIn() + slideInVertically { it },
-                exit = fadeOut() + slideOutVertically { it }
+                enter = if (reducedMotion) fadeIn() else fadeIn() + slideInVertically { it / 2 },
+                exit = if (reducedMotion) fadeOut() else fadeOut() + slideOutVertically { it / 3 }
             ) {
                 ExtendedFloatingActionButton(
                     onClick = { viewModel.setLoadMoreClicked(true) },
@@ -116,121 +119,147 @@ fun SummaryStatisticsScreen(
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
             item {
-                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-                HeaderSection()
+                RethinkAnimatedSection(index = 0) {
+                    Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+                    HeaderSection()
+                }
             }
 
             item {
-                TimeCategorySelector(
-                    selectedCategory = uiState.timeCategory,
-                    onCategorySelected = { viewModel.timeCategoryChanged(it) }
-                )
+                RethinkAnimatedSection(index = 1) {
+                    TimeCategorySelector(
+                        selectedCategory = uiState.timeCategory,
+                        onCategorySelected = { viewModel.timeCategoryChanged(it) }
+                    )
+                }
             }
 
             item {
-                UsageProgressHeader(dataUsage = uiState.dataUsage)
+                RethinkAnimatedSection(index = 2) {
+                    UsageProgressHeader(dataUsage = uiState.dataUsage)
+                }
             }
 
             // Stat Sections
             item {
                 val data = viewModel.getTopActiveConns.collectAsLazyPagingItems()
-                StatSection(
-                    title = stringResource(id = R.string.top_active_conns),
-                    type = SummaryStatisticsType.TOP_ACTIVE_CONNS,
-                    pagingItems = data,
-                    onSeeMoreClick = onSeeMoreClick
-                )
+                RethinkAnimatedSection(index = 3) {
+                    StatSection(
+                        title = stringResource(id = R.string.top_active_conns),
+                        type = SummaryStatisticsType.TOP_ACTIVE_CONNS,
+                        pagingItems = data,
+                        onSeeMoreClick = onSeeMoreClick
+                    )
+                }
             }
 
             item {
                 val data = viewModel.getAllowedAppNetworkActivity.collectAsLazyPagingItems()
-                StatSection(
-                    title = stringResource(id = R.string.ssv_app_network_activity_heading),
-                    type = SummaryStatisticsType.MOST_CONNECTED_APPS,
-                    pagingItems = data,
-                    onSeeMoreClick = onSeeMoreClick
-                )
+                RethinkAnimatedSection(index = 4) {
+                    StatSection(
+                        title = stringResource(id = R.string.ssv_app_network_activity_heading),
+                        type = SummaryStatisticsType.MOST_CONNECTED_APPS,
+                        pagingItems = data,
+                        onSeeMoreClick = onSeeMoreClick
+                    )
+                }
             }
 
             item {
                 val data = viewModel.getBlockedAppNetworkActivity.collectAsLazyPagingItems()
-                StatSection(
-                    title = stringResource(id = R.string.ssv_app_blocked_heading),
-                    type = SummaryStatisticsType.MOST_BLOCKED_APPS,
-                    pagingItems = data,
-                    onSeeMoreClick = onSeeMoreClick
-                )
+                RethinkAnimatedSection(index = 5) {
+                    StatSection(
+                        title = stringResource(id = R.string.ssv_app_blocked_heading),
+                        type = SummaryStatisticsType.MOST_BLOCKED_APPS,
+                        pagingItems = data,
+                        onSeeMoreClick = onSeeMoreClick
+                    )
+                }
             }
 
             item {
                 val data = viewModel.getMostConnectedASN.collectAsLazyPagingItems()
-                StatSection(
-                    title = stringResource(id = R.string.most_contacted_asn),
-                    type = SummaryStatisticsType.MOST_CONNECTED_ASN,
-                    pagingItems = data,
-                    onSeeMoreClick = onSeeMoreClick
-                )
+                RethinkAnimatedSection(index = 6) {
+                    StatSection(
+                        title = stringResource(id = R.string.most_contacted_asn),
+                        type = SummaryStatisticsType.MOST_CONNECTED_ASN,
+                        pagingItems = data,
+                        onSeeMoreClick = onSeeMoreClick
+                    )
+                }
             }
 
             item {
                 val data = viewModel.getMostBlockedASN.collectAsLazyPagingItems()
-                StatSection(
-                    title = stringResource(id = R.string.most_blocked_asn),
-                    type = SummaryStatisticsType.MOST_BLOCKED_ASN,
-                    pagingItems = data,
-                    onSeeMoreClick = onSeeMoreClick
-                )
+                RethinkAnimatedSection(index = 7) {
+                    StatSection(
+                        title = stringResource(id = R.string.most_blocked_asn),
+                        type = SummaryStatisticsType.MOST_BLOCKED_ASN,
+                        pagingItems = data,
+                        onSeeMoreClick = onSeeMoreClick
+                    )
+                }
             }
 
             if (uiState.loadMoreClicked) {
                 item {
                     val data = viewModel.mcd.collectAsLazyPagingItems()
-                    StatSection(
-                        title = stringResource(id = R.string.ssv_most_contacted_domain_heading),
-                        type = SummaryStatisticsType.MOST_CONTACTED_DOMAINS,
-                        pagingItems = data,
-                        onSeeMoreClick = onSeeMoreClick
-                    )
+                    RethinkAnimatedSection(index = 8) {
+                        StatSection(
+                            title = stringResource(id = R.string.ssv_most_contacted_domain_heading),
+                            type = SummaryStatisticsType.MOST_CONTACTED_DOMAINS,
+                            pagingItems = data,
+                            onSeeMoreClick = onSeeMoreClick
+                        )
+                    }
                 }
 
                 item {
                     val data = viewModel.mbd.collectAsLazyPagingItems()
-                    StatSection(
-                        title = stringResource(id = R.string.ssv_most_blocked_domain_heading),
-                        type = SummaryStatisticsType.MOST_BLOCKED_DOMAINS,
-                        pagingItems = data,
-                        onSeeMoreClick = onSeeMoreClick
-                    )
+                    RethinkAnimatedSection(index = 9) {
+                        StatSection(
+                            title = stringResource(id = R.string.ssv_most_blocked_domain_heading),
+                            type = SummaryStatisticsType.MOST_BLOCKED_DOMAINS,
+                            pagingItems = data,
+                            onSeeMoreClick = onSeeMoreClick
+                        )
+                    }
                 }
 
                 item {
                     val data = viewModel.getMostContactedCountries.collectAsLazyPagingItems()
-                    StatSection(
-                        title = stringResource(id = R.string.ssv_most_contacted_countries_heading),
-                        type = SummaryStatisticsType.MOST_CONTACTED_COUNTRIES,
-                        pagingItems = data,
-                        onSeeMoreClick = onSeeMoreClick
-                    )
+                    RethinkAnimatedSection(index = 10) {
+                        StatSection(
+                            title = stringResource(id = R.string.ssv_most_contacted_countries_heading),
+                            type = SummaryStatisticsType.MOST_CONTACTED_COUNTRIES,
+                            pagingItems = data,
+                            onSeeMoreClick = onSeeMoreClick
+                        )
+                    }
                 }
 
                 item {
                     val data = viewModel.getMostContactedIps.collectAsLazyPagingItems()
-                    StatSection(
-                        title = stringResource(id = R.string.ssv_most_contacted_ips_heading),
-                        type = SummaryStatisticsType.MOST_CONTACTED_IPS,
-                        pagingItems = data,
-                        onSeeMoreClick = onSeeMoreClick
-                    )
+                    RethinkAnimatedSection(index = 11) {
+                        StatSection(
+                            title = stringResource(id = R.string.ssv_most_contacted_ips_heading),
+                            type = SummaryStatisticsType.MOST_CONTACTED_IPS,
+                            pagingItems = data,
+                            onSeeMoreClick = onSeeMoreClick
+                        )
+                    }
                 }
 
                 item {
                     val data = viewModel.getMostBlockedIps.collectAsLazyPagingItems()
-                    StatSection(
-                        title = stringResource(id = R.string.ssv_most_blocked_ips_heading),
-                        type = SummaryStatisticsType.MOST_BLOCKED_IPS,
-                        pagingItems = data,
-                        onSeeMoreClick = onSeeMoreClick
-                    )
+                    RethinkAnimatedSection(index = 12) {
+                        StatSection(
+                            title = stringResource(id = R.string.ssv_most_blocked_ips_heading),
+                            type = SummaryStatisticsType.MOST_BLOCKED_IPS,
+                            pagingItems = data,
+                            onSeeMoreClick = onSeeMoreClick
+                        )
+                    }
                 }
             }
 

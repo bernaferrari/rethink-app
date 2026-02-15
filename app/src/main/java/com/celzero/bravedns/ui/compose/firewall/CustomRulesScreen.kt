@@ -40,7 +40,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -72,6 +71,7 @@ import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.CustomDomainViewModel
 import com.celzero.bravedns.viewmodel.CustomIpViewModel
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import inet.ipaddr.IPAddressString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -110,18 +110,9 @@ fun CustomRulesScreen(
     
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(text = stringResource(R.string.lbl_configure)) },
-                navigationIcon = {
-                    if (onBackClick != null) {
-                        IconButton(onClick = onBackClick) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
-                                contentDescription = "Back"
-                            )
-                        }
-                    }
-                }
+            RethinkTopBar(
+                title = stringResource(R.string.lbl_configure),
+                onBackClick = onBackClick
             )
         },
         floatingActionButton = {
@@ -237,7 +228,7 @@ private fun IpRuleRow(rule: CustomIp, onDelete: () -> Unit) {
             )
         }
         IconButton(onClick = onDelete) {
-            Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete")
+            Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(R.string.lbl_delete))
         }
     }
 }
@@ -305,7 +296,7 @@ private fun DomainRuleRow(rule: CustomDomain, onDelete: () -> Unit) {
             )
         }
         IconButton(onClick = onDelete) {
-            Icon(imageVector = Icons.Filled.Delete, contentDescription = "Delete")
+            Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(R.string.lbl_delete))
         }
     }
 }

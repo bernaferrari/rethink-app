@@ -26,6 +26,7 @@ import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.Observer
 import com.celzero.bravedns.ui.PrepareVpnActivity
 import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.BioMetricType
@@ -37,17 +38,11 @@ import org.koin.core.component.inject
 class BraveTileService : TileService(), KoinComponent {
 
     private val persistentState by inject<PersistentState>()
+    private val tileObserver = Observer<Boolean> { updateTile(it) }
+    private var observerRegistered = false
 
     override fun onCreate() {
-        // may be called multiple times, but we only need to observe once
-        // can't use onStartListening() as it is not called when the tile is added
-        // to the quick settings panel
         super.onCreate()
-        try {
-            persistentState.vpnEnabledLiveData.observeForever(this::updateTile)
-        } catch (e: Exception) {
-            Logger.w(Logger.LOG_TAG_UI, "Tile: err in observing VPN state", e)
-        }
     }
 
     private fun updateTile(enabled: Boolean) {
@@ -60,7 +55,10 @@ class BraveTileService : TileService(), KoinComponent {
     override fun onStartListening() {
         super.onStartListening()
         try {
-            persistentState.vpnEnabledLiveData.observeForever(this::updateTile)
+            if (!observerRegistered) {
+                persistentState.vpnEnabledLiveData.observeForever(tileObserver)
+                observerRegistered = true
+            }
         } catch (e: Exception) {
             Logger.w(Logger.LOG_TAG_UI, "Tile: err in observing VPN state", e)
         }
@@ -70,10 +68,25 @@ class BraveTileService : TileService(), KoinComponent {
     override fun onStopListening() {
         super.onStopListening()
         try {
-            persistentState.vpnEnabledLiveData.removeObserver(this::updateTile)
+            if (observerRegistered) {
+                persistentState.vpnEnabledLiveData.removeObserver(tileObserver)
+                observerRegistered = false
+            }
         } catch (e: Exception) {
             Logger.w(Logger.LOG_TAG_UI, "Tile: err in removing observer", e)
         }
+    }
+
+    override fun onDestroy() {
+        try {
+            if (observerRegistered) {
+                persistentState.vpnEnabledLiveData.removeObserver(tileObserver)
+                observerRegistered = false
+            }
+        } catch (e: Exception) {
+            Logger.w(Logger.LOG_TAG_UI, "Tile: err in removing observer on destroy", e)
+        }
+        super.onDestroy()
     }
 
     private fun isAppRunningOnTv(): Boolean {

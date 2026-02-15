@@ -299,6 +299,8 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     private lateinit var orbotStartStatusObserver: Observer<Boolean>
     private lateinit var dnscryptRelayObserver: Observer<PersistentState.DnsCryptRelayDetails>
     private lateinit var blockedConnsObserver: Observer<Int>
+    private var coreObserversRegistered = false
+    private var bubbleObserverRegistered = false
 
     // Modular service managers
     private lateinit var vpnNotificationManager: VpnNotificationManager
@@ -1610,6 +1612,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     }
 
     private suspend fun observeChanges() {
+        if (coreObserversRegistered) return
         appInfoObserver = makeAppInfoObserver()
         FirewallManager.getApplistObserver().observeForever(appInfoObserver)
         persistentState.sharedPreferences.registerOnSharedPreferenceChangeListener(this)
@@ -1617,6 +1620,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         persistentState.orbotConnectionStatus.observeForever(orbotStartStatusObserver)
         dnscryptRelayObserver = makeDnscryptRelayObserver()
         persistentState.dnsCryptRelays.observeForever(dnscryptRelayObserver)
+        coreObserversRegistered = true
         Logger.i(LOG_TAG_VPN, "observe pref, dnscrypt relay, app list changes")
     }
 
@@ -2172,6 +2176,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         if (this::appInfoObserver.isInitialized) {
             FirewallManager.getApplistObserver().removeObserver(appInfoObserver)
         }
+        coreObserversRegistered = false
     }
 
     private fun unobserveOrbotStartStatus() {
@@ -2179,12 +2184,14 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         if (this::orbotStartStatusObserver.isInitialized) {
             persistentState.orbotConnectionStatus.removeObserver(orbotStartStatusObserver)
         }
+        coreObserversRegistered = false
     }
 
     private fun unobserveDnsRelay() {
         if (this::dnscryptRelayObserver.isInitialized) {
             persistentState.dnsCryptRelays.removeObserver(dnscryptRelayObserver)
         }
+        coreObserversRegistered = false
     }
 
     private fun registerAccessibilityServiceState() {
@@ -6041,8 +6048,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     }
 
     private fun unobserveBubbleBlockedConns() {
-        if (this::blockedConnsObserver.isInitialized) {
+        if (bubbleObserverRegistered && this::blockedConnsObserver.isInitialized) {
             connTrackRepository.getBlockedConnectionsCountLiveData().removeObserver(blockedConnsObserver)
+            bubbleObserverRegistered = false
         }
         lastBlockedCount = -1
         Logger.i(TAG, "Bubble observer removed")
@@ -6063,8 +6071,13 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
                 return
             }
 
+            if (bubbleObserverRegistered && this::blockedConnsObserver.isInitialized) {
+                connTrackRepository.getBlockedConnectionsCountLiveData().removeObserver(blockedConnsObserver)
+                bubbleObserverRegistered = false
+            }
             blockedConnsObserver = makeFirewallBlockedConnsObserver()
             connTrackRepository.getBlockedConnectionsCountLiveData().observeForever(blockedConnsObserver)
+            bubbleObserverRegistered = true
         } catch (e: Exception) {
             Logger.e(TAG, "Bubble init failed: ${e.message}", e)
             stopSelf()
@@ -6103,8 +6116,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
 
     @RequiresApi(VERSION_CODES.Q)
     private fun removeBubbleObserver() {
-        if (this::blockedConnsObserver.isInitialized) {
+        if (bubbleObserverRegistered && this::blockedConnsObserver.isInitialized) {
             connTrackRepository.getBlockedConnectionsCountLiveData().removeObserver(blockedConnsObserver)
+            bubbleObserverRegistered = false
         }
         lastBlockedCount = -1
         Logger.i(TAG, "Bubble observer removed")
