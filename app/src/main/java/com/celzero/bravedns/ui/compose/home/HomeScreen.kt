@@ -42,13 +42,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 
 data class HomeScreenUiState(
@@ -97,68 +98,70 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
             ) {
                 // Header with gradient background
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            brush = Brush.verticalGradient(
-                                colors = listOf(
-                                    MaterialTheme.colorScheme.surfaceContainerLow,
-                                    MaterialTheme.colorScheme.background
-                                )
-                            )
-                        )
-                        .padding(bottom = Dimensions.spacingLg)
-                ) {
-                    Column(
+                RethinkAnimatedSection(index = 0) {
+                    Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(top = Dimensions.spacing2xl),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = stringResource(R.string.app_name_small_case),
-                            style = MaterialTheme.typography.displaySmall,
-                            fontWeight = FontWeight.Light,
-                            color = MaterialTheme.colorScheme.onBackground,
-                            modifier = Modifier.alpha(Dimensions.Opacity.LOW),
-                            letterSpacing = 2.sp
-                        )
-
-                        Spacer(modifier = Modifier.height(Dimensions.spacingLg))
-
-                        // Protection status pill
-                        val statusColor = if (uiState.isProtectionFailing)
-                            MaterialTheme.colorScheme.error
-                        else
-                            MaterialTheme.colorScheme.primary
-
-                        val statusContainerColor = if (uiState.isProtectionFailing)
-                            MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f)
-                        else
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
-
-                        Surface(
-                            shape = CircleShape,
-                            color = statusContainerColor,
-                            modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(
-                                    horizontal = Dimensions.spacing2xl,
-                                    vertical = Dimensions.spacingMd
-                                ),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Text(
-                                    text = uiState.protectionStatus.uppercase(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.ExtraBold,
-                                    color = statusColor,
-                                    textAlign = TextAlign.Center,
-                                    letterSpacing = 1.sp
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
+                                        MaterialTheme.colorScheme.background
+                                    )
                                 )
+                            )
+                            .padding(bottom = Dimensions.spacingMd)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = Dimensions.spacing2xl),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(R.string.app_name_small_case),
+                                style = MaterialTheme.typography.headlineMedium,
+                                fontWeight = FontWeight.Light,
+                                color = MaterialTheme.colorScheme.onBackground,
+                                modifier = Modifier.alpha(0.4f),
+                                letterSpacing = 3.sp
+                            )
+
+                            Spacer(modifier = Modifier.height(Dimensions.spacingLg))
+
+                            // Protection status pill
+                            val statusColor = if (uiState.isProtectionFailing)
+                                MaterialTheme.colorScheme.error
+                            else
+                                MaterialTheme.colorScheme.primary
+
+                            val statusContainerColor = if (uiState.isProtectionFailing)
+                                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f)
+                            else
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+
+                            Surface(
+                                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                                color = statusContainerColor,
+                                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal)
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(
+                                        horizontal = Dimensions.spacing2xl,
+                                        vertical = Dimensions.spacingMd
+                                    ),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Text(
+                                        text = uiState.protectionStatus.uppercase(),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        color = statusColor,
+                                        textAlign = TextAlign.Center,
+                                        letterSpacing = 1.5.sp
+                                    )
+                                }
                             }
                         }
                     }
@@ -171,187 +174,196 @@ fun HomeScreen(
                     verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
                 ) {
                     // DNS & Firewall Row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
-                    ) {
-                        DashboardCard(
-                            title = stringResource(R.string.lbl_dns),
-                            iconId = R.drawable.dns_home_screen,
-                            modifier = Modifier.weight(1f),
-                            onClick = onDnsClick
+                    RethinkAnimatedSection(index = 1) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
                         ) {
-                            Column {
-                                StatItem(
-                                    label = stringResource(R.string.dns_detail_latency),
-                                    value = uiState.dnsLatency
-                                )
-                                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-                                StatItem(
-                                    label = stringResource(R.string.lbl_connected),
-                                    value = uiState.dnsConnectedName.ifEmpty {
-                                        stringResource(R.string.lbl_inactive)
-                                    }
-                                )
+                            DashboardCard(
+                                title = stringResource(R.string.lbl_dns),
+                                iconId = R.drawable.dns_home_screen,
+                                modifier = Modifier.weight(1f),
+                                onClick = onDnsClick
+                            ) {
+                                Column {
+                                    StatItem(
+                                        label = stringResource(R.string.dns_detail_latency),
+                                        value = uiState.dnsLatency
+                                    )
+                                    Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+                                    StatItem(
+                                        label = stringResource(R.string.lbl_connected),
+                                        value = uiState.dnsConnectedName.ifEmpty {
+                                            stringResource(R.string.lbl_inactive)
+                                        }
+                                    )
+                                }
                             }
-                        }
 
-                        DashboardCard(
-                            title = stringResource(R.string.lbl_firewall),
-                            iconId = R.drawable.firewall_home_screen,
-                            modifier = Modifier.weight(1f),
-                            onClick = onFirewallClick
-                        ) {
-                            Column {
-                                StatItem(
-                                    label = stringResource(R.string.lbl_universal_rules),
-                                    value = uiState.firewallUniversalRules.toString()
-                                )
-                                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-                                Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
+                            DashboardCard(
+                                title = stringResource(R.string.lbl_firewall),
+                                iconId = R.drawable.firewall_home_screen,
+                                modifier = Modifier.weight(1f),
+                                onClick = onFirewallClick
+                            ) {
+                                Column {
                                     StatItem(
-                                        label = stringResource(R.string.lbl_ip),
-                                        value = uiState.firewallIpRules.toString(),
-                                        modifier = Modifier.weight(1f)
+                                        label = stringResource(R.string.lbl_universal_rules),
+                                        value = uiState.firewallUniversalRules.toString()
                                     )
-                                    StatItem(
-                                        label = stringResource(R.string.lbl_domain),
-                                        value = uiState.firewallDomainRules.toString(),
-                                        modifier = Modifier.weight(1f)
-                                    )
+                                    Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+                                    Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
+                                        StatItem(
+                                            label = stringResource(R.string.lbl_ip),
+                                            value = uiState.firewallIpRules.toString(),
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        StatItem(
+                                            label = stringResource(R.string.lbl_domain),
+                                            value = uiState.firewallDomainRules.toString(),
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
 
                     // Proxy & Logs Row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
-                    ) {
-                        DashboardCard(
-                            title = stringResource(R.string.lbl_proxy),
-                            iconId = R.drawable.ic_vpn,
-                            modifier = Modifier.weight(1f),
-                            onClick = onProxyClick
+                    RethinkAnimatedSection(index = 2) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
                         ) {
-                            Column {
-                                Text(
-                                    text = uiState.proxyStatus.ifEmpty {
-                                        stringResource(R.string.lbl_inactive)
-                                    },
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = if (uiState.proxyStatus.isNotEmpty())
-                                        MaterialTheme.colorScheme.primary
-                                    else
-                                        MaterialTheme.colorScheme.onSurfaceVariant
-                                )
+                            DashboardCard(
+                                title = stringResource(R.string.lbl_proxy),
+                                iconId = R.drawable.ic_vpn,
+                                modifier = Modifier.weight(1f),
+                                onClick = onProxyClick
+                            ) {
+                                Column {
+                                    Text(
+                                        text = uiState.proxyStatus.ifEmpty {
+                                            stringResource(R.string.lbl_inactive)
+                                        },
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium,
+                                        color = if (uiState.proxyStatus.isNotEmpty())
+                                            MaterialTheme.colorScheme.primary
+                                        else
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                             }
-                        }
 
-                        DashboardCard(
-                            title = stringResource(R.string.lbl_logs),
-                            iconId = R.drawable.ic_logs_accent,
-                            modifier = Modifier.weight(1f),
-                            onClick = onLogsClick
-                        ) {
-                            Column {
-                                StatItem(
-                                    label = stringResource(R.string.lbl_network),
-                                    value = uiState.networkLogsCount.toString()
-                                )
-                                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-                                StatItem(
-                                    label = stringResource(R.string.lbl_dns),
-                                    value = uiState.dnsLogsCount.toString()
-                                )
+                            DashboardCard(
+                                title = stringResource(R.string.lbl_logs),
+                                iconId = R.drawable.ic_logs_accent,
+                                modifier = Modifier.weight(1f),
+                                onClick = onLogsClick
+                            ) {
+                                Column {
+                                    StatItem(
+                                        label = stringResource(R.string.lbl_network),
+                                        value = uiState.networkLogsCount.toString()
+                                    )
+                                    Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+                                    StatItem(
+                                        label = stringResource(R.string.lbl_dns),
+                                        value = uiState.dnsLogsCount.toString()
+                                    )
+                                }
                             }
                         }
                     }
 
                     // Apps Card - Full width
-                    DashboardCard(
-                        title = stringResource(R.string.lbl_apps),
-                        iconId = R.drawable.ic_app_info_accent,
-                        onClick = onAppsClick
-                    ) {
-                        // Progress indicator for allowed/total
-                        val appsProgress = remember(uiState.appsAllowed, uiState.appsTotal) {
-                            if (uiState.appsTotal > 0)
-                                uiState.appsAllowed.toFloat() / uiState.appsTotal.toFloat()
-                            else 0f
-                        }
-                        LinearProgressIndicator(
-                            progress = { appsProgress },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(Dimensions.spacingXs)
-                                .clip(RoundedCornerShape(Dimensions.spacingXs)),
-                            color = MaterialTheme.colorScheme.primary,
-                            trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                        )
-
-                        Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                    RethinkAnimatedSection(index = 3) {
+                        DashboardCard(
+                            title = stringResource(R.string.lbl_apps),
+                            iconId = R.drawable.ic_app_info_accent,
+                            onClick = onAppsClick
                         ) {
-                            StatItem(
-                                label = stringResource(R.string.lbl_allowed),
-                                value = uiState.appsAllowed.toString(),
-                                isHighlighted = true
+                            // Progress indicator for allowed/total
+                            val appsProgress = remember(uiState.appsAllowed, uiState.appsTotal) {
+                                if (uiState.appsTotal > 0)
+                                    uiState.appsAllowed.toFloat() / uiState.appsTotal.toFloat()
+                                else 0f
+                            }
+                            LinearProgressIndicator(
+                                progress = { appsProgress },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(6.dp)
+                                    .clip(RoundedCornerShape(3.dp)),
+                                color = MaterialTheme.colorScheme.primary,
+                                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                             )
-                            Text(
-                                text = "/",
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.alpha(Dimensions.Opacity.LOW)
-                            )
-                            StatItem(
-                                label = stringResource(R.string.lbl_total),
-                                value = uiState.appsTotal.toString()
-                            )
-                        }
 
-                        Spacer(modifier = Modifier.height(Dimensions.spacingLg))
+                            Spacer(modifier = Modifier.height(Dimensions.spacingLg))
 
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
-                            StatItem(
-                                label = stringResource(R.string.lbl_blocked),
-                                value = uiState.appsBlocked.toString()
-                            )
-                            StatItem(
-                                label = stringResource(R.string.lbl_bypassed),
-                                value = uiState.appsBypassed.toString()
-                            )
-                            StatItem(
-                                label = stringResource(R.string.lbl_isolated),
-                                value = uiState.appsIsolated.toString()
-                            )
-                            StatItem(
-                                label = stringResource(R.string.lbl_excluded),
-                                value = uiState.appsExcluded.toString()
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                StatItem(
+                                    label = stringResource(R.string.lbl_allowed),
+                                    value = uiState.appsAllowed.toString(),
+                                    isHighlighted = true
+                                )
+                                Text(
+                                    text = "/",
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.alpha(0.3f)
+                                )
+                                StatItem(
+                                    label = stringResource(R.string.lbl_total),
+                                    value = uiState.appsTotal.toString()
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween
+                            ) {
+                                StatItem(
+                                    label = stringResource(R.string.lbl_blocked),
+                                    value = uiState.appsBlocked.toString()
+                                )
+                                StatItem(
+                                    label = stringResource(R.string.lbl_bypassed),
+                                    value = uiState.appsBypassed.toString()
+                                )
+                                StatItem(
+                                    label = stringResource(R.string.lbl_isolated),
+                                    value = uiState.appsIsolated.toString()
+                                )
+                                StatItem(
+                                    label = stringResource(R.string.lbl_excluded),
+                                    value = uiState.appsExcluded.toString()
+                                )
+                            }
                         }
                     }
                 }
 
                 // Start/Stop Button pinned at bottom
-                StartStopButton(
-                    isPlaying = uiState.isVpnActive,
-                    onClick = onStartStopClick,
-                    modifier = Modifier
-                        .padding(horizontal = Dimensions.screenPaddingHorizontal)
-                        .padding(
-                            top = Dimensions.spacingXl,
-                            bottom = Dimensions.spacing2xl
-                        )
-                )
+                RethinkAnimatedSection(index = 4) {
+                    StartStopButton(
+                        isPlaying = uiState.isVpnActive,
+                        onClick = onStartStopClick,
+                        modifier = Modifier
+                            .padding(horizontal = Dimensions.screenPaddingHorizontal)
+                            .padding(
+                                top = Dimensions.spacingXl,
+                                bottom = Dimensions.spacing2xl
+                            )
+                    )
+                }
             }
         }
     }

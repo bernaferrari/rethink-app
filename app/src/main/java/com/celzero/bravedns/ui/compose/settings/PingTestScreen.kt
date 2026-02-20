@@ -15,7 +15,11 @@
  */
 package com.celzero.bravedns.ui.compose.settings
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.padding
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -215,8 +219,41 @@ fun PingTestScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(horizontal = Dimensions.screenPaddingHorizontal),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
+            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+
+            // Header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                                MaterialTheme.colorScheme.surfaceContainerLow
+                            )
+                        ),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
+                    )
+                    .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = stringResource(R.string.settings_connectivity_checks),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Check connectivity to DNS resolvers and websites.", // Or a string resource if available
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
+
             Text(
                 text = stringResource(R.string.ping_ip_port_title),
                 style = MaterialTheme.typography.titleMedium,

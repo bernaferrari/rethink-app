@@ -95,7 +95,7 @@ fun AppCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
     colors: CardColors = CardDefaults.cardColors(
-        containerColor = MaterialTheme.colorScheme.surfaceVariant
+        containerColor = MaterialTheme.colorScheme.surfaceContainer
     ),
     content: @Composable ColumnScope.() -> Unit
 ) {
@@ -104,7 +104,7 @@ fun AppCard(
             modifier = modifier.fillMaxWidth(),
             shape = RoundedCornerShape(Dimensions.cardCornerRadius),
             colors = colors,
-            elevation = CardDefaults.cardElevation(defaultElevation = Elevation.low),
+            elevation = CardDefaults.cardElevation(defaultElevation = Elevation.medium),
             onClick = onClick,
             content = content
         )
@@ -146,8 +146,8 @@ fun GroupedCard(
                     }
                     Text(
                         text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                 }
@@ -315,7 +315,8 @@ fun AppListItem(
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
@@ -324,7 +325,7 @@ fun AppListItem(
                 Spacer(modifier = Modifier.height(Dimensions.spacingXs))
                 Text(
                     text = description,
-                    style = MaterialTheme.typography.bodySmall,
+                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
@@ -356,9 +357,9 @@ fun SectionHeader(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                start = Dimensions.spacingSm,
+                start = Dimensions.spacingMd,
                 end = Dimensions.spacingSm,
-                top = Dimensions.spacingMd,
+                top = Dimensions.spacingLg,
                 bottom = Dimensions.spacingSm
             ),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -369,11 +370,16 @@ fun SectionHeader(
             style = MaterialTheme.typography.labelLarge,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary,
-            letterSpacing = 1.sp
+            letterSpacing = 1.2.sp
         )
         if (actionLabel != null && onAction != null) {
             TextButton(onClick = onAction) {
-                Text(text = actionLabel)
+                Text(
+                    text = actionLabel,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
     }
@@ -388,7 +394,7 @@ fun SectionHeader(
 fun AppDivider(
     modifier: Modifier = Modifier,
     indent: Dp = Dimensions.spacingNone,
-    color: Color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = Opacity.LOW)
+    color: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
 ) {
     androidx.compose.material3.HorizontalDivider(
         modifier = modifier
@@ -536,8 +542,8 @@ fun RethinkTopBar(
         title = {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Medium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
@@ -546,13 +552,14 @@ fun RethinkTopBar(
             if (onBackClick != null) {
                 IconButton(onClick = onBackClick) {
                     Surface(
-                        shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.65f)
+                        shape = RoundedCornerShape(16.dp),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f)
                     ) {
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_arrow_back_24),
                             contentDescription = stringResource(R.string.cd_navigate_back),
-                            modifier = Modifier.padding(8.dp)
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.padding(10.dp)
                         )
                     }
                 }
@@ -561,7 +568,7 @@ fun RethinkTopBar(
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor = Color.Transparent,
-            scrolledContainerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.92f)
+            scrolledContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.96f)
         )
     )
 }
@@ -573,18 +580,14 @@ fun RethinkListGroup(
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge + 6.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.95f),
-        tonalElevation = 4.dp,
-        border = BorderStroke(
-            width = Dimensions.dividerThickness,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)
-        )
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 2.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = Dimensions.spacingXs),
+                .padding(vertical = Dimensions.spacingSm),
             content = content
         )
     }
@@ -597,26 +600,30 @@ fun RethinkListItem(
     modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
     leadingIconPainter: Painter? = null,
+    leadingIconTint: Color = MaterialTheme.colorScheme.onPrimaryContainer,
     trailing: @Composable (() -> Unit)? = null,
     showDivider: Boolean = true,
+    enabled: Boolean = true,
     onClick: (() -> Unit)? = null
 ) {
     val itemShape = RoundedCornerShape(20.dp)
+    val contentAlpha = if (enabled) 1f else 0.5f
     Column(modifier = modifier.fillMaxWidth()) {
         ListItem(
             headlineContent = {
                 Text(
                     text = headline,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha)
                 )
             },
             supportingContent = supporting?.let {
                 {
                     Text(
                         text = it,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f * contentAlpha)
                     )
                 }
             },
@@ -624,40 +631,42 @@ fun RethinkListItem(
                 if (leadingIcon != null || leadingIconPainter != null) {
                     Surface(
                         shape = RoundedCornerShape(14.dp),
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
                     ) {
                         Box(
-                            modifier = Modifier.size(42.dp),
+                            modifier = Modifier.size(44.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             if (leadingIcon != null) {
                                 Icon(
                                     imageVector = leadingIcon,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = leadingIconTint.copy(alpha = contentAlpha),
+                                    modifier = Modifier.size(22.dp)
                                 )
                             } else if (leadingIconPainter != null) {
                                 Icon(
                                     painter = leadingIconPainter,
                                     contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = leadingIconTint.copy(alpha = contentAlpha),
+                                    modifier = Modifier.size(22.dp)
                                 )
                             }
                         }
                     }
                 }
             },
-            trailingContent = trailing ?: if (onClick != null) {
+            trailingContent = trailing ?: if (onClick != null && enabled) {
                 {
                     Surface(
                         shape = CircleShape,
-                        color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.7f)
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
                     ) {
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_right_arrow_white),
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f),
-                            modifier = Modifier.padding(6.dp)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                            modifier = Modifier.padding(7.dp)
                         )
                     }
                 }
@@ -665,27 +674,23 @@ fun RethinkListItem(
                 null
             },
             colors = ListItemDefaults.colors(
-                containerColor = if (onClick != null) {
-                    MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.16f)
-                } else {
-                    Color.Transparent
-                }
+                containerColor = Color.Transparent
             ),
             modifier = Modifier
                 .clip(itemShape)
                 .then(
-                    if (onClick != null) {
+                    if (onClick != null && enabled) {
                         Modifier.clickable(onClick = onClick)
                     } else {
                         Modifier
                     }
                 )
-                .padding(horizontal = Dimensions.spacingSm, vertical = 1.dp)
+                .padding(horizontal = Dimensions.spacingSm, vertical = 3.dp)
         )
         if (showDivider) {
             AppDivider(
-                modifier = Modifier.padding(start = 72.dp, end = 12.dp),
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+                modifier = Modifier.padding(start = 76.dp, end = 16.dp),
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
             )
         }
     }

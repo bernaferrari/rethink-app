@@ -17,12 +17,19 @@ package com.celzero.bravedns.ui.compose.navigation
 
 import android.graphics.drawable.Drawable
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -31,7 +38,6 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,18 +46,18 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.toRoute
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
@@ -146,12 +152,13 @@ import kotlinx.coroutines.withContext
 enum class HomeDestination(
     val route: HomeRoute,
     val labelRes: Int,
-    val iconRes: Int
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector
 ) {
-    HOME(HomeRoute.Home, R.string.txt_home, R.drawable.ic_home_black_24dp),
-    STATS(HomeRoute.Stats, R.string.title_statistics, R.drawable.ic_statistics),
-    CONFIGURE(HomeRoute.Configure, R.string.lbl_configure, R.drawable.ic_settings),
-    ABOUT(HomeRoute.About, R.string.title_about, R.drawable.ic_about)
+    HOME(HomeRoute.Home, R.string.txt_home, Icons.Filled.Home, Icons.Filled.Home),
+    STATS(HomeRoute.Stats, R.string.title_statistics, Icons.Filled.Star, Icons.Filled.Star),
+    CONFIGURE(HomeRoute.Configure, R.string.lbl_configure, Icons.Filled.Settings, Icons.Filled.Settings),
+    ABOUT(HomeRoute.About, R.string.title_about, Icons.Filled.Info, Icons.Filled.Info)
 }
 
 sealed interface HomeNavRequest {
@@ -328,8 +335,14 @@ fun HomeScreenRoot(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route
+    val topLevelRoutes = remember {
+        HomeDestination.entries.mapNotNull { it.route::class.qualifiedName }.toSet()
+    }
     val isHomeRoute = currentRoute == HomeRoute.Home::class.qualifiedName
     val isWelcomeRoute = currentRoute == HomeRoute.Welcome::class.qualifiedName
+    val showBottomBar =
+        !isWelcomeRoute &&
+            (currentDestination?.hierarchy?.any { it.route != null && topLevelRoutes.contains(it.route) } == true)
 
     LaunchedEffect(homeNavRequest) {
         val request = homeNavRequest ?: return@LaunchedEffect
@@ -471,57 +484,52 @@ fun HomeScreenRoot(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets.safeDrawing.only(
+            WindowInsetsSides.Top + WindowInsetsSides.Horizontal
+        ),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            if (isWelcomeRoute) return@Scaffold
-            Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-                shape = RoundedCornerShape(34.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.96f),
-                border = BorderStroke(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
-                ),
-                tonalElevation = 6.dp
+            if (!showBottomBar) return@Scaffold
+            NavigationBar(
+                modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                tonalElevation = 3.dp,
+                windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
             ) {
-                NavigationBar(
-                    modifier = Modifier.heightIn(min = 70.dp),
-                    containerColor = Color.Transparent,
-                    tonalElevation = 0.dp
-                ) {
-                    HomeDestination.entries.forEach { destination ->
-                        val isSelected = currentDestination?.route == destination.route::class.qualifiedName
-                        NavigationBarItem(
-                            selected = isSelected,
-                            onClick = {
-                                navController.navigate(destination.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
+                HomeDestination.entries.forEach { destination ->
+                    val routeName = destination.route::class.qualifiedName
+                    val isSelected =
+                        currentDestination?.hierarchy?.any { it.route == routeName } == true
+                    NavigationBarItem(
+                        selected = isSelected,
+                        onClick = {
+                            navController.navigate(destination.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
                                 }
-                            },
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                                selectedTextColor = MaterialTheme.colorScheme.onPrimary,
-                                indicatorColor = MaterialTheme.colorScheme.primary,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            icon = {
-                                Icon(
-                                    painter = painterResource(id = destination.iconRes),
-                                    contentDescription = stringResource(id = destination.labelRes)
-                                )
-                            },
-                            label = {
-                                Text(text = stringResource(id = destination.labelRes))
+                                launchSingleTop = true
+                                restoreState = true
                             }
+                        },
+                        icon = {
+                            Icon(
+                                imageVector =
+                                    if (isSelected) destination.selectedIcon else destination.unselectedIcon,
+                                contentDescription = stringResource(id = destination.labelRes)
+                            )
+                        },
+                        label = {
+                            Text(text = stringResource(id = destination.labelRes))
+                        },
+                        alwaysShowLabel = true,
+                        colors = NavigationBarItemDefaults.colors(
+                            selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                            selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                            indicatorColor = MaterialTheme.colorScheme.primary,
+                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
-                    }
+                    )
                 }
             }
         }

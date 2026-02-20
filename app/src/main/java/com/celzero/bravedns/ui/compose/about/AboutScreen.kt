@@ -20,10 +20,11 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.celzero.bravedns.R
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 
 @Composable
 fun AboutScreen(
@@ -66,53 +67,67 @@ fun AboutScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = Dimensions.screenPaddingHorizontal)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
 
-            // Header
-            Column {
+            // Header with gradient
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                                MaterialTheme.colorScheme.surfaceContainerLow
+                            )
+                        ),
+                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
+                    )
+                    .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
+            ) {
                 Text(
-                    text = stringResource(id = R.string.app_name_small_case),
+                    text = stringResource(id = R.string.title_about),
                     style = MaterialTheme.typography.headlineMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.alpha(0.5f)
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontWeight = FontWeight.Bold
                 )
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = stringResource(id = R.string.about_title_desc),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.alpha(0.5f)
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                 )
             }
 
             // Sponsorship Card
-            Card(
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            Surface(
+                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.4f),
+                tonalElevation = 1.dp
             ) {
-                Column(modifier = Modifier.padding(16.dp)) {
+                Column(modifier = Modifier.padding(Dimensions.spacingXl)) {
                     Text(
                         text = stringResource(id = R.string.about_bravedns_explantion),
                         style = MaterialTheme.typography.bodyLarge
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(Dimensions.spacingMd))
                     Text(
                         text = stringResource(id = R.string.about_bravedns_whoarewe),
                         style = MaterialTheme.typography.bodyLarge
                     )
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(Dimensions.spacingMd))
                     Text(
                         text = stringResource(id = R.string.sponser_dialog_usage_msg, uiState.daysSinceInstall, uiState.sponsoredAmount),
                         style = MaterialTheme.typography.bodyLarge
                     )
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(Dimensions.spacingXl))
                     Button(
                         onClick = onSponsorClick,
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
                     ) {
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_heart_accent),
@@ -120,7 +135,10 @@ fun AboutScreen(
                             modifier = Modifier.size(20.dp)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = stringResource(id = R.string.about_sponsor_link_text))
+                        Text(
+                            text = stringResource(id = R.string.about_sponsor_link_text),
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }
@@ -128,7 +146,7 @@ fun AboutScreen(
             // Social & Bug Report Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     AboutSmallCard(
@@ -149,7 +167,7 @@ fun AboutScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(56.dp)
-                                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(12.dp)),
+                                .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(Dimensions.buttonCornerRadius)),
                             contentAlignment = Alignment.Center
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -256,7 +274,7 @@ fun AboutScreen(
                         "\n${uiState.buildNumber}\n${uiState.lastUpdated}",
                 style = MaterialTheme.typography.bodySmall,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().alpha(0.75f).padding(top = 16.dp)
+                modifier = Modifier.fillMaxWidth().alpha(0.75f).padding(top = Dimensions.spacingLg)
             )
 
             if (uiState.isFirebaseEnabled && !uiState.isFdroid) {
@@ -272,7 +290,7 @@ fun AboutScreen(
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spacing3xl))
         }
     }
 }
@@ -280,15 +298,7 @@ fun AboutScreen(
 @Composable
 fun AboutSection(title: String, content: @Composable ColumnScope.() -> Unit) {
     Column {
-        Text(
-            text = title.uppercase(),
-            style = MaterialTheme.typography.labelLarge.copy(
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 1.sp
-            ),
-            color = MaterialTheme.colorScheme.tertiary,
-            modifier = Modifier.padding(start = 48.dp, bottom = 8.dp)
-        )
+        SectionHeader(title = title)
         RethinkListGroup(content = content)
     }
 }
@@ -304,26 +314,31 @@ fun AboutItem(title: String, iconId: Int, onClick: () -> Unit) {
 
 @Composable
 fun AboutSmallCard(title: String, iconId: Int, onClick: () -> Unit) {
-    Card(
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }
+    Surface(
+        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f),
+        modifier = Modifier.fillMaxWidth(),
+        onClick = onClick
     ) {
         Row(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(
+                horizontal = Dimensions.spacingLg,
+                vertical = Dimensions.spacingMd
+            ),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Icon(
                 imageVector = ImageVector.vectorResource(id = iconId),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.size(24.dp)
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(22.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.SemiBold,
                 maxLines = 1
             )
         }

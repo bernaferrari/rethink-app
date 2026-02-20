@@ -78,8 +78,7 @@ fun CustomDomainRulesSheet(
     LaunchedEffect(customDomain.uid, customDomain.domain) {
         val uid = customDomain.uid
         if (uid != UID_EVERYBODY) {
-            val appNames = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(uid) }
-            this@CustomDomainRulesSheet.appNames = appNames
+            appNames = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(uid) }
             val appInfo = withContext(Dispatchers.IO) { FirewallManager.getAppInfoByUid(uid) }
             appIcon =
                 Utilities.getIcon(
@@ -101,14 +100,17 @@ fun CustomDomainRulesSheet(
             when {
                 customDomain.uid == UID_EVERYBODY ->
                     stringResource(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
+
                 appNames.isEmpty() ->
                     stringResource(R.string.network_log_app_name_unknown) + " (${customDomain.uid})"
+
                 appNames.size >= 2 ->
                     stringResource(
                         R.string.ctbs_app_other_apps,
                         appNames[0],
                         appNames.size.minus(1).toString()
                     )
+
                 else -> appNames[0]
             }
 
@@ -138,19 +140,24 @@ fun CustomDomainRulesSheet(
         val positiveBg = MaterialTheme.colorScheme.tertiaryContainer
 
         Column(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 40.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Box(
                 modifier =
-                    Modifier.align(Alignment.CenterHorizontally)
+                    Modifier
+                        .align(Alignment.CenterHorizontally)
                         .width(60.dp)
                         .height(3.dp)
                         .background(borderColor, RoundedCornerShape(2.dp))
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
                 horizontalArrangement = Arrangement.End
             ) {
                 val deleteText = MaterialTheme.colorScheme.error
@@ -164,7 +171,9 @@ fun CustomDomainRulesSheet(
 
             if (appName.isNotEmpty()) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 20.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
@@ -191,10 +200,14 @@ fun CustomDomainRulesSheet(
                 text = stringResource(R.string.lbl_domain),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp)
             )
 
-            SelectionContainer(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)) {
+            SelectionContainer(modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 10.dp)) {
                 Text(
                     text = customDomain.domain,
                     style = MaterialTheme.typography.titleMedium,
@@ -206,11 +219,15 @@ fun CustomDomainRulesSheet(
                 text = statusText,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp)
             )
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 RuleChip(
@@ -280,7 +297,10 @@ fun CustomDomainRulesSheet(
                                     )
                                 }
                             }
-                            logEvent(eventLogger, "Deleted custom domain rule for ${customDomain.domain}")
+                            logEvent(
+                                eventLogger,
+                                "Deleted custom domain rule for ${customDomain.domain}"
+                            )
                             onDeleted()
                             onDismiss()
                         }

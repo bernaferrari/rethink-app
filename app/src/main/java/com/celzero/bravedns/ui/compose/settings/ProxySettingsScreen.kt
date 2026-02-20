@@ -21,6 +21,7 @@ import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -80,6 +81,16 @@ import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import com.celzero.bravedns.util.OrbotHelper
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
@@ -167,6 +178,10 @@ fun ProxySettingsScreen(
             orbotStopMessage,
             orbotStopDnsMessage
         )
+    val defaultWireguardDescription = stringResource(R.string.wireguard_description)
+    val defaultSocks5Description = stringResource(R.string.settings_socks_forwarding_default_desc)
+    val defaultHttpDescription = stringResource(R.string.settings_https_desc)
+    val defaultOrbotDescription = stringResource(R.string.orbot_bs_status_4)
 
     val orbotHelper = remember(context, persistentState, appConfig) {
         OrbotHelper(context, persistentState, appConfig)
@@ -182,10 +197,10 @@ fun ProxySettingsScreen(
     val orbotConnecting =
         remember { persistentState.orbotConnectionStatus.asFlow() }.collectAsState(initial = false).value
 
-    var wireguardDescription by remember { mutableStateOf(stringResource(R.string.wireguard_description)) }
-    var socks5Description by remember { mutableStateOf(stringResource(R.string.settings_socks_forwarding_default_desc)) }
-    var httpDescription by remember { mutableStateOf(stringResource(R.string.settings_https_desc)) }
-    var orbotDescription by remember { mutableStateOf(stringResource(R.string.orbot_bs_status_4)) }
+    var wireguardDescription by remember(defaultWireguardDescription) { mutableStateOf(defaultWireguardDescription) }
+    var socks5Description by remember(defaultSocks5Description) { mutableStateOf(defaultSocks5Description) }
+    var httpDescription by remember(defaultHttpDescription) { mutableStateOf(defaultHttpDescription) }
+    var orbotDescription by remember(defaultOrbotDescription) { mutableStateOf(defaultOrbotDescription) }
 
     var showOrbotInstallDialog by remember { mutableStateOf(false) }
     var showOrbotModeDialog by remember { mutableStateOf(false) }
@@ -368,169 +383,253 @@ fun ProxySettingsScreen(
                     }
                 }
             )
-        }
+        },
+        containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(padding)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = Dimensions.screenPaddingHorizontal)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
+            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+
+            // Header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f),
+                                MaterialTheme.colorScheme.surfaceContainerLow
+                            )
+                        ),
+                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
+                    )
+                    .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = stringResource(id = R.string.settings_proxy_header),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(id = R.string.settings_title_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
+
             if (!canEnableProxy) {
                 Text(
                     text = stringResource(R.string.settings_lock_down_proxy_desc),
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(horizontal = Dimensions.spacingSm)
                 )
-                Spacer(modifier = Modifier.height(12.dp))
             }
 
+            // Network Proxy (WireGuard)
             if (onWireguardClick != null) {
-                WireguardEntryCard(
-                    title = stringResource(R.string.setup_wireguard),
-                    description = wireguardDescription,
-                    enabled = canEnableProxy,
-                    onClick = {
-                        if (!canEnableProxy) {
-                            showProxyDisabledToast()
-                        } else {
-                            onWireguardClick()
-                        }
-                    }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-            }
-
-            ProxyCard(
-                title = stringResource(R.string.settings_socks5_heading),
-                description = socks5Description,
-                enabled = socks5Enabled,
-                cardEnabled = canEnableProxy,
-                onEnabledChange = { enabled ->
-                    if (enabled) {
-                        if (!canEnableProxy) {
-                            showProxyDisabledToast()
-                            reloadUi()
-                        } else if (appConfig.getBraveMode().isDnsMode()) {
-                            Utilities.showToastUiCentered(
-                                context,
-                                socks5VpnDisabledError,
-                                Toast.LENGTH_SHORT
-                            )
-                            reloadUi()
-                        } else if (!appConfig.canEnableSocks5Proxy()) {
-                            Utilities.showToastUiCentered(
-                                context,
-                                socks5DisabledError,
-                                Toast.LENGTH_SHORT
-                            )
-                            reloadUi()
-                        } else {
-                            openSocksDialog()
-                        }
-                    } else {
-                        scope.launch {
-                            withContext(Dispatchers.IO) {
-                                appConfig.removeProxy(
-                                    AppConfig.ProxyType.SOCKS5,
-                                    AppConfig.ProxyProvider.CUSTOM
-                                )
+                RethinkAnimatedSection(index = 0) {
+                    SectionHeader(title = stringResource(R.string.setup_wireguard))
+                    RethinkListGroup {
+                        RethinkListItem(
+                            headline = stringResource(R.string.setup_wireguard),
+                            supporting = wireguardDescription,
+                            leadingIconPainter = painterResource(id = R.drawable.ic_wireguard_icon),
+                            onClick = {
+                                if (!canEnableProxy) {
+                                    showProxyDisabledToast()
+                                } else {
+                                    onWireguardClick()
+                                }
                             }
-                            logEvent("Custom SOCKS5 disabled")
-                            reloadUi()
-                        }
-                    }
-                },
-                onConfigureClick = if (canEnableProxy) ({ openSocksDialog() }) else null
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            ProxyCard(
-                title = stringResource(R.string.settings_https_heading),
-                description = httpDescription,
-                enabled = httpEnabled,
-                cardEnabled = canEnableProxy,
-                onEnabledChange = { enabled ->
-                    if (enabled) {
-                        if (!canEnableProxy) {
-                            showProxyDisabledToast()
-                            reloadUi()
-                        } else if (appConfig.getBraveMode().isDnsMode()) {
-                            Utilities.showToastUiCentered(
-                                context,
-                                socks5VpnDisabledError,
-                                Toast.LENGTH_SHORT
-                            )
-                            reloadUi()
-                        } else if (!appConfig.canEnableHttpProxy()) {
-                            Utilities.showToastUiCentered(
-                                context,
-                                httpDisabledError,
-                                Toast.LENGTH_SHORT
-                            )
-                            reloadUi()
-                        } else {
-                            openHttpDialog()
-                        }
-                    } else {
-                        scope.launch {
-                            withContext(Dispatchers.IO) {
-                                appConfig.removeProxy(
-                                    AppConfig.ProxyType.HTTP,
-                                    AppConfig.ProxyProvider.CUSTOM
-                                )
-                            }
-                            logEvent("Custom HTTP disabled")
-                            reloadUi()
-                        }
-                    }
-                },
-                onConfigureClick = if (canEnableProxy) ({ openHttpDialog() }) else null
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            ProxyCard(
-                title = stringResource(R.string.orbot),
-                description = if (orbotConnecting) stringResource(R.string.orbot_bs_status_trying_connect) else orbotDescription,
-                enabled = orbotEnabled,
-                cardEnabled = canEnableProxy && !orbotConnecting,
-                onEnabledChange = { enabled ->
-                    if (enabled) {
-                        enableOrbotFlow()
-                    } else {
-                        stopOrbotForwarding(showDialog = true)
-                    }
-                },
-                onConfigureClick = if (canEnableProxy && !orbotConnecting) ({ enableOrbotFlow() }) else null
-            )
-
-            if (canEnableProxy && !orbotConnecting) {
-                Row {
-                    if (mappingViewModel != null) {
-                        TextButton(
-                            onClick = { showOrbotAppsDialog = true }
-                        ) {
-                            Text(
-                                text = stringResource(R.string.add_remove_apps, orbotAppCount.toString())
-                            )
-                        }
-                    }
-                    TextButton(
-                        onClick = { orbotHelper.openOrbotApp() }
-                    ) {
-                        Text(text = stringResource(R.string.settings_orbot_notification_action))
-                    }
-                    TextButton(
-                        onClick = { showOrbotInfoDialog = true }
-                    ) {
-                        Text(text = stringResource(R.string.lbl_info))
+                        )
                     }
                 }
             }
+
+            // SOCKS5
+            RethinkAnimatedSection(index = 1) {
+                SectionHeader(title = stringResource(R.string.settings_socks5_heading))
+                RethinkListGroup {
+                    RethinkListItem(
+                            headline = stringResource(R.string.settings_socks5_heading),
+                            supporting = socks5Description,
+                            leadingIconPainter = painterResource(id = R.drawable.ic_socks5),
+                        onClick = {
+                             if (canEnableProxy && socks5Enabled) {
+                                 openSocksDialog()
+                             } else if (!socks5Enabled) {
+                                 // Logic to enable
+                                 if (!canEnableProxy) {
+                                     showProxyDisabledToast()
+                                     reloadUi()
+                                 } else if (appConfig.getBraveMode().isDnsMode()) {
+                                     Utilities.showToastUiCentered(context, socks5VpnDisabledError, Toast.LENGTH_SHORT)
+                                     reloadUi()
+                                 } else if (!appConfig.canEnableSocks5Proxy()) {
+                                     Utilities.showToastUiCentered(context, socks5DisabledError, Toast.LENGTH_SHORT)
+                                     reloadUi()
+                                 } else {
+                                     openSocksDialog()
+                                 }
+                             }
+                        },
+                        trailing = {
+                            Switch(
+                                checked = socks5Enabled,
+                                onCheckedChange = { enabled ->
+                                    if (enabled) {
+                                        if (!canEnableProxy) {
+                                            showProxyDisabledToast()
+                                            reloadUi()
+                                        } else if (appConfig.getBraveMode().isDnsMode()) {
+                                            Utilities.showToastUiCentered(context, socks5VpnDisabledError, Toast.LENGTH_SHORT)
+                                            reloadUi()
+                                        } else if (!appConfig.canEnableSocks5Proxy()) {
+                                            Utilities.showToastUiCentered(context, socks5DisabledError, Toast.LENGTH_SHORT)
+                                            reloadUi()
+                                        } else {
+                                            openSocksDialog()
+                                        }
+                                    } else {
+                                        scope.launch {
+                                            withContext(Dispatchers.IO) {
+                                                appConfig.removeProxy(AppConfig.ProxyType.SOCKS5, AppConfig.ProxyProvider.CUSTOM)
+                                            }
+                                            logEvent("Custom SOCKS5 disabled")
+                                            reloadUi()
+                                        }
+                                    }
+                                },
+                                enabled = canEnableProxy
+                            )
+                        }
+                    )
+                }
+            }
+
+            // HTTP
+            RethinkAnimatedSection(index = 2) {
+                SectionHeader(title = stringResource(R.string.settings_https_heading))
+                RethinkListGroup {
+                    RethinkListItem(
+                            headline = stringResource(R.string.settings_https_heading),
+                            supporting = httpDescription,
+                            leadingIconPainter = painterResource(id = R.drawable.ic_http),
+                        onClick = {
+                            if (canEnableProxy && httpEnabled) {
+                                openHttpDialog()
+                            } else if (!httpEnabled) {
+                                // Logic to enable
+                                if (!canEnableProxy) {
+                                    showProxyDisabledToast()
+                                    reloadUi()
+                                } else if (appConfig.getBraveMode().isDnsMode()) {
+                                    Utilities.showToastUiCentered(context, socks5VpnDisabledError, Toast.LENGTH_SHORT)
+                                    reloadUi()
+                                } else if (!appConfig.canEnableHttpProxy()) {
+                                    Utilities.showToastUiCentered(context, httpDisabledError, Toast.LENGTH_SHORT)
+                                    reloadUi()
+                                } else {
+                                    openHttpDialog()
+                                }
+                            }
+                        },
+                        trailing = {
+                            Switch(
+                                checked = httpEnabled,
+                                onCheckedChange = { enabled ->
+                                    if (enabled) {
+                                        if (!canEnableProxy) {
+                                            showProxyDisabledToast()
+                                            reloadUi()
+                                        } else if (appConfig.getBraveMode().isDnsMode()) {
+                                            Utilities.showToastUiCentered(context, socks5VpnDisabledError, Toast.LENGTH_SHORT)
+                                            reloadUi()
+                                        } else if (!appConfig.canEnableHttpProxy()) {
+                                            Utilities.showToastUiCentered(context, httpDisabledError, Toast.LENGTH_SHORT)
+                                            reloadUi()
+                                        } else {
+                                            openHttpDialog()
+                                        }
+                                    } else {
+                                        scope.launch {
+                                            withContext(Dispatchers.IO) {
+                                                appConfig.removeProxy(AppConfig.ProxyType.HTTP, AppConfig.ProxyProvider.CUSTOM)
+                                            }
+                                            logEvent("Custom HTTP disabled")
+                                            reloadUi()
+                                        }
+                                    }
+                                },
+                                enabled = canEnableProxy
+                            )
+                        }
+                    )
+                }
+            }
+
+            // Orbot
+            RethinkAnimatedSection(index = 3) {
+                SectionHeader(title = stringResource(R.string.orbot))
+                RethinkListGroup {
+                    RethinkListItem(
+                            headline = stringResource(R.string.orbot),
+                            supporting = if (orbotConnecting) stringResource(R.string.orbot_bs_status_trying_connect) else orbotDescription,
+                            leadingIconPainter = painterResource(id = R.drawable.ic_orbot),
+                        onClick = {
+                             if (canEnableProxy && !orbotConnecting) {
+                                 if (orbotEnabled) enableOrbotFlow() // Re-configure
+                                 else enableOrbotFlow() // Enable
+                             }
+                        },
+                        trailing = {
+                            Switch(
+                                checked = orbotEnabled,
+                                onCheckedChange = { enabled ->
+                                    if (enabled) {
+                                        enableOrbotFlow()
+                                    } else {
+                                        stopOrbotForwarding(showDialog = true)
+                                    }
+                                },
+                                enabled = canEnableProxy && !orbotConnecting
+                            )
+                        }
+                    )
+
+                    if (canEnableProxy && !orbotConnecting) {
+                         if (mappingViewModel != null) {
+                                RethinkListItem(
+                                    headline = stringResource(R.string.add_remove_apps, orbotAppCount.toString()),
+                                    leadingIconPainter = painterResource(id = R.drawable.ic_app_info_accent),
+                                    onClick = { showOrbotAppsDialog = true }
+                                )
+                         }
+                         RethinkListItem(
+                            headline = stringResource(R.string.settings_orbot_notification_action),
+                            leadingIconPainter = painterResource(id = R.drawable.ic_right_arrow_small),
+                            onClick = { orbotHelper.openOrbotApp() }
+                         )
+                         RethinkListItem(
+                            headline = stringResource(R.string.lbl_info),
+                            leadingIconPainter = painterResource(id = R.drawable.ic_info),
+                            onClick = { showOrbotInfoDialog = true },
+                            showDivider = false
+                         )
+                    }
+                }
+            }
+            Spacer(modifier = Modifier.height(Dimensions.spacing3xl))
         }
     }
 

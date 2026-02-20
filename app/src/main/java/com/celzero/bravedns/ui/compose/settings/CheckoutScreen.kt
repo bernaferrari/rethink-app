@@ -57,6 +57,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.TcpProxyHelper
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.RadioButtonChecked
+import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 
 enum class CheckoutPlan(val titleRes: Int, val subtitleRes: Int) {
@@ -119,115 +127,128 @@ private fun PaymentContent(
     onStartPayment: () -> Unit,
     onNavigateToProxy: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-        TopBanner()
-        Spacer(modifier = Modifier.height(12.dp))
-        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingLg),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
+    ) {
+        // Header
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                            MaterialTheme.colorScheme.surfaceContainerLow
+                        )
+                    ),
+                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
+                )
+                .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
+        ) {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Image(
+                    painter = painterResource(R.drawable.ic_launcher),
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp)
+                )
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = stringResource(R.string.checkout_app_name),
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.checkout_proxy_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+        }
+
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+
         Text(
             text = stringResource(R.string.checkout_choose_plan),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(start = Dimensions.spacingXs)
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        PlanSelector(selectedPlan = selectedPlan, onPlanSelected = onPlanSelected)
-        Spacer(modifier = Modifier.height(12.dp))
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onStartPayment
-        ) {
-            Text(text = stringResource(R.string.checkout_purchase))
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onNavigateToProxy
-        ) {
-            Text(text = stringResource(R.string.checkout_restore))
-        }
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(R.string.checkout_terms_title),
-            style = MaterialTheme.typography.titleSmall,
-            fontWeight = FontWeight.Bold
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = stringResource(R.string.checkout_terms_body),
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-    }
-}
 
-@Composable
-private fun TopBanner() {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Image(
-            painter = painterResource(R.drawable.ic_launcher),
-            contentDescription = stringResource(R.string.checkout_banner_icon_desc),
-            modifier = Modifier.size(72.dp)
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = stringResource(R.string.checkout_app_name),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = stringResource(R.string.checkout_proxy_desc),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-    }
-}
-
-@Composable
-private fun PlanSelector(
-    selectedPlan: CheckoutPlan,
-    onPlanSelected: (CheckoutPlan) -> Unit
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        CheckoutPlan.entries.forEach { plan ->
-            PlanRow(plan = plan, isSelected = selectedPlan == plan, onClick = { onPlanSelected(plan) })
+        RethinkListGroup {
+            CheckoutPlan.entries.forEach { plan ->
+                val isSelected = selectedPlan == plan
+                RethinkListItem(
+                    headline = stringResource(plan.titleRes),
+                    supporting = stringResource(plan.subtitleRes),
+                    leadingIcon = if (isSelected) Icons.Rounded.RadioButtonChecked else Icons.Rounded.RadioButtonUnchecked,
+                    leadingIconTint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    onClick = { onPlanSelected(plan) },
+                    trailing = {
+                        RadioButton(
+                            selected = isSelected,
+                            onClick = null
+                        )
+                    }
+                )
+            }
         }
-    }
-}
 
-@Composable
-private fun PlanRow(plan: CheckoutPlan, isSelected: Boolean, onClick: () -> Unit) {
-    val accent = MaterialTheme.colorScheme.tertiary
-    val subtle = MaterialTheme.colorScheme.onSurfaceVariant
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = isSelected,
-            onClick = onClick
-        )
-        Text(
-            text = buildAnnotatedString {
-                withStyle(SpanStyle(color = accent, fontWeight = FontWeight.Medium)) {
-                    append(stringResource(plan.titleRes))
-                }
-                append(" ")
-                withStyle(SpanStyle(color = subtle)) {
-                    append(stringResource(plan.subtitleRes))
-                }
-            },
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                onClick = onStartPayment,
+                shape = RoundedCornerShape(Dimensions.buttonCornerRadius)
+            ) {
+                Text(
+                    text = stringResource(R.string.checkout_purchase),
+                    style = MaterialTheme.typography.labelLarge
+                )
+            }
+            
+            androidx.compose.material3.OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                onClick = onNavigateToProxy,
+                shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
+                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+            ) {
+                Text(text = stringResource(R.string.checkout_restore))
+            }
+        }
+
+        Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+        
+        Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)) {
+            Text(
+                text = stringResource(R.string.checkout_terms_title),
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = stringResource(R.string.checkout_terms_body),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Spacer(modifier = Modifier.height(Dimensions.spacingLg))
     }
 }
 

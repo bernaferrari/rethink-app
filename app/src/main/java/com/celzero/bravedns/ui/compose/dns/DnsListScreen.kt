@@ -28,14 +28,15 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -46,17 +47,16 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.firestack.backend.Backend
 import kotlinx.coroutines.Dispatchers
@@ -110,9 +110,23 @@ fun DnsListScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
+            Surface(
+                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                tonalElevation = 0.dp
+            ) {
+                Text(
+                    text = stringResource(R.string.lbl_dns_servers),
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
+                )
+            }
+
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 DnsCard(
                     label = stringResource(R.string.dc_doh),
@@ -195,6 +209,7 @@ fun DnsListScreen(
             }
 
             LegendRow()
+            Spacer(modifier = Modifier.height(Dimensions.spacing2xl))
         }
     }
 }
@@ -210,47 +225,49 @@ private fun DnsCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
-    val context = LocalContext.current
     val isSelected = selectedType == type
-    val strokeColor =
-        if (isSelected) {
-            if (selectedWorking) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error
-        } else {
-            Color.Transparent
-        }
+    val containerColor = if (isSelected) {
+        if (selectedWorking) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+        else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerLow
+    }
     val textColor =
         if (isSelected) {
-            if (selectedWorking) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.error
+            if (selectedWorking) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.error
         } else {
-            MaterialTheme.colorScheme.onSurface
+            MaterialTheme.colorScheme.onSurfaceVariant
         }
-    val border =
+    val strokeColor =
         if (isSelected) {
-            BorderStroke(2.dp, strokeColor)
+            if (selectedWorking) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
         } else {
-            null
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
         }
+    val border = if (isSelected) BorderStroke(2.dp, strokeColor) else BorderStroke(0.5.dp, strokeColor)
 
-    Card(
+    Surface(
         modifier = modifier.aspectRatio(1f),
         border = border,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        color = containerColor,
+        tonalElevation = if (isSelected) 2.dp else 0.dp,
         onClick = onClick
     ) {
         Column(
-            modifier = Modifier.padding(16.dp).fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceBetween
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm, Alignment.CenterVertically)
         ) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleSmall,
+                style = MaterialTheme.typography.labelLarge,
                 color = textColor,
                 textAlign = TextAlign.Center
             )
             Text(
                 text = label,
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 color = textColor,
                 textAlign = TextAlign.Center
             )
@@ -269,15 +286,21 @@ private fun DnsCard(
 
 @Composable
 private fun LegendRow() {
-    Row(
-        modifier = Modifier.padding(top = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 1.dp
     ) {
-        LegendItem(R.drawable.dot_red, stringResource(R.string.lbl_fast))
-        LegendItem(R.drawable.dot_yellow, stringResource(R.string.lbl_private))
-        LegendItem(R.drawable.dot_green, stringResource(R.string.lbl_secure))
-        LegendItem(R.drawable.dot_accent, stringResource(R.string.lbl_anonymous))
+        Row(
+            modifier = Modifier.padding(horizontal = Dimensions.spacingLg, vertical = Dimensions.spacingMd).horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingLg),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            LegendItem(R.drawable.dot_red, stringResource(R.string.lbl_fast))
+            LegendItem(R.drawable.dot_yellow, stringResource(R.string.lbl_private))
+            LegendItem(R.drawable.dot_green, stringResource(R.string.lbl_secure))
+            LegendItem(R.drawable.dot_accent, stringResource(R.string.lbl_anonymous))
+        }
     }
 }
 

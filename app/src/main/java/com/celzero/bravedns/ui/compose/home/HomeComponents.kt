@@ -19,7 +19,6 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -38,8 +37,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Stop
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -51,10 +48,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -79,7 +76,7 @@ fun DashboardCard(
         label = "cardScale"
     )
 
-    Card(
+    Surface(
         modifier = modifier
             .fillMaxWidth()
             .scale(scale)
@@ -90,12 +87,8 @@ fun DashboardCard(
                 onClick = onClick
             ),
         shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        border = BorderStroke(
-            width = Dimensions.dividerThickness,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.none)
+        color = backgroundColor,
+        tonalElevation = 1.dp
     ) {
         Column(
             modifier = Modifier.padding(Dimensions.cardPadding)
@@ -104,25 +97,25 @@ fun DashboardCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
             ) {
-                // Tinted circle background for icon
+                // Expressive tinted circle background for icon
                 Box(
                     contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f))
+                        .size(46.dp)
+                        .clip(RoundedCornerShape(15.dp))
+                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
                 ) {
                     Icon(
-                        imageVector = ImageVector.vectorResource(id = iconId),
+                        painter = painterResource(id = iconId),
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(Dimensions.iconSizeMd)
                     )
                 }
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -142,7 +135,7 @@ fun StatItem(
     Column(modifier = modifier) {
         Text(
             text = value,
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.titleLarge,
             fontWeight = FontWeight.Bold,
             color = if (isHighlighted) MaterialTheme.colorScheme.primary
                     else MaterialTheme.colorScheme.onSurface
@@ -151,7 +144,7 @@ fun StatItem(
         Text(
             text = label,
             style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
             fontWeight = FontWeight.Medium
         )
     }
@@ -196,15 +189,15 @@ fun StartStopButton(
             .fillMaxWidth()
             .height(64.dp)
             .scale(scale)
-            .clip(CircleShape) // Capsule shape
+            .clip(RoundedCornerShape(Dimensions.cardCornerRadiusLarge))
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
             ),
-        shape = CircleShape,
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
         color = containerColor,
-        tonalElevation = 4.dp // Add some elevation for prominence
+        tonalElevation = 4.dp
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
@@ -215,7 +208,7 @@ fun StartStopButton(
                 imageVector = icon,
                 contentDescription = null,
                 tint = contentColor,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(30.dp)
             )
             Spacer(modifier = Modifier.width(Dimensions.spacingMd))
             Text(
@@ -224,7 +217,7 @@ fun StartStopButton(
                 fontWeight = FontWeight.ExtraBold,
                 color = contentColor,
                 textAlign = TextAlign.Center,
-                letterSpacing = 1.sp
+                letterSpacing = 1.5.sp
             )
         }
     }

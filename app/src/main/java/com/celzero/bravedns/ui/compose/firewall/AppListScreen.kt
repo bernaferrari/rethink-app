@@ -613,7 +613,7 @@ private fun BulkActionItem(
                     if (isActive)
                         MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
                     else
-                        MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.5f)
+                        MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.5f)
                 )
         ) {
             IconButton(onClick = onClick, modifier = Modifier.size(36.dp)) {

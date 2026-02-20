@@ -1,19 +1,27 @@
 package com.celzero.bravedns.ui.compose.firewall
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.material3.Text
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
@@ -45,7 +53,36 @@ fun FirewallSettingsScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Spacer(modifier = Modifier.height(Dimensions.spacingXs))
+            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                                MaterialTheme.colorScheme.surfaceContainerLow
+                            )
+                        ),
+                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
+                    )
+                    .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = stringResource(id = R.string.firewall_mode_info_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(id = R.string.universal_firewall_explanation),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
 
             SectionHeader(title = stringResource(id = R.string.firewall_act_universal_tab))
             RethinkListGroup {
@@ -74,6 +111,8 @@ fun FirewallSettingsScreen(
                     onClick = onAppWiseIpDomainClick
                 )
             }
+
+            Spacer(modifier = Modifier.height(Dimensions.spacing2xl))
         }
     }
 }

@@ -21,6 +21,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -49,6 +50,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -58,10 +60,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -72,6 +77,7 @@ import com.celzero.bravedns.data.SummaryStatisticsType
 import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 import com.celzero.bravedns.util.UIUtils.formatBytes
@@ -97,9 +103,9 @@ fun SummaryStatisticsScreen(
             ) {
                 ExtendedFloatingActionButton(
                     onClick = { viewModel.setLoadMoreClicked(true) },
-                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
-                    shape = RoundedCornerShape(Dimensions.buttonCornerRadiusLarge),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
                     icon = {
                         Icon(
                             imageVector = ImageVector.vectorResource(R.drawable.ic_arrow_down),
@@ -272,20 +278,31 @@ fun SummaryStatisticsScreen(
 
 @Composable
 private fun HeaderSection() {
-    Column {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
+                        MaterialTheme.colorScheme.background
+                    )
+                ),
+                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
+            )
+            .padding(horizontal = Dimensions.spacingLg, vertical = Dimensions.spacingXl)
+    ) {
         Text(
-            text = stringResource(id = R.string.app_name_small_case),
+            text = stringResource(id = R.string.title_statistics),
             style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Light,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.alpha(Dimensions.Opacity.LOW)
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
         )
         Spacer(modifier = Modifier.height(Dimensions.spacingXs))
         Text(
             text = stringResource(id = R.string.about_title_desc),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.alpha(Dimensions.Opacity.MEDIUM)
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         )
     }
 }
@@ -323,19 +340,13 @@ private fun TimeCategorySelector(
 
 @Composable
 private fun UsageProgressHeader(dataUsage: DataUsageSummary) {
-    Card(
+    Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        border = BorderStroke(
-            width = Dimensions.dividerThickness,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
-        ),
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.none)
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 2.dp
     ) {
-        Column(modifier = Modifier.padding(Dimensions.cardPadding)) {
+        Column(modifier = Modifier.padding(Dimensions.spacingXl)) {
             val total = dataUsage.totalDownload + dataUsage.totalUpload
             val progress = remember(total, dataUsage.totalDownload) {
                 if (total > 0) (dataUsage.totalDownload.toFloat() / total.toFloat()) else 0f
@@ -345,8 +356,8 @@ private fun UsageProgressHeader(dataUsage: DataUsageSummary) {
                 progress = { progress },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(4.dp)),
+                    .height(10.dp)
+                    .clip(RoundedCornerShape(5.dp)),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
             )
@@ -440,13 +451,9 @@ private fun StatSection(
 
         Card(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+            shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-            ),
-            border = BorderStroke(
-                width = Dimensions.dividerThickness,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
             ),
             elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.none)
         ) {
@@ -462,10 +469,10 @@ private fun StatSection(
                             StatItemRow(item = item, type = type)
                             if (i < minOf(pagingItems.itemCount, 5) - 1) {
                                 HorizontalDivider(
-                                    modifier = Modifier.padding(horizontal = Dimensions.cardPadding),
+                                    modifier = Modifier.padding(horizontal = Dimensions.spacingXl),
                                     thickness = Dimensions.dividerThickness,
                                     color = MaterialTheme.colorScheme.outlineVariant.copy(
-                                        alpha = Dimensions.Opacity.LOW
+                                        alpha = 0.3f
                                     )
                                 )
                             }
@@ -485,7 +492,7 @@ private fun StatItemRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(Dimensions.cardPadding),
+            .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacingMd),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Icon/Flag
@@ -496,12 +503,22 @@ private fun StatItemRow(
                 modifier = Modifier.size(Dimensions.iconSizeLg)
             )
         } else {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = R.drawable.ic_app_info),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(Dimensions.iconSizeLg)
-            )
+            androidx.compose.material3.Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+            ) {
+                androidx.compose.foundation.layout.Box(
+                    modifier = Modifier.size(38.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_app_info),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
         }
 
         Spacer(modifier = Modifier.width(Dimensions.spacingLg))

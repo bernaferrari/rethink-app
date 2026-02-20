@@ -16,24 +16,19 @@
 package com.celzero.bravedns.ui.compose.proxy
 
 import android.widget.Toast
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -46,21 +41,24 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.TcpProxyHelper
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
 import io.github.aakira.napier.Napier
@@ -205,143 +203,107 @@ fun TcpProxyMainScreen(
     }
 
     Scaffold(
-        topBar = {
-            RethinkTopBar(
-                title = stringResource(R.string.settings_proxy_header),
-                onBackClick = onBackClick
-            )
-        }
-    ) { padding ->
+        containerColor = MaterialTheme.colorScheme.background
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(paddingValues)
+                .padding(horizontal = Dimensions.screenPaddingHorizontal)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            // Rethink Proxy Card
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_wireguard_icon),
-                                contentDescription = null,
-                                modifier = Modifier.size(40.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = stringResource(R.string.tcp_proxy_rethink_proxy_title),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        Switch(
-                            checked = tcpProxySwitchChecked,
-                            onCheckedChange = { onTcpProxySwitchChanged(it) }
-                        )
-                    }
+            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
 
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Text(
-                        text = tcpProxyDesc,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+            // Header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f),
+                                MaterialTheme.colorScheme.surfaceContainerLow
+                            )
+                        ),
+                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
                     )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
+                    .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(
-                        text = tcpProxyStatus,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = stringResource(id = R.string.settings_proxy_header),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
-
-                    Spacer(modifier = Modifier.height(10.dp))
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(
-                            text = stringResource(R.string.tcp_proxy_enable_udp_relay),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Switch(
-                            checked = enableUdpRelayChecked,
-                            onCheckedChange = { enableUdpRelayChecked = it }
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    Button(onClick = { openAppsDialog() }) {
-                        Text(text = tcpProxyAddAppsText)
-                    }
-
-                    if (tcpErrorVisible) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = tcpErrorText,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            }
-
-            // Cloudflare WARP Card
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Image(
-                                painter = painterResource(id = R.drawable.ic_wireguard_icon),
-                                contentDescription = null,
-                                modifier = Modifier.size(40.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = stringResource(R.string.tcp_proxy_cloudflare_warp_title),
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
-                        Switch(
-                            checked = warpSwitchChecked,
-                            onCheckedChange = { warpSwitchChecked = it }
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
                     Text(
-                        text = stringResource(R.string.tcp_proxy_cloudflare_warp_desc),
+                        text = stringResource(id = R.string.settings_https_desc),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = "",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
                     )
                 }
             }
+
+            // Rethink Proxy Section
+            RethinkAnimatedSection(index = 0) {
+                SectionHeader(title = stringResource(id = R.string.tcp_proxy_rethink_proxy_title))
+                RethinkListGroup {
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.tcp_proxy_rethink_proxy_title),
+                        supporting = if (tcpErrorVisible) tcpErrorText else tcpProxyStatus.ifEmpty { tcpProxyDesc },
+                        leadingIconPainter = painterResource(id = R.drawable.ic_wireguard_icon),
+                        onClick = { onTcpProxySwitchChanged(!tcpProxySwitchChecked) },
+                        trailing = {
+                            Switch(
+                                checked = tcpProxySwitchChecked,
+                                onCheckedChange = { onTcpProxySwitchChanged(it) }
+                            )
+                        }
+                    )
+                    
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.tcp_proxy_enable_udp_relay),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_wireguard_icon),
+                        onClick = { enableUdpRelayChecked = !enableUdpRelayChecked },
+                        trailing = {
+                            Switch(
+                                checked = enableUdpRelayChecked,
+                                onCheckedChange = { enableUdpRelayChecked = it }
+                            )
+                        }
+                    )
+
+                    RethinkListItem(
+                        headline = tcpProxyAddAppsText,
+                        leadingIconPainter = painterResource(id = R.drawable.ic_app_info_accent),
+                        onClick = { openAppsDialog() },
+                        showDivider = false
+                    )
+                }
+            }
+
+            // Cloudflare WARP Section
+            RethinkAnimatedSection(index = 1) {
+                SectionHeader(title = stringResource(id = R.string.tcp_proxy_cloudflare_warp_title))
+                RethinkListGroup {
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.tcp_proxy_cloudflare_warp_title),
+                        supporting = stringResource(id = R.string.tcp_proxy_cloudflare_warp_desc),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_wireguard_icon),
+                        onClick = { warpSwitchChecked = !warpSwitchChecked },
+                        showDivider = false,
+                        trailing = {
+                            Switch(
+                                checked = warpSwitchChecked,
+                                onCheckedChange = { warpSwitchChecked = it }
+                            )
+                        }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(Dimensions.spacing3xl))
         }
     }
 }

@@ -16,37 +16,39 @@
 package com.celzero.bravedns.ui.compose.settings
 
 import android.widget.Toast
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Card
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.RadioButtonChecked
+import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
@@ -118,6 +120,7 @@ fun AntiCensorshipScreen(
     val context = LocalContext.current
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             RethinkTopBar(
                 title = stringResource(R.string.anti_censorship_title),
@@ -130,15 +133,44 @@ fun AntiCensorshipScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
                 .verticalScroll(rememberScrollState())
-                .padding(16.dp)
+                .padding(horizontal = Dimensions.screenPaddingHorizontal),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            SectionHeader(
-                title = stringResource(R.string.anti_censorship_title).lowercase(),
-                description = stringResource(R.string.ac_desc)
-            )
+            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
 
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+            // Header
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
+                                MaterialTheme.colorScheme.surfaceContainerLow
+                            )
+                        ),
+                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
+                    )
+                    .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
+            ) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Text(
+                        text = stringResource(R.string.anti_censorship_title),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.ac_desc),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                }
+            }
+
+            RethinkAnimatedSection(index = 0) {
+                SectionHeader(title = stringResource(R.string.anti_censorship_title))
+                RethinkListGroup {
                     DialStrategies.entries.forEach { strategy ->
                         if (!desyncSupported && strategy == DialStrategies.DESYNC) return@forEach
                         val titleRes = when (strategy) {
@@ -157,10 +189,12 @@ fun AntiCensorshipScreen(
                             DialStrategies.DESYNC -> R.string.ac_desync_desc
                             DialStrategies.TCP_PROXY -> R.string.ac_tcp_proxy_desc
                         }
-                        OptionRow(
-                            title = stringResource(titleRes),
-                            description = stringResource(descRes),
-                            selected = dialSelection == strategy,
+                        
+                        RethinkListItem(
+                            headline = stringResource(titleRes),
+                            supporting = stringResource(descRes),
+                            leadingIcon = if (dialSelection == strategy) Icons.Rounded.RadioButtonChecked else Icons.Rounded.RadioButtonUnchecked,
+                            leadingIconTint = if (dialSelection == strategy) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                             onClick = {
                                 if (dialSelection != strategy) {
                                     dialSelection = strategy
@@ -175,20 +209,28 @@ fun AntiCensorshipScreen(
                                     retrySelection = nextRetry
                                     eventLogger.log(EventType.UI_TOGGLE, Severity.LOW, "Anti-censorship UI", EventSource.UI, false, "Anti-censorship dial strategy changed to ${strategy.mode}")
                                 }
+                            },
+                            trailing = {
+                                RadioButton(
+                                    selected = dialSelection == strategy,
+                                    onClick = null // handled by list item
+                                )
                             }
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
-            SectionHeader(
-                title = stringResource(R.string.ac_retry_options_title),
-                description = stringResource(R.string.ac_retry_options_desc)
-            )
-
-            Card(modifier = Modifier.fillMaxWidth()) {
-                Column(modifier = Modifier.padding(vertical = 4.dp)) {
+            RethinkAnimatedSection(index = 1) {
+                SectionHeader(title = stringResource(R.string.ac_retry_options_title))
+                Text(
+                    text = stringResource(R.string.ac_retry_options_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingXs)
+                )
+                
+                RethinkListGroup {
                     RetryStrategies.entries.forEach { strategy ->
                         val titleRes = when (strategy) {
                             RetryStrategies.RETRY_NEVER -> R.string.settings_app_list_default_app
@@ -202,10 +244,16 @@ fun AntiCensorshipScreen(
                         }
                         val enabled = dialSelection != DialStrategies.NEVER_SPLIT ||
                                 strategy == RetryStrategies.RETRY_NEVER
-                        OptionRow(
-                            title = stringResource(titleRes),
-                            description = stringResource(descRes),
-                            selected = retrySelection == strategy,
+                        
+                        RethinkListItem(
+                            headline = stringResource(titleRes),
+                            supporting = stringResource(descRes),
+                            leadingIcon = if (retrySelection == strategy) Icons.Rounded.RadioButtonChecked else Icons.Rounded.RadioButtonUnchecked,
+                            leadingIconTint = if (enabled) {
+                                if (retrySelection == strategy) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                            },
                             enabled = enabled,
                             onClick = {
                                 if (!enabled) {
@@ -214,7 +262,7 @@ fun AntiCensorshipScreen(
                                         context.resources.getString(R.string.ac_toast_retry_disabled),
                                         Toast.LENGTH_LONG
                                     )
-                                    return@OptionRow
+                                    return@RethinkListItem
                                 }
                                 if (retrySelection != strategy) {
                                     var mode = strategy.mode
@@ -227,71 +275,20 @@ fun AntiCensorshipScreen(
                                     retrySelection = strategy
                                     eventLogger.log(EventType.UI_TOGGLE, Severity.LOW, "Anti-censorship UI", EventSource.UI, false, "Anti-censorship retry strategy changed to $mode")
                                 }
+                            },
+                            trailing = {
+                                RadioButton(
+                                    selected = retrySelection == strategy,
+                                    onClick = null,
+                                    enabled = enabled
+                                )
                             }
                         )
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun SectionHeader(title: String, description: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
-    )
-    Text(
-        text = description,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(bottom = 8.dp)
-    )
-}
-
-@Composable
-private fun OptionRow(
-    title: String,
-    description: String,
-    selected: Boolean,
-    enabled: Boolean = true,
-    onClick: () -> Unit
-) {
-    val modifier = if (enabled) {
-        Modifier.clickable { onClick() }
-    } else {
-        Modifier
-    }
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(horizontal = 12.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        RadioButton(
-            selected = selected,
-            onClick = if (enabled) onClick else null
-        )
-        Spacer(modifier = Modifier.width(6.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = if (enabled) {
-                    MaterialTheme.colorScheme.onSurface
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
-            )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            
+            Spacer(modifier = Modifier.height(Dimensions.spacingXl))
         }
     }
 }
