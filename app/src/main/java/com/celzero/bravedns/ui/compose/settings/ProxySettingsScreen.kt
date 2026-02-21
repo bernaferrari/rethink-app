@@ -58,6 +58,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -83,10 +85,11 @@ import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
+import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import androidx.compose.ui.res.painterResource
 import com.celzero.bravedns.util.OrbotHelper
@@ -355,11 +358,15 @@ fun ProxySettingsScreen(
         orbotDescription = state.orbotDescription
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.settings_proxy_header),
                 onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior,
                 actions = {
                     if (canEnableProxy) {
                         IconButton(
@@ -396,15 +403,6 @@ fun ProxySettingsScreen(
                 ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            item {
-                ProxyOverviewCard(
-                    canEnableProxy = canEnableProxy,
-                    socks5Enabled = socks5Enabled,
-                    httpEnabled = httpEnabled,
-                    orbotEnabled = orbotEnabled
-                )
-            }
-
             if (!canEnableProxy) {
                 item {
                     Surface(
@@ -430,6 +428,7 @@ fun ProxySettingsScreen(
                             headline = stringResource(R.string.setup_wireguard),
                             supporting = wireguardDescription,
                             leadingIconPainter = painterResource(id = R.drawable.ic_wireguard_icon),
+                            position = CardPosition.Single,
                             onClick = {
                                 if (!canEnableProxy) {
                                     showProxyDisabledToast()
@@ -450,6 +449,7 @@ fun ProxySettingsScreen(
                         headline = stringResource(R.string.settings_socks5_heading),
                         supporting = socks5Description,
                         leadingIconPainter = painterResource(id = R.drawable.ic_socks5),
+                        position = CardPosition.Single,
                         onClick = {
                             if (canEnableProxy && socks5Enabled) {
                                 openSocksDialog()
@@ -477,10 +477,18 @@ fun ProxySettingsScreen(
                                             showProxyDisabledToast()
                                             reloadUi()
                                         } else if (appConfig.getBraveMode().isDnsMode()) {
-                                            Utilities.showToastUiCentered(context, socks5VpnDisabledError, Toast.LENGTH_SHORT)
+                                            Utilities.showToastUiCentered(
+                                                context,
+                                                socks5VpnDisabledError,
+                                                Toast.LENGTH_SHORT
+                                            )
                                             reloadUi()
                                         } else if (!appConfig.canEnableSocks5Proxy()) {
-                                            Utilities.showToastUiCentered(context, socks5DisabledError, Toast.LENGTH_SHORT)
+                                            Utilities.showToastUiCentered(
+                                                context,
+                                                socks5DisabledError,
+                                                Toast.LENGTH_SHORT
+                                            )
                                             reloadUi()
                                         } else {
                                             openSocksDialog()
@@ -488,7 +496,10 @@ fun ProxySettingsScreen(
                                     } else {
                                         scope.launch {
                                             withContext(Dispatchers.IO) {
-                                                appConfig.removeProxy(AppConfig.ProxyType.SOCKS5, AppConfig.ProxyProvider.CUSTOM)
+                                                appConfig.removeProxy(
+                                                    AppConfig.ProxyType.SOCKS5,
+                                                    AppConfig.ProxyProvider.CUSTOM
+                                                )
                                             }
                                             logEvent("Custom SOCKS5 disabled")
                                             reloadUi()
@@ -510,6 +521,7 @@ fun ProxySettingsScreen(
                         headline = stringResource(R.string.settings_https_heading),
                         supporting = httpDescription,
                         leadingIconPainter = painterResource(id = R.drawable.ic_http),
+                        position = CardPosition.Single,
                         onClick = {
                             if (canEnableProxy && httpEnabled) {
                                 openHttpDialog()
@@ -537,10 +549,18 @@ fun ProxySettingsScreen(
                                             showProxyDisabledToast()
                                             reloadUi()
                                         } else if (appConfig.getBraveMode().isDnsMode()) {
-                                            Utilities.showToastUiCentered(context, socks5VpnDisabledError, Toast.LENGTH_SHORT)
+                                            Utilities.showToastUiCentered(
+                                                context,
+                                                socks5VpnDisabledError,
+                                                Toast.LENGTH_SHORT
+                                            )
                                             reloadUi()
                                         } else if (!appConfig.canEnableHttpProxy()) {
-                                            Utilities.showToastUiCentered(context, httpDisabledError, Toast.LENGTH_SHORT)
+                                            Utilities.showToastUiCentered(
+                                                context,
+                                                httpDisabledError,
+                                                Toast.LENGTH_SHORT
+                                            )
                                             reloadUi()
                                         } else {
                                             openHttpDialog()
@@ -548,7 +568,10 @@ fun ProxySettingsScreen(
                                     } else {
                                         scope.launch {
                                             withContext(Dispatchers.IO) {
-                                                appConfig.removeProxy(AppConfig.ProxyType.HTTP, AppConfig.ProxyProvider.CUSTOM)
+                                                appConfig.removeProxy(
+                                                    AppConfig.ProxyType.HTTP,
+                                                    AppConfig.ProxyProvider.CUSTOM
+                                                )
                                             }
                                             logEvent("Custom HTTP disabled")
                                             reloadUi()
@@ -566,10 +589,12 @@ fun ProxySettingsScreen(
             item {
                 SectionHeader(title = stringResource(R.string.orbot))
                 RethinkListGroup {
+                    val isAdvancedVisible = canEnableProxy && !orbotConnecting
                     RethinkListItem(
                         headline = stringResource(R.string.orbot),
                         supporting = if (orbotConnecting) stringResource(R.string.orbot_bs_status_trying_connect) else orbotDescription,
                         leadingIconPainter = painterResource(id = R.drawable.ic_orbot),
+                        position = if (isAdvancedVisible) CardPosition.First else CardPosition.Single,
                         onClick = {
                             if (canEnableProxy && !orbotConnecting) {
                                 if (orbotEnabled) enableOrbotFlow() else enableOrbotFlow()
@@ -590,24 +615,26 @@ fun ProxySettingsScreen(
                         }
                     )
 
-                    if (canEnableProxy && !orbotConnecting) {
+                    if (isAdvancedVisible) {
                         if (mappingViewModel != null) {
                             RethinkListItem(
                                 headline = stringResource(R.string.add_remove_apps, orbotAppCount.toString()),
                                 leadingIconPainter = painterResource(id = R.drawable.ic_app_info_accent),
+                                position = CardPosition.Middle,
                                 onClick = { showOrbotAppsDialog = true }
                             )
                         }
                         RethinkListItem(
                             headline = stringResource(R.string.settings_orbot_notification_action),
                             leadingIconPainter = painterResource(id = R.drawable.ic_right_arrow_small),
+                            position = CardPosition.Middle,
                             onClick = { orbotHelper.openOrbotApp() }
                         )
                         RethinkListItem(
                             headline = stringResource(R.string.lbl_info),
                             leadingIconPainter = painterResource(id = R.drawable.ic_info),
-                            onClick = { showOrbotInfoDialog = true },
-                            showDivider = false
+                            position = CardPosition.Last,
+                            onClick = { showOrbotInfoDialog = true }
                         )
                     }
                 }
@@ -1463,6 +1490,7 @@ private suspend fun formatOrbotDescription(
         AppConfig.ProxyType.HTTP.name -> {
             context.resources.getString(R.string.orbot_bs_status_2)
         }
+
         AppConfig.ProxyType.SOCKS5.name -> {
             if (isOrbotDns) {
                 context.resources.getString(
@@ -1476,6 +1504,7 @@ private suspend fun formatOrbotDescription(
                 )
             }
         }
+
         AppConfig.ProxyType.HTTP_SOCKS5.name -> {
             if (isOrbotDns) {
                 context.resources.getString(
@@ -1489,6 +1518,7 @@ private suspend fun formatOrbotDescription(
                 )
             }
         }
+
         else -> context.resources.getString(R.string.orbot_bs_status_4)
     }
 }
@@ -1536,12 +1566,12 @@ private fun isDnsError(statusId: Long?): Boolean {
 
     val s = Transaction.Status.fromId(statusId)
     return s == Transaction.Status.BAD_QUERY ||
-        s == Transaction.Status.BAD_RESPONSE ||
-        s == Transaction.Status.NO_RESPONSE ||
-        s == Transaction.Status.SEND_FAIL ||
-        s == Transaction.Status.CLIENT_ERROR ||
-        s == Transaction.Status.INTERNAL_ERROR ||
-        s == Transaction.Status.TRANSPORT_ERROR
+            s == Transaction.Status.BAD_RESPONSE ||
+            s == Transaction.Status.NO_RESPONSE ||
+            s == Transaction.Status.SEND_FAIL ||
+            s == Transaction.Status.CLIENT_ERROR ||
+            s == Transaction.Status.INTERNAL_ERROR ||
+            s == Transaction.Status.TRANSPORT_ERROR
 }
 
 private fun getProxyStatusText(
@@ -1573,11 +1603,11 @@ private fun getProxyStatusText(
     val handshakeTime =
         if (stats != null && stats.lastOK > 0L) {
             DateUtils.getRelativeTimeSpanString(
-                    stats.lastOK,
-                    now,
-                    DateUtils.MINUTE_IN_MILLIS,
-                    DateUtils.FORMAT_ABBREV_RELATIVE
-                )
+                stats.lastOK,
+                now,
+                DateUtils.MINUTE_IN_MILLIS,
+                DateUtils.FORMAT_ABBREV_RELATIVE
+            )
                 .toString()
         } else {
             null

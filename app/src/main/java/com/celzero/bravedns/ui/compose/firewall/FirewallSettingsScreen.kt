@@ -1,30 +1,28 @@
 package com.celzero.bravedns.ui.compose.firewall
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import com.celzero.bravedns.R
+import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FirewallSettingsScreen(
     onUniversalFirewallClick: () -> Unit,
@@ -32,12 +30,16 @@ fun FirewallSettingsScreen(
     onAppWiseIpDomainClick: () -> Unit,
     onBackClick: (() -> Unit)? = null
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(id = R.string.firewall_mode_info_title),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
@@ -54,46 +56,20 @@ fun FirewallSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
             item {
-                Surface(
-                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f))
-                ) {
-                    Column(
-                        modifier = Modifier.padding(
-                            horizontal = Dimensions.spacingLg,
-                            vertical = Dimensions.spacingMd
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.firewall_mode_info_title),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = stringResource(id = R.string.universal_firewall_explanation),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            item {
                 SectionHeader(title = stringResource(id = R.string.firewall_act_universal_tab))
                 RethinkListGroup {
                     RethinkListItem(
                         headline = stringResource(id = R.string.univ_firewall_heading),
                         supporting = stringResource(id = R.string.universal_firewall_explanation),
                         leadingIconPainter = painterResource(id = R.drawable.universal_firewall),
+                        position = CardPosition.First,
                         onClick = onUniversalFirewallClick
                     )
                     RethinkListItem(
                         headline = stringResource(id = R.string.univ_view_blocked_ip),
                         supporting = stringResource(id = R.string.univ_view_blocked_ip_desc),
                         leadingIconPainter = painterResource(id = R.drawable.universal_ip_rule),
-                        showDivider = false,
+                        position = CardPosition.Last,
                         onClick = onCustomIpDomainClick
                     )
                 }
@@ -106,7 +82,7 @@ fun FirewallSettingsScreen(
                         headline = stringResource(id = R.string.app_ip_domain_rules),
                         supporting = stringResource(id = R.string.app_ip_domain_rules_desc),
                         leadingIconPainter = painterResource(id = R.drawable.ic_ip_address),
-                        showDivider = false,
+                        position = CardPosition.Single,
                         onClick = onAppWiseIpDomainClick
                     )
                 }

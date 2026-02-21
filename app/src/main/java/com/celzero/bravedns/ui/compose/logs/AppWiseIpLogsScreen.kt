@@ -61,7 +61,9 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -81,7 +83,7 @@ import com.celzero.bravedns.database.AppInfo
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.ui.bottomsheet.AppIpRulesSheet
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
@@ -113,8 +115,8 @@ fun AppWiseIpLogsScreen(
     val showDeleteIcon = remember { !isAsn }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf(AppConnectionsViewModel.TimeCategory.SEVEN_DAYS) }
-    val isRethinkApp = remember(uid) { 
-        Utilities.getApplicationInfo(context, context.packageName)?.uid == uid 
+    val isRethinkApp = remember(uid) {
+        Utilities.getApplicationInfo(context, context.packageName)?.uid == uid
     }
 
     LaunchedEffect(uid) {
@@ -138,10 +140,18 @@ fun AppWiseIpLogsScreen(
             }
             val appNameTruncated = appName.substring(0, appName.length.coerceAtMost(10))
             val hint = if (isAsn) {
-                val txt = context.resources.getString(R.string.two_argument_space, context.resources.getString(R.string.lbl_search), context.resources.getString(R.string.lbl_service_providers))
+                val txt = context.resources.getString(
+                    R.string.two_argument_space,
+                    context.resources.getString(R.string.lbl_search),
+                    context.resources.getString(R.string.lbl_service_providers)
+                )
                 context.resources.getString(R.string.two_argument_colon, appNameTruncated, txt)
             } else {
-                context.resources.getString(R.string.two_argument_colon, appNameTruncated, context.resources.getString(R.string.search_universal_ips))
+                context.resources.getString(
+                    R.string.two_argument_colon,
+                    appNameTruncated,
+                    context.resources.getString(R.string.search_universal_ips)
+                )
             }
             val icon = Utilities.getIcon(context, info.packageName, info.appName)
             withContext(Dispatchers.Main) {
@@ -152,11 +162,15 @@ fun AppWiseIpLogsScreen(
         }
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = appInfo?.appName ?: "",
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -186,7 +200,10 @@ fun AppWiseIpLogsScreen(
 
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             Surface(
-                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+                modifier = Modifier.padding(
+                    horizontal = Dimensions.screenPaddingHorizontal,
+                    vertical = Dimensions.spacingSm
+                ),
                 shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
                 tonalElevation = 1.dp
@@ -209,7 +226,10 @@ fun AppWiseIpLogsScreen(
             }
 
             Column(
-                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingMd)
+                modifier = Modifier.padding(
+                    horizontal = Dimensions.screenPaddingHorizontal,
+                    vertical = Dimensions.spacingMd
+                )
             ) {
                 ToggleRow(
                     selectedCategory = selectedCategory,
@@ -253,9 +273,21 @@ private fun ToggleRow(
         verticalAlignment = Alignment.CenterVertically
     ) {
         listOf(
-            AppConnectionsViewModel.TimeCategory.ONE_HOUR to stringResource(R.string.ci_desc, "1", stringResource(R.string.lbl_hour)),
-            AppConnectionsViewModel.TimeCategory.TWENTY_FOUR_HOUR to stringResource(R.string.ci_desc, "24", stringResource(R.string.lbl_hour)),
-            AppConnectionsViewModel.TimeCategory.SEVEN_DAYS to stringResource(R.string.ci_desc, "7", stringResource(R.string.lbl_day))
+            AppConnectionsViewModel.TimeCategory.ONE_HOUR to stringResource(
+                R.string.ci_desc,
+                "1",
+                stringResource(R.string.lbl_hour)
+            ),
+            AppConnectionsViewModel.TimeCategory.TWENTY_FOUR_HOUR to stringResource(
+                R.string.ci_desc,
+                "24",
+                stringResource(R.string.lbl_hour)
+            ),
+            AppConnectionsViewModel.TimeCategory.SEVEN_DAYS to stringResource(
+                R.string.ci_desc,
+                "7",
+                stringResource(R.string.lbl_day)
+            )
         ).forEach { (category, label) ->
             ToggleButton(
                 label = label,
@@ -347,7 +379,12 @@ private fun HeaderRow(
                 modifier = Modifier.weight(1f),
                 singleLine = true,
                 enabled = !isAsn,
-                placeholder = { Text(text = searchHint.ifEmpty { stringResource(R.string.search_universal_ips) }, style = MaterialTheme.typography.bodyMedium) },
+                placeholder = {
+                    Text(
+                        text = searchHint.ifEmpty { stringResource(R.string.search_universal_ips) },
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
                 colors = OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = Color.Transparent,
                     unfocusedBorderColor = Color.Transparent,
@@ -393,7 +430,7 @@ private fun AppWiseIpList(
     var selectedIp by remember { mutableStateOf("") }
     var selectedDomains by remember { mutableStateOf("") }
     var refreshToken by remember { mutableStateOf(0) }
-    
+
     if (showIpRulesSheet && selectedIp.isNotEmpty()) {
         AppIpRulesSheet(
             uid = uid,
@@ -416,7 +453,10 @@ private fun AppWiseIpList(
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+        contentPadding = PaddingValues(
+            horizontal = Dimensions.screenPaddingHorizontal,
+            vertical = Dimensions.spacingSm
+        ),
         verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
     ) {
         items(count = items.itemCount) { index ->
@@ -428,7 +468,8 @@ private fun AppWiseIpList(
                 onIpClick = { conn ->
                     if (!isAsn) {
                         selectedIp = conn.ipAddress
-                        selectedDomains = removeBeginningTrailingCommas(conn.appOrDnsName ?: "").replace(",,", ",").replace(",", ", ")
+                        selectedDomains =
+                            removeBeginningTrailingCommas(conn.appOrDnsName ?: "").replace(",,", ",").replace(",", ", ")
                         showIpRulesSheet = true
                     }
                 }

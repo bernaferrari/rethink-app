@@ -42,6 +42,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -50,6 +51,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -60,7 +62,7 @@ import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.wireguard.Config
 import com.celzero.bravedns.wireguard.WgInterface
@@ -73,6 +75,7 @@ import kotlinx.coroutines.withContext
 
 private const val CLIPBOARD_PUBLIC_KEY_LBL = "Public Key"
 private const val DEFAULT_MTU = "-1"
+
 // when dns is set to auto, the default dns is set to 1.1.1.1. this differs from official
 // wireguard for android, because rethink requires a dns to be set in "Simple" mode
 private const val DEFAULT_DNS = "1.1.1.1"
@@ -231,11 +234,15 @@ fun WgConfigEditorScreen(
         }
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.lbl_configure),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { padding ->

@@ -15,9 +15,7 @@
  */
 package com.celzero.bravedns.ui.compose.settings
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -28,27 +26,28 @@ import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AdvancedSettingsScreen(
     persistentState: PersistentState,
@@ -62,12 +61,16 @@ fun AdvancedSettingsScreen(
     var autoDialEnabled by remember { mutableStateOf(persistentState.autoDialsParallel) }
     var panicEnabled by remember { mutableStateOf(persistentState.panicRandom) }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(id = R.string.lbl_advanced),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { padding ->
@@ -85,37 +88,13 @@ fun AdvancedSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
             item {
-                Surface(
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
-                    tonalElevation = 1.dp
-                ) {
-                    Column(
-                        modifier = Modifier.padding(Dimensions.spacingXl),
-                        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.lbl_advanced),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Text(
-                            text = "Developer-only networking controls. These options are experimental and may affect reliability.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
-            item {
                 SectionHeader(title = stringResource(id = R.string.lbl_advanced))
                 RethinkListGroup {
                     RethinkListItem(
                         headline = stringResource(id = R.string.adv_set_experimental_title),
                         supporting = stringResource(id = R.string.adv_set_experimental_desc),
                         leadingIcon = Icons.Filled.Build,
+                        position = CardPosition.First,
                         onClick = {
                             experimentalEnabled = !experimentalEnabled
                             persistentState.nwEngExperimentalFeatures = experimentalEnabled
@@ -135,6 +114,7 @@ fun AdvancedSettingsScreen(
                         headline = stringResource(id = R.string.set_auto_dial_title),
                         supporting = stringResource(id = R.string.set_auto_dial_desc),
                         leadingIcon = Icons.Filled.Tune,
+                        position = CardPosition.Middle,
                         onClick = {
                             autoDialEnabled = !autoDialEnabled
                             persistentState.autoDialsParallel = autoDialEnabled
@@ -154,7 +134,7 @@ fun AdvancedSettingsScreen(
                         headline = "Random panic",
                         supporting = "Debug-only chaos mode for tunnel reliability testing.",
                         leadingIcon = Icons.Filled.Warning,
-                        showDivider = false,
+                        position = CardPosition.Last,
                         onClick = {
                             panicEnabled = !panicEnabled
                             persistentState.panicRandom = panicEnabled

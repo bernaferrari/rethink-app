@@ -15,6 +15,10 @@
  */
 package com.celzero.bravedns.ui.compose.home
 
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -48,6 +52,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
@@ -60,33 +65,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import kotlinx.coroutines.launch
 
 @Composable
 fun WelcomeScreen(onFinish: () -> Unit) {
     val slides = remember {
         listOf(
-            WelcomeSlide(
-                image = R.drawable.ic_launcher,
-                title = R.string.slide_2_title,
-                desc = R.string.slide_2_desc
-            ),
-            WelcomeSlide(
-                image = R.drawable.ic_wireguard_welcome,
-                title = R.string.wireguard_title,
-                desc = R.string.wireguard_desc
-            ),
-            WelcomeSlide(
-                image = R.drawable.ic_firewall_welcome,
-                title = R.string.firewall_title,
-                desc = R.string.firewall_desc
-            ),
-            WelcomeSlide(
-                image = R.drawable.ic_dns_welcome,
-                title = R.string.dns_title,
-                desc = R.string.dns_desc
-            )
+            WelcomeSlide(R.drawable.ic_launcher, R.string.slide_2_title, R.string.slide_2_desc),
+            WelcomeSlide(R.drawable.ic_wireguard_welcome, R.string.wireguard_title, R.string.wireguard_desc),
+            WelcomeSlide(R.drawable.ic_firewall_welcome, R.string.firewall_title, R.string.firewall_desc),
+            WelcomeSlide(R.drawable.ic_dns_welcome, R.string.dns_title, R.string.dns_desc)
         )
     }
 
@@ -94,68 +82,63 @@ fun WelcomeScreen(onFinish: () -> Unit) {
     val scope = rememberCoroutineScope()
     val isLastPage = pagerState.currentPage >= slides.lastIndex
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.surface,
-        topBar = {
-            RethinkTopBar(
-                title = stringResource(R.string.app_name),
-                actions = {
-                    if (!isLastPage) {
-                        TextButton(onClick = onFinish) {
-                            Text(text = stringResource(R.string.skip))
-                        }
-                    }
-                }
-            )
-        }
-    ) { paddingValues ->
+    Scaffold(containerColor = MaterialTheme.colorScheme.surface) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
                 .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
+            // Skip link — top right, subtle
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = 8.dp),
+                horizontalArrangement = Arrangement.End
+            ) {
+                if (!isLastPage) {
+                    TextButton(onClick = onFinish) {
+                        Text(
+                            text = stringResource(R.string.skip),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // Full slide pager — takes all available space
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier
                     .weight(1f)
-                    .padding(top = Dimensions.spacingSm),
+                    .padding(horizontal = Dimensions.screenPaddingHorizontal),
                 pageSpacing = 12.dp,
                 beyondViewportPageCount = 1
             ) { page ->
-                WelcomeSlideContent(
-                    slide = slides[page]
-                )
+                WelcomeSlideContent(slide = slides[page])
             }
 
+            // Bottom nav area
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = Dimensions.screenPaddingHorizontal)
-                    .padding(bottom = Dimensions.spacingLg),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(top = 20.dp, bottom = 28.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                PillDotIndicator(
-                    count = slides.size,
-                    pagerState = pagerState
-                )
-
-                Spacer(modifier = Modifier.height(Dimensions.spacingXl))
+                PillDotIndicator(count = slides.size, pagerState = pagerState)
 
                 Button(
                     onClick = {
-                        if (isLastPage) {
-                            onFinish()
-                        } else {
-                            scope.launch {
-                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                            }
-                        }
+                        if (isLastPage) onFinish()
+                        else scope.launch { pagerState.animateScrollToPage(pagerState.currentPage + 1) }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    shape = RoundedCornerShape(20.dp),
+                    shape = RoundedCornerShape(18.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
@@ -169,12 +152,14 @@ fun WelcomeScreen(onFinish: () -> Unit) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             text = stringResource(R.string.finish),
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
                     } else {
                         Text(
                             text = stringResource(R.string.next),
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Icon(
@@ -191,56 +176,54 @@ fun WelcomeScreen(onFinish: () -> Unit) {
 
 @Composable
 private fun WelcomeSlideContent(slide: WelcomeSlide) {
+    // Each slide fills the allocated space — M3 tonal card, no border
     Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = Dimensions.screenPaddingHorizontal),
-        shape = RoundedCornerShape(24.dp),
+        modifier = Modifier.fillMaxSize(),
+        shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = 1.dp
+        tonalElevation = 0.dp
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 24.dp, vertical = 24.dp),
+                .padding(horizontal = 28.dp, vertical = 36.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .size(170.dp)
-                    .clip(CircleShape)
-                    .background(color = MaterialTheme.colorScheme.primaryContainer),
-                contentAlignment = Alignment.Center
+            // Feature image in a tinted circular container
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(180.dp)
             ) {
-                Image(
-                    painter = painterResource(id = slide.image),
-                    contentDescription = null,
-                    modifier = Modifier.size(124.dp)
-                )
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Image(
+                        painter = painterResource(id = slide.image),
+                        contentDescription = null,
+                        modifier = Modifier.size(110.dp)
+                    )
+                }
             }
 
-            Spacer(modifier = Modifier.height(Dimensions.spacingXl))
+            Spacer(modifier = Modifier.height(36.dp))
 
             Text(
                 text = stringResource(slide.title),
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.SemiBold,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.fillMaxWidth()
             )
 
-            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+            Spacer(modifier = Modifier.height(12.dp))
 
             Text(
                 text = stringResource(slide.desc),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Dimensions.spacingXs)
+                modifier = Modifier.fillMaxWidth()
             )
         }
     }
@@ -249,22 +232,28 @@ private fun WelcomeSlideContent(slide: WelcomeSlide) {
 @Composable
 private fun PillDotIndicator(count: Int, pagerState: PagerState) {
     val activeColor = MaterialTheme.colorScheme.primary
-    val inactiveColor = MaterialTheme.colorScheme.outlineVariant
+    val inactiveColor = MaterialTheme.colorScheme.surfaceContainerHighest
     val dotSize = 8.dp
 
     Row(
-        horizontalArrangement = Arrangement.Center,
+        horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth()
     ) {
         repeat(count) { index ->
             val isSelected = pagerState.currentPage == index
-            val width = if (isSelected) 20.dp else dotSize
-            val color = if (isSelected) activeColor else inactiveColor
-
+            val width by animateDpAsState(
+                targetValue = if (isSelected) 24.dp else dotSize,
+                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                label = "dotWidth"
+            )
+            val color by animateColorAsState(
+                targetValue = if (isSelected) activeColor else inactiveColor,
+                animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+                label = "dotColor"
+            )
             Box(
                 modifier = Modifier
-                    .padding(horizontal = 4.dp)
                     .height(dotSize)
                     .width(width)
                     .clip(RoundedCornerShape(4.dp))
@@ -274,8 +263,4 @@ private fun PillDotIndicator(count: Int, pagerState: PagerState) {
     }
 }
 
-private data class WelcomeSlide(
-    val image: Int,
-    val title: Int,
-    val desc: Int
-)
+private data class WelcomeSlide(val image: Int, val title: Int, val desc: Int)

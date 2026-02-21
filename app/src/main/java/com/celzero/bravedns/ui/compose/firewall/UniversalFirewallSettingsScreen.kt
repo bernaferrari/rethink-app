@@ -41,6 +41,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,6 +57,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ConnectionTracker
@@ -66,9 +68,10 @@ import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.util.BackgroundAccessibilityService
 import com.celzero.bravedns.util.Utilities
@@ -152,11 +155,23 @@ fun UniversalFirewallSettingsScreen(
             }
 
             val updatedStats = listOf(
-                UniversalFirewallStatEntry(FirewallRuleset.RULE3.id, deviceLocked.size, calculatePercentage(deviceLocked.size)),
-                UniversalFirewallStatEntry(FirewallRuleset.RULE4.id, backgroundMode.size, calculatePercentage(backgroundMode.size)),
+                UniversalFirewallStatEntry(
+                    FirewallRuleset.RULE3.id,
+                    deviceLocked.size,
+                    calculatePercentage(deviceLocked.size)
+                ),
+                UniversalFirewallStatEntry(
+                    FirewallRuleset.RULE4.id,
+                    backgroundMode.size,
+                    calculatePercentage(backgroundMode.size)
+                ),
                 UniversalFirewallStatEntry(FirewallRuleset.RULE5.id, unknown.size, calculatePercentage(unknown.size)),
                 UniversalFirewallStatEntry(FirewallRuleset.RULE6.id, udp.size, calculatePercentage(udp.size)),
-                UniversalFirewallStatEntry(FirewallRuleset.RULE7.id, dnsBypass.size, calculatePercentage(dnsBypass.size)),
+                UniversalFirewallStatEntry(
+                    FirewallRuleset.RULE7.id,
+                    dnsBypass.size,
+                    calculatePercentage(dnsBypass.size)
+                ),
                 UniversalFirewallStatEntry(FirewallRuleset.RULE1B.id, newApp.size, calculatePercentage(newApp.size)),
                 UniversalFirewallStatEntry(FirewallRuleset.RULE1F.id, metered.size, calculatePercentage(metered.size)),
                 UniversalFirewallStatEntry(FirewallRuleset.RULE10.id, http.size, calculatePercentage(http.size)),
@@ -171,7 +186,14 @@ fun UniversalFirewallSettingsScreen(
     }
 
     fun logEvent(details: String) {
-        eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, "Univ firewall setting", EventSource.UI, false, details)
+        eventLogger.log(
+            EventType.FW_RULE_MODIFIED,
+            Severity.LOW,
+            "Univ firewall setting",
+            EventSource.UI,
+            false,
+            details
+        )
     }
 
     fun statsFor(ruleId: String): UniversalFirewallStatEntry? {
@@ -220,11 +242,15 @@ fun UniversalFirewallSettingsScreen(
         loadStats()
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.firewall_act_universal_tab),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
@@ -306,7 +332,8 @@ fun UniversalFirewallSettingsScreen(
                         },
                         stats = statsFor(FirewallRuleset.RULE3.id),
                         loading = isLoadingStats,
-                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE3.id) }
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE3.id) },
+                        position = CardPosition.First
                     )
                     ToggleWithStats(
                         iconRes = R.drawable.ic_foreground,
@@ -315,7 +342,8 @@ fun UniversalFirewallSettingsScreen(
                         onCheckedChange = { handleBackgroundToggle(it) },
                         stats = statsFor(FirewallRuleset.RULE4.id),
                         loading = isLoadingStats,
-                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE4.id) }
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE4.id) },
+                        position = CardPosition.Middle
                     )
                     ToggleWithStats(
                         iconRes = R.drawable.ic_unknown_app,
@@ -328,7 +356,8 @@ fun UniversalFirewallSettingsScreen(
                         },
                         stats = statsFor(FirewallRuleset.RULE5.id),
                         loading = isLoadingStats,
-                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE5.id) }
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE5.id) },
+                        position = CardPosition.Middle
                     )
                     ToggleWithStats(
                         iconRes = R.drawable.ic_udp,
@@ -341,7 +370,8 @@ fun UniversalFirewallSettingsScreen(
                         },
                         stats = statsFor(FirewallRuleset.RULE6.id),
                         loading = isLoadingStats,
-                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE6.id) }
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE6.id) },
+                        position = CardPosition.Middle
                     )
                     ToggleWithStats(
                         iconRes = R.drawable.ic_prevent_dns_leaks,
@@ -354,7 +384,8 @@ fun UniversalFirewallSettingsScreen(
                         },
                         stats = statsFor(FirewallRuleset.RULE7.id),
                         loading = isLoadingStats,
-                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE7.id) }
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE7.id) },
+                        position = CardPosition.Middle
                     )
                     ToggleWithStats(
                         iconRes = R.drawable.ic_app_info,
@@ -367,7 +398,8 @@ fun UniversalFirewallSettingsScreen(
                         },
                         stats = statsFor(FirewallRuleset.RULE1B.id),
                         loading = isLoadingStats,
-                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE1B.id) }
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE1B.id) },
+                        position = CardPosition.Middle
                     )
                     ToggleWithStats(
                         iconRes = R.drawable.ic_univ_metered,
@@ -380,7 +412,8 @@ fun UniversalFirewallSettingsScreen(
                         },
                         stats = statsFor(FirewallRuleset.RULE1F.id),
                         loading = isLoadingStats,
-                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE1F.id) }
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE1F.id) },
+                        position = CardPosition.Middle
                     )
                     ToggleWithStats(
                         iconRes = R.drawable.ic_http,
@@ -393,7 +426,8 @@ fun UniversalFirewallSettingsScreen(
                         },
                         stats = statsFor(FirewallRuleset.RULE10.id),
                         loading = isLoadingStats,
-                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE10.id) }
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE10.id) },
+                        position = CardPosition.Middle
                     )
                     ToggleWithStats(
                         iconRes = R.drawable.ic_global_lockdown,
@@ -407,7 +441,7 @@ fun UniversalFirewallSettingsScreen(
                         stats = statsFor(FirewallRuleset.RULE11.id),
                         loading = isLoadingStats,
                         onStatsClick = { handleStatsClick(FirewallRuleset.RULE11.id) },
-                        showDivider = false
+                        position = CardPosition.Last
                     )
                 }
             }
@@ -447,43 +481,48 @@ private fun ToggleWithStats(
     stats: UniversalFirewallStatEntry?,
     loading: Boolean,
     onStatsClick: () -> Unit,
-    showDivider: Boolean = true
+    position: CardPosition = CardPosition.Middle
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onCheckedChange(!checked) }
-                .padding(horizontal = 16.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                painter = painterResource(iconRes),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(22.dp)
-            )
-            Spacer(modifier = Modifier.width(12.dp))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.weight(1f)
-            )
-            Switch(
-                checked = checked,
-                onCheckedChange = { onCheckedChange(it) }
-            )
-        }
-        StatsRow(
-            stats = stats,
-            loading = loading,
-            onClick = onStatsClick
-        )
-        if (showDivider) {
-            HorizontalDivider(
-                modifier = Modifier.padding(start = 56.dp, end = 12.dp),
-                thickness = Dimensions.dividerThickness,
-                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+    val itemShape = when (position) {
+        CardPosition.Single -> RoundedCornerShape(24.dp)
+        CardPosition.First -> RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
+        CardPosition.Last -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 24.dp, bottomEnd = 24.dp)
+        CardPosition.Middle -> RoundedCornerShape(4.dp)
+    }
+
+    Surface(
+        shape = itemShape,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier.fillMaxWidth().clickable { onCheckedChange(!checked) }
+    ) {
+        Column(modifier = Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 4.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    painter = painterResource(iconRes),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(22.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.weight(1f)
+                )
+                Switch(
+                    checked = checked,
+                    onCheckedChange = { onCheckedChange(it) }
+                )
+            }
+            StatsRow(
+                stats = stats,
+                loading = loading,
+                onClick = onStatsClick
             )
         }
     }

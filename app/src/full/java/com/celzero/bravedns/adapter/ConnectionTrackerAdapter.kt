@@ -19,9 +19,15 @@ package com.celzero.bravedns.adapter
 
 import android.content.Context
 import android.graphics.drawable.Drawable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -121,26 +127,42 @@ fun ConnectionRow(
                     ct.appName,
                     ct.usrId.toString()
                 )
+
             appCount > 1 ->
                 stringResource(
                     R.string.ctbs_app_other_apps,
                     ct.appName,
                     "${appCount - 1}"
                 )
+
             else -> ct.appName
         }
+
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        label = "rowScale"
+    )
 
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onShowConnTracker(ct) },
-        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+            .scale(scale)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = { onShowConnTracker(ct) }
+            ),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = androidx.compose.foundation.BorderStroke(
-            width = Dimensions.dividerThickness,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
         )
     ) {
         Column(
@@ -192,11 +214,13 @@ fun ConnectionRow(
                             maxLines = 1,
                             overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                         )
-                        
+
                         // Status Badge
-                        val badgeColor = if (ct.isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-                        val badgeContainerColor = if (ct.isBlocked) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
-                        
+                        val badgeColor =
+                            if (ct.isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        val badgeContainerColor =
+                            if (ct.isBlocked) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = badgeContainerColor.copy(alpha = 0.8f),
@@ -211,14 +235,14 @@ fun ConnectionRow(
                             )
                         }
                     }
-                    
+
                     Text(
                         text = ipAddress,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    
+
                     if (!domain.isNullOrEmpty()) {
                         Text(
                             text = domain,
@@ -229,7 +253,7 @@ fun ConnectionRow(
                         )
                     }
                 }
-                
+
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = flag,
@@ -254,7 +278,10 @@ fun ConnectionRow(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                ) {
                     Icon(
                         imageVector = androidx.compose.material.icons.Icons.Rounded.Schedule,
                         contentDescription = null,
@@ -262,12 +289,12 @@ fun ConnectionRow(
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = time, 
+                        text = time,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                
+
                 if (summary.showSummary) {
                     Text(
                         text = summary.dataUsage,
@@ -277,7 +304,10 @@ fun ConnectionRow(
                     )
                 }
 
-                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                ) {
                     Text(
                         text = summary.duration,
                         style = MaterialTheme.typography.labelSmall,
@@ -332,9 +362,11 @@ private fun hintColor(context: Context, ct: ConnectionTracker): Color? {
                 MaterialTheme.colorScheme.error
             }
         }
+
         FirewallRuleset.shouldShowHint(rule) -> {
             MaterialTheme.colorScheme.onSurfaceVariant
         }
+
         else -> null
     }
 }
@@ -382,7 +414,8 @@ private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary {
     }
 
     showSummary = true
-    duration = context.resources.getString(R.string.single_argument, getDurationInHumanReadableFormat(context, ct.duration))
+    duration =
+        context.resources.getString(R.string.single_argument, getDurationInHumanReadableFormat(context, ct.duration))
     val download =
         context.resources.getString(
             R.string.symbol_download,
@@ -479,5 +512,5 @@ private fun isConnectionHeavier(ct: ConnectionTracker): Boolean {
 
 private fun isConnectionSlower(ct: ConnectionTracker): Boolean {
     return (ct.protocol == Protocol.UDP.protocolType && ct.duration > MAX_TIME_UDP) ||
-        (ct.protocol == Protocol.TCP.protocolType && ct.duration > MAX_TIME_TCP)
+            (ct.protocol == Protocol.TCP.protocolType && ct.duration > MAX_TIME_TCP)
 }

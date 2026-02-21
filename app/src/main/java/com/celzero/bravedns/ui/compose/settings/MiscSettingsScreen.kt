@@ -16,39 +16,35 @@
 package com.celzero.bravedns.ui.compose.settings
 
 import android.app.Activity
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.EventSource
@@ -57,16 +53,18 @@ import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.bottomsheet.BackupRestoreSheet
+import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.util.UIUtils.openUrl
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.isFdroidFlavour
 import com.celzero.bravedns.util.Themes
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MiscSettingsScreen(
     persistentState: PersistentState,
@@ -84,29 +82,23 @@ fun MiscSettingsScreen(
     var firewallBubbleEnabled by remember { mutableStateOf(persistentState.firewallBubbleEnabled) }
     var appearanceMode by remember { mutableStateOf(themePreferenceToAppearanceMode(persistentState.theme)) }
     var showBackupSheet by remember { mutableStateOf(false) }
-    val enabledSignalsCount = listOf(
-        logsEnabled,
-        checkUpdatesEnabled,
-        firebaseEnabled,
-        ipInfoEnabled,
-        customDownloadEnabled,
-        autoStartEnabled,
-        tombstoneEnabled,
-        firewallBubbleEnabled
-    ).count { it }
 
     val context = LocalContext.current
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.settings_general_header),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
         LazyColumn(
+            state = rememberLazyListState(),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
@@ -119,81 +111,19 @@ fun MiscSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
             item {
-                Surface(
-                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
-                    tonalElevation = 1.dp
-                ) {
-                    Column(
-                        modifier = Modifier.padding(
-                            horizontal = Dimensions.spacingLg,
-                            vertical = Dimensions.spacingMd
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.settings_general_header),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-                        Text(
-                            text = stringResource(id = R.string.settings_title_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Surface(
-                                shape = RoundedCornerShape(999.dp),
-                                color = MaterialTheme.colorScheme.primaryContainer
-                            ) {
-                                Text(
-                                    text = "$enabledSignalsCount enabled",
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    modifier = Modifier.padding(
-                                        horizontal = Dimensions.spacingMd,
-                                        vertical = 4.dp
-                                    )
-                                )
-                            }
-                            Surface(
-                                shape = RoundedCornerShape(999.dp),
-                                color = MaterialTheme.colorScheme.surfaceContainerHighest
-                            ) {
-                                Text(
-                                    text = appearanceMode.toDisplayName(),
-                                    style = MaterialTheme.typography.labelLarge,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(
-                                        horizontal = Dimensions.spacingMd,
-                                        vertical = 4.dp
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            item {
                 RethinkListGroup {
                     RethinkListItem(
                         headline = stringResource(id = R.string.brbs_backup_title),
                         supporting = stringResource(id = R.string.settings_import_export_desc),
                         leadingIconPainter = painterResource(id = R.drawable.ic_backup),
+                        position = CardPosition.First,
                         onClick = { showBackupSheet = true }
                     )
                     RethinkListItem(
                         headline = stringResource(id = R.string.dc_refresh_toast),
                         supporting = stringResource(id = R.string.settings_import_export_desc),
                         leadingIconPainter = painterResource(id = R.drawable.ic_refresh_white),
-                        showDivider = false,
+                        position = CardPosition.Last,
                         onClick = {
                             onRefreshDatabase?.invoke()
                             logEvent(eventLogger, "Database refresh", "User refreshed database")
@@ -254,6 +184,7 @@ fun MiscSettingsScreen(
                         description = stringResource(id = R.string.settings_enable_logs_desc),
                         iconRes = R.drawable.ic_logs_accent,
                         checked = logsEnabled,
+                        position = CardPosition.First,
                         onCheckedChange = { enabled ->
                             logsEnabled = enabled
                             persistentState.logsEnabled = enabled
@@ -294,7 +225,7 @@ fun MiscSettingsScreen(
                             onCheckedChange = { enabled ->
                                 firewallBubbleEnabled = enabled
                                 persistentState.firewallBubbleEnabled = enabled
-                            logEvent(eventLogger, "Firewall bubble", "Firewall bubble set to $enabled")
+                                logEvent(eventLogger, "Firewall bubble", "Firewall bubble set to $enabled")
                             }
                         )
                     }
@@ -306,7 +237,7 @@ fun MiscSettingsScreen(
                         ),
                         iconRes = R.drawable.ic_ip_info,
                         checked = ipInfoEnabled,
-                        showDivider = !isFdroidFlavour(),
+                        position = if (isFdroidFlavour()) CardPosition.Last else CardPosition.Middle,
                         onCheckedChange = { enabled ->
                             ipInfoEnabled = enabled
                             persistentState.downloadIpInfo = enabled
@@ -342,7 +273,7 @@ fun MiscSettingsScreen(
                         description = stringResource(id = R.string.settings_custom_downloader_desc),
                         iconRes = R.drawable.ic_settings,
                         checked = customDownloadEnabled,
-                        showDivider = false,
+                        position = CardPosition.Last,
                         onCheckedChange = { enabled ->
                             customDownloadEnabled = enabled
                             persistentState.useCustomDownloadManager = enabled
@@ -358,16 +289,20 @@ fun MiscSettingsScreen(
                         headline = stringResource(id = R.string.about_website),
                         supporting = stringResource(id = R.string.about_website_link),
                         leadingIconPainter = painterResource(id = R.drawable.ic_website),
-                        showDivider = false,
+                        position = CardPosition.Single,
                         onClick = { openUrl(context, context.resources.getString(R.string.about_website_link)) }
                     )
                 }
             }
-        }
 
-        if (showBackupSheet) {
-            BackupRestoreSheet(onDismiss = { showBackupSheet = false })
+            item {
+                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+            }
         }
+    }
+
+    if (showBackupSheet) {
+        BackupRestoreSheet(onDismiss = { showBackupSheet = false })
     }
 }
 
@@ -377,14 +312,14 @@ private fun ToggleListItem(
     description: String,
     iconRes: Int,
     checked: Boolean,
-    showDivider: Boolean = true,
+    position: CardPosition = CardPosition.Middle,
     onCheckedChange: (Boolean) -> Unit
 ) {
     RethinkListItem(
         headline = title,
         supporting = description,
         leadingIconPainter = painterResource(id = iconRes),
-        showDivider = showDivider,
+        position = position,
         onClick = { onCheckedChange(!checked) },
         trailing = {
             Switch(

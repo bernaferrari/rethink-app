@@ -92,7 +92,7 @@ import com.celzero.bravedns.viewmodel.ConnectionTrackerViewModel
 import com.celzero.bravedns.viewmodel.DnsLogViewModel
 import com.celzero.bravedns.viewmodel.RethinkLogViewModel
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -127,11 +127,14 @@ fun NetworkLogsScreen(
     var selectedConn by remember { mutableStateOf<ConnectionTracker?>(null) }
     var selectedDns by remember { mutableStateOf<DnsLog?>(null) }
 
+    val scrollBehavior = androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior()
+
     Scaffold(
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.lbl_logs),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -164,7 +167,7 @@ fun NetworkLogsScreen(
                                     style = MaterialTheme.typography.titleSmall,
                                     fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
                                     color = if (selected) MaterialTheme.colorScheme.primary
-                                            else MaterialTheme.colorScheme.onSurfaceVariant
+                                    else MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
                         )
@@ -180,6 +183,7 @@ fun NetworkLogsScreen(
                         persistentState = persistentState,
                         onShowConnTracker = { selectedConn = it }
                     )
+
                     LogTab.DNS -> DnsLogsContent(
                         viewModel = dnsLogViewModel,
                         repository = dnsLogRepository,
@@ -288,7 +292,12 @@ private fun ConnectionLogsContent(
                         value = query,
                         onValueChange = { query = it },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text(stringResource(R.string.lbl_search), style = MaterialTheme.typography.bodyMedium) },
+                        placeholder = {
+                            Text(
+                                stringResource(R.string.lbl_search),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color.Transparent,
@@ -369,7 +378,12 @@ private fun ConnectionLogsContent(
                         onClick = {
                             childFilters = if (selected) childFilters - rule.id else childFilters + rule.id
                         },
-                        label = { Text(text = stringResource(rule.title), style = MaterialTheme.typography.labelSmall) },
+                        label = {
+                            Text(
+                                text = stringResource(rule.title),
+                                style = MaterialTheme.typography.labelSmall
+                            )
+                        },
                         leadingIcon = {
                             Icon(
                                 painter = painterResource(id = FirewallRuleset.getRulesIcon(rule.id)),
@@ -398,7 +412,10 @@ private fun ConnectionLogsContent(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+                contentPadding = PaddingValues(
+                    horizontal = Dimensions.screenPaddingHorizontal,
+                    vertical = Dimensions.spacingSm
+                ),
                 verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
             ) {
                 items(items.itemCount) { index ->
@@ -518,7 +535,12 @@ private fun DnsLogsContent(
                         value = query,
                         onValueChange = { query = it },
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text(stringResource(R.string.lbl_search), style = MaterialTheme.typography.bodyMedium) },
+                        placeholder = {
+                            Text(
+                                stringResource(R.string.lbl_search),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                        },
                         singleLine = true,
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Color.Transparent,
@@ -590,7 +612,10 @@ private fun DnsLogsContent(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+                contentPadding = PaddingValues(
+                    horizontal = Dimensions.screenPaddingHorizontal,
+                    vertical = Dimensions.spacingSm
+                ),
                 verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
             ) {
                 items(items.itemCount) { index ->
@@ -725,7 +750,11 @@ private fun DetailRow(label: String, value: String, isError: Boolean = false) {
         modifier = Modifier.fillMaxWidth().padding(vertical = Dimensions.spacingXs),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
         Text(
             text = value,
             style = MaterialTheme.typography.bodyMedium,

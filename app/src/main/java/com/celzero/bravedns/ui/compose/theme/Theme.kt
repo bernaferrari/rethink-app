@@ -1,148 +1,53 @@
+/*
+ * Copyright 2024 RethinkDNS and its authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.celzero.bravedns.ui.compose.theme
 
+import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Shapes
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import com.celzero.bravedns.util.Themes
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamiccolor.ColorSpec
+import com.materialkolor.rememberDynamicMaterialThemeState
 
-private val LightColorScheme = lightColorScheme(
-    primary = PrimaryLight,
-    onPrimary = OnPrimaryLight,
-    primaryContainer = PrimaryContainerLight,
-    onPrimaryContainer = OnPrimaryContainerLight,
-    secondary = SecondaryLight,
-    onSecondary = OnSecondaryLight,
-    secondaryContainer = SecondaryContainerLight,
-    onSecondaryContainer = OnSecondaryContainerLight,
-    tertiary = TertiaryLight,
-    onTertiary = OnTertiaryLight,
-    tertiaryContainer = TertiaryContainerLight,
-    onTertiaryContainer = OnTertiaryContainerLight,
-    background = BackgroundLight,
-    onBackground = OnBackgroundLight,
-    surface = SurfaceLight,
-    onSurface = OnSurfaceLight,
-    surfaceVariant = SurfaceVariantLight,
-    onSurfaceVariant = OnSurfaceVariantLight,
-    outline = OutlineLight,
-    error = ErrorLight,
-    onError = OnErrorLight,
-    errorContainer = ErrorContainerLight,
-    onErrorContainer = OnErrorContainerLight
-)
+// Vibrant coral/orange seed — pops beautifully in Vibrant palette mode
+private val RethinkSeedColor = Color(0xffFF6B4A)
 
-private val DarkColorScheme = darkColorScheme(
-    primary = PrimaryDark,
-    onPrimary = OnPrimaryDark,
-    primaryContainer = PrimaryContainerDark,
-    onPrimaryContainer = OnPrimaryContainerDark,
-    secondary = SecondaryDark,
-    onSecondary = OnSecondaryDark,
-    secondaryContainer = SecondaryContainerDark,
-    onSecondaryContainer = OnSecondaryContainerDark,
-    tertiary = TertiaryDark,
-    onTertiary = OnTertiaryDark,
-    tertiaryContainer = TertiaryContainerDark,
-    onTertiaryContainer = OnTertiaryContainerDark,
-    background = BackgroundDark,
-    onBackground = OnBackgroundDark,
-    surface = SurfaceDark,
-    onSurface = OnSurfaceDark,
-    surfaceVariant = SurfaceVariantDark,
-    onSurfaceVariant = OnSurfaceVariantDark,
-    outline = OutlineDark,
-    error = ErrorDark,
-    onError = OnErrorDark,
-    errorContainer = ErrorContainerDark,
-    onErrorContainer = OnErrorContainerDark
-)
-
-private val TrueBlackColorScheme = darkColorScheme(
-    primary = PrimaryBlack,
-    onPrimary = OnPrimaryBlack,
-    primaryContainer = PrimaryContainerBlack,
-    onPrimaryContainer = OnPrimaryContainerBlack,
-    secondary = SecondaryBlack,
-    onSecondary = OnSecondaryBlack,
-    secondaryContainer = SecondaryContainerBlack,
-    onSecondaryContainer = OnSecondaryContainerBlack,
-    tertiary = TertiaryBlack,
-    onTertiary = OnTertiaryBlack,
-    tertiaryContainer = TertiaryContainerBlack,
-    onTertiaryContainer = OnTertiaryContainerBlack,
-    background = BackgroundBlack,
-    onBackground = OnBackgroundBlack,
-    surface = SurfaceBlack,
-    onSurface = OnSurfaceBlack,
-    surfaceVariant = SurfaceVariantBlack,
-    onSurfaceVariant = OnSurfaceVariantBlack,
-    outline = OutlineBlack,
-    error = ErrorBlack,
-    onError = OnErrorBlack,
-    errorContainer = ErrorContainerBlack,
-    onErrorContainer = OnErrorContainerBlack
-)
-
-private val LightPlusColorScheme = lightColorScheme(
-    primary = PrimaryLightPlus,
-    onPrimary = OnPrimaryLightPlus,
-    primaryContainer = PrimaryContainerLightPlus,
-    onPrimaryContainer = OnPrimaryContainerLightPlus,
-    secondary = SecondaryLightPlus,
-    onSecondary = OnSecondaryLightPlus,
-    secondaryContainer = SecondaryContainerLightPlus,
-    onSecondaryContainer = OnSecondaryContainerLightPlus,
-    background = BackgroundLightPlus,
-    onBackground = OnBackgroundLightPlus,
-    surface = SurfaceLightPlus,
-    onSurface = OnSurfaceLightPlus,
-    surfaceVariant = SurfaceVariantLightPlus,
-    onSurfaceVariant = OnSurfaceVariantLightPlus,
-    outline = OutlineLightPlus,
-    error = AccentBadLightPlus,
-    tertiary = AccentGoodLightPlus
-)
-
-private val TrueBlackPlusColorScheme = darkColorScheme(
-    primary = PrimaryBlackPlus,
-    onPrimary = OnPrimaryBlackPlus,
-    primaryContainer = PrimaryContainerBlackPlus,
-    onPrimaryContainer = OnPrimaryContainerBlackPlus,
-    secondary = SecondaryBlackPlus,
-    onSecondary = OnSecondaryBlackPlus,
-    secondaryContainer = SecondaryContainerBlackPlus,
-    onSecondaryContainer = OnSecondaryContainerBlackPlus,
-    background = BackgroundBlackPlus,
-    onBackground = OnBackgroundBlackPlus,
-    surface = SurfaceBlackPlus,
-    onSurface = OnSurfaceBlackPlus,
-    surfaceVariant = SurfaceVariantBlackPlus,
-    onSurfaceVariant = OnSurfaceVariantBlackPlus,
-    outline = OutlineBlackPlus,
-    error = AccentBadBlackPlus,
-    tertiary = AccentGoodBlackPlus
+// M3 Expressive shape scale — generous corner radii throughout
+val RethinkShapes = Shapes(
+    extraSmall = RoundedCornerShape(6.dp),
+    small = RoundedCornerShape(10.dp),
+    medium = RoundedCornerShape(16.dp),
+    large = RoundedCornerShape(20.dp),
+    extraLarge = RoundedCornerShape(32.dp)
 )
 
 enum class RethinkThemeMode {
     LIGHT, DARK, TRUE_BLACK, LIGHT_PLUS, TRUE_BLACK_PLUS
 }
-
-private val RethinkShapes = Shapes(
-    extraSmall = RoundedCornerShape(4.dp),
-    small = RoundedCornerShape(8.dp),
-    medium = RoundedCornerShape(12.dp),
-    large = RoundedCornerShape(16.dp),
-    extraLarge = RoundedCornerShape(28.dp)
-)
 
 fun mapThemePreferenceToComposeMode(preference: Int, isSystemDark: Boolean): RethinkThemeMode {
     return when (preference) {
@@ -158,24 +63,29 @@ fun mapThemePreferenceToComposeMode(preference: Int, isSystemDark: Boolean): Ret
 @Composable
 fun RethinkTheme(
     themeMode: RethinkThemeMode = if (isSystemInDarkTheme()) RethinkThemeMode.TRUE_BLACK_PLUS else RethinkThemeMode.LIGHT_PLUS,
-    dynamicColor: Boolean = false,
+    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (themeMode == RethinkThemeMode.DARK || themeMode == RethinkThemeMode.TRUE_BLACK || themeMode == RethinkThemeMode.TRUE_BLACK_PLUS) {
-                dynamicDarkColorScheme(context)
-            } else {
-                dynamicLightColorScheme(context)
-            }
+    val darkTheme = themeMode == RethinkThemeMode.DARK ||
+            themeMode == RethinkThemeMode.TRUE_BLACK ||
+            themeMode == RethinkThemeMode.TRUE_BLACK_PLUS
+
+    // MaterialKolor generates a full expressive color scheme from a vibrant seed
+    val colorScheme = rememberDynamicMaterialThemeState(
+        seedColor = RethinkSeedColor,
+        style = PaletteStyle.Vibrant,
+        isDark = darkTheme,
+        specVersion = ColorSpec.SpecVersion.SPEC_2025,
+    ).colorScheme
+
+    val view = LocalView.current
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            val windowInsetsController = WindowCompat.getInsetsController(window, view)
+            windowInsetsController.isAppearanceLightStatusBars = !darkTheme
+            windowInsetsController.isAppearanceLightNavigationBars = !darkTheme
         }
-        themeMode == RethinkThemeMode.LIGHT -> LightColorScheme
-        themeMode == RethinkThemeMode.DARK -> DarkColorScheme
-        themeMode == RethinkThemeMode.TRUE_BLACK -> TrueBlackColorScheme
-        themeMode == RethinkThemeMode.LIGHT_PLUS -> LightPlusColorScheme
-        themeMode == RethinkThemeMode.TRUE_BLACK_PLUS -> TrueBlackPlusColorScheme
-        else -> LightColorScheme
     }
 
     MaterialTheme(

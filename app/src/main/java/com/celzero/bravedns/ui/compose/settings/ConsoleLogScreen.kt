@@ -39,6 +39,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -66,7 +67,7 @@ import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.ConsoleLogViewModel
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkScreenHeader
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -91,7 +92,7 @@ fun ConsoleLogScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    
+
     var query by remember { mutableStateOf("") }
     var infoText by remember { mutableStateOf("") }
     var progressVisible by remember { mutableStateOf(false) }
@@ -179,11 +180,14 @@ fun ConsoleLogScreen(
         )
     }
 
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
+
     Scaffold(
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.console_log_title),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
@@ -207,9 +211,9 @@ fun ConsoleLogScreen(
             SearchRow(
                 query = query,
                 onQueryChange = { query = it },
-                onFilterClick = { 
+                onFilterClick = {
                     selectedLogLevel = Logger.uiLogLevel.toInt()
-                    showFilterDialog = true 
+                    showFilterDialog = true
                 },
                 onShareClick = onShareClick,
                 onDeleteClick = {
@@ -270,7 +274,12 @@ private fun SearchRow(
                 onValueChange = onQueryChange,
                 modifier = Modifier.weight(1f),
                 singleLine = true,
-                placeholder = { Text(text = stringResource(R.string.lbl_search), style = MaterialTheme.typography.bodyMedium) },
+                placeholder = {
+                    Text(
+                        text = stringResource(R.string.lbl_search),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                },
                 colors = androidx.compose.material3.OutlinedTextFieldDefaults.colors(
                     focusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,
                     unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent,

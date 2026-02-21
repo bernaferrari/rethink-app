@@ -39,6 +39,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,6 +50,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
@@ -75,6 +77,7 @@ import com.celzero.bravedns.service.WireguardManager.ERR_CODE_VPN_NOT_FULL
 import com.celzero.bravedns.service.WireguardManager.ERR_CODE_WG_INVALID
 import com.celzero.bravedns.service.WireguardManager.INVALID_CONF_ID
 import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
+import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
@@ -82,7 +85,7 @@ import com.celzero.bravedns.ui.dialog.WgAddPeerDialog
 import com.celzero.bravedns.ui.dialog.WgHopDialog
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import com.celzero.bravedns.ui.dialog.WgSsidDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.util.SsidPermissionManager
 import com.celzero.bravedns.util.UIUtils
@@ -276,7 +279,10 @@ fun WgConfigDetailScreen(
     fun toggleSsid(enabled: Boolean) {
         ssidEnabled = enabled
         val activity = context as? Activity
-        if (activity == null || !SsidPermissionManager.hasRequiredPermissions(activity) || !SsidPermissionManager.isLocationEnabled(activity)) {
+        if (activity == null || !SsidPermissionManager.hasRequiredPermissions(activity) || !SsidPermissionManager.isLocationEnabled(
+                activity
+            )
+        ) {
             ssidEnabled = false
             showSsidPermissionDialog = true
             return
@@ -459,11 +465,15 @@ fun WgConfigDetailScreen(
         )
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.lbl_wireguard),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
@@ -530,12 +540,14 @@ fun WgConfigDetailScreen(
                         headline = stringResource(id = R.string.lbl_add),
                         supporting = stringResource(id = R.string.lbl_peer),
                         leadingIconPainter = painterResource(id = R.drawable.ic_add),
+                        position = CardPosition.First,
                         onClick = { showAddPeerDialog = true }
                     )
                     RethinkListItem(
                         headline = stringResource(id = R.string.rt_edit_dialog_positive),
                         supporting = stringResource(id = R.string.lbl_wireguard),
                         leadingIconPainter = painterResource(id = R.drawable.ic_edit_icon),
+                        position = CardPosition.Middle,
                         onClick = { onEditConfig(configId, wgType) }
                     )
                     RethinkListItem(
@@ -543,8 +555,8 @@ fun WgConfigDetailScreen(
                         supporting = stringResource(id = R.string.config_delete_dialog_title),
                         leadingIconPainter = painterResource(id = R.drawable.ic_delete),
                         leadingIconTint = MaterialTheme.colorScheme.error,
-                        onClick = { showDeleteInterfaceDialog = true },
-                        showDivider = false
+                        position = CardPosition.Last,
+                        onClick = { showDeleteInterfaceDialog = true }
                     )
                 }
             }
@@ -556,14 +568,15 @@ fun WgConfigDetailScreen(
                         RethinkListItem(
                             headline = stringResource(R.string.add_remove_apps, appsCount.toString()),
                             leadingIconPainter = painterResource(id = R.drawable.ic_app_info_accent),
+                            position = CardPosition.First,
                             onClick = { openAppsDialog(config?.getName().orEmpty()) },
                             enabled = !catchAllEnabled
                         )
                         RethinkListItem(
                             headline = stringResource(id = R.string.hop_add_remove_title),
                             leadingIconPainter = painterResource(id = R.drawable.ic_right_arrow_small),
-                            onClick = { openHopDialog() },
-                            showDivider = false
+                            position = CardPosition.Last,
+                            onClick = { openHopDialog() }
                         )
                     }
                 }
@@ -576,6 +589,7 @@ fun WgConfigDetailScreen(
                         headline = stringResource(id = R.string.catch_all_wg_dialog_title),
                         supporting = stringResource(id = R.string.catch_all_wg_dialog_desc),
                         leadingIconPainter = painterResource(id = R.drawable.ic_firewall_shield),
+                        position = CardPosition.First,
                         trailing = {
                             Switch(
                                 checked = catchAllEnabled,
@@ -588,14 +602,14 @@ fun WgConfigDetailScreen(
                         headline = stringResource(id = R.string.wg_setting_use_on_mobile),
                         supporting = stringResource(id = R.string.wg_setting_use_on_mobile_desc),
                         leadingIconPainter = painterResource(id = R.drawable.ic_meter_mobile_only),
+                        position = if (SsidPermissionManager.isDeviceSupported(context)) CardPosition.Middle else CardPosition.Last,
                         trailing = {
                             Switch(
                                 checked = useMobileEnabled,
                                 onCheckedChange = { enabled -> updateUseOnMobileNetwork(enabled) }
                             )
                         },
-                        onClick = { updateUseOnMobileNetwork(!useMobileEnabled) },
-                        showDivider = !SsidPermissionManager.isDeviceSupported(context)
+                        onClick = { updateUseOnMobileNetwork(!useMobileEnabled) }
                     )
                     if (SsidPermissionManager.isDeviceSupported(context)) {
                         val ssidSubtitle =
@@ -615,6 +629,7 @@ fun WgConfigDetailScreen(
                             headline = stringResource(id = R.string.wg_setting_ssid_title),
                             supporting = ssidSubtitle,
                             leadingIconPainter = painterResource(id = R.drawable.ic_firewall_wifi_on),
+                            position = CardPosition.Middle,
                             trailing = {
                                 Switch(
                                     checked = ssidEnabled,
@@ -627,8 +642,8 @@ fun WgConfigDetailScreen(
                             headline = stringResource(id = R.string.rt_edit_dialog_positive),
                             supporting = stringResource(id = R.string.lbl_ssids),
                             leadingIconPainter = painterResource(id = R.drawable.ic_edit_icon),
-                            onClick = { openSsidDialog() },
-                            showDivider = false
+                            position = CardPosition.Last,
+                            onClick = { openSsidDialog() }
                         )
                     }
                 }
@@ -751,12 +766,12 @@ private fun isDnsError(statusId: Long?): Boolean {
 
     val s = Transaction.Status.fromId(statusId)
     return s == Transaction.Status.BAD_QUERY ||
-        s == Transaction.Status.BAD_RESPONSE ||
-        s == Transaction.Status.NO_RESPONSE ||
-        s == Transaction.Status.SEND_FAIL ||
-        s == Transaction.Status.CLIENT_ERROR ||
-        s == Transaction.Status.INTERNAL_ERROR ||
-        s == Transaction.Status.TRANSPORT_ERROR
+            s == Transaction.Status.BAD_RESPONSE ||
+            s == Transaction.Status.NO_RESPONSE ||
+            s == Transaction.Status.SEND_FAIL ||
+            s == Transaction.Status.CLIENT_ERROR ||
+            s == Transaction.Status.INTERNAL_ERROR ||
+            s == Transaction.Status.TRANSPORT_ERROR
 }
 
 private fun getStatusText(
@@ -831,9 +846,11 @@ private fun getStrokeColorForStatus(
             } else {
                 tertiaryColor
             }
+
         UIUtils.ProxyStatus.TUP,
         UIUtils.ProxyStatus.TZZ,
         UIUtils.ProxyStatus.TNT -> onSurfaceVariantColor
+
         else -> errorColor
     }
 }

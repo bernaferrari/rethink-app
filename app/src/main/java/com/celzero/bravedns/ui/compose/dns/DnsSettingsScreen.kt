@@ -43,11 +43,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -56,13 +59,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
+import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DnsSettingsScreen(
     uiState: DnsSettingsUiState,
@@ -87,10 +92,39 @@ fun DnsSettingsScreen(
     onFallbackChange: (Boolean) -> Unit,
     onPreventLeaksChange: (Boolean) -> Unit
 ) {
+    val reducedMotion = rememberReducedMotion()
+    val refreshRotation by animateFloatAsState(
+        targetValue = if (uiState.isRefreshing && !reducedMotion) 360f else 0f,
+        animationSpec = if (uiState.isRefreshing && !reducedMotion) {
+            infiniteRepeatable(
+                animation = tween(durationMillis = 1000, easing = LinearEasing),
+                repeatMode = RepeatMode.Restart
+            )
+        } else {
+            tween(durationMillis = 0)
+        },
+        label = "dnsRefreshRotation"
+    )
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            RethinkTopBar(title = stringResource(id = R.string.lbl_dns))
+            RethinkLargeTopBar(
+                title = stringResource(id = R.string.lbl_dns),
+                scrollBehavior = scrollBehavior,
+                actions = {
+                    IconButton(onClick = onRefreshClick) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_refresh_white),
+                            contentDescription = stringResource(id = R.string.rules_load_failure_reload),
+                            modifier = Modifier.rotate(refreshRotation)
+                        )
+                    }
+                }
+            )
         }
     ) { paddingValues ->
         LazyColumn(
@@ -106,16 +140,6 @@ fun DnsSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
             item {
-                DnsOverviewCard(
-                    connectedDnsName = uiState.connectedDnsName,
-                    connectedDnsType = uiState.connectedDnsType,
-                    dnsLatency = uiState.dnsLatency,
-                    isRefreshing = uiState.isRefreshing,
-                    onRefreshClick = onRefreshClick
-                )
-            }
-
-            item {
                 SectionHeader(title = stringResource(id = R.string.dc_other_dns_heading))
                 RethinkListGroup {
                     DnsRadioButtonItem(
@@ -123,19 +147,22 @@ fun DnsSettingsScreen(
                         selected = uiState.isSystemDnsEnabled,
                         onClick = onSystemDnsClick,
                         onInfoClick = onSystemDnsInfoClick,
-                        iconId = R.drawable.ic_network
+                        iconId = R.drawable.ic_network,
+                        position = CardPosition.First
                     )
                     DnsRadioButtonItem(
                         title = stringResource(id = R.string.dc_custom_dns_radio),
                         selected = !uiState.isSystemDnsEnabled && !uiState.isRethinkDnsConnected && !uiState.isSmartDnsEnabled,
                         onClick = onCustomDnsClick,
-                        iconId = R.drawable.ic_filter
+                        iconId = R.drawable.ic_filter,
+                        position = CardPosition.Middle
                     )
                     DnsRadioButtonItem(
                         title = stringResource(id = R.string.dc_rethink_dns_radio),
                         selected = uiState.isRethinkDnsConnected,
                         onClick = onRethinkPlusDnsClick,
-                        iconId = R.drawable.ic_rethink_plus
+                        iconId = R.drawable.ic_rethink_plus,
+                        position = CardPosition.Middle
                     )
                     DnsRadioButtonItem(
                         title = stringResource(id = R.string.smart_dns),
@@ -143,7 +170,7 @@ fun DnsSettingsScreen(
                         onClick = onSmartDnsClick,
                         onInfoClick = onSmartDnsInfoClick,
                         iconId = R.drawable.ic_dns_cache,
-                        showDivider = false
+                        position = CardPosition.Last
                     )
 
                     HorizontalDivider(
@@ -197,6 +224,7 @@ fun DnsSettingsScreen(
                             stringResource(id = R.string.dc_local_block_desc_1)
                         },
                         leadingIconPainter = painterResource(id = R.drawable.ic_local_blocklist),
+                        position = CardPosition.First,
                         onClick = onLocalBlocklistClick,
                         trailing = {
                             Text(
@@ -220,6 +248,7 @@ fun DnsSettingsScreen(
                         description = stringResource(id = R.string.settings_custom_downloader_desc),
                         iconId = R.drawable.ic_update,
                         checked = uiState.useCustomDownloadManager,
+                        position = CardPosition.Middle,
                         onCheckedChange = onCustomDownloaderChange
                     )
                     ToggleListItem(
@@ -227,8 +256,8 @@ fun DnsSettingsScreen(
                         description = stringResource(id = R.string.dc_check_update_desc),
                         iconId = R.drawable.ic_blocklist_update_check,
                         checked = uiState.periodicallyCheckBlocklistUpdate,
-                        onCheckedChange = onPeriodicUpdateChange,
-                        showDivider = false
+                        position = CardPosition.Last,
+                        onCheckedChange = onPeriodicUpdateChange
                     )
                 }
             }
@@ -241,6 +270,7 @@ fun DnsSettingsScreen(
                         description = stringResource(id = R.string.cd_dns_alg_desc),
                         iconId = R.drawable.ic_adv_dns_filter,
                         checked = uiState.enableDnsAlg,
+                        position = CardPosition.First,
                         onCheckedChange = onDnsAlgChange
                     )
                     if (uiState.isShowSplitDns) {
@@ -249,6 +279,7 @@ fun DnsSettingsScreen(
                             description = stringResource(id = R.string.cd_split_dns_desc),
                             iconId = R.drawable.ic_split_dns,
                             checked = uiState.splitDns,
+                            position = CardPosition.Middle,
                             onCheckedChange = onSplitDnsChange
                         )
                     }
@@ -258,6 +289,7 @@ fun DnsSettingsScreen(
                             description = stringResource(id = R.string.cd_treat_dns_rules_firewall_desc),
                             iconId = R.drawable.ic_dns_rules_as_firewall,
                             checked = uiState.bypassBlockInDns,
+                            position = CardPosition.Middle,
                             onCheckedChange = onBypassDnsBlockChange
                         )
                     }
@@ -265,8 +297,8 @@ fun DnsSettingsScreen(
                         headline = stringResource(id = R.string.cd_allowed_dns_record_types_heading),
                         supporting = stringResource(id = R.string.cd_allowed_dns_record_types_desc),
                         leadingIconPainter = painterResource(id = R.drawable.ic_allow_dns_records),
+                        position = CardPosition.Last,
                         onClick = onAllowedRecordTypesClick,
-                        showDivider = false,
                         trailing = {
                             Text(
                                 text = if (uiState.dnsRecordTypesAutoMode) {
@@ -291,6 +323,7 @@ fun DnsSettingsScreen(
                         description = stringResource(id = R.string.dc_dns_website_desc),
                         iconId = R.drawable.ic_fav_icon,
                         checked = uiState.fetchFavIcon,
+                        position = CardPosition.First,
                         onCheckedChange = onFavIconChange
                     )
                     ToggleListItem(
@@ -298,6 +331,7 @@ fun DnsSettingsScreen(
                         description = stringResource(id = R.string.dc_setting_dns_cache_desc),
                         iconId = R.drawable.ic_auto_start,
                         checked = uiState.enableDnsCache,
+                        position = CardPosition.Middle,
                         onCheckedChange = onDnsCacheChange
                     )
                     ToggleListItem(
@@ -305,6 +339,7 @@ fun DnsSettingsScreen(
                         description = stringResource(id = R.string.dc_proxy_dns_desc),
                         iconId = R.drawable.ic_proxy,
                         checked = !uiState.proxyDns,
+                        position = CardPosition.Middle,
                         onCheckedChange = { onProxyDnsChange(!it) }
                     )
                     ToggleListItem(
@@ -312,6 +347,7 @@ fun DnsSettingsScreen(
                         description = stringResource(id = R.string.dc_use_sys_dns_undelegated_desc),
                         iconId = R.drawable.ic_split_dns,
                         checked = uiState.useSystemDnsForUndelegatedDomains,
+                        position = CardPosition.Middle,
                         onCheckedChange = onUndelegatedDomainsChange
                     )
                     ToggleListItem(
@@ -319,6 +355,7 @@ fun DnsSettingsScreen(
                         description = stringResource(id = R.string.use_fallback_dns_to_bypass_desc),
                         iconId = R.drawable.ic_use_fallback_bypass,
                         checked = uiState.useFallbackDnsToBypass,
+                        position = CardPosition.Middle,
                         onCheckedChange = onFallbackChange
                     )
                     ToggleListItem(
@@ -326,103 +363,8 @@ fun DnsSettingsScreen(
                         description = stringResource(id = R.string.dc_dns_leaks_desc),
                         iconId = R.drawable.ic_prevent_dns_leaks,
                         checked = uiState.preventDnsLeaks,
-                        onCheckedChange = onPreventLeaksChange,
-                        showDivider = false
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun DnsOverviewCard(
-    connectedDnsName: String,
-    connectedDnsType: String,
-    dnsLatency: String,
-    isRefreshing: Boolean,
-    onRefreshClick: () -> Unit
-) {
-    val reducedMotion = rememberReducedMotion()
-    val rotation by animateFloatAsState(
-        targetValue = if (isRefreshing && !reducedMotion) 360f else 0f,
-        animationSpec = if (isRefreshing && !reducedMotion) {
-            infiniteRepeatable(
-                animation = tween(durationMillis = 1000, easing = LinearEasing),
-                repeatMode = RepeatMode.Restart
-            )
-        } else {
-            tween(durationMillis = 0)
-        },
-        label = "dnsRefreshRotation"
-    )
-
-    Surface(
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = androidx.compose.foundation.BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = Dimensions.spacingLg,
-                    vertical = Dimensions.spacingMd
-                ),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    text = stringResource(id = R.string.dc_other_dns_heading),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = connectedDnsName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                if (connectedDnsType.isNotEmpty()) {
-                    Text(
-                        text = connectedDnsType,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.width(Dimensions.spacingSm))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(999.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer
-                ) {
-                    Text(
-                        text = dnsLatency.ifEmpty { "--" },
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.padding(
-                            horizontal = Dimensions.spacingMd,
-                            vertical = 4.dp
-                        )
-                    )
-                }
-                IconButton(onClick = onRefreshClick) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_refresh_white),
-                        contentDescription = stringResource(id = R.string.rules_load_failure_reload),
-                        modifier = Modifier.rotate(rotation)
+                        position = CardPosition.Last,
+                        onCheckedChange = onPreventLeaksChange
                     )
                 }
             }
@@ -437,13 +379,13 @@ fun DnsRadioButtonItem(
     onClick: () -> Unit,
     iconId: Int,
     onInfoClick: (() -> Unit)? = null,
-    showDivider: Boolean = true
+    position: CardPosition = CardPosition.Middle
 ) {
     RethinkListItem(
         headline = title,
         leadingIconPainter = painterResource(id = iconId),
         onClick = onClick,
-        showDivider = showDivider,
+        position = position,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (onInfoClick != null) {
@@ -470,14 +412,14 @@ fun ToggleListItem(
     description: String,
     iconId: Int,
     checked: Boolean,
-    showDivider: Boolean = true,
+    position: CardPosition = CardPosition.Middle,
     onCheckedChange: (Boolean) -> Unit
 ) {
     RethinkListItem(
         headline = title,
         supporting = description,
         leadingIconPainter = painterResource(id = iconId),
-        showDivider = showDivider,
+        position = position,
         onClick = { onCheckedChange(!checked) },
         trailing = {
             Switch(

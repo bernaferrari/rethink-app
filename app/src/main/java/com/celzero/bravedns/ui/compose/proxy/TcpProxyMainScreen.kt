@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -30,6 +31,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,6 +41,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,10 +51,11 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.TcpProxyHelper
+import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import com.celzero.bravedns.util.Utilities
@@ -197,16 +201,21 @@ fun TcpProxyMainScreen(
         )
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(id = R.string.settings_proxy_header),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
         LazyColumn(
+            state = rememberLazyListState(),
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
@@ -232,6 +241,7 @@ fun TcpProxyMainScreen(
                         headline = stringResource(id = R.string.tcp_proxy_rethink_proxy_title),
                         supporting = if (tcpErrorVisible) tcpErrorText else tcpProxyStatus.ifEmpty { tcpProxyDesc },
                         leadingIconPainter = painterResource(id = R.drawable.ic_proxy),
+                        position = CardPosition.First,
                         onClick = { onTcpProxySwitchChanged(!tcpProxySwitchChecked) },
                         trailing = {
                             Switch(
@@ -244,6 +254,7 @@ fun TcpProxyMainScreen(
                     RethinkListItem(
                         headline = stringResource(id = R.string.tcp_proxy_enable_udp_relay),
                         leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                        position = CardPosition.Middle,
                         onClick = { enableUdpRelayChecked = !enableUdpRelayChecked },
                         trailing = {
                             Switch(
@@ -256,8 +267,8 @@ fun TcpProxyMainScreen(
                     RethinkListItem(
                         headline = tcpProxyAddAppsText,
                         leadingIconPainter = painterResource(id = R.drawable.ic_app_info_accent),
-                        onClick = { openAppsDialog() },
-                        showDivider = false
+                        position = CardPosition.Last,
+                        onClick = { openAppsDialog() }
                     )
                 }
             }
@@ -269,8 +280,8 @@ fun TcpProxyMainScreen(
                         headline = stringResource(id = R.string.tcp_proxy_cloudflare_warp_title),
                         supporting = stringResource(id = R.string.tcp_proxy_cloudflare_warp_desc),
                         leadingIconPainter = painterResource(id = R.drawable.ic_proxy),
+                        position = CardPosition.Single,
                         onClick = { warpSwitchChecked = !warpSwitchChecked },
-                        showDivider = false,
                         trailing = {
                             Switch(
                                 checked = warpSwitchChecked,

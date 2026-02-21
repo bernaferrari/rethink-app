@@ -35,14 +35,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
+import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
@@ -51,7 +55,7 @@ import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isOsVersionAbove412
 import com.celzero.firestack.settings.Settings
@@ -89,7 +93,7 @@ fun AntiCensorshipScreen(
     onBackClick: (() -> Unit)? = null
 ) {
     val desyncSupported = remember { isOsVersionAbove412(DESYNC_SUPPORTED_VERSION) }
-    
+
     val initialDial = remember {
         val base = DialStrategies.fromInt(persistentState.dialStrategy) ?: DialStrategies.SPLIT_AUTO
         val resolved = if (base == DialStrategies.SPLIT_AUTO && persistentState.autoProxyEnabled) {
@@ -104,7 +108,7 @@ fun AntiCensorshipScreen(
             resolved
         }
     }
-    
+
     val initialRetry = remember {
         RetryStrategies.fromInt(persistentState.retryStrategy) ?: RetryStrategies.RETRY_WITH_SPLIT
     }
@@ -113,12 +117,16 @@ fun AntiCensorshipScreen(
     var retrySelection by remember { mutableStateOf(initialRetry) }
     val context = LocalContext.current
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.anti_censorship_title),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
@@ -144,8 +152,9 @@ fun AntiCensorshipScreen(
             item {
                 SectionHeader(title = stringResource(R.string.anti_censorship_title))
                 RethinkListGroup {
-                    DialStrategies.entries.forEach { strategy ->
-                        if (!desyncSupported && strategy == DialStrategies.DESYNC) return@forEach
+                    val validStrategies =
+                        DialStrategies.entries.filter { desyncSupported || it != DialStrategies.DESYNC }
+                    validStrategies.forEachIndexed { index, strategy ->
                         val titleRes = when (strategy) {
                             DialStrategies.NEVER_SPLIT -> R.string.settings_app_list_default_app
                             DialStrategies.SPLIT_AUTO -> R.string.settings_ip_text_ipv46
@@ -162,10 +171,17 @@ fun AntiCensorshipScreen(
                             DialStrategies.DESYNC -> R.string.ac_desync_desc
                             DialStrategies.TCP_PROXY -> R.string.ac_tcp_proxy_desc
                         }
+                        val position = when {
+                            validStrategies.size == 1 -> CardPosition.Single
+                            index == 0 -> CardPosition.First
+                            index == validStrategies.size - 1 -> CardPosition.Last
+                            else -> CardPosition.Middle
+                        }
 
                         RethinkListItem(
                             headline = stringResource(titleRes),
                             supporting = stringResource(descRes),
+                            position = position,
                             leadingIcon =
                                 if (dialSelection == strategy) {
                                     Icons.Rounded.RadioButtonChecked
@@ -187,7 +203,8 @@ fun AntiCensorshipScreen(
                                         when (strategy) {
                                             DialStrategies.NEVER_SPLIT -> RetryStrategies.RETRY_NEVER
                                             DialStrategies.SPLIT_AUTO, DialStrategies.TCP_PROXY -> RetryStrategies.RETRY_WITH_SPLIT
-                                            else -> RetryStrategies.fromInt(persistentState.retryStrategy) ?: RetryStrategies.RETRY_WITH_SPLIT
+                                            else -> RetryStrategies.fromInt(persistentState.retryStrategy)
+                                                ?: RetryStrategies.RETRY_WITH_SPLIT
                                         }
                                     persistentState.retryStrategy = nextRetry.mode
                                     retrySelection = nextRetry
@@ -222,7 +239,8 @@ fun AntiCensorshipScreen(
                 )
 
                 RethinkListGroup {
-                    RetryStrategies.entries.forEach { strategy ->
+                    val strategies = RetryStrategies.entries
+                    strategies.forEachIndexed { index, strategy ->
                         val titleRes = when (strategy) {
                             RetryStrategies.RETRY_NEVER -> R.string.settings_app_list_default_app
                             RetryStrategies.RETRY_WITH_SPLIT -> R.string.settings_ip_text_ipv46
@@ -235,11 +253,19 @@ fun AntiCensorshipScreen(
                         }
                         val enabled =
                             dialSelection != DialStrategies.NEVER_SPLIT ||
-                                strategy == RetryStrategies.RETRY_NEVER
+                                    strategy == RetryStrategies.RETRY_NEVER
+
+                        val position = when {
+                            strategies.size == 1 -> CardPosition.Single
+                            index == 0 -> CardPosition.First
+                            index == strategies.size - 1 -> CardPosition.Last
+                            else -> CardPosition.Middle
+                        }
 
                         RethinkListItem(
                             headline = stringResource(titleRes),
                             supporting = stringResource(descRes),
+                            position = position,
                             leadingIcon =
                                 if (retrySelection == strategy) {
                                     Icons.Rounded.RadioButtonChecked
@@ -266,7 +292,7 @@ fun AntiCensorshipScreen(
                                     var mode = strategy.mode
                                     if (
                                         DialStrategies.NEVER_SPLIT.mode == persistentState.dialStrategy &&
-                                            strategy != RetryStrategies.RETRY_NEVER
+                                        strategy != RetryStrategies.RETRY_NEVER
                                     ) {
                                         mode = RetryStrategies.RETRY_NEVER.mode
                                     }

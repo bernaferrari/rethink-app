@@ -21,7 +21,13 @@ import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.draw.scale
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -107,17 +113,31 @@ fun DnsLogRow(
         favIconDrawable = null
     }
 
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        label = "rowScale"
+    )
+
     androidx.compose.material3.Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onShowBlocklist(log) },
-        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+            .scale(scale)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = { onShowBlocklist(log) }
+            ),
+        shape = RoundedCornerShape(18.dp),
         colors = androidx.compose.material3.CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = androidx.compose.foundation.BorderStroke(
-            width = Dimensions.dividerThickness,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
         )
     ) {
         Column(
@@ -172,17 +192,21 @@ fun DnsLogRow(
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.secondary
                         )
-                        
+
                         // Status Badge
-                        val badgeColor = if (log.isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-                        val badgeContainerColor = if (log.isBlocked) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
-                        
+                        val badgeColor =
+                            if (log.isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                        val badgeContainerColor =
+                            if (log.isBlocked) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
+
                         Surface(
                             shape = RoundedCornerShape(12.dp),
                             color = badgeContainerColor.copy(alpha = 0.8f)
                         ) {
                             Text(
-                                text = if (log.isBlocked) context.resources.getString(R.string.lbl_blocked) else context.resources.getString(R.string.lbl_allowed),
+                                text = if (log.isBlocked) context.resources.getString(R.string.lbl_blocked) else context.resources.getString(
+                                    R.string.lbl_allowed
+                                ),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.SemiBold,
                                 color = badgeColor,
@@ -190,18 +214,22 @@ fun DnsLogRow(
                             )
                         }
                     }
-                    
+
                     Text(
-                        text = log.queryStr, 
+                        text = log.queryStr,
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
                     )
-                    
-                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
-                        val appPainter = rememberDrawablePainter(appIcon) ?: rememberDrawablePainter(getDefaultIcon(context))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                    ) {
+                        val appPainter =
+                            rememberDrawablePainter(appIcon) ?: rememberDrawablePainter(getDefaultIcon(context))
                         appPainter?.let { painter ->
                             Image(
                                 painter = painter,
@@ -220,10 +248,10 @@ fun DnsLogRow(
                         )
                     }
                 }
-                
+
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
-                        text = log.wallTime(), 
+                        text = log.wallTime(),
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -248,27 +276,27 @@ fun DnsLogRow(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = responseIp, 
+                        text = responseIp,
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
-                    
+
                     Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
                         Text(
-                            text = dnsTypeName, 
+                            text = dnsTypeName,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = latencyText, 
+                            text = latencyText,
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                    
+
                     Text(
-                        text = unicodeHint, 
+                        text = unicodeHint,
                         style = MaterialTheme.typography.labelSmall
                     )
                 }
@@ -300,6 +328,7 @@ private fun statusIndicatorColor(context: Context, log: DnsLog): Color? {
         log.isBlocked -> MaterialTheme.colorScheme.error
         determineMaybeBlocked(log) ->
             MaterialTheme.colorScheme.onSurfaceVariant
+
         else -> null
     }
 }
@@ -391,6 +420,7 @@ private fun dnsTypeName(context: Context, log: DnsLog, isRethinkDns: Boolean): S
                 context.resources.getString(R.string.other_dns_list_tab1)
             }
         }
+
         Transaction.TransportType.DNS_CRYPT -> context.resources.getString(R.string.lbl_dc_abbr)
         Transaction.TransportType.DNS_PROXY -> context.resources.getString(R.string.lbl_dp)
         Transaction.TransportType.DOT -> context.resources.getString(R.string.lbl_dot)

@@ -42,6 +42,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +51,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -59,7 +61,7 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.service.VpnController
 import com.celzero.firestack.backend.Backend
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
@@ -186,11 +188,15 @@ fun PingTestScreen(
         }
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.settings_connectivity_checks),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
@@ -222,7 +228,10 @@ fun PingTestScreen(
                 Surface(
                     shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+                    ),
                     tonalElevation = 1.dp
                 ) {
                     Column(
@@ -246,7 +255,10 @@ fun PingTestScreen(
                 SectionHeader(title = stringResource(R.string.ping_ip_port_title))
                 RethinkListGroup {
                     Column(
-                        modifier = Modifier.padding(horizontal = Dimensions.cardPadding, vertical = Dimensions.spacingSm)
+                        modifier = Modifier.padding(
+                            horizontal = Dimensions.cardPadding,
+                            vertical = Dimensions.spacingSm
+                        )
                     ) {
                         PingField(
                             value = ip1,
@@ -272,7 +284,10 @@ fun PingTestScreen(
                 SectionHeader(title = stringResource(R.string.ping_host_port_title))
                 RethinkListGroup {
                     Column(
-                        modifier = Modifier.padding(horizontal = Dimensions.cardPadding, vertical = Dimensions.spacingSm)
+                        modifier = Modifier.padding(
+                            horizontal = Dimensions.cardPadding,
+                            vertical = Dimensions.spacingSm
+                        )
                     ) {
                         PingField(
                             value = host1,
@@ -324,7 +339,10 @@ fun PingTestScreen(
                     SectionHeader(title = stringResource(R.string.ping_strength_title))
                     RethinkListGroup {
                         Column(
-                            modifier = Modifier.padding(horizontal = Dimensions.cardPadding, vertical = Dimensions.spacingLg),
+                            modifier = Modifier.padding(
+                                horizontal = Dimensions.cardPadding,
+                                vertical = Dimensions.spacingLg
+                            ),
                             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
                         ) {
                             Text(

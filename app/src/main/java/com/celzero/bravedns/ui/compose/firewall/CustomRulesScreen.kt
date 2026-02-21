@@ -41,6 +41,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -52,6 +53,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -74,7 +76,7 @@ import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.viewmodel.CustomDomainViewModel
 import com.celzero.bravedns.viewmodel.CustomIpViewModel
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import inet.ipaddr.IPAddressString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -100,20 +102,24 @@ fun CustomRulesScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    
+
     val tabs = listOf(
         RulesTabSpec(RulesTab.IP, stringResource(R.string.lbl_ip_rules)),
         RulesTabSpec(RulesTab.DOMAIN, stringResource(R.string.lbl_domain_rules))
     )
-    
+
     val selectedTab = remember { mutableIntStateOf(0) }
     var showAddDialog by remember { mutableStateOf(false) }
-    
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.lbl_configure),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         },
         floatingActionButton = {
@@ -124,7 +130,10 @@ fun CustomRulesScreen(
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
             Surface(
-                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+                modifier = Modifier.padding(
+                    horizontal = Dimensions.screenPaddingHorizontal,
+                    vertical = Dimensions.spacingSm
+                ),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
                 tonalElevation = 1.dp
@@ -154,14 +163,14 @@ fun CustomRulesScreen(
                     )
                 }
             }
-            
+
             when (tabs[selectedTab.intValue].tab) {
                 RulesTab.IP -> IpRulesContent(viewModel = ipViewModel, eventLogger = eventLogger)
                 RulesTab.DOMAIN -> DomainRulesContent(viewModel = domainViewModel, eventLogger = eventLogger)
             }
         }
     }
-    
+
     if (showAddDialog) {
         AddRuleDialog(
             isIpRule = tabs[selectedTab.intValue].tab == RulesTab.IP,
@@ -171,14 +180,33 @@ fun CustomRulesScreen(
                     val ipAddress = IPAddressString(ip).address ?: return@launch
                     IpRulesManager.addIpRule(UID_EVERYBODY, ipAddress, null, IpRulesManager.IpRuleStatus.BLOCK, "", "")
                 }
-                eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, "Added IP rule", EventSource.UI, false, "IP: $ip")
+                eventLogger.log(
+                    EventType.FW_RULE_MODIFIED,
+                    Severity.LOW,
+                    "Added IP rule",
+                    EventSource.UI,
+                    false,
+                    "IP: $ip"
+                )
                 showAddDialog = false
             },
             onAddDomainRule = { domain ->
                 scope.launch(Dispatchers.IO) {
-                    DomainRulesManager.addDomainRule(domain, DomainRulesManager.Status.BLOCK, DomainRulesManager.DomainType.DOMAIN, uid = UID_EVERYBODY)
+                    DomainRulesManager.addDomainRule(
+                        domain,
+                        DomainRulesManager.Status.BLOCK,
+                        DomainRulesManager.DomainType.DOMAIN,
+                        uid = UID_EVERYBODY
+                    )
                 }
-                eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, "Added domain rule", EventSource.UI, false, "Domain: $domain")
+                eventLogger.log(
+                    EventType.FW_RULE_MODIFIED,
+                    Severity.LOW,
+                    "Added domain rule",
+                    EventSource.UI,
+                    false,
+                    "Domain: $domain"
+                )
                 showAddDialog = false
             }
         )
@@ -191,19 +219,22 @@ private fun IpRulesContent(viewModel: CustomIpViewModel, eventLogger: EventLogge
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val items = viewModel.customIpDetails.asFlow().collectAsLazyPagingItems()
-    
+
     var query by remember { mutableStateOf("") }
-    
+
     LaunchedEffect(Unit) { viewModel.setUid(UID_EVERYBODY) }
-    
+
     LaunchedEffect(Unit) {
         snapshotFlow { query }
             .debounce(300)
             .distinctUntilChanged()
             .collect { q -> viewModel.setFilter(q) }
     }
-    
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingMd)) {
+
+    Column(
+        modifier = Modifier.fillMaxSize()
+            .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingMd)
+    ) {
         SectionHeader(title = stringResource(R.string.lbl_ip_rules))
         OutlinedTextField(
             value = query,
@@ -212,9 +243,9 @@ private fun IpRulesContent(viewModel: CustomIpViewModel, eventLogger: EventLogge
             label = { Text(stringResource(R.string.lbl_search)) },
             singleLine = true
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         if (items.itemCount == 0 && items.loadState.append.endOfPaginationReached) {
             Text(text = stringResource(R.string.lbl_no_logs), style = MaterialTheme.typography.bodyMedium)
         } else {
@@ -225,7 +256,14 @@ private fun IpRulesContent(viewModel: CustomIpViewModel, eventLogger: EventLogge
                         scope.launch(Dispatchers.IO) {
                             IpRulesManager.removeIpRule(item.uid, item.ipAddress, item.port)
                         }
-                        eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, "Removed IP rule", EventSource.UI, false, "IP: ${item.ipAddress}")
+                        eventLogger.log(
+                            EventType.FW_RULE_MODIFIED,
+                            Severity.LOW,
+                            "Removed IP rule",
+                            EventSource.UI,
+                            false,
+                            "IP: ${item.ipAddress}"
+                        )
                     })
                 }
             }
@@ -260,19 +298,22 @@ private fun DomainRulesContent(viewModel: CustomDomainViewModel, eventLogger: Ev
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val items = viewModel.customDomains.asFlow().collectAsLazyPagingItems()
-    
+
     var query by remember { mutableStateOf("") }
-    
+
     LaunchedEffect(Unit) { viewModel.setUid(UID_EVERYBODY) }
-    
+
     LaunchedEffect(Unit) {
         snapshotFlow { query }
             .debounce(300)
             .distinctUntilChanged()
             .collect { q -> viewModel.setFilter(q) }
     }
-    
-    Column(modifier = Modifier.fillMaxSize().padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingMd)) {
+
+    Column(
+        modifier = Modifier.fillMaxSize()
+            .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingMd)
+    ) {
         SectionHeader(title = stringResource(R.string.lbl_domain_rules))
         OutlinedTextField(
             value = query,
@@ -281,9 +322,9 @@ private fun DomainRulesContent(viewModel: CustomDomainViewModel, eventLogger: Ev
             label = { Text(stringResource(R.string.lbl_search)) },
             singleLine = true
         )
-        
+
         Spacer(modifier = Modifier.height(8.dp))
-        
+
         if (items.itemCount == 0 && items.loadState.append.endOfPaginationReached) {
             Text(text = stringResource(R.string.cd_no_rules_text), style = MaterialTheme.typography.bodyMedium)
         } else {
@@ -294,7 +335,14 @@ private fun DomainRulesContent(viewModel: CustomDomainViewModel, eventLogger: Ev
                         scope.launch(Dispatchers.IO) {
                             DomainRulesManager.deleteDomain(item)
                         }
-                        eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, "Removed domain rule", EventSource.UI, false, "Domain: ${item.domain}")
+                        eventLogger.log(
+                            EventType.FW_RULE_MODIFIED,
+                            Severity.LOW,
+                            "Removed domain rule",
+                            EventSource.UI,
+                            false,
+                            "Domain: ${item.domain}"
+                        )
                     })
                 }
             }
@@ -331,7 +379,7 @@ private fun AddRuleDialog(
     onAddDomainRule: (String) -> Unit
 ) {
     var ruleValue by remember { mutableStateOf("") }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = if (isIpRule) "Add IP Rule" else "Add Domain Rule") },

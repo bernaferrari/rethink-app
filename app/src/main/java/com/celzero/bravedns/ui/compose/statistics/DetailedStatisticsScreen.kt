@@ -41,11 +41,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -60,11 +64,12 @@ import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.data.SummaryStatisticsType
 import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.util.UIUtils.formatBytes
 import com.celzero.bravedns.viewmodel.DetailedStatisticsViewModel
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel.TimeCategory
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DetailedStatisticsScreen(
     viewModel: DetailedStatisticsViewModel,
@@ -90,9 +95,12 @@ fun DetailedStatisticsScreen(
         viewModel.timeCategoryChanged(timeCategory)
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            DetailedStatisticsTopBar(type, onBackClick)
+            DetailedStatisticsTopBar(type, scrollBehavior, onBackClick)
         }
     ) { paddingValues ->
         Box(modifier = Modifier.padding(paddingValues).fillMaxSize()) {
@@ -198,11 +206,17 @@ fun DetailedStatisticsScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun DetailedStatisticsTopBar(type: SummaryStatisticsType, onBackClick: () -> Unit) {
-    RethinkTopBar(
+private fun DetailedStatisticsTopBar(
+    type: SummaryStatisticsType,
+    scrollBehavior: TopAppBarScrollBehavior,
+    onBackClick: () -> Unit
+) {
+    RethinkLargeTopBar(
         title = stringResource(id = getTitleResId(type)),
-        onBackClick = onBackClick
+        onBackClick = onBackClick,
+        scrollBehavior = scrollBehavior
     )
 }
 
@@ -309,8 +323,25 @@ private fun getTitleResId(type: SummaryStatisticsType): Int {
 @Composable
 private fun getTimeCategoryText(timeCategory: TimeCategory): String {
     return when (timeCategory) {
-        TimeCategory.ONE_HOUR -> stringResource(id = R.string.three_argument, stringResource(id = R.string.lbl_last), stringResource(id = R.string.numeric_one), stringResource(id = R.string.lbl_hour))
-        TimeCategory.TWENTY_FOUR_HOUR -> stringResource(id = R.string.three_argument, stringResource(id = R.string.lbl_last), stringResource(id = R.string.numeric_twenty_four), stringResource(id = R.string.lbl_hour))
-        TimeCategory.SEVEN_DAYS -> stringResource(id = R.string.three_argument, stringResource(id = R.string.lbl_last), stringResource(id = R.string.numeric_seven), stringResource(id = R.string.lbl_day))
+        TimeCategory.ONE_HOUR -> stringResource(
+            id = R.string.three_argument,
+            stringResource(id = R.string.lbl_last),
+            stringResource(id = R.string.numeric_one),
+            stringResource(id = R.string.lbl_hour)
+        )
+
+        TimeCategory.TWENTY_FOUR_HOUR -> stringResource(
+            id = R.string.three_argument,
+            stringResource(id = R.string.lbl_last),
+            stringResource(id = R.string.numeric_twenty_four),
+            stringResource(id = R.string.lbl_hour)
+        )
+
+        TimeCategory.SEVEN_DAYS -> stringResource(
+            id = R.string.three_argument,
+            stringResource(id = R.string.lbl_last),
+            stringResource(id = R.string.numeric_seven),
+            stringResource(id = R.string.lbl_day)
+        )
     }
 }

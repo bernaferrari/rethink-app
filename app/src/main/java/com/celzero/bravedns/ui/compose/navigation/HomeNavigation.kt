@@ -166,6 +166,7 @@ sealed interface HomeNavRequest {
         val type: SummaryStatisticsType,
         val timeCategory: SummaryStatisticsViewModel.TimeCategory
     ) : HomeNavRequest
+
     data object Alerts : HomeNavRequest
     data object RpnCountries : HomeNavRequest
     data object RpnAvailability : HomeNavRequest
@@ -198,6 +199,7 @@ sealed interface HomeNavRequest {
         val isBlocked: Boolean,
         val timeCategory: DomainConnectionsViewModel.TimeCategory
     ) : HomeNavRequest
+
     data object DnsList : HomeNavRequest
     data class AppWiseIpLogs(val uid: Int, val isAsn: Boolean) : HomeNavRequest
     data class ConfigureRethinkBasic(
@@ -206,6 +208,7 @@ sealed interface HomeNavRequest {
         val remoteUrl: String = "",
         val uid: Int = -1
     ) : HomeNavRequest
+
     data class ConfigureOtherDns(val dnsType: Int) : HomeNavRequest
     data object UniversalFirewallSettings : HomeNavRequest
     data class AppWiseDomainLogs(val uid: Int) : HomeNavRequest
@@ -342,7 +345,7 @@ fun HomeScreenRoot(
     val isWelcomeRoute = currentRoute == HomeRoute.Welcome::class.qualifiedName
     val showBottomBar =
         !isWelcomeRoute &&
-            (currentDestination?.hierarchy?.any { it.route != null && topLevelRoutes.contains(it.route) } == true)
+                (currentDestination?.hierarchy?.any { it.route != null && topLevelRoutes.contains(it.route) } == true)
 
     LaunchedEffect(homeNavRequest) {
         val request = homeNavRequest ?: return@LaunchedEffect
@@ -350,66 +353,87 @@ fun HomeScreenRoot(
             is HomeNavRequest.DetailedStats -> {
                 navController.navigate(HomeRoute.DetailedStats(request.type.tid, request.timeCategory.value))
             }
+
             HomeNavRequest.Alerts -> {
                 navController.navigate(HomeRoute.Alerts)
             }
+
             HomeNavRequest.RpnCountries -> {
                 navController.navigate(HomeRoute.RpnCountries)
             }
+
             HomeNavRequest.RpnAvailability -> {
                 navController.navigate(HomeRoute.RpnAvailability)
             }
+
             HomeNavRequest.Events -> {
                 navController.navigate(HomeRoute.Events)
             }
+
             HomeNavRequest.FirewallSettings -> {
                 navController.navigate(HomeRoute.FirewallSettings)
             }
+
             HomeNavRequest.AdvancedSettings -> {
                 navController.navigate(HomeRoute.AdvancedSettings)
             }
+
             HomeNavRequest.AntiCensorship -> {
                 navController.navigate(HomeRoute.AntiCensorship)
             }
+
             HomeNavRequest.TunnelSettings -> {
                 navController.navigate(HomeRoute.TunnelSettings)
             }
+
             HomeNavRequest.MiscSettings -> {
                 navController.navigate(HomeRoute.MiscSettings)
             }
+
             HomeNavRequest.ConsoleLogs -> {
                 navController.navigate(HomeRoute.ConsoleLogs)
             }
+
             HomeNavRequest.NetworkLogs -> {
                 navController.navigate(HomeRoute.NetworkLogs)
             }
+
             HomeNavRequest.AppList -> {
                 navController.navigate(HomeRoute.AppList)
             }
+
             HomeNavRequest.CustomRules -> {
                 navController.navigate(HomeRoute.CustomRules)
             }
+
             HomeNavRequest.ProxySettings -> {
                 navController.navigate(HomeRoute.ProxySettings)
             }
+
             HomeNavRequest.TcpProxyMain -> {
                 navController.navigate(HomeRoute.TcpProxyMain)
             }
+
             HomeNavRequest.Welcome -> {
                 navController.navigate(HomeRoute.Welcome)
             }
+
             HomeNavRequest.PingTest -> {
                 navController.navigate(HomeRoute.PingTest)
             }
+
             HomeNavRequest.AppLock -> {
                 navController.navigate(HomeRoute.AppLock)
             }
+
             HomeNavRequest.DnsDetail -> {
                 navController.navigate(HomeRoute.DnsDetail)
             }
+
             is HomeNavRequest.RpnWinProxyDetails -> {
                 navController.navigate(HomeRoute.RpnWinProxyDetails(request.countryCode))
             }
+
             is HomeNavRequest.DomainConnections -> {
                 navController.navigate(
                     HomeRoute.DomainConnections(
@@ -423,15 +447,19 @@ fun HomeScreenRoot(
                     )
                 )
             }
+
             is HomeNavRequest.AppInfo -> {
                 navController.navigate(HomeRoute.AppInfo(request.uid))
             }
+
             is HomeNavRequest.WgConfigDetail -> {
                 navController.navigate(HomeRoute.WgConfigDetail(request.configId, request.wgType))
             }
+
             is HomeNavRequest.WgConfigEditor -> {
                 navController.navigate(HomeRoute.WgConfigEditor(request.configId, request.wgType))
             }
+
             is HomeNavRequest.ConfigureRethinkBasic -> {
                 navController.navigate(
                     HomeRoute.ConfigureRethinkBasic(
@@ -442,24 +470,31 @@ fun HomeScreenRoot(
                     )
                 )
             }
+
             HomeNavRequest.DnsList -> {
                 navController.navigate(HomeRoute.DnsList)
             }
+
             is HomeNavRequest.AppWiseIpLogs -> {
                 navController.navigate(HomeRoute.AppWiseIpLogs(request.uid, request.isAsn))
             }
+
             is HomeNavRequest.ConfigureOtherDns -> {
                 navController.navigate(HomeRoute.ConfigureOtherDns(request.dnsType))
             }
+
             HomeNavRequest.UniversalFirewallSettings -> {
                 navController.navigate(HomeRoute.UniversalFirewallSettings)
             }
+
             is HomeNavRequest.AppWiseDomainLogs -> {
                 navController.navigate(HomeRoute.AppWiseDomainLogs(request.uid))
             }
+
             HomeNavRequest.Checkout -> {
                 navController.navigate(HomeRoute.Checkout)
             }
+
             HomeNavRequest.WgMain -> {
                 navController.navigate(HomeRoute.WgMain)
             }
@@ -491,9 +526,9 @@ fun HomeScreenRoot(
         bottomBar = {
             if (!showBottomBar) return@Scaffold
             NavigationBar(
-                modifier = Modifier.fillMaxWidth().heightIn(min = 72.dp),
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                tonalElevation = 3.dp,
+                modifier = Modifier.fillMaxWidth(),
+                containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                tonalElevation = 0.dp,
                 windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
             ) {
                 HomeDestination.entries.forEach { destination ->
@@ -519,13 +554,16 @@ fun HomeScreenRoot(
                             )
                         },
                         label = {
-                            Text(text = stringResource(id = destination.labelRes))
+                            Text(
+                                text = stringResource(id = destination.labelRes),
+                                style = MaterialTheme.typography.labelMedium
+                            )
                         },
                         alwaysShowLabel = true,
                         colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.onPrimary,
+                            selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
                             selectedTextColor = MaterialTheme.colorScheme.onSurface,
-                            indicatorColor = MaterialTheme.colorScheme.primary,
+                            indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
                             unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
                             unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -754,7 +792,7 @@ fun HomeScreenRoot(
                     onBackClick = { navController.popBackStack() }
                 )
             }
-            
+
             composable<HomeRoute.RpnWinProxyDetails> { entry ->
                 val args = entry.toRoute<HomeRoute.RpnWinProxyDetails>()
                 RpnWinProxyDetailsScreen(
@@ -762,11 +800,11 @@ fun HomeScreenRoot(
                     onBackClick = { navController.popBackStack() }
                 )
             }
-            
+
             composable<HomeRoute.DomainConnections> { entry ->
                 val args = entry.toRoute<HomeRoute.DomainConnections>()
                 val timeCategory = DomainConnectionsViewModel.TimeCategory.fromValue(args.timeCategory)
-                        ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR
+                    ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR
                 val type = DomainConnectionsInputType.fromValue(args.typeId)
 
                 DomainConnectionsScreen(
@@ -786,7 +824,7 @@ fun HomeScreenRoot(
                 val args = entry.toRoute<HomeRoute.DetailedStats>()
                 val type = SummaryStatisticsType.getType(args.typeId)
                 val timeCategory = SummaryStatisticsViewModel.TimeCategory.fromValue(args.timeCategory)
-                
+
                 DetailedStatisticsScreen(
                     type = type,
                     timeCategory = timeCategory ?: SummaryStatisticsViewModel.TimeCategory.TWENTY_FOUR_HOUR,
@@ -985,7 +1023,12 @@ fun HomeScreenRoot(
                     items = items,
                     eventLogger = appInfoEventLogger,
                     onTimeCategoryChange = { appInfoNetworkLogsViewModel.timeCategoryChanged(it, true) },
-                    onFilterChange = { appInfoNetworkLogsViewModel.setFilter(it, AppConnectionsViewModel.FilterType.DOMAIN) },
+                    onFilterChange = {
+                        appInfoNetworkLogsViewModel.setFilter(
+                            it,
+                            AppConnectionsViewModel.FilterType.DOMAIN
+                        )
+                    },
                     onDeleteLogs = { appInfoNetworkLogsViewModel.deleteLogs(uid) },
                     defaultIcon = defaultIcon
                 )

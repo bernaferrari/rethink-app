@@ -36,9 +36,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,7 +48,6 @@ import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.FilterChip
@@ -64,21 +62,29 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -92,8 +98,9 @@ import com.celzero.bravedns.adapter.FirewallAppRow
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.viewmodel.AppInfoViewModel
 import kotlinx.coroutines.Dispatchers
@@ -244,6 +251,8 @@ fun AppListScreen(
     onBackClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     val refreshRotation = rememberInfiniteTransition(label = "refresh").animateFloat(
         initialValue = 0f,
         targetValue = if (isRefreshing) 360f else 0f,
@@ -255,6 +264,12 @@ fun AppListScreen(
     )
 
     var showFilterSheet by remember { mutableStateOf(false) }
+
+    val hasActiveFilters = currentFilters?.let {
+        it.topLevelFilter != TopLevelFilter.ALL ||
+                it.categoryFilters.isNotEmpty() ||
+                selectedFirewallFilter != FirewallFilter.ALL
+    } ?: (selectedFirewallFilter != FirewallFilter.ALL)
 
     if (showFilterSheet) {
         FirewallAppFilterSheet(
@@ -278,9 +293,7 @@ fun AppListScreen(
             title = { Text(text = bulkDialogTitle) },
             text = { Text(text = bulkDialogMessage) },
             confirmButton = {
-                TextButton(
-                    onClick = { onBulkDialogConfirm(bulkDialogType) }
-                ) {
+                TextButton(onClick = { onBulkDialogConfirm(bulkDialogType) }) {
                     Text(text = stringResource(R.string.lbl_apply))
                 }
             },
@@ -304,18 +317,14 @@ fun AppListScreen(
         )
     }
 
-    val hasActiveFilters = currentFilters?.let {
-        it.topLevelFilter != TopLevelFilter.ALL ||
-            it.categoryFilters.isNotEmpty() ||
-            selectedFirewallFilter != FirewallFilter.ALL
-    } ?: selectedFirewallFilter != FirewallFilter.ALL
-
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.apps_info_title),
                 onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior,
                 actions = {
                     IconButton(
                         onClick = onRefreshClick,
@@ -327,6 +336,7 @@ fun AppListScreen(
                             modifier = Modifier.rotate(if (isRefreshing) refreshRotation.value else 0f)
                         )
                     }
+                    // Filter icon with active indicator dot
                     IconButton(onClick = { showFilterSheet = true }) {
                         Box {
                             Icon(
@@ -352,124 +362,18 @@ fun AppListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            RethinkListGroup(
-                modifier = Modifier.padding(
-                    start = Dimensions.screenPaddingHorizontal,
-                    end = Dimensions.screenPaddingHorizontal,
-                    top = Dimensions.spacingSm
-                )
-            ) {
-                OutlinedTextField(
-                    value = queryText,
-                    onValueChange = onQueryChange,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            horizontal = Dimensions.spacingMd,
-                            vertical = Dimensions.spacingSm
-                        ),
-                    singleLine = true,
-                    placeholder = {
-                        Text(
-                            text = stringResource(R.string.lbl_search),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                                alpha = Dimensions.Opacity.MEDIUM
-                            )
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            imageVector = Icons.Rounded.Search,
-                            contentDescription = null
-                        )
-                    },
-                    trailingIcon = {
-                        if (queryText.isNotEmpty()) {
-                            IconButton(onClick = { onQueryChange("") }) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Close,
-                                    contentDescription = stringResource(R.string.cd_clear_search),
-                                    modifier = Modifier.size(Dimensions.iconSizeSm)
-                                )
-                            }
-                        }
-                    },
-                    shape = RoundedCornerShape(14.dp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.45f),
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.55f),
-                        focusedContainerColor = MaterialTheme.colorScheme.surface,
-                        unfocusedContainerColor = MaterialTheme.colorScheme.surface
-                    )
-                )
+            // ── Search card — inline, always visible (reference UI style) ─
+            AppListSearchCard(
+                queryText = queryText,
+                filterLabelText = filterLabelText,
+                selectedFirewallFilter = selectedFirewallFilter,
+                context = context,
+                onQueryChange = onQueryChange,
+                onFirewallFilterClick = onFirewallFilterClick
+            )
 
-                if (filterLabelText.isNotEmpty()) {
-                    Text(
-                        text = filterLabelText.toString(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(
-                                start = Dimensions.spacingMd,
-                                end = Dimensions.spacingMd,
-                                bottom = Dimensions.spacingSm
-                            ),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
-            }
-
-            SectionHeader(title = stringResource(R.string.fapps_filter_filter_heading))
-
-            RethinkListGroup(
-                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal)
-            ) {
-                LazyRow(
-                    contentPadding = PaddingValues(
-                        horizontal = Dimensions.spacingMd,
-                        vertical = Dimensions.spacingSm
-                    ),
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-                ) {
-                    items(FirewallFilter.entries.size) { index ->
-                        val filter = FirewallFilter.entries[index]
-                        val label = filter.getLabel(context)
-                        if (label.isNotEmpty()) {
-                            val selected = selectedFirewallFilter == filter
-                            FilterChip(
-                                selected = selected,
-                                onClick = { onFirewallFilterClick(filter) },
-                                label = {
-                                    Text(
-                                        text = label,
-                                        style = MaterialTheme.typography.labelMedium,
-                                        fontWeight = if (selected) FontWeight.SemiBold
-                                        else FontWeight.Normal
-                                    )
-                                },
-                                shape = CircleShape,
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    containerColor = Color.Transparent
-                                ),
-                                border = FilterChipDefaults.filterChipBorder(
-                                    enabled = true,
-                                    selected = selected,
-                                    borderColor = if (selected) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
-                                    borderWidth = 1.dp
-                                )
-                            )
-                        }
-                    }
-                }
-            }
-
+            // ── Bulk actions ──────────────────────────────────────────────
             BulkToggleRow(
                 bulkWifi = bulkWifi,
                 bulkMobile = bulkMobile,
@@ -483,11 +387,120 @@ fun AppListScreen(
                 onBypassDnsTooltip = onBypassDnsTooltip
             )
 
+            // ── App list ──────────────────────────────────────────────────
             AppListRecycler(
                 modifier = Modifier.weight(1f),
                 viewModel = viewModel,
                 eventLogger = eventLogger
             )
+        }
+    }
+}
+
+/**
+ * Inline search and quick-filter card, mirroring the reference UI's compact header card.
+ */
+@Composable
+private fun AppListSearchCard(
+    queryText: String,
+    filterLabelText: CharSequence,
+    selectedFirewallFilter: FirewallFilter,
+    context: Context,
+    onQueryChange: (String) -> Unit,
+    onFirewallFilterClick: (FirewallFilter) -> Unit
+) {
+    val quickFilters = listOf(FirewallFilter.ALL, FirewallFilter.ALLOWED, FirewallFilter.BLOCKED)
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimensions.screenPaddingHorizontal)
+            .padding(bottom = Dimensions.spacingMd),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        tonalElevation = 0.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Search field — filled style, no underline (reference MainScreen pattern)
+            TextField(
+                value = queryText,
+                onValueChange = onQueryChange,
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true,
+                placeholder = {
+                    Text(
+                        text = stringResource(R.string.lbl_search),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
+                },
+                leadingIcon = {
+                    Icon(
+                        imageVector = Icons.Rounded.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                },
+                trailingIcon = if (queryText.isNotEmpty()) {
+                    {
+                        IconButton(
+                            onClick = { onQueryChange("") },
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Close,
+                                contentDescription = stringResource(R.string.cd_clear_search),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                } else null,
+                shape = RoundedCornerShape(14.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent,
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                ),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
+            )
+
+            // Active filter label
+            if (filterLabelText.isNotEmpty()) {
+                Text(
+                    text = filterLabelText.toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+            }
+
+            // Quick filter segmented row
+            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+                quickFilters.forEachIndexed { index, filter ->
+                    SegmentedButton(
+                        selected = selectedFirewallFilter == filter,
+                        onClick = { onFirewallFilterClick(filter) },
+                        shape = SegmentedButtonDefaults.itemShape(
+                            index = index,
+                            count = quickFilters.size
+                        ),
+                        label = {
+                            Text(
+                                text = filter.getLabel(context),
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    )
+                }
+            }
         }
     }
 }
@@ -505,69 +518,81 @@ private fun BulkToggleRow(
     onShowBulkDialog: (BlockType) -> Unit,
     onBypassDnsTooltip: () -> Unit
 ) {
-    RethinkListGroup(
-        modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal)
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimensions.screenPaddingHorizontal),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Column(
-            modifier = Modifier.padding(
-                horizontal = Dimensions.spacingMd,
-                vertical = Dimensions.spacingSm
-            ),
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
         ) {
-            AssistChip(
-                onClick = onShowInfoDialog,
-                label = { Text(text = stringResource(R.string.lbl_info)) },
-                leadingIcon = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Bulk actions",
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+                IconButton(
+                    onClick = onShowInfoDialog,
+                    modifier = Modifier.size(32.dp),
+                    colors = IconButtonDefaults.iconButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                ) {
                     Icon(
                         painter = painterResource(R.drawable.ic_info_white),
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.lbl_info),
                         modifier = Modifier.size(18.dp)
                     )
                 }
-            )
+            }
 
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
-                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                BulkActionChip(
+                BulkChip(
                     icon = if (bulkLockdown) R.drawable.ic_firewall_lockdown_on else R.drawable.ic_firewall_lockdown_off,
                     label = stringResource(R.string.fapps_firewall_filter_isolate),
                     isActive = bulkLockdown,
                     onClick = { onShowBulkDialog(BlockType.LOCKDOWN) }
                 )
-                BulkActionChip(
+                BulkChip(
                     icon = if (bulkExclude) R.drawable.ic_firewall_exclude_on else R.drawable.ic_firewall_exclude_off,
                     label = stringResource(R.string.fapps_firewall_filter_excluded),
                     isActive = bulkExclude,
                     onClick = { onShowBulkDialog(BlockType.EXCLUDE) }
                 )
-                BulkActionChip(
+                BulkChip(
                     icon = if (bulkBypass) R.drawable.ic_firewall_bypass_on else R.drawable.ic_firewall_bypass_off,
                     label = stringResource(R.string.fapps_firewall_filter_bypass_universal),
                     isActive = bulkBypass,
                     onClick = { onShowBulkDialog(BlockType.BYPASS) }
                 )
-                BulkActionChip(
+                BulkChip(
                     icon = if (bulkBypassDns) R.drawable.ic_bypass_dns_firewall_on else R.drawable.ic_bypass_dns_firewall_off,
                     label = "DNS",
                     isActive = bulkBypassDns,
                     onClick = {
-                        if (showBypassToolTip) {
-                            onBypassDnsTooltip()
-                        } else {
-                            onShowBulkDialog(BlockType.BYPASS_DNS_FIREWALL)
-                        }
+                        if (showBypassToolTip) onBypassDnsTooltip()
+                        else onShowBulkDialog(BlockType.BYPASS_DNS_FIREWALL)
                     }
                 )
-                BulkActionChip(
+                BulkChip(
                     icon = if (bulkWifi) R.drawable.ic_firewall_wifi_off else R.drawable.ic_firewall_wifi_on_grey,
                     label = "Wi-Fi",
                     isActive = bulkWifi,
                     onClick = { onShowBulkDialog(BlockType.UNMETER) }
                 )
-                BulkActionChip(
+                BulkChip(
                     icon = if (bulkMobile) R.drawable.ic_firewall_data_off else R.drawable.ic_firewall_data_on_grey,
                     label = stringResource(R.string.lbl_mobile_data),
                     isActive = bulkMobile,
@@ -579,7 +604,7 @@ private fun BulkToggleRow(
 }
 
 @Composable
-private fun BulkActionChip(
+private fun BulkChip(
     icon: Int,
     label: String,
     isActive: Boolean,
@@ -588,13 +613,7 @@ private fun BulkActionChip(
     FilterChip(
         selected = isActive,
         onClick = onClick,
-        label = {
-            Text(
-                text = label,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
+        label = { Text(text = label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
         leadingIcon = {
             Icon(
                 painter = painterResource(icon),
@@ -602,14 +621,17 @@ private fun BulkActionChip(
                 modifier = Modifier.size(18.dp)
             )
         },
+        shape = RoundedCornerShape(12.dp),
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
         ),
         border = FilterChipDefaults.filterChipBorder(
             enabled = true,
             selected = isActive,
-            borderColor = if (isActive) Color.Transparent else MaterialTheme.colorScheme.outlineVariant,
+            borderColor = if (isActive) Color.Transparent
+            else MaterialTheme.colorScheme.outlineVariant,
             borderWidth = 1.dp
         )
     )
@@ -623,10 +645,11 @@ private fun AppListRecycler(
 ) {
     val items = viewModel.appInfo.asFlow().collectAsLazyPagingItems()
     LazyColumn(
+        state = rememberLazyListState(),
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             horizontal = Dimensions.screenPaddingHorizontal,
-            vertical = Dimensions.spacingSm
+            vertical = Dimensions.spacingMd
         ),
         verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
     ) {
@@ -651,36 +674,16 @@ private fun FirewallInfoDialogContent() {
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurface
         )
-
         HorizontalDivider(
             thickness = Dimensions.dividerThickness,
             color = MaterialTheme.colorScheme.outlineVariant
         )
-
-        InfoRow(
-            icon = R.drawable.ic_firewall_wifi_on_grey,
-            text = stringResource(R.string.fapps_info_unmetered_msg)
-        )
-        InfoRow(
-            icon = R.drawable.ic_firewall_data_on_grey,
-            text = stringResource(R.string.fapps_info_metered_msg)
-        )
-        InfoRow(
-            icon = R.drawable.ic_firewall_bypass_off,
-            text = stringResource(R.string.fapps_info_bypass_msg)
-        )
-        InfoRow(
-            icon = R.drawable.ic_bypass_dns_firewall_off,
-            text = stringResource(R.string.fapps_info_bypass_dns_firewall_msg)
-        )
-        InfoRow(
-            icon = R.drawable.ic_firewall_exclude_off,
-            text = stringResource(R.string.fapps_info_exclude_msg)
-        )
-        InfoRow(
-            icon = R.drawable.ic_firewall_lockdown_off,
-            text = stringResource(R.string.fapps_info_isolate_msg)
-        )
+        InfoRow(R.drawable.ic_firewall_wifi_on_grey, stringResource(R.string.fapps_info_unmetered_msg))
+        InfoRow(R.drawable.ic_firewall_data_on_grey, stringResource(R.string.fapps_info_metered_msg))
+        InfoRow(R.drawable.ic_firewall_bypass_off, stringResource(R.string.fapps_info_bypass_msg))
+        InfoRow(R.drawable.ic_bypass_dns_firewall_off, stringResource(R.string.fapps_info_bypass_dns_firewall_msg))
+        InfoRow(R.drawable.ic_firewall_exclude_off, stringResource(R.string.fapps_info_exclude_msg))
+        InfoRow(R.drawable.ic_firewall_lockdown_off, stringResource(R.string.fapps_info_isolate_msg))
     }
 }
 
@@ -693,20 +696,18 @@ private fun InfoRow(icon: Int, text: String) {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(32.dp)
-                .clip(CircleShape)
-                .background(
-                    MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.6f)
-                )
+        Surface(
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            modifier = Modifier.size(36.dp)
         ) {
-            Image(
-                painter = painterResource(id = icon),
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                Image(
+                    painter = painterResource(id = icon),
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
         Text(
             text = text,
@@ -732,9 +733,7 @@ fun FirewallAppFilterSheet(
     }
     val selectedCategories = remember {
         mutableStateListOf<String>().apply {
-            if (initialFilters != null) {
-                addAll(initialFilters.categoryFilters)
-            }
+            if (initialFilters != null) addAll(initialFilters.categoryFilters)
         }
     }
     val categories = remember { mutableStateListOf<String>() }
@@ -797,11 +796,8 @@ fun FirewallAppFilterSheet(
                         FilterChip(
                             selected = selectedCategories.contains(category),
                             onClick = {
-                                if (selectedCategories.contains(category)) {
-                                    selectedCategories.remove(category)
-                                } else {
-                                    selectedCategories.add(category)
-                                }
+                                if (selectedCategories.contains(category)) selectedCategories.remove(category)
+                                else selectedCategories.add(category)
                             },
                             label = { Text(text = category) },
                             colors = FilterChipDefaults.filterChipColors(
@@ -823,27 +819,21 @@ fun FirewallAppFilterSheet(
                     onClick = {
                         selectedCategories.clear()
                         topFilter = TopLevelFilter.ALL
-                        val cleared = Filters().apply {
+                        onClear(Filters().apply {
                             topLevelFilter = TopLevelFilter.ALL
                             this.firewallFilter = firewallFilter
-                        }
-                        onClear(cleared)
+                        })
                     }
-                ) {
-                    Text(text = stringResource(R.string.fapps_filter_clear_btn))
-                }
+                ) { Text(text = stringResource(R.string.fapps_filter_clear_btn)) }
                 FilledTonalButton(
                     onClick = {
-                        val applied = Filters().apply {
+                        onApply(Filters().apply {
                             topLevelFilter = topFilter
                             this.firewallFilter = firewallFilter
                             categoryFilters = selectedCategories.toMutableSet()
-                        }
-                        onApply(applied)
+                        })
                     }
-                ) {
-                    Text(text = stringResource(R.string.lbl_apply))
-                }
+                ) { Text(text = stringResource(R.string.lbl_apply)) }
             }
 
             Spacer(modifier = Modifier.height(Dimensions.spacing2xl))
@@ -859,19 +849,15 @@ private fun TopFilterChip(label: String, selected: Boolean, onClick: () -> Unit)
         label = {
             Text(
                 text = label,
-                modifier = Modifier.padding(
-                    horizontal = Dimensions.spacingMd,
-                    vertical = Dimensions.spacingXs
-                ),
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                style = MaterialTheme.typography.labelMedium
+                style = MaterialTheme.typography.labelMedium,
+                modifier = Modifier.padding(horizontal = Dimensions.spacingSm, vertical = Dimensions.spacingXs)
             )
         },
         shape = RoundedCornerShape(14.dp),
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
             selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.45f)
         )
     )
 }
@@ -885,3 +871,4 @@ private suspend fun fetchCategories(filter: TopLevelFilter): List<String> {
         }
     }
 }
+

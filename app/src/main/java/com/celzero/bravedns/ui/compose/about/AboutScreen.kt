@@ -1,19 +1,58 @@
+/*
+ * Copyright 2024 RethinkDNS and its authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.celzero.bravedns.ui.compose.about
 
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -22,11 +61,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
+import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AboutScreen(
     uiState: AboutUiState,
@@ -61,288 +103,523 @@ fun AboutScreen(
     onFossClick: () -> Unit,
     onFlossFundsClick: () -> Unit
 ) {
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            RethinkLargeTopBar(
+                title = stringResource(id = R.string.title_about),
+                scrollBehavior = scrollBehavior
+            )
+        }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
+            state = rememberLazyListState(),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(
+                start = Dimensions.screenPaddingHorizontal,
+                end = Dimensions.screenPaddingHorizontal,
+                top = Dimensions.spacingSm,
+                bottom = Dimensions.spacing3xl
+            ),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Surface(
-                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal),
-                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
-                tonalElevation = 1.dp
-            ) {
-                Column(
-                    modifier = Modifier.padding(Dimensions.spacingXl),
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+
+            // ── App identity hero card ────────────────────────────────────
+            item { AppHeroCard(uiState) }
+
+            // ── Sponsor / support card ────────────────────────────────────
+            item { SponsorCard(uiState, onSponsorClick) }
+
+            // ── Quick actions row (Telegram + Bug Report) ─────────────────
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
                 ) {
-                    Text(
-                        text = stringResource(id = R.string.title_about),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                    QuickActionCard(
+                        title = stringResource(id = R.string.about_join_telegram),
+                        iconId = R.drawable.ic_telegram,
+                        modifier = Modifier.weight(1f),
+                        onClick = onTelegramClick
                     )
-                    Text(
-                        text = stringResource(id = R.string.about_title_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    if (uiState.isBugReportRunning) {
+                        BugReportLoadingCard(modifier = Modifier.weight(1f))
+                    } else {
+                        QuickActionCard(
+                            title = stringResource(id = R.string.about_bug_report),
+                            iconId = R.drawable.ic_android_icon,
+                            modifier = Modifier.weight(1f),
+                            onClick = onBugReportClick
+                        )
+                    }
+                }
+            }
+
+            // ── App section ───────────────────────────────────────────────
+            item {
+                SectionHeader(title = stringResource(id = R.string.about_app))
+                RethinkListGroup {
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_whats_new, uiState.slicedVersion),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_whats_new),
+                        position = CardPosition.First,
+                        onClick = onWhatsNewClick
+                    )
+                    if (!uiState.isFdroid) {
+                        RethinkListItem(
+                            headline = stringResource(id = R.string.about_app_update_check),
+                            leadingIconPainter = painterResource(id = R.drawable.ic_update),
+                            position = CardPosition.Middle,
+                            onClick = onAppUpdateClick
+                        )
+                    }
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_app_contributors),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_authors),
+                        position = CardPosition.Middle,
+                        onClick = onContributorsClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_app_translate),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_translate),
+                        position = CardPosition.Last,
+                        onClick = onTranslateClick
                     )
                 }
             }
 
-            Column(
-                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal),
-                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
-            ) {
-
-                // Sponsorship Card
-                Surface(
-                    shape = RoundedCornerShape(24.dp),
-                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.42f),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSecondaryContainer.copy(alpha = 0.12f)),
-                    tonalElevation = 1.dp
-                ) {
-                    Column(modifier = Modifier.padding(Dimensions.spacingXl)) {
-                        Text(
-                            text = stringResource(id = R.string.about_bravedns_explantion),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-                        Text(
-                            text = stringResource(id = R.string.about_bravedns_whoarewe),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-                        Text(
-                            text = stringResource(id = R.string.sponser_dialog_usage_msg, uiState.daysSinceInstall, uiState.sponsoredAmount),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                        Spacer(modifier = Modifier.height(Dimensions.spacingXl))
-                        Button(
-                            onClick = onSponsorClick,
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(20.dp)
-                        ) {
-                            Icon(
-                                imageVector = ImageVector.vectorResource(id = R.drawable.ic_heart_accent),
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text(
-                                text = stringResource(id = R.string.about_sponsor_link_text),
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-                    }
+            // ── Web section ───────────────────────────────────────────────
+            item {
+                SectionHeader(title = stringResource(id = R.string.about_web))
+                RethinkListGroup {
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_website),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_website),
+                        position = CardPosition.First,
+                        onClick = onWebsiteClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_github),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_github),
+                        position = CardPosition.Middle,
+                        onClick = onGithubClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_faq),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_faq),
+                        position = CardPosition.Middle,
+                        onClick = onFaqClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_docs),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_blog),
+                        position = CardPosition.Middle,
+                        onClick = onDocsClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_privacy_policy),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_privacy_policy),
+                        position = CardPosition.Middle,
+                        onClick = onPrivacyPolicyClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_terms_of_service),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_terms_service),
+                        position = CardPosition.Middle,
+                        onClick = onTermsOfServiceClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_license),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_terms_service),
+                        position = CardPosition.Last,
+                        onClick = onLicenseClick
+                    )
                 }
+            }
 
-                // Social & Bug Report Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        AboutSmallCard(
-                            title = stringResource(id = R.string.about_join_telegram),
-                            iconId = R.drawable.ic_telegram,
-                            onClick = onTelegramClick
-                        )
-                        Text(
-                            text = stringResource(id = R.string.about_bravedns_toreport_text),
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
-                        )
-                    }
-                    Column(modifier = Modifier.weight(1f)) {
-                        if (uiState.isBugReportRunning) {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(56.dp)
-                                    .background(MaterialTheme.colorScheme.surfaceContainerHigh, RoundedCornerShape(20.dp)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Text(text = stringResource(id = R.string.collecting_logs_progress_text), style = MaterialTheme.typography.bodySmall)
-                                }
-                            }
-                        } else {
-                            AboutSmallCard(
-                                title = stringResource(id = R.string.about_bug_report),
-                                iconId = R.drawable.ic_android_icon,
-                                onClick = onBugReportClick
-                            )
-                        }
-                        Text(
-                            text = stringResource(id = R.string.about_bug_report_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth().padding(top = 4.dp)
-                        )
-                    }
+            // ── Connect / community section ───────────────────────────────
+            item {
+                SectionHeader(title = stringResource(id = R.string.about_connect))
+                RethinkListGroup {
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_twitter),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_twitter),
+                        position = CardPosition.First,
+                        onClick = onTwitterClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_email),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_mail),
+                        position = CardPosition.Middle,
+                        onClick = onEmailClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.lbl_reddit),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_reddit),
+                        position = CardPosition.Middle,
+                        onClick = onRedditClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.lbl_matrix),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_element),
+                        position = CardPosition.Middle,
+                        onClick = onElementClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.lbl_mastodon),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_mastodon),
+                        position = CardPosition.Last,
+                        onClick = onMastodonClick
+                    )
                 }
+            }
 
-                // Sections
-                AboutSection(title = stringResource(id = R.string.about_app)) {
-                    AboutItem(stringResource(id = R.string.about_whats_new, uiState.slicedVersion), R.drawable.ic_whats_new, onWhatsNewClick)
-                    if (!uiState.isFdroid) {
-                        AboutItem(stringResource(id = R.string.about_app_update_check), R.drawable.ic_update, onAppUpdateClick)
-                    }
-                    AboutItem(stringResource(id = R.string.about_app_contributors), R.drawable.ic_authors, onContributorsClick)
-                    AboutItem(stringResource(id = R.string.about_app_translate), R.drawable.ic_translate, onTranslateClick)
+            // ── System settings section ───────────────────────────────────
+            item {
+                SectionHeader(title = stringResource(id = R.string.about_settings))
+                RethinkListGroup {
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_settings_app_info),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_app_info),
+                        position = CardPosition.First,
+                        onClick = onAppInfoClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_settings_vpn_profile),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_about_key),
+                        position = CardPosition.Middle,
+                        onClick = onVpnProfileClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.about_settings_notification),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_notification),
+                        position = CardPosition.Last,
+                        onClick = onNotificationClick
+                    )
                 }
+            }
 
-                AboutSection(title = stringResource(id = R.string.about_web)) {
-                    AboutItem(stringResource(id = R.string.about_website), R.drawable.ic_website, onWebsiteClick)
-                    AboutItem(stringResource(id = R.string.about_github), R.drawable.ic_github, onGithubClick)
-                    AboutItem(stringResource(id = R.string.about_faq), R.drawable.ic_faq, onFaqClick)
-                    AboutItem(stringResource(id = R.string.about_docs), R.drawable.ic_blog, onDocsClick)
-                    AboutItem(stringResource(id = R.string.about_privacy_policy), R.drawable.ic_privacy_policy, onPrivacyPolicyClick)
-                    AboutItem(stringResource(id = R.string.about_terms_of_service), R.drawable.ic_terms_service, onTermsOfServiceClick)
-                    AboutItem(stringResource(id = R.string.about_license), R.drawable.ic_terms_service, onLicenseClick)
-                }
-
-                AboutSection(title = stringResource(id = R.string.about_connect)) {
-                    AboutItem(stringResource(id = R.string.about_twitter), R.drawable.ic_twitter, onTwitterClick)
-                    AboutItem(stringResource(id = R.string.about_email), R.drawable.ic_mail, onEmailClick)
-                    AboutItem(stringResource(id = R.string.lbl_reddit), R.drawable.ic_reddit, onRedditClick)
-                    AboutItem(stringResource(id = R.string.lbl_matrix), R.drawable.ic_element, onElementClick)
-                    AboutItem(stringResource(id = R.string.lbl_mastodon), R.drawable.ic_mastodon, onMastodonClick)
-                }
-
-                AboutSection(title = stringResource(id = R.string.about_settings)) {
-                    AboutItem(stringResource(id = R.string.about_settings_app_info), R.drawable.ic_app_info, onAppInfoClick)
-                    AboutItem(stringResource(id = R.string.about_settings_vpn_profile), R.drawable.ic_about_key, onVpnProfileClick)
-                    AboutItem(stringResource(id = R.string.about_settings_notification), R.drawable.ic_notification, onNotificationClick)
-                }
-
-                AboutSection(title = stringResource(id = R.string.title_statistics)) {
-                    AboutItem(stringResource(id = R.string.settings_general_header), R.drawable.ic_log_level, onStatsClick)
-                    AboutItem(stringResource(id = R.string.title_database_dump), R.drawable.ic_backup, onDbStatsClick)
+            // ── Debug / diagnostics section ───────────────────────────────
+            item {
+                SectionHeader(title = stringResource(id = R.string.title_statistics))
+                RethinkListGroup {
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.settings_general_header),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_log_level),
+                        position = CardPosition.First,
+                        onClick = onStatsClick
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.title_database_dump),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_backup),
+                        position = CardPosition.Middle,
+                        onClick = onDbStatsClick
+                    )
                     if (uiState.isDebug) {
-                        AboutItem("Flight Recorder", R.drawable.ic_backup, onFlightRecordClick)
+                        RethinkListItem(
+                            headline = "Flight Recorder",
+                            leadingIconPainter = painterResource(id = R.drawable.ic_backup),
+                            position = CardPosition.Middle,
+                            onClick = onFlightRecordClick
+                        )
                     }
-                    AboutItem(stringResource(id = R.string.event_logs_title), R.drawable.ic_event_note, onEventLogsClick)
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.event_logs_title),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_event_note),
+                        position = CardPosition.Last,
+                        onClick = onEventLogsClick
+                    )
                 }
+            }
 
-                // Logos
+            // ── Partner logos ─────────────────────────────────────────────
+            item { PartnerLogosCard(onFossClick, onFlossFundsClick) }
+
+            // ── Version footer ────────────────────────────────────────────
+            item {
                 Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.mozilla),
-                        contentDescription = null,
-                        modifier = Modifier.width(160.dp),
-                        contentScale = ContentScale.FillWidth
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.foss_logo),
-                        contentDescription = null,
-                        modifier = Modifier.width(160.dp).height(60.dp).clickable { onFossClick() },
-                        contentScale = ContentScale.Fit
-                    )
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_floss_fund_badge),
-                        contentDescription = null,
-                        modifier = Modifier.width(160.dp).height(60.dp).clickable { onFlossFundsClick() },
-                        contentScale = ContentScale.Fit
-                    )
-                }
-
-                Text(
-                    text = stringResource(id = R.string.about_mozilla),
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().alpha(0.7f)
-                )
-
-                // Version info
-                Text(
-                    text = stringResource(id = R.string.about_version_install_source, uiState.versionName, uiState.installSource) +
-                            "\n${uiState.buildNumber}\n${uiState.lastUpdated}",
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().alpha(0.75f).padding(top = Dimensions.spacingLg)
-                )
-
-                if (uiState.isFirebaseEnabled && !uiState.isFdroid) {
+                    if (uiState.isFirebaseEnabled && !uiState.isFdroid) {
+                        Text(
+                            text = uiState.firebaseToken,
+                            style = MaterialTheme.typography.labelSmall,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .alpha(0.5f)
+                                .padding(bottom = Dimensions.spacingMd)
+                                .clickable { onTokenClick() }
+                        )
+                    }
                     Text(
-                        text = uiState.firebaseToken,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = "${uiState.versionName} · ${uiState.installSource}",
+                        style = MaterialTheme.typography.labelSmall,
                         textAlign = TextAlign.Center,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .alpha(0.75f)
-                            .padding(vertical = 16.dp)
-                            .clickable { onTokenClick() }
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.fillMaxWidth().alpha(0.65f)
                     )
+                    if (uiState.buildNumber.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = uiState.buildNumber,
+                            style = MaterialTheme.typography.labelSmall,
+                            textAlign = TextAlign.Center,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.fillMaxWidth().alpha(0.45f)
+                        )
+                    }
                 }
-
-                Spacer(modifier = Modifier.height(Dimensions.spacing3xl))
             }
         }
     }
 }
 
+// ─── App Identity Hero Card ────────────────────────────────────────────────────
+
 @Composable
-fun AboutSection(title: String, content: @Composable ColumnScope.() -> Unit) {
-    Column {
-        SectionHeader(title = title)
-        RethinkListGroup(content = content)
+private fun AppHeroCard(uiState: AboutUiState) {
+    Surface(
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.padding(20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            // App icon with rounded container
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.primaryContainer,
+                modifier = Modifier.size(64.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_launcher),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+            }
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stringResource(id = R.string.app_name),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = stringResource(id = R.string.about_title_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 2
+                )
+                if (uiState.versionName.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Surface(
+                        shape = RoundedCornerShape(50.dp),
+                        color = MaterialTheme.colorScheme.secondaryContainer
+                    ) {
+                        Text(
+                            text = "v${uiState.versionName}",
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 
-@Composable
-fun AboutItem(title: String, iconId: Int, onClick: () -> Unit) {
-    RethinkListItem(
-        headline = title,
-        leadingIconPainter = painterResource(id = iconId),
-        onClick = onClick
-    )
-}
+// ─── Sponsor Card ─────────────────────────────────────────────────────────────
 
 @Composable
-fun AboutSmallCard(title: String, iconId: Int, onClick: () -> Unit) {
+private fun SponsorCard(uiState: AboutUiState, onSponsorClick: () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.primaryContainer,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.about_bravedns_explantion),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Text(
+                text = stringResource(
+                    id = R.string.sponser_dialog_usage_msg,
+                    uiState.daysSinceInstall,
+                    uiState.sponsoredAmount
+                ),
+                style = MaterialTheme.typography.bodyMedium,
+                fontWeight = FontWeight.Medium,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
+            )
+            Button(
+                onClick = onSponsorClick,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(50.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                )
+            ) {
+                Icon(
+                    imageVector = Icons.Rounded.Favorite,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(id = R.string.about_sponsor_link_text),
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+    }
+}
+
+// ─── Quick Action Card ─────────────────────────────────────────────────────────
+
+@Composable
+private fun QuickActionCard(
+    title: String,
+    iconId: Int,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
     Surface(
         shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f)),
-        modifier = Modifier.fillMaxWidth(),
-        tonalElevation = 1.dp,
-        onClick = onClick
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        onClick = onClick,
+        modifier = modifier
     ) {
         Row(
-            modifier = Modifier.padding(
-                horizontal = Dimensions.spacingLg,
-                vertical = Dimensions.spacingLg
-            ),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = ImageVector.vectorResource(id = iconId),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(22.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
+            Surface(
+                shape = CircleShape,
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier.size(36.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = iconId),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(10.dp))
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
                 fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+private fun BugReportLoadingCard(modifier: Modifier = Modifier) {
+    Surface(
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        modifier = modifier
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.5.dp)
+            Spacer(modifier = Modifier.width(10.dp))
+            Text(
+                text = stringResource(id = R.string.collecting_logs_progress_text),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 maxLines = 1
             )
+        }
+    }
+}
+
+// ─── Partner Logos Card ────────────────────────────────────────────────────────
+
+@Composable
+private fun PartnerLogosCard(onFossClick: () -> Unit, onFlossFundsClick: () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(24.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.about_mozilla),
+                style = MaterialTheme.typography.bodySmall,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.alpha(0.75f)
+            )
+            Image(
+                painter = painterResource(id = R.drawable.mozilla),
+                contentDescription = null,
+                modifier = Modifier.width(140.dp),
+                contentScale = ContentScale.FillWidth
+            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.foss_logo),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(44.dp)
+                        .clickable { onFossClick() },
+                    contentScale = ContentScale.Fit
+                )
+                Image(
+                    painter = painterResource(id = R.drawable.ic_floss_fund_badge),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .width(120.dp)
+                        .height(44.dp)
+                        .clickable { onFlossFundsClick() },
+                    contentScale = ContentScale.Fit
+                )
+            }
         }
     }
 }

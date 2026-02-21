@@ -16,15 +16,14 @@
 package com.celzero.bravedns.ui.compose.theme
 
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
 /**
- * Design system dimensions for consistent spacing throughout the app.
+ * Design system dimensions following Material 3 Expressive guidelines.
  */
 object Dimensions {
-    // Spacing scale
+    // Spacing scale (4dp base)
     val spacingNone: Dp = 0.dp
     val spacingXs: Dp = 4.dp
     val spacingSm: Dp = 8.dp
@@ -35,11 +34,14 @@ object Dimensions {
     val spacing2xl: Dp = 32.dp
     val spacing3xl: Dp = 48.dp
 
-    // Component dimensions
-    val cardCornerRadius: Dp = 16.dp
-    val cardCornerRadiusLarge: Dp = 20.dp
-    val buttonCornerRadius: Dp = 14.dp
-    val buttonCornerRadiusLarge: Dp = 20.dp
+    // M3 Expressive shape scale — larger, more expressive corner radii
+    val cardCornerRadius: Dp = 20.dp           // Cards, list groups
+    val cardCornerRadiusLarge: Dp = 28.dp      // Section cards
+    val heroCornerRadius: Dp = 32.dp           // Hero/protection cards
+    val chipCornerRadius: Dp = 50.dp           // Full pill chips
+    val iconContainerRadius: Dp = 12.dp        // Icon surface containers
+    val buttonCornerRadius: Dp = 50.dp         // Full pill buttons (M3 Expressive default)
+    val buttonCornerRadiusLarge: Dp = 50.dp
 
     // Card padding
     val cardPadding: Dp = 16.dp
@@ -56,25 +58,36 @@ object Dimensions {
     val iconSizeLg: Dp = 32.dp
     val iconSizeXl: Dp = 48.dp
 
+    // Icon container sizes (tinted squircle containers)
+    val iconContainerSm: Dp = 32.dp
+    val iconContainerMd: Dp = 40.dp
+    val iconContainerLg: Dp = 48.dp
+
     // Touch targets (minimum 48dp for accessibility)
     val touchTargetMin: Dp = 48.dp
     val touchTargetSm: Dp = 44.dp
 
-    // Button dimensions
-    val buttonHeight: Dp = 50.dp
-    val buttonHeightSm: Dp = 40.dp
-    val buttonHeightLg: Dp = 56.dp
+    // Button dimensions — M3 Expressive prefers taller buttons
+    val buttonHeight: Dp = 52.dp
+    val buttonHeightSm: Dp = 44.dp
+    val buttonHeightLg: Dp = 60.dp
 
     // List item dimensions
     val listItemHeight: Dp = 64.dp
     val listItemHeightSm: Dp = 56.dp
     val listItemHeightLg: Dp = 72.dp
 
+    // Progress indicators
+    val progressBarHeight: Dp = 10.dp
+
+    // Active tab indicator
+    val tabIndicatorHeight: Dp = 4.dp
+
     // Divider
     val dividerThickness: Dp = 0.5.dp
     val dividerThicknessBold: Dp = 1.dp
 
-    // Opacity values for consistent theming
+    // Opacity values
     object Opacity {
         const val FULL: Float = 1f
         const val HIGH: Float = 0.87f
@@ -103,12 +116,12 @@ object Paddings {
     val md = PaddingValues(Dimensions.spacingMd)
     val lg = PaddingValues(Dimensions.spacingLg)
     val xl = PaddingValues(Dimensions.spacingXl)
-    
+
     val screen = PaddingValues(
         horizontal = Dimensions.screenPaddingHorizontal,
         vertical = Dimensions.screenPaddingVertical
     )
-    
+
     val card = PaddingValues(Dimensions.cardPadding)
     val cardSm = PaddingValues(Dimensions.cardPaddingSm)
 }

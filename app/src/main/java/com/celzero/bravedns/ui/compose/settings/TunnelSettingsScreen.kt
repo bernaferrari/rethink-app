@@ -50,6 +50,7 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -60,6 +61,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -75,11 +77,12 @@ import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkScreenHeader
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.dialog.CustomLanIpSheet
 import com.celzero.bravedns.ui.dialog.NetworkReachabilitySheet
@@ -240,11 +243,15 @@ fun TunnelSettingsScreen(
         )
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.lbl_network),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         },
         containerColor = MaterialTheme.colorScheme.background
@@ -275,6 +282,7 @@ fun TunnelSettingsScreen(
                         RethinkListItem(
                             headline = stringResource(R.string.settings_lock_down_mode_desc),
                             leadingIconPainter = painterResource(id = R.drawable.ic_firewall_lockdown_on),
+                            position = CardPosition.Single,
                             onClick = { onOpenVpnProfile() }
                         )
                     }
@@ -288,6 +296,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_allow_bypass_heading),
                         supporting = stringResource(R.string.settings_allow_bypass_desc),
                         leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                        position = CardPosition.First,
                         onClick = {
                             if (Utilities.isPlayStoreFlavour()) return@RethinkListItem
                             val checked = !allowBypass
@@ -323,6 +332,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.fail_open_network_title),
                         supporting = stringResource(R.string.fail_open_network_desc),
                         leadingIcon = Icons.Filled.Tune,
+                        position = CardPosition.Middle,
                         onClick = {
                             val checked = !stallNoNetwork
                             stallNoNetwork = checked
@@ -345,6 +355,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_allow_lan_heading),
                         supporting = stringResource(R.string.settings_allow_lan_desc),
                         leadingIcon = Icons.Filled.Tune,
+                        position = CardPosition.Middle,
                         onClick = {
                             if (canModify) {
                                 val checked = !routeLan
@@ -372,6 +383,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_network_all_networks),
                         supporting = stringResource(R.string.settings_network_all_networks_desc),
                         leadingIcon = Icons.Filled.Tune,
+                        position = CardPosition.Middle,
                         onClick = {
                             if (canModify) {
                                 val checked = !useMultipleNetworks
@@ -405,6 +417,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_exclude_apps_in_proxy),
                         supporting = stringResource(R.string.settings_exclude_apps_in_proxy_desc),
                         leadingIcon = Icons.Filled.Tune,
+                        position = CardPosition.Middle,
                         onClick = {
                             if (canModify) {
                                 val checked = !excludeApps
@@ -430,6 +443,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_protocol_translation),
                         supporting = stringResource(R.string.settings_protocol_translation_desc),
                         leadingIcon = Icons.Filled.Tune,
+                        position = CardPosition.Last,
                         onClick = {
                             if (showPtrans) {
                                 val checked = !protocolTranslation
@@ -478,6 +492,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_default_dns_heading),
                         supporting = stringResource(R.string.settings_default_dns_desc),
                         leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                        position = CardPosition.First,
                         onClick = { showDefaultDnsDialog = true }
                     )
 
@@ -485,6 +500,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.vpn_policy_title),
                         supporting = vpnPolicyDesc,
                         leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                        position = CardPosition.Middle,
                         onClick = { showVpnPolicyDialog = true }
                     )
 
@@ -492,6 +508,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_ip_dialog_title),
                         supporting = stringResource(R.string.settings_selected_ip_desc, ipDesc),
                         leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                        position = CardPosition.Middle,
                         onClick = { if (vpnPolicy != POLICY_FIXED) showIpDialog = true }
                     )
 
@@ -499,6 +516,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_connectivity_checks),
                         supporting = stringResource(R.string.settings_connectivity_checks_desc),
                         leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                        position = CardPosition.Middle,
                         onClick = { if (showConnectivityChecksOption) showConnectivityChecksDialog = true }
                     )
 
@@ -506,6 +524,7 @@ fun TunnelSettingsScreen(
                         RethinkListItem(
                             headline = stringResource(R.string.settings_ping_ips),
                             leadingIcon = Icons.Filled.NetworkCheck,
+                            position = CardPosition.Middle,
                             onClick = {
                                 if (!VpnController.hasTunnel()) {
                                     showToastUiCentered(
@@ -524,6 +543,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_treat_mobile_metered),
                         supporting = stringResource(R.string.settings_treat_mobile_metered_desc),
                         leadingIcon = Icons.Filled.Tune,
+                        position = CardPosition.Middle,
                         onClick = {
                             val checked = !meteredOnlyMobile
                             meteredOnlyMobile = checked
@@ -546,6 +566,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_wg_listen_port),
                         supporting = stringResource(R.string.settings_wg_listen_port_desc),
                         leadingIcon = Icons.Filled.Tune,
+                        position = CardPosition.Middle,
                         onClick = {
                             val checked = !listenPortFixed
                             listenPortFixed = checked
@@ -568,6 +589,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_wg_lockdown),
                         supporting = stringResource(R.string.settings_wg_lockdown_desc),
                         leadingIcon = Icons.Filled.Tune,
+                        position = CardPosition.Middle,
                         onClick = {
                             val checked = !wgLockdown
                             wgLockdown = checked
@@ -592,6 +614,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_endpoint_independence),
                         supporting = stringResource(R.string.settings_endpoint_independence_desc),
                         leadingIcon = Icons.Filled.Tune,
+                        position = CardPosition.Middle,
                         onClick = {
                             val checked = !endpointIndependence
                             endpointIndependence = checked
@@ -627,6 +650,7 @@ fun TunnelSettingsScreen(
                             headline = stringResource(R.string.settings_allow_incoming_wg_packets),
                             supporting = stringResource(R.string.settings_allow_incoming_wg_packets_desc),
                             leadingIcon = Icons.Filled.Tune,
+                            position = CardPosition.Middle,
                             onClick = {
                                 val checked = !allowIncoming
                                 allowIncoming = checked
@@ -650,6 +674,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_tcp_keep_alive),
                         supporting = stringResource(R.string.settings_tcp_keep_alive_desc),
                         leadingIcon = Icons.Filled.Tune,
+                        position = CardPosition.Middle,
                         onClick = {
                             val checked = !tcpKeepAlive
                             tcpKeepAlive = checked
@@ -672,6 +697,7 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.settings_jumbo_packets),
                         supporting = stringResource(R.string.settings_jumbo_packets_desc),
                         leadingIcon = Icons.Filled.Tune,
+                        position = CardPosition.Middle,
                         onClick = {
                             if (vpnPolicy != POLICY_FIXED && !persistentState.routeRethinkInRethink) {
                                 val checked = !useMaxMtu
@@ -698,6 +724,7 @@ fun TunnelSettingsScreen(
                             headline = stringResource(R.string.settings_vpn_builder_metered),
                             supporting = stringResource(R.string.settings_vpn_builder_metered_desc),
                             leadingIcon = Icons.Filled.Tune,
+                            position = CardPosition.Middle,
                             onClick = {
                                 val checked = !tunnelMetered
                                 tunnelMetered = checked
@@ -721,8 +748,8 @@ fun TunnelSettingsScreen(
                         headline = stringResource(R.string.custom_lan_ip_title),
                         supporting = stringResource(R.string.custom_lan_ip_desc),
                         leadingIconPainter = painterResource(id = R.drawable.ic_settings),
-                        onClick = { showCustomLanIpSheet = true },
-                        showDivider = false
+                        position = CardPosition.Last,
+                        onClick = { showCustomLanIpSheet = true }
                     )
                 }
             }

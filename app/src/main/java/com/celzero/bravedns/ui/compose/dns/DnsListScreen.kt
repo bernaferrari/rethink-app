@@ -15,27 +15,31 @@
  */
 package com.celzero.bravedns.ui.compose.dns
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,8 +48,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
@@ -53,7 +59,8 @@ import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.firestack.backend.Backend
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -68,43 +75,36 @@ fun DnsListScreen(
 ) {
     var selectedType by remember { mutableStateOf<AppConfig.DnsType?>(null) }
     var selectedWorking by remember { mutableStateOf(false) }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            val id = if (appConfig.isSmartDnsEnabled()) {
-                Backend.Plus
-            } else {
-                Backend.Preferred
-            }
+            val id = if (appConfig.isSmartDnsEnabled()) Backend.Plus else Backend.Preferred
             val state = VpnController.getDnsStatus(id)
-            val working =
-                if (state == null) {
-                    false
-                } else {
-                    when (Transaction.Status.fromId(state)) {
-                        Transaction.Status.COMPLETE,
-                        Transaction.Status.START -> true
-                        else -> false
-                    }
-                }
-            
+            val working = if (state == null) false else when (Transaction.Status.fromId(state)) {
+                Transaction.Status.COMPLETE, Transaction.Status.START -> true
+                else -> false
+            }
             selectedType = appConfig.getDnsType()
             selectedWorking = working
         }
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.lbl_dns_servers),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
         LazyColumn(
+            state = rememberLazyListState(),
             modifier = Modifier
-                .fillMaxWidth()
+                .fillMaxSize()
                 .padding(paddingValues),
             contentPadding = PaddingValues(
                 start = Dimensions.screenPaddingHorizontal,
@@ -114,23 +114,16 @@ fun DnsListScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
+            // Description card
             item {
                 Surface(
-                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f))
+                    shape = RoundedCornerShape(20.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainer
                 ) {
                     Column(
-                        modifier = Modifier.padding(
-                            horizontal = Dimensions.spacingLg,
-                            vertical = Dimensions.spacingMd
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+                        modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+                        verticalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
-                        Text(
-                            text = stringResource(R.string.lbl_dns_servers),
-                            style = MaterialTheme.typography.titleMedium
-                        )
                         Text(
                             text = stringResource(R.string.dns_desc),
                             style = MaterialTheme.typography.bodyMedium,
@@ -140,10 +133,10 @@ fun DnsListScreen(
                 }
             }
 
+            // DNS protocol cards grid
             item {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
-                ) {
+                SectionHeader(title = stringResource(R.string.lbl_configure))
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         DnsCard(
                             label = stringResource(R.string.dc_doh),
@@ -153,9 +146,7 @@ fun DnsListScreen(
                             selectedType = selectedType,
                             selectedWorking = selectedWorking,
                             modifier = Modifier.weight(1f),
-                            onClick = {
-                                onConfigureOtherDns(DnsScreenType.DOH.index)
-                            }
+                            onClick = { onConfigureOtherDns(DnsScreenType.DOH.index) }
                         )
                         DnsCard(
                             label = stringResource(R.string.lbl_dot_abbr),
@@ -165,12 +156,9 @@ fun DnsListScreen(
                             selectedType = selectedType,
                             selectedWorking = selectedWorking,
                             modifier = Modifier.weight(1f),
-                            onClick = {
-                                onConfigureOtherDns(DnsScreenType.DOT.index)
-                            }
+                            onClick = { onConfigureOtherDns(DnsScreenType.DOT.index) }
                         )
                     }
-
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         DnsCard(
                             label = stringResource(R.string.dc_dns_crypt),
@@ -180,9 +168,7 @@ fun DnsListScreen(
                             selectedType = selectedType,
                             selectedWorking = selectedWorking,
                             modifier = Modifier.weight(1f),
-                            onClick = {
-                                onConfigureOtherDns(DnsScreenType.DNS_CRYPT.index)
-                            }
+                            onClick = { onConfigureOtherDns(DnsScreenType.DNS_CRYPT.index) }
                         )
                         DnsCard(
                             label = stringResource(R.string.lbl_dp_abbr),
@@ -192,12 +178,9 @@ fun DnsListScreen(
                             selectedType = selectedType,
                             selectedWorking = selectedWorking,
                             modifier = Modifier.weight(1f),
-                            onClick = {
-                                onConfigureOtherDns(DnsScreenType.DNS_PROXY.index)
-                            }
+                            onClick = { onConfigureOtherDns(DnsScreenType.DNS_PROXY.index) }
                         )
                     }
-
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         DnsCard(
                             label = stringResource(R.string.lbl_odoh_abbr),
@@ -207,9 +190,7 @@ fun DnsListScreen(
                             selectedType = selectedType,
                             selectedWorking = selectedWorking,
                             modifier = Modifier.weight(1f),
-                            onClick = {
-                                onConfigureOtherDns(DnsScreenType.ODOH.index)
-                            }
+                            onClick = { onConfigureOtherDns(DnsScreenType.ODOH.index) }
                         )
                         DnsCard(
                             label = stringResource(R.string.dc_rethink_dns_radio),
@@ -219,22 +200,19 @@ fun DnsListScreen(
                             selectedType = selectedType,
                             selectedWorking = selectedWorking,
                             modifier = Modifier.weight(1f),
-                            onClick = {
-                                onConfigureRethinkBasic(0)
-                            }
+                            onClick = { onConfigureRethinkBasic(0) }
                         )
                     }
-
-                    LegendRow()
                 }
             }
 
-            item {
-                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-            }
+            // Legend
+            item { LegendRow() }
         }
     }
 }
+
+// ─── DNS Card ─────────────────────────────────────────────────────────────────
 
 @Composable
 private fun DnsCard(
@@ -248,51 +226,55 @@ private fun DnsCard(
     onClick: () -> Unit
 ) {
     val isSelected = selectedType == type
-    val containerColor = if (isSelected) {
-        if (selectedWorking) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
-        else MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.5f)
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerLow
+    val containerColor = when {
+        isSelected && selectedWorking -> MaterialTheme.colorScheme.primaryContainer
+        isSelected && !selectedWorking -> MaterialTheme.colorScheme.errorContainer
+        else -> MaterialTheme.colorScheme.surfaceContainerLow
     }
-    val textColor =
-        if (isSelected) {
-            if (selectedWorking) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.error
-        } else {
-            MaterialTheme.colorScheme.onSurfaceVariant
-        }
-    val strokeColor =
-        if (isSelected) {
-            if (selectedWorking) MaterialTheme.colorScheme.primary.copy(alpha = 0.5f) else MaterialTheme.colorScheme.error.copy(alpha = 0.5f)
-        } else {
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-        }
-    val border = if (isSelected) BorderStroke(2.dp, strokeColor) else BorderStroke(0.5.dp, strokeColor)
+    val labelColor = when {
+        isSelected && selectedWorking -> MaterialTheme.colorScheme.onPrimaryContainer
+        isSelected && !selectedWorking -> MaterialTheme.colorScheme.onErrorContainer
+        else -> MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val titleColor = when {
+        isSelected && selectedWorking -> MaterialTheme.colorScheme.primary
+        isSelected && !selectedWorking -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.onSurface
+    }
 
     Surface(
         modifier = modifier.aspectRatio(1f),
-        border = border,
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        shape = RoundedCornerShape(20.dp),
         color = containerColor,
-        tonalElevation = if (isSelected) 2.dp else 0.dp,
+        tonalElevation = 0.dp,
         onClick = onClick
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(14.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm, Alignment.CenterVertically)
+            verticalArrangement = Arrangement.SpaceEvenly
         ) {
+            // Protocol name — small label
             Text(
                 text = title,
-                style = MaterialTheme.typography.labelLarge,
-                color = textColor,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Medium,
+                color = labelColor,
                 textAlign = TextAlign.Center
             )
+
+            // Abbreviation — large and prominent
             Text(
                 text = label,
                 style = MaterialTheme.typography.titleLarge,
-                color = textColor,
+                fontWeight = FontWeight.ExtraBold,
+                color = titleColor,
                 textAlign = TextAlign.Center
             )
+
+            // Capability dots
             Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
                 dots.forEach { resId ->
                     Image(
@@ -306,18 +288,20 @@ private fun DnsCard(
     }
 }
 
+// ─── Legend Row ───────────────────────────────────────────────────────────────
+
 @Composable
 private fun LegendRow() {
     Surface(
-        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = 1.dp
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
     ) {
         Row(
             modifier = Modifier
+                .fillMaxWidth()
                 .padding(horizontal = Dimensions.spacingLg, vertical = Dimensions.spacingMd)
                 .horizontalScroll(rememberScrollState()),
-            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingLg),
+            horizontalArrangement = Arrangement.spacedBy(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             LegendItem(R.drawable.dot_red, stringResource(R.string.lbl_fast))
@@ -330,9 +314,12 @@ private fun LegendRow() {
 
 @Composable
 private fun LegendItem(icon: Int, label: String) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         Image(painter = painterResource(id = icon), contentDescription = null, modifier = Modifier.size(10.dp))
-        Spacer(modifier = Modifier.size(4.dp))
-        Text(text = label, style = MaterialTheme.typography.bodySmall)
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }

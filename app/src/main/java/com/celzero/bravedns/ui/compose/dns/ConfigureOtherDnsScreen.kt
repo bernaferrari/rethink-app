@@ -45,6 +45,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,6 +55,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -79,7 +81,7 @@ import com.celzero.bravedns.database.ODoHEndpoint
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
@@ -128,12 +130,16 @@ fun ConfigureOtherDnsScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = getDnsTypeName(dnsType),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { padding ->
@@ -245,8 +251,22 @@ private fun OtherDnsListContent(
 ) {
     when (dnsType) {
         DnsScreenType.DOH -> DohListContent(paddingValues, appConfig, dohViewModel, scope)
-        DnsScreenType.DNS_PROXY -> DnsProxyListContent(paddingValues, appConfig, persistentState, dnsProxyViewModel, scope)
-        DnsScreenType.DNS_CRYPT -> DnsCryptListContent(paddingValues, appConfig, dnsCryptViewModel, dnsCryptRelayViewModel, scope)
+        DnsScreenType.DNS_PROXY -> DnsProxyListContent(
+            paddingValues,
+            appConfig,
+            persistentState,
+            dnsProxyViewModel,
+            scope
+        )
+
+        DnsScreenType.DNS_CRYPT -> DnsCryptListContent(
+            paddingValues,
+            appConfig,
+            dnsCryptViewModel,
+            dnsCryptRelayViewModel,
+            scope
+        )
+
         DnsScreenType.DOT -> DotListContent(paddingValues, appConfig, dotViewModel, scope)
         DnsScreenType.ODOH -> OdohListContent(paddingValues, appConfig, oDohViewModel, scope)
     }
@@ -355,10 +375,10 @@ private fun checkUrl(url: String): Boolean {
     return try {
         val parsed = URL(url)
         parsed.protocol == "https" &&
-            parsed.host.isNotEmpty() &&
-            parsed.path.isNotEmpty() &&
-            parsed.query == null &&
-            parsed.ref == null
+                parsed.host.isNotEmpty() &&
+                parsed.path.isNotEmpty() &&
+                parsed.query == null &&
+                parsed.ref == null
     } catch (e: MalformedURLException) {
         false
     }
@@ -609,7 +629,7 @@ private fun DnsProxyDialogContent(
 
                     if (invalidIps.isNotEmpty()) {
                         errorText = context.resources.getString(R.string.cd_dns_proxy_error_text_1) +
-                            ": ${invalidIps.joinToString(", ")}"
+                                ": ${invalidIps.joinToString(", ")}"
                         return@Button
                     }
 
@@ -920,8 +940,9 @@ private fun OdohListContent(
             CustomOdohDialogContent(
                 title = title,
                 nameLabel = context.resources.getString(R.string.cd_doh_dialog_resolver_name),
-                proxyLabel = context.resources.getString(R.string.settings_proxy_header).replaceFirstChar(Char::uppercase) +
-                    context.resources.getString(R.string.lbl_optional),
+                proxyLabel = context.resources.getString(R.string.settings_proxy_header)
+                    .replaceFirstChar(Char::uppercase) +
+                        context.resources.getString(R.string.lbl_optional),
                 resolverLabel = context.resources.getString(R.string.cd_doh_dialog_resolver_url),
                 defaultName = context.resources.getString(R.string.lbl_odoh),
                 initialResolver = "https://",

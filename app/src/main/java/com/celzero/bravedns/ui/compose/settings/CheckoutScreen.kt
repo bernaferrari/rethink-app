@@ -37,10 +37,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -48,6 +50,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
@@ -67,7 +70,8 @@ import androidx.compose.material.icons.rounded.RadioButtonUnchecked
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.CardPosition
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 
 enum class CheckoutPlan(val titleRes: Int, val subtitleRes: Int) {
@@ -86,11 +90,15 @@ fun CheckoutScreen(
 ) {
     var selectedPlan by remember { mutableStateOf(CheckoutPlan.SIX_MONTH) }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = stringResource(R.string.checkout_app_name),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
@@ -108,6 +116,7 @@ fun CheckoutScreen(
                     onStartPayment = onStartPayment,
                     onNavigateToProxy = onNavigateToProxy
                 )
+
                 TcpProxyHelper.PaymentStatus.INITIATED -> PaymentAwaiting()
                 TcpProxyHelper.PaymentStatus.PAID -> PaymentSuccess(onNavigateToProxy)
                 TcpProxyHelper.PaymentStatus.FAILED -> PaymentFailed(onNavigateToProxy)
@@ -141,7 +150,10 @@ private fun PaymentContent(
                 .padding(horizontal = Dimensions.screenPaddingHorizontal),
             shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+            ),
             tonalElevation = 1.dp
         ) {
             Column(
@@ -173,11 +185,19 @@ private fun PaymentContent(
             )
 
             RethinkListGroup {
-                CheckoutPlan.entries.forEach { plan ->
+                val plans = CheckoutPlan.entries
+                plans.forEachIndexed { index, plan ->
                     val isSelected = selectedPlan == plan
+                    val position = when {
+                        plans.size == 1 -> CardPosition.Single
+                        index == 0 -> CardPosition.First
+                        index == plans.size - 1 -> CardPosition.Last
+                        else -> CardPosition.Middle
+                    }
                     RethinkListItem(
                         headline = stringResource(plan.titleRes),
                         supporting = stringResource(plan.subtitleRes),
+                        position = position,
                         leadingIcon = if (isSelected) Icons.Rounded.RadioButtonChecked else Icons.Rounded.RadioButtonUnchecked,
                         leadingIconTint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                         onClick = { onPlanSelected(plan) },
@@ -211,7 +231,10 @@ private fun PaymentContent(
                         .height(50.dp),
                     onClick = onNavigateToProxy,
                     shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                    )
                 ) {
                     Text(text = stringResource(R.string.checkout_restore))
                 }

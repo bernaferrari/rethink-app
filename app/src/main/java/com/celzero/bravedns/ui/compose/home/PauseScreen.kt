@@ -15,7 +15,6 @@
  */
 package com.celzero.bravedns.ui.compose.home
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -29,11 +28,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ElevatedButton
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -43,33 +46,37 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.Observer
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.celzero.bravedns.R
+import com.celzero.bravedns.database.AppInfo
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PauseTimer.PAUSE_VPN_EXTRA_MILLIS
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun PauseScreen(
-    onFinish: () -> Unit
-) {
+fun PauseScreen(onFinish: () -> Unit) {
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
+    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
 
     var timerText by remember { mutableStateOf("00:00:00") }
     var timerDesc by remember { mutableStateOf("") }
@@ -77,31 +84,23 @@ fun PauseScreen(
     var longPressJob by remember { mutableStateOf<Job?>(null) }
 
     DisposableEffect(lifecycleOwner) {
-        val connectionObserver = androidx.lifecycle.Observer<BraveVPNService.State?> { state ->
-            if (state != BraveVPNService.State.PAUSED) {
-                onFinish()
-            }
+        val connectionObserver = Observer<BraveVPNService.State?> { state ->
+            if (state != BraveVPNService.State.PAUSED) onFinish()
         }
-
-        val timerObserver = androidx.lifecycle.Observer<Long> { millis ->
+        val timerObserver = Observer<Long> { millis ->
             val ss = (TimeUnit.MILLISECONDS.toSeconds(millis) % 60).toString().padStart(2, '0')
             val mm = (TimeUnit.MILLISECONDS.toMinutes(millis) % 60).toString().padStart(2, '0')
             val hh = TimeUnit.MILLISECONDS.toHours(millis).toString().padStart(2, '0')
             timerText = "$hh:$mm:$ss"
         }
-
-        val appListObserver = androidx.lifecycle.Observer<Collection<com.celzero.bravedns.database.AppInfo>> { list ->
-            val blockedList = list.filter { a -> a.connectionStatus != FirewallManager.ConnectionStatus.ALLOW.id }
-            timerDesc = blockedList.count().toString()
+        val appListObserver = Observer<Collection<AppInfo>> { list ->
+            timerDesc = list.count { a -> a.connectionStatus != FirewallManager.ConnectionStatus.ALLOW.id }.toString()
         }
 
         VpnController.connectionStatus.observe(lifecycleOwner, connectionObserver)
         VpnController.getPauseCountDownObserver()?.observe(lifecycleOwner, timerObserver)
         FirewallManager.getApplistObserver().observe(lifecycleOwner, appListObserver)
-
-        if (!VpnController.isAppPaused()) {
-            onFinish()
-        }
+        if (!VpnController.isAppPaused()) onFinish()
 
         onDispose {
             VpnController.connectionStatus.removeObserver(connectionObserver)
@@ -113,18 +112,15 @@ fun PauseScreen(
 
     fun handleLongPress() {
         if (longPressJob?.isActive == true) return
-
         longPressJob = scope.launch(Dispatchers.Main) {
             while (autoOp != AutoOp.NONE) {
                 when (autoOp) {
                     AutoOp.INCREASE -> {
-                        delay(200)
-                        VpnController.increasePauseDuration(PAUSE_VPN_EXTRA_MILLIS)
+                        delay(200); VpnController.increasePauseDuration(PAUSE_VPN_EXTRA_MILLIS)
                     }
 
                     AutoOp.DECREASE -> {
-                        delay(200)
-                        VpnController.decreasePauseDuration(PAUSE_VPN_EXTRA_MILLIS)
+                        delay(200); VpnController.decreasePauseDuration(PAUSE_VPN_EXTRA_MILLIS)
                     }
 
                     else -> {}
@@ -134,9 +130,13 @@ fun PauseScreen(
     }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            RethinkTopBar(title = stringResource(R.string.pause_text))
+            RethinkLargeTopBar(
+                title = stringResource(R.string.pause_text),
+                scrollBehavior = scrollBehavior
+            )
         }
     ) { paddingValues ->
         Column(
@@ -147,38 +147,67 @@ fun PauseScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
 
+            // ── Timer card ────────────────────────────────────────────────
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(24.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
-                tonalElevation = 1.dp
+                shape = RoundedCornerShape(28.dp),
+                color = MaterialTheme.colorScheme.surfaceContainer,
+                tonalElevation = 0.dp
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 28.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(horizontal = 24.dp, vertical = 32.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.pause_text),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
-                    Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+                    // Label chip
+                    Surface(
+                        shape = RoundedCornerShape(50.dp),
+                        color = MaterialTheme.colorScheme.secondaryContainer
+                    ) {
+                        Text(
+                            text = stringResource(R.string.pause_text).uppercase(),
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            letterSpacing = androidx.compose.ui.unit.TextUnit(
+                                1.2f,
+                                androidx.compose.ui.unit.TextUnitType.Sp
+                            ),
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Monospace countdown timer — big, bold, beautiful
                     Text(
                         text = timerText,
                         style = MaterialTheme.typography.displayLarge,
                         fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface,
                         textAlign = TextAlign.Center
                     )
-                    Spacer(modifier = Modifier.height(Dimensions.spacingXl))
 
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    // Blocked apps count
+                    if (timerDesc.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.pause_desc, timerDesc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(20.dp))
+
+                    // ── Controls ──────────────────────────────────────────
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center,
@@ -186,54 +215,58 @@ fun PauseScreen(
                     ) {
                         PauseControlButton(
                             icon = R.drawable.ic_minus,
-                            size = 50.dp,
+                            size = 52.dp,
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                             onClick = { VpnController.decreasePauseDuration(PAUSE_VPN_EXTRA_MILLIS) },
-                            onLongClick = {
-                                autoOp = AutoOp.DECREASE
-                                handleLongPress()
-                            },
+                            onLongClick = { autoOp = AutoOp.DECREASE; handleLongPress() },
                             onRelease = { autoOp = AutoOp.NONE }
                         )
-                        Spacer(modifier = Modifier.width(Dimensions.spacingLg))
-                        // Stop/resume button — large and prominent
+                        Spacer(modifier = Modifier.width(16.dp))
+                        // Resume button — large, prominent, error tint
                         PauseControlButton(
                             icon = R.drawable.ic_stop,
-                            size = 68.dp,
+                            size = 72.dp,
                             containerColor = MaterialTheme.colorScheme.errorContainer,
                             iconTintIsOnError = true,
-                            onClick = {
-                                VpnController.resumeApp()
-                                onFinish()
-                            },
+                            onClick = { VpnController.resumeApp(); onFinish() },
                             onLongClick = {},
                             onRelease = {}
                         )
-                        Spacer(modifier = Modifier.width(Dimensions.spacingLg))
+                        Spacer(modifier = Modifier.width(16.dp))
                         PauseControlButton(
                             icon = R.drawable.ic_plus,
-                            size = 50.dp,
+                            size = 52.dp,
                             containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                             onClick = { VpnController.increasePauseDuration(PAUSE_VPN_EXTRA_MILLIS) },
-                            onLongClick = {
-                                autoOp = AutoOp.INCREASE
-                                handleLongPress()
-                            },
+                            onLongClick = { autoOp = AutoOp.INCREASE; handleLongPress() },
                             onRelease = { autoOp = AutoOp.NONE }
                         )
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.weight(1f))
-
-            Text(
-                text = stringResource(R.string.pause_desc, timerDesc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(bottom = Dimensions.spacingXl)
-            )
+            // Resume bottom button — full width
+            ElevatedButton(
+                onClick = { VpnController.resumeApp(); onFinish() },
+                modifier = Modifier.fillMaxWidth().height(52.dp),
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.elevatedButtonColors(
+                    containerColor = MaterialTheme.colorScheme.error,
+                    contentColor = MaterialTheme.colorScheme.onError
+                )
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_stop),
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = stringResource(R.string.notif_dialog_pause_dialog_positive),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
     }
 }
@@ -248,15 +281,13 @@ private fun PauseControlButton(
     onLongClick: () -> Unit,
     onRelease: () -> Unit
 ) {
-    val iconTint =
-        if (iconTintIsOnError) MaterialTheme.colorScheme.onErrorContainer
-        else MaterialTheme.colorScheme.onSurfaceVariant
+    val iconTint = if (iconTintIsOnError) MaterialTheme.colorScheme.onErrorContainer
+    else MaterialTheme.colorScheme.onSurfaceVariant
 
     Surface(
         modifier = Modifier.size(size),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(size / 3),
         color = containerColor,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
         tonalElevation = 0.dp
     ) {
         Box(
@@ -267,10 +298,7 @@ private fun PauseControlButton(
                     detectTapGestures(
                         onTap = { onClick() },
                         onLongPress = { onLongClick() },
-                        onPress = {
-                            tryAwaitRelease()
-                            onRelease()
-                        }
+                        onPress = { tryAwaitRelease(); onRelease() }
                     )
                 }
         ) {
@@ -278,14 +306,10 @@ private fun PauseControlButton(
                 painter = androidx.compose.ui.res.painterResource(id = icon),
                 contentDescription = null,
                 tint = iconTint,
-                modifier = Modifier.size(size * 0.46f)
+                modifier = Modifier.size(size * 0.44f)
             )
         }
     }
 }
 
-private enum class AutoOp {
-    INCREASE,
-    DECREASE,
-    NONE
-}
+private enum class AutoOp { INCREASE, DECREASE, NONE }

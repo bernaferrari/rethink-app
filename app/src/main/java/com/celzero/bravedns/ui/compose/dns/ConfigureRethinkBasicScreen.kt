@@ -55,6 +55,7 @@ import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -65,6 +66,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -116,7 +118,7 @@ import com.celzero.bravedns.viewmodel.RethinkEndpointViewModel
 import com.celzero.bravedns.viewmodel.RethinkLocalFileTagViewModel
 import com.celzero.bravedns.viewmodel.RethinkRemoteFileTagViewModel
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -265,7 +267,7 @@ fun ConfigureRethinkBasicScreen(
 
     fun handleDownloadStatus(status: AppDownloadManager.DownloadManagerStatus) {
         when (status) {
-            AppDownloadManager.DownloadManagerStatus.IN_PROGRESS -> { }
+            AppDownloadManager.DownloadManagerStatus.IN_PROGRESS -> {}
             AppDownloadManager.DownloadManagerStatus.STARTED -> onDownloadStart()
             AppDownloadManager.DownloadManagerStatus.FAILURE -> onDownloadFail()
             AppDownloadManager.DownloadManagerStatus.NOT_AVAILABLE -> {
@@ -275,7 +277,8 @@ fun ConfigureRethinkBasicScreen(
                     Toast.LENGTH_SHORT
                 )
             }
-            else -> { }
+
+            else -> {}
         }
     }
 
@@ -354,7 +357,7 @@ fun ConfigureRethinkBasicScreen(
             "Update available? newest: ${persistentState.newestRemoteBlocklistTimestamp}, available: ${persistentState.remoteBlocklistTimestamp}"
         )
         return (persistentState.newestRemoteBlocklistTimestamp != Constants.INIT_TIME_MS &&
-            persistentState.newestRemoteBlocklistTimestamp > persistentState.remoteBlocklistTimestamp)
+                persistentState.newestRemoteBlocklistTimestamp > persistentState.remoteBlocklistTimestamp)
     }
 
     fun refreshUpdateUi() {
@@ -495,9 +498,12 @@ fun ConfigureRethinkBasicScreen(
         ConfigureRethinkScreenType.REMOTE -> stringResource(R.string.dc_rethink_dns_radio)
     }
 
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            RethinkTopBar(
+            RethinkLargeTopBar(
                 title = title,
                 onBackClick = if (onBackClick == null) null else {
                     {
@@ -507,7 +513,8 @@ fun ConfigureRethinkBasicScreen(
                             onBackClick()
                         }
                     }
-                }
+                },
+                scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
@@ -581,6 +588,7 @@ fun ConfigureRethinkBasicScreen(
                         onDownload = { timestamp, isRedownload -> download(timestamp, isRedownload) }
                     )
                 }
+
                 else -> {
                     RethinkBlocklistContent(
                         modifier = Modifier.weight(1f),
@@ -677,6 +685,7 @@ private fun RethinkListContent(
                 onUpdateInProgressChanged(false)
                 onRefreshUpdateUi()
             }
+
             WorkInfo.State.CANCELLED,
             WorkInfo.State.FAILED -> {
                 onCheckUpdateInProgressChanged(false)
@@ -688,7 +697,8 @@ private fun RethinkListContent(
                     Toast.LENGTH_SHORT
                 )
             }
-            else -> { }
+
+            else -> {}
         }
     }
 
@@ -910,9 +920,11 @@ private fun RethinkBlocklistContent(
         when (workInfo.state) {
             WorkInfo.State.ENQUEUED,
             WorkInfo.State.RUNNING -> onDownloadStart()
+
             WorkInfo.State.SUCCEEDED -> onDownloadSuccess()
             WorkInfo.State.CANCELLED,
             WorkInfo.State.FAILED -> onDownloadFail()
+
             else -> Unit
         }
     }
@@ -922,8 +934,10 @@ private fun RethinkBlocklistContent(
         when (workInfo.state) {
             WorkInfo.State.ENQUEUED,
             WorkInfo.State.RUNNING -> onDownloadStart()
+
             WorkInfo.State.CANCELLED,
             WorkInfo.State.FAILED -> onDownloadFail()
+
             else -> Unit
         }
     }
@@ -934,6 +948,7 @@ private fun RethinkBlocklistContent(
             WorkInfo.State.SUCCEEDED -> onDownloadSuccess()
             WorkInfo.State.CANCELLED,
             WorkInfo.State.FAILED -> onDownloadFail()
+
             else -> Unit
         }
     }
@@ -970,6 +985,7 @@ private fun RethinkBlocklistContent(
             RethinkBlocklistState.BlocklistSelectionFilter.ALL.id -> {
                 a.filterSelected = RethinkBlocklistState.BlocklistSelectionFilter.ALL
             }
+
             RethinkBlocklistState.BlocklistSelectionFilter.SELECTED.id -> {
                 a.filterSelected = RethinkBlocklistState.BlocklistSelectionFilter.SELECTED
             }
