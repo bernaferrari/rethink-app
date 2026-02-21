@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.compose.dns
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
@@ -76,6 +78,7 @@ import com.celzero.bravedns.database.DoTEndpoint
 import com.celzero.bravedns.database.ODoHEndpoint
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.util.UIUtils
@@ -134,19 +137,73 @@ fun ConfigureOtherDnsScreen(
             )
         }
     ) { padding ->
-        OtherDnsListContent(
-            dnsType = dnsType,
-            paddingValues = padding,
-            appConfig = appConfig,
-            persistentState = persistentState,
-            dohViewModel = dohViewModel,
-            dotViewModel = dotViewModel,
-            dnsProxyViewModel = dnsProxyViewModel,
-            dnsCryptViewModel = dnsCryptViewModel,
-            dnsCryptRelayViewModel = dnsCryptRelayViewModel,
-            oDohViewModel = oDohViewModel,
-            scope = scope
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .padding(horizontal = Dimensions.screenPaddingHorizontal),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+        ) {
+            DnsTypeOverviewCard(dnsType = dnsType)
+
+            Box(modifier = Modifier.weight(1f)) {
+                OtherDnsListContent(
+                    dnsType = dnsType,
+                    paddingValues = PaddingValues(
+                        horizontal = 0.dp,
+                        vertical = Dimensions.spacingSm
+                    ),
+                    appConfig = appConfig,
+                    persistentState = persistentState,
+                    dohViewModel = dohViewModel,
+                    dotViewModel = dotViewModel,
+                    dnsProxyViewModel = dnsProxyViewModel,
+                    dnsCryptViewModel = dnsCryptViewModel,
+                    dnsCryptRelayViewModel = dnsCryptRelayViewModel,
+                    oDohViewModel = oDohViewModel,
+                    scope = scope
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DnsTypeOverviewCard(dnsType: DnsScreenType) {
+    Surface(
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+        tonalElevation = 1.dp
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(Dimensions.spacingLg),
+            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+            ) {
+                Icon(
+                    painter = painterResource(id = getDnsTypeIconRes(dnsType)),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+            Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)) {
+                Text(
+                    text = getDnsTypeName(dnsType),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = stringResource(R.string.dns_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 
@@ -158,6 +215,17 @@ private fun getDnsTypeName(type: DnsScreenType): String {
         DnsScreenType.DNS_PROXY -> stringResource(R.string.other_dns_list_tab3)
         DnsScreenType.DOT -> stringResource(R.string.lbl_dot)
         DnsScreenType.ODOH -> stringResource(R.string.lbl_odoh)
+    }
+}
+
+@Composable
+private fun getDnsTypeIconRes(type: DnsScreenType): Int {
+    return when (type) {
+        DnsScreenType.DOH -> R.drawable.ic_dns_welcome
+        DnsScreenType.DNS_CRYPT -> R.drawable.ic_adv_dns_filter
+        DnsScreenType.DNS_PROXY -> R.drawable.ic_prevent_dns_proxy
+        DnsScreenType.DOT -> R.drawable.ic_prevent_dns_leaks
+        DnsScreenType.ODOH -> R.drawable.ic_split_dns
     }
 }
 

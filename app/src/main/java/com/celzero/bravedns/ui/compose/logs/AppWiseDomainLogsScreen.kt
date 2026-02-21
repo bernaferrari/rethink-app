@@ -58,7 +58,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
@@ -106,37 +105,48 @@ fun AppWiseDomainLogsScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surface,
-                            MaterialTheme.colorScheme.background
-                        )
-                    )
-                )
-                .padding(bottom = Dimensions.spacingMd)
+        Surface(
+            modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+            shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            tonalElevation = 1.dp
         ) {
-            Column(modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal)) {
-                if (state.showToggleGroup) {
-                    ToggleRow(
-                        selectedCategory = state.selectedCategory,
-                        onCategorySelected = onTimeCategoryChange
-                    )
-                    Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-                }
-                HeaderRow(
-                    appIcon = state.appIcon ?: defaultIcon,
-                    searchHint = state.searchHint,
-                    showDeleteIcon = state.showDeleteIcon,
-                    onDeleteClick = { showDeleteDialog = true },
-                    onQueryChange = onFilterChange
+            Column(
+                modifier = Modifier.padding(Dimensions.spacingLg),
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+            ) {
+                Text(
+                    text = stringResource(R.string.lbl_logs),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = state.searchHint,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
-        
+
+        Column(
+            modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingMd)
+        ) {
+            if (state.showToggleGroup) {
+                ToggleRow(
+                    selectedCategory = state.selectedCategory,
+                    onCategorySelected = onTimeCategoryChange
+                )
+                Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+            }
+            HeaderRow(
+                appIcon = state.appIcon ?: defaultIcon,
+                searchHint = state.searchHint,
+                showDeleteIcon = state.showDeleteIcon,
+                onDeleteClick = { showDeleteDialog = true },
+                onQueryChange = onFilterChange
+            )
+        }
+
         AppWiseDomainList(
             items = items,
             uid = state.uid,

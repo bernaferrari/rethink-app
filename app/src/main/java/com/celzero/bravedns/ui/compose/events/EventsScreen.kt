@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
@@ -39,6 +40,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -66,6 +68,7 @@ import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.viewmodel.EventsViewModel
 import com.celzero.bravedns.viewmodel.EventsViewModel.TopLevelFilter
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -113,6 +116,37 @@ fun EventsScreen(
     ) { paddingValues ->
         Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
             Column(modifier = Modifier.fillMaxSize()) {
+                Surface(
+                    modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    tonalElevation = 1.dp
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth().padding(Dimensions.spacingLg),
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_event_note),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = stringResource(id = R.string.event_logs_title),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Text(
+                                text = stringResource(id = R.string.no_events_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+
                 SearchRow(
                     query = query,
                     onQueryChange = { query = it },
@@ -225,38 +259,52 @@ private fun SearchRow(
     onRefreshClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    val filterContentDescription = stringResource(R.string.cd_filter)
+    val refreshContentDescription = stringResource(R.string.cd_refresh)
+    val deleteContentDescription = stringResource(R.string.lbl_delete)
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingMd),
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh
     ) {
-        OutlinedTextField(
-            value = query,
-            onValueChange = onQueryChange,
-            modifier = Modifier.weight(1f),
-            singleLine = true,
-            label = { Text(text = stringResource(id = R.string.search_event_logs)) }
-        )
-
-        IconButton(onClick = onFilterClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_filter),
-                contentDescription = null
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimensions.spacingSm, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            OutlinedTextField(
+                value = query,
+                onValueChange = onQueryChange,
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                label = { Text(text = stringResource(id = R.string.search_event_logs)) }
             )
-        }
 
-        IconButton(onClick = onRefreshClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_refresh_white),
-                contentDescription = null
-            )
-        }
+            IconButton(onClick = onFilterClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_filter),
+                    contentDescription = filterContentDescription
+                )
+            }
 
-        IconButton(onClick = onDeleteClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_delete),
-                contentDescription = null
-            )
+            IconButton(onClick = onRefreshClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_refresh_white),
+                    contentDescription = refreshContentDescription
+                )
+            }
+
+            IconButton(onClick = onDeleteClick) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_delete),
+                    contentDescription = deleteContentDescription
+                )
+            }
         }
     }
 }
@@ -271,7 +319,7 @@ private fun SeverityChips(
     onSourceClick: () -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp).horizontalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.screenPaddingHorizontal).horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -314,7 +362,7 @@ private fun SourceChips(
     onToggle: (EventSource) -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 4.dp).horizontalScroll(rememberScrollState()),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = 4.dp).horizontalScroll(rememberScrollState()),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {

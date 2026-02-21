@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -178,17 +179,23 @@ fun WgConfigRow(
         modifier =
             Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 6.dp)
+                .padding(vertical = 4.dp)
                 .clickable { launchConfigDetail(context, config.id, onConfigDetailClick) },
-        shape = CardDefaults.shape,
-        colors = CardDefaults.cardColors(),
-        border = if (strokeWidth > 0.dp) BorderStroke(strokeWidth, strokeColor) else null
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        ),
+        border = if (strokeWidth > 0.dp) {
+            BorderStroke(strokeWidth, strokeColor)
+        } else {
+            BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f))
+        }
     ) {
         Column(
             modifier =
                 Modifier
                     .fillMaxWidth()
-                    .padding(12.dp)
+                    .padding(14.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

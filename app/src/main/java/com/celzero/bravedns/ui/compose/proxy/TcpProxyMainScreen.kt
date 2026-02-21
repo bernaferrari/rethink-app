@@ -16,21 +16,18 @@
 package com.celzero.bravedns.ui.compose.proxy
 
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -42,11 +39,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import com.celzero.bravedns.R
@@ -54,9 +49,9 @@ import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.TcpProxyHelper
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import com.celzero.bravedns.util.Utilities
@@ -203,56 +198,40 @@ fun TcpProxyMainScreen(
     }
 
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            RethinkTopBar(
+                title = stringResource(id = R.string.settings_proxy_header),
+                onBackClick = onBackClick
+            )
+        }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = Dimensions.screenPaddingHorizontal)
-                .verticalScroll(rememberScrollState()),
+                .padding(paddingValues),
+            contentPadding =
+                PaddingValues(
+                    start = Dimensions.screenPaddingHorizontal,
+                    end = Dimensions.screenPaddingHorizontal,
+                    bottom = Dimensions.spacing3xl
+                ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-
-            // Header
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f),
-                                MaterialTheme.colorScheme.surfaceContainerLow
-                            )
-                        ),
-                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
-                    )
-                    .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        text = stringResource(id = R.string.settings_proxy_header),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.settings_https_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                }
+            item {
+                TcpProxyOverviewCard(
+                    status = if (tcpErrorVisible) tcpErrorText else tcpProxyStatus.ifEmpty { stringResource(R.string.lbl_inactive) },
+                    appCount = appCount ?: 0
+                )
             }
 
-            // Rethink Proxy Section
-            RethinkAnimatedSection(index = 0) {
+            item {
                 SectionHeader(title = stringResource(id = R.string.tcp_proxy_rethink_proxy_title))
                 RethinkListGroup {
                     RethinkListItem(
                         headline = stringResource(id = R.string.tcp_proxy_rethink_proxy_title),
                         supporting = if (tcpErrorVisible) tcpErrorText else tcpProxyStatus.ifEmpty { tcpProxyDesc },
-                        leadingIconPainter = painterResource(id = R.drawable.ic_wireguard_icon),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_proxy),
                         onClick = { onTcpProxySwitchChanged(!tcpProxySwitchChecked) },
                         trailing = {
                             Switch(
@@ -261,10 +240,10 @@ fun TcpProxyMainScreen(
                             )
                         }
                     )
-                    
+
                     RethinkListItem(
                         headline = stringResource(id = R.string.tcp_proxy_enable_udp_relay),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_wireguard_icon),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_settings),
                         onClick = { enableUdpRelayChecked = !enableUdpRelayChecked },
                         trailing = {
                             Switch(
@@ -283,14 +262,13 @@ fun TcpProxyMainScreen(
                 }
             }
 
-            // Cloudflare WARP Section
-            RethinkAnimatedSection(index = 1) {
+            item {
                 SectionHeader(title = stringResource(id = R.string.tcp_proxy_cloudflare_warp_title))
                 RethinkListGroup {
                     RethinkListItem(
                         headline = stringResource(id = R.string.tcp_proxy_cloudflare_warp_title),
                         supporting = stringResource(id = R.string.tcp_proxy_cloudflare_warp_desc),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_wireguard_icon),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_proxy),
                         onClick = { warpSwitchChecked = !warpSwitchChecked },
                         showDivider = false,
                         trailing = {
@@ -302,8 +280,40 @@ fun TcpProxyMainScreen(
                     )
                 }
             }
+        }
+    }
+}
 
-            Spacer(modifier = Modifier.height(Dimensions.spacing3xl))
+@Composable
+private fun TcpProxyOverviewCard(status: String, appCount: Int) {
+    Surface(
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border =
+            androidx.compose.foundation.BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+            ),
+        tonalElevation = 1.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(Dimensions.spacingXl),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+        ) {
+            Text(
+                text = stringResource(id = R.string.tcp_proxy_rethink_proxy_title),
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = status,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = stringResource(id = R.string.add_remove_apps, appCount.toString()),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }

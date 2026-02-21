@@ -15,21 +15,23 @@
  */
 package com.celzero.bravedns.ui.compose.alerts
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
+import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -43,13 +45,28 @@ fun AlertsScreen(onBackClick: () -> Unit) {
             )
         }
     ) { paddingValues ->
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = stringResource(id = R.string.alerts_empty_state),
-                style = MaterialTheme.typography.bodyMedium
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            Surface(
+                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                tonalElevation = 1.dp
+            ) {
+                Column(modifier = Modifier.padding(Dimensions.spacingLg)) {
+                    Text(
+                        text = stringResource(id = R.string.notif_channel_firewall_alerts),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = stringResource(id = R.string.alerts_empty_state),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            CompactEmptyState(
+                message = stringResource(id = R.string.alerts_empty_state),
+                modifier = Modifier.align(Alignment.Center)
             )
         }
     }

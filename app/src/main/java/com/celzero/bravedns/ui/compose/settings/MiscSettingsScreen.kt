@@ -16,15 +16,17 @@
 package com.celzero.bravedns.ui.compose.settings
 
 import android.app.Activity
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -33,6 +35,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -40,8 +43,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -55,7 +58,6 @@ import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.bottomsheet.BackupRestoreSheet
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
@@ -82,6 +84,16 @@ fun MiscSettingsScreen(
     var firewallBubbleEnabled by remember { mutableStateOf(persistentState.firewallBubbleEnabled) }
     var appearanceMode by remember { mutableStateOf(themePreferenceToAppearanceMode(persistentState.theme)) }
     var showBackupSheet by remember { mutableStateOf(false) }
+    val enabledSignalsCount = listOf(
+        logsEnabled,
+        checkUpdatesEnabled,
+        firebaseEnabled,
+        ipInfoEnabled,
+        customDownloadEnabled,
+        autoStartEnabled,
+        tombstoneEnabled,
+        firewallBubbleEnabled
+    ).count { it }
 
     val context = LocalContext.current
 
@@ -94,59 +106,111 @@ fun MiscSettingsScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = Dimensions.screenPaddingHorizontal)
-                .verticalScroll(rememberScrollState()),
+                .padding(paddingValues),
+            contentPadding = PaddingValues(
+                start = Dimensions.screenPaddingHorizontal,
+                end = Dimensions.screenPaddingHorizontal,
+                top = Dimensions.spacingMd,
+                bottom = Dimensions.spacing3xl
+            ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-
-            // Header
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
-                                MaterialTheme.colorScheme.surfaceContainerLow
-                            )
+            item {
+                Surface(
+                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
+                    tonalElevation = 1.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(
+                            horizontal = Dimensions.spacingLg,
+                            vertical = Dimensions.spacingMd
                         ),
-                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.settings_general_header),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = stringResource(id = R.string.settings_title_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(999.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer
+                            ) {
+                                Text(
+                                    text = "$enabledSignalsCount enabled",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.padding(
+                                        horizontal = Dimensions.spacingMd,
+                                        vertical = 4.dp
+                                    )
+                                )
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(999.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainerHighest
+                            ) {
+                                Text(
+                                    text = appearanceMode.toDisplayName(),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(
+                                        horizontal = Dimensions.spacingMd,
+                                        vertical = 4.dp
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                RethinkListGroup {
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.brbs_backup_title),
+                        supporting = stringResource(id = R.string.settings_import_export_desc),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_backup),
+                        onClick = { showBackupSheet = true }
                     )
-                    .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        text = stringResource(id = R.string.settings_general_header),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.settings_title_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.dc_refresh_toast),
+                        supporting = stringResource(id = R.string.settings_import_export_desc),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_refresh_white),
+                        showDivider = false,
+                        onClick = {
+                            onRefreshDatabase?.invoke()
+                            logEvent(eventLogger, "Database refresh", "User refreshed database")
+                        }
                     )
                 }
             }
 
-            RethinkAnimatedSection(index = 0) {
+            item {
                 SectionHeader(title = stringResource(R.string.settings_theme_heading))
                 RethinkListGroup {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(horizontal = Dimensions.cardPadding, vertical = Dimensions.spacingMd),
-                        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
                     ) {
-                        Text(
-                            text = stringResource(id = R.string.settings_theme_dialog_title),
-                            style = MaterialTheme.typography.titleMedium
-                        )
                         Text(
                             text = stringResource(
                                 id = R.string.settings_selected_theme,
@@ -174,12 +238,7 @@ fun MiscSettingsScreen(
                                         index = index,
                                         count = AppearanceMode.entries.size
                                     ),
-                                    label = {
-                                        Text(
-                                            text = option.toDisplayName(),
-                                            style = MaterialTheme.typography.labelLarge
-                                        )
-                                    }
+                                    label = { Text(text = option.toDisplayName()) }
                                 )
                             }
                         }
@@ -187,131 +246,113 @@ fun MiscSettingsScreen(
                 }
             }
 
-            RethinkAnimatedSection(index = 1) {
+            item {
                 SectionHeader(title = stringResource(R.string.settings_general_header))
                 RethinkListGroup {
-                ToggleListItem(
-                    title = stringResource(id = R.string.settings_enable_logs),
-                    description = stringResource(id = R.string.settings_enable_logs_desc),
-                    iconRes = R.drawable.ic_logs_accent,
-                    checked = logsEnabled,
-                    onCheckedChange = { enabled ->
-                        logsEnabled = enabled
-                        persistentState.logsEnabled = enabled
-                        logEvent(eventLogger, "Logs", "User ${if (enabled) "enabled" else "disabled"} logs")
-                    }
-                )
-
-                ToggleListItem(
-                    title = stringResource(id = R.string.settings_autostart_bootup_heading),
-                    description = stringResource(id = R.string.settings_autostart_bootup_desc),
-                    iconRes = R.drawable.ic_auto_start,
-                    checked = autoStartEnabled,
-                    onCheckedChange = { enabled ->
-                        autoStartEnabled = enabled
-                        persistentState.prefAutoStartBootUp = enabled
-                        logEvent(eventLogger, "Auto-start", "Auto-start on power-up set to $enabled")
-                    }
-                )
-
-                ToggleListItem(
-                    title = stringResource(id = R.string.tombstone_app_title),
-                    description = stringResource(id = R.string.tombstone_app_desc),
-                    iconRes = R.drawable.ic_tombstone,
-                    checked = tombstoneEnabled,
-                    onCheckedChange = { enabled ->
-                        tombstoneEnabled = enabled
-                        persistentState.tombstoneApps = enabled
-                        logEvent(eventLogger, "Tombstone apps", "Remember uninstalled apps set to $enabled")
-                    }
-                )
-
-                if (isAtleastQ()) {
                     ToggleListItem(
-                        title = stringResource(id = R.string.firewall_bubble_title),
-                        description = stringResource(id = R.string.firewall_bubble_desc),
-                        iconRes = R.drawable.ic_firewall_bubble,
-                        checked = firewallBubbleEnabled,
+                        title = stringResource(id = R.string.settings_enable_logs),
+                        description = stringResource(id = R.string.settings_enable_logs_desc),
+                        iconRes = R.drawable.ic_logs_accent,
+                        checked = logsEnabled,
                         onCheckedChange = { enabled ->
-                            firewallBubbleEnabled = enabled
-                            persistentState.firewallBubbleEnabled = enabled
+                            logsEnabled = enabled
+                            persistentState.logsEnabled = enabled
+                            logEvent(eventLogger, "Logs", "User ${if (enabled) "enabled" else "disabled"} logs")
+                        }
+                    )
+
+                    ToggleListItem(
+                        title = stringResource(id = R.string.settings_autostart_bootup_heading),
+                        description = stringResource(id = R.string.settings_autostart_bootup_desc),
+                        iconRes = R.drawable.ic_auto_start,
+                        checked = autoStartEnabled,
+                        onCheckedChange = { enabled ->
+                            autoStartEnabled = enabled
+                            persistentState.prefAutoStartBootUp = enabled
+                            logEvent(eventLogger, "Auto-start", "Auto-start on power-up set to $enabled")
+                        }
+                    )
+
+                    ToggleListItem(
+                        title = stringResource(id = R.string.tombstone_app_title),
+                        description = stringResource(id = R.string.tombstone_app_desc),
+                        iconRes = R.drawable.ic_tombstone,
+                        checked = tombstoneEnabled,
+                        onCheckedChange = { enabled ->
+                            tombstoneEnabled = enabled
+                            persistentState.tombstoneApps = enabled
+                            logEvent(eventLogger, "Tombstone apps", "Remember uninstalled apps set to $enabled")
+                        }
+                    )
+
+                    if (isAtleastQ()) {
+                        ToggleListItem(
+                            title = stringResource(id = R.string.firewall_bubble_title),
+                            description = stringResource(id = R.string.firewall_bubble_desc),
+                            iconRes = R.drawable.ic_firewall_bubble,
+                            checked = firewallBubbleEnabled,
+                            onCheckedChange = { enabled ->
+                                firewallBubbleEnabled = enabled
+                                persistentState.firewallBubbleEnabled = enabled
                             logEvent(eventLogger, "Firewall bubble", "Firewall bubble set to $enabled")
-                        }
-                    )
-                }
-
-                if (!isFdroidFlavour()) {
-                    ToggleListItem(
-                        title = stringResource(id = R.string.settings_check_update_heading),
-                        description = stringResource(id = R.string.settings_check_update_desc),
-                        iconRes = R.drawable.ic_update,
-                        checked = checkUpdatesEnabled,
-                        onCheckedChange = { enabled ->
-                            checkUpdatesEnabled = enabled
-                            persistentState.checkForAppUpdate = enabled
-                        }
-                    )
-
-                    ToggleListItem(
-                        title = stringResource(id = R.string.settings_firebase_error_reporting_heading),
-                        description = stringResource(id = R.string.settings_firebase_error_reporting_desc),
-                        iconRes = R.drawable.ic_info,
-                        checked = firebaseEnabled,
-                        onCheckedChange = { enabled ->
-                            firebaseEnabled = enabled
-                            persistentState.firebaseErrorReportingEnabled = enabled
-                        }
-                    )
-                }
-
-                ToggleListItem(
-                    title = stringResource(id = R.string.download_ip_info_title),
-                    description = stringResource(id = R.string.download_ip_info_desc, stringResource(id = R.string.lbl_ipinfo_inc)),
-                    iconRes = R.drawable.ic_ip_info,
-                    checked = ipInfoEnabled,
-                    onCheckedChange = { enabled ->
-                        ipInfoEnabled = enabled
-                        persistentState.downloadIpInfo = enabled
+                            }
+                        )
                     }
-                )
-
-                ToggleListItem(
-                    title = stringResource(id = R.string.settings_custom_downloader_heading),
-                    description = stringResource(id = R.string.settings_custom_downloader_desc),
-                    iconRes = R.drawable.ic_settings,
-                    checked = customDownloadEnabled,
-                    showDivider = false,
-                    onCheckedChange = { enabled ->
-                        customDownloadEnabled = enabled
-                        persistentState.useCustomDownloadManager = enabled
-                    }
-                )
-            }
-            }
-
-            RethinkAnimatedSection(index = 2) {
-                SectionHeader(title = stringResource(id = R.string.settings_import_export_heading))
-                RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.brbs_backup_title),
-                        supporting = stringResource(id = R.string.settings_import_export_desc),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_backup),
-                        onClick = { showBackupSheet = true }
+                    ToggleListItem(
+                        title = stringResource(id = R.string.download_ip_info_title),
+                        description = stringResource(
+                            id = R.string.download_ip_info_desc,
+                            stringResource(id = R.string.lbl_ipinfo_inc)
+                        ),
+                        iconRes = R.drawable.ic_ip_info,
+                        checked = ipInfoEnabled,
+                        showDivider = !isFdroidFlavour(),
+                        onCheckedChange = { enabled ->
+                            ipInfoEnabled = enabled
+                            persistentState.downloadIpInfo = enabled
+                        }
                     )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.dc_refresh_toast),
-                        supporting = stringResource(id = R.string.settings_import_export_desc),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_refresh_white),
+
+                    if (!isFdroidFlavour()) {
+                        ToggleListItem(
+                            title = stringResource(id = R.string.settings_check_update_heading),
+                            description = stringResource(id = R.string.settings_check_update_desc),
+                            iconRes = R.drawable.ic_update,
+                            checked = checkUpdatesEnabled,
+                            onCheckedChange = { enabled ->
+                                checkUpdatesEnabled = enabled
+                                persistentState.checkForAppUpdate = enabled
+                            }
+                        )
+
+                        ToggleListItem(
+                            title = stringResource(id = R.string.settings_firebase_error_reporting_heading),
+                            description = stringResource(id = R.string.settings_firebase_error_reporting_desc),
+                            iconRes = R.drawable.ic_info,
+                            checked = firebaseEnabled,
+                            onCheckedChange = { enabled ->
+                                firebaseEnabled = enabled
+                                persistentState.firebaseErrorReportingEnabled = enabled
+                            }
+                        )
+                    }
+
+                    ToggleListItem(
+                        title = stringResource(id = R.string.settings_custom_downloader_heading),
+                        description = stringResource(id = R.string.settings_custom_downloader_desc),
+                        iconRes = R.drawable.ic_settings,
+                        checked = customDownloadEnabled,
                         showDivider = false,
-                        onClick = {
-                            onRefreshDatabase?.invoke()
-                            logEvent(eventLogger, "Database refresh", "User refreshed database")
+                        onCheckedChange = { enabled ->
+                            customDownloadEnabled = enabled
+                            persistentState.useCustomDownloadManager = enabled
                         }
                     )
                 }
             }
 
-            RethinkAnimatedSection(index = 3) {
+            item {
+                SectionHeader(title = stringResource(id = R.string.title_about))
                 RethinkListGroup {
                     RethinkListItem(
                         headline = stringResource(id = R.string.about_website),
@@ -322,8 +363,6 @@ fun MiscSettingsScreen(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(Dimensions.spacing3xl))
         }
 
         if (showBackupSheet) {

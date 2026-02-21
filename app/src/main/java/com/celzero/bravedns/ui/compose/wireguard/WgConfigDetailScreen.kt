@@ -21,27 +21,21 @@ import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -58,6 +52,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
@@ -80,11 +75,15 @@ import com.celzero.bravedns.service.WireguardManager.ERR_CODE_VPN_NOT_FULL
 import com.celzero.bravedns.service.WireguardManager.ERR_CODE_WG_INVALID
 import com.celzero.bravedns.service.WireguardManager.INVALID_CONF_ID
 import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.dialog.WgAddPeerDialog
 import com.celzero.bravedns.ui.dialog.WgHopDialog
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import com.celzero.bravedns.ui.dialog.WgSsidDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.util.SsidPermissionManager
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
@@ -468,155 +467,241 @@ fun WgConfigDetailScreen(
             )
         }
     ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(12.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            if (config == null || configFiles == null) {
+        if (config == null || configFiles == null) {
+            Column(
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues)
+                        .padding(Dimensions.screenPaddingHorizontal),
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+            ) {
                 Text(text = stringResource(id = R.string.config_invalid_desc))
                 Button(onClick = onBackClick) {
                     Text(text = stringResource(id = R.string.fapps_info_dialog_positive_btn))
                 }
-                return@Scaffold
             }
+            return@Scaffold
+        }
 
-            // Config info card
-            Card(colors = CardDefaults.cardColors()) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = config?.getName().orEmpty(),
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    Text(
-                        text = stringResource(R.string.single_argument_parenthesis, configId.toString()),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                    Text(
-                        text = statusText,
-                        color = statusColor?.let { Color(it) } ?: MaterialTheme.colorScheme.onSurface
-                    )
-                }
+        LazyColumn(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+            contentPadding =
+                PaddingValues(
+                    start = Dimensions.screenPaddingHorizontal,
+                    end = Dimensions.screenPaddingHorizontal,
+                    bottom = Dimensions.spacing3xl
+                ),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+        ) {
+            item {
+                WgConfigOverviewCard(
+                    name = config?.getName().orEmpty(),
+                    status = statusText.ifEmpty {
+                        stringResource(R.string.single_argument_parenthesis, configId.toString())
+                    },
+                    statusColor = statusColor
+                )
             }
 
             if (wgType.isOneWg()) {
-                Text(text = stringResource(id = R.string.one_wg_apps_added))
-            }
-
-            // Action buttons row 1
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(onClick = { showAddPeerDialog = true }) {
-                    Text(text = stringResource(id = R.string.lbl_add))
-                }
-                Button(onClick = { showDeleteInterfaceDialog = true }) {
-                    Text(text = stringResource(id = R.string.lbl_delete))
-                }
-                Button(onClick = { onEditConfig(configId, wgType) }) {
-                    Text(text = stringResource(id = R.string.rt_edit_dialog_positive))
-                }
-            }
-
-            // Action buttons row 2 (only for default wg type)
-            if (wgType.isDefault()) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Button(
-                        onClick = { openAppsDialog(config?.getName().orEmpty()) },
-                        enabled = !catchAllEnabled
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(20.dp),
+                        color = MaterialTheme.colorScheme.tertiaryContainer
                     ) {
-                        Text(text = stringResource(R.string.add_remove_apps, appsCount.toString()))
-                    }
-                    Button(onClick = { openHopDialog() }) {
-                        Text(text = stringResource(id = R.string.hop_add_remove_title))
-                    }
-                }
-            }
-
-            // Catch all toggle
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(id = R.string.catch_all_wg_dialog_title))
-                    Text(
-                        text = stringResource(id = R.string.catch_all_wg_dialog_desc),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                Switch(
-                    checked = catchAllEnabled,
-                    onCheckedChange = { enabled -> updateCatchAll(enabled) }
-                )
-            }
-
-            // Use on mobile network toggle
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(id = R.string.wg_setting_use_on_mobile))
-                    Text(
-                        text = stringResource(id = R.string.wg_setting_use_on_mobile_desc),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                Switch(
-                    checked = useMobileEnabled,
-                    onCheckedChange = { enabled -> updateUseOnMobileNetwork(enabled) }
-                )
-            }
-
-            // SSID settings (only if device supported)
-            if (SsidPermissionManager.isDeviceSupported(context)) {
-                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(text = stringResource(id = R.string.wg_setting_ssid_title))
                         Text(
-                            text = stringResource(
-                                id = R.string.wg_setting_ssid_desc,
-                                stringResource(id = R.string.lbl_ssids)
-                            ),
-                            style = MaterialTheme.typography.bodySmall
+                            text = stringResource(id = R.string.one_wg_apps_added),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onTertiaryContainer,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
                         )
-                        if (ssids.isNotEmpty()) {
-                            Text(
-                                text = ssids.joinToString { it.name },
-                                style = MaterialTheme.typography.bodySmall
-                            )
-                        }
                     }
-                    Switch(
-                        checked = ssidEnabled,
-                        onCheckedChange = { enabled -> toggleSsid(enabled) }
-                    )
-                }
-                Button(onClick = { openSsidDialog() }) {
-                    Text(text = stringResource(id = R.string.rt_edit_dialog_positive))
                 }
             }
 
-            // Peers section
-            Text(
-                text = stringResource(id = R.string.lbl_peer),
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                peers.forEach { peer ->
-                    WgPeerRow(
-                        context = context,
-                        configId = configId,
-                        wgPeer = peer,
-                        onPeerChanged = { scope.launch { refreshConfig() } }
+            item {
+                SectionHeader(title = stringResource(id = R.string.lbl_configure))
+                RethinkListGroup {
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.lbl_add),
+                        supporting = stringResource(id = R.string.lbl_peer),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_add),
+                        onClick = { showAddPeerDialog = true }
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.rt_edit_dialog_positive),
+                        supporting = stringResource(id = R.string.lbl_wireguard),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_edit_icon),
+                        onClick = { onEditConfig(configId, wgType) }
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.lbl_delete),
+                        supporting = stringResource(id = R.string.config_delete_dialog_title),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_delete),
+                        leadingIconTint = MaterialTheme.colorScheme.error,
+                        onClick = { showDeleteInterfaceDialog = true },
+                        showDivider = false
                     )
                 }
             }
 
-            // Add some bottom spacing
-            Spacer(modifier = Modifier.height(16.dp))
+            if (wgType.isDefault()) {
+                item {
+                    SectionHeader(title = stringResource(id = R.string.lbl_apps))
+                    RethinkListGroup {
+                        RethinkListItem(
+                            headline = stringResource(R.string.add_remove_apps, appsCount.toString()),
+                            leadingIconPainter = painterResource(id = R.drawable.ic_app_info_accent),
+                            onClick = { openAppsDialog(config?.getName().orEmpty()) },
+                            enabled = !catchAllEnabled
+                        )
+                        RethinkListItem(
+                            headline = stringResource(id = R.string.hop_add_remove_title),
+                            leadingIconPainter = painterResource(id = R.drawable.ic_right_arrow_small),
+                            onClick = { openHopDialog() },
+                            showDivider = false
+                        )
+                    }
+                }
+            }
+
+            item {
+                SectionHeader(title = stringResource(id = R.string.lbl_advanced))
+                RethinkListGroup {
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.catch_all_wg_dialog_title),
+                        supporting = stringResource(id = R.string.catch_all_wg_dialog_desc),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_firewall_shield),
+                        trailing = {
+                            Switch(
+                                checked = catchAllEnabled,
+                                onCheckedChange = { enabled -> updateCatchAll(enabled) }
+                            )
+                        },
+                        onClick = { updateCatchAll(!catchAllEnabled) }
+                    )
+                    RethinkListItem(
+                        headline = stringResource(id = R.string.wg_setting_use_on_mobile),
+                        supporting = stringResource(id = R.string.wg_setting_use_on_mobile_desc),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_meter_mobile_only),
+                        trailing = {
+                            Switch(
+                                checked = useMobileEnabled,
+                                onCheckedChange = { enabled -> updateUseOnMobileNetwork(enabled) }
+                            )
+                        },
+                        onClick = { updateUseOnMobileNetwork(!useMobileEnabled) },
+                        showDivider = !SsidPermissionManager.isDeviceSupported(context)
+                    )
+                    if (SsidPermissionManager.isDeviceSupported(context)) {
+                        val ssidSubtitle =
+                            buildString {
+                                append(
+                                    context.resources.getString(
+                                        R.string.wg_setting_ssid_desc,
+                                        context.resources.getString(R.string.lbl_ssids)
+                                    )
+                                )
+                                if (ssids.isNotEmpty()) {
+                                    append("\n")
+                                    append(ssids.joinToString { it.name })
+                                }
+                            }
+                        RethinkListItem(
+                            headline = stringResource(id = R.string.wg_setting_ssid_title),
+                            supporting = ssidSubtitle,
+                            leadingIconPainter = painterResource(id = R.drawable.ic_firewall_wifi_on),
+                            trailing = {
+                                Switch(
+                                    checked = ssidEnabled,
+                                    onCheckedChange = { enabled -> toggleSsid(enabled) }
+                                )
+                            },
+                            onClick = { toggleSsid(!ssidEnabled) }
+                        )
+                        RethinkListItem(
+                            headline = stringResource(id = R.string.rt_edit_dialog_positive),
+                            supporting = stringResource(id = R.string.lbl_ssids),
+                            leadingIconPainter = painterResource(id = R.drawable.ic_edit_icon),
+                            onClick = { openSsidDialog() },
+                            showDivider = false
+                        )
+                    }
+                }
+            }
+
+            item {
+                SectionHeader(title = stringResource(id = R.string.lbl_peer))
+            }
+
+            items(peers) { peer ->
+                WgPeerRow(
+                    context = context,
+                    configId = configId,
+                    wgPeer = peer,
+                    onPeerChanged = { scope.launch { refreshConfig() } }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun WgConfigOverviewCard(name: String, status: String, statusColor: Int?) {
+    Surface(
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border =
+            androidx.compose.foundation.BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+            ),
+        tonalElevation = 1.dp
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+            ) {
+                androidx.compose.material3.Icon(
+                    painter = painterResource(id = R.drawable.ic_wireguard_icon),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(8.dp).size(20.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = status,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            if (statusColor != null) {
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = Color(statusColor).copy(alpha = 0.14f)
+                ) {
+                    Text(
+                        text = status,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color(statusColor),
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    )
+                }
+            }
         }
     }
 }

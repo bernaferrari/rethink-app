@@ -138,8 +138,8 @@ fun DnsLogRow(
 
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(12.dp))
                         .background(iconBgColor),
                     contentAlignment = Alignment.Center
                 ) {
@@ -178,15 +178,15 @@ fun DnsLogRow(
                         val badgeContainerColor = if (log.isBlocked) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
                         
                         Surface(
-                            shape = CircleShape,
+                            shape = RoundedCornerShape(12.dp),
                             color = badgeContainerColor.copy(alpha = 0.8f)
                         ) {
                             Text(
-                                text = if (log.isBlocked) "BLOCKED" else "ALLOWED",
+                                text = if (log.isBlocked) context.resources.getString(R.string.lbl_blocked) else context.resources.getString(R.string.lbl_allowed),
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
+                                fontWeight = FontWeight.SemiBold,
                                 color = badgeColor,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                             )
                         }
                     }

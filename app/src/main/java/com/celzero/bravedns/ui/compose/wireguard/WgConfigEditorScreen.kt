@@ -17,18 +17,18 @@ package com.celzero.bravedns.ui.compose.wireguard
 
 import android.widget.Toast
 import androidx.annotation.Keep
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Refresh
@@ -37,8 +37,10 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -48,11 +50,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.PersistentState
@@ -60,7 +59,9 @@ import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.tos
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.wireguard.Config
 import com.celzero.bravedns.wireguard.WgInterface
 import com.celzero.bravedns.wireguard.util.ErrorMessages
@@ -104,7 +105,6 @@ fun WgConfigEditorScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    val scrollState = rememberScrollState()
 
     var wgConfig by remember { mutableStateOf<Config?>(null) }
     var wgInterface by remember { mutableStateOf<WgInterface?>(null) }
@@ -239,106 +239,173 @@ fun WgConfigEditorScreen(
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(scrollState)
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(padding),
+            contentPadding = PaddingValues(
+                start = Dimensions.screenPaddingHorizontal,
+                end = Dimensions.screenPaddingHorizontal,
+                bottom = Dimensions.spacing3xl
+            ),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            OutlinedTextField(
-                value = interfaceName,
-                onValueChange = { interfaceName = it },
-                label = { Text(stringResource(R.string.cd_dns_crypt_dialog_name)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+            item {
+                WgEditorOverviewCard(
+                    name = interfaceName,
+                    isOneWg = wgType.isOneWg()
+                )
+            }
 
-            OutlinedTextField(
-                value = privateKey,
-                onValueChange = { privateKey = it },
-                label = { Text(stringResource(R.string.lbl_private_key)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                trailingIcon = {
-                    IconButton(onClick = { generateKeys() }) {
-                        Icon(imageVector = Icons.Filled.Refresh, contentDescription = null)
-                    }
-                }
-            )
+            item {
+                SectionHeader(title = stringResource(R.string.lbl_configure))
 
-            OutlinedTextField(
-                value = publicKey,
-                onValueChange = { },
-                label = { Text(stringResource(R.string.lbl_public_key)) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable(enabled = publicKey.isNotEmpty()) {
-                        copyPublicKey()
-                    },
-                readOnly = true,
-                singleLine = true,
-                trailingIcon = {
-                    IconButton(onClick = { copyPublicKey() }, enabled = publicKey.isNotEmpty()) {
-                        Icon(imageVector = Icons.Filled.ContentCopy, contentDescription = null)
-                    }
-                }
-            )
-
-            OutlinedTextField(
-                value = addresses,
-                onValueChange = { addresses = it },
-                label = { Text(stringResource(R.string.lbl_addresses)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
-
-            if (showListenPortState) {
-                OutlinedTextField(
-                    value = listenPort,
-                    onValueChange = { listenPort = it },
-                    label = { Text(stringResource(R.string.lbl_listen_port)) },
+                Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-            }
+                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+                    tonalElevation = 1.dp
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Dimensions.cardPadding),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = interfaceName,
+                            onValueChange = { interfaceName = it },
+                            label = { Text(stringResource(R.string.cd_dns_crypt_dialog_name)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
 
-            OutlinedTextField(
-                value = dnsServers,
-                onValueChange = { dnsServers = it },
-                label = { Text(stringResource(R.string.lbl_dns_servers)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+                        OutlinedTextField(
+                            value = privateKey,
+                            onValueChange = { privateKey = it },
+                            label = { Text(stringResource(R.string.lbl_private_key)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            trailingIcon = {
+                                IconButton(onClick = { generateKeys() }) {
+                                    Icon(
+                                        imageVector = Icons.Filled.Refresh,
+                                        contentDescription = stringResource(id = R.string.cd_generate_keys)
+                                    )
+                                }
+                            }
+                        )
 
-            OutlinedTextField(
-                value = mtu,
-                onValueChange = { mtu = it },
-                label = { Text(stringResource(R.string.lbl_mtu)) },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true
-            )
+                        OutlinedTextField(
+                            value = publicKey,
+                            onValueChange = { },
+                            label = { Text(stringResource(R.string.lbl_public_key)) },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable(enabled = publicKey.isNotEmpty()) {
+                                    copyPublicKey()
+                                },
+                            readOnly = true,
+                            singleLine = true,
+                            trailingIcon = {
+                                IconButton(onClick = { copyPublicKey() }, enabled = publicKey.isNotEmpty()) {
+                                    Icon(
+                                        imageVector = Icons.Filled.ContentCopy,
+                                        contentDescription = stringResource(id = R.string.cd_copy_public_key)
+                                    )
+                                }
+                            }
+                        )
 
-            if (amzProps.isNotEmpty()) {
-                Text(
-                    text = amzProps,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+                        OutlinedTextField(
+                            value = addresses,
+                            onValueChange = { addresses = it },
+                            label = { Text(stringResource(R.string.lbl_addresses)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
 
-            Spacer(modifier = Modifier.height(8.dp))
+                        if (showListenPortState) {
+                            OutlinedTextField(
+                                value = listenPort,
+                                onValueChange = { listenPort = it },
+                                label = { Text(stringResource(R.string.lbl_listen_port)) },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+                        }
 
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                Button(onClick = onBackClick) {
-                    Text(text = stringResource(R.string.lbl_cancel))
+                        OutlinedTextField(
+                            value = dnsServers,
+                            onValueChange = { dnsServers = it },
+                            label = { Text(stringResource(R.string.lbl_dns_servers)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+
+                        OutlinedTextField(
+                            value = mtu,
+                            onValueChange = { mtu = it },
+                            label = { Text(stringResource(R.string.lbl_mtu)) },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true
+                        )
+
+                        if (amzProps.isNotEmpty()) {
+                            Text(
+                                text = amzProps,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
                 }
-                Spacer(modifier = Modifier.width(12.dp))
-                Button(onClick = { saveConfig() }) {
-                    Text(text = stringResource(R.string.lbl_save))
+            }
+
+            item {
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(text = stringResource(R.string.lbl_cancel))
+                    }
+                    Button(
+                        onClick = { saveConfig() },
+                        modifier = Modifier.weight(1f),
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        Text(text = stringResource(R.string.lbl_save))
+                    }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun WgEditorOverviewCard(name: String, isOneWg: Boolean) {
+    Surface(
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+        tonalElevation = 1.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(Dimensions.spacingXl),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+        ) {
+            Text(
+                text = if (name.isBlank()) stringResource(R.string.lbl_wireguard) else name,
+                style = MaterialTheme.typography.titleMedium
+            )
+            Text(
+                text = if (isOneWg) stringResource(R.string.rt_list_simple_btn_txt) else stringResource(R.string.lbl_advanced),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }

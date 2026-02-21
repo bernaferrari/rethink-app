@@ -17,22 +17,19 @@ package com.celzero.bravedns.ui.compose.settings
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowForward
@@ -50,6 +47,7 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -78,7 +76,7 @@ import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
+import com.celzero.bravedns.ui.compose.theme.RethinkScreenHeader
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
@@ -121,7 +119,7 @@ fun TunnelSettingsScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    
+
     var isLockdown by remember { mutableStateOf(VpnController.isVpnLockdown()) }
     var allowBypass by remember { mutableStateOf(persistentState.allowBypass) }
     var allowBypassLoading by remember { mutableStateOf(false) }
@@ -251,55 +249,39 @@ fun TunnelSettingsScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = Dimensions.screenPaddingHorizontal)
-                .verticalScroll(rememberScrollState()),
+                .padding(padding),
+            contentPadding =
+                PaddingValues(
+                    start = Dimensions.screenPaddingHorizontal,
+                    end = Dimensions.screenPaddingHorizontal,
+                    bottom = Dimensions.spacing3xl
+                ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-
-            // Header
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f),
-                                MaterialTheme.colorScheme.surfaceContainerLow
-                            )
-                        ),
-                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
-                    )
-                    .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        text = stringResource(id = R.string.lbl_network),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                }
+            item {
+                TunnelOverviewCard(
+                    vpnPolicyDesc = vpnPolicyDesc,
+                    ipDesc = ipDesc,
+                    dialTimeoutDesc = dialTimeoutDesc
+                )
             }
 
             if (isLockdown) {
-                RethinkAnimatedSection(index = 0) {
-                     RethinkListGroup {
+                item {
+                    RethinkListGroup {
                         RethinkListItem(
                             headline = stringResource(R.string.settings_lock_down_mode_desc),
                             leadingIconPainter = painterResource(id = R.drawable.ic_firewall_lockdown_on),
                             onClick = { onOpenVpnProfile() }
                         )
-                     }
+                    }
                 }
             }
 
-            RethinkAnimatedSection(index = 1) {
+            item {
                 SectionHeader(title = stringResource(R.string.lbl_network))
                 RethinkListGroup {
                     RethinkListItem(
@@ -336,7 +318,7 @@ fun TunnelSettingsScreen(
                             )
                         }
                     )
-                    
+
                     RethinkListItem(
                         headline = stringResource(R.string.fail_open_network_title),
                         supporting = stringResource(R.string.fail_open_network_desc),
@@ -385,38 +367,38 @@ fun TunnelSettingsScreen(
                             )
                         }
                     )
-                    
+
                     RethinkListItem(
-                         headline = stringResource(R.string.settings_network_all_networks),
-                         supporting = stringResource(R.string.settings_network_all_networks_desc),
-                         leadingIcon = Icons.Filled.Tune,
-                         onClick = {
-                             if (canModify) {
-                                 val checked = !useMultipleNetworks
-                                 useMultipleNetworks = checked
-                                 persistentState.useMultipleNetworks = checked
-                                 if (checked) persistentState.enableStabilityDependentSettings(context)
-                                 if (!checked && persistentState.routeRethinkInRethink) {
-                                     persistentState.routeRethinkInRethink = false
-                                 }
-                                 logEvent("use all networks", "Use all networks for VPN: $checked")
-                             }
-                         },
-                         trailing = {
-                             Switch(
-                                 checked = useMultipleNetworks,
-                                 onCheckedChange = { checked ->
-                                     useMultipleNetworks = checked
-                                     persistentState.useMultipleNetworks = checked
-                                     if (checked) persistentState.enableStabilityDependentSettings(context)
-                                     if (!checked && persistentState.routeRethinkInRethink) {
-                                         persistentState.routeRethinkInRethink = false
-                                     }
-                                     logEvent("use all networks", "Use all networks for VPN: $checked")
-                                 },
-                                 enabled = canModify
-                             )
-                         }
+                        headline = stringResource(R.string.settings_network_all_networks),
+                        supporting = stringResource(R.string.settings_network_all_networks_desc),
+                        leadingIcon = Icons.Filled.Tune,
+                        onClick = {
+                            if (canModify) {
+                                val checked = !useMultipleNetworks
+                                useMultipleNetworks = checked
+                                persistentState.useMultipleNetworks = checked
+                                if (checked) persistentState.enableStabilityDependentSettings(context)
+                                if (!checked && persistentState.routeRethinkInRethink) {
+                                    persistentState.routeRethinkInRethink = false
+                                }
+                                logEvent("use all networks", "Use all networks for VPN: $checked")
+                            }
+                        },
+                        trailing = {
+                            Switch(
+                                checked = useMultipleNetworks,
+                                onCheckedChange = { checked ->
+                                    useMultipleNetworks = checked
+                                    persistentState.useMultipleNetworks = checked
+                                    if (checked) persistentState.enableStabilityDependentSettings(context)
+                                    if (!checked && persistentState.routeRethinkInRethink) {
+                                        persistentState.routeRethinkInRethink = false
+                                    }
+                                    logEvent("use all networks", "Use all networks for VPN: $checked")
+                                },
+                                enabled = canModify
+                            )
+                        }
                     )
 
                     RethinkListItem(
@@ -424,12 +406,12 @@ fun TunnelSettingsScreen(
                         supporting = stringResource(R.string.settings_exclude_apps_in_proxy_desc),
                         leadingIcon = Icons.Filled.Tune,
                         onClick = {
-                             if (canModify) {
-                                  val checked = !excludeApps
-                                  excludeApps = checked
-                                  persistentState.excludeAppsInProxy = !checked
-                                  logEvent("exclude apps in proxy", "Exclude apps in proxy: ${!checked}")
-                             }
+                            if (canModify) {
+                                val checked = !excludeApps
+                                excludeApps = checked
+                                persistentState.excludeAppsInProxy = !checked
+                                logEvent("exclude apps in proxy", "Exclude apps in proxy: ${!checked}")
+                            }
                         },
                         trailing = {
                             Switch(
@@ -443,45 +425,53 @@ fun TunnelSettingsScreen(
                             )
                         }
                     )
-                    
+
                     RethinkListItem(
-                         headline = stringResource(R.string.settings_protocol_translation),
-                         supporting = stringResource(R.string.settings_protocol_translation_desc),
-                         leadingIcon = Icons.Filled.Tune,
-                         onClick = {
-                              if (showPtrans) {
-                                  val checked = !protocolTranslation
-                                  if (appConfig.getBraveMode().isDnsActive()) {
-                                      protocolTranslation = checked
-                                      persistentState.protocolTranslationType = checked
-                                  } else {
-                                      protocolTranslation = false
-                                      showToastUiCentered(context, context.resources.getString(R.string.settings_protocol_translation_dns_inactive), Toast.LENGTH_SHORT)
-                                  }
-                                  logEvent("protocol translation", "Protocol translation: $checked")
-                              }
-                         },
-                         trailing = {
-                             Switch(
-                                 checked = protocolTranslation,
-                                 onCheckedChange = { checked ->
-                                     if (appConfig.getBraveMode().isDnsActive()) {
-                                         protocolTranslation = checked
-                                         persistentState.protocolTranslationType = checked
-                                     } else {
-                                         protocolTranslation = false
-                                         showToastUiCentered(context, context.resources.getString(R.string.settings_protocol_translation_dns_inactive), Toast.LENGTH_SHORT)
-                                     }
-                                     logEvent("protocol translation", "Protocol translation: $checked")
-                                 },
-                                 enabled = showPtrans
-                             )
-                         }
+                        headline = stringResource(R.string.settings_protocol_translation),
+                        supporting = stringResource(R.string.settings_protocol_translation_desc),
+                        leadingIcon = Icons.Filled.Tune,
+                        onClick = {
+                            if (showPtrans) {
+                                val checked = !protocolTranslation
+                                if (appConfig.getBraveMode().isDnsActive()) {
+                                    protocolTranslation = checked
+                                    persistentState.protocolTranslationType = checked
+                                } else {
+                                    protocolTranslation = false
+                                    showToastUiCentered(
+                                        context,
+                                        context.resources.getString(R.string.settings_protocol_translation_dns_inactive),
+                                        Toast.LENGTH_SHORT
+                                    )
+                                }
+                                logEvent("protocol translation", "Protocol translation: $checked")
+                            }
+                        },
+                        trailing = {
+                            Switch(
+                                checked = protocolTranslation,
+                                onCheckedChange = { checked ->
+                                    if (appConfig.getBraveMode().isDnsActive()) {
+                                        protocolTranslation = checked
+                                        persistentState.protocolTranslationType = checked
+                                    } else {
+                                        protocolTranslation = false
+                                        showToastUiCentered(
+                                            context,
+                                            context.resources.getString(R.string.settings_protocol_translation_dns_inactive),
+                                            Toast.LENGTH_SHORT
+                                        )
+                                    }
+                                    logEvent("protocol translation", "Protocol translation: $checked")
+                                },
+                                enabled = showPtrans
+                            )
+                        }
                     )
                 }
             }
-            
-            RethinkAnimatedSection(index = 2) {
+
+            item {
                 SectionHeader(title = stringResource(R.string.lbl_advanced))
                 RethinkListGroup {
                     RethinkListItem(
@@ -511,21 +501,25 @@ fun TunnelSettingsScreen(
                         leadingIconPainter = painterResource(id = R.drawable.ic_settings),
                         onClick = { if (showConnectivityChecksOption) showConnectivityChecksDialog = true }
                     )
-                    
+
                     if (showPingIps) {
                         RethinkListItem(
                             headline = stringResource(R.string.settings_ping_ips),
                             leadingIcon = Icons.Filled.NetworkCheck,
                             onClick = {
                                 if (!VpnController.hasTunnel()) {
-                                    showToastUiCentered(context, context.resources.getString(R.string.settings_socks5_vpn_disabled_error), Toast.LENGTH_SHORT)
+                                    showToastUiCentered(
+                                        context,
+                                        context.resources.getString(R.string.settings_socks5_vpn_disabled_error),
+                                        Toast.LENGTH_SHORT
+                                    )
                                 } else {
                                     showReachabilitySheet = true
                                 }
                             }
                         )
                     }
-                    
+
                     RethinkListItem(
                         headline = stringResource(R.string.settings_treat_mobile_metered),
                         supporting = stringResource(R.string.settings_treat_mobile_metered_desc),
@@ -553,10 +547,10 @@ fun TunnelSettingsScreen(
                         supporting = stringResource(R.string.settings_wg_listen_port_desc),
                         leadingIcon = Icons.Filled.Tune,
                         onClick = {
-                             val checked = !listenPortFixed
-                             listenPortFixed = checked
-                             persistentState.randomizeListenPort = !checked
-                             logEvent("listen port", "Randomize listen port: ${!checked}")
+                            val checked = !listenPortFixed
+                            listenPortFixed = checked
+                            persistentState.randomizeListenPort = !checked
+                            logEvent("listen port", "Randomize listen port: ${!checked}")
                         },
                         trailing = {
                             Switch(
@@ -582,15 +576,15 @@ fun TunnelSettingsScreen(
                             logEvent("wg lockdown", "WG global lockdown: $checked")
                         },
                         trailing = {
-                             Switch(
-                                 checked = wgLockdown,
-                                 onCheckedChange = { checked ->
-                                     wgLockdown = checked
-                                     persistentState.wgGlobalLockdown = checked
-                                     NewSettingsManager.markSettingSeen(NewSettingsManager.WG_GLOBAL_LOCKDOWN_MODE_SETTING)
-                                     logEvent("wg lockdown", "WG global lockdown: $checked")
-                                 }
-                             )
+                            Switch(
+                                checked = wgLockdown,
+                                onCheckedChange = { checked ->
+                                    wgLockdown = checked
+                                    persistentState.wgGlobalLockdown = checked
+                                    NewSettingsManager.markSettingSeen(NewSettingsManager.WG_GLOBAL_LOCKDOWN_MODE_SETTING)
+                                    logEvent("wg lockdown", "WG global lockdown: $checked")
+                                }
+                            )
                         }
                     )
 
@@ -599,173 +593,171 @@ fun TunnelSettingsScreen(
                         supporting = stringResource(R.string.settings_endpoint_independence_desc),
                         leadingIcon = Icons.Filled.Tune,
                         onClick = {
-                             val checked = !endpointIndependence
-                             endpointIndependence = checked
-                             persistentState.endpointIndependence = checked
-                             if (!checked) {
-                                 allowIncoming = false
-                                 persistentState.nwEngExperimentalFeatures = false
-                             } else {
-                                 allowIncoming = persistentState.nwEngExperimentalFeatures
-                             }
-                             logEvent("endpoint independence", "Endpoint independence: $checked")
+                            val checked = !endpointIndependence
+                            endpointIndependence = checked
+                            persistentState.endpointIndependence = checked
+                            if (!checked) {
+                                allowIncoming = false
+                                persistentState.nwEngExperimentalFeatures = false
+                            } else {
+                                allowIncoming = persistentState.nwEngExperimentalFeatures
+                            }
+                            logEvent("endpoint independence", "Endpoint independence: $checked")
                         },
                         trailing = {
-                             Switch(
-                                 checked = endpointIndependence,
-                                 onCheckedChange = { checked ->
-                                     endpointIndependence = checked
-                                     persistentState.endpointIndependence = checked
-                                     if (!checked) {
-                                         allowIncoming = false
-                                         persistentState.nwEngExperimentalFeatures = false
-                                     } else {
-                                         allowIncoming = persistentState.nwEngExperimentalFeatures
-                                     }
-                                     logEvent("endpoint independence", "Endpoint independence: $checked")
-                                 }
-                             )
+                            Switch(
+                                checked = endpointIndependence,
+                                onCheckedChange = { checked ->
+                                    endpointIndependence = checked
+                                    persistentState.endpointIndependence = checked
+                                    if (!checked) {
+                                        allowIncoming = false
+                                        persistentState.nwEngExperimentalFeatures = false
+                                    } else {
+                                        allowIncoming = persistentState.nwEngExperimentalFeatures
+                                    }
+                                    logEvent("endpoint independence", "Endpoint independence: $checked")
+                                }
+                            )
                         }
                     )
 
                     if (endpointIndependence) {
                         RethinkListItem(
-                             headline = stringResource(R.string.settings_allow_incoming_wg_packets),
-                             supporting = stringResource(R.string.settings_allow_incoming_wg_packets_desc),
-                             leadingIcon = Icons.Filled.Tune,
-                             onClick = {
-                                  val checked = !allowIncoming
-                                  allowIncoming = checked
-                                  persistentState.nwEngExperimentalFeatures = checked
-                                  logEvent("allow incoming", "Allow incoming WG packets: $checked")
-                             },
-                             trailing = {
-                                 Switch(
-                                     checked = allowIncoming,
-                                     onCheckedChange = { checked ->
-                                         allowIncoming = checked
-                                         persistentState.nwEngExperimentalFeatures = checked
-                                         logEvent("allow incoming", "Allow incoming WG packets: $checked")
-                                     }
-                                 )
-                             }
+                            headline = stringResource(R.string.settings_allow_incoming_wg_packets),
+                            supporting = stringResource(R.string.settings_allow_incoming_wg_packets_desc),
+                            leadingIcon = Icons.Filled.Tune,
+                            onClick = {
+                                val checked = !allowIncoming
+                                allowIncoming = checked
+                                persistentState.nwEngExperimentalFeatures = checked
+                                logEvent("allow incoming", "Allow incoming WG packets: $checked")
+                            },
+                            trailing = {
+                                Switch(
+                                    checked = allowIncoming,
+                                    onCheckedChange = { checked ->
+                                        allowIncoming = checked
+                                        persistentState.nwEngExperimentalFeatures = checked
+                                        logEvent("allow incoming", "Allow incoming WG packets: $checked")
+                                    }
+                                )
+                            }
                         )
                     }
 
                     RethinkListItem(
-                         headline = stringResource(R.string.settings_tcp_keep_alive),
-                         supporting = stringResource(R.string.settings_tcp_keep_alive_desc),
-                         leadingIcon = Icons.Filled.Tune,
-                         onClick = {
-                             val checked = !tcpKeepAlive
-                             tcpKeepAlive = checked
-                             persistentState.tcpKeepAlive = checked
-                             logEvent("tcp keep alive", "TCP keep alive: $checked")
-                         },
-                         trailing = {
-                             Switch(
-                                 checked = tcpKeepAlive,
-                                 onCheckedChange = { checked ->
-                                     tcpKeepAlive = checked
-                                     persistentState.tcpKeepAlive = checked
-                                     logEvent("tcp keep alive", "TCP keep alive: $checked")
-                                 }
-                             )
-                         }
+                        headline = stringResource(R.string.settings_tcp_keep_alive),
+                        supporting = stringResource(R.string.settings_tcp_keep_alive_desc),
+                        leadingIcon = Icons.Filled.Tune,
+                        onClick = {
+                            val checked = !tcpKeepAlive
+                            tcpKeepAlive = checked
+                            persistentState.tcpKeepAlive = checked
+                            logEvent("tcp keep alive", "TCP keep alive: $checked")
+                        },
+                        trailing = {
+                            Switch(
+                                checked = tcpKeepAlive,
+                                onCheckedChange = { checked ->
+                                    tcpKeepAlive = checked
+                                    persistentState.tcpKeepAlive = checked
+                                    logEvent("tcp keep alive", "TCP keep alive: $checked")
+                                }
+                            )
+                        }
                     )
-                    
+
                     RethinkListItem(
-                         headline = stringResource(R.string.settings_jumbo_packets),
-                         supporting = stringResource(R.string.settings_jumbo_packets_desc),
-                         leadingIcon = Icons.Filled.Tune,
-                         onClick = {
-                             if (vpnPolicy != POLICY_FIXED && !persistentState.routeRethinkInRethink) {
-                                 val checked = !useMaxMtu
-                                 useMaxMtu = checked
-                                 persistentState.useMaxMtu = checked
-                                 logEvent("jumbo packets", "Use jumbo packets: $checked")
-                             }
-                         },
-                         trailing = {
-                             Switch(
-                                 checked = useMaxMtu,
-                                 onCheckedChange = { checked ->
-                                     useMaxMtu = checked
-                                     persistentState.useMaxMtu = checked
-                                     logEvent("jumbo packets", "Use jumbo packets: $checked")
-                                 },
-                                 enabled = vpnPolicy != POLICY_FIXED && !persistentState.routeRethinkInRethink
-                             )
-                         }
+                        headline = stringResource(R.string.settings_jumbo_packets),
+                        supporting = stringResource(R.string.settings_jumbo_packets_desc),
+                        leadingIcon = Icons.Filled.Tune,
+                        onClick = {
+                            if (vpnPolicy != POLICY_FIXED && !persistentState.routeRethinkInRethink) {
+                                val checked = !useMaxMtu
+                                useMaxMtu = checked
+                                persistentState.useMaxMtu = checked
+                                logEvent("jumbo packets", "Use jumbo packets: $checked")
+                            }
+                        },
+                        trailing = {
+                            Switch(
+                                checked = useMaxMtu,
+                                onCheckedChange = { checked ->
+                                    useMaxMtu = checked
+                                    persistentState.useMaxMtu = checked
+                                    logEvent("jumbo packets", "Use jumbo packets: $checked")
+                                },
+                                enabled = vpnPolicy != POLICY_FIXED && !persistentState.routeRethinkInRethink
+                            )
+                        }
                     )
-                    
+
                     if (isAtleastQ()) {
-                         RethinkListItem(
-                             headline = stringResource(R.string.settings_vpn_builder_metered),
-                             supporting = stringResource(R.string.settings_vpn_builder_metered_desc),
-                             leadingIcon = Icons.Filled.Tune,
-                             onClick = {
-                                 val checked = !tunnelMetered
-                                 tunnelMetered = checked
-                                 persistentState.setVpnBuilderToMetered = checked
-                                 logEvent("vpn metered", "VPN builder metered: $checked")
-                             },
-                             trailing = {
-                                 Switch(
-                                     checked = tunnelMetered,
-                                     onCheckedChange = { checked ->
-                                         tunnelMetered = checked
-                                         persistentState.setVpnBuilderToMetered = checked
-                                         logEvent("vpn metered", "VPN builder metered: $checked")
-                                     }
-                                 )
-                             }
-                         )
+                        RethinkListItem(
+                            headline = stringResource(R.string.settings_vpn_builder_metered),
+                            supporting = stringResource(R.string.settings_vpn_builder_metered_desc),
+                            leadingIcon = Icons.Filled.Tune,
+                            onClick = {
+                                val checked = !tunnelMetered
+                                tunnelMetered = checked
+                                persistentState.setVpnBuilderToMetered = checked
+                                logEvent("vpn metered", "VPN builder metered: $checked")
+                            },
+                            trailing = {
+                                Switch(
+                                    checked = tunnelMetered,
+                                    onCheckedChange = { checked ->
+                                        tunnelMetered = checked
+                                        persistentState.setVpnBuilderToMetered = checked
+                                        logEvent("vpn metered", "VPN builder metered: $checked")
+                                    }
+                                )
+                            }
+                        )
                     }
-                    
+
                     RethinkListItem(
-                         headline = stringResource(R.string.custom_lan_ip_title),
-                         supporting = stringResource(R.string.custom_lan_ip_desc),
-                         leadingIconPainter = painterResource(id = R.drawable.ic_settings),
-                         onClick = { showCustomLanIpSheet = true },
-                         showDivider = false
+                        headline = stringResource(R.string.custom_lan_ip_title),
+                        supporting = stringResource(R.string.custom_lan_ip_desc),
+                        leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                        onClick = { showCustomLanIpSheet = true },
+                        showDivider = false
                     )
                 }
             }
 
             // Dial Timeout Slider
-            RethinkAnimatedSection(index = 3) {
-                 RethinkListGroup {
-                      Column(modifier = Modifier.fillMaxWidth().padding(Dimensions.cardPadding)) {
-                          Text(
-                              text = stringResource(R.string.settings_dial_timeout),
-                              style = MaterialTheme.typography.titleMedium,
-                              fontWeight = FontWeight.Bold
-                          )
-                          Text(
-                              text = dialTimeoutDesc,
-                              style = MaterialTheme.typography.bodyMedium,
-                              color = MaterialTheme.colorScheme.onSurfaceVariant
-                          )
-                          Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-                          Slider(
-                              value = dialTimeoutMin.toFloat(),
-                              onValueChange = { value ->
-                                  dialTimeoutMin = value.toInt()
-                                  persistentState.dialTimeoutSec = dialTimeoutMin * SECONDS_PER_MINUTE
-                              },
-                              valueRange = 0f..60f,
-                              colors = androidx.compose.material3.SliderDefaults.colors(
-                                  thumbColor = MaterialTheme.colorScheme.primary,
-                                  activeTrackColor = MaterialTheme.colorScheme.primary,
-                                  inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                              )
-                          )
-                      }
-                 }
+            item {
+                RethinkListGroup {
+                    Column(modifier = Modifier.fillMaxWidth().padding(Dimensions.cardPadding)) {
+                        Text(
+                            text = stringResource(R.string.settings_dial_timeout),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = dialTimeoutDesc,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+                        Slider(
+                            value = dialTimeoutMin.toFloat(),
+                            onValueChange = { value ->
+                                dialTimeoutMin = value.toInt()
+                                persistentState.dialTimeoutSec = dialTimeoutMin * SECONDS_PER_MINUTE
+                            },
+                            valueRange = 0f..60f,
+                            colors = androidx.compose.material3.SliderDefaults.colors(
+                                thumbColor = MaterialTheme.colorScheme.primary,
+                                activeTrackColor = MaterialTheme.colorScheme.primary,
+                                inactiveTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                            )
+                        )
+                    }
+                }
             }
-
-            Spacer(modifier = Modifier.height(Dimensions.spacing3xl))
         }
     }
 
@@ -780,6 +772,50 @@ fun TunnelSettingsScreen(
             persistentState = persistentState,
             onDismiss = { showReachabilitySheet = false }
         )
+    }
+}
+
+@Composable
+private fun TunnelOverviewCard(
+    vpnPolicyDesc: String,
+    ipDesc: String,
+    dialTimeoutDesc: String
+) {
+    Surface(
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 1.dp,
+        border =
+            androidx.compose.foundation.BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)
+            )
+    ) {
+        Column(
+            modifier = Modifier.padding(Dimensions.spacingXl),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+        ) {
+            Text(
+                text = stringResource(R.string.lbl_network),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.vpn_policy_title) + ": $vpnPolicyDesc",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = stringResource(R.string.settings_ip_dialog_title) + ": $ipDesc",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = stringResource(R.string.settings_dial_timeout) + ": $dialTimeoutDesc",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }
 
@@ -845,7 +881,7 @@ private fun DefaultDnsDialog(
     val options = Constants.DEFAULT_DNS_LIST
     val checkedItem = options.firstOrNull { it.url == persistentState.defaultDnsUrl }?.let { options.indexOf(it) } ?: 0
     var selectedIndex by remember { mutableIntStateOf(checkedItem) }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.settings_default_dns_heading)) },
@@ -880,13 +916,22 @@ private fun VpnPolicyDialog(
 ) {
     val conservativeTxt = stringResource(R.string.vpn_policy_fixed) + " " + stringResource(R.string.lbl_experimental)
     val options = listOf(
-        NetworkPolicyOption(stringResource(R.string.settings_ip_text_ipv46), stringResource(R.string.vpn_policy_auto_desc)),
-        NetworkPolicyOption(stringResource(R.string.vpn_policy_sensitive), stringResource(R.string.vpn_policy_sensitive_desc)),
-        NetworkPolicyOption(stringResource(R.string.vpn_policy_relaxed), stringResource(R.string.vpn_policy_relaxed_desc)),
+        NetworkPolicyOption(
+            stringResource(R.string.settings_ip_text_ipv46),
+            stringResource(R.string.vpn_policy_auto_desc)
+        ),
+        NetworkPolicyOption(
+            stringResource(R.string.vpn_policy_sensitive),
+            stringResource(R.string.vpn_policy_sensitive_desc)
+        ),
+        NetworkPolicyOption(
+            stringResource(R.string.vpn_policy_relaxed),
+            stringResource(R.string.vpn_policy_relaxed_desc)
+        ),
         NetworkPolicyOption(conservativeTxt, stringResource(R.string.vpn_policy_fixed_desc))
     )
     var selectedIndex by remember { mutableIntStateOf(persistentState.vpnBuilderPolicy) }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.vpn_policy_title)) },
@@ -918,7 +963,10 @@ private fun IpProtocolDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit
 ) {
-    val alwaysv46Txt = stringResource(R.string.settings_ip_text_ipv4) + " & " + stringResource(R.string.settings_ip_text_ipv6) + " " + stringResource(R.string.lbl_experimental)
+    val alwaysv46Txt =
+        stringResource(R.string.settings_ip_text_ipv4) + " & " + stringResource(R.string.settings_ip_text_ipv6) + " " + stringResource(
+            R.string.lbl_experimental
+        )
     val items = listOf(
         stringResource(R.string.settings_ip_dialog_ipv4),
         stringResource(R.string.settings_ip_dialog_ipv6),
@@ -934,7 +982,7 @@ private fun IpProtocolDialog(
         else -> IP_DIALOG_POS_IPV4
     }
     var selectedIndex by remember { mutableIntStateOf(checkedItem) }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.settings_ip_dialog_title)) },
@@ -961,7 +1009,8 @@ private fun IpProtocolDialog(
                     persistentState.internetProtocolType = protocolType.id
                     if (protocolType.id == InternetProtocol.IPv6.id ||
                         protocolType.id == InternetProtocol.IPv46.id ||
-                        protocolType.id == InternetProtocol.ALWAYSv46.id) {
+                        protocolType.id == InternetProtocol.ALWAYSv46.id
+                    ) {
                         persistentState.enableStabilityDependentSettings(context)
                     }
                     onConfirm(protocolType.id)
@@ -988,7 +1037,7 @@ private fun ConnectivityChecksDialog(
     val enabled = persistentState.connectivityChecks
     val checkedItem = if (!enabled) 0 else if (type) 1 else 2
     var selectedIndex by remember { mutableIntStateOf(checkedItem) }
-    
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.settings_connectivity_checks)) },
@@ -1011,11 +1060,13 @@ private fun ConnectivityChecksDialog(
                         persistentState.connectivityChecks = false
                         onConfirm(false)
                     }
+
                     1 -> {
                         persistentState.performAutoNetworkConnectivityChecks = true
                         persistentState.connectivityChecks = true
                         onConfirm(true)
                     }
+
                     2 -> {
                         persistentState.performAutoNetworkConnectivityChecks = false
                         persistentState.connectivityChecks = true

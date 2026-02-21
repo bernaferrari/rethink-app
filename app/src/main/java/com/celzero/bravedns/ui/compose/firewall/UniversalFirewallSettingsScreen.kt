@@ -16,25 +16,28 @@
 package com.celzero.bravedns.ui.compose.firewall
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -63,7 +66,10 @@ import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.util.BackgroundAccessibilityService
 import com.celzero.bravedns.util.Utilities
 import kotlinx.coroutines.Dispatchers
@@ -222,130 +228,189 @@ fun UniversalFirewallSettingsScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        val blockedTotal = stats.sumOf { it.count }
+
+        LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 16.dp)
+                .fillMaxWidth()
+                .padding(paddingValues),
+            contentPadding = PaddingValues(
+                start = Dimensions.screenPaddingHorizontal,
+                end = Dimensions.screenPaddingHorizontal,
+                top = Dimensions.spacingMd,
+                bottom = Dimensions.spacing3xl
+            ),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            SectionHeader(
-                title = stringResource(R.string.firewall_act_universal_tab),
-                description = stringResource(R.string.universal_firewall_explanation)
-            )
-            ToggleWithStats(
-                iconRes = R.drawable.ic_device_lock,
-                label = stringResource(R.string.univ_firewall_rule_1),
-                checked = blockWhenDeviceLocked,
-                onCheckedChange = {
-                    blockWhenDeviceLocked = it
-                    persistentState.setBlockWhenDeviceLocked(it)
-                    logEvent("Univ firewall device locked mode changed toggled to $it")
-                },
-                stats = statsFor(FirewallRuleset.RULE3.id),
-                loading = isLoadingStats,
-                onStatsClick = { handleStatsClick(FirewallRuleset.RULE3.id) }
-            )
-            ToggleWithStats(
-                iconRes = R.drawable.ic_foreground,
-                label = stringResource(R.string.univ_firewall_rule_2),
-                checked = blockAppWhenBackground,
-                onCheckedChange = { handleBackgroundToggle(it) },
-                stats = statsFor(FirewallRuleset.RULE4.id),
-                loading = isLoadingStats,
-                onStatsClick = { handleStatsClick(FirewallRuleset.RULE4.id) }
-            )
-            ToggleWithStats(
-                iconRes = R.drawable.ic_unknown_app,
-                label = stringResource(R.string.univ_firewall_rule_3),
-                checked = blockUnknownConnections,
-                onCheckedChange = {
-                    blockUnknownConnections = it
-                    persistentState.setBlockUnknownConnections(it)
-                    logEvent("Univ firewall unknown connection mode changed toggled to $it")
-                },
-                stats = statsFor(FirewallRuleset.RULE5.id),
-                loading = isLoadingStats,
-                onStatsClick = { handleStatsClick(FirewallRuleset.RULE5.id) }
-            )
-            ToggleWithStats(
-                iconRes = R.drawable.ic_udp,
-                label = stringResource(R.string.univ_firewall_rule_4),
-                checked = udpBlocked,
-                onCheckedChange = {
-                    udpBlocked = it
-                    persistentState.setUdpBlocked(it)
-                    logEvent("Univ firewall UDP connection mode changed toggled to $it")
-                },
-                stats = statsFor(FirewallRuleset.RULE6.id),
-                loading = isLoadingStats,
-                onStatsClick = { handleStatsClick(FirewallRuleset.RULE6.id) }
-            )
-            ToggleWithStats(
-                iconRes = R.drawable.ic_prevent_dns_leaks,
-                label = stringResource(R.string.univ_firewall_rule_5),
-                checked = disallowDnsBypass,
-                onCheckedChange = {
-                    disallowDnsBypass = it
-                    persistentState.setDisallowDnsBypass(it)
-                    logEvent("Univ firewall DNS bypass mode changed toggled to $it")
-                },
-                stats = statsFor(FirewallRuleset.RULE7.id),
-                loading = isLoadingStats,
-                onStatsClick = { handleStatsClick(FirewallRuleset.RULE7.id) }
-            )
-            ToggleWithStats(
-                iconRes = R.drawable.ic_app_info,
-                label = stringResource(R.string.univ_firewall_rule_6),
-                checked = blockNewApp,
-                onCheckedChange = {
-                    blockNewApp = it
-                    persistentState.setBlockNewlyInstalledApp(it)
-                    logEvent("Univ firewall new app block mode changed toggled to $it")
-                },
-                stats = statsFor(FirewallRuleset.RULE1B.id),
-                loading = isLoadingStats,
-                onStatsClick = { handleStatsClick(FirewallRuleset.RULE1B.id) }
-            )
-            ToggleWithStats(
-                iconRes = R.drawable.ic_univ_metered,
-                label = stringResource(R.string.univ_firewall_rule_9),
-                checked = blockMeteredConnections,
-                onCheckedChange = {
-                    blockMeteredConnections = it
-                    persistentState.setBlockMeteredConnections(it)
-                    logEvent("Univ firewall metered connection block mode changed toggled to $it")
-                },
-                stats = statsFor(FirewallRuleset.RULE1F.id),
-                loading = isLoadingStats,
-                onStatsClick = { handleStatsClick(FirewallRuleset.RULE1F.id) }
-            )
-            ToggleWithStats(
-                iconRes = R.drawable.ic_http,
-                label = stringResource(R.string.univ_firewall_rule_8),
-                checked = blockHttpConnections,
-                onCheckedChange = {
-                    blockHttpConnections = it
-                    persistentState.setBlockHttpConnections(it)
-                    logEvent("Univ firewall HTTP block mode changed toggled to $it")
-                },
-                stats = statsFor(FirewallRuleset.RULE10.id),
-                loading = isLoadingStats,
-                onStatsClick = { handleStatsClick(FirewallRuleset.RULE10.id) }
-            )
-            ToggleWithStats(
-                iconRes = R.drawable.ic_global_lockdown,
-                label = stringResource(R.string.univ_firewall_rule_10),
-                checked = universalLockdown,
-                onCheckedChange = {
-                    universalLockdown = it
-                    persistentState.setUniversalLockdown(it)
-                    logEvent("Univ firewall universal lockdown mode changed toggled to $it")
-                },
-                stats = statsFor(FirewallRuleset.RULE11.id),
-                loading = isLoadingStats,
-                onStatsClick = { handleStatsClick(FirewallRuleset.RULE11.id) }
-            )
+            item {
+                Surface(
+                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(
+                            horizontal = Dimensions.spacingLg,
+                            vertical = Dimensions.spacingMd
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.firewall_act_universal_tab),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Text(
+                            text = stringResource(R.string.universal_firewall_explanation),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(999.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer
+                            ) {
+                                Text(
+                                    text = if (isLoadingStats) {
+                                        stringResource(R.string.lbl_loading)
+                                    } else {
+                                        "$blockedTotal blocked"
+                                    },
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.padding(
+                                        horizontal = Dimensions.spacingMd,
+                                        vertical = 4.dp
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                SectionHeader(title = stringResource(R.string.univ_firewall_heading))
+                RethinkListGroup {
+                    ToggleWithStats(
+                        iconRes = R.drawable.ic_device_lock,
+                        label = stringResource(R.string.univ_firewall_rule_1),
+                        checked = blockWhenDeviceLocked,
+                        onCheckedChange = {
+                            blockWhenDeviceLocked = it
+                            persistentState.setBlockWhenDeviceLocked(it)
+                            logEvent("Univ firewall device locked mode changed toggled to $it")
+                        },
+                        stats = statsFor(FirewallRuleset.RULE3.id),
+                        loading = isLoadingStats,
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE3.id) }
+                    )
+                    ToggleWithStats(
+                        iconRes = R.drawable.ic_foreground,
+                        label = stringResource(R.string.univ_firewall_rule_2),
+                        checked = blockAppWhenBackground,
+                        onCheckedChange = { handleBackgroundToggle(it) },
+                        stats = statsFor(FirewallRuleset.RULE4.id),
+                        loading = isLoadingStats,
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE4.id) }
+                    )
+                    ToggleWithStats(
+                        iconRes = R.drawable.ic_unknown_app,
+                        label = stringResource(R.string.univ_firewall_rule_3),
+                        checked = blockUnknownConnections,
+                        onCheckedChange = {
+                            blockUnknownConnections = it
+                            persistentState.setBlockUnknownConnections(it)
+                            logEvent("Univ firewall unknown connection mode changed toggled to $it")
+                        },
+                        stats = statsFor(FirewallRuleset.RULE5.id),
+                        loading = isLoadingStats,
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE5.id) }
+                    )
+                    ToggleWithStats(
+                        iconRes = R.drawable.ic_udp,
+                        label = stringResource(R.string.univ_firewall_rule_4),
+                        checked = udpBlocked,
+                        onCheckedChange = {
+                            udpBlocked = it
+                            persistentState.setUdpBlocked(it)
+                            logEvent("Univ firewall UDP connection mode changed toggled to $it")
+                        },
+                        stats = statsFor(FirewallRuleset.RULE6.id),
+                        loading = isLoadingStats,
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE6.id) }
+                    )
+                    ToggleWithStats(
+                        iconRes = R.drawable.ic_prevent_dns_leaks,
+                        label = stringResource(R.string.univ_firewall_rule_5),
+                        checked = disallowDnsBypass,
+                        onCheckedChange = {
+                            disallowDnsBypass = it
+                            persistentState.setDisallowDnsBypass(it)
+                            logEvent("Univ firewall DNS bypass mode changed toggled to $it")
+                        },
+                        stats = statsFor(FirewallRuleset.RULE7.id),
+                        loading = isLoadingStats,
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE7.id) }
+                    )
+                    ToggleWithStats(
+                        iconRes = R.drawable.ic_app_info,
+                        label = stringResource(R.string.univ_firewall_rule_6),
+                        checked = blockNewApp,
+                        onCheckedChange = {
+                            blockNewApp = it
+                            persistentState.setBlockNewlyInstalledApp(it)
+                            logEvent("Univ firewall new app block mode changed toggled to $it")
+                        },
+                        stats = statsFor(FirewallRuleset.RULE1B.id),
+                        loading = isLoadingStats,
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE1B.id) }
+                    )
+                    ToggleWithStats(
+                        iconRes = R.drawable.ic_univ_metered,
+                        label = stringResource(R.string.univ_firewall_rule_9),
+                        checked = blockMeteredConnections,
+                        onCheckedChange = {
+                            blockMeteredConnections = it
+                            persistentState.setBlockMeteredConnections(it)
+                            logEvent("Univ firewall metered connection block mode changed toggled to $it")
+                        },
+                        stats = statsFor(FirewallRuleset.RULE1F.id),
+                        loading = isLoadingStats,
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE1F.id) }
+                    )
+                    ToggleWithStats(
+                        iconRes = R.drawable.ic_http,
+                        label = stringResource(R.string.univ_firewall_rule_8),
+                        checked = blockHttpConnections,
+                        onCheckedChange = {
+                            blockHttpConnections = it
+                            persistentState.setBlockHttpConnections(it)
+                            logEvent("Univ firewall HTTP block mode changed toggled to $it")
+                        },
+                        stats = statsFor(FirewallRuleset.RULE10.id),
+                        loading = isLoadingStats,
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE10.id) }
+                    )
+                    ToggleWithStats(
+                        iconRes = R.drawable.ic_global_lockdown,
+                        label = stringResource(R.string.univ_firewall_rule_10),
+                        checked = universalLockdown,
+                        onCheckedChange = {
+                            universalLockdown = it
+                            persistentState.setUniversalLockdown(it)
+                            logEvent("Univ firewall universal lockdown mode changed toggled to $it")
+                        },
+                        stats = statsFor(FirewallRuleset.RULE11.id),
+                        loading = isLoadingStats,
+                        onStatsClick = { handleStatsClick(FirewallRuleset.RULE11.id) },
+                        showDivider = false
+                    )
+                }
+            }
         }
     }
 
@@ -374,23 +439,6 @@ fun UniversalFirewallSettingsScreen(
 }
 
 @Composable
-private fun SectionHeader(title: String, description: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        color = MaterialTheme.colorScheme.primary,
-        fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(start = 16.dp, top = 16.dp)
-    )
-    Text(
-        text = description,
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-    )
-}
-
-@Composable
 private fun ToggleWithStats(
     iconRes: Int,
     label: String,
@@ -398,7 +446,8 @@ private fun ToggleWithStats(
     onCheckedChange: (Boolean) -> Unit,
     stats: UniversalFirewallStatEntry?,
     loading: Boolean,
-    onStatsClick: () -> Unit
+    onStatsClick: () -> Unit,
+    showDivider: Boolean = true
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
@@ -430,6 +479,13 @@ private fun ToggleWithStats(
             loading = loading,
             onClick = onStatsClick
         )
+        if (showDivider) {
+            HorizontalDivider(
+                modifier = Modifier.padding(start = 56.dp, end = 12.dp),
+                thickness = Dimensions.dividerThickness,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
+            )
+        }
     }
 }
 
@@ -440,7 +496,7 @@ private fun StatsRow(
     onClick: () -> Unit
 ) {
     val countText = if (loading || stats == null) "-" else stats.count.toString()
-    val progressValue = if (loading || stats == null) 0.1f else stats.percent / 100f
+    val progressValue = if (loading || stats == null) 0f else stats.percent / 100f
     val enabled = (stats?.count ?: 0) > 0
 
     Row(
@@ -463,11 +519,13 @@ private fun StatsRow(
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
         )
-        Icon(
-            painter = painterResource(R.drawable.ic_right_arrow_white),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
-            modifier = Modifier.size(16.dp)
-        )
+        if (enabled) {
+            Icon(
+                painter = painterResource(R.drawable.ic_right_arrow_white),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+                modifier = Modifier.size(16.dp)
+            )
+        }
     }
 }

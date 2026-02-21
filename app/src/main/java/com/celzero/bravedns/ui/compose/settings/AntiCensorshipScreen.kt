@@ -16,16 +16,12 @@
 package com.celzero.bravedns.ui.compose.settings
 
 import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.RadioButtonChecked
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
@@ -33,18 +29,16 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -128,47 +122,26 @@ fun AntiCensorshipScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = Dimensions.screenPaddingHorizontal),
+                .padding(paddingValues),
+            contentPadding =
+                PaddingValues(
+                    start = Dimensions.screenPaddingHorizontal,
+                    end = Dimensions.screenPaddingHorizontal,
+                    bottom = Dimensions.spacing3xl
+                ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-
-            // Header
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
-                                MaterialTheme.colorScheme.surfaceContainerLow
-                            )
-                        ),
-                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
-                    )
-                    .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        text = stringResource(R.string.anti_censorship_title),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(R.string.ac_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                }
+            item {
+                AntiCensorshipOverviewCard(
+                    selectedDial = dialSelection,
+                    selectedRetry = retrySelection
+                )
             }
 
-            RethinkAnimatedSection(index = 0) {
+            item {
                 SectionHeader(title = stringResource(R.string.anti_censorship_title))
                 RethinkListGroup {
                     DialStrategies.entries.forEach { strategy ->
@@ -189,31 +162,49 @@ fun AntiCensorshipScreen(
                             DialStrategies.DESYNC -> R.string.ac_desync_desc
                             DialStrategies.TCP_PROXY -> R.string.ac_tcp_proxy_desc
                         }
-                        
+
                         RethinkListItem(
                             headline = stringResource(titleRes),
                             supporting = stringResource(descRes),
-                            leadingIcon = if (dialSelection == strategy) Icons.Rounded.RadioButtonChecked else Icons.Rounded.RadioButtonUnchecked,
-                            leadingIconTint = if (dialSelection == strategy) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            leadingIcon =
+                                if (dialSelection == strategy) {
+                                    Icons.Rounded.RadioButtonChecked
+                                } else {
+                                    Icons.Rounded.RadioButtonUnchecked
+                                },
+                            leadingIconTint =
+                                if (dialSelection == strategy) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                },
                             onClick = {
                                 if (dialSelection != strategy) {
                                     dialSelection = strategy
                                     persistentState.dialStrategy = strategy.mode
                                     persistentState.autoProxyEnabled = strategy == DialStrategies.TCP_PROXY
-                                    val nextRetry = when (strategy) {
-                                        DialStrategies.NEVER_SPLIT -> RetryStrategies.RETRY_NEVER
-                                        DialStrategies.SPLIT_AUTO, DialStrategies.TCP_PROXY -> RetryStrategies.RETRY_WITH_SPLIT
-                                        else -> RetryStrategies.fromInt(persistentState.retryStrategy) ?: RetryStrategies.RETRY_WITH_SPLIT
-                                    }
+                                    val nextRetry =
+                                        when (strategy) {
+                                            DialStrategies.NEVER_SPLIT -> RetryStrategies.RETRY_NEVER
+                                            DialStrategies.SPLIT_AUTO, DialStrategies.TCP_PROXY -> RetryStrategies.RETRY_WITH_SPLIT
+                                            else -> RetryStrategies.fromInt(persistentState.retryStrategy) ?: RetryStrategies.RETRY_WITH_SPLIT
+                                        }
                                     persistentState.retryStrategy = nextRetry.mode
                                     retrySelection = nextRetry
-                                    eventLogger.log(EventType.UI_TOGGLE, Severity.LOW, "Anti-censorship UI", EventSource.UI, false, "Anti-censorship dial strategy changed to ${strategy.mode}")
+                                    eventLogger.log(
+                                        EventType.UI_TOGGLE,
+                                        Severity.LOW,
+                                        "Anti-censorship UI",
+                                        EventSource.UI,
+                                        false,
+                                        "Anti-censorship dial strategy changed to ${strategy.mode}"
+                                    )
                                 }
                             },
                             trailing = {
                                 RadioButton(
                                     selected = dialSelection == strategy,
-                                    onClick = null // handled by list item
+                                    onClick = null
                                 )
                             }
                         )
@@ -221,7 +212,7 @@ fun AntiCensorshipScreen(
                 }
             }
 
-            RethinkAnimatedSection(index = 1) {
+            item {
                 SectionHeader(title = stringResource(R.string.ac_retry_options_title))
                 Text(
                     text = stringResource(R.string.ac_retry_options_desc),
@@ -229,7 +220,7 @@ fun AntiCensorshipScreen(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingXs)
                 )
-                
+
                 RethinkListGroup {
                     RetryStrategies.entries.forEach { strategy ->
                         val titleRes = when (strategy) {
@@ -242,18 +233,25 @@ fun AntiCensorshipScreen(
                             RetryStrategies.RETRY_WITH_SPLIT -> R.string.ac_retry_options_with_split_desc
                             RetryStrategies.RETRY_AFTER_SPLIT -> R.string.ac_retry_options_after_split_desc
                         }
-                        val enabled = dialSelection != DialStrategies.NEVER_SPLIT ||
+                        val enabled =
+                            dialSelection != DialStrategies.NEVER_SPLIT ||
                                 strategy == RetryStrategies.RETRY_NEVER
-                        
+
                         RethinkListItem(
                             headline = stringResource(titleRes),
                             supporting = stringResource(descRes),
-                            leadingIcon = if (retrySelection == strategy) Icons.Rounded.RadioButtonChecked else Icons.Rounded.RadioButtonUnchecked,
-                            leadingIconTint = if (enabled) {
-                                if (retrySelection == strategy) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                            },
+                            leadingIcon =
+                                if (retrySelection == strategy) {
+                                    Icons.Rounded.RadioButtonChecked
+                                } else {
+                                    Icons.Rounded.RadioButtonUnchecked
+                                },
+                            leadingIconTint =
+                                if (enabled) {
+                                    if (retrySelection == strategy) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
+                                },
                             enabled = enabled,
                             onClick = {
                                 if (!enabled) {
@@ -266,14 +264,22 @@ fun AntiCensorshipScreen(
                                 }
                                 if (retrySelection != strategy) {
                                     var mode = strategy.mode
-                                    if (DialStrategies.NEVER_SPLIT.mode == persistentState.dialStrategy &&
-                                        strategy != RetryStrategies.RETRY_NEVER
+                                    if (
+                                        DialStrategies.NEVER_SPLIT.mode == persistentState.dialStrategy &&
+                                            strategy != RetryStrategies.RETRY_NEVER
                                     ) {
                                         mode = RetryStrategies.RETRY_NEVER.mode
                                     }
                                     persistentState.retryStrategy = mode
                                     retrySelection = strategy
-                                    eventLogger.log(EventType.UI_TOGGLE, Severity.LOW, "Anti-censorship UI", EventSource.UI, false, "Anti-censorship retry strategy changed to $mode")
+                                    eventLogger.log(
+                                        EventType.UI_TOGGLE,
+                                        Severity.LOW,
+                                        "Anti-censorship UI",
+                                        EventSource.UI,
+                                        false,
+                                        "Anti-censorship retry strategy changed to $mode"
+                                    )
                                 }
                             },
                             trailing = {
@@ -287,8 +293,79 @@ fun AntiCensorshipScreen(
                     }
                 }
             }
-            
-            Spacer(modifier = Modifier.height(Dimensions.spacingXl))
+        }
+    }
+}
+
+@Composable
+private fun AntiCensorshipOverviewCard(
+    selectedDial: DialStrategies,
+    selectedRetry: RetryStrategies
+) {
+    val dialLabel =
+        stringResource(
+            when (selectedDial) {
+                DialStrategies.NEVER_SPLIT -> R.string.settings_app_list_default_app
+                DialStrategies.SPLIT_AUTO -> R.string.settings_ip_text_ipv46
+                DialStrategies.SPLIT_TCP -> R.string.ac_split_tcp
+                DialStrategies.SPLIT_TCP_TLS -> R.string.ac_split_tls
+                DialStrategies.DESYNC -> R.string.ac_desync
+                DialStrategies.TCP_PROXY -> R.string.ac_tcp_proxy
+            }
+        )
+    val retryLabel =
+        stringResource(
+            when (selectedRetry) {
+                RetryStrategies.RETRY_NEVER -> R.string.settings_app_list_default_app
+                RetryStrategies.RETRY_WITH_SPLIT -> R.string.settings_ip_text_ipv46
+                RetryStrategies.RETRY_AFTER_SPLIT -> R.string.lbl_always
+            }
+        )
+
+    Surface(
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 1.dp,
+        border =
+            androidx.compose.foundation.BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)
+            )
+    ) {
+        Column(
+            modifier = Modifier.padding(Dimensions.spacingXl),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+        ) {
+            Text(
+                text = stringResource(R.string.anti_censorship_title),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.ac_split_auto_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text =
+                    stringResource(
+                        R.string.two_argument_colon,
+                        stringResource(R.string.lbl_split),
+                        dialLabel
+                    ),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text =
+                    stringResource(
+                        R.string.two_argument_colon,
+                        stringResource(R.string.ac_retry_options_title),
+                        retryLabel
+                    ),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }

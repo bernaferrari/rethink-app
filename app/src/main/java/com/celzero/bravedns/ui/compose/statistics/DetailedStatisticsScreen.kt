@@ -39,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -50,6 +51,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -103,39 +105,90 @@ fun DetailedStatisticsScreen(
                     modifier = Modifier.align(Alignment.Center)
                 )
             } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(Dimensions.screenPaddingHorizontal),
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-                ) {
-                    item {
-                        if (type != SummaryStatisticsType.TOP_ACTIVE_CONNS) {
-                            Text(
-                                text = getTimeCategoryText(timeCategory),
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.padding(bottom = Dimensions.spacingLg)
-                            )
-                        }
-                    }
-
-                    items(pagingItems.itemCount) { index ->
-                        pagingItems[index]?.let { item ->
-                            DetailedStatItemCard(item, type)
-                        }
-                    }
-
-                    if (pagingItems.loadState.append is LoadState.Loading) {
-                        item {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(Dimensions.spacingLg),
-                                contentAlignment = Alignment.Center
+                Column(modifier = Modifier.fillMaxSize()) {
+                    Surface(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                horizontal = Dimensions.screenPaddingHorizontal,
+                                vertical = Dimensions.spacingSm
+                            ),
+                        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+                        color = MaterialTheme.colorScheme.surfaceContainerLow,
+                        border = BorderStroke(
+                            1.dp,
+                            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
+                        )
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    horizontal = Dimensions.spacingLg,
+                                    vertical = Dimensions.spacingMd
+                                ),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(2.dp)
                             ) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(Dimensions.iconSizeMd)
+                                Text(
+                                    text = stringResource(id = getTitleResId(type)),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold
                                 )
+                                if (type != SummaryStatisticsType.TOP_ACTIVE_CONNS) {
+                                    Text(
+                                        text = getTimeCategoryText(timeCategory),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(999.dp),
+                                color = MaterialTheme.colorScheme.primaryContainer
+                            ) {
+                                Text(
+                                    text = pagingItems.itemCount.toString(),
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.padding(
+                                        horizontal = Dimensions.spacingMd,
+                                        vertical = 4.dp
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(
+                            horizontal = Dimensions.screenPaddingHorizontal,
+                            vertical = Dimensions.spacingSm
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                    ) {
+                        items(pagingItems.itemCount) { index ->
+                            pagingItems[index]?.let { item ->
+                                DetailedStatItemCard(item, type)
+                            }
+                        }
+
+                        if (pagingItems.loadState.append is LoadState.Loading) {
+                            item {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(Dimensions.spacingLg),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(Dimensions.iconSizeMd)
+                                    )
+                                }
                             }
                         }
                     }
@@ -156,19 +209,19 @@ private fun DetailedStatisticsTopBar(type: SummaryStatisticsType, onBackClick: (
 @Composable
 private fun DetailedStatItemCard(item: AppConnection, type: SummaryStatisticsType) {
     Card(
-        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+        shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
         border = BorderStroke(
-            width = Dimensions.dividerThickness,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+            width = 1.dp,
+            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.none),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
-            modifier = Modifier.padding(Dimensions.cardPadding),
+            modifier = Modifier.padding(horizontal = Dimensions.spacingLg, vertical = Dimensions.spacingMd),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Icon
@@ -178,21 +231,31 @@ private fun DetailedStatItemCard(item: AppConnection, type: SummaryStatisticsTyp
                     style = MaterialTheme.typography.headlineMedium
                 )
             } else {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_app_info),
-                    contentDescription = null,
-                    modifier = Modifier.size(Dimensions.iconSizeXl),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest
+                ) {
+                    Box(
+                        modifier = Modifier.size(38.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_app_info),
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
 
-            Spacer(modifier = Modifier.width(Dimensions.spacingLg))
+            Spacer(modifier = Modifier.width(Dimensions.spacingMd))
 
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = item.appOrDnsName ?: "",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.height(Dimensions.spacingXs))
                 Text(
@@ -211,8 +274,8 @@ private fun DetailedStatItemCard(item: AppConnection, type: SummaryStatisticsTyp
                         progress = { progress },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(Dimensions.spacingXs)
-                            .clip(RoundedCornerShape(Dimensions.spacingXs)),
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp)),
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                         trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
                     )

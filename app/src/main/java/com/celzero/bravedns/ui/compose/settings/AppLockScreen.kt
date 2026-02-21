@@ -25,9 +25,15 @@ import androidx.biometric.BiometricPrompt
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -45,6 +51,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.util.BioMetricType
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import io.github.aakira.napier.Napier
@@ -156,25 +163,74 @@ fun AppLockScreen(
     }
 
     // UI: Simple screen with app logo
-    AppLockContent(appName = appName)
+    AppLockContent(
+        appName = appName,
+        title = biometricTitle,
+        subtitle = biometricDesc
+    )
 }
 
 /**
  * The visual content of the app lock screen - displays the app logo centered on a background.
  */
 @Composable
-private fun AppLockContent(appName: String) {
+private fun AppLockContent(
+    appName: String,
+    title: String,
+    subtitle: String
+) {
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
-        contentAlignment = Alignment.Center
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_launcher),
-            contentDescription = appName,
-            modifier = Modifier.size(120.dp)
-        )
+        Column(modifier = Modifier.fillMaxSize()) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier
+                    .padding(
+                        horizontal = Dimensions.screenPaddingHorizontal,
+                        vertical = Dimensions.spacingMd
+                    )
+            )
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier
+                    .padding(horizontal = Dimensions.screenPaddingHorizontal)
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = Dimensions.screenPaddingHorizontal),
+                contentAlignment = Alignment.Center
+            ) {
+                Surface(
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    tonalElevation = 1.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(horizontal = Dimensions.spacing2xl, vertical = Dimensions.spacing2xl),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_launcher),
+                            contentDescription = appName,
+                            modifier = Modifier.size(120.dp)
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = appName,
+                            style = MaterialTheme.typography.titleLarge
+                        )
+                    }
+                }
+            }
+        }
     }
 }
 

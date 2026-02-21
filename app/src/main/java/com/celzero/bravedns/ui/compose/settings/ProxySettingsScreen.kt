@@ -21,8 +21,8 @@ import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,7 +30,9 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.rounded.Refresh
@@ -47,6 +49,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -81,16 +84,11 @@ import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
-import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.background
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import com.celzero.bravedns.util.OrbotHelper
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
@@ -386,58 +384,46 @@ fun ProxySettingsScreen(
         },
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = Dimensions.screenPaddingHorizontal)
-                .verticalScroll(rememberScrollState()),
+                .padding(padding),
+            contentPadding =
+                PaddingValues(
+                    start = Dimensions.screenPaddingHorizontal,
+                    end = Dimensions.screenPaddingHorizontal,
+                    bottom = Dimensions.spacing3xl
+                ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-
-            // Header
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.35f),
-                                MaterialTheme.colorScheme.surfaceContainerLow
-                            )
-                        ),
-                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
-                    )
-                    .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        text = stringResource(id = R.string.settings_proxy_header),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.settings_title_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                }
+            item {
+                ProxyOverviewCard(
+                    canEnableProxy = canEnableProxy,
+                    socks5Enabled = socks5Enabled,
+                    httpEnabled = httpEnabled,
+                    orbotEnabled = orbotEnabled
+                )
             }
 
             if (!canEnableProxy) {
-                Text(
-                    text = stringResource(R.string.settings_lock_down_proxy_desc),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                    modifier = Modifier.padding(horizontal = Dimensions.spacingSm)
-                )
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(18.dp),
+                        color = MaterialTheme.colorScheme.errorContainer
+                    ) {
+                        Text(
+                            text = stringResource(R.string.settings_lock_down_proxy_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+                        )
+                    }
+                }
             }
 
             // Network Proxy (WireGuard)
             if (onWireguardClick != null) {
-                RethinkAnimatedSection(index = 0) {
+                item {
                     SectionHeader(title = stringResource(R.string.setup_wireguard))
                     RethinkListGroup {
                         RethinkListItem(
@@ -457,31 +443,30 @@ fun ProxySettingsScreen(
             }
 
             // SOCKS5
-            RethinkAnimatedSection(index = 1) {
+            item {
                 SectionHeader(title = stringResource(R.string.settings_socks5_heading))
                 RethinkListGroup {
                     RethinkListItem(
-                            headline = stringResource(R.string.settings_socks5_heading),
-                            supporting = socks5Description,
-                            leadingIconPainter = painterResource(id = R.drawable.ic_socks5),
+                        headline = stringResource(R.string.settings_socks5_heading),
+                        supporting = socks5Description,
+                        leadingIconPainter = painterResource(id = R.drawable.ic_socks5),
                         onClick = {
-                             if (canEnableProxy && socks5Enabled) {
-                                 openSocksDialog()
-                             } else if (!socks5Enabled) {
-                                 // Logic to enable
-                                 if (!canEnableProxy) {
-                                     showProxyDisabledToast()
-                                     reloadUi()
-                                 } else if (appConfig.getBraveMode().isDnsMode()) {
-                                     Utilities.showToastUiCentered(context, socks5VpnDisabledError, Toast.LENGTH_SHORT)
-                                     reloadUi()
-                                 } else if (!appConfig.canEnableSocks5Proxy()) {
-                                     Utilities.showToastUiCentered(context, socks5DisabledError, Toast.LENGTH_SHORT)
-                                     reloadUi()
-                                 } else {
-                                     openSocksDialog()
-                                 }
-                             }
+                            if (canEnableProxy && socks5Enabled) {
+                                openSocksDialog()
+                            } else if (!socks5Enabled) {
+                                if (!canEnableProxy) {
+                                    showProxyDisabledToast()
+                                    reloadUi()
+                                } else if (appConfig.getBraveMode().isDnsMode()) {
+                                    Utilities.showToastUiCentered(context, socks5VpnDisabledError, Toast.LENGTH_SHORT)
+                                    reloadUi()
+                                } else if (!appConfig.canEnableSocks5Proxy()) {
+                                    Utilities.showToastUiCentered(context, socks5DisabledError, Toast.LENGTH_SHORT)
+                                    reloadUi()
+                                } else {
+                                    openSocksDialog()
+                                }
+                            }
                         },
                         trailing = {
                             Switch(
@@ -518,18 +503,17 @@ fun ProxySettingsScreen(
             }
 
             // HTTP
-            RethinkAnimatedSection(index = 2) {
+            item {
                 SectionHeader(title = stringResource(R.string.settings_https_heading))
                 RethinkListGroup {
                     RethinkListItem(
-                            headline = stringResource(R.string.settings_https_heading),
-                            supporting = httpDescription,
-                            leadingIconPainter = painterResource(id = R.drawable.ic_http),
+                        headline = stringResource(R.string.settings_https_heading),
+                        supporting = httpDescription,
+                        leadingIconPainter = painterResource(id = R.drawable.ic_http),
                         onClick = {
                             if (canEnableProxy && httpEnabled) {
                                 openHttpDialog()
                             } else if (!httpEnabled) {
-                                // Logic to enable
                                 if (!canEnableProxy) {
                                     showProxyDisabledToast()
                                     reloadUi()
@@ -579,18 +563,17 @@ fun ProxySettingsScreen(
             }
 
             // Orbot
-            RethinkAnimatedSection(index = 3) {
+            item {
                 SectionHeader(title = stringResource(R.string.orbot))
                 RethinkListGroup {
                     RethinkListItem(
-                            headline = stringResource(R.string.orbot),
-                            supporting = if (orbotConnecting) stringResource(R.string.orbot_bs_status_trying_connect) else orbotDescription,
-                            leadingIconPainter = painterResource(id = R.drawable.ic_orbot),
+                        headline = stringResource(R.string.orbot),
+                        supporting = if (orbotConnecting) stringResource(R.string.orbot_bs_status_trying_connect) else orbotDescription,
+                        leadingIconPainter = painterResource(id = R.drawable.ic_orbot),
                         onClick = {
-                             if (canEnableProxy && !orbotConnecting) {
-                                 if (orbotEnabled) enableOrbotFlow() // Re-configure
-                                 else enableOrbotFlow() // Enable
-                             }
+                            if (canEnableProxy && !orbotConnecting) {
+                                if (orbotEnabled) enableOrbotFlow() else enableOrbotFlow()
+                            }
                         },
                         trailing = {
                             Switch(
@@ -608,28 +591,27 @@ fun ProxySettingsScreen(
                     )
 
                     if (canEnableProxy && !orbotConnecting) {
-                         if (mappingViewModel != null) {
-                                RethinkListItem(
-                                    headline = stringResource(R.string.add_remove_apps, orbotAppCount.toString()),
-                                    leadingIconPainter = painterResource(id = R.drawable.ic_app_info_accent),
-                                    onClick = { showOrbotAppsDialog = true }
-                                )
-                         }
-                         RethinkListItem(
+                        if (mappingViewModel != null) {
+                            RethinkListItem(
+                                headline = stringResource(R.string.add_remove_apps, orbotAppCount.toString()),
+                                leadingIconPainter = painterResource(id = R.drawable.ic_app_info_accent),
+                                onClick = { showOrbotAppsDialog = true }
+                            )
+                        }
+                        RethinkListItem(
                             headline = stringResource(R.string.settings_orbot_notification_action),
                             leadingIconPainter = painterResource(id = R.drawable.ic_right_arrow_small),
                             onClick = { orbotHelper.openOrbotApp() }
-                         )
-                         RethinkListItem(
+                        )
+                        RethinkListItem(
                             headline = stringResource(R.string.lbl_info),
                             leadingIconPainter = painterResource(id = R.drawable.ic_info),
                             onClick = { showOrbotInfoDialog = true },
                             showDivider = false
-                         )
+                        )
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(Dimensions.spacing3xl))
         }
     }
 
@@ -944,6 +926,55 @@ fun ProxySettingsScreen(
                 }
             }
         )
+    }
+}
+
+@Composable
+private fun ProxyOverviewCard(
+    canEnableProxy: Boolean,
+    socks5Enabled: Boolean,
+    httpEnabled: Boolean,
+    orbotEnabled: Boolean
+) {
+    val activeCount = listOf(socks5Enabled, httpEnabled, orbotEnabled).count { it }
+
+    Surface(
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 1.dp,
+        border =
+            androidx.compose.foundation.BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)
+            )
+    ) {
+        Column(
+            modifier = Modifier.padding(Dimensions.spacingXl),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+        ) {
+            Text(
+                text = stringResource(R.string.settings_proxy_header),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
+            )
+            Text(
+                text = stringResource(R.string.settings_exclude_proxy_apps_desc),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = "Active: $activeCount / 3",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            if (!canEnableProxy) {
+                Text(
+                    text = stringResource(R.string.settings_lock_down_proxy_desc),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
     }
 }
 

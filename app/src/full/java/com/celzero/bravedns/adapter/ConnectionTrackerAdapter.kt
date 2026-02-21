@@ -161,8 +161,8 @@ fun ConnectionRow(
 
                 Box(
                     modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(12.dp))
                         .background(iconBgColor),
                     contentAlignment = Alignment.Center
                 ) {
@@ -186,7 +186,7 @@ fun ConnectionRow(
                         Text(
                             text = appName,
                             style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurface,
                             modifier = Modifier.weight(1f),
                             maxLines = 1,
@@ -198,16 +198,16 @@ fun ConnectionRow(
                         val badgeContainerColor = if (ct.isBlocked) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
                         
                         Surface(
-                            shape = CircleShape,
+                            shape = RoundedCornerShape(12.dp),
                             color = badgeContainerColor.copy(alpha = 0.8f),
                             modifier = Modifier.padding(start = Dimensions.spacingSm)
                         ) {
                             Text(
-                                text = if (ct.isBlocked) "BLOCKED" else "ALLOWED",
+                                text = if (ct.isBlocked) stringResource(R.string.lbl_blocked) else stringResource(R.string.lbl_allowed),
                                 style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
+                                fontWeight = FontWeight.SemiBold,
                                 color = badgeColor,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
                             )
                         }
                     }
@@ -238,8 +238,8 @@ fun ConnectionRow(
                     Text(
                         text = protocolLabel,
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Bold
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
             }

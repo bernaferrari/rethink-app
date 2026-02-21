@@ -18,7 +18,9 @@ package com.celzero.bravedns.ui.compose.settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,16 +29,17 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -53,12 +56,11 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.TcpProxyHelper
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.RadioButtonChecked
 import androidx.compose.material.icons.rounded.RadioButtonUnchecked
@@ -66,6 +68,7 @@ import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 
 enum class CheckoutPlan(val titleRes: Int, val subtitleRes: Int) {
     ONE_MONTH(R.string.checkout_plan_1m_title, R.string.checkout_plan_1m_subtitle),
@@ -82,7 +85,6 @@ fun CheckoutScreen(
     onBackClick: (() -> Unit)? = null
 ) {
     var selectedPlan by remember { mutableStateOf(CheckoutPlan.SIX_MONTH) }
-    val backContentDescription = stringResource(R.string.cd_navigate_back)
 
     Scaffold(
         topBar = {
@@ -130,125 +132,117 @@ private fun PaymentContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingLg),
+            .padding(bottom = Dimensions.spacingLg),
         verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
     ) {
-        // Header
-        Box(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
-                            MaterialTheme.colorScheme.surfaceContainerLow
-                        )
-                    ),
-                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
-                )
-                .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
+                .padding(horizontal = Dimensions.screenPaddingHorizontal),
+            shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+            tonalElevation = 1.dp
         ) {
             Column(
-                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.padding(Dimensions.spacingLg),
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
             ) {
-                Image(
-                    painter = painterResource(R.drawable.ic_launcher),
-                    contentDescription = null,
-                    modifier = Modifier.size(64.dp)
+                Text(
+                    text = stringResource(R.string.checkout_app_name),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
                 )
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        text = stringResource(R.string.checkout_app_name),
-                        style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(R.string.checkout_proxy_desc),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                Text(
+                    text = stringResource(R.string.checkout_choose_plan),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimensions.screenPaddingHorizontal),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
+        ) {
+            SectionHeader(
+                title = stringResource(R.string.checkout_choose_plan),
+                modifier = Modifier.padding(horizontal = Dimensions.spacingXs)
+            )
+
+            RethinkListGroup {
+                CheckoutPlan.entries.forEach { plan ->
+                    val isSelected = selectedPlan == plan
+                    RethinkListItem(
+                        headline = stringResource(plan.titleRes),
+                        supporting = stringResource(plan.subtitleRes),
+                        leadingIcon = if (isSelected) Icons.Rounded.RadioButtonChecked else Icons.Rounded.RadioButtonUnchecked,
+                        leadingIconTint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                        onClick = { onPlanSelected(plan) },
+                        trailing = {
+                            RadioButton(
+                                selected = isSelected,
+                                onClick = null
+                            )
+                        }
                     )
                 }
             }
-        }
 
-        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+            Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
+                Button(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    onClick = onStartPayment,
+                    shape = RoundedCornerShape(Dimensions.buttonCornerRadius)
+                ) {
+                    Text(
+                        text = stringResource(R.string.checkout_purchase),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
 
-        Text(
-            text = stringResource(R.string.checkout_choose_plan),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(start = Dimensions.spacingXs)
-        )
-
-        RethinkListGroup {
-            CheckoutPlan.entries.forEach { plan ->
-                val isSelected = selectedPlan == plan
-                RethinkListItem(
-                    headline = stringResource(plan.titleRes),
-                    supporting = stringResource(plan.subtitleRes),
-                    leadingIcon = if (isSelected) Icons.Rounded.RadioButtonChecked else Icons.Rounded.RadioButtonUnchecked,
-                    leadingIconTint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                    onClick = { onPlanSelected(plan) },
-                    trailing = {
-                        RadioButton(
-                            selected = isSelected,
-                            onClick = null
-                        )
-                    }
-                )
+                androidx.compose.material3.OutlinedButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(50.dp),
+                    onClick = onNavigateToProxy,
+                    shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                ) {
+                    Text(text = stringResource(R.string.checkout_restore))
+                }
             }
-        }
 
-        Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
-            Button(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                onClick = onStartPayment,
-                shape = RoundedCornerShape(Dimensions.buttonCornerRadius)
+            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+
+            Surface(
+                shape = RoundedCornerShape(20.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                tonalElevation = 1.dp
             ) {
-                Text(
-                    text = stringResource(R.string.checkout_purchase),
-                    style = MaterialTheme.typography.labelLarge
-                )
+                Column(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+                ) {
+                    Text(
+                        text = stringResource(R.string.checkout_terms_title),
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = stringResource(R.string.checkout_terms_body),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-            
-            androidx.compose.material3.OutlinedButton(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(50.dp),
-                onClick = onNavigateToProxy,
-                shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
-                border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
-            ) {
-                Text(text = stringResource(R.string.checkout_restore))
-            }
+            Spacer(modifier = Modifier.height(Dimensions.spacingLg))
         }
-
-        Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-        
-        Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)) {
-            Text(
-                text = stringResource(R.string.checkout_terms_title),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = stringResource(R.string.checkout_terms_body),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Spacer(modifier = Modifier.height(Dimensions.spacingLg))
     }
 }
 
@@ -274,23 +268,11 @@ private fun PaymentFailed(onNavigateToProxy: () -> Unit) {
 
 @Composable
 private fun PaymentAwaiting() {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    CheckoutStatusCard(
+        title = stringResource(R.string.checkout_payment_awaiting_title),
+        message = stringResource(R.string.checkout_payment_awaiting_message)
     ) {
         CircularProgressIndicator(color = MaterialTheme.colorScheme.primary)
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = stringResource(R.string.checkout_payment_awaiting_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = stringResource(R.string.checkout_payment_awaiting_message),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp)
-        )
     }
 }
 
@@ -301,27 +283,63 @@ private fun StatusScreen(
     buttonLabel: String,
     onButtonClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier.fillMaxWidth().padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+    CheckoutStatusCard(
+        title = title,
+        message = message
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold
-        )
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(top = 8.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
         Button(
             modifier = Modifier.fillMaxWidth(),
-            onClick = onButtonClick
+            onClick = onButtonClick,
+            shape = RoundedCornerShape(Dimensions.buttonCornerRadius)
         ) {
             Text(text = buttonLabel)
+        }
+    }
+}
+
+@Composable
+private fun CheckoutStatusCard(
+    title: String,
+    message: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingXl)
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = androidx.compose.foundation.BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.26f)
+            ),
+            tonalElevation = 1.dp
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 22.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center
+                )
+                Text(
+                    text = message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
+                )
+                Spacer(modifier = Modifier.height(Dimensions.spacingXs))
+                content()
+            }
         }
     }
 }

@@ -36,18 +36,18 @@ object Dimensions {
     val spacing3xl: Dp = 48.dp
 
     // Component dimensions
-    val cardCornerRadius: Dp = 24.dp
-    val cardCornerRadiusLarge: Dp = 32.dp
+    val cardCornerRadius: Dp = 16.dp
+    val cardCornerRadiusLarge: Dp = 20.dp
     val buttonCornerRadius: Dp = 14.dp
-    val buttonCornerRadiusLarge: Dp = 24.dp
+    val buttonCornerRadiusLarge: Dp = 20.dp
 
     // Card padding
-    val cardPadding: Dp = 18.dp
+    val cardPadding: Dp = 16.dp
     val cardPaddingSm: Dp = 12.dp
 
     // Screen padding
-    val screenPaddingHorizontal: Dp = 20.dp
-    val screenPaddingVertical: Dp = 14.dp
+    val screenPaddingHorizontal: Dp = 16.dp
+    val screenPaddingVertical: Dp = 12.dp
 
     // Icon sizes
     val iconSizeXs: Dp = 16.dp
@@ -66,7 +66,7 @@ object Dimensions {
     val buttonHeightLg: Dp = 56.dp
 
     // List item dimensions
-    val listItemHeight: Dp = 68.dp
+    val listItemHeight: Dp = 64.dp
     val listItemHeightSm: Dp = 56.dp
     val listItemHeightLg: Dp = 72.dp
 

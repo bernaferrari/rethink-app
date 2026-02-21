@@ -19,7 +19,7 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,7 +34,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
@@ -47,6 +46,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -54,8 +54,6 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -69,8 +67,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -97,6 +93,7 @@ import com.celzero.bravedns.viewmodel.DnsLogViewModel
 import com.celzero.bravedns.viewmodel.RethinkLogViewModel
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -148,22 +145,13 @@ fun NetworkLogsScreen(
                 PrimaryTabRow(
                     selectedTabIndex = selectedTab.intValue,
                     modifier = Modifier.fillMaxWidth(),
-                    divider = {}, // No divider within tabrow
-                    indicator = {
-                        if (selectedTab.intValue in tabs.indices) {
-                            TabRowDefaults.PrimaryIndicator(
-                                modifier =
-                                    Modifier.tabIndicatorOffset(
-                                        selectedTab.intValue,
-                                        matchContentSize = true
-                                    ),
-                                width = 64.dp, // Compact indicator
-                                color = MaterialTheme.colorScheme.primary,
-                                shape = RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp)
-                            )
-                        }
-                    },
-                    containerColor = Color.Transparent
+                    containerColor = Color.Transparent,
+                    divider = {
+                        HorizontalDivider(
+                            thickness = Dimensions.dividerThickness,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
+                        )
+                    }
                 ) {
                     tabs.forEachIndexed { index, spec ->
                         val selected = selectedTab.intValue == index
@@ -183,9 +171,6 @@ fun NetworkLogsScreen(
                     }
                 }
             }
-
-            // Divider between tab and content
-            HorizontalDivider(thickness = Dimensions.dividerThickness, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 
             Box(modifier = Modifier.fillMaxSize()) {
                 when (tabs[selectedTab.intValue].tab) {
@@ -268,124 +253,135 @@ private fun ConnectionLogsContent(
             return
         }
 
-        // Google-style search bar area
-        Box(
+        SectionHeader(
+            title = stringResource(R.string.firewall_act_network_monitor_tab),
+            modifier = Modifier.padding(horizontal = Dimensions.spacingXs)
+        )
+
+        // Search and filters
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surface,
-                            MaterialTheme.colorScheme.background
+                .padding(horizontal = Dimensions.screenPaddingHorizontal),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = Dimensions.spacingSm),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = Dimensions.spacingSm).size(Dimensions.iconSizeMd)
+                    )
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text(stringResource(R.string.lbl_search), style = MaterialTheme.typography.bodyMedium) },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent
                         )
                     )
-                )
-                .padding(Dimensions.screenPaddingHorizontal)
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = Dimensions.spacingSm),
-                        verticalAlignment = Alignment.CenterVertically
+                    AnimatedVisibility(visible = query.isNotEmpty()) {
+                        IconButton(
+                            onClick = { query = "" },
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Close,
+                                contentDescription = clearSearchContentDescription,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(Dimensions.iconSizeSm)
+                            )
+                        }
+                    }
+                    IconButton(
+                        onClick = { showDeleteDialog = true },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        )
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.Search,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = Dimensions.spacingSm).size(Dimensions.iconSizeMd)
+                            imageVector = Icons.Rounded.Delete,
+                            contentDescription = deleteContentDescription,
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.size(Dimensions.iconSizeMd)
                         )
-                        OutlinedTextField(
-                            value = query,
-                            onValueChange = { query = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text(stringResource(R.string.lbl_search), style = MaterialTheme.typography.bodyMedium) },
-                            singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color.Transparent,
-                                unfocusedBorderColor = Color.Transparent,
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent
-                            )
+                    }
+                }
+            }
+
+            // Tonal chips row
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+            ) {
+                items(filterOptions.size) { index ->
+                    val (filter, label) = filterOptions[index]
+                    val selected = parentFilter == filter
+                    FilterChip(
+                        selected = selected,
+                        onClick = {
+                            parentFilter = filter
+                            childFilters = emptySet()
+                        },
+                        label = { Text(text = label, style = MaterialTheme.typography.labelMedium) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
-                        AnimatedVisibility(visible = query.isNotEmpty()) {
-                            IconButton(onClick = { query = "" }) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Close,
-                                    contentDescription = clearSearchContentDescription,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(Dimensions.iconSizeSm)
-                                )
-                            }
-                        }
-                        IconButton(onClick = { showDeleteDialog = true }) {
+                    )
+                }
+            }
+
+            // Sub-category chips (Expressive secondary chips)
+            val categories = when (parentFilter) {
+                ConnectionTrackerViewModel.TopLevelFilter.BLOCKED -> FirewallRuleset.getBlockedRules()
+                ConnectionTrackerViewModel.TopLevelFilter.ALLOWED -> FirewallRuleset.getAllowedRules()
+                ConnectionTrackerViewModel.TopLevelFilter.ALL -> FirewallRuleset.getBlockedRules()
+            }
+
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+            ) {
+                items(categories.size) { index ->
+                    val rule = categories[index]
+                    val selected = childFilters.contains(rule.id)
+                    FilterChip(
+                        selected = selected,
+                        onClick = {
+                            childFilters = if (selected) childFilters - rule.id else childFilters + rule.id
+                        },
+                        label = { Text(text = stringResource(rule.title), style = MaterialTheme.typography.labelSmall) },
+                        leadingIcon = {
                             Icon(
-                                imageVector = Icons.Rounded.Delete,
-                                contentDescription = deleteContentDescription,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(Dimensions.iconSizeMd)
+                                painter = painterResource(id = FirewallRuleset.getRulesIcon(rule.id)),
+                                contentDescription = null,
+                                modifier = Modifier.size(16.dp)
                             )
-                        }
-                    }
-                }
-
-                // Tonal chips row
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-                ) {
-                    items(filterOptions.size) { index ->
-                        val (filter, label) = filterOptions[index]
-                        val selected = parentFilter == filter
-                        FilterChip(
-                            selected = selected,
-                            onClick = {
-                                parentFilter = filter
-                                childFilters = emptySet()
-                            },
-                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
                         )
-                    }
-                }
-
-                // Sub-category chips (Expressive secondary chips)
-                val categories = when (parentFilter) {
-                    ConnectionTrackerViewModel.TopLevelFilter.BLOCKED -> FirewallRuleset.getBlockedRules()
-                    ConnectionTrackerViewModel.TopLevelFilter.ALLOWED -> FirewallRuleset.getAllowedRules()
-                    ConnectionTrackerViewModel.TopLevelFilter.ALL -> FirewallRuleset.getBlockedRules()
-                }
-
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
-                ) {
-                    items(categories.size) { index ->
-                        val rule = categories[index]
-                        val selected = childFilters.contains(rule.id)
-                        FilterChip(
-                            selected = selected,
-                            onClick = {
-                                childFilters = if (selected) childFilters - rule.id else childFilters + rule.id
-                            },
-                            label = { Text(text = stringResource(rule.title), style = MaterialTheme.typography.labelSmall) },
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(id = FirewallRuleset.getRulesIcon(rule.id)),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
-                        )
-                    }
+                    )
                 }
             }
         }
@@ -488,87 +484,97 @@ private fun DnsLogsContent(
             return
         }
 
-        // Search bar area
-        Box(
+        SectionHeader(
+            title = stringResource(R.string.dns_mode_info_title),
+            modifier = Modifier.padding(horizontal = Dimensions.spacingXs)
+        )
+        // Search and filters
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.surface,
-                            MaterialTheme.colorScheme.background
+                .padding(horizontal = Dimensions.screenPaddingHorizontal),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(
+                    1.dp,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)
+                )
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = Dimensions.spacingSm),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Search,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(start = Dimensions.spacingSm).size(Dimensions.iconSizeMd)
+                    )
+                    OutlinedTextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text(stringResource(R.string.lbl_search), style = MaterialTheme.typography.bodyMedium) },
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Color.Transparent,
+                            unfocusedBorderColor = Color.Transparent,
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent
                         )
                     )
-                )
-                .padding(Dimensions.screenPaddingHorizontal)
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = Dimensions.spacingSm),
-                        verticalAlignment = Alignment.CenterVertically
+                    AnimatedVisibility(visible = query.isNotEmpty()) {
+                        IconButton(
+                            onClick = { query = "" },
+                            colors = IconButtonDefaults.iconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Close,
+                                contentDescription = clearSearchContentDescription,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(Dimensions.iconSizeSm)
+                            )
+                        }
+                    }
+                    IconButton(
+                        onClick = { showDeleteDialog = true },
+                        colors = IconButtonDefaults.iconButtonColors(
+                            containerColor = MaterialTheme.colorScheme.errorContainer,
+                            contentColor = MaterialTheme.colorScheme.onErrorContainer
+                        )
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.Search,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(start = Dimensions.spacingSm).size(Dimensions.iconSizeMd)
+                            imageVector = Icons.Rounded.Delete,
+                            contentDescription = deleteContentDescription,
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.size(Dimensions.iconSizeMd)
                         )
-                        OutlinedTextField(
-                            value = query,
-                            onValueChange = { query = it },
-                            modifier = Modifier.weight(1f),
-                            placeholder = { Text(stringResource(R.string.lbl_search), style = MaterialTheme.typography.bodyMedium) },
-                            singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Color.Transparent,
-                                unfocusedBorderColor = Color.Transparent,
-                                focusedContainerColor = Color.Transparent,
-                                unfocusedContainerColor = Color.Transparent
-                            )
-                        )
-                        AnimatedVisibility(visible = query.isNotEmpty()) {
-                            IconButton(onClick = { query = "" }) {
-                                Icon(
-                                    imageVector = Icons.Rounded.Close,
-                                    contentDescription = clearSearchContentDescription,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(Dimensions.iconSizeSm)
-                                )
-                            }
-                        }
-                        IconButton(onClick = { showDeleteDialog = true }) {
-                            Icon(
-                                imageVector = Icons.Rounded.Delete,
-                                contentDescription = deleteContentDescription,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(Dimensions.iconSizeMd)
-                            )
-                        }
                     }
                 }
+            }
 
-                // Tonal chips row
-                LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-                ) {
-                    items(filterOptions.size) { index ->
-                        val (filter, label) = filterOptions[index]
-                        val selected = filterType == filter
-                        FilterChip(
-                            selected = selected,
-                            onClick = { filterType = filter },
-                            label = { Text(text = label, style = MaterialTheme.typography.labelMedium) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                            )
+            // Tonal chips row
+            LazyRow(
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+            ) {
+                items(filterOptions.size) { index ->
+                    val (filter, label) = filterOptions[index]
+                    val selected = filterType == filter
+                    FilterChip(
+                        selected = selected,
+                        onClick = { filterType = filter },
+                        label = { Text(text = label, style = MaterialTheme.typography.labelMedium) },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
                         )
-                    }
+                    )
                 }
             }
         }
@@ -636,29 +642,38 @@ private fun ConnTrackerDetailsSheet(
     onDismiss: () -> Unit
 ) {
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Dimensions.spacingLg)
+                .padding(horizontal = Dimensions.spacingLg),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f))
         ) {
-            Text(
-                text = connection.appName,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-            DetailRow("IP Address", connection.ipAddress)
-            DetailRow("Port", connection.port.toString())
-            DetailRow("Protocol", connection.protocol.toString())
-            val status = if (connection.isBlocked) "Blocked" else "Allowed"
-            DetailRow("Status", status, isError = connection.isBlocked)
-            
-            Spacer(modifier = Modifier.height(Dimensions.spacingXl))
-            TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
-                Text(text = stringResource(R.string.lbl_dismiss))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Dimensions.spacingLg)
+            ) {
+                Text(
+                    text = connection.appName,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+                DetailRow("IP Address", connection.ipAddress)
+                DetailRow("Port", connection.port.toString())
+                DetailRow("Protocol", connection.protocol.toString())
+                val status = if (connection.isBlocked) "Blocked" else "Allowed"
+                DetailRow("Status", status, isError = connection.isBlocked)
+
+                Spacer(modifier = Modifier.height(Dimensions.spacingXl))
+                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
+                    Text(text = stringResource(R.string.lbl_dismiss))
+                }
             }
-            Spacer(modifier = Modifier.height(Dimensions.spacing2xl))
         }
+        Spacer(modifier = Modifier.height(Dimensions.spacing2xl))
     }
 }
 
@@ -669,29 +684,38 @@ private fun DnsLogDetailsSheet(
     onDismiss: () -> Unit
 ) {
     androidx.compose.material3.ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(Dimensions.spacingLg)
+                .padding(horizontal = Dimensions.spacingLg),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f))
         ) {
-            Text(
-                text = log.queryStr,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold
-            )
-            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-            DetailRow("App Name", log.appName)
-            DetailRow("Response", log.responseIps.ifEmpty { "None" })
-            DetailRow("Latency", "${log.latency}ms")
-            val status = if (log.isBlocked) "Blocked" else "Allowed"
-            DetailRow("Status", status, isError = log.isBlocked)
-            
-            Spacer(modifier = Modifier.height(Dimensions.spacingXl))
-            TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
-                Text(text = stringResource(R.string.lbl_dismiss))
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(Dimensions.spacingLg)
+            ) {
+                Text(
+                    text = log.queryStr,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+                DetailRow("App Name", log.appName)
+                DetailRow("Response", log.responseIps.ifEmpty { "None" })
+                DetailRow("Latency", "${log.latency}ms")
+                val status = if (log.isBlocked) "Blocked" else "Allowed"
+                DetailRow("Status", status, isError = log.isBlocked)
+
+                Spacer(modifier = Modifier.height(Dimensions.spacingXl))
+                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
+                    Text(text = stringResource(R.string.lbl_dismiss))
+                }
             }
-            Spacer(modifier = Modifier.height(Dimensions.spacing2xl))
         }
+        Spacer(modifier = Modifier.height(Dimensions.spacing2xl))
     }
 }
 

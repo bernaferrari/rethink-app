@@ -15,15 +15,10 @@
  */
 package com.celzero.bravedns.ui.compose.statistics
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -40,8 +35,7 @@ import androidx.compose.material.icons.rounded.ArrowDownward
 import androidx.compose.material.icons.rounded.ArrowUpward
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FabPosition
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -60,7 +54,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
@@ -79,7 +72,6 @@ import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
-import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 import com.celzero.bravedns.util.UIUtils.formatBytes
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel.TimeCategory
@@ -90,49 +82,27 @@ fun SummaryStatisticsScreen(
     onSeeMoreClick: (SummaryStatisticsType) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val reducedMotion = rememberReducedMotion()
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        floatingActionButtonPosition = FabPosition.Center,
-        floatingActionButton = {
-            AnimatedVisibility(
-                visible = !uiState.loadMoreClicked,
-                enter = if (reducedMotion) fadeIn() else fadeIn() + slideInVertically { it / 2 },
-                exit = if (reducedMotion) fadeOut() else fadeOut() + slideOutVertically { it / 3 }
-            ) {
-                ExtendedFloatingActionButton(
-                    onClick = { viewModel.setLoadMoreClicked(true) },
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                    icon = {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.ic_arrow_down),
-                            contentDescription = null
-                        )
-                    },
-                    text = { Text(text = stringResource(id = R.string.load_more)) }
-                )
-            }
+        topBar = {
+            RethinkTopBar(title = stringResource(id = R.string.title_statistics))
         }
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = Dimensions.screenPaddingHorizontal),
+                .padding(paddingValues),
+            contentPadding = PaddingValues(
+                start = Dimensions.screenPaddingHorizontal,
+                end = Dimensions.screenPaddingHorizontal,
+                top = Dimensions.spacingMd,
+                bottom = Dimensions.spacing3xl
+            ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
             item {
                 RethinkAnimatedSection(index = 0) {
-                    Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-                    HeaderSection()
-                }
-            }
-
-            item {
-                RethinkAnimatedSection(index = 1) {
                     TimeCategorySelector(
                         selectedCategory = uiState.timeCategory,
                         onCategorySelected = { viewModel.timeCategoryChanged(it) }
@@ -141,7 +111,7 @@ fun SummaryStatisticsScreen(
             }
 
             item {
-                RethinkAnimatedSection(index = 2) {
+                RethinkAnimatedSection(index = 1) {
                     UsageProgressHeader(dataUsage = uiState.dataUsage)
                 }
             }
@@ -149,7 +119,7 @@ fun SummaryStatisticsScreen(
             // Stat Sections
             item {
                 val data = viewModel.getTopActiveConns.collectAsLazyPagingItems()
-                RethinkAnimatedSection(index = 3) {
+                RethinkAnimatedSection(index = 2) {
                     StatSection(
                         title = stringResource(id = R.string.top_active_conns),
                         type = SummaryStatisticsType.TOP_ACTIVE_CONNS,
@@ -161,7 +131,7 @@ fun SummaryStatisticsScreen(
 
             item {
                 val data = viewModel.getAllowedAppNetworkActivity.collectAsLazyPagingItems()
-                RethinkAnimatedSection(index = 4) {
+                RethinkAnimatedSection(index = 3) {
                     StatSection(
                         title = stringResource(id = R.string.ssv_app_network_activity_heading),
                         type = SummaryStatisticsType.MOST_CONNECTED_APPS,
@@ -173,7 +143,7 @@ fun SummaryStatisticsScreen(
 
             item {
                 val data = viewModel.getBlockedAppNetworkActivity.collectAsLazyPagingItems()
-                RethinkAnimatedSection(index = 5) {
+                RethinkAnimatedSection(index = 4) {
                     StatSection(
                         title = stringResource(id = R.string.ssv_app_blocked_heading),
                         type = SummaryStatisticsType.MOST_BLOCKED_APPS,
@@ -185,7 +155,7 @@ fun SummaryStatisticsScreen(
 
             item {
                 val data = viewModel.getMostConnectedASN.collectAsLazyPagingItems()
-                RethinkAnimatedSection(index = 6) {
+                RethinkAnimatedSection(index = 5) {
                     StatSection(
                         title = stringResource(id = R.string.most_contacted_asn),
                         type = SummaryStatisticsType.MOST_CONNECTED_ASN,
@@ -197,7 +167,7 @@ fun SummaryStatisticsScreen(
 
             item {
                 val data = viewModel.getMostBlockedASN.collectAsLazyPagingItems()
-                RethinkAnimatedSection(index = 7) {
+                RethinkAnimatedSection(index = 6) {
                     StatSection(
                         title = stringResource(id = R.string.most_blocked_asn),
                         type = SummaryStatisticsType.MOST_BLOCKED_ASN,
@@ -207,10 +177,27 @@ fun SummaryStatisticsScreen(
                 }
             }
 
+            if (!uiState.loadMoreClicked) {
+                item {
+                    FilledTonalButton(
+                        onClick = { viewModel.setLoadMoreClicked(true) },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(Dimensions.cardCornerRadius)
+                    ) {
+                        Icon(
+                            imageVector = ImageVector.vectorResource(R.drawable.ic_arrow_down),
+                            contentDescription = null
+                        )
+                        Spacer(modifier = Modifier.width(Dimensions.spacingSm))
+                        Text(text = stringResource(id = R.string.load_more))
+                    }
+                }
+            }
+
             if (uiState.loadMoreClicked) {
                 item {
                     val data = viewModel.mcd.collectAsLazyPagingItems()
-                    RethinkAnimatedSection(index = 8) {
+                    RethinkAnimatedSection(index = 7) {
                         StatSection(
                             title = stringResource(id = R.string.ssv_most_contacted_domain_heading),
                             type = SummaryStatisticsType.MOST_CONTACTED_DOMAINS,
@@ -222,7 +209,7 @@ fun SummaryStatisticsScreen(
 
                 item {
                     val data = viewModel.mbd.collectAsLazyPagingItems()
-                    RethinkAnimatedSection(index = 9) {
+                    RethinkAnimatedSection(index = 8) {
                         StatSection(
                             title = stringResource(id = R.string.ssv_most_blocked_domain_heading),
                             type = SummaryStatisticsType.MOST_BLOCKED_DOMAINS,
@@ -234,7 +221,7 @@ fun SummaryStatisticsScreen(
 
                 item {
                     val data = viewModel.getMostContactedCountries.collectAsLazyPagingItems()
-                    RethinkAnimatedSection(index = 10) {
+                    RethinkAnimatedSection(index = 9) {
                         StatSection(
                             title = stringResource(id = R.string.ssv_most_contacted_countries_heading),
                             type = SummaryStatisticsType.MOST_CONTACTED_COUNTRIES,
@@ -246,7 +233,7 @@ fun SummaryStatisticsScreen(
 
                 item {
                     val data = viewModel.getMostContactedIps.collectAsLazyPagingItems()
-                    RethinkAnimatedSection(index = 11) {
+                    RethinkAnimatedSection(index = 10) {
                         StatSection(
                             title = stringResource(id = R.string.ssv_most_contacted_ips_heading),
                             type = SummaryStatisticsType.MOST_CONTACTED_IPS,
@@ -258,7 +245,7 @@ fun SummaryStatisticsScreen(
 
                 item {
                     val data = viewModel.getMostBlockedIps.collectAsLazyPagingItems()
-                    RethinkAnimatedSection(index = 12) {
+                    RethinkAnimatedSection(index = 11) {
                         StatSection(
                             title = stringResource(id = R.string.ssv_most_blocked_ips_heading),
                             type = SummaryStatisticsType.MOST_BLOCKED_IPS,
@@ -268,42 +255,7 @@ fun SummaryStatisticsScreen(
                     }
                 }
             }
-
-            item {
-                Spacer(modifier = Modifier.height(Dimensions.spacing3xl))
-            }
         }
-    }
-}
-
-@Composable
-private fun HeaderSection() {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(
-                brush = androidx.compose.ui.graphics.Brush.verticalGradient(
-                    colors = listOf(
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f),
-                        MaterialTheme.colorScheme.background
-                    )
-                ),
-                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
-            )
-            .padding(horizontal = Dimensions.spacingLg, vertical = Dimensions.spacingXl)
-    ) {
-        Text(
-            text = stringResource(id = R.string.title_statistics),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.height(Dimensions.spacingXs))
-        Text(
-            text = stringResource(id = R.string.about_title_desc),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-        )
     }
 }
 
@@ -442,11 +394,16 @@ private fun StatSection(
     pagingItems: LazyPagingItems<AppConnection>,
     onSeeMoreClick: (SummaryStatisticsType) -> Unit
 ) {
+    val hasData = pagingItems.itemCount > 0
     Column {
         SectionHeader(
             title = title,
-            actionLabel = stringResource(id = R.string.ssv_see_more).uppercase(),
-            onAction = { onSeeMoreClick(type) }
+            actionLabel = if (hasData) stringResource(id = R.string.ssv_see_more) else null,
+            onAction = if (hasData) {
+                { onSeeMoreClick(type) }
+            } else {
+                null
+            }
         )
 
         Card(
@@ -455,9 +412,10 @@ private fun StatSection(
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.surfaceContainerLow
             ),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)),
             elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.none)
         ) {
-            if (pagingItems.itemCount == 0) {
+            if (!hasData) {
                 CompactEmptyState(
                     message = stringResource(R.string.lbl_no_logs),
                     icon = Icons.Default.Info
@@ -563,15 +521,5 @@ private fun StatItemRow(
             }
         }
 
-        Spacer(modifier = Modifier.width(Dimensions.spacingSm))
-
-        Icon(
-            imageVector = ImageVector.vectorResource(id = R.drawable.ic_right_arrow_white),
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier
-                .size(Dimensions.iconSizeSm)
-                .alpha(Dimensions.Opacity.MEDIUM)
-        )
     }
 }

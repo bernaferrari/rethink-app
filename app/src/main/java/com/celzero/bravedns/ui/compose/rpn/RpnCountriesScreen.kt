@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.CountryRow
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -100,22 +101,41 @@ fun RpnCountriesScreen(onBackClick: () -> Unit) {
                     }
                 )
             }
-            Text(
-                text = stringResource(id = R.string.lbl_countries),
-                style = MaterialTheme.typography.titleMedium,
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
+            androidx.compose.material3.Surface(
+                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                tonalElevation = 1.dp
+            ) {
+                Column(modifier = Modifier.padding(Dimensions.spacingLg)) {
+                    Text(
+                        text = stringResource(id = R.string.lbl_countries),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = stringResource(id = R.string.rpn_availability_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            CountriesList(
+                countries = countries,
+                selectedCountries = selectedCountries,
+                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal)
             )
-            CountriesList(countries, selectedCountries)
         }
     }
 }
 
 @Composable
-private fun CountriesList(countries: List<String>, selectedCountries: Set<String>) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+private fun CountriesList(
+    countries: List<String>,
+    selectedCountries: Set<String>,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(modifier = modifier.fillMaxSize()) {
         items(countries.size) { index ->
             val country = countries[index]
             CountryRow(country, selectedCountries.contains(country))

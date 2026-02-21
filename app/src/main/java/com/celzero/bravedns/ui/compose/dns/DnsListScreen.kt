@@ -19,20 +19,18 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.horizontalScroll
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -46,10 +44,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
@@ -98,6 +94,7 @@ fun DnsListScreen(
     }
 
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             RethinkTopBar(
                 title = stringResource(R.string.lbl_dns_servers),
@@ -105,111 +102,136 @@ fun DnsListScreen(
             )
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+                .fillMaxWidth()
+                .padding(paddingValues),
+            contentPadding = PaddingValues(
+                start = Dimensions.screenPaddingHorizontal,
+                end = Dimensions.screenPaddingHorizontal,
+                top = Dimensions.spacingMd,
+                bottom = Dimensions.spacing3xl
+            ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Surface(
-                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.35f),
-                tonalElevation = 0.dp
-            ) {
-                Text(
-                    text = stringResource(R.string.lbl_dns_servers),
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
-                )
+            item {
+                Surface(
+                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f))
+                ) {
+                    Column(
+                        modifier = Modifier.padding(
+                            horizontal = Dimensions.spacingLg,
+                            vertical = Dimensions.spacingMd
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.lbl_dns_servers),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = stringResource(R.string.dns_desc),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                DnsCard(
-                    label = stringResource(R.string.dc_doh),
-                    title = stringResource(R.string.cd_custom_doh_url_name_default),
-                    dots = listOf(R.drawable.dot_yellow, R.drawable.dot_green),
-                    type = AppConfig.DnsType.DOH,
-                    selectedType = selectedType,
-                    selectedWorking = selectedWorking,
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        onConfigureOtherDns(DnsScreenType.DOH.index)
+            item {
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
+                ) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        DnsCard(
+                            label = stringResource(R.string.dc_doh),
+                            title = stringResource(R.string.cd_custom_doh_url_name_default),
+                            dots = listOf(R.drawable.dot_yellow, R.drawable.dot_green),
+                            type = AppConfig.DnsType.DOH,
+                            selectedType = selectedType,
+                            selectedWorking = selectedWorking,
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                onConfigureOtherDns(DnsScreenType.DOH.index)
+                            }
+                        )
+                        DnsCard(
+                            label = stringResource(R.string.lbl_dot_abbr),
+                            title = stringResource(R.string.lbl_dot),
+                            dots = listOf(R.drawable.dot_yellow, R.drawable.dot_green),
+                            type = AppConfig.DnsType.DOT,
+                            selectedType = selectedType,
+                            selectedWorking = selectedWorking,
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                onConfigureOtherDns(DnsScreenType.DOT.index)
+                            }
+                        )
                     }
-                )
-                DnsCard(
-                    label = stringResource(R.string.lbl_dot_abbr),
-                    title = stringResource(R.string.lbl_dot),
-                    dots = listOf(R.drawable.dot_yellow, R.drawable.dot_green),
-                    type = AppConfig.DnsType.DOT,
-                    selectedType = selectedType,
-                    selectedWorking = selectedWorking,
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        onConfigureOtherDns(DnsScreenType.DOT.index)
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        DnsCard(
+                            label = stringResource(R.string.dc_dns_crypt),
+                            title = stringResource(R.string.cd_dns_crypt_name_default),
+                            dots = listOf(R.drawable.dot_yellow, R.drawable.dot_green, R.drawable.dot_accent),
+                            type = AppConfig.DnsType.DNSCRYPT,
+                            selectedType = selectedType,
+                            selectedWorking = selectedWorking,
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                onConfigureOtherDns(DnsScreenType.DNS_CRYPT.index)
+                            }
+                        )
+                        DnsCard(
+                            label = stringResource(R.string.lbl_dp_abbr),
+                            title = stringResource(R.string.lbl_dp),
+                            dots = listOf(R.drawable.dot_red),
+                            type = AppConfig.DnsType.DNS_PROXY,
+                            selectedType = selectedType,
+                            selectedWorking = selectedWorking,
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                onConfigureOtherDns(DnsScreenType.DNS_PROXY.index)
+                            }
+                        )
                     }
-                )
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        DnsCard(
+                            label = stringResource(R.string.lbl_odoh_abbr),
+                            title = stringResource(R.string.lbl_odoh),
+                            dots = listOf(R.drawable.dot_yellow, R.drawable.dot_green, R.drawable.dot_accent),
+                            type = AppConfig.DnsType.ODOH,
+                            selectedType = selectedType,
+                            selectedWorking = selectedWorking,
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                onConfigureOtherDns(DnsScreenType.ODOH.index)
+                            }
+                        )
+                        DnsCard(
+                            label = stringResource(R.string.dc_rethink_dns_radio),
+                            title = stringResource(R.string.lbl_rdns),
+                            dots = listOf(R.drawable.dot_red, R.drawable.dot_yellow, R.drawable.dot_green),
+                            type = AppConfig.DnsType.RETHINK_REMOTE,
+                            selectedType = selectedType,
+                            selectedWorking = selectedWorking,
+                            modifier = Modifier.weight(1f),
+                            onClick = {
+                                onConfigureRethinkBasic(0)
+                            }
+                        )
+                    }
+
+                    LegendRow()
+                }
             }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                DnsCard(
-                    label = stringResource(R.string.dc_dns_crypt),
-                    title = stringResource(R.string.cd_dns_crypt_name_default),
-                    dots = listOf(R.drawable.dot_yellow, R.drawable.dot_green, R.drawable.dot_accent),
-                    type = AppConfig.DnsType.DNSCRYPT,
-                    selectedType = selectedType,
-                    selectedWorking = selectedWorking,
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        onConfigureOtherDns(DnsScreenType.DNS_CRYPT.index)
-                    }
-                )
-                DnsCard(
-                    label = stringResource(R.string.lbl_dp_abbr),
-                    title = stringResource(R.string.lbl_dp),
-                    dots = listOf(R.drawable.dot_red),
-                    type = AppConfig.DnsType.DNS_PROXY,
-                    selectedType = selectedType,
-                    selectedWorking = selectedWorking,
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        onConfigureOtherDns(DnsScreenType.DNS_PROXY.index)
-                    }
-                )
+            item {
+                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
             }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                DnsCard(
-                    label = stringResource(R.string.lbl_odoh_abbr),
-                    title = stringResource(R.string.lbl_odoh),
-                    dots = listOf(R.drawable.dot_yellow, R.drawable.dot_green, R.drawable.dot_accent),
-                    type = AppConfig.DnsType.ODOH,
-                    selectedType = selectedType,
-                    selectedWorking = selectedWorking,
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        onConfigureOtherDns(DnsScreenType.ODOH.index)
-                    }
-                )
-                DnsCard(
-                    label = stringResource(R.string.dc_rethink_dns_radio),
-                    title = stringResource(R.string.lbl_rdns),
-                    dots = listOf(R.drawable.dot_red, R.drawable.dot_yellow, R.drawable.dot_green),
-                    type = AppConfig.DnsType.RETHINK_REMOTE,
-                    selectedType = selectedType,
-                    selectedWorking = selectedWorking,
-                    modifier = Modifier.weight(1f),
-                    onClick = {
-                        onConfigureRethinkBasic(0) // FragmentLoader.DB_LIST ordinal
-                    }
-                )
-            }
-
-            LegendRow()
-            Spacer(modifier = Modifier.height(Dimensions.spacing2xl))
         }
     }
 }
@@ -292,7 +314,9 @@ private fun LegendRow() {
         tonalElevation = 1.dp
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = Dimensions.spacingLg, vertical = Dimensions.spacingMd).horizontalScroll(rememberScrollState()),
+            modifier = Modifier
+                .padding(horizontal = Dimensions.spacingLg, vertical = Dimensions.spacingMd)
+                .horizontalScroll(rememberScrollState()),
             horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingLg),
             verticalAlignment = Alignment.CenterVertically
         ) {

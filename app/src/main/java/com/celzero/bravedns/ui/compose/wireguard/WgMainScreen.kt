@@ -22,6 +22,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -35,18 +36,19 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -78,8 +80,9 @@ import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.WireguardManager
-import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -219,33 +222,36 @@ fun WgMainScreen(
             if (showEmpty) {
                 EmptyState()
             } else {
-                WgConfigContent(
-                    selectedTab = selectedTab,
-                    disclaimerText = disclaimerText,
-                    wgConfigViewModel = wgConfigViewModel,
-                    eventLogger = eventLogger,
-                    onDnsStatusChanged = { dnsRefreshTrigger++ },
-                    onConfigDetailClick = onConfigDetailClick,
-                    onOneWgToggleClick = {
-                        val activeConfigs = WireguardManager.getActiveConfigs()
-                        val isAnyConfigActive = activeConfigs.isNotEmpty()
-                        val isOneWgEnabled = WireguardManager.oneWireGuardEnabled()
-                        if (isAnyConfigActive && !isOneWgEnabled) {
-                            disableDialogIsOneWgToggle = true
-                            showDisableDialog = true
-                        } else {
-                            selectedTab = WgTab.ONE
+                Column(modifier = Modifier.fillMaxSize()) {
+                    WireguardOverviewCard(disclaimerText = disclaimerText)
+                    WgConfigContent(
+                        selectedTab = selectedTab,
+                        wgConfigViewModel = wgConfigViewModel,
+                        eventLogger = eventLogger,
+                        onDnsStatusChanged = { dnsRefreshTrigger++ },
+                        onConfigDetailClick = onConfigDetailClick,
+                        modifier = Modifier.weight(1f),
+                        onOneWgToggleClick = {
+                            val activeConfigs = WireguardManager.getActiveConfigs()
+                            val isAnyConfigActive = activeConfigs.isNotEmpty()
+                            val isOneWgEnabled = WireguardManager.oneWireGuardEnabled()
+                            if (isAnyConfigActive && !isOneWgEnabled) {
+                                disableDialogIsOneWgToggle = true
+                                showDisableDialog = true
+                            } else {
+                                selectedTab = WgTab.ONE
+                            }
+                        },
+                        onGeneralToggleClick = {
+                            if (WireguardManager.oneWireGuardEnabled()) {
+                                disableDialogIsOneWgToggle = false
+                                showDisableDialog = true
+                            } else {
+                                selectedTab = WgTab.GENERAL
+                            }
                         }
-                    },
-                    onGeneralToggleClick = {
-                        if (WireguardManager.oneWireGuardEnabled()) {
-                            disableDialogIsOneWgToggle = false
-                            showDisableDialog = true
-                        } else {
-                            selectedTab = WgTab.GENERAL
-                        }
-                    }
-                )
+                    )
+                }
             }
 
             FabStack(
@@ -274,29 +280,19 @@ fun WgMainScreen(
 @Composable
 private fun WgConfigContent(
     selectedTab: WgTab,
-    disclaimerText: String,
     wgConfigViewModel: WgConfigViewModel,
     eventLogger: EventLogger,
     onDnsStatusChanged: () -> Unit,
     onConfigDetailClick: (Int, WgType) -> Unit,
+    modifier: Modifier = Modifier,
     onOneWgToggleClick: () -> Unit,
     onGeneralToggleClick: () -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier.fillMaxSize()) {
         ToggleRow(
             selectedTab = selectedTab,
             onOneWgClick = onOneWgToggleClick,
             onGeneralClick = onGeneralToggleClick
-        )
-
-        Text(
-            text = disclaimerText,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 6.dp)
-                .alpha(EMPTY_ALPHA),
-            color = MaterialTheme.colorScheme.onSurface,
-            style = MaterialTheme.typography.bodySmall
         )
 
         Box(modifier = Modifier.fillMaxSize()) {
@@ -346,44 +342,27 @@ private fun ToggleRow(
     onOneWgClick: () -> Unit,
     onGeneralClick: () -> Unit
 ) {
-    Row(
+    SingleChoiceSegmentedButtonRow(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 12.dp, start = 12.dp, end = 12.dp),
-        horizontalArrangement = Arrangement.SpaceEvenly,
-        verticalAlignment = Alignment.CenterVertically
+            .padding(top = 16.dp, start = 16.dp, end = 16.dp)
     ) {
-        ToggleButton(
-            text = stringResource(id = R.string.rt_list_simple_btn_txt),
+        SegmentedButton(
             selected = selectedTab == WgTab.ONE,
-            onClick = onOneWgClick
+            onClick = onOneWgClick,
+            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
+            label = {
+                Text(text = stringResource(id = R.string.rt_list_simple_btn_txt))
+            }
         )
-        ToggleButton(
-            text = stringResource(id = R.string.lbl_advanced),
+        SegmentedButton(
             selected = selectedTab == WgTab.GENERAL,
-            onClick = onGeneralClick
+            onClick = onGeneralClick,
+            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
+            label = {
+                Text(text = stringResource(id = R.string.lbl_advanced))
+            }
         )
-    }
-}
-
-@Composable
-private fun ToggleButton(text: String, selected: Boolean, onClick: () -> Unit) {
-    val background = if (selected) {
-        MaterialTheme.colorScheme.tertiary
-    } else {
-        MaterialTheme.colorScheme.surface
-    }
-    val content = if (selected) {
-        MaterialTheme.colorScheme.onSurface
-    } else {
-        MaterialTheme.colorScheme.onSurface
-    }
-    Button(
-        onClick = onClick,
-        colors = ButtonDefaults.buttonColors(containerColor = background, contentColor = content),
-        modifier = Modifier.padding(horizontal = 4.dp)
-    ) {
-        Text(text = text)
     }
 }
 
@@ -411,24 +390,67 @@ private fun DisableConfigsDialog(
 
 @Composable
 private fun EmptyState() {
-    Column(
+    Surface(
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
     ) {
-        Text(
-            text = stringResource(id = R.string.wireguard_no_config_msg),
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
-        Image(
-            painter = painterResource(id = R.drawable.illustrations_no_record),
-            contentDescription = null,
-            modifier = Modifier.size(220.dp)
-        )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.illustrations_no_record),
+                contentDescription = null,
+                modifier = Modifier.size(200.dp)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = stringResource(id = R.string.wireguard_no_config_msg),
+                style = MaterialTheme.typography.titleMedium,
+                textAlign = TextAlign.Center
+            )
+        }
+    }
+}
+
+@Composable
+private fun WireguardOverviewCard(disclaimerText: String) {
+    Surface(
+        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
+        shape = RoundedCornerShape(20.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+        tonalElevation = 1.dp
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Surface(
+                shape = RoundedCornerShape(10.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.ic_wireguard_icon),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                    modifier = Modifier.padding(8.dp).size(20.dp)
+                )
+            }
+            Text(
+                text = disclaimerText,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
     }
 }
 

@@ -19,6 +19,7 @@ import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,6 +49,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SegmentedButton
+import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -62,6 +67,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
@@ -109,6 +115,7 @@ import com.celzero.bravedns.viewmodel.RemoteBlocklistPacksMapViewModel
 import com.celzero.bravedns.viewmodel.RethinkEndpointViewModel
 import com.celzero.bravedns.viewmodel.RethinkLocalFileTagViewModel
 import com.celzero.bravedns.viewmodel.RethinkRemoteFileTagViewModel
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
@@ -504,67 +511,113 @@ fun ConfigureRethinkBasicScreen(
             )
         }
     ) { paddingValues ->
-        when (screenType) {
-            ConfigureRethinkScreenType.DB_LIST -> {
-                RethinkListContent(
-                    modifier = Modifier.padding(paddingValues),
-                    context = context,
-                    persistentState = persistentState,
-                    appConfig = appConfig,
-                    appDownloadManager = appDownloadManager,
-                    rethinkEndpointViewModel = rethinkEndpointViewModel,
-                    uid = uid,
-                    isMax = isMax,
-                    updateAvailable = updateAvailable,
-                    checkUpdateVisible = checkUpdateVisible,
-                    redownloadVisible = redownloadVisible,
-                    checkUpdateInProgress = checkUpdateInProgress,
-                    updateInProgress = updateInProgress,
-                    onMaxChanged = { isMax = it },
-                    onUpdateMaxSwitchUi = { updateMaxSwitchUi() },
-                    onRefreshUpdateUi = { refreshUpdateUi() },
-                    onCheckUpdateInProgressChanged = { checkUpdateInProgress = it },
-                    onUpdateInProgressChanged = { updateInProgress = it },
-                    onCheckBlocklistUpdate = { checkBlocklistUpdate() },
-                    onDownload = { timestamp, isRedownload -> download(timestamp, isRedownload) }
-                )
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+        ) {
+            Surface(
+                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal),
+                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
+                tonalElevation = 1.dp
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(Dimensions.spacingLg),
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_dns_welcome),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(8.dp).size(20.dp)
+                        )
+                    }
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Text(
+                            text = stringResource(R.string.dns_desc),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
-            else -> {
-                RethinkBlocklistContent(
-                    modifier = Modifier.padding(paddingValues),
-                    context = context,
-                    blocklistType = blocklistType,
-                    filters = filters,
-                    remoteFileTagViewModel = remoteFileTagViewModel,
-                    localFileTagViewModel = localFileTagViewModel,
-                    remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
-                    localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
-                    showDownload = showDownload,
-                    showConfigure = showConfigure,
-                    isDownloading = isDownloading,
-                    showRemoteProgress = showRemoteProgress,
-                    activeView = activeView,
-                    filterLabelText = filterLabelText,
-                    showPlusFilterSheet = showPlusFilterSheet,
-                    plusFilterTags = plusFilterTags,
-                    onActiveViewChanged = { activeView = it },
-                    onFilterLabelTextChanged = { filterLabelText = it },
-                    onShowPlusFilterSheetChanged = { showPlusFilterSheet = it },
-                    onPlusFilterTagsChanged = { plusFilterTags = it },
-                    onDownloadBlocklist = { downloadBlocklist(blocklistType) },
-                    onCancelDownload = { cancelDownload(); onBackClick?.invoke() },
-                    onApplyChanges = { applyChangesAndFinish() },
-                    onRevertChanges = { revertChangesAndFinish() },
-                    onRefreshBlocklistAvailability = { refreshBlocklistAvailability() },
-                    onProcessSelectedFileTags = { stamp ->
-                        scope.launch { processSelectedFileTags(stamp) }
-                    },
-                    onModifiedStampChanged = { modifiedStamp = it },
-                    getStampValue = { getStampValue() },
-                    onDownloadStart = { onDownloadStart() },
-                    onDownloadFail = { onDownloadFail() },
-                    onDownloadSuccess = { onDownloadSuccess() }
-                )
+
+            when (screenType) {
+                ConfigureRethinkScreenType.DB_LIST -> {
+                    RethinkListContent(
+                        modifier = Modifier.weight(1f),
+                        context = context,
+                        persistentState = persistentState,
+                        appConfig = appConfig,
+                        appDownloadManager = appDownloadManager,
+                        rethinkEndpointViewModel = rethinkEndpointViewModel,
+                        uid = uid,
+                        isMax = isMax,
+                        updateAvailable = updateAvailable,
+                        checkUpdateVisible = checkUpdateVisible,
+                        redownloadVisible = redownloadVisible,
+                        checkUpdateInProgress = checkUpdateInProgress,
+                        updateInProgress = updateInProgress,
+                        onMaxChanged = { isMax = it },
+                        onUpdateMaxSwitchUi = { updateMaxSwitchUi() },
+                        onRefreshUpdateUi = { refreshUpdateUi() },
+                        onCheckUpdateInProgressChanged = { checkUpdateInProgress = it },
+                        onUpdateInProgressChanged = { updateInProgress = it },
+                        onCheckBlocklistUpdate = { checkBlocklistUpdate() },
+                        onDownload = { timestamp, isRedownload -> download(timestamp, isRedownload) }
+                    )
+                }
+                else -> {
+                    RethinkBlocklistContent(
+                        modifier = Modifier.weight(1f),
+                        context = context,
+                        blocklistType = blocklistType,
+                        filters = filters,
+                        remoteFileTagViewModel = remoteFileTagViewModel,
+                        localFileTagViewModel = localFileTagViewModel,
+                        remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
+                        localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
+                        showDownload = showDownload,
+                        showConfigure = showConfigure,
+                        isDownloading = isDownloading,
+                        showRemoteProgress = showRemoteProgress,
+                        activeView = activeView,
+                        filterLabelText = filterLabelText,
+                        showPlusFilterSheet = showPlusFilterSheet,
+                        plusFilterTags = plusFilterTags,
+                        onActiveViewChanged = { activeView = it },
+                        onFilterLabelTextChanged = { filterLabelText = it },
+                        onShowPlusFilterSheetChanged = { showPlusFilterSheet = it },
+                        onPlusFilterTagsChanged = { plusFilterTags = it },
+                        onDownloadBlocklist = { downloadBlocklist(blocklistType) },
+                        onCancelDownload = { cancelDownload(); onBackClick?.invoke() },
+                        onApplyChanges = { applyChangesAndFinish() },
+                        onRevertChanges = { revertChangesAndFinish() },
+                        onRefreshBlocklistAvailability = { refreshBlocklistAvailability() },
+                        onProcessSelectedFileTags = { stamp ->
+                            scope.launch { processSelectedFileTags(stamp) }
+                        },
+                        onModifiedStampChanged = { modifiedStamp = it },
+                        getStampValue = { getStampValue() },
+                        onDownloadStart = { onDownloadStart() },
+                        onDownloadFail = { onDownloadFail() },
+                        onDownloadSuccess = { onDownloadSuccess() }
+                    )
+                }
             }
         }
     }
@@ -640,107 +693,137 @@ private fun RethinkListContent(
     }
 
     Column(
-        modifier = modifier.fillMaxSize().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = Dimensions.screenPaddingHorizontal),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
     ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            if (persistentState.remoteBlocklistTimestamp != Constants.INIT_TIME_MS) {
-                Text(
-                    text = context.resources.getString(
-                        R.string.settings_local_blocklist_version,
-                        Utilities.convertLongToTime(
-                            persistentState.remoteBlocklistTimestamp,
-                            Constants.TIME_FORMAT_2
-                        )
-                    ),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-            Spacer(modifier = Modifier.weight(1f))
-            if (updateAvailable) {
-                Button(
-                    onClick = {
-                        onUpdateInProgressChanged(true)
-                        onDownload(persistentState.remoteBlocklistTimestamp, false)
-                    },
-                    enabled = !updateInProgress
-                ) {
-                    if (updateInProgress) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.height(16.dp).width(16.dp),
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                    }
-                    Text(text = stringResource(id = R.string.rt_chip_update_available))
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.26f)),
+            tonalElevation = 1.dp
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                if (persistentState.remoteBlocklistTimestamp != Constants.INIT_TIME_MS) {
+                    Text(
+                        text = context.resources.getString(
+                            R.string.settings_local_blocklist_version,
+                            Utilities.convertLongToTime(
+                                persistentState.remoteBlocklistTimestamp,
+                                Constants.TIME_FORMAT_2
+                            )
+                        ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.weight(1f)
+                    )
+                } else {
+                    Spacer(modifier = Modifier.weight(1f))
                 }
-            } else if (checkUpdateVisible) {
-                Button(
-                    onClick = {
-                        onCheckUpdateInProgressChanged(true)
-                        onCheckBlocklistUpdate()
-                    },
-                    enabled = !checkUpdateInProgress
-                ) {
-                    if (checkUpdateInProgress) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.height(16.dp).width(16.dp),
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
+
+                if (updateAvailable) {
+                    Button(
+                        onClick = {
+                            onUpdateInProgressChanged(true)
+                            onDownload(persistentState.remoteBlocklistTimestamp, false)
+                        },
+                        enabled = !updateInProgress
+                    ) {
+                        if (updateInProgress) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.height(16.dp).width(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                        }
+                        Text(text = stringResource(id = R.string.rt_chip_update_available))
                     }
-                    Text(text = stringResource(id = R.string.rt_chip_check_update))
-                }
-            } else if (redownloadVisible) {
-                Button(
-                    onClick = {
-                        onUpdateInProgressChanged(true)
-                        onDownload(persistentState.remoteBlocklistTimestamp, true)
-                    },
-                    enabled = !updateInProgress
-                ) {
-                    if (updateInProgress) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.height(16.dp).width(16.dp),
-                            strokeWidth = 2.dp
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
+                } else if (checkUpdateVisible) {
+                    Button(
+                        onClick = {
+                            onCheckUpdateInProgressChanged(true)
+                            onCheckBlocklistUpdate()
+                        },
+                        enabled = !checkUpdateInProgress
+                    ) {
+                        if (checkUpdateInProgress) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.height(16.dp).width(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                        }
+                        Text(text = stringResource(id = R.string.rt_chip_check_update))
                     }
-                    Text(text = stringResource(id = R.string.rt_re_download))
+                } else if (redownloadVisible) {
+                    Button(
+                        onClick = {
+                            onUpdateInProgressChanged(true)
+                            onDownload(persistentState.remoteBlocklistTimestamp, true)
+                        },
+                        enabled = !updateInProgress
+                    ) {
+                        if (updateInProgress) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.height(16.dp).width(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                        }
+                        Text(text = stringResource(id = R.string.rt_re_download))
+                    }
                 }
             }
         }
 
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            FilterChip(
+        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
+            SegmentedButton(
                 selected = !isMax,
                 onClick = {
                     scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToSky() }
                     onMaxChanged(false)
                 },
+                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
                 label = { Text(text = stringResource(id = R.string.radio_sky_btn)) }
             )
-            FilterChip(
+            SegmentedButton(
                 selected = isMax,
                 onClick = {
                     scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToMax() }
                     onMaxChanged(true)
                 },
+                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                 label = { Text(text = stringResource(id = R.string.radio_max_btn)) }
             )
         }
 
-        Text(
-            text = if (isMax) {
-                stringResource(id = R.string.rethink_max_desc)
-            } else {
-                stringResource(id = R.string.rethink_sky_desc)
-            },
-            style = MaterialTheme.typography.bodySmall
-        )
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(18.dp),
+            color = MaterialTheme.colorScheme.secondaryContainer
+        ) {
+            Text(
+                text = if (isMax) {
+                    stringResource(id = R.string.rethink_max_desc)
+                } else {
+                    stringResource(id = R.string.rethink_sky_desc)
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+            )
+        }
 
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
+            contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = Dimensions.spacing2xl),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             items(count = pagingItems.itemCount) { index ->
@@ -1003,7 +1086,10 @@ private fun RethinkBlocklistContent(
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(onClick = { openFilterBottomSheet() }) {
-                        Icon(imageVector = Icons.Filled.FilterList, contentDescription = null)
+                        Icon(
+                            imageVector = Icons.Filled.FilterList,
+                            contentDescription = stringResource(id = R.string.cd_filter)
+                        )
                     }
                 }
                 Text(

@@ -37,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -69,6 +70,8 @@ import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.viewmodel.CustomDomainViewModel
 import com.celzero.bravedns.viewmodel.CustomIpViewModel
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
@@ -98,12 +101,10 @@ fun CustomRulesScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     
-    val tabs = remember {
-        listOf(
-            RulesTabSpec(RulesTab.IP, "IP Rules"),
-            RulesTabSpec(RulesTab.DOMAIN, "Domain Rules")
-        )
-    }
+    val tabs = listOf(
+        RulesTabSpec(RulesTab.IP, stringResource(R.string.lbl_ip_rules)),
+        RulesTabSpec(RulesTab.DOMAIN, stringResource(R.string.lbl_domain_rules))
+    )
     
     val selectedTab = remember { mutableIntStateOf(0) }
     var showAddDialog by remember { mutableStateOf(false) }
@@ -117,11 +118,30 @@ fun CustomRulesScreen(
         },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add Rule")
+                Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(R.string.lbl_add))
             }
         }
     ) { padding ->
         Column(modifier = Modifier.fillMaxSize().padding(padding)) {
+            Surface(
+                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                tonalElevation = 1.dp
+            ) {
+                Column(modifier = Modifier.padding(Dimensions.spacingLg)) {
+                    Text(
+                        text = stringResource(R.string.lbl_configure),
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Text(
+                        text = stringResource(R.string.custom_rules_desc),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
             PrimaryTabRow(
                 selectedTabIndex = selectedTab.intValue,
                 modifier = Modifier.fillMaxWidth()
@@ -183,7 +203,8 @@ private fun IpRulesContent(viewModel: CustomIpViewModel, eventLogger: EventLogge
             .collect { q -> viewModel.setFilter(q) }
     }
     
-    Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingMd)) {
+        SectionHeader(title = stringResource(R.string.lbl_ip_rules))
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
@@ -251,7 +272,8 @@ private fun DomainRulesContent(viewModel: CustomDomainViewModel, eventLogger: Ev
             .collect { q -> viewModel.setFilter(q) }
     }
     
-    Column(modifier = Modifier.fillMaxSize().padding(12.dp)) {
+    Column(modifier = Modifier.fillMaxSize().padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingMd)) {
+        SectionHeader(title = stringResource(R.string.lbl_domain_rules))
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },

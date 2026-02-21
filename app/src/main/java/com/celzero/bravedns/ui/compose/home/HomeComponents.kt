@@ -18,8 +18,8 @@ package com.celzero.bravedns.ui.compose.home
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -37,6 +37,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Stop
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -48,14 +52,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 
@@ -71,24 +73,27 @@ fun DashboardCard(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = spring(dampingRatio = 0.62f, stiffness = Spring.StiffnessMediumLow),
         label = "cardScale"
     )
 
-    Surface(
+    val shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
+
+    Card(
+        onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .scale(scale)
-            .clip(RoundedCornerShape(Dimensions.cardCornerRadiusLarge))
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
+            .scale(scale),
+        shape = shape,
+        interactionSource = interactionSource,
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        border =
+            BorderStroke(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
             ),
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = backgroundColor,
-        tonalElevation = 1.dp
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp, pressedElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(Dimensions.cardPadding)
@@ -97,25 +102,27 @@ fun DashboardCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
             ) {
-                // Expressive tinted circle background for icon
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .size(46.dp)
-                        .clip(RoundedCornerShape(15.dp))
-                        .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f))
+                // Expressive tinted squircle icon container
+                Surface(
+                    shape = RoundedCornerShape(10.dp),
+                    color = MaterialTheme.colorScheme.surfaceContainerHighest
                 ) {
-                    Icon(
-                        painter = painterResource(id = iconId),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(Dimensions.iconSizeMd)
-                    )
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = iconId),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.size(Dimensions.iconSizeSm)
+                        )
+                    }
                 }
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.Medium,
                     color = MaterialTheme.colorScheme.onSurface
                 )
             }
@@ -135,17 +142,15 @@ fun StatItem(
     Column(modifier = modifier) {
         Text(
             text = value,
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.Bold,
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.SemiBold,
             color = if (isHighlighted) MaterialTheme.colorScheme.primary
-                    else MaterialTheme.colorScheme.onSurface
+            else MaterialTheme.colorScheme.onSurface
         )
-        Spacer(modifier = Modifier.height(Dimensions.spacingXs))
         Text(
             text = label,
-            style = MaterialTheme.typography.labelMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
-            fontWeight = FontWeight.Medium
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -159,22 +164,15 @@ fun StartStopButton(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.96f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessLow),
         label = "buttonScale"
     )
 
-    val containerColor = if (isPlaying) {
-        MaterialTheme.colorScheme.error
-    } else {
-        MaterialTheme.colorScheme.primary
-    }
-
-    val contentColor = if (isPlaying) {
-        MaterialTheme.colorScheme.onError
-    } else {
-        MaterialTheme.colorScheme.onPrimary
-    }
+    val containerColor = if (isPlaying) MaterialTheme.colorScheme.errorContainer
+    else MaterialTheme.colorScheme.primary
+    val contentColor = if (isPlaying) MaterialTheme.colorScheme.onErrorContainer
+    else MaterialTheme.colorScheme.onPrimary
 
     val text = if (isPlaying) {
         stringResource(R.string.lbl_stop)
@@ -184,23 +182,25 @@ fun StartStopButton(
 
     val icon = if (isPlaying) Icons.Rounded.Stop else Icons.Rounded.PlayArrow
 
-    Surface(
+    Button(
+        onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
-            .height(64.dp)
-            .scale(scale)
-            .clip(RoundedCornerShape(Dimensions.cardCornerRadiusLarge))
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
+            .height(56.dp)
+            .scale(scale),
+        interactionSource = interactionSource,
+        shape = RoundedCornerShape(18.dp),
+        colors =
+            ButtonDefaults.buttonColors(
+                containerColor = containerColor,
+                contentColor = contentColor
             ),
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = containerColor,
-        tonalElevation = 4.dp
+        elevation = ButtonDefaults.buttonElevation(defaultElevation = 1.dp, pressedElevation = 3.dp)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimensions.spacingXs),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -208,16 +208,15 @@ fun StartStopButton(
                 imageVector = icon,
                 contentDescription = null,
                 tint = contentColor,
-                modifier = Modifier.size(30.dp)
+                modifier = Modifier.size(Dimensions.iconSizeSm)
             )
-            Spacer(modifier = Modifier.width(Dimensions.spacingMd))
+            Spacer(modifier = Modifier.width(Dimensions.spacingSm))
             Text(
-                text = text.uppercase(),
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.ExtraBold,
+                text = text,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
                 color = contentColor,
-                textAlign = TextAlign.Center,
-                letterSpacing = 1.5.sp
+                textAlign = TextAlign.Center
             )
         }
     }

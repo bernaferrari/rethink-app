@@ -15,30 +15,51 @@
  */
 package com.celzero.bravedns.ui.compose.dns
 
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 
@@ -67,56 +88,35 @@ fun DnsSettingsScreen(
     onPreventLeaksChange: (Boolean) -> Unit
 ) {
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            RethinkTopBar(title = stringResource(id = R.string.lbl_dns))
+        }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = Dimensions.screenPaddingHorizontal)
-                .verticalScroll(rememberScrollState()),
+                .padding(paddingValues),
+            contentPadding = PaddingValues(
+                start = Dimensions.screenPaddingHorizontal,
+                end = Dimensions.screenPaddingHorizontal,
+                top = Dimensions.spacingMd,
+                bottom = Dimensions.spacing3xl
+            ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-
-            // Header
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.35f),
-                                MaterialTheme.colorScheme.surfaceContainerLow
-                            )
-                        ),
-                        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge)
-                    )
-                    .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacing2xl)
-            ) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Text(
-                        text = stringResource(id = R.string.lbl_dns),
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(id = R.string.dns_mode_info_title),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                }
-            }
-
-            // DNS Modes
-            RethinkAnimatedSection(index = 0) {
-                DnsHeader(
-                    title = stringResource(id = R.string.dc_other_dns_heading),
+            item {
+                DnsOverviewCard(
+                    connectedDnsName = uiState.connectedDnsName,
+                    connectedDnsType = uiState.connectedDnsType,
+                    dnsLatency = uiState.dnsLatency,
                     isRefreshing = uiState.isRefreshing,
                     onRefreshClick = onRefreshClick
                 )
+            }
 
+            item {
+                SectionHeader(title = stringResource(id = R.string.dc_other_dns_heading))
                 RethinkListGroup {
                     DnsRadioButtonItem(
                         title = stringResource(id = R.string.network_dns),
@@ -147,49 +147,72 @@ fun DnsSettingsScreen(
                     )
 
                     HorizontalDivider(
-                        modifier = Modifier.padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacingSm),
-                        thickness = 0.5.dp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.2f)
+                        modifier = Modifier.padding(
+                            horizontal = Dimensions.spacingXl,
+                            vertical = Dimensions.spacingSm
+                        ),
+                        thickness = Dimensions.dividerThickness,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
                     )
 
                     Row(
                         modifier = Modifier
-                            .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacingSm)
-                            .fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                            .fillMaxWidth()
+                            .padding(
+                                horizontal = Dimensions.spacingXl,
+                                vertical = Dimensions.spacingSm
+                            ),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = uiState.connectedDnsName,
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
                         )
+                        Spacer(modifier = Modifier.width(Dimensions.spacingSm))
                         Text(
-                            text = uiState.dnsLatency,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                            text = uiState.dnsLatency.ifEmpty { "--" },
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
             }
 
-            // Blocklists
-            RethinkAnimatedSection(index = 1) {
+            item {
                 SectionHeader(title = stringResource(id = R.string.dc_block_heading))
                 RethinkListGroup {
                     RethinkListItem(
                         headline = stringResource(id = R.string.dc_local_block_heading),
-                        supporting = if (uiState.blocklistEnabled)
-                            stringResource(id = R.string.settings_local_blocklist_in_use, uiState.numberOfLocalBlocklists)
-                            else stringResource(id = R.string.dc_local_block_desc_1),
+                        supporting = if (uiState.blocklistEnabled) {
+                            stringResource(
+                                id = R.string.settings_local_blocklist_in_use,
+                                uiState.numberOfLocalBlocklists
+                            )
+                        } else {
+                            stringResource(id = R.string.dc_local_block_desc_1)
+                        },
                         leadingIconPainter = painterResource(id = R.drawable.ic_local_blocklist),
                         onClick = onLocalBlocklistClick,
                         trailing = {
-                           Text(
-                               text = if (uiState.blocklistEnabled) stringResource(id = R.string.dc_local_block_enabled) else stringResource(id = R.string.lbl_disabled),
-                               style = MaterialTheme.typography.labelMedium,
-                               color = if (uiState.blocklistEnabled) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
-                               fontWeight = FontWeight.Bold
-                           )
+                            Text(
+                                text = if (uiState.blocklistEnabled) {
+                                    stringResource(id = R.string.dc_local_block_enabled)
+                                } else {
+                                    stringResource(id = R.string.lbl_disabled)
+                                },
+                                style = MaterialTheme.typography.labelMedium,
+                                color = if (uiState.blocklistEnabled) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    MaterialTheme.colorScheme.error
+                                },
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     )
                     ToggleListItem(
@@ -210,8 +233,7 @@ fun DnsSettingsScreen(
                 }
             }
 
-            // Filtering
-            RethinkAnimatedSection(index = 2) {
+            item {
                 SectionHeader(title = stringResource(id = R.string.dc_filtering_heading))
                 RethinkListGroup {
                     ToggleListItem(
@@ -250,7 +272,7 @@ fun DnsSettingsScreen(
                                 text = if (uiState.dnsRecordTypesAutoMode) {
                                     stringResource(id = R.string.dns_record_types_auto_mode_status)
                                 } else {
-                                    "${uiState.allowedDnsRecordTypesSize}"
+                                    uiState.allowedDnsRecordTypesSize.toString()
                                 },
                                 style = MaterialTheme.typography.labelMedium,
                                 color = MaterialTheme.colorScheme.primary,
@@ -261,8 +283,7 @@ fun DnsSettingsScreen(
                 }
             }
 
-            // Advanced
-            RethinkAnimatedSection(index = 3) {
+            item {
                 SectionHeader(title = stringResource(id = R.string.lbl_advanced))
                 RethinkListGroup {
                     ToggleListItem(
@@ -310,61 +331,100 @@ fun DnsSettingsScreen(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(Dimensions.spacing3xl))
         }
     }
 }
 
 @Composable
-fun DnsHeader(
-    title: String,
-    isRefreshing: Boolean = false,
-    onRefreshClick: (() -> Unit)? = null
+private fun DnsOverviewCard(
+    connectedDnsName: String,
+    connectedDnsType: String,
+    dnsLatency: String,
+    isRefreshing: Boolean,
+    onRefreshClick: () -> Unit
 ) {
     val reducedMotion = rememberReducedMotion()
     val rotation by animateFloatAsState(
         targetValue = if (isRefreshing && !reducedMotion) 360f else 0f,
         animationSpec = if (isRefreshing && !reducedMotion) {
             infiniteRepeatable(
-                animation = tween(1000, easing = LinearEasing),
+                animation = tween(durationMillis = 1000, easing = LinearEasing),
                 repeatMode = RepeatMode.Restart
             )
         } else {
-            tween(0)
-        }
+            tween(durationMillis = 0)
+        },
+        label = "dnsRefreshRotation"
     )
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(
-                start = Dimensions.spacingMd,
-                end = Dimensions.spacingSm,
-                top = Dimensions.spacingLg,
-                bottom = Dimensions.spacingSm
-            ),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title.uppercase(),
-            style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary,
-            letterSpacing = 1.2.sp
+    Surface(
+        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = androidx.compose.foundation.BorderStroke(
+            1.dp,
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)
         )
-        if (onRefreshClick != null) {
-            IconButton(
-                onClick = onRefreshClick,
-                modifier = Modifier.size(24.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = Dimensions.spacingLg,
+                    vertical = Dimensions.spacingMd
+                ),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Icon(
-                    imageVector = ImageVector.vectorResource(id = R.drawable.ic_refresh_white),
-                    contentDescription = stringResource(id = R.string.rules_load_failure_reload),
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.rotate(rotation).size(18.dp)
+                Text(
+                    text = stringResource(id = R.string.dc_other_dns_heading),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
                 )
+                Text(
+                    text = connectedDnsName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                if (connectedDnsType.isNotEmpty()) {
+                    Text(
+                        text = connectedDnsType,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.width(Dimensions.spacingSm))
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(999.dp),
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Text(
+                        text = dnsLatency.ifEmpty { "--" },
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(
+                            horizontal = Dimensions.spacingMd,
+                            vertical = 4.dp
+                        )
+                    )
+                }
+                IconButton(onClick = onRefreshClick) {
+                    Icon(
+                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_refresh_white),
+                        contentDescription = stringResource(id = R.string.rules_load_failure_reload),
+                        modifier = Modifier.rotate(rotation)
+                    )
+                }
             }
         }
     }
@@ -391,7 +451,7 @@ fun DnsRadioButtonItem(
                         Icon(
                             imageVector = ImageVector.vectorResource(id = R.drawable.ic_info_white_16),
                             contentDescription = stringResource(id = R.string.lbl_info),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                         )
                     }
                 }

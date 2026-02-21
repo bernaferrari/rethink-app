@@ -45,6 +45,10 @@
     <string name="lbl_ip_rules" translatable="true">IP Rules</string>
     <string name="lbl_domain_rules" translatable="true">Domain Rules</string>
     <string name="lbl_delete" translatable="true">Delete</string>
+    <string name="cd_filter" translatable="true">Filter</string>
+    <string name="cd_refresh" translatable="true">Refresh</string>
+    <string name="cd_generate_keys" translatable="true">Generate keys</string>
+    <string name="cd_copy_public_key" translatable="true">Copy public key</string>
     <string name="lbl_proceed" translatable="true">Proceed</string>
     <string name="lbl_private_key" translatable="true">Private key</string>
     <string name="lbl_generated" translatable="true">(generated)</string>
@@ -57,6 +61,8 @@
     <string name="lbl_active" translatable="true">Active</string>
     <string name="lbl_inactive" translatable="true">Inactive</string>
     <string name="rpn_availability_title" translatable="true">RPN availability</string>
+    <string name="rpn_availability_desc" translatable="true">Live status of reachable RPN locations.</string>
+    <string name="custom_rules_desc" translatable="true">Create custom IP and domain firewall rules.</string>
     <string name="location_selector_title" translatable="true">All locations</string>
     <string name="location_selector_max" translatable="true">(Max %1$d)</string>
     <string name="location_selector_server" translatable="true">server</string>

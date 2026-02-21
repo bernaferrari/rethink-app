@@ -61,7 +61,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -186,39 +185,50 @@ fun AppWiseIpLogsScreen(
         }
 
         Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(
-                        brush = Brush.verticalGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.surface,
-                                MaterialTheme.colorScheme.background
-                            )
-                        )
-                    )
-                    .padding(bottom = Dimensions.spacingMd)
+            Surface(
+                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                tonalElevation = 1.dp
             ) {
-                Column(modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal)) {
-                    ToggleRow(
-                        selectedCategory = selectedCategory,
-                        onCategoryChange = { category ->
-                            selectedCategory = category
-                            viewModel.timeCategoryChanged(category, isDomain = false)
-                        }
+                Column(
+                    modifier = Modifier.padding(Dimensions.spacingLg),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+                ) {
+                    Text(
+                        text = appInfo?.appName ?: stringResource(R.string.lbl_logs),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
                     )
-                    Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-                    HeaderRow(
-                        viewModel = viewModel,
-                        isAsn = isAsn,
-                        searchHint = searchHint,
-                        appIcon = appIcon,
-                        showDeleteIcon = showDeleteIcon,
-                        onDeleteClick = { showDeleteDialog = true }
+                    Text(
+                        text = searchHint,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-            
+
+            Column(
+                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingMd)
+            ) {
+                ToggleRow(
+                    selectedCategory = selectedCategory,
+                    onCategoryChange = { category ->
+                        selectedCategory = category
+                        viewModel.timeCategoryChanged(category, isDomain = false)
+                    }
+                )
+                Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+                HeaderRow(
+                    viewModel = viewModel,
+                    isAsn = isAsn,
+                    searchHint = searchHint,
+                    appIcon = appIcon,
+                    showDeleteIcon = showDeleteIcon,
+                    onDeleteClick = { showDeleteDialog = true }
+                )
+            }
+
             AppWiseIpList(
                 viewModel = viewModel,
                 uid = uid,
