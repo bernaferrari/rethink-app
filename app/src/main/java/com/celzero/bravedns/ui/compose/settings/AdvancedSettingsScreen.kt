@@ -47,7 +47,6 @@ import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.celzero.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -93,16 +92,11 @@ fun AdvancedSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
             item {
-                RethinkAnimatedSection(index = 0) {
-                    SectionHeaderWithSubtitle(
-                        title = stringResource(id = R.string.lbl_advanced),
-                        subtitle = stringResource(id = R.string.adv_set_experimental_desc)
-                    )
+                    RethinkAnimatedSection(index = 0) {
                     Column {
                         val entries = 3
                         RethinkListItem(
                             headline = stringResource(id = R.string.adv_set_experimental_title),
-                            supporting = stringResource(id = R.string.adv_set_experimental_desc),
                             leadingIcon = Icons.Filled.Build,
                             position = cardPositionFor(index = 0, lastIndex = entries - 1),
                             onClick = {

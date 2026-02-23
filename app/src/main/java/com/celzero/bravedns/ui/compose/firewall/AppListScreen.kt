@@ -103,6 +103,7 @@ import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.celzero.bravedns.ui.compose.theme.RethinkSearchField
+import com.celzero.bravedns.ui.compose.theme.RethinkSecondaryActionStyle
 import com.celzero.bravedns.ui.compose.theme.RethinkSegmentedChoiceRow
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.viewmodel.AppInfoViewModel
@@ -894,7 +895,8 @@ fun FirewallAppFilterSheet(
                             searchString = initialFilters?.searchString.orEmpty()
                         )
                     )
-                }
+                },
+                secondaryStyle = RethinkSecondaryActionStyle.TEXT
             )
         }
     }

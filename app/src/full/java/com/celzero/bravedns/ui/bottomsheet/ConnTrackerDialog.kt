@@ -24,10 +24,7 @@ import android.text.TextUtils
 import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -38,17 +35,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,7 +55,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -83,16 +74,19 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager.isNotLocalAndRpnProxy
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.HomeScreenActivity
+import com.celzero.bravedns.ui.compose.theme.CardPosition
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.celzero.bravedns.ui.compose.theme.RethinkDropdownSelector
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkToggleListItem
 import com.celzero.bravedns.util.Protocol
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.htmlToSpannedText
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
-import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.google.common.collect.HashMultimap
 import com.google.common.collect.Multimap
 import io.github.aakira.napier.Napier
@@ -200,12 +194,7 @@ fun ConnTrackerSheet(
         refreshFirewallRulesUi(info, scope) { firewallSelection = it }
     }
 
-    RethinkModalBottomSheet(
-        onDismissRequest = onDismiss,
-        contentPadding = PaddingValues(0.dp),
-        verticalSpacing = 0.dp,
-        includeBottomSpacer = false
-    ) {
+    RuleSheetModal(onDismissRequest = onDismiss) {
         val chipTextColor =
             if (appInfoNegative) {
                 MaterialTheme.colorScheme.error
@@ -218,155 +207,111 @@ fun ConnTrackerSheet(
             } else {
                 MaterialTheme.colorScheme.tertiaryContainer
             }
-        RuleSheetLayout(bottomPadding = 40.dp, verticalSpacing = Dimensions.spacingSmMd) {
-
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacingMd),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+        RuleSheetLayout(
+            bottomPadding = RuleSheetBottomPaddingWithActions,
+            verticalSpacing = Dimensions.spacingSmMd
+        ) {
+            RethinkBottomSheetCard(
+                contentPadding = PaddingValues(Dimensions.cardPadding)
             ) {
-                Surface(
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surfaceVariant
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text(
+                    RuleSheetSummaryPill(
                         text = portDetailText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = Dimensions.spacingSm, vertical = Dimensions.spacingXs)
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        textColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textStyle = MaterialTheme.typography.bodySmall,
+                        fontWeight = androidx.compose.ui.text.font.FontWeight.Normal,
+                        horizontalPadding = Dimensions.spacingSm,
+                        verticalPadding = Dimensions.spacingXs
+                    )
+                    AssistChip(
+                        onClick = {
+                            if (info.blockedByRule.isNotBlank()) {
+                                val result =
+                                    showFirewallRulesDialog(
+                                        activity,
+                                        info
+                                    )
+                                rulesDialogTitle = result.title
+                                rulesDialogDesc = result.desc
+                                rulesDialogIconRes = result.icon
+                                showRulesDialog = true
+                            }
+                        },
+                        label = { Text(text = appInfoText, color = chipTextColor) },
+                        leadingIcon = {
+                            if (appInfoIconRes != 0) {
+                                Image(
+                                    painter = painterResource(id = appInfoIconRes),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(18.dp),
+                                    colorFilter = ColorFilter.tint(chipTextColor)
+                                )
+                            }
+                        },
+                        colors =
+                            AssistChipDefaults.assistChipColors(
+                                containerColor = chipBackgroundColor
+                            )
                     )
                 }
-                AssistChip(
-                    onClick = {
-                        if (info.blockedByRule.isNotBlank()) {
-                            val result =
-                                showFirewallRulesDialog(
-                                    activity,
-                                    info
-                                )
-                            rulesDialogTitle = result.title
-                            rulesDialogDesc = result.desc
-                            rulesDialogIconRes = result.icon
-                            showRulesDialog = true
-                        }
-                    },
-                    label = { Text(text = appInfoText, color = chipTextColor) },
-                    leadingIcon = {
-                        if (appInfoIconRes != 0) {
-                            Image(
-                                painter = painterResource(id = appInfoIconRes),
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp),
-                                colorFilter = ColorFilter.tint(chipTextColor)
-                            )
-                        }
-                    },
-                    colors =
-                        AssistChipDefaults.assistChipColors(
-                            containerColor = chipBackgroundColor
-                        )
-                )
-            }
 
-            Row(
-                modifier =
-                    Modifier.fillMaxWidth()
-                        .clickable {
-                            onDismiss()
-                            val intent = Intent(activity, HomeScreenActivity::class.java)
-                            intent.putExtra(HomeScreenActivity.EXTRA_NAV_TARGET, HomeScreenActivity.NAV_TARGET_APP_INFO)
-                            intent.putExtra(HomeScreenActivity.EXTRA_APP_INFO_UID, info.uid)
-                            activity.startActivity(intent)
-                        }
-                        .padding(horizontal = Dimensions.screenPaddingHorizontal),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                val iconDrawable =
-                    appIcon ?: ContextCompat.getDrawable(activity, R.drawable.default_app_icon)
-                iconDrawable?.let { drawable ->
-                    val painter = rememberDrawablePainter(drawable)
-                    painter?.let {
-                        Image(
-                            painter = it,
-                            contentDescription = null,
-                            modifier = Modifier.size(30.dp)
+                RuleSheetAppHeader(
+                    appName = appName,
+                    appIcon = appIcon,
+                    iconSize = 30.dp,
+                    textStyle = MaterialTheme.typography.titleMedium,
+                    horizontalPadding = Dimensions.spacingMd,
+                    onClick = {
+                        onDismiss()
+                        val intent = Intent(activity, HomeScreenActivity::class.java)
+                        intent.putExtra(HomeScreenActivity.EXTRA_NAV_TARGET, HomeScreenActivity.NAV_TARGET_APP_INFO)
+                        intent.putExtra(HomeScreenActivity.EXTRA_APP_INFO_UID, info.uid)
+                        activity.startActivity(intent)
+                    }
+                )
+
+                RuleSheetFlagDestinationRow(
+                    flag = connectionFlag,
+                    destination = connectionHeading,
+                    horizontalPadding = Dimensions.spacingMd
+                )
+
+                if (showDnsCacheText) {
+                    SelectionContainer {
+                        ConnTrackerMutedText(
+                            text = dnsCacheText,
+                            modifier = Modifier.fillMaxWidth(),
+                            textAlign = TextAlign.Center
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(Dimensions.spacingSmMd))
-                Text(
-                    text = appName,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-            }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = connectionFlag,
-                    style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(end = Dimensions.spacingSm)
-                )
-                SelectionContainer {
-                    Text(
-                        text = connectionHeading,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontFamily = FontFamily.Monospace
+                if (showSummaryDetails) {
+                    RuleSheetSplitDetailsRow(
+                        horizontalPadding = Dimensions.spacingXl,
+                        leftContent = {
+                            ConnTrackerMutedText(text = connDurationText)
+                            ConnTrackerMutedText(text = connUploadText)
+                        },
+                        rightContent = {
+                            ConnTrackerMutedText(text = connTypeText)
+                            ConnTrackerMutedText(text = connDownloadText)
+                        }
                     )
                 }
-            }
 
-            if (showDnsCacheText) {
-                SelectionContainer {
+                if (showConnTypeSecondary) {
                     ConnTrackerMutedText(
-                        text = dnsCacheText,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacingMd),
+                        text = connTypeSecondaryText,
+                        modifier = Modifier.fillMaxWidth(),
                         textAlign = TextAlign.Center
                     )
                 }
-            }
-
-            if (showSummaryDetails) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacing3xl),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.End
-                    ) {
-                        ConnTrackerMutedText(text = connDurationText)
-                        ConnTrackerMutedText(text = connUploadText)
-                    }
-                    Spacer(modifier = Modifier.width(Dimensions.spacingSmMd))
-                    Box(
-                        modifier =
-                            Modifier.width(1.dp)
-                                .height(32.dp)
-                                .background(MaterialTheme.colorScheme.onSurfaceVariant)
-                    )
-                    Spacer(modifier = Modifier.width(Dimensions.spacingSmMd))
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        horizontalAlignment = Alignment.Start
-                    ) {
-                        ConnTrackerMutedText(text = connTypeText)
-                        ConnTrackerMutedText(text = connDownloadText)
-                    }
-                }
-            }
-
-            if (showConnTypeSecondary) {
-                ConnTrackerMutedText(
-                    text = connTypeSecondaryText,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacingMd),
-                    textAlign = TextAlign.Center
-                )
             }
 
             if (showFirewallRule) {
@@ -379,18 +324,11 @@ fun ConnTrackerSheet(
             }
 
             if (showUnknownAppSwitch) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacingMd),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = activity.getString(R.string.univ_firewall_rule_3),
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Switch(
+                RethinkListGroup {
+                    RethinkToggleListItem(
+                        title = activity.getString(R.string.univ_firewall_rule_3),
                         checked = unknownAppChecked,
+                        position = CardPosition.Single,
                         onCheckedChange = {
                             unknownAppChecked = it
                             Napier.d(
@@ -593,9 +531,9 @@ private fun updateAppDetails(
                         R.string.ctbs_app_other_apps,
                         appNames[0],
                         appCount.minus(1).toString()
-                    ) + "  ❯"
+                    )
                 } else {
-                    appNames[0] + "  ❯"
+                    appNames[0]
                 }
             )
             val icon =
@@ -960,29 +898,22 @@ private fun SelectionRow(
     selectedIndex: Int,
     onSelect: (Int) -> Unit
 ) {
-    var expanded by remember { mutableStateOf(false) }
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacingMd),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(modifier = Modifier.weight(0.6f)) { label() }
-        Box(modifier = Modifier.weight(0.4f), contentAlignment = Alignment.CenterEnd) {
-            TextButton(onClick = { expanded = true }) {
-                Text(text = labels.getOrNull(selectedIndex) ?: "")
-            }
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                labels.forEachIndexed { index, item ->
-                    DropdownMenuItem(
-                        text = { Text(text = item) },
-                        onClick = {
-                            expanded = false
-                            onSelect(index)
-                        }
-                    )
-                }
-            }
+    RuleSheetLabeledControlRow(
+        label = label,
+        control = {
+            RethinkDropdownSelector(
+                selectedText = labels.getOrNull(selectedIndex).orEmpty(),
+                options = labels,
+                onOptionSelected = { selected ->
+                    val index = labels.indexOf(selected)
+                    if (index >= 0) {
+                        onSelect(index)
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            )
         }
-    }
+    )
 }
 
 @Composable

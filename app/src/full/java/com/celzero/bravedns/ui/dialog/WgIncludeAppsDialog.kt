@@ -77,6 +77,7 @@ import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkSecondaryActionStyle
 import com.celzero.bravedns.ui.compose.theme.RethinkSegmentedChoiceRow
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
@@ -151,7 +152,7 @@ private fun WgIncludeAppsDialogScreen(
                 withContext(Dispatchers.Main) {
                     Utilities.showToastUiCentered(
                         context,
-                        context.resources.getString(R.string.exclude_apps_from_proxy_failure_toast),
+                        context.getString(R.string.exclude_apps_from_proxy_failure_toast),
                         Toast.LENGTH_LONG
                     )
                 }
@@ -187,7 +188,7 @@ private fun WgIncludeAppsDialogScreen(
                 isRefreshing = false
                 Utilities.showToastUiCentered(
                     context,
-                    context.resources.getString(R.string.refresh_complete),
+                    context.getString(R.string.refresh_complete),
                     Toast.LENGTH_SHORT
                 )
             }
@@ -211,7 +212,7 @@ private fun WgIncludeAppsDialogScreen(
         topBar = {
             RethinkLargeTopBar(
                 title = proxyName,
-                subtitle = context.resources.getString(R.string.add_remove_apps, appCount.toString()),
+                subtitle = context.getString(R.string.add_remove_apps, appCount.toString()),
                 onBackClick = onDismiss,
                 scrollBehavior = scrollBehavior,
                 actions = {
@@ -245,7 +246,8 @@ private fun WgIncludeAppsDialogScreen(
                         onDismiss()
                     },
                     secondaryText = stringResource(R.string.lbl_remaining_apps),
-                    onSecondaryClick = { showRemainingDialog = true }
+                    onSecondaryClick = { showRemainingDialog = true },
+                    secondaryStyle = RethinkSecondaryActionStyle.TEXT
                 )
             }
         }

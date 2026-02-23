@@ -43,7 +43,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.asFlow
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
@@ -65,32 +64,29 @@ fun DomainConnectionsScreen(
     timeCategory: DomainConnectionsViewModel.TimeCategory,
     onBackClick: () -> Unit
 ) {
-    var titleText by remember(type, flag, domain, asn, ip) { mutableStateOf("") }
+    val titleText =
+        when (type) {
+            DomainConnectionsInputType.DOMAIN -> domain
+            DomainConnectionsInputType.FLAG ->
+                stringResource(R.string.two_argument_space, flag, getCountryNameFromFlag(flag))
+            DomainConnectionsInputType.ASN -> asn
+            DomainConnectionsInputType.IP -> ip
+        }
     val subtitleText = subtitleFor(timeCategory)
-    val context = LocalContext.current
 
     LaunchedEffect(type, flag, domain, asn, ip, isBlocked) {
         when (type) {
             DomainConnectionsInputType.DOMAIN -> {
                 viewModel.setDomain(domain, isBlocked)
-                titleText = domain
             }
             DomainConnectionsInputType.FLAG -> {
                 viewModel.setFlag(flag)
-                titleText =
-                    context.resources.getString(
-                        R.string.two_argument_space,
-                        flag,
-                        getCountryNameFromFlag(flag)
-                    )
             }
             DomainConnectionsInputType.ASN -> {
                 viewModel.setAsn(asn, isBlocked)
-                titleText = asn
             }
             DomainConnectionsInputType.IP -> {
                 viewModel.setIp(ip, isBlocked)
-                titleText = ip
             }
         }
     }

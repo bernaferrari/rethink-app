@@ -61,7 +61,6 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
@@ -954,10 +953,31 @@ fun RethinkMultiActionDialog(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+fun RethinkBottomSheetDragHandle(
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(top = Dimensions.spacingXs, bottom = Dimensions.spacingSm),
+        contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            modifier = Modifier
+                .width(44.dp)
+                .height(5.dp),
+            shape = RoundedCornerShape(100),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.42f)
+        ) {}
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
 fun RethinkModalBottomSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
-    dragHandle: @Composable (() -> Unit)? = { BottomSheetDefaults.DragHandle() },
+    dragHandle: @Composable (() -> Unit)? = { RethinkBottomSheetDragHandle() },
     contentPadding: PaddingValues = PaddingValues(
         horizontal = Dimensions.screenPaddingHorizontal,
         vertical = Dimensions.spacingSm

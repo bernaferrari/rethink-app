@@ -4569,7 +4569,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             "${ProxyManager.ID_HTTP_BASE},${defaultProxy}"
         } else {
             // if the enabled wireguard is catchall-wireguard, then return wireguard id
-            val ssid = underlyingNetworks?.activeSsid ?: underlyingNetworks?.ipv4Net?.firstOrNull { it.ssid != null }?.ssid ?: underlyingNetworks?.ipv6Net?.firstOrNull { it.ssid != null }?.ssid ?: ""
+            val ssid = getUnderlyingSsid().orEmpty()
             val ids = WireguardManager.getAllPossibleConfigIdsForApp(
                 uid,
                 ip = "",
@@ -5072,8 +5072,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             return@go2kt persistAndConstructFlowResponse(cm, Backend.Block, connId, uid)
         }
 
+        val proxyRoutingSnapshot = buildProxyRoutingSnapshot(uid)
         // app is considered as spl when it is selected to forward dns proxy, socks5 or http proxy
-        val isSplApp = isSpecialApp(uid)
+        val isSplApp = isSpecialApp(proxyRoutingSnapshot)
 
         if (isRethink && !rinr) {
             // case when uid is rethink, return Ipn.Base
@@ -5147,7 +5148,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             activeCids.add(key)
         }
 
-        return@go2kt determineProxyDetails(cm, doubleLoopback, rinr)
+        return@go2kt determineProxyDetails(cm, doubleLoopback, rinr, proxyRoutingSnapshot)
     }
 
     override fun inflow(protocol: Int, recvdUid: Int, src: Gostr?, dst: Gostr?): Mark =
@@ -5280,65 +5281,107 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         Logger.d(LOG_TAG_VPN, "expired connMetaData, close conns: $cm")
     }
 
-    private suspend fun isSpecialApp(uid: Int): Boolean {
+    private data class ProxyRoutingSnapshot(
+        val uid: Int,
+        val packageName: String?,
+        val appExcludedFromProxy: Boolean,
+        val isDnsFirewallMode: Boolean,
+        val isProxyEnabled: Boolean,
+        val isOrbotProxyEnabled: Boolean,
+        val isCustomSocks5Enabled: Boolean,
+        val isCustomHttpProxyEnabled: Boolean,
+        val isDnsProxyActive: Boolean,
+        val orbotProxyAppName: String?,
+        val socks5ProxyAppName: String?,
+        val httpProxyAppName: String?,
+        val dnsProxyAppName: String?,
+        val orbotProxyAssignedToApp: Boolean
+    )
+
+    private suspend fun buildProxyRoutingSnapshot(uid: Int): ProxyRoutingSnapshot {
         val packageName = FirewallManager.getPackageNameByUid(uid)
         val isOrbotProxyEnabled = appConfig.isOrbotProxyEnabled()
         val isCustomSocks5Enabled = appConfig.isCustomSocks5Enabled()
         val isCustomHttpProxyEnabled = appConfig.isCustomHttpProxyEnabled()
         val isDnsProxyActive = appConfig.isDnsProxyActive()
 
-        val orbotEndpoint =
+        val orbotProxyAppName =
             if (isOrbotProxyEnabled) {
-                appConfig.getConnectedOrbotProxy()
+                appConfig.getConnectedOrbotProxy()?.proxyAppName
             } else {
                 null
             }
-        val socks5Endpoint =
+        val socks5ProxyAppName =
             if (isCustomSocks5Enabled) {
-                appConfig.getSocks5ProxyDetails()
+                appConfig.getSocks5ProxyDetails()?.proxyAppName
             } else {
                 null
             }
-        val httpEndpoint =
+        val httpProxyAppName =
             if (isCustomHttpProxyEnabled) {
-                appConfig.getHttpProxyDetails()
+                appConfig.getHttpProxyDetails()?.proxyAppName
             } else {
                 null
             }
-        val dnsProxyEndpoint =
+        val dnsProxyAppName =
             if (isDnsProxyActive) {
-                appConfig.getSelectedDnsProxyDetails()
+                appConfig.getSelectedDnsProxyDetails()?.proxyAppName
             } else {
                 null
             }
 
-        if (isCustomSocks5Enabled && socks5Endpoint == null) {
+        if (isCustomSocks5Enabled && socks5ProxyAppName == null) {
             Logger.e(LOG_TAG_VPN, "flow: socks5 proxy enabled but endpoint is null")
         }
-        if (isCustomHttpProxyEnabled && httpEndpoint == null) {
+        if (isCustomHttpProxyEnabled && httpProxyAppName == null) {
             Logger.e(LOG_TAG_VPN, "flow: http proxy enabled but endpoint is null")
         }
         if (isCustomSocks5Enabled) {
-            logd("flow/inflow: socks5 proxy is enabled, $packageName, ${socks5Endpoint?.proxyAppName}")
+            logd("flow/inflow: socks5 proxy is enabled, $packageName, $socks5ProxyAppName")
         }
+
+        return ProxyRoutingSnapshot(
+            uid = uid,
+            packageName = packageName,
+            appExcludedFromProxy = FirewallManager.isAppExcludedFromProxy(uid),
+            isDnsFirewallMode = appConfig.getBraveMode().isDnsFirewallMode(),
+            isProxyEnabled = appConfig.isProxyEnabled(),
+            isOrbotProxyEnabled = isOrbotProxyEnabled,
+            isCustomSocks5Enabled = isCustomSocks5Enabled,
+            isCustomHttpProxyEnabled = isCustomHttpProxyEnabled,
+            isDnsProxyActive = isDnsProxyActive,
+            orbotProxyAppName = orbotProxyAppName,
+            socks5ProxyAppName = socks5ProxyAppName,
+            httpProxyAppName = httpProxyAppName,
+            dnsProxyAppName = dnsProxyAppName,
+            orbotProxyAssignedToApp =
+                if (isOrbotProxyEnabled) {
+                    ProxyManager.getProxyIdForApp(uid).contains(ProxyManager.ID_ORBOT_BASE)
+                } else {
+                    false
+                }
+        )
+    }
+
+    private fun isSpecialApp(snapshot: ProxyRoutingSnapshot): Boolean {
 
         val request =
             ProxyRoutingEngine.SpecialAppRequest(
-                isDnsFirewallMode = appConfig.getBraveMode().isDnsFirewallMode(),
-                isOrbotProxyEnabled = isOrbotProxyEnabled,
-                isCustomSocks5Enabled = isCustomSocks5Enabled,
-                isCustomHttpProxyEnabled = isCustomHttpProxyEnabled,
-                isDnsProxyActive = isDnsProxyActive,
-                packageName = packageName,
-                orbotProxyAppName = orbotEndpoint?.proxyAppName,
-                socks5ProxyAppName = socks5Endpoint?.proxyAppName,
-                httpProxyAppName = httpEndpoint?.proxyAppName,
-                dnsProxyAppName = dnsProxyEndpoint?.proxyAppName
+                isDnsFirewallMode = snapshot.isDnsFirewallMode,
+                isOrbotProxyEnabled = snapshot.isOrbotProxyEnabled,
+                isCustomSocks5Enabled = snapshot.isCustomSocks5Enabled,
+                isCustomHttpProxyEnabled = snapshot.isCustomHttpProxyEnabled,
+                isDnsProxyActive = snapshot.isDnsProxyActive,
+                packageName = snapshot.packageName,
+                orbotProxyAppName = snapshot.orbotProxyAppName,
+                socks5ProxyAppName = snapshot.socks5ProxyAppName,
+                httpProxyAppName = snapshot.httpProxyAppName,
+                dnsProxyAppName = snapshot.dnsProxyAppName
             )
 
         val isSpecialApp = ProxyRoutingEngine.isSpecialApp(request)
         if (isSpecialApp) {
-            logd("flow/inflow: special app matched for proxy routing, $uid, $packageName")
+            logd("flow/inflow: special app matched for proxy routing, ${snapshot.uid}, ${snapshot.packageName}")
         }
         return isSpecialApp
     }
@@ -5346,11 +5389,11 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     private suspend fun determineProxyDetails(
         connTracker: ConnTrackerMetaData,
         doubleLoopback: Boolean,
-        rinr: Boolean
+        rinr: Boolean,
+        proxySnapshot: ProxyRoutingSnapshot
     ): Mark {
         val connId = connTracker.connId
         val uid = connTracker.uid
-        val packageName = FirewallManager.getPackageNameByUid(uid)
         val baseOrExit =
             ProxyRoutingEngine.resolveBaseOrExitProxyId(
                 doubleLoopback = doubleLoopback,
@@ -5362,11 +5405,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             )
 
         // Add baseOrExit in the end of the list if needed (not true for lockdown).
-        val ssid =
-            underlyingNetworks?.activeSsid
-                ?: underlyingNetworks?.ipv4Net?.firstOrNull { it.ssid != null }?.ssid
-                ?: underlyingNetworks?.ipv6Net?.firstOrNull { it.ssid != null }?.ssid
-                ?: ""
+        val ssid = getUnderlyingSsid().orEmpty()
         val wireguardProxyIds =
             WireguardManager.getAllPossibleConfigIdsForApp(
                 uid,
@@ -5378,46 +5417,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
                 baseOrExit
             )
 
-        val isOrbotProxyEnabled = appConfig.isOrbotProxyEnabled()
-        val isCustomSocks5Enabled = appConfig.isCustomSocks5Enabled()
-        val isCustomHttpProxyEnabled = appConfig.isCustomHttpProxyEnabled()
-        val isDnsProxyActive = appConfig.isDnsProxyActive()
-
-        val orbotEndpoint =
-            if (isOrbotProxyEnabled) {
-                appConfig.getConnectedOrbotProxy()
-            } else {
-                null
-            }
-        val socks5Endpoint =
-            if (isCustomSocks5Enabled) {
-                appConfig.getSocks5ProxyDetails()
-            } else {
-                null
-            }
-        val httpEndpoint =
-            if (isCustomHttpProxyEnabled) {
-                appConfig.getHttpProxyDetails()
-            } else {
-                null
-            }
-        val dnsProxyEndpoint =
-            if (isDnsProxyActive) {
-                appConfig.getSelectedDnsProxyDetails()
-            } else {
-                null
-            }
-
-        if (isCustomSocks5Enabled && socks5Endpoint == null) {
-            Logger.e(LOG_TAG_VPN, "flow: socks5 proxy enabled but endpoint is null")
-        }
-        if (isCustomHttpProxyEnabled && httpEndpoint == null) {
-            Logger.e(LOG_TAG_VPN, "flow: http proxy enabled but endpoint is null")
-        }
-        if (isCustomSocks5Enabled) {
-            logd("flow/inflow: socks5 proxy is enabled, $packageName, ${socks5Endpoint?.proxyAppName}")
-        }
-
         val decision =
             ProxyRoutingEngine.determineRoute(
                 ProxyRoutingEngine.RoutingRequest(
@@ -5426,25 +5425,20 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
                     rinr = rinr,
                     autoProxyEnabled = persistentState.autoProxyEnabled,
                     blockedByRule = connTracker.blockedByRule,
-                    appExcludedFromProxy = FirewallManager.isAppExcludedFromProxy(uid),
+                    appExcludedFromProxy = proxySnapshot.appExcludedFromProxy,
                     baseOrExitProxyId = baseOrExit,
                     wireguardProxyIds = wireguardProxyIds,
-                    isProxyEnabled = appConfig.isProxyEnabled(),
-                    isDnsProxyActive = isDnsProxyActive,
-                    isOrbotProxyEnabled = isOrbotProxyEnabled,
-                    isCustomSocks5Enabled = isCustomSocks5Enabled,
-                    isCustomHttpProxyEnabled = isCustomHttpProxyEnabled,
-                    packageName = packageName,
-                    orbotProxyAppName = orbotEndpoint?.proxyAppName,
-                    orbotProxyAssignedToApp =
-                        if (isOrbotProxyEnabled) {
-                            ProxyManager.getProxyIdForApp(uid).contains(ProxyManager.ID_ORBOT_BASE)
-                        } else {
-                            false
-                        },
-                    socks5ProxyAppName = socks5Endpoint?.proxyAppName,
-                    httpProxyAppName = httpEndpoint?.proxyAppName,
-                    dnsProxyAppName = dnsProxyEndpoint?.proxyAppName
+                    isProxyEnabled = proxySnapshot.isProxyEnabled,
+                    isDnsProxyActive = proxySnapshot.isDnsProxyActive,
+                    isOrbotProxyEnabled = proxySnapshot.isOrbotProxyEnabled,
+                    isCustomSocks5Enabled = proxySnapshot.isCustomSocks5Enabled,
+                    isCustomHttpProxyEnabled = proxySnapshot.isCustomHttpProxyEnabled,
+                    packageName = proxySnapshot.packageName,
+                    orbotProxyAppName = proxySnapshot.orbotProxyAppName,
+                    orbotProxyAssignedToApp = proxySnapshot.orbotProxyAssignedToApp,
+                    socks5ProxyAppName = proxySnapshot.socks5ProxyAppName,
+                    httpProxyAppName = proxySnapshot.httpProxyAppName,
+                    dnsProxyAppName = proxySnapshot.dnsProxyAppName
                 )
             )
 
@@ -5468,19 +5462,19 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             ProxyRoutingEngine.Reason.NO_PROXY_ACTIVE ->
                 logd("flow/inflow: no proxy/dnsproxy enabled, returning ${decision.proxyIds}, $connId, $uid")
             ProxyRoutingEngine.Reason.ORBOT_DIRECT_APP ->
-                logd("flow/inflow: orbot ${decision.proxyIds} for $packageName, $connId, $uid")
+                logd("flow/inflow: orbot ${decision.proxyIds} for ${proxySnapshot.packageName}, $connId, $uid")
             ProxyRoutingEngine.Reason.ORBOT_PROXY ->
                 logd("flow/inflow: orbot proxy for $uid, $connId")
             ProxyRoutingEngine.Reason.SOCKS5_DIRECT_APP ->
-                logd("flow/inflow: socks5 ${decision.proxyIds} for $packageName, $connId, $uid")
+                logd("flow/inflow: socks5 ${decision.proxyIds} for ${proxySnapshot.packageName}, $connId, $uid")
             ProxyRoutingEngine.Reason.SOCKS5_PROXY ->
                 logd("flow/inflow: socks5 proxy for $connId, $uid")
             ProxyRoutingEngine.Reason.HTTP_DIRECT_APP ->
-                logd("flow/inflow: http ${decision.proxyIds} for $packageName, $connId, $uid")
+                logd("flow/inflow: http ${decision.proxyIds} for ${proxySnapshot.packageName}, $connId, $uid")
             ProxyRoutingEngine.Reason.HTTP_PROXY ->
                 logd("flow/inflow: http proxy for $connId, $uid")
             ProxyRoutingEngine.Reason.DNS_PROXY_DIRECT_APP ->
-                logd("flow/inflow: dns proxy enabled for $packageName, return ${decision.proxyIds}, $connId, $uid")
+                logd("flow/inflow: dns proxy enabled for ${proxySnapshot.packageName}, return ${decision.proxyIds}, $connId, $uid")
             ProxyRoutingEngine.Reason.FALLBACK_BASE_OR_EXIT ->
                 logd("flow/inflow: no proxies, ${decision.proxyIds}, $connId, $uid")
         }

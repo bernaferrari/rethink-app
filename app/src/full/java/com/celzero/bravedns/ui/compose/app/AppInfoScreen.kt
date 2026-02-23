@@ -593,7 +593,7 @@ private suspend fun loadAppInfo(
     val conn = FirewallManager.connectionStatus(info.uid)
     val proxy =
         ProxyManager.getProxyIdForApp(uid).takeIf { it.isNotEmpty() && it != ID_NONE }
-            ?.let { context.resources.getString(R.string.wireguard_apps_proxy_map_desc, it) }
+            ?.let { context.getString(R.string.wireguard_apps_proxy_map_desc, it) }
             .orEmpty()
     val firewallStatusText = getFirewallText(context, status, conn)
     onLoaded(
@@ -622,7 +622,7 @@ private fun updateFirewallStatus(
 ) {
     val info = appInfo ?: return
     if (aStat == FirewallManager.FirewallStatus.EXCLUDE && FirewallManager.isUnknownPackage(uid)) {
-        showToastUiCentered(context, context.resources.getString(R.string.exclude_no_package_err_toast), Toast.LENGTH_LONG)
+        showToastUiCentered(context, context.getString(R.string.exclude_no_package_err_toast), Toast.LENGTH_LONG)
         return
     }
     scope.launch(Dispatchers.IO) {
@@ -651,21 +651,21 @@ private fun getFirewallText(
         FirewallManager.FirewallStatus.NONE -> {
             when (cStat) {
                 FirewallManager.ConnectionStatus.METERED ->
-                    context.resources.getString(R.string.ada_app_status_block_md)
+                    context.getString(R.string.ada_app_status_block_md)
                 FirewallManager.ConnectionStatus.UNMETERED ->
-                    context.resources.getString(R.string.ada_app_status_block_wifi)
+                    context.getString(R.string.ada_app_status_block_wifi)
                 FirewallManager.ConnectionStatus.BOTH ->
-                    context.resources.getString(R.string.ada_app_status_block)
+                    context.getString(R.string.ada_app_status_block)
                 FirewallManager.ConnectionStatus.ALLOW ->
-                    context.resources.getString(R.string.ada_app_status_allow)
+                    context.getString(R.string.ada_app_status_allow)
             }
         }
-        FirewallManager.FirewallStatus.EXCLUDE -> context.resources.getString(R.string.ada_app_status_exclude)
+        FirewallManager.FirewallStatus.EXCLUDE -> context.getString(R.string.ada_app_status_exclude)
         FirewallManager.FirewallStatus.BYPASS_UNIVERSAL ->
-            context.resources.getString(R.string.ada_app_status_whitelist)
-        FirewallManager.FirewallStatus.ISOLATE -> context.resources.getString(R.string.ada_app_status_isolate)
+            context.getString(R.string.ada_app_status_whitelist)
+        FirewallManager.FirewallStatus.ISOLATE -> context.getString(R.string.ada_app_status_isolate)
         FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL ->
-            context.resources.getString(R.string.ada_app_status_bypass_dns_firewall)
-        FirewallManager.FirewallStatus.UNTRACKED -> context.resources.getString(R.string.ada_app_status_unknown)
+            context.getString(R.string.ada_app_status_bypass_dns_firewall)
+        FirewallManager.FirewallStatus.UNTRACKED -> context.getString(R.string.ada_app_status_unknown)
     }
 }

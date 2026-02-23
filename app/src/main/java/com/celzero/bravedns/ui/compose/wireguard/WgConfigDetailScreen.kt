@@ -229,7 +229,7 @@ fun WgConfigDetailScreen(
                     catchAllEnabled = !enabled
                     Utilities.showToastUiCentered(
                         context,
-                        ERR_CODE_VPN_NOT_ACTIVE + context.resources.getString(R.string.settings_socks5_vpn_disabled_error),
+                        ERR_CODE_VPN_NOT_ACTIVE + context.getString(R.string.settings_socks5_vpn_disabled_error),
                         Toast.LENGTH_LONG
                     )
                 }
@@ -241,7 +241,7 @@ fun WgConfigDetailScreen(
                     catchAllEnabled = false
                     Utilities.showToastUiCentered(
                         context,
-                        ERR_CODE_VPN_NOT_FULL + context.resources.getString(R.string.wireguard_enabled_failure),
+                        ERR_CODE_VPN_NOT_FULL + context.getString(R.string.wireguard_enabled_failure),
                         Toast.LENGTH_LONG
                     )
                 }
@@ -253,7 +253,7 @@ fun WgConfigDetailScreen(
                     catchAllEnabled = false
                     Utilities.showToastUiCentered(
                         context,
-                        ERR_CODE_OTHER_WG_ACTIVE + context.resources.getString(R.string.wireguard_enabled_failure),
+                        ERR_CODE_OTHER_WG_ACTIVE + context.getString(R.string.wireguard_enabled_failure),
                         Toast.LENGTH_LONG
                     )
                 }
@@ -266,7 +266,7 @@ fun WgConfigDetailScreen(
                     catchAllEnabled = false
                     Utilities.showToastUiCentered(
                         context,
-                        ERR_CODE_WG_INVALID + context.resources.getString(R.string.wireguard_enabled_failure),
+                        ERR_CODE_WG_INVALID + context.getString(R.string.wireguard_enabled_failure),
                         Toast.LENGTH_LONG
                     )
                 }
@@ -360,7 +360,7 @@ fun WgConfigDetailScreen(
                     withContext(Dispatchers.Main) {
                         Utilities.showToastUiCentered(
                             context,
-                            context.resources.getString(R.string.config_add_success_toast),
+                            context.getString(R.string.config_add_success_toast),
                             Toast.LENGTH_SHORT
                         )
                         onBackClick()
@@ -584,9 +584,9 @@ fun WgConfigDetailScreen(
                         val ssidSubtitle =
                             buildString {
                                 append(
-                                    context.resources.getString(
+                                    context.getString(
                                         R.string.wg_setting_ssid_desc,
-                                        context.resources.getString(R.string.lbl_ssids)
+                                        context.getString(R.string.lbl_ssids)
                                     )
                                 )
                                 if (ssids.isNotEmpty()) {
@@ -688,7 +688,7 @@ private suspend fun updateStatusUi(
         }
         withContext(Dispatchers.Main) {
             if (dnsStatusId != null && isDnsError(dnsStatusId)) {
-                val text = context.resources.getString(R.string.status_failing)
+                val text = context.getString(R.string.status_failing)
                     .replaceFirstChar(Char::titlecase)
                 val color = errorColor
                 onStatusUpdate(text, color)
@@ -700,7 +700,7 @@ private suspend fun updateStatusUi(
         }
     } else {
         withContext(Dispatchers.Main) {
-            val text = context.resources.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase)
+            val text = context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase)
             onStatusUpdate(text, null)
         }
     }
@@ -728,15 +728,15 @@ private fun getStatusText(
 ): String {
     if (status == null) {
         val txt = if (!errMsg.isNullOrEmpty()) {
-            context.resources.getString(R.string.status_waiting) + " ($errMsg)"
+            context.getString(R.string.status_waiting) + " ($errMsg)"
         } else {
-            context.resources.getString(R.string.status_waiting)
+            context.getString(R.string.status_waiting)
         }
         return txt.replaceFirstChar(Char::titlecase)
     }
 
     if (status == UIUtils.ProxyStatus.TPU) {
-        return context.resources.getString(UIUtils.getProxyStatusStringRes(status.id))
+        return context.getString(UIUtils.getProxyStatusStringRes(status.id))
             .replaceFirstChar(Char::titlecase)
     }
 
@@ -744,14 +744,14 @@ private fun getStatusText(
     val lastOk = stats?.lastOK ?: 0L
     val since = stats?.since ?: 0L
     if (now - since > WG_UPTIME_THRESHOLD && lastOk == 0L) {
-        return context.resources.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
+        return context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
     }
 
-    val baseText = context.resources.getString(UIUtils.getProxyStatusStringRes(status.id))
+    val baseText = context.getString(UIUtils.getProxyStatusStringRes(status.id))
         .replaceFirstChar(Char::titlecase)
 
     return if (stats?.lastOK != 0L && handshakeTime != null) {
-        context.resources.getString(R.string.about_version_install_source, baseText, handshakeTime)
+        context.getString(R.string.about_version_install_source, baseText, handshakeTime)
     } else {
         baseText
     }

@@ -476,15 +476,15 @@ private fun timeAgo(context: android.content.Context, timestamp: Long): String {
     val diff = now - timestamp
     return when {
         diff < TimeUnit.MINUTES.toMillis(1) -> {
-            context.resources.getString(R.string.bubble_time_just_now)
+            context.getString(R.string.bubble_time_just_now)
         }
         diff < TimeUnit.HOURS.toMillis(1) -> {
             val minutes = TimeUnit.MILLISECONDS.toMinutes(diff)
-            context.resources.getString(R.string.bubble_time_minutes_ago, minutes)
+            context.getString(R.string.bubble_time_minutes_ago, minutes)
         }
         diff < TimeUnit.DAYS.toMillis(1) -> {
             val hours = TimeUnit.MILLISECONDS.toHours(diff)
-            context.resources.getString(R.string.bubble_time_hours_ago, hours)
+            context.getString(R.string.bubble_time_hours_ago, hours)
         }
         else -> {
             val dateFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())

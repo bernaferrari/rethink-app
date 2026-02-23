@@ -81,13 +81,19 @@ fun TcpProxyMainScreen(
     var showIncludeAppsDialog by remember { mutableStateOf(false) }
     var includeAppsProxyId by remember { mutableStateOf("") }
     var includeAppsProxyName by remember { mutableStateOf("") }
+    val tcpProxyDefaultDesc = stringResource(R.string.settings_https_desc)
+    val activeText = stringResource(R.string.lbl_active)
+    val inactiveText = stringResource(R.string.lbl_inactive)
+    val udpExperimentalDesc = stringResource(R.string.adv_set_experimental_desc)
+    val appsText = stringResource(R.string.lbl_apps)
 
     val appCount by mappingViewModel.getAppCountById(ProxyManager.ID_TCP_BASE)
         .asFlow()
         .collectAsState(initial = 0)
+    val appListSubtitleText = stringResource(R.string.add_remove_apps, appCount.toString())
 
     LaunchedEffect(Unit) {
-        tcpProxyDesc = context.resources.getString(R.string.settings_https_desc)
+        tcpProxyDesc = tcpProxyDefaultDesc
     }
 
     LaunchedEffect(Unit) {
@@ -110,7 +116,7 @@ fun TcpProxyMainScreen(
                     tcpProxySwitchChecked = false
                     Utilities.showToastUiCentered(
                         context,
-                        context.resources.getString(R.string.tcp_proxy_warp_active_error),
+                        context.getString(R.string.tcp_proxy_warp_active_error),
                         Toast.LENGTH_SHORT
                     )
                     return@withContext
@@ -121,7 +127,7 @@ fun TcpProxyMainScreen(
                 if (!apps) {
                     Utilities.showToastUiCentered(
                         context,
-                        context.resources.getString(R.string.tcp_proxy_no_apps_error),
+                        context.getString(R.string.tcp_proxy_no_apps_error),
                         Toast.LENGTH_SHORT
                     )
                     warpSwitchChecked = false
@@ -131,7 +137,7 @@ fun TcpProxyMainScreen(
 
                 if (!checked) {
                     scope.launch(Dispatchers.IO) { TcpProxyHelper.disable() }
-                    tcpProxyDesc = context.resources.getString(R.string.settings_https_desc)
+                    tcpProxyDesc = context.getString(R.string.settings_https_desc)
                     return@withContext
                 }
 
@@ -144,7 +150,7 @@ fun TcpProxyMainScreen(
                     val provider = appConfig.getProxyProvider().lowercase().replaceFirstChar(Char::titlecase)
                     Utilities.showToastUiCentered(
                         context,
-                        context.resources.getString(R.string.settings_https_disabled_error, provider),
+                        context.getString(R.string.settings_https_disabled_error, provider),
                         Toast.LENGTH_SHORT
                     )
                     tcpProxySwitchChecked = false
@@ -172,12 +178,7 @@ fun TcpProxyMainScreen(
     }
 
     val listState = rememberLazyListState()
-    val subtitle =
-        if (tcpProxySwitchChecked) {
-            stringResource(R.string.lbl_active)
-        } else {
-            stringResource(R.string.lbl_inactive)
-        }
+    val subtitle = if (tcpProxySwitchChecked) activeText else inactiveText
 
     RethinkTopBarLazyColumnScreen(
         title = stringResource(id = R.string.settings_https_heading),
@@ -216,7 +217,7 @@ fun TcpProxyMainScreen(
 
                         RethinkListItem(
                             headline = stringResource(id = R.string.tcp_proxy_enable_udp_relay),
-                            supporting = stringResource(id = R.string.adv_set_experimental_desc),
+                            supporting = udpExperimentalDesc,
                             leadingIcon = Icons.Rounded.Settings,
                             position = cardPositionFor(index = 1, lastIndex = entries - 1),
                             onClick = { enableUdpRelayChecked = !enableUdpRelayChecked },
@@ -229,8 +230,8 @@ fun TcpProxyMainScreen(
                         )
 
                         RethinkListItem(
-                            headline = stringResource(id = R.string.lbl_apps),
-                            supporting = context.resources.getString(R.string.add_remove_apps, appCount.toString()),
+                            headline = appsText,
+                            supporting = appListSubtitleText,
                             leadingIcon = Icons.Rounded.Apps,
                             position = cardPositionFor(index = 2, lastIndex = entries - 1),
                             onClick = { openAppsDialog() }

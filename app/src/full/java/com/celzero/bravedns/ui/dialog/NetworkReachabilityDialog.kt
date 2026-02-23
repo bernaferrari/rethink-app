@@ -22,17 +22,14 @@ import android.net.NetworkCapabilities
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -45,19 +42,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.ConnectionMonitor
 import com.celzero.bravedns.service.ConnectionMonitor.Companion.SCHEME_HTTP
 import com.celzero.bravedns.service.ConnectionMonitor.Companion.SCHEME_HTTPS
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.bottomsheet.RuleSheetLabeledControlRow
 import com.celzero.bravedns.ui.bottomsheet.RuleSheetModeToggle
+import com.celzero.bravedns.ui.bottomsheet.RuleSheetModal
+import com.celzero.bravedns.ui.bottomsheet.RuleSheetTextFieldRow
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
-import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.celzero.bravedns.ui.compose.theme.RethinkSecondaryActionStyle
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.UIUtils
 import inet.ipaddr.IPAddress.IPVersion
@@ -138,7 +136,7 @@ fun NetworkReachabilitySheet(
     }
 
     fun updateAutoModeUi() {
-        val autoTxt = context.resources.getString(R.string.lbl_auto)
+        val autoTxt = context.getString(R.string.lbl_auto)
         ipv4Address1 = ConnectionMonitor.SCHEME_IP + ConnectionMonitor.PROTOCOL_V4 + " " + autoTxt
         ipv4Address2 = ConnectionMonitor.SCHEME_HTTPS + ConnectionMonitor.PROTOCOL_V4 + " " + autoTxt
         ipv6Address1 = ConnectionMonitor.SCHEME_IP + ConnectionMonitor.PROTOCOL_V6 + " " + autoTxt
@@ -236,7 +234,7 @@ fun NetworkReachabilitySheet(
             } catch (e: Exception) {
                 Logger.e(LOG_TAG_UI, "NwReachability; testConnections error: ${e.message}", e)
                 withContext(Dispatchers.Main) {
-                    errorMessage = context.resources.getString(R.string.blocklist_update_check_failure)
+                    errorMessage = context.getString(R.string.blocklist_update_check_failure)
                     setAllProgressBarsVisibility(false)
                     updateButtonsEnabled(true)
                 }
@@ -256,7 +254,7 @@ fun NetworkReachabilitySheet(
             val validUrl62 = isValidUrl(urlV6Address2)
 
             if (!valid41 || !valid42 || !validUrl41 || !validUrl42 || !valid61 || !valid62 || !validUrl61 || !validUrl62) {
-                errorMessage = context.resources.getString(R.string.cd_dns_proxy_error_text_1)
+                errorMessage = context.getString(R.string.cd_dns_proxy_error_text_1)
                 return
             }
         }
@@ -282,7 +280,7 @@ fun NetworkReachabilitySheet(
         persistentState.pingv6Url = url6Txt.joinToString(",")
         Toast.makeText(
             context,
-            context.resources.getString(R.string.config_add_success_toast),
+            context.getString(R.string.config_add_success_toast),
             Toast.LENGTH_LONG
         ).show()
         scope.launch(Dispatchers.IO) {
@@ -303,12 +301,7 @@ fun NetworkReachabilitySheet(
         errorMessage = ""
     }
 
-    RethinkModalBottomSheet(
-        onDismissRequest = onDismiss,
-        contentPadding = PaddingValues(0.dp),
-        verticalSpacing = 0.dp,
-        includeBottomSpacer = false
-    ) {
+    RuleSheetModal(onDismissRequest = onDismiss) {
         val protocols = VpnController.protocols()
         Column(
             modifier =
@@ -322,8 +315,8 @@ fun NetworkReachabilitySheet(
         ) {
             RethinkBottomSheetCard {
                 RuleSheetModeToggle(
-                    autoLabel = context.resources.getString(R.string.settings_ip_text_ipv46),
-                    manualLabel = context.resources.getString(R.string.lbl_manual),
+                    autoLabel = context.getString(R.string.settings_ip_text_ipv46),
+                    manualLabel = context.getString(R.string.lbl_manual),
                     isAutoSelected = useAuto,
                     onAutoClick = {
                         useAuto = true
@@ -335,7 +328,7 @@ fun NetworkReachabilitySheet(
                     }
                 )
                 Text(
-                    text = context.resources.getString(R.string.bypasses_network_restrictions),
+                    text = context.getString(R.string.bypasses_network_restrictions),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -343,12 +336,12 @@ fun NetworkReachabilitySheet(
 
             RethinkBottomSheetCard {
                 ProtocolHeaderRow(
-                    title = context.resources.getString(R.string.settings_ip_text_ipv4),
+                    title = context.getString(R.string.settings_ip_text_ipv4),
                     isSupported = protocols.contains(URL4)
                 ) {
                     if (!useAuto) {
                         TextButton(onClick = { resetToDefaults() }) {
-                            Text(text = context.resources.getString(R.string.brbs_restore_title))
+                            Text(text = context.getString(R.string.brbs_restore_title))
                         }
                     }
                 }
@@ -386,7 +379,7 @@ fun NetworkReachabilitySheet(
 
             RethinkBottomSheetCard {
                 ProtocolHeaderRow(
-                    title = context.resources.getString(R.string.settings_ip_text_ipv6),
+                    title = context.getString(R.string.settings_ip_text_ipv6),
                     isSupported = protocols.contains(URL6)
                 )
                 AddressRow(
@@ -422,12 +415,13 @@ fun NetworkReachabilitySheet(
             }
 
             RethinkBottomSheetActionRow(
-                primaryText = context.resources.getString(R.string.lbl_save),
+                primaryText = context.getString(R.string.lbl_save),
                 onPrimaryClick = { saveIps() },
                 primaryEnabled = buttonsEnabled,
-                secondaryText = context.resources.getString(R.string.lbl_test),
+                secondaryText = context.getString(R.string.lbl_test),
                 onSecondaryClick = { testConnections() },
-                secondaryEnabled = buttonsEnabled
+                secondaryEnabled = buttonsEnabled,
+                secondaryStyle = RethinkSecondaryActionStyle.TEXT
             )
 
             if (errorMessage.isNotBlank()) {
@@ -448,16 +442,17 @@ private fun ProtocolHeaderRow(
     isSupported: Boolean,
     trailing: @Composable (() -> Unit)? = null
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
-            StatusIcon(isOk = isSupported)
-            Text(text = title)
-        }
-        trailing?.invoke()
-    }
+    RuleSheetLabeledControlRow(
+        label = {
+            Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
+                StatusIcon(isOk = isSupported)
+                Text(text = title)
+            }
+        },
+        control = trailing,
+        horizontalPadding = Dimensions.spacingNone,
+        controlWeight = 0.7f
+    )
 }
 
 @Composable
@@ -483,30 +478,30 @@ private fun AddressRow(
     progress: Boolean,
     result: ConnectionMonitor.ProbeResult?
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-    ) {
-        OutlinedTextField(
-            value = value,
-            onValueChange = onValueChange,
-            modifier = Modifier.weight(1f),
-            singleLine = true,
-            enabled = enabled,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-        )
-        if (progress) {
-            CircularProgressIndicator(modifier = Modifier.padding(top = Dimensions.spacingMd))
-        } else if (result != null) {
-            val resId = getDrawableForProbeResult(result)
-            androidx.compose.material3.Icon(
-                painter = painterResource(id = resId),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = Dimensions.spacingMd)
-            )
+    val trailingContent: (@Composable (() -> Unit))? =
+        when {
+            progress -> {
+                { CircularProgressIndicator() }
+            }
+            result != null -> {
+                {
+                    val resId = getDrawableForProbeResult(result)
+                    androidx.compose.material3.Icon(
+                        painter = painterResource(id = resId),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+            else -> null
         }
-    }
+
+    RuleSheetTextFieldRow(
+        value = value,
+        onValueChange = onValueChange,
+        enabled = enabled,
+        trailing = trailingContent
+    )
 }
 
 private fun getDrawableForProbeResult(probeResult: ConnectionMonitor.ProbeResult?): Int {

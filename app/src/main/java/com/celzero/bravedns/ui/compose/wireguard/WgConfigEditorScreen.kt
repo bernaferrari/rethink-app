@@ -190,7 +190,7 @@ fun WgConfigEditorScreen(
         clipboardCopy(context, publicKey, CLIPBOARD_PUBLIC_KEY_LBL)
         Utilities.showToastUiCentered(
             context,
-            context.resources.getString(R.string.public_key_copy_toast_msg),
+            context.getString(R.string.public_key_copy_toast_msg),
             Toast.LENGTH_SHORT
         )
     }
@@ -218,7 +218,7 @@ fun WgConfigEditorScreen(
                     withContext(Dispatchers.Main) {
                         Utilities.showToastUiCentered(
                             context,
-                            context.resources.getString(R.string.config_add_success_toast),
+                            context.getString(R.string.config_add_success_toast),
                             Toast.LENGTH_LONG
                         )
                         onSaveSuccess()

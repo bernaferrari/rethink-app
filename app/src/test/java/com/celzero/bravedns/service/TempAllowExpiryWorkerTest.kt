@@ -16,18 +16,14 @@
 package com.celzero.bravedns.service
 
 import android.content.Context
-import androidx.test.core.app.ApplicationProvider
-import com.celzero.bravedns.database.AppInfoRepository
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkObject
+import io.mockk.unmockkObject
 import io.mockk.verify
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.koin.core.context.startKoin
-import org.koin.core.context.stopKoin
-import org.koin.dsl.module
 
 class TempAllowExpiryWorkerTest {
 
@@ -35,43 +31,32 @@ class TempAllowExpiryWorkerTest {
 
     @Before
     fun setup() {
-        context = ApplicationProvider.getApplicationContext()
+        context = mockk(relaxed = true)
     }
 
     @After
     fun tearDown() {
-        stopKoin()
+        runCatching { unmockkObject(androidx.work.WorkManager) }
     }
 
     @Test
-    fun `scheduleNext cancels unique work when repo returns null`() {
-        val repo = mockk<AppInfoRepository>()
-        every { repo.getNearestTempAllowExpiryBlocking(any()) } returns null
-
-        startKoin { modules(module { single { repo } }) }
-
+    fun `cancel cancels unique work`() {
         mockkObject(androidx.work.WorkManager)
         val wm = mockk<androidx.work.WorkManager>(relaxed = true)
         every { androidx.work.WorkManager.getInstance(any()) } returns wm
 
-        TempAllowExpiryWorker.scheduleNext(context)
+        TempAllowExpiryWorker.cancel(context)
 
         verify { wm.cancelUniqueWork("fw_temp_allow_expiry") }
     }
 
     @Test
-    fun `scheduleNext enqueues work when repo returns future expiry`() {
-        val repo = mockk<AppInfoRepository>()
-        val now = System.currentTimeMillis()
-        every { repo.getNearestTempAllowExpiryBlocking(any()) } returns (now + 60_000L)
-
-        startKoin { modules(module { single { repo } }) }
-
+    fun `enqueueAt enqueues unique work request`() {
         mockkObject(androidx.work.WorkManager)
         val wm = mockk<androidx.work.WorkManager>(relaxed = true)
         every { androidx.work.WorkManager.getInstance(any()) } returns wm
 
-        TempAllowExpiryWorker.scheduleNext(context)
+        TempAllowExpiryWorker.enqueueAt(context, System.currentTimeMillis() + 60_000L)
 
         verify {
             wm.enqueueUniqueWork(

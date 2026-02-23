@@ -300,7 +300,7 @@ fun TunnelSettingsScreen(
         if (hours > 0) parts.add("${hours}h")
         if (minutes > 0) parts.add("${minutes}m")
         if (seconds > 0) parts.add("${seconds}s")
-        return if (parts.isEmpty()) context.resources.getString(R.string.lbl_disabled) else parts.joinToString(" ")
+        return if (parts.isEmpty()) context.getString(R.string.lbl_disabled) else parts.joinToString(" ")
     }
 
     val ipDesc = when (internetProtocol) {
@@ -609,7 +609,7 @@ fun TunnelSettingsScreen(
                                     protocolTranslation = false
                                     showToastUiCentered(
                                         context,
-                                        context.resources.getString(R.string.settings_protocol_translation_dns_inactive),
+                                        context.getString(R.string.settings_protocol_translation_dns_inactive),
                                         Toast.LENGTH_SHORT
                                     )
                                 }
@@ -624,7 +624,7 @@ fun TunnelSettingsScreen(
                                 protocolTranslation = false
                                 showToastUiCentered(
                                     context,
-                                    context.resources.getString(R.string.settings_protocol_translation_dns_inactive),
+                                    context.getString(R.string.settings_protocol_translation_dns_inactive),
                                     Toast.LENGTH_SHORT
                                 )
                             }
@@ -683,7 +683,7 @@ fun TunnelSettingsScreen(
                                 if (!VpnController.hasTunnel()) {
                                     showToastUiCentered(
                                         context,
-                                        context.resources.getString(R.string.settings_socks5_vpn_disabled_error),
+                                        context.getString(R.string.settings_socks5_vpn_disabled_error),
                                         Toast.LENGTH_SHORT
                                     )
                                 } else {

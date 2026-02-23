@@ -120,7 +120,7 @@ internal suspend fun resolveAppWiseLogsHeader(
 
     val visibleName =
         if (packageNames.size >= 2) {
-            context.resources.getString(
+            context.getString(
                 R.string.ctbs_app_other_apps,
                 info.appName,
                 (packageNames.size - 1).toString()
@@ -132,17 +132,17 @@ internal suspend fun resolveAppWiseLogsHeader(
     val hint =
         if (isAsn) {
             val txt =
-                context.resources.getString(
+                context.getString(
                     R.string.two_argument_space,
-                    context.resources.getString(R.string.lbl_search),
-                    context.resources.getString(R.string.lbl_service_providers)
+                    context.getString(R.string.lbl_search),
+                    context.getString(R.string.lbl_service_providers)
                 )
-            context.resources.getString(R.string.two_argument_colon, truncated, txt)
+            context.getString(R.string.two_argument_colon, truncated, txt)
         } else {
-            context.resources.getString(
+            context.getString(
                 R.string.two_argument_colon,
                 truncated,
-                context.resources.getString(R.string.search_universal_ips)
+                context.getString(R.string.search_universal_ips)
             )
         }
 

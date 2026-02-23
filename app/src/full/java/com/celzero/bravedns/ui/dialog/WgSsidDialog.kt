@@ -25,13 +25,10 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,10 +41,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.SsidItem
+import com.celzero.bravedns.ui.bottomsheet.RuleSheetTextFieldRow
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
@@ -88,17 +85,17 @@ private fun SsidDialogContent(
 
     val canEdit = ssidInput.isNotBlank()
     val pauseTxt =
-        context.resources.getString(R.string.notification_action_pause_vpn).lowercase()
+        context.getString(R.string.notification_action_pause_vpn).lowercase()
             .replaceFirstChar { it.uppercase() }
     val connectTxt =
-        context.resources.getString(R.string.lbl_connect).lowercase()
+        context.getString(R.string.lbl_connect).lowercase()
             .replaceFirstChar { it.uppercase() }
     val firstArg = if (isEqual) connectTxt else pauseTxt
-    val secArg = context.resources.getString(R.string.lbl_ssid)
-    val exactMatchTxt = context.resources.getString(R.string.wg_ssid_type_exact).lowercase()
-    val partialMatchTxt = context.resources.getString(R.string.wg_ssid_type_wildcard).lowercase()
+    val secArg = context.getString(R.string.lbl_ssid)
+    val exactMatchTxt = context.getString(R.string.wg_ssid_type_exact).lowercase()
+    val partialMatchTxt = context.getString(R.string.wg_ssid_type_wildcard).lowercase()
     val thirdArg = if (isExact) exactMatchTxt else partialMatchTxt
-    val description = context.resources.getString(R.string.wg_ssid_dialog_description, firstArg, secArg, thirdArg)
+    val description = context.getString(R.string.wg_ssid_dialog_description, firstArg, secArg, thirdArg)
 
     if (deleteTarget != null) {
         val item = deleteTarget ?: return
@@ -136,57 +133,39 @@ private fun SsidDialogContent(
         }
 
         RethinkBottomSheetCard {
-            Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
-                Text(
-                    text = stringResource(R.string.lbl_action),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            WgOptionGroup(
+                title = stringResource(R.string.lbl_action),
+                enabled = canEdit,
+                options = listOf(
+                    WgChoiceOption(
+                        text = stringResource(R.string.lbl_connect),
+                        selected = isEqual,
+                        onSelected = { isEqual = true }
+                    ),
+                    WgChoiceOption(
+                        text = pauseTxt,
+                        selected = !isEqual,
+                        onSelected = { isEqual = false }
+                    )
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = isEqual,
-                            onClick = { if (canEdit) isEqual = true },
-                            enabled = canEdit
-                        )
-                        Text(text = stringResource(R.string.lbl_connect))
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = !isEqual,
-                            onClick = { if (canEdit) isEqual = false },
-                            enabled = canEdit
-                        )
-                        Text(text = pauseTxt)
-                    }
-                }
-            }
+            )
 
-            Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
-                Text(
-                    text = stringResource(R.string.lbl_criteria),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            WgOptionGroup(
+                title = stringResource(R.string.lbl_criteria),
+                enabled = canEdit,
+                options = listOf(
+                    WgChoiceOption(
+                        text = stringResource(R.string.wg_ssid_type_exact),
+                        selected = isExact,
+                        onSelected = { isExact = true }
+                    ),
+                    WgChoiceOption(
+                        text = stringResource(R.string.wg_ssid_type_wildcard),
+                        selected = !isExact,
+                        onSelected = { isExact = false }
+                    )
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = isExact,
-                            onClick = { if (canEdit) isExact = true },
-                            enabled = canEdit
-                        )
-                        Text(text = stringResource(R.string.wg_ssid_type_exact))
-                    }
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        RadioButton(
-                            selected = !isExact,
-                            onClick = { if (canEdit) isExact = false },
-                            enabled = canEdit
-                        )
-                        Text(text = stringResource(R.string.wg_ssid_type_wildcard))
-                    }
-                }
-            }
+            )
 
             Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
                 Text(
@@ -194,12 +173,10 @@ private fun SsidDialogContent(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                OutlinedTextField(
+                RuleSheetTextFieldRow(
                     value = ssidInput,
                     onValueChange = { ssidInput = it },
                     placeholder = { Text(text = stringResource(R.string.lbl_ssid)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
                 )
             }
 
@@ -240,6 +217,37 @@ private fun SsidDialogContent(
             onSecondaryClick = onDismiss,
             secondaryStyle = RethinkSecondaryActionStyle.TEXT
         )
+    }
+}
+
+private data class WgChoiceOption(
+    val text: String,
+    val selected: Boolean,
+    val onSelected: () -> Unit
+)
+
+@Composable
+private fun WgOptionGroup(
+    title: String,
+    enabled: Boolean,
+    options: List<WgChoiceOption>
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
+            options.forEach { option ->
+                WgOptionRow(
+                    text = option.text,
+                    selected = option.selected,
+                    enabled = enabled,
+                    onSelected = option.onSelected
+                )
+            }
+        }
     }
 }
 
@@ -286,7 +294,7 @@ private fun addSsid(
     if (ssidName.isBlank()) {
         Utilities.showToastUiCentered(
             context,
-            context.resources.getString(R.string.wg_ssid_invalid_error, context.resources.getString(R.string.lbl_ssids)),
+            context.getString(R.string.wg_ssid_invalid_error, context.getString(R.string.lbl_ssids)),
             Toast.LENGTH_SHORT
         )
         return
@@ -295,7 +303,7 @@ private fun addSsid(
     if (!isValidSsidName(ssidName)) {
         Utilities.showToastUiCentered(
             context,
-            context.resources.getString(R.string.config_add_success_toast),
+            context.getString(R.string.config_add_success_toast),
             Toast.LENGTH_SHORT
         )
         return

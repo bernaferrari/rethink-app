@@ -102,6 +102,7 @@ fun AntiCensorshipScreen(
     var dialSelection by remember { mutableStateOf(initialDial) }
     var retrySelection by remember { mutableStateOf(initialRetry) }
     val context = LocalContext.current
+    val retryDisabledToast = stringResource(id = R.string.ac_toast_retry_disabled)
 
     val selectedDialLabel =
         stringResource(
@@ -243,7 +244,7 @@ fun AntiCensorshipScreen(
                                 if (!enabled) {
                                     Utilities.showToastUiCentered(
                                         context,
-                                        context.resources.getString(R.string.ac_toast_retry_disabled),
+                                        retryDisabledToast,
                                         Toast.LENGTH_LONG
                                     )
                                     return@RethinkListItem

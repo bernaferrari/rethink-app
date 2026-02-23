@@ -29,7 +29,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -47,7 +46,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.unit.dp
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.work.BackoffPolicy
@@ -73,7 +71,6 @@ import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.delay
@@ -122,12 +119,7 @@ fun BackupRestoreSheet(
         observeRestoreWorker(activity, workManager, onFailure = { showRestoreFailureDialog = true })
     }
 
-    RethinkModalBottomSheet(
-        onDismissRequest = onDismiss,
-        contentPadding = PaddingValues(0.dp),
-        verticalSpacing = 0.dp,
-        includeBottomSpacer = false
-    ) {
+    RuleSheetModal(onDismissRequest = onDismiss) {
         Column(
             modifier =
                 Modifier

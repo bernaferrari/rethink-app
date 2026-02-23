@@ -87,7 +87,29 @@ fun AppListScreen(
     var bulkDialogType by remember { mutableStateOf<BlockType?>(null) }
     var showInfoDialog by remember { mutableStateOf(false) }
     var showBypassToolTip by remember { mutableStateOf(true) }
-    
+
+    val unmeteredBlockDialogTitle = stringResource(id = R.string.fapps_unmetered_block_dialog_title)
+    val unmeteredUnblockDialogTitle = stringResource(id = R.string.fapps_unmetered_unblock_dialog_title)
+    val meteredBlockDialogTitle = stringResource(id = R.string.fapps_metered_block_dialog_title)
+    val meteredUnblockDialogTitle = stringResource(id = R.string.fapps_metered_unblock_dialog_title)
+    val isolateBlockDialogTitle = stringResource(id = R.string.fapps_isolate_block_dialog_title)
+    val isolateUnblockDialogTitle = stringResource(id = R.string.fapps_unblock_dialog_title)
+    val bypassBlockDialogTitle = stringResource(id = R.string.fapps_bypass_block_dialog_title)
+    val bypassUnblockDialogTitle = stringResource(id = R.string.fapps_unblock_dialog_title)
+    val excludeBlockDialogTitle = stringResource(id = R.string.fapps_exclude_block_dialog_title)
+    val excludeUnblockDialogTitle = stringResource(id = R.string.fapps_unblock_dialog_title)
+    val bypassDnsFirewallBlockDialogTitle = stringResource(id = R.string.fapps_bypass_dns_firewall_dialog_title)
+    val bypassDnsFirewallUnblockDialogTitle = stringResource(id = R.string.fapps_unblock_dialog_title)
+    val unmeteredBlockDialogMessage = stringResource(id = R.string.fapps_unmetered_block_dialog_message)
+    val unmeteredUnblockDialogMessage = stringResource(id = R.string.fapps_unmetered_unblock_dialog_message)
+    val meteredBlockDialogMessage = stringResource(id = R.string.fapps_metered_block_dialog_message)
+    val meteredUnblockDialogMessage = stringResource(id = R.string.fapps_metered_unblock_dialog_message)
+    val isolateBlockDialogMessage = stringResource(id = R.string.fapps_isolate_block_dialog_message)
+    val bypassBlockDialogMessage = stringResource(id = R.string.fapps_bypass_block_dialog_message)
+    val bypassDnsFirewallBlockDialogMessage = stringResource(id = R.string.fapps_bypass_dns_firewall_dialog_message)
+    val excludeBlockDialogMessage = stringResource(id = R.string.fapps_exclude_block_dialog_message)
+    val unblockDialogMessage = stringResource(id = R.string.fapps_unblock_dialog_message)
+
     val searchQuery = remember { MutableStateFlow(queryText) }
     
     // Apply filters
@@ -108,65 +130,6 @@ fun AppListScreen(
                 val updated = latestFilters.copy(searchString = query)
                 applyFilters(updated)
             }
-    }
-    
-    // Bulk action helpers
-    fun getBulkActionDialogTitle(type: BlockType): String {
-        return when (type) {
-            BlockType.UNMETER -> {
-                if (!bulkWifi) context.resources.getString(R.string.fapps_unmetered_block_dialog_title)
-                else context.resources.getString(R.string.fapps_unmetered_unblock_dialog_title)
-            }
-            BlockType.METER -> {
-                if (!bulkMobile) context.resources.getString(R.string.fapps_metered_block_dialog_title)
-                else context.resources.getString(R.string.fapps_metered_unblock_dialog_title)
-            }
-            BlockType.LOCKDOWN -> {
-                if (!bulkLockdown) context.resources.getString(R.string.fapps_isolate_block_dialog_title)
-                else context.resources.getString(R.string.fapps_unblock_dialog_title)
-            }
-            BlockType.BYPASS -> {
-                if (!bulkBypass) context.resources.getString(R.string.fapps_bypass_block_dialog_title)
-                else context.resources.getString(R.string.fapps_unblock_dialog_title)
-            }
-            BlockType.EXCLUDE -> {
-                if (!bulkExclude) context.resources.getString(R.string.fapps_exclude_block_dialog_title)
-                else context.resources.getString(R.string.fapps_unblock_dialog_title)
-            }
-            BlockType.BYPASS_DNS_FIREWALL -> {
-                if (!bulkBypassDns) context.resources.getString(R.string.fapps_bypass_dns_firewall_dialog_title)
-                else context.resources.getString(R.string.fapps_unblock_dialog_title)
-            }
-        }
-    }
-    
-    fun getBulkActionDialogMessage(type: BlockType): String {
-        return when (type) {
-            BlockType.UNMETER -> {
-                if (!bulkWifi) context.resources.getString(R.string.fapps_unmetered_block_dialog_message)
-                else context.resources.getString(R.string.fapps_unmetered_unblock_dialog_message)
-            }
-            BlockType.METER -> {
-                if (!bulkMobile) context.resources.getString(R.string.fapps_metered_block_dialog_message)
-                else context.resources.getString(R.string.fapps_metered_unblock_dialog_message)
-            }
-            BlockType.LOCKDOWN -> {
-                if (!bulkLockdown) context.resources.getString(R.string.fapps_isolate_block_dialog_message)
-                else context.resources.getString(R.string.fapps_unblock_dialog_message)
-            }
-            BlockType.BYPASS -> {
-                if (!bulkBypass) context.resources.getString(R.string.fapps_bypass_block_dialog_message)
-                else context.resources.getString(R.string.fapps_unblock_dialog_message)
-            }
-            BlockType.BYPASS_DNS_FIREWALL -> {
-                if (!bulkBypassDns) context.resources.getString(R.string.fapps_bypass_dns_firewall_dialog_message)
-                else context.resources.getString(R.string.fapps_unblock_dialog_message)
-            }
-            BlockType.EXCLUDE -> {
-                if (!bulkExclude) context.resources.getString(R.string.fapps_exclude_block_dialog_message)
-                else context.resources.getString(R.string.fapps_unblock_dialog_message)
-            }
-        }
     }
     
     fun resetBulkStates(type: BlockType) {
@@ -343,8 +306,36 @@ fun AppListScreen(
         onInfoDialogDismiss = { showInfoDialog = false },
         onShowInfoDialog = { showInfoDialog = true },
         onShowBulkDialog = { type ->
-            bulkDialogTitle = getBulkActionDialogTitle(type)
-            bulkDialogMessage = getBulkActionDialogMessage(type)
+            when (type) {
+                BlockType.UNMETER -> {
+                    bulkDialogTitle = if (!bulkWifi) unmeteredBlockDialogTitle else unmeteredUnblockDialogTitle
+                    bulkDialogMessage =
+                        if (!bulkWifi) unmeteredBlockDialogMessage else unmeteredUnblockDialogMessage
+                }
+                BlockType.METER -> {
+                    bulkDialogTitle = if (!bulkMobile) meteredBlockDialogTitle else meteredUnblockDialogTitle
+                    bulkDialogMessage =
+                        if (!bulkMobile) meteredBlockDialogMessage else meteredUnblockDialogMessage
+                }
+                BlockType.LOCKDOWN -> {
+                    bulkDialogTitle = if (!bulkLockdown) isolateBlockDialogTitle else isolateUnblockDialogTitle
+                    bulkDialogMessage = if (!bulkLockdown) isolateBlockDialogMessage else unblockDialogMessage
+                }
+                BlockType.BYPASS -> {
+                    bulkDialogTitle = if (!bulkBypass) bypassBlockDialogTitle else bypassUnblockDialogTitle
+                    bulkDialogMessage = if (!bulkBypass) bypassBlockDialogMessage else unblockDialogMessage
+                }
+                BlockType.BYPASS_DNS_FIREWALL -> {
+                    bulkDialogTitle =
+                        if (!bulkBypassDns) bypassDnsFirewallBlockDialogTitle else bypassDnsFirewallUnblockDialogTitle
+                    bulkDialogMessage =
+                        if (!bulkBypassDns) bypassDnsFirewallBlockDialogMessage else unblockDialogMessage
+                }
+                BlockType.EXCLUDE -> {
+                    bulkDialogTitle = if (!bulkExclude) excludeBlockDialogTitle else excludeUnblockDialogTitle
+                    bulkDialogMessage = if (!bulkExclude) excludeBlockDialogMessage else unblockDialogMessage
+                }
+            }
             bulkDialogType = type
             showBulkUpdateDialog = true
         },

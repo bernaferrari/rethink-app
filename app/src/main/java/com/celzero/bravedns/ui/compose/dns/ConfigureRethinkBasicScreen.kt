@@ -100,6 +100,7 @@ import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
 import com.celzero.bravedns.ui.compose.theme.RethinkMultiActionDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkSecondaryActionStyle
 import com.celzero.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
 import com.celzero.bravedns.util.Constants
@@ -261,7 +262,7 @@ fun ConfigureRethinkBasicScreen(
         showRemoteProgress = false
         showToastUiCentered(
             context,
-            context.resources.getString(R.string.download_update_dialog_message_success),
+            context.getString(R.string.download_update_dialog_message_success),
             Toast.LENGTH_SHORT
         )
     }
@@ -394,7 +395,7 @@ fun ConfigureRethinkBasicScreen(
                 withContext(Dispatchers.Main) {
                     showToastUiCentered(
                         context,
-                        context.resources.getString(R.string.download_update_dialog_failure_message),
+                        context.getString(R.string.download_update_dialog_failure_message),
                         Toast.LENGTH_SHORT
                     )
                 }
@@ -634,7 +635,7 @@ private fun RethinkListContent(
                 onRefreshUpdateUi()
                 Utilities.showToastUiCentered(
                     context,
-                    context.resources.getString(R.string.download_update_dialog_failure_message),
+                    context.getString(R.string.download_update_dialog_failure_message),
                     Toast.LENGTH_SHORT
                 )
             }
@@ -678,7 +679,7 @@ private fun RethinkListContent(
             ) {
                 if (persistentState.remoteBlocklistTimestamp != Constants.INIT_TIME_MS || actionText != null) {
                     Text(
-                        text = context.resources.getString(
+                        text = context.getString(
                             R.string.settings_local_blocklist_version,
                             Utilities.convertLongToTime(
                                 persistentState.remoteBlocklistTimestamp,
@@ -1152,7 +1153,8 @@ private fun RethinkBlocklistContent(
                 secondaryText = stringResource(id = R.string.notif_dialog_pause_dialog_negative),
                 primaryText = stringResource(id = R.string.lbl_apply),
                 onSecondaryClick = onRevertChanges,
-                onPrimaryClick = onApplyChanges
+                onPrimaryClick = onApplyChanges,
+                secondaryStyle = RethinkSecondaryActionStyle.TEXT
             )
         }
     }
@@ -1220,7 +1222,8 @@ private fun RethinkPlusFilterSheet(
                 filters.postValue(updated)
                 onDismiss()
             },
-            primaryEnabled = true
+            primaryEnabled = true,
+            secondaryStyle = RethinkSecondaryActionStyle.TEXT
         )
     }
 }
@@ -1278,9 +1281,9 @@ private fun isBase64(stamp: String): Boolean {
 
 private fun buildFilterDescription(context: Context, filter: RethinkBlocklistState.Filters): String {
     val text = if (filter.subGroups.isEmpty()) {
-        context.resources.getString(R.string.rt_filter_desc, filter.filterSelected.name.lowercase())
+        context.getString(R.string.rt_filter_desc, filter.filterSelected.name.lowercase())
     } else {
-        context.resources.getString(
+        context.getString(
             R.string.rt_filter_desc_subgroups,
             filter.filterSelected.name.lowercase(),
             "",

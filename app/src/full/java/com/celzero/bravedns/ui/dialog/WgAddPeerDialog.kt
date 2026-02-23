@@ -16,10 +16,7 @@
 package com.celzero.bravedns.ui.dialog
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -27,12 +24,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.WireguardManager
+import com.celzero.bravedns.ui.bottomsheet.RuleSheetTextFieldRow
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
@@ -105,21 +102,19 @@ fun WgAddPeerDialog(
 
             RethinkBottomSheetCard {
                 Text(text = stringResource(R.string.add_peer), style = MaterialTheme.typography.titleLarge)
-                OutlinedTextField(
+                RuleSheetTextFieldRow(
                     value = publicKey,
                     onValueChange = { publicKey = it },
                     label = { Text(text = stringResource(R.string.lbl_public_key)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    keyboardType = KeyboardType.Password
                 )
-                OutlinedTextField(
+                RuleSheetTextFieldRow(
                     value = presharedKey,
                     onValueChange = { presharedKey = it },
                     label = { Text(text = stringResource(R.string.lbl_preshared_key)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    keyboardType = KeyboardType.Password
                 )
-                OutlinedTextField(
+                RuleSheetTextFieldRow(
                     value = keepAlive,
                     onValueChange = { value ->
                         keepAlive = value
@@ -128,8 +123,7 @@ fun WgAddPeerDialog(
                                 .orEmpty()
                     },
                     label = { Text(text = stringResource(R.string.lbl_persistent_keepalive)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                    keyboardType = KeyboardType.Number
                 )
                 if (keepAliveHint.isNotBlank()) {
                     Text(
@@ -138,19 +132,17 @@ fun WgAddPeerDialog(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                OutlinedTextField(
+                RuleSheetTextFieldRow(
                     value = endpoint,
                     onValueChange = { endpoint = it },
                     label = { Text(text = stringResource(R.string.parse_error_inet_endpoint)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    keyboardType = KeyboardType.Password
                 )
-                OutlinedTextField(
+                RuleSheetTextFieldRow(
                     value = allowedIps,
                     onValueChange = { allowedIps = it },
                     label = { Text(text = stringResource(R.string.lbl_allowed_ips)) },
-                    modifier = Modifier.fillMaxWidth(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                    keyboardType = KeyboardType.Text
                 )
             }
             RethinkBottomSheetActionRow(

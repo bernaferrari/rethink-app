@@ -116,9 +116,9 @@ fun ConsoleLogScreen(
             val sinceTime = viewModel.sinceTime()
             if (sinceTime != 0L) {
                 val since = Utilities.convertLongToTime(sinceTime, Constants.TIME_FORMAT_3)
-                val desc = context.resources.getString(R.string.console_log_desc)
-                val sinceTxt = context.resources.getString(R.string.logs_card_duration, since)
-                infoText = context.resources.getString(R.string.two_argument_space, desc, sinceTxt)
+                val desc = context.getString(R.string.console_log_desc)
+                val sinceTxt = context.getString(R.string.logs_card_duration, since)
+                infoText = context.getString(R.string.two_argument_space, desc, sinceTxt)
             }
         }
     }

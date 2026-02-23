@@ -19,16 +19,12 @@ package com.celzero.bravedns.ui.dialog
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -38,16 +34,17 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.bottomsheet.RuleSheetDualTextFieldRow
 import com.celzero.bravedns.ui.bottomsheet.RuleSheetModeToggle
+import com.celzero.bravedns.ui.bottomsheet.RuleSheetModal
+import com.celzero.bravedns.ui.bottomsheet.RuleSheetSectionTitle
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
-import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.celzero.bravedns.ui.compose.theme.RethinkSecondaryActionStyle
 import inet.ipaddr.IPAddressString
 import io.github.aakira.napier.Napier
 
@@ -194,7 +191,7 @@ fun CustomLanIpSheet(
             onDismiss()
         } catch (e: Exception) {
             Napier.e("err saving custom lan ip (auto): ${e.message}")
-            errorMessage = context.resources.getString(R.string.custom_lan_ip_save_error)
+            errorMessage = context.getString(R.string.custom_lan_ip_save_error)
         }
     }
 
@@ -222,7 +219,7 @@ fun CustomLanIpSheet(
                 !validateIpv4WithPrefix(dnsV4, dnsV4Prefix) ||
                 !validateIpv6WithPrefix(dnsV6, dnsV6Prefix)
             ) {
-                errorMessage = context.resources.getString(R.string.custom_lan_ip_validation_error)
+                errorMessage = context.getString(R.string.custom_lan_ip_validation_error)
                 return
             }
 
@@ -263,7 +260,7 @@ fun CustomLanIpSheet(
             onDismiss()
         } catch (e: Exception) {
             Napier.e("err saving custom lan ip (manual): ${e.message}")
-            errorMessage = context.resources.getString(R.string.custom_lan_ip_save_error)
+            errorMessage = context.getString(R.string.custom_lan_ip_save_error)
         }
     }
 
@@ -278,12 +275,7 @@ fun CustomLanIpSheet(
         }
     }
 
-    RethinkModalBottomSheet(
-        onDismissRequest = onDismiss,
-        contentPadding = PaddingValues(0.dp),
-        verticalSpacing = 0.dp,
-        includeBottomSpacer = false
-    ) {
+    RuleSheetModal(onDismissRequest = onDismiss) {
         val manualEnabled = currentMode
 
         Column(
@@ -298,8 +290,8 @@ fun CustomLanIpSheet(
         ) {
             RethinkBottomSheetCard {
                 RuleSheetModeToggle(
-                    autoLabel = context.resources.getString(R.string.settings_ip_text_ipv46),
-                    manualLabel = context.resources.getString(R.string.lbl_manual),
+                    autoLabel = context.getString(R.string.settings_ip_text_ipv46),
+                    manualLabel = context.getString(R.string.lbl_manual),
                     isAutoSelected = !currentMode,
                     onAutoClick = {
                         currentMode = false
@@ -315,9 +307,9 @@ fun CustomLanIpSheet(
                 Text(
                     text =
                         if (currentMode) {
-                            context.resources.getString(R.string.custom_lan_ip_manual_desc)
+                            context.getString(R.string.custom_lan_ip_manual_desc)
                         } else {
-                            context.resources.getString(R.string.custom_lan_ip_auto_desc)
+                            context.getString(R.string.custom_lan_ip_auto_desc)
                         },
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -325,69 +317,78 @@ fun CustomLanIpSheet(
             }
 
             RethinkBottomSheetCard {
-                SectionTitle(text = context.resources.getString(R.string.custom_lan_ip_gateway))
-                IpRow(
-                    ipValue = gatewayIpv4,
-                    prefixValue = gatewayIpv4Prefix,
-                    ipHint = context.resources.getString(R.string.settings_ip_text_ipv4),
-                    prefixHint = context.resources.getString(R.string.lbl_prefix),
-                    enabled = manualEnabled,
-                    onIpChange = { gatewayIpv4 = it },
-                    onPrefixChange = { gatewayIpv4Prefix = it }
+                RuleSheetSectionTitle(
+                    text = context.getString(R.string.custom_lan_ip_gateway),
+                    horizontalPadding = 0.dp
                 )
-                IpRow(
-                    ipValue = gatewayIpv6,
-                    prefixValue = gatewayIpv6Prefix,
-                    ipHint = context.resources.getString(R.string.settings_ip_text_ipv6),
-                    prefixHint = context.resources.getString(R.string.lbl_prefix),
-                    enabled = manualEnabled,
-                    onIpChange = { gatewayIpv6 = it },
-                    onPrefixChange = { gatewayIpv6Prefix = it }
+                RuleSheetDualTextFieldRow(
+                    primaryValue = gatewayIpv4,
+                    onPrimaryValueChange = { gatewayIpv4 = it },
+                    secondaryValue = gatewayIpv4Prefix,
+                    onSecondaryValueChange = { gatewayIpv4Prefix = it },
+                    primaryLabel = { Text(text = context.getString(R.string.settings_ip_text_ipv4)) },
+                    secondaryLabel = { Text(text = context.getString(R.string.lbl_prefix)) },
+                    enabled = manualEnabled
                 )
-
-                SectionTitle(text = context.resources.getString(R.string.custom_lan_ip_router))
-                IpRow(
-                    ipValue = routerIpv4,
-                    prefixValue = routerIpv4Prefix,
-                    ipHint = context.resources.getString(R.string.settings_ip_text_ipv4),
-                    prefixHint = context.resources.getString(R.string.lbl_prefix),
-                    enabled = manualEnabled,
-                    onIpChange = { routerIpv4 = it },
-                    onPrefixChange = { routerIpv4Prefix = it }
-                )
-                IpRow(
-                    ipValue = routerIpv6,
-                    prefixValue = routerIpv6Prefix,
-                    ipHint = context.resources.getString(R.string.settings_ip_text_ipv6),
-                    prefixHint = context.resources.getString(R.string.lbl_prefix),
-                    enabled = manualEnabled,
-                    onIpChange = { routerIpv6 = it },
-                    onPrefixChange = { routerIpv6Prefix = it }
+                RuleSheetDualTextFieldRow(
+                    primaryValue = gatewayIpv6,
+                    onPrimaryValueChange = { gatewayIpv6 = it },
+                    secondaryValue = gatewayIpv6Prefix,
+                    onSecondaryValueChange = { gatewayIpv6Prefix = it },
+                    primaryLabel = { Text(text = context.getString(R.string.settings_ip_text_ipv6)) },
+                    secondaryLabel = { Text(text = context.getString(R.string.lbl_prefix)) },
+                    enabled = manualEnabled
                 )
 
-                SectionTitle(text = context.resources.getString(R.string.dns_mode_info_title))
-                IpRow(
-                    ipValue = dnsIpv4,
-                    prefixValue = dnsIpv4Prefix,
-                    ipHint = context.resources.getString(R.string.settings_ip_text_ipv4),
-                    prefixHint = context.resources.getString(R.string.lbl_prefix),
-                    enabled = manualEnabled,
-                    onIpChange = { dnsIpv4 = it },
-                    onPrefixChange = { dnsIpv4Prefix = it }
+                RuleSheetSectionTitle(
+                    text = context.getString(R.string.custom_lan_ip_router),
+                    horizontalPadding = 0.dp
                 )
-                IpRow(
-                    ipValue = dnsIpv6,
-                    prefixValue = dnsIpv6Prefix,
-                    ipHint = context.resources.getString(R.string.settings_ip_text_ipv6),
-                    prefixHint = context.resources.getString(R.string.lbl_prefix),
-                    enabled = manualEnabled,
-                    onIpChange = { dnsIpv6 = it },
-                    onPrefixChange = { dnsIpv6Prefix = it }
+                RuleSheetDualTextFieldRow(
+                    primaryValue = routerIpv4,
+                    onPrimaryValueChange = { routerIpv4 = it },
+                    secondaryValue = routerIpv4Prefix,
+                    onSecondaryValueChange = { routerIpv4Prefix = it },
+                    primaryLabel = { Text(text = context.getString(R.string.settings_ip_text_ipv4)) },
+                    secondaryLabel = { Text(text = context.getString(R.string.lbl_prefix)) },
+                    enabled = manualEnabled
+                )
+                RuleSheetDualTextFieldRow(
+                    primaryValue = routerIpv6,
+                    onPrimaryValueChange = { routerIpv6 = it },
+                    secondaryValue = routerIpv6Prefix,
+                    onSecondaryValueChange = { routerIpv6Prefix = it },
+                    primaryLabel = { Text(text = context.getString(R.string.settings_ip_text_ipv6)) },
+                    secondaryLabel = { Text(text = context.getString(R.string.lbl_prefix)) },
+                    enabled = manualEnabled
+                )
+
+                RuleSheetSectionTitle(
+                    text = context.getString(R.string.dns_mode_info_title),
+                    horizontalPadding = 0.dp
+                )
+                RuleSheetDualTextFieldRow(
+                    primaryValue = dnsIpv4,
+                    onPrimaryValueChange = { dnsIpv4 = it },
+                    secondaryValue = dnsIpv4Prefix,
+                    onSecondaryValueChange = { dnsIpv4Prefix = it },
+                    primaryLabel = { Text(text = context.getString(R.string.settings_ip_text_ipv4)) },
+                    secondaryLabel = { Text(text = context.getString(R.string.lbl_prefix)) },
+                    enabled = manualEnabled
+                )
+                RuleSheetDualTextFieldRow(
+                    primaryValue = dnsIpv6,
+                    onPrimaryValueChange = { dnsIpv6 = it },
+                    secondaryValue = dnsIpv6Prefix,
+                    onSecondaryValueChange = { dnsIpv6Prefix = it },
+                    primaryLabel = { Text(text = context.getString(R.string.settings_ip_text_ipv6)) },
+                    secondaryLabel = { Text(text = context.getString(R.string.lbl_prefix)) },
+                    enabled = manualEnabled
                 )
             }
 
             RethinkBottomSheetActionRow(
-                primaryText = context.resources.getString(R.string.lbl_save),
+                primaryText = context.getString(R.string.lbl_save),
                 onPrimaryClick = {
                     if (!currentMode) {
                         saveAutoMode()
@@ -395,7 +396,7 @@ fun CustomLanIpSheet(
                         saveManualMode()
                     }
                 },
-                secondaryText = context.resources.getString(R.string.lbl_reset),
+                secondaryText = context.getString(R.string.lbl_reset),
                 onSecondaryClick = {
                     if (!currentMode) {
                         Toast.makeText(context, R.string.custom_lan_ip_saved_auto, Toast.LENGTH_SHORT).show()
@@ -403,7 +404,8 @@ fun CustomLanIpSheet(
                         resetManualFields()
                     }
                 },
-                secondaryEnabled = currentMode
+                secondaryEnabled = currentMode,
+                secondaryStyle = RethinkSecondaryActionStyle.TEXT
             )
 
             if (errorMessage.isNotBlank()) {
@@ -415,51 +417,6 @@ fun CustomLanIpSheet(
                 )
             }
         }
-    }
-}
-
-@Composable
-private fun SectionTitle(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleSmall,
-        fontWeight = FontWeight.Bold,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = Dimensions.spacingXs)
-    )
-}
-
-@Composable
-private fun IpRow(
-    ipValue: String,
-    prefixValue: String,
-    ipHint: String,
-    prefixHint: String,
-    enabled: Boolean,
-    onIpChange: (String) -> Unit,
-    onPrefixChange: (String) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-    ) {
-        OutlinedTextField(
-            value = ipValue,
-            onValueChange = onIpChange,
-            modifier = Modifier.weight(2f),
-            singleLine = true,
-            label = { Text(text = ipHint) },
-            enabled = enabled
-        )
-        OutlinedTextField(
-            value = prefixValue,
-            onValueChange = onPrefixChange,
-            modifier = Modifier.weight(1f),
-            singleLine = true,
-            label = { Text(text = prefixHint) },
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            enabled = enabled
-        )
     }
 }
 

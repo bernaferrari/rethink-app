@@ -231,6 +231,7 @@ fun MiscSettingsScreen(
     }
 
     val context = LocalContext.current
+    val aboutWebsiteLink = stringResource(id = R.string.about_website_link)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val listState = rememberLazyListState()
     val density = LocalDensity.current
@@ -514,7 +515,7 @@ fun MiscSettingsScreen(
                             position = CardPosition.Single,
                             highlighted = activeFocusKey == "general_website",
                             highlightContainerColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.24f),
-                            onClick = { openUrl(context, context.resources.getString(R.string.about_website_link)) }
+                            onClick = { openUrl(context, aboutWebsiteLink) }
                         )
                     }
                 }

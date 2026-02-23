@@ -32,8 +32,8 @@
     <string name="lbl_action_required" translatable="true">Action Required</string>
     <string name="lbl_rules" translatable="true">Rules</string>
     <string name="lbl_configure" translatable="true">Configure</string>
-    <string name="lbl_logs" translatable="true">logs</string>
-    <string name="lbl_network" translatable="true">network</string>
+    <string name="lbl_logs" translatable="true">Logs</string>
+    <string name="lbl_network" translatable="true">Network</string>
     <string name="lbl_create" translatable="true">Create</string>
     <string name="lbl_qr_code" translatable="true">QR Code</string>
     <string name="lbl_import" translatable="true">Import</string>
@@ -1863,7 +1863,7 @@
     <string name="adv_set_dial_timeout_desc" translatable="true">Close idle TCP and UDP sockets after this duration.</string>
 
     <string name="adv_set_experimental_title" translatable="false">Experimental</string>
-    <string name="adv_set_experimental_desc" translatable="false">Experimental features in network engine.</string>
+    <string name="adv_set_experimental_desc" translatable="false">Experimental features in the Network Engine.</string>
 
     <string name="select_wg_proxy_desc" translatable="false">Select WireGuard proxy</string>
 

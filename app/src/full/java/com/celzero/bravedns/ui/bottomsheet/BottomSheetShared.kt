@@ -32,11 +32,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.background
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -46,6 +48,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
@@ -121,6 +127,120 @@ fun RuleSheetLayout(
 }
 
 @Composable
+fun RuleSheetLabeledControlRow(
+    label: @Composable () -> Unit,
+    control: (@Composable () -> Unit)? = null,
+    modifier: Modifier = Modifier,
+    labelWeight: Float = 1f,
+    controlWeight: Float = 1f,
+    horizontalPadding: Dp = Dimensions.spacingMd,
+    spacing: Dp = Dimensions.spacingSmMd,
+    controlAlignment: Alignment = Alignment.CenterEnd
+) {
+    Row(
+        modifier = modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(spacing)
+    ) {
+        Box(
+            modifier = Modifier.weight(if (control == null) 1f else labelWeight),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            label()
+        }
+        if (control != null) {
+            Box(
+                modifier = Modifier.weight(controlWeight),
+                contentAlignment = controlAlignment
+            ) {
+                control()
+            }
+        }
+    }
+}
+
+@Composable
+fun RuleSheetTextFieldRow(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    label: (@Composable (() -> Unit))? = null,
+    placeholder: (@Composable (() -> Unit))? = null,
+    fieldWeight: Float = 1f,
+    spacing: Dp = Dimensions.spacingSm,
+    trailingTopPadding: Dp = Dimensions.spacingMd,
+    trailing: (@Composable (() -> Unit))? = null
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(spacing),
+        verticalAlignment = Alignment.Top
+    ) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = onValueChange,
+            modifier = Modifier.weight(fieldWeight),
+            singleLine = true,
+            enabled = enabled,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            label = label,
+            placeholder = placeholder
+        )
+        if (trailing != null) {
+            Box(
+                modifier = Modifier.padding(top = trailingTopPadding),
+                contentAlignment = Alignment.Center
+            ) {
+                trailing()
+            }
+        }
+    }
+}
+
+@Composable
+fun RuleSheetDualTextFieldRow(
+    primaryValue: String,
+    onPrimaryValueChange: (String) -> Unit,
+    secondaryValue: String,
+    onSecondaryValueChange: (String) -> Unit,
+    primaryLabel: @Composable (() -> Unit),
+    secondaryLabel: @Composable (() -> Unit),
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    primaryWeight: Float = 2f,
+    secondaryWeight: Float = 1f,
+    spacing: Dp = Dimensions.spacingSm,
+    primaryKeyboardType: KeyboardType = KeyboardType.Text,
+    secondaryKeyboardType: KeyboardType = KeyboardType.Number
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(spacing)
+    ) {
+        OutlinedTextField(
+            value = primaryValue,
+            onValueChange = onPrimaryValueChange,
+            modifier = Modifier.weight(primaryWeight),
+            singleLine = true,
+            label = primaryLabel,
+            enabled = enabled,
+            keyboardOptions = KeyboardOptions(keyboardType = primaryKeyboardType)
+        )
+        OutlinedTextField(
+            value = secondaryValue,
+            onValueChange = onSecondaryValueChange,
+            modifier = Modifier.weight(secondaryWeight),
+            singleLine = true,
+            label = secondaryLabel,
+            enabled = enabled,
+            keyboardOptions = KeyboardOptions(keyboardType = secondaryKeyboardType)
+        )
+    }
+}
+
+@Composable
 fun rememberRuleSheetChipColors(): RuleSheetChipColors {
     return RuleSheetChipColors(
         neutralText = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -136,14 +256,26 @@ fun rememberRuleSheetChipColors(): RuleSheetChipColors {
 fun RuleSheetAppHeader(
     appName: String?,
     appIcon: Drawable?,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    iconSize: Dp = Dimensions.iconSizeSm,
+    textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
+    horizontalPadding: Dp = Dimensions.screenPaddingHorizontal,
+    onClick: (() -> Unit)? = null
 ) {
     if (appName.isNullOrBlank()) return
+
+    val clickableModifier =
+        if (onClick != null) {
+            Modifier.clickable(onClick = onClick)
+        } else {
+            Modifier
+        }
 
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimensions.screenPaddingHorizontal),
+            .then(clickableModifier)
+            .padding(horizontal = horizontalPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
@@ -153,15 +285,104 @@ fun RuleSheetAppHeader(
                 Image(
                     painter = painter,
                     contentDescription = null,
-                    modifier = Modifier.size(Dimensions.iconSizeSm)
+                    modifier = Modifier.size(iconSize)
                 )
                 Spacer(modifier = Modifier.width(Dimensions.spacingSmMd))
             }
         }
         Text(
             text = appName,
-            style = MaterialTheme.typography.bodyMedium,
+            style = textStyle,
             color = MaterialTheme.colorScheme.onSurface
+        )
+    }
+}
+
+@Composable
+fun RuleSheetSummaryPill(
+    text: String,
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.72f),
+    textColor: Color = MaterialTheme.colorScheme.onSecondaryContainer,
+    textStyle: TextStyle = MaterialTheme.typography.labelMedium,
+    fontWeight: FontWeight = FontWeight.SemiBold,
+    horizontalPadding: Dp = Dimensions.spacingMd,
+    verticalPadding: Dp = Dimensions.spacingSm
+) {
+    androidx.compose.material3.Surface(
+        modifier = modifier,
+        shape = MaterialTheme.shapes.extraLarge,
+        color = containerColor
+    ) {
+        Text(
+            text = text,
+            style = textStyle,
+            color = textColor,
+            fontWeight = fontWeight,
+            modifier = Modifier.padding(horizontal = horizontalPadding, vertical = verticalPadding)
+        )
+    }
+}
+
+@Composable
+fun RuleSheetFlagDestinationRow(
+    flag: String,
+    destination: String,
+    modifier: Modifier = Modifier,
+    destinationStyle: TextStyle = MaterialTheme.typography.titleLarge,
+    destinationFontFamily: FontFamily = FontFamily.Monospace,
+    horizontalPadding: Dp = Dimensions.spacingMd
+) {
+    if (destination.isBlank()) return
+
+    Row(
+        modifier = modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        if (flag.isNotBlank()) {
+            Text(
+                text = flag,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.padding(end = Dimensions.spacingSm)
+            )
+        }
+        SelectionContainer {
+            Text(
+                text = destination,
+                style = destinationStyle,
+                fontFamily = destinationFontFamily,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
+    }
+}
+
+@Composable
+fun RuleSheetSplitDetailsRow(
+    modifier: Modifier = Modifier,
+    horizontalPadding: Dp = Dimensions.spacingXl,
+    dividerColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    dividerHeight: Dp = 32.dp,
+    leftContent: @Composable ColumnScope.() -> Unit,
+    rightContent: @Composable ColumnScope.() -> Unit
+) {
+    Row(
+        modifier = modifier.fillMaxWidth().padding(horizontal = horizontalPadding),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.End,
+            content = leftContent
+        )
+        Spacer(modifier = Modifier.width(Dimensions.spacingSmMd))
+        Box(modifier = Modifier.width(1.dp).height(dividerHeight).background(dividerColor))
+        Spacer(modifier = Modifier.width(Dimensions.spacingSmMd))
+        Column(
+            modifier = Modifier.weight(1f),
+            horizontalAlignment = Alignment.Start,
+            content = rightContent
         )
     }
 }
@@ -196,26 +417,28 @@ fun TrustBlockToggleStrip(
 @Composable
 fun RuleSheetSectionTitle(
     text: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    horizontalPadding: Dp = Dimensions.screenPaddingHorizontal
 ) {
     Text(
         text = text,
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.fillMaxWidth().padding(horizontal = Dimensions.screenPaddingHorizontal)
+        modifier = modifier.fillMaxWidth().padding(horizontal = horizontalPadding)
     )
 }
 
 @Composable
 fun RuleSheetSupportingText(
     text: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    horizontalPadding: Dp = Dimensions.screenPaddingHorizontal
 ) {
     Text(
         text = text,
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = modifier.fillMaxWidth().padding(horizontal = Dimensions.screenPaddingHorizontal)
+        modifier = modifier.fillMaxWidth().padding(horizontal = horizontalPadding)
     )
 }
 
@@ -393,7 +616,7 @@ fun formatRuleSheetAppName(context: Context, appNames: List<String>): String? {
     return when {
         appNames.isEmpty() -> null
         appNames.size >= 2 ->
-            context.resources.getString(
+            context.getString(
                 R.string.ctbs_app_other_apps,
                 appNames[0],
                 appNames.size.minus(1).toString()
@@ -405,11 +628,11 @@ fun formatRuleSheetAppName(context: Context, appNames: List<String>): String? {
 fun formatCustomRuleSheetAppName(context: Context, uid: Int, appNames: List<String>): String {
     return when {
         uid == UID_EVERYBODY ->
-            context.resources.getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
+            context.getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
         appNames.isEmpty() ->
-            context.resources.getString(R.string.network_log_app_name_unknown) + " ($uid)"
+            context.getString(R.string.network_log_app_name_unknown) + " ($uid)"
         appNames.size >= 2 ->
-            context.resources.getString(
+            context.getString(
                 R.string.ctbs_app_other_apps,
                 appNames[0],
                 appNames.size.minus(1).toString()

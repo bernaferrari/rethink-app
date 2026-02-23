@@ -150,7 +150,7 @@ fun WgMainScreen(
         val activeConfigs = WireguardManager.getActiveConfigs()
         disclaimerText = if (WireguardManager.oneWireGuardEnabled()) {
             val dnsName = activeConfigs.firstOrNull()?.getName() ?: ""
-            context.resources.getString(R.string.wireguard_disclaimer, dnsName)
+            context.getString(R.string.wireguard_disclaimer, dnsName)
         } else {
             var dnsNames = connectedDns
             if (persistentState.splitDns && activeConfigs.isNotEmpty()) {
@@ -160,9 +160,9 @@ fun WgMainScreen(
                 dnsNames += activeConfigs.joinToString(",") { it.getName() }
             }
             if (persistentState.useFallbackDnsToBypass) {
-                dnsNames += ", " + context.resources.getString(R.string.lbl_fallback)
+                dnsNames += ", " + context.getString(R.string.lbl_fallback)
             }
-            context.resources.getString(R.string.wireguard_disclaimer, dnsNames)
+            context.getString(R.string.wireguard_disclaimer, dnsNames)
         }
     }
 
@@ -208,7 +208,7 @@ fun WgMainScreen(
                             }
                             Utilities.showToastUiCentered(
                                 context,
-                                context.resources.getString(msgRes),
+                                context.getString(msgRes),
                                 Toast.LENGTH_LONG
                             )
                         }

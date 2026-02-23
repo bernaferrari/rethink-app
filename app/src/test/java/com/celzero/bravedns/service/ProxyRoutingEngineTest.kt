@@ -152,6 +152,134 @@ class ProxyRoutingEngineTest {
         assertEquals(ProxyRoutingEngine.Reason.DNS_PROXY_DIRECT_APP, decision.reason)
     }
 
+    @Test
+    fun `determine route precedence matrix`() {
+        data class Case(
+            val name: String,
+            val request: ProxyRoutingEngine.RoutingRequest,
+            val expectedProxy: String,
+            val expectedReason: ProxyRoutingEngine.Reason,
+            val expectedOrbotNotIncluded: Boolean? = null
+        )
+
+        val wgProxyId = ProxyManager.ID_WG_BASE + "7"
+        val cases =
+            listOf(
+                Case(
+                    name = "wireguard takes precedence",
+                    request =
+                        routingRequest(
+                            wireguardProxyIds = listOf(wgProxyId),
+                            isOrbotProxyEnabled = true,
+                            orbotProxyAssignedToApp = true,
+                            isCustomSocks5Enabled = true,
+                            isCustomHttpProxyEnabled = true
+                        ),
+                    expectedProxy = wgProxyId,
+                    expectedReason = ProxyRoutingEngine.Reason.WIREGUARD
+                ),
+                Case(
+                    name = "orbot direct app takes precedence",
+                    request =
+                        routingRequest(
+                            isOrbotProxyEnabled = true,
+                            packageName = "com.test.app",
+                            orbotProxyAppName = "com.test.app",
+                            orbotProxyAssignedToApp = true
+                        ),
+                    expectedProxy = Backend.Exit,
+                    expectedReason = ProxyRoutingEngine.Reason.ORBOT_DIRECT_APP
+                ),
+                Case(
+                    name = "orbot proxy takes precedence over socks and http",
+                    request =
+                        routingRequest(
+                            isOrbotProxyEnabled = true,
+                            orbotProxyAssignedToApp = true,
+                            isCustomSocks5Enabled = true,
+                            isCustomHttpProxyEnabled = true
+                        ),
+                    expectedProxy = ProxyManager.ID_ORBOT_BASE,
+                    expectedReason = ProxyRoutingEngine.Reason.ORBOT_PROXY
+                ),
+                Case(
+                    name = "socks5 direct app takes precedence over proxy id",
+                    request =
+                        routingRequest(
+                            isCustomSocks5Enabled = true,
+                            packageName = "com.test.app",
+                            socks5ProxyAppName = "com.test.app"
+                        ),
+                    expectedProxy = Backend.Exit,
+                    expectedReason = ProxyRoutingEngine.Reason.SOCKS5_DIRECT_APP
+                ),
+                Case(
+                    name = "socks5 proxy takes precedence over http proxy",
+                    request =
+                        routingRequest(
+                            isCustomSocks5Enabled = true,
+                            isCustomHttpProxyEnabled = true
+                        ),
+                    expectedProxy = ProxyManager.ID_S5_BASE,
+                    expectedReason = ProxyRoutingEngine.Reason.SOCKS5_PROXY
+                ),
+                Case(
+                    name = "http direct app selected",
+                    request =
+                        routingRequest(
+                            isCustomHttpProxyEnabled = true,
+                            packageName = "com.test.app",
+                            httpProxyAppName = "com.test.app"
+                        ),
+                    expectedProxy = Backend.Exit,
+                    expectedReason = ProxyRoutingEngine.Reason.HTTP_DIRECT_APP
+                ),
+                Case(
+                    name = "http proxy selected when app does not match",
+                    request =
+                        routingRequest(
+                            isCustomHttpProxyEnabled = true,
+                            packageName = "com.other.app",
+                            httpProxyAppName = "com.test.app"
+                        ),
+                    expectedProxy = ProxyManager.ID_HTTP_BASE,
+                    expectedReason = ProxyRoutingEngine.Reason.HTTP_PROXY
+                ),
+                Case(
+                    name = "fallback base or exit with orbot enabled but app not assigned",
+                    request =
+                        routingRequest(
+                            isOrbotProxyEnabled = true,
+                            orbotProxyAssignedToApp = false,
+                            baseOrExitProxyId = Backend.Base
+                        ),
+                    expectedProxy = Backend.Base,
+                    expectedReason = ProxyRoutingEngine.Reason.FALLBACK_BASE_OR_EXIT,
+                    expectedOrbotNotIncluded = true
+                ),
+                Case(
+                    name = "no proxy active returns base or exit",
+                    request =
+                        routingRequest(
+                            isProxyEnabled = false,
+                            isDnsProxyActive = false,
+                            baseOrExitProxyId = Backend.Base
+                        ),
+                    expectedProxy = Backend.Base,
+                    expectedReason = ProxyRoutingEngine.Reason.NO_PROXY_ACTIVE
+                )
+            )
+
+        cases.forEach { case ->
+            val decision = ProxyRoutingEngine.determineRoute(case.request)
+            assertEquals("${case.name} proxy", case.expectedProxy, decision.proxyIds)
+            assertEquals("${case.name} reason", case.expectedReason, decision.reason)
+            case.expectedOrbotNotIncluded?.let {
+                assertEquals("${case.name} orbot-not-included flag", it, decision.orbotProxyEnabledButAppNotIncluded)
+            }
+        }
+    }
+
     private fun specialAppRequest(
         isDnsFirewallMode: Boolean = true,
         isOrbotProxyEnabled: Boolean = false,

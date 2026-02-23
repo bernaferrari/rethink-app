@@ -37,8 +37,8 @@ enum class TopLevelFilter(val id: Int) {
     fun getLabel(context: Context): String {
         return when (this) {
             ALL -> ""
-            INSTALLED -> context.resources.getString(R.string.fapps_filter_parent_installed)
-            SYSTEM -> context.resources.getString(R.string.fapps_filter_parent_system)
+            INSTALLED -> context.getString(R.string.fapps_filter_parent_installed)
+            SYSTEM -> context.getString(R.string.fapps_filter_parent_system)
         }
     }
 }
@@ -82,24 +82,24 @@ enum class FirewallFilter(val id: Int) {
 
     fun getLabel(context: Context): String {
         return when (this) {
-            ALL -> context.resources.getString(R.string.lbl_all)
-            ALLOWED -> context.resources.getString(R.string.lbl_allowed)
+            ALL -> context.getString(R.string.lbl_all)
+            ALLOWED -> context.getString(R.string.lbl_allowed)
             BLOCKED_WIFI ->
-                context.resources.getString(
+                context.getString(
                     R.string.two_argument_colon,
-                    context.resources.getString(R.string.lbl_blocked),
-                    context.resources.getString(R.string.firewall_rule_block_unmetered)
+                    context.getString(R.string.lbl_blocked),
+                    context.getString(R.string.firewall_rule_block_unmetered)
                 )
             BLOCKED_MOBILE_DATA ->
-                context.resources.getString(
+                context.getString(
                     R.string.two_argument_colon,
-                    context.resources.getString(R.string.lbl_blocked),
-                    context.resources.getString(R.string.firewall_rule_block_metered)
+                    context.getString(R.string.lbl_blocked),
+                    context.getString(R.string.firewall_rule_block_metered)
                 )
-            BLOCKED -> context.resources.getString(R.string.lbl_blocked)
-            BYPASS -> context.resources.getString(R.string.fapps_firewall_filter_bypass_universal)
-            EXCLUDED -> context.resources.getString(R.string.fapps_firewall_filter_excluded)
-            LOCKDOWN -> context.resources.getString(R.string.fapps_firewall_filter_isolate)
+            BLOCKED -> context.getString(R.string.lbl_blocked)
+            BYPASS -> context.getString(R.string.fapps_firewall_filter_bypass_universal)
+            EXCLUDED -> context.getString(R.string.fapps_firewall_filter_excluded)
+            LOCKDOWN -> context.getString(R.string.fapps_firewall_filter_isolate)
         }
     }
 
