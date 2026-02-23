@@ -33,12 +33,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material.icons.rounded.ShieldMoon
 import androidx.compose.material.icons.rounded.WarningAmber
@@ -49,6 +47,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -58,22 +57,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
-import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
-import com.celzero.bravedns.ui.compose.theme.SectionHeader
+import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 
 data class HomeScreenUiState(
     val isVpnActive: Boolean = false,
@@ -95,6 +90,13 @@ data class HomeScreenUiState(
     val isProtectionFailing: Boolean = false
 )
 
+private data class StatusItem(
+    val headline: String,
+    val supporting: String,
+    val iconPainter: Painter,
+    val onClick: () -> Unit,
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -107,8 +109,6 @@ fun HomeScreen(
     onAppsClick: () -> Unit,
     onSponsorClick: () -> Unit
 ) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
     val dnsSummary = if (uiState.dnsConnectedName.isNotBlank()) {
         "${uiState.dnsConnectedName} · ${uiState.dnsLatency}"
     } else {
@@ -130,12 +130,19 @@ fun HomeScreen(
                 " · ${uiState.appsBlocked} ${stringResource(R.string.lbl_blocked)}"
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            RethinkLargeTopBar(
-                title = stringResource(R.string.txt_home),
-                scrollBehavior = scrollBehavior
+            TopAppBar(
+                title = {
+                    Text(
+                        text = stringResource(R.string.txt_home),
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                    )
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
             )
         }
     ) { paddingValues ->
@@ -157,44 +164,42 @@ fun HomeScreen(
             }
 
             item {
-                SectionHeader(title = stringResource(R.string.lbl_status))
-                RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(R.string.lbl_dns),
-                        supporting = dnsSummary,
-                        leadingIconPainter = painterResource(id = R.drawable.dns_home_screen),
-                        position = CardPosition.First,
-                        onClick = onDnsClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(R.string.lbl_firewall),
-                        supporting = firewallSummary,
-                        leadingIconPainter = painterResource(id = R.drawable.firewall_home_screen),
-                        position = CardPosition.Middle,
-                        onClick = onFirewallClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(R.string.lbl_proxy),
-                        supporting = proxySummary,
-                        leadingIconPainter = painterResource(id = R.drawable.ic_vpn),
-                        position = CardPosition.Middle,
-                        onClick = onProxyClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(R.string.lbl_logs),
-                        supporting = logsSummary,
-                        leadingIconPainter = painterResource(id = R.drawable.ic_logs_accent),
-                        position = CardPosition.Middle,
-                        onClick = onLogsClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(R.string.lbl_apps),
-                        supporting = appsSummary,
-                        leadingIconPainter = painterResource(id = R.drawable.ic_app_info_accent),
-                        onClick = onAppsClick,
-                        position = CardPosition.Last
-                    )
-                }
+                StatusSection(
+                    title = stringResource(R.string.lbl_status),
+                    accentColor = MaterialTheme.colorScheme.primary,
+                    items = listOf(
+                        StatusItem(
+                            headline = stringResource(R.string.lbl_dns),
+                            supporting = dnsSummary,
+                            iconPainter = painterResource(id = R.drawable.dns_home_screen),
+                            onClick = onDnsClick,
+                        ),
+                        StatusItem(
+                            headline = stringResource(R.string.lbl_firewall),
+                            supporting = firewallSummary,
+                            iconPainter = painterResource(id = R.drawable.firewall_home_screen),
+                            onClick = onFirewallClick,
+                        ),
+                        StatusItem(
+                            headline = stringResource(R.string.lbl_proxy),
+                            supporting = proxySummary,
+                            iconPainter = painterResource(id = R.drawable.ic_vpn),
+                            onClick = onProxyClick,
+                        ),
+                        StatusItem(
+                            headline = stringResource(R.string.lbl_logs),
+                            supporting = logsSummary,
+                            iconPainter = painterResource(id = R.drawable.ic_logs_accent),
+                            onClick = onLogsClick,
+                        ),
+                        StatusItem(
+                            headline = stringResource(R.string.lbl_apps),
+                            supporting = appsSummary,
+                            iconPainter = painterResource(id = R.drawable.ic_app_info_accent),
+                            onClick = onAppsClick,
+                        ),
+                    ),
+                )
             }
 
             item {
@@ -204,7 +209,48 @@ fun HomeScreen(
     }
 }
 
-// ─── Protection Status Card ───────────────────────────────────────────────────
+// ─── Status Section ───────────────────────────────────────────────────────
+
+@Composable
+private fun StatusSection(
+    title: String,
+    accentColor: Color,
+    items: List<StatusItem>,
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+        Text(
+            text = title.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = androidx.compose.ui.unit.TextUnit(
+                0.8f,
+                androidx.compose.ui.unit.TextUnitType.Sp
+            ),
+            color = accentColor,
+            modifier = Modifier.padding(
+                start = Dimensions.spacingLg,
+                bottom = Dimensions.spacingSm,
+            ),
+        )
+
+        Column(modifier = Modifier.fillMaxWidth()) {
+            items.forEachIndexed { index, item ->
+                RethinkListItem(
+                    headline = item.headline,
+                    supporting = item.supporting,
+                    leadingIconPainter = item.iconPainter,
+                    leadingIconTint = accentColor,
+                    leadingIconContainerColor = accentColor.copy(alpha = 0.12f),
+                    position = cardPositionFor(index = index, lastIndex = items.lastIndex),
+                    highlightContainerColor = accentColor.copy(alpha = 0.24f),
+                    onClick = item.onClick
+                )
+            }
+        }
+    }
+}
+
+// ─── Protection Status Card ───────────────────────────────────────────────
 
 @Composable
 private fun ProtectionCard(
@@ -270,7 +316,7 @@ private fun ProtectionCard(
 
     Surface(
         onClick = onStartStopClick,
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
         color = rootColor,
         tonalElevation = 0.dp,
         interactionSource = interactionSource,
@@ -283,14 +329,13 @@ private fun ProtectionCard(
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
 
-            // ── Status header row ─────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 Surface(
-                    shape = RoundedCornerShape(16.dp),
+                    shape = RoundedCornerShape(Dimensions.cornerRadiusLg),
                     color = containerColor,
                     modifier = Modifier.size(52.dp)
                 ) {
@@ -326,7 +371,6 @@ private fun ProtectionCard(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── Metric chips ──────────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
@@ -361,7 +405,7 @@ private fun MetricChip(
     valueColor: Color = MaterialTheme.colorScheme.onSurface
 ) {
     Surface(
-        shape = RoundedCornerShape(14.dp),
+        shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
         color = MaterialTheme.colorScheme.surfaceContainerHigh,
         modifier = modifier
     ) {
@@ -386,7 +430,7 @@ private fun MetricChip(
     }
 }
 
-// ─── Apps Health Card ─────────────────────────────────────────────────────────
+// ─── Apps Health Card ─────────────────────────────────────────────────────
 
 @Composable
 private fun AppsHealthCard(uiState: HomeScreenUiState) {
@@ -396,7 +440,7 @@ private fun AppsHealthCard(uiState: HomeScreenUiState) {
     }
 
     Surface(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
         color = MaterialTheme.colorScheme.surfaceContainer
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
@@ -411,9 +455,8 @@ private fun AppsHealthCard(uiState: HomeScreenUiState) {
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
-                // Total count badge
                 Surface(
-                    shape = RoundedCornerShape(50.dp),
+                    shape = RoundedCornerShape(Dimensions.cornerRadiusPill),
                     color = MaterialTheme.colorScheme.primaryContainer
                 ) {
                     Text(
@@ -433,7 +476,7 @@ private fun AppsHealthCard(uiState: HomeScreenUiState) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(10.dp)
-                    .clip(RoundedCornerShape(50.dp)),
+                    .clip(RoundedCornerShape(Dimensions.cornerRadiusPill)),
                 color = MaterialTheme.colorScheme.primary,
                 trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
                 strokeCap = StrokeCap.Round
@@ -483,7 +526,7 @@ private fun AppStat(label: String, value: String, color: Color) {
     }
 }
 
-// ─── Preview ──────────────────────────────────────────────────────────────────
+// ─── Preview ──────────────────────────────────────────────────────────────
 
 @Preview(showBackground = true)
 @Composable

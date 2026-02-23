@@ -20,6 +20,7 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -27,23 +28,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -51,16 +49,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.EventCard
@@ -69,10 +67,13 @@ import com.celzero.bravedns.database.Event
 import com.celzero.bravedns.database.EventDao
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.Severity
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
+import com.celzero.bravedns.ui.compose.theme.RethinkSearchField
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.viewmodel.EventsViewModel
 import com.celzero.bravedns.viewmodel.EventsViewModel.TopLevelFilter
-import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -88,351 +89,325 @@ fun EventsScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var query by remember { mutableStateOf("") }
-    var filterQuery by remember { mutableStateOf("") }
-    var filterSources by remember { mutableStateOf(setOf<EventSource>()) }
-    var filterSeverity by remember { mutableStateOf<Severity?>(null) }
-    var filterType by remember { mutableStateOf(TopLevelFilter.ALL) }
-    var showSeverityChips by remember { mutableStateOf(false) }
-    var showSourceChips by remember { mutableStateOf(false) }
+
+    var query by remember { mutableStateOf(viewModel.getCurrentQuery()) }
+    var filterSources by remember { mutableStateOf(viewModel.getCurrentSources()) }
+    var filterSeverity by remember { mutableStateOf(viewModel.getCurrentSeverity()) }
+    var filterType by remember { mutableStateOf(viewModel.getFilterType()) }
     var showDeleteDialog by remember { mutableStateOf(false) }
 
     val items = viewModel.eventsFlow.collectAsLazyPagingItems()
+    val isLoading = items.loadState.refresh is LoadState.Loading && items.itemCount == 0
+    val showEmpty = items.itemCount == 0 && items.loadState.refresh is LoadState.NotLoading
+
+    fun applyFilter(
+        sources: Set<EventSource> = filterSources,
+        severity: Severity? = filterSeverity,
+        type: TopLevelFilter = filterType
+    ) {
+        filterSources = sources
+        filterSeverity = severity
+        filterType = type
+        viewModel.setFilterType(type)
+        viewModel.setFilter(query, sources, severity)
+    }
 
     LaunchedEffect(Unit) {
         snapshotFlow { query }
             .debounce(QUERY_TEXT_DELAY)
             .distinctUntilChanged()
             .collect { value ->
-                filterQuery = value
                 viewModel.setFilter(value, filterSources, filterSeverity)
             }
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            RethinkLargeTopBar(
+            RethinkTopBar(
                 title = stringResource(id = R.string.event_logs_title),
                 onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior
+                actions = {
+                    IconButton(onClick = { items.refresh() }) {
+                        Icon(
+                            imageVector = Icons.Rounded.Refresh,
+                            contentDescription = stringResource(id = R.string.cd_refresh)
+                        )
+                    }
+                    IconButton(onClick = { showDeleteDialog = true }) {
+                        Icon(
+                            imageVector = Icons.Rounded.Delete,
+                            contentDescription = stringResource(id = R.string.lbl_delete)
+                        )
+                    }
+                }
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+        ) {
             Column(modifier = Modifier.fillMaxSize()) {
-                Surface(
-                    modifier = Modifier.padding(
-                        horizontal = Dimensions.screenPaddingHorizontal,
-                        vertical = Dimensions.spacingSm
-                    ),
-                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    tonalElevation = 1.dp
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().padding(Dimensions.spacingLg),
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_event_note),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.size(20.dp)
-                        )
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                text = stringResource(id = R.string.event_logs_title),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Text(
-                                text = stringResource(id = R.string.no_events_desc),
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-                }
-
-                SearchRow(
+                EventControlsCard(
                     query = query,
                     onQueryChange = { query = it },
-                    onFilterClick = {
-                        showSeverityChips = !showSeverityChips
-                        if (!showSeverityChips) {
-                            showSourceChips = false
-                        }
-                    },
-                    onRefreshClick = {
-                        viewModel.setFilter(filterQuery, filterSources, filterSeverity)
-                    },
-                    onDeleteClick = { showDeleteDialog = true }
+                    filterType = filterType,
+                    filterSeverity = filterSeverity,
+                    filterSources = filterSources,
+                    onClearQuery = { query = "" },
+                    onAllClick = { applyFilter(emptySet(), null, TopLevelFilter.ALL) },
+                    onSeverityModeClick = { applyFilter(emptySet(), filterSeverity, TopLevelFilter.SEVERITY) },
+                    onSourceModeClick = { applyFilter(filterSources, null, TopLevelFilter.SOURCE) },
+                    onSeverityClick = { applyFilter(emptySet(), it, TopLevelFilter.SEVERITY) },
+                    onSourceToggle = { source ->
+                        val updated =
+                            if (filterSources.contains(source)) {
+                                filterSources - source
+                            } else {
+                                filterSources + source
+                            }
+                        applyFilter(updated, null, TopLevelFilter.SOURCE)
+                    }
                 )
 
-                if (showSeverityChips) {
-                    SeverityChips(
-                        filterType = filterType,
-                        filterSeverity = filterSeverity,
-                        showSourceChips = showSourceChips,
-                        onAllClick = {
-                            showSourceChips = false
-                            filterType = TopLevelFilter.ALL
-                            filterSeverity = null
-                            filterSources = emptySet()
-                            viewModel.setFilter(filterQuery, emptySet(), null)
-                        },
-                        onSeverityClick = { severity ->
-                            showSourceChips = false
-                            filterType = TopLevelFilter.SEVERITY
-                            filterSeverity = severity
-                            filterSources = emptySet()
-                            viewModel.setFilter(filterQuery, emptySet(), severity)
-                        },
-                        onSourceClick = {
-                            showSourceChips = true
-                            filterType = TopLevelFilter.SOURCE
-                            filterSeverity = null
-                            if (filterSources.isEmpty()) {
-                                viewModel.setFilter(filterQuery, emptySet(), null)
-                            } else {
-                                viewModel.setFilter(filterQuery, filterSources, null)
-                            }
-                        }
-                    )
-                    if (showSourceChips) {
-                        SourceChips(
-                            filterSources = filterSources,
-                            onToggle = { source ->
-                                filterSources =
-                                    if (filterSources.contains(source)) {
-                                        filterSources - source
-                                    } else {
-                                        filterSources + source
-                                    }
-                                if (filterSources.isEmpty()) {
-                                    filterType = TopLevelFilter.ALL
-                                    filterSeverity = null
-                                    viewModel.setFilter(filterQuery, emptySet(), null)
-                                } else {
-                                    filterType = TopLevelFilter.SOURCE
-                                    filterSeverity = null
-                                    viewModel.setFilter(filterQuery, filterSources, null)
-                                }
-                            }
-                        )
-                    }
-                }
-
-                EventsList(items = items, onCopy = { copyEventToClipboard(context, it) })
+                EventsList(
+                    modifier = Modifier.weight(1f),
+                    items = items,
+                    query = query,
+                    onCopy = { copyEventToClipboard(context, it) }
+                )
             }
 
-            val showEmpty = items.itemCount == 0 && items.loadState.append.endOfPaginationReached
-            if (showEmpty) {
-                EmptyState()
+            when {
+                isLoading -> LoadingState()
+                showEmpty -> EmptyState()
             }
         }
     }
 
     if (showDeleteDialog) {
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(text = stringResource(id = R.string.ada_delete_logs_dialog_title)) },
-            text = { Text(text = stringResource(id = R.string.ada_delete_logs_dialog_desc)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        scope.launch(Dispatchers.IO) { eventDao.deleteAll() }
-                        viewModel.setFilter(filterQuery, filterSources, filterSeverity)
-                    }
-                ) {
-                    Text(text = stringResource(id = R.string.lbl_delete))
-                }
+            title = stringResource(id = R.string.ada_delete_logs_dialog_title),
+            message = stringResource(id = R.string.ada_delete_logs_dialog_desc),
+            confirmText = stringResource(id = R.string.lbl_delete),
+            dismissText = stringResource(id = R.string.lbl_cancel),
+            onConfirm = {
+                showDeleteDialog = false
+                scope.launch(Dispatchers.IO) { eventDao.deleteAll() }
+                items.refresh()
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(text = stringResource(id = R.string.lbl_cancel))
-                }
-            }
+            onDismiss = { showDeleteDialog = false },
+            isConfirmDestructive = true
         )
     }
 }
 
 @Composable
-private fun SearchRow(
+private fun EventControlsCard(
     query: String,
     onQueryChange: (String) -> Unit,
-    onFilterClick: () -> Unit,
-    onRefreshClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    filterType: TopLevelFilter,
+    filterSeverity: Severity?,
+    filterSources: Set<EventSource>,
+    onClearQuery: () -> Unit,
+    onAllClick: () -> Unit,
+    onSeverityModeClick: () -> Unit,
+    onSourceModeClick: () -> Unit,
+    onSeverityClick: (Severity) -> Unit,
+    onSourceToggle: (EventSource) -> Unit
 ) {
-    val filterContentDescription = stringResource(R.string.cd_filter)
-    val refreshContentDescription = stringResource(R.string.cd_refresh)
-    val deleteContentDescription = stringResource(R.string.lbl_delete)
-
-    Surface(
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingMd),
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh
+            .padding(
+                start = Dimensions.screenPaddingHorizontal,
+                end = Dimensions.screenPaddingHorizontal,
+                top = Dimensions.spacingSm
+            )
     ) {
+        RethinkSearchField(
+            query = query,
+            onQueryChange = onQueryChange,
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = stringResource(id = R.string.search_event_logs),
+            onClearQuery = onClearQuery,
+            clearQueryContentDescription = stringResource(id = R.string.cd_clear_search),
+            shape = RoundedCornerShape(Dimensions.cornerRadiusLg),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+
+        Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = Dimensions.spacingSm, vertical = 2.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = onQueryChange,
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                label = { Text(text = stringResource(id = R.string.search_event_logs)) }
+            EventFilterChip(
+                label = stringResource(id = R.string.lbl_all),
+                selected = filterType == TopLevelFilter.ALL,
+                onClick = onAllClick
             )
+            EventFilterChip(
+                label = "Severity",
+                selected = filterType == TopLevelFilter.SEVERITY,
+                onClick = onSeverityModeClick
+            )
+            EventFilterChip(
+                label = stringResource(id = R.string.events_filter_source),
+                selected = filterType == TopLevelFilter.SOURCE,
+                onClick = onSourceModeClick
+            )
+        }
 
-            IconButton(onClick = onFilterClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_filter),
-                    contentDescription = filterContentDescription
-                )
+        when (filterType) {
+            TopLevelFilter.SEVERITY -> {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    EventFilterChip(
+                        label = stringResource(id = R.string.events_severity_low),
+                        selected = filterSeverity == Severity.LOW,
+                        onClick = { onSeverityClick(Severity.LOW) }
+                    )
+                    EventFilterChip(
+                        label = stringResource(id = R.string.events_severity_medium),
+                        selected = filterSeverity == Severity.MEDIUM,
+                        onClick = { onSeverityClick(Severity.MEDIUM) }
+                    )
+                    EventFilterChip(
+                        label = stringResource(id = R.string.events_severity_high),
+                        selected = filterSeverity == Severity.HIGH,
+                        onClick = { onSeverityClick(Severity.HIGH) }
+                    )
+                    EventFilterChip(
+                        label = stringResource(id = R.string.events_severity_critical),
+                        selected = filterSeverity == Severity.CRITICAL,
+                        onClick = { onSeverityClick(Severity.CRITICAL) }
+                    )
+                }
             }
 
-            IconButton(onClick = onRefreshClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_refresh_white),
-                    contentDescription = refreshContentDescription
-                )
+            TopLevelFilter.SOURCE -> {
+                Spacer(modifier = Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    EventSource.entries.forEach { source ->
+                        EventFilterChip(
+                            label = source.name.lowercase().replace('_', ' ').replaceFirstChar { it.titlecase() },
+                            selected = filterSources.contains(source),
+                            onClick = { onSourceToggle(source) }
+                        )
+                    }
+                }
             }
 
-            IconButton(onClick = onDeleteClick) {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_delete),
-                    contentDescription = deleteContentDescription
-                )
-            }
+            TopLevelFilter.ALL -> Unit
         }
     }
 }
 
 @Composable
-private fun SeverityChips(
-    filterType: TopLevelFilter,
-    filterSeverity: Severity?,
-    showSourceChips: Boolean,
-    onAllClick: () -> Unit,
-    onSeverityClick: (Severity) -> Unit,
-    onSourceClick: () -> Unit
+private fun EventFilterChip(
+    label: String,
+    selected: Boolean,
+    onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.screenPaddingHorizontal)
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        FilterChip(
-            label = stringResource(id = R.string.lbl_all),
-            selected = filterType == TopLevelFilter.ALL,
-            onClick = onAllClick
-        )
-        FilterChip(
-            label = stringResource(id = R.string.events_severity_low),
-            selected = filterSeverity == Severity.LOW,
-            onClick = { onSeverityClick(Severity.LOW) }
-        )
-        FilterChip(
-            label = stringResource(id = R.string.events_severity_medium),
-            selected = filterSeverity == Severity.MEDIUM,
-            onClick = { onSeverityClick(Severity.MEDIUM) }
-        )
-        FilterChip(
-            label = stringResource(id = R.string.events_severity_high),
-            selected = filterSeverity == Severity.HIGH,
-            onClick = { onSeverityClick(Severity.HIGH) }
-        )
-        FilterChip(
-            label = stringResource(id = R.string.events_severity_critical),
-            selected = filterSeverity == Severity.CRITICAL,
-            onClick = { onSeverityClick(Severity.CRITICAL) }
-        )
-        FilterChip(
-            label = stringResource(id = R.string.events_filter_source),
-            selected = showSourceChips && filterType == TopLevelFilter.SOURCE,
-            onClick = onSourceClick
-        )
-    }
-}
-
-@Composable
-private fun SourceChips(
-    filterSources: Set<EventSource>,
-    onToggle: (EventSource) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = 4.dp)
-            .horizontalScroll(rememberScrollState()),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        EventSource.entries.forEach { source ->
-            FilterChip(
-                label = source.name.lowercase().replace('_', ' ').replaceFirstChar { it.titlecase() },
-                selected = filterSources.contains(source),
-                onClick = { onToggle(source) }
-            )
-        }
-    }
-}
-
-@Composable
-private fun FilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    FilterChip(
+    RethinkFilterChip(
+        label = label,
         selected = selected,
         onClick = onClick,
-        label = { Text(text = label) },
-        modifier = Modifier.padding(vertical = 2.dp)
+        selectedLabelWeight = FontWeight.Medium,
+        defaultLabelWeight = FontWeight.Medium
     )
 }
 
 @Composable
-private fun EventsList(items: androidx.paging.compose.LazyPagingItems<Event>, onCopy: (String) -> Unit) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(count = items.itemCount) { index ->
+private fun EventsList(
+    modifier: Modifier = Modifier,
+    items: androidx.paging.compose.LazyPagingItems<Event>,
+    query: String,
+    onCopy: (String) -> Unit
+) {
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = Dimensions.screenPaddingHorizontal,
+            end = Dimensions.screenPaddingHorizontal,
+            top = Dimensions.spacingSm,
+            bottom = Dimensions.spacing3xl
+        ),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(count = items.itemCount, key = { index -> items[index]?.id ?: index }) { index ->
             val item = items[index] ?: return@items
-            EventCard(event = item, onCopy = onCopy)
+            EventCard(event = item, onCopy = onCopy, query = query)
         }
+    }
+}
+
+@Composable
+private fun LoadingState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        CircularProgressIndicator(
+            color = MaterialTheme.colorScheme.primary,
+            strokeWidth = 3.dp
+        )
     }
 }
 
 @Composable
 private fun EmptyState() {
     Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_event_note),
-            contentDescription = null,
-            modifier = Modifier.size(120.dp)
-        )
+        Surface(
+            shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            modifier = Modifier.size(96.dp)
+        ) {
+            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                Image(
+                    painter = painterResource(id = R.drawable.ic_event_note),
+                    contentDescription = null,
+                    modifier = Modifier.size(52.dp)
+                )
+            }
+        }
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = stringResource(id = R.string.no_events_recorded),
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.SemiBold,
             textAlign = TextAlign.Center
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = stringResource(id = R.string.no_events_desc),
             style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center
         )
     }
 }
 
-private const val QUERY_TEXT_DELAY: Long = 1000
+private const val QUERY_TEXT_DELAY: Long = 350

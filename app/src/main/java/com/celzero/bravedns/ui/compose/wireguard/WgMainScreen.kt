@@ -17,16 +17,13 @@ package com.celzero.bravedns.ui.compose.wireguard
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,23 +32,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.SplitButtonDefaults
+import androidx.compose.material3.SplitButtonLayout
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
+import androidx.compose.material3.TooltipAnchorPosition
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -62,11 +66,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
@@ -83,7 +91,9 @@ import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
 import kotlinx.coroutines.Dispatchers
@@ -97,7 +107,7 @@ enum class WgTab {
     GENERAL
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun WgMainScreen(
     wgConfigViewModel: WgConfigViewModel,
@@ -122,7 +132,7 @@ fun WgMainScreen(
             }
         )
     }
-    var isFabExpanded by remember { mutableStateOf(false) }
+    var isFabMenuExpanded by remember { mutableStateOf(false) }
     var showDisableDialog by remember { mutableStateOf(false) }
     var disableDialogIsOneWgToggle by remember { mutableStateOf(false) }
     var disclaimerText by remember { mutableStateOf("") }
@@ -166,8 +176,8 @@ fun WgMainScreen(
 
 
 
-    BackHandler(enabled = isFabExpanded) {
-        isFabExpanded = false
+    BackHandler(enabled = isFabMenuExpanded) {
+        isFabMenuExpanded = false
     }
 
     if (showDisableDialog) {
@@ -260,22 +270,23 @@ fun WgMainScreen(
                 }
             }
 
-            FabStack(
+            WgSplitFab(
                 modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(24.dp),
-                isExpanded = isFabExpanded,
-                onMainClick = { isFabExpanded = !isFabExpanded },
+                    .align(Alignment.BottomCenter)
+                    .navigationBarsPadding()
+                    .padding(bottom = 16.dp),
+                expanded = isFabMenuExpanded,
+                onExpandedChange = { isFabMenuExpanded = it },
                 onCreateClick = {
-                    isFabExpanded = false
+                    isFabMenuExpanded = false
                     onCreateClick()
                 },
                 onImportClick = {
-                    isFabExpanded = false
+                    isFabMenuExpanded = false
                     onImportClick()
                 },
                 onQrClick = {
-                    isFabExpanded = false
+                    isFabMenuExpanded = false
                     onQrScanClick()
                 }
             )
@@ -348,28 +359,16 @@ private fun ToggleRow(
     onOneWgClick: () -> Unit,
     onGeneralClick: () -> Unit
 ) {
-    SingleChoiceSegmentedButtonRow(
+    RethinkTwoOptionSegmentedRow(
+        leftLabel = stringResource(id = R.string.rt_list_simple_btn_txt),
+        rightLabel = stringResource(id = R.string.lbl_advanced),
+        leftSelected = selectedTab == WgTab.ONE,
+        onLeftClick = onOneWgClick,
+        onRightClick = onGeneralClick,
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 16.dp, start = 16.dp, end = 16.dp)
-    ) {
-        SegmentedButton(
-            selected = selectedTab == WgTab.ONE,
-            onClick = onOneWgClick,
-            shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-            label = {
-                Text(text = stringResource(id = R.string.rt_list_simple_btn_txt))
-            }
-        )
-        SegmentedButton(
-            selected = selectedTab == WgTab.GENERAL,
-            onClick = onGeneralClick,
-            shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-            label = {
-                Text(text = stringResource(id = R.string.lbl_advanced))
-            }
-        )
-    }
+    )
 }
 
 @Composable
@@ -377,20 +376,14 @@ private fun DisableConfigsDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit
 ) {
-    AlertDialog(
+    RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(id = R.string.wireguard_disable_title)) },
-        text = { Text(text = stringResource(id = R.string.wireguard_disable_message)) },
-        confirmButton = {
-            TextButton(onClick = onConfirm) {
-                Text(text = stringResource(id = R.string.always_on_dialog_positive))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = stringResource(id = R.string.lbl_cancel))
-            }
-        }
+        title = stringResource(id = R.string.wireguard_disable_title),
+        message = stringResource(id = R.string.wireguard_disable_message),
+        confirmText = stringResource(id = R.string.always_on_dialog_positive),
+        dismissText = stringResource(id = R.string.lbl_cancel),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss
     )
 }
 
@@ -400,7 +393,7 @@ private fun EmptyState() {
         modifier = Modifier
             .fillMaxSize()
             .padding(24.dp),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
     ) {
@@ -428,29 +421,13 @@ private fun EmptyState() {
 
 @Composable
 private fun WireguardOverviewCard(disclaimerText: String) {
-    Surface(
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
-        tonalElevation = 1.dp
-    ) {
+    WgCardSurface(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp)) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_wireguard_icon),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.padding(8.dp).size(20.dp)
-                )
-            }
+            WgIconBadge()
             Text(
                 text = disclaimerText,
                 style = MaterialTheme.typography.bodyMedium,
@@ -460,67 +437,103 @@ private fun WireguardOverviewCard(disclaimerText: String) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun FabStack(
+private fun WgSplitFab(
     modifier: Modifier,
-    isExpanded: Boolean,
-    onMainClick: () -> Unit,
+    expanded: Boolean,
+    onExpandedChange: (Boolean) -> Unit,
     onCreateClick: () -> Unit,
     onImportClick: () -> Unit,
     onQrClick: () -> Unit
 ) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.End
+    val createLabel = stringResource(R.string.lbl_create)
+    val moreDescription = stringResource(R.string.wireguard_fab_more_actions)
+    val expandedStateLabel = stringResource(R.string.wireguard_fab_expanded)
+    val collapsedStateLabel = stringResource(R.string.wireguard_fab_collapsed)
+    Box(
+        modifier = modifier.wrapContentSize()
     ) {
-        AnimatedVisibility(
-            visible = isExpanded,
-            enter = fadeIn() + slideInVertically { it / 2 },
-            exit = fadeOut() + slideOutVertically { it / 2 }
-        ) {
-            Column(horizontalAlignment = Alignment.End) {
-                ExtendedFloatingActionButton(
+        SplitButtonLayout(
+            leadingButton = {
+                SplitButtonDefaults.LeadingButton(
                     onClick = onCreateClick,
-                    text = { Text(text = stringResource(id = R.string.lbl_create)) },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_add),
-                            contentDescription = null
+                    modifier = Modifier.semantics {
+                        contentDescription = createLabel
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_add),
+                        modifier = Modifier.size(SplitButtonDefaults.LeadingIconSize),
+                        contentDescription = null
+                    )
+                    Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
+                    Text(text = stringResource(id = R.string.lbl_create))
+                }
+            },
+            trailingButton = {
+                Box {
+                    TooltipBox(
+                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                            TooltipAnchorPosition.Above
+                        ),
+                        tooltip = { PlainTooltip { Text(text = moreDescription) } },
+                        state = rememberTooltipState()
+                    ) {
+                        SplitButtonDefaults.TrailingButton(
+                            checked = expanded,
+                            onCheckedChange = onExpandedChange,
+                            modifier = Modifier.semantics {
+                                stateDescription = if (expanded) {
+                                    expandedStateLabel
+                                } else {
+                                    collapsedStateLabel
+                                }
+                                contentDescription = moreDescription
+                            }
+                        ) {
+                            val rotation by animateFloatAsState(
+                                targetValue = if (expanded) 180f else 0f,
+                                label = "wgSplitArrowRotation"
+                            )
+                            Icon(
+                                imageVector = Icons.Filled.KeyboardArrowDown,
+                                modifier = Modifier
+                                    .size(SplitButtonDefaults.TrailingIconSize)
+                                    .graphicsLayer { rotationZ = rotation },
+                                contentDescription = null
+                            )
+                        }
+                    }
+                    DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { onExpandedChange(false) }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text(text = stringResource(id = R.string.lbl_import)) },
+                            onClick = onImportClick,
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_import_conf),
+                                    contentDescription = null
+                                )
+                            }
+                        )
+                        HorizontalDivider()
+                        DropdownMenuItem(
+                            text = { Text(text = stringResource(id = R.string.lbl_qr_code)) },
+                            onClick = onQrClick,
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_qr_code_scanner),
+                                    contentDescription = null
+                                )
+                            }
                         )
                     }
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                ExtendedFloatingActionButton(
-                    onClick = onImportClick,
-                    text = { Text(text = stringResource(id = R.string.lbl_import)) },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_import_conf),
-                            contentDescription = null
-                        )
-                    }
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                ExtendedFloatingActionButton(
-                    onClick = onQrClick,
-                    text = { Text(text = stringResource(id = R.string.lbl_qr_code)) },
-                    icon = {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_qr_code_scanner),
-                            contentDescription = null
-                        )
-                    }
-                )
-                Spacer(modifier = Modifier.height(10.dp))
+                }
             }
-        }
-
-        FloatingActionButton(onClick = onMainClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_fab_without_border),
-                contentDescription = null
-            )
-        }
+        )
     }
 }
 

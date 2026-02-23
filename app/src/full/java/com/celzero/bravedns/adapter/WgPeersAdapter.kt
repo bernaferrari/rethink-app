@@ -24,14 +24,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -45,6 +43,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.WireguardManager
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.dialog.WgAddPeerDialog
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.tos
@@ -156,25 +155,18 @@ fun WgPeerRow(
                 context.resources.getString(R.string.config_delete_dialog_title),
                 context.resources.getString(R.string.lbl_peer)
             )
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = { showDeleteDialog.value = false },
-            title = { Text(text = deleteTitle) },
-            text = { Text(text = context.resources.getString(R.string.config_delete_dialog_desc)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog.value = false
-                        deletePeer(context, scope, configId, wgPeer, onPeerChanged)
-                    }
-                ) {
-                    Text(text = deleteTitle)
-                }
+            title = deleteTitle,
+            message = context.resources.getString(R.string.config_delete_dialog_desc),
+            confirmText = deleteTitle,
+            dismissText = context.resources.getString(R.string.lbl_cancel),
+            isConfirmDestructive = true,
+            onConfirm = {
+                showDeleteDialog.value = false
+                deletePeer(context, scope, configId, wgPeer, onPeerChanged)
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog.value = false }) {
-                    Text(text = context.resources.getString(R.string.lbl_cancel))
-                }
-            }
+            onDismiss = { showDeleteDialog.value = false }
         )
     }
 

@@ -155,7 +155,7 @@ fun DetailedStatisticsScreen(
                                 }
                             }
                             Surface(
-                                shape = RoundedCornerShape(999.dp),
+                                shape = RoundedCornerShape(Dimensions.cornerRadiusFull),
                                 color = MaterialTheme.colorScheme.primaryContainer
                             ) {
                                 Text(
@@ -223,7 +223,7 @@ private fun DetailedStatisticsTopBar(
 @Composable
 private fun DetailedStatItemCard(item: AppConnection, type: SummaryStatisticsType) {
     Card(
-        shape = RoundedCornerShape(18.dp),
+        shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         ),
@@ -246,7 +246,7 @@ private fun DetailedStatItemCard(item: AppConnection, type: SummaryStatisticsTyp
                 )
             } else {
                 Surface(
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(Dimensions.cornerRadiusMd),
                     color = MaterialTheme.colorScheme.surfaceContainerHighest
                 ) {
                     Box(
@@ -289,7 +289,7 @@ private fun DetailedStatItemCard(item: AppConnection, type: SummaryStatisticsTyp
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(6.dp)
-                            .clip(RoundedCornerShape(3.dp)),
+                            .clip(RoundedCornerShape(Dimensions.cornerRadius2xs)),
                         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.7f),
                         trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
                     )

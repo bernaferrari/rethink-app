@@ -46,7 +46,7 @@
     <string name="ct_bs_app_info_error">Informações do aplicativo não encontradas</string>
     <string name="firewall_card_status_active">%1$s aplicativos</string>
     <string name="hsf_vpn_dialog_header">Atenção!</string>
-    <string name="dc_other_dns_heading">tipo</string>
+    <string name="dc_other_dns_heading">Tipo</string>
     <string name="dc_custom_dns_radio">Outros DNS</string>
     <string name="about_mail_to_string">para:</string>
     <string name="hsf_start_dialog_message">Você está a um passo de ter um Android seguro e protegido: Veja instantaneamente atividade da rede, bloquear sites, IPs e aplicativos suspeitos.</string>
@@ -63,16 +63,16 @@
     <string name="hsf_chip_appearance">Tema: %1$s</string>
     <string name="dc_local_block_desc_1">Escolha entre mais de 195 listas de bloqueio. Clique aqui para baixar ou configurar listas de bloqueio.</string>
     <string name="dc_custom_block_heading">Regras de domínio</string>
-    <string name="dc_block_heading">regras</string>
+    <string name="dc_block_heading">Regras</string>
     <string name="dc_dns_website_heading">Mostrar ícone de sites em registros de DNS (experimental)</string>
     <string name="about_github">Contribuir no GitHub</string>
     <string name="about_mozilla">O Rethink é apoiado pela Mozilla Builders, FOSS United Foundation.</string>
-    <string name="about_web">links</string>
+    <string name="about_web">Links</string>
     <string name="about_website">Acessar rethinkdns.com</string>
     <string name="about_faq">Perguntas frequentes</string>
-    <string name="about_app">aplicativo</string>
+    <string name="about_app">Aplicativo</string>
     <string name="about_settings_app_info">Detalhes do aplicativo</string>
-    <string name="about_settings">sistema</string>
+    <string name="about_settings">Sistema</string>
     <string name="about_whats_new">Novidades na versão %1$s</string>
     <string name="about_settings_vpn_profile">Perfil de VPN</string>
     <string name="about_settings_notification">Configurações de notificação</string>
@@ -101,7 +101,7 @@
     <string name="cd_dns_proxy_error_text_1">Endereço IP inválido</string>
     <string name="cd_dns_proxy_error_text_3">Porta inválida</string>
     <string name="rules_load_failure_desc">Nenhuma regra de firewall encontrada</string>
-    <string name="rules_load_failure_reload">recarregar</string>
+    <string name="rules_load_failure_reload">Recarregar</string>
     <string name="firewall_rule_block_app_new_install">Novo aplicativo</string>
     <string name="fapps_unmetered_unblock_dialog_title">Permitir em redes Wi-Fi</string>
     <string name="firewall_rule_block_app_exception">Erro</string>
@@ -329,7 +329,7 @@
     <string name="app_mode_firewall">Firewall</string>
     <string name="app_mode_dns_firewall">DNS + Firewall (padrão)</string>
     <string name="app_mode_wireguard">VPN</string>
-    <string name="settings_vpn_heading">vpn</string>
+    <string name="settings_vpn_heading">VPN</string>
     <string name="info_dialog_copy_toast_msg">Endereço IP copiado.</string>
     <string name="info_dialog_url_copy_toast_msg">URL copiada</string>
     <string name="info_dialog_rethink_toast_msg">Copiado como URL de RDNS+ DNS-over-HTTPS</string>
@@ -465,7 +465,7 @@
     <string name="about_bug_no_log_dialog_positive_btn">Enviar email</string>
     <string name="dc_dns_leaks_heading">Evitar vazamentos de DNS</string>
     <string name="about_docs">Documentação</string>
-    <string name="about_connect">contato</string>
+    <string name="about_connect">Contato</string>
     <string name="about_sponsor_link_text">Patrocinar</string>
     <string name="about_email">Envie-nos um e-mail</string>
     <string name="log_file_not_available">Não foi encontrado nenhum relatório de erro</string>
@@ -744,7 +744,7 @@
     <string name="lbl_wildcard" translatable="true">Curinga</string>
     <string name="lbl_dismiss" translatable="true">Descartar</string>
     <string name="lbl_configure" translatable="true">Configurar</string>
-    <string name="lbl_rules" translatable="true">regras</string>
+    <string name="lbl_rules" translatable="true">Regras</string>
     <string name="settings_locale_desc" translatable="true">Escolha o seu idioma preferido</string>
     <string name="settings_locale_dialog_neutral" translatable="true">Ajude a traduzir este aplicativo</string>
     <string name="lbl_logs" translatable="true">registros</string>
@@ -836,8 +836,8 @@
     <string name="fapps_isolate_block_dialog_message" translatable="true">Isolar aplicativos <i>listados</i>\?</string>
     <string name="ci_trust_txt" translatable="true">Confiável</string>
     <string name="ssv_see_more" translatable="true">Mostrar todos</string>
-    <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">domínios mais contatados</string>
-    <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">aplicativos mais bloqueados</string>
+    <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">Domínios mais contatados</string>
+    <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">Aplicativos mais bloqueados</string>
     <string name="firewall_rule_dns_blocked" translatable="true">DNS bloqueado</string>
     <string name="firewall_rule_domain_blocked_univ" translatable="true">Domínio (Univ)</string>
     <string name="lbl_mtu" translatable="true">MTU</string>
@@ -851,7 +851,7 @@
     <string name="settings_lock_down_proxy_desc" translatable="true">Não é possível configurar proxies quando a VPN está sendo executada somente no modo DNS.</string>
     <string name="settings_pcap_dialog_option_3" translatable="true">Saída para a pasta Downloads</string>
     <string name="ada_delete_logs_dialog_desc" description="Appears as dialog description to clear the logs in app specific screen" translatable="true">Limpar todos os registros relacionados a este aplicativo.</string>
-    <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">países mais bloqueados</string>
+    <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">Países mais bloqueados</string>
     <string name="bad_config_reason_missing_attribute" translatable="true">Atributo ausente</string>
     <string name="bad_config_reason_invalid_value" translatable="true">Valor inválido</string>
     <string name="bad_config_reason_missing_section" translatable="true">Seção ausente</string>
@@ -872,8 +872,8 @@
     <string name="dc_refresh_toast" translatable="true">Atualização concluída</string>
     <string name="dc_setting_dns_cache_heading" translatable="true">Impulsionar DNS</string>
     <string name="brbs_backup_restore_desc" translatable="true">Não funciona em todas as versões do aplicativo</string>
-    <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">ips mais contatados</string>
-    <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">ips mais bloqueados</string>
+    <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Ips mais contatados</string>
+    <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Ips mais bloqueados</string>
     <string name="bad_config_reason_syntax_error" translatable="true">Erro de sintaxe</string>
     <string name="key_length_explanation_hex" translatable="true">: As chaves hexadecimais do WireGuard devem ter 64 caracteres (32 bytes)</string>
     <string name="parse_error_integer" translatable="true">número</string>
@@ -904,8 +904,8 @@
     <string name="bsdl_block_desc" translatable="true">Bloquear, confiar <u>neste domínio</u></string>
     <string name="dc_setting_dns_cache_desc" translatable="true">Agrupar solicitações, respostas de cache, tratamento de erros resiliente</string>
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category" translatable="true">%1$s lista(s) de bloqueio</string>
-    <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">países mais contactados</string>
-    <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">domínios mais bloqueados</string>
+    <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">Países mais contactados</string>
+    <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">Domínios mais bloqueados</string>
     <string name="bad_config_reason_invalid_key" translatable="true">Chave inválida</string>
     <string name="bad_config_reason_invalid_number" translatable="true">Número inválido</string>
     <string name="key_length_explanation_base64" translatable="true">: As chaves base64 do WireGuard devem ter 44 caracteres (32 bytes)</string>
@@ -939,7 +939,7 @@
     <string name="cd_no_rules_text" translatable="true">Sem regras de domínio.</string>
     <string name="ci_trust_initial" translatable="true">T</string>
     <string name="rbl_parental_control_desc" description="The text appears as blocklists description in configure screen" translatable="true">Bloquear conteúdo adulto e pirateado, jogos e encontros on-line e mídias sociais.</string>
-    <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">aplicativos mais permitidos</string>
+    <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">Aplicativos mais permitidos</string>
     <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Inicie o Rethink para continuar</string>
     <string name="no_configs_error" translatable="true">Nenhuma configuração encontrada</string>
     <string name="bad_extension_error" translatable="true">O arquivo deve ser \".conf\" ou \".zip\"</string>
@@ -1040,7 +1040,7 @@
     <string name="sponser_dialog_usage_msg" translatable="true">Você usa o Rethink há <b>%1$s dias</b>, o que representa um custo de uso de <b>$%2$s</b>. Você consideraria patrocinar para sustentar seu desenvolvimento?</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Use DNS do sistema para domínios não delegados</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Use o DNS do sistema para domínios não controlados, como <i>.lan</i>, <i>.internal</i>, etc.</string>
-    <string name="dc_filtering_heading" translatable="true">filtragem</string>
+    <string name="dc_filtering_heading" translatable="true">Filtragem</string>
     <string name="cd_split_dns_heading" translatable="true">DNS dividido (experimental)</string>
     <string name="cd_split_dns_desc" translatable="true">Encaminhe consultas DNS de aplicativos proxy para os servidores DNS do proxy.</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">Tratar regras de DNS como regras de firewall (experimental)</string>

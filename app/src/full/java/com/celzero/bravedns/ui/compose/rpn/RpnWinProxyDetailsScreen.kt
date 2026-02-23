@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -36,7 +35,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -57,6 +55,7 @@ import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.service.ProxyManager
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.util.Utilities
 import io.github.aakira.napier.Napier
@@ -131,15 +130,12 @@ fun RpnWinProxyDetailsScreen(
                     .padding(paddingValues)
         ) {
             if (showNoProxyFoundDialog) {
-                AlertDialog(
+                RethinkConfirmDialog(
                     onDismissRequest = {},
-                    title = { Text(text = noProxyTitle) },
-                    text = { Text(text = noProxyDesc) },
-                    confirmButton = {
-                        TextButton(onClick = onBackClick) {
-                            Text(text = stringResource(R.string.ada_noapp_dialog_positive))
-                        }
-                    }
+                    title = noProxyTitle,
+                    message = noProxyDesc,
+                    confirmText = stringResource(R.string.ada_noapp_dialog_positive),
+                    onConfirm = onBackClick
                 )
             }
             StatsRow(appsCount, domainsCount, ipsCount)

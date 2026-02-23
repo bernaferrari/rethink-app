@@ -13,14 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:OptIn(ExperimentalMaterial3Api::class)
+
 package com.celzero.bravedns.ui.compose.about
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,10 +38,20 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Article
+import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Gavel
+import androidx.compose.material.icons.rounded.HelpOutline
+import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.NewReleases
+import androidx.compose.material.icons.rounded.Notifications
+import androidx.compose.material.icons.rounded.Policy
+import androidx.compose.material.icons.rounded.Public
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.VpnKey
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -46,29 +62,52 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
+import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.settings.AppearanceSettingsCard
 import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
+import com.celzero.bravedns.ui.compose.theme.RethinkGridTile
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
+import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 
-@OptIn(ExperimentalMaterial3Api::class)
+private data class AboutItem(
+    val headline: String,
+    val iconPainter: Painter,
+    val onClick: () -> Unit,
+)
+
+private fun aboutTopClusterPosition(index: Int, lastIndex: Int): CardPosition {
+    return when {
+        lastIndex <= 0 -> CardPosition.First
+        index == 0 -> CardPosition.First
+        index == lastIndex -> CardPosition.Middle
+        else -> CardPosition.Middle
+    }
+}
+
 @Composable
 fun AboutScreen(
     uiState: AboutUiState,
@@ -91,6 +130,7 @@ fun AboutScreen(
     onRedditClick: () -> Unit,
     onElementClick: () -> Unit,
     onMastodonClick: () -> Unit,
+    onGeneralSettingsClick: () -> Unit,
     onAppInfoClick: () -> Unit,
     onVpnProfileClick: () -> Unit,
     onNotificationClick: () -> Unit,
@@ -101,16 +141,48 @@ fun AboutScreen(
     onTokenClick: () -> Unit,
     onTokenDoubleTap: () -> Unit,
     onFossClick: () -> Unit,
-    onFlossFundsClick: () -> Unit
+    onFlossFundsClick: () -> Unit,
+    persistentState: PersistentState,
+    onThemeModeChanged: ((Int) -> Unit)? = null,
+    onThemeColorChanged: ((Int) -> Unit)? = null
 ) {
+    val aboutTitle = stringResource(id = R.string.title_about)
+    val appName = stringResource(id = R.string.app_name)
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val expandedTitle = remember(appName) { appName }
+    val expandedSubtitle = remember(uiState.versionName, uiState.slicedVersion) {
+        when {
+            uiState.versionName.isNotBlank() -> "v${uiState.versionName}"
+            uiState.slicedVersion.isNotBlank() -> "v${uiState.slicedVersion}"
+            else -> null
+        }
+    }
+    val topBarTitle by remember(scrollBehavior.state, expandedTitle, aboutTitle) {
+        derivedStateOf {
+            if (scrollBehavior.state.collapsedFraction >= 0.55f) {
+                aboutTitle
+            } else {
+                expandedTitle
+            }
+        }
+    }
+    val topBarSubtitle by remember(scrollBehavior.state, expandedSubtitle) {
+        derivedStateOf {
+            if (scrollBehavior.state.collapsedFraction >= 0.55f) {
+                null
+            } else {
+                expandedSubtitle
+            }
+        }
+    }
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             RethinkLargeTopBar(
-                title = stringResource(id = R.string.title_about),
+                title = topBarTitle,
+                subtitle = topBarSubtitle,
                 scrollBehavior = scrollBehavior
             )
         }
@@ -128,252 +200,278 @@ fun AboutScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-
-            // ── App identity hero card ────────────────────────────────────
-            item { AppHeroCard(uiState) }
-
-            // ── Sponsor / support card ────────────────────────────────────
-            item { SponsorCard(uiState, onSponsorClick) }
-
-            // ── Quick actions row (Telegram + Bug Report) ─────────────────
+            // ── Sponsor card ──────────────────────────────────────────
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
-                ) {
-                    QuickActionCard(
-                        title = stringResource(id = R.string.about_join_telegram),
-                        iconId = R.drawable.ic_telegram,
-                        modifier = Modifier.weight(1f),
-                        onClick = onTelegramClick
+                RethinkAnimatedSection(index = 0) {
+                    SponsorCard(uiState, onSponsorClick)
+                }
+            }
+
+            // ── Appearance (shared settings component) ───────────────
+            item {
+                RethinkAnimatedSection(index = 1) {
+                    AppearanceSettingsCard(
+                        themePreference = persistentState.theme,
+                        colorPresetId = persistentState.themeColorPreset,
+                        onAppearanceModeSelected = { mode ->
+                            val themeId = mode.toThemePreference()
+                            persistentState.theme = themeId
+                            onThemeModeChanged?.invoke(themeId)
+                        },
+                        onColorPresetSelected = { preset ->
+                            persistentState.themeColorPreset = preset.id
+                            onThemeColorChanged?.invoke(preset.id)
+                        },
+                        showSectionHeader = true
                     )
-                    if (uiState.isBugReportRunning) {
-                        BugReportLoadingCard(modifier = Modifier.weight(1f))
-                    } else {
-                        QuickActionCard(
-                            title = stringResource(id = R.string.about_bug_report),
-                            iconId = R.drawable.ic_android_icon,
+                }
+            }
+
+            // ── Quick actions (Telegram + Bug Report) ─────────────────
+            item {
+                RethinkAnimatedSection(index = 2) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+                    ) {
+                        RethinkGridTile(
+                            title = stringResource(id = R.string.about_join_telegram),
+                            iconRes = R.drawable.ic_telegram,
+                            accentColor = MaterialTheme.colorScheme.tertiary,
+                            shape = RoundedCornerShape(
+                                topStart = 28.dp,
+                                topEnd = 12.dp,
+                                bottomStart = 28.dp,
+                                bottomEnd = 12.dp
+                            ),
                             modifier = Modifier.weight(1f),
-                            onClick = onBugReportClick
+                            onClick = onTelegramClick
                         )
+                        if (uiState.isBugReportRunning) {
+                            RethinkGridTile(
+                                title = stringResource(id = R.string.collecting_logs_progress_text),
+                                iconRes = R.drawable.ic_android_icon,
+                                accentColor = MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(
+                                    topStart = 12.dp,
+                                    topEnd = 28.dp,
+                                    bottomStart = 12.dp,
+                                    bottomEnd = 28.dp
+                                ),
+                                modifier = Modifier.weight(1f),
+                                trailing = {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(18.dp),
+                                        strokeWidth = 2.dp,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            )
+                        } else {
+                            RethinkGridTile(
+                                title = stringResource(id = R.string.about_bug_report),
+                                iconRes = R.drawable.ic_android_icon,
+                                accentColor = MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(
+                                    topStart = 12.dp,
+                                    topEnd = 28.dp,
+                                    bottomStart = 12.dp,
+                                    bottomEnd = 28.dp
+                                ),
+                                modifier = Modifier.weight(1f),
+                                onClick = onBugReportClick
+                            )
+                        }
                     }
                 }
             }
 
-            // ── App section ───────────────────────────────────────────────
+            // ── App section ───────────────────────────────────────────
             item {
-                SectionHeader(title = stringResource(id = R.string.about_app))
-                RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_whats_new, uiState.slicedVersion),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_whats_new),
-                        position = CardPosition.First,
-                        onClick = onWhatsNewClick
+                RethinkAnimatedSection(index = 3) {
+                    AboutAppSection(
+                        uiState = uiState,
+                        onWhatsNewClick = onWhatsNewClick,
+                        onAppUpdateClick = onAppUpdateClick,
+                        onContributorsClick = onContributorsClick,
+                        onTranslateClick = onTranslateClick
                     )
-                    if (!uiState.isFdroid) {
-                        RethinkListItem(
-                            headline = stringResource(id = R.string.about_app_update_check),
-                            leadingIconPainter = painterResource(id = R.drawable.ic_update),
-                            position = CardPosition.Middle,
-                            onClick = onAppUpdateClick
+                }
+            }
+
+            // ── Web section ───────────────────────────────────────────
+            item {
+                RethinkAnimatedSection(index = 4) {
+                    AboutSection(
+                        title = stringResource(id = R.string.about_web),
+                        accentColor = MaterialTheme.colorScheme.secondary,
+                        items = listOf(
+                            AboutItem(
+                                headline = stringResource(id = R.string.about_website),
+                                iconPainter = rememberVectorPainter(image = Icons.Rounded.Public),
+                                onClick = onWebsiteClick
+                            ),
+                            AboutItem(stringResource(id = R.string.about_github), painterResource(id = R.drawable.ic_github), onGithubClick),
+                            AboutItem(
+                                headline = stringResource(id = R.string.about_faq),
+                                iconPainter = rememberVectorPainter(image = Icons.Rounded.HelpOutline),
+                                onClick = onFaqClick
+                            ),
+                            AboutItem(
+                                headline = stringResource(id = R.string.about_docs),
+                                iconPainter = rememberVectorPainter(image = Icons.AutoMirrored.Rounded.Article),
+                                onClick = onDocsClick
+                            ),
+                            AboutItem(
+                                stringResource(id = R.string.about_privacy_policy),
+                                rememberVectorPainter(image = Icons.Rounded.Policy),
+                                onPrivacyPolicyClick
+                            ),
+                            AboutItem(
+                                stringResource(id = R.string.about_terms_of_service),
+                                rememberVectorPainter(image = Icons.Rounded.Gavel),
+                                onTermsOfServiceClick
+                            ),
+                            AboutItem(
+                                stringResource(id = R.string.about_license),
+                                rememberVectorPainter(image = Icons.AutoMirrored.Rounded.Article),
+                                onLicenseClick
+                            ),
+                        ),
+                    )
+                }
+            }
+
+            // ── Connect / community section ───────────────────────────
+            item {
+                RethinkAnimatedSection(index = 5) {
+                    AboutConnectSection(
+                        onTwitterClick = onTwitterClick,
+                        onEmailClick = onEmailClick,
+                        onRedditClick = onRedditClick,
+                        onElementClick = onElementClick,
+                        onMastodonClick = onMastodonClick
+                    )
+                }
+            }
+
+            // ── System settings section ───────────────────────────────
+            item {
+                RethinkAnimatedSection(index = 6) {
+                    AboutSection(
+                        title = stringResource(id = R.string.about_settings),
+                        accentColor = MaterialTheme.colorScheme.primary,
+                        items = listOf(
+                            AboutItem(
+                                stringResource(id = R.string.settings_general_header),
+                                rememberVectorPainter(image = Icons.Rounded.Settings),
+                                onGeneralSettingsClick
+                            ),
+                            AboutItem(
+                                stringResource(id = R.string.about_settings_app_info),
+                                rememberVectorPainter(image = Icons.Rounded.Info),
+                                onAppInfoClick
+                            ),
+                            AboutItem(
+                                stringResource(id = R.string.about_settings_vpn_profile),
+                                rememberVectorPainter(image = Icons.Rounded.VpnKey),
+                                onVpnProfileClick
+                            ),
+                            AboutItem(
+                                stringResource(id = R.string.about_settings_notification),
+                                rememberVectorPainter(image = Icons.Rounded.Notifications),
+                                onNotificationClick
+                            ),
+                        ),
+                    )
+                }
+            }
+
+            // ── Debug / diagnostics section ───────────────────────────
+            item {
+                val items = buildList {
+                    add(AboutItem(stringResource(id = R.string.title_statistics), painterResource(id = R.drawable.ic_log_level), onStatsClick))
+                    add(
+                        AboutItem(
+                            stringResource(id = R.string.title_database_dump),
+                            rememberVectorPainter(image = Icons.Rounded.Backup),
+                            onDbStatsClick
                         )
-                    }
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_app_contributors),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_authors),
-                        position = CardPosition.Middle,
-                        onClick = onContributorsClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_app_translate),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_translate),
-                        position = CardPosition.Last,
-                        onClick = onTranslateClick
-                    )
-                }
-            }
-
-            // ── Web section ───────────────────────────────────────────────
-            item {
-                SectionHeader(title = stringResource(id = R.string.about_web))
-                RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_website),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_website),
-                        position = CardPosition.First,
-                        onClick = onWebsiteClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_github),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_github),
-                        position = CardPosition.Middle,
-                        onClick = onGithubClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_faq),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_faq),
-                        position = CardPosition.Middle,
-                        onClick = onFaqClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_docs),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_blog),
-                        position = CardPosition.Middle,
-                        onClick = onDocsClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_privacy_policy),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_privacy_policy),
-                        position = CardPosition.Middle,
-                        onClick = onPrivacyPolicyClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_terms_of_service),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_terms_service),
-                        position = CardPosition.Middle,
-                        onClick = onTermsOfServiceClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_license),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_terms_service),
-                        position = CardPosition.Last,
-                        onClick = onLicenseClick
-                    )
-                }
-            }
-
-            // ── Connect / community section ───────────────────────────────
-            item {
-                SectionHeader(title = stringResource(id = R.string.about_connect))
-                RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_twitter),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_twitter),
-                        position = CardPosition.First,
-                        onClick = onTwitterClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_email),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_mail),
-                        position = CardPosition.Middle,
-                        onClick = onEmailClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.lbl_reddit),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_reddit),
-                        position = CardPosition.Middle,
-                        onClick = onRedditClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.lbl_matrix),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_element),
-                        position = CardPosition.Middle,
-                        onClick = onElementClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.lbl_mastodon),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_mastodon),
-                        position = CardPosition.Last,
-                        onClick = onMastodonClick
-                    )
-                }
-            }
-
-            // ── System settings section ───────────────────────────────────
-            item {
-                SectionHeader(title = stringResource(id = R.string.about_settings))
-                RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_settings_app_info),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_app_info),
-                        position = CardPosition.First,
-                        onClick = onAppInfoClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_settings_vpn_profile),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_about_key),
-                        position = CardPosition.Middle,
-                        onClick = onVpnProfileClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.about_settings_notification),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_notification),
-                        position = CardPosition.Last,
-                        onClick = onNotificationClick
-                    )
-                }
-            }
-
-            // ── Debug / diagnostics section ───────────────────────────────
-            item {
-                SectionHeader(title = stringResource(id = R.string.title_statistics))
-                RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.settings_general_header),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_log_level),
-                        position = CardPosition.First,
-                        onClick = onStatsClick
-                    )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.title_database_dump),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_backup),
-                        position = CardPosition.Middle,
-                        onClick = onDbStatsClick
                     )
                     if (uiState.isDebug) {
-                        RethinkListItem(
-                            headline = "Flight Recorder",
-                            leadingIconPainter = painterResource(id = R.drawable.ic_backup),
-                            position = CardPosition.Middle,
-                            onClick = onFlightRecordClick
+                        add(
+                            AboutItem(
+                                "Flight Recorder",
+                                rememberVectorPainter(image = Icons.Rounded.Backup),
+                                onFlightRecordClick
+                            )
                         )
                     }
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.event_logs_title),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_event_note),
-                        position = CardPosition.Last,
-                        onClick = onEventLogsClick
+                    add(
+                        AboutItem(
+                            stringResource(id = R.string.event_logs_title),
+                            rememberVectorPainter(image = Icons.AutoMirrored.Rounded.Article),
+                            onEventLogsClick
+                        )
+                    )
+                }
+                RethinkAnimatedSection(index = 7) {
+                    AboutSection(
+                        title = stringResource(id = R.string.title_statistics),
+                        accentColor = MaterialTheme.colorScheme.secondary,
+                        items = items,
                     )
                 }
             }
 
-            // ── Partner logos ─────────────────────────────────────────────
-            item { PartnerLogosCard(onFossClick, onFlossFundsClick) }
-
-            // ── Version footer ────────────────────────────────────────────
+            // ── Partner logos ─────────────────────────────────────────
             item {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    if (uiState.isFirebaseEnabled && !uiState.isFdroid) {
+                RethinkAnimatedSection(index = 8) {
+                    PartnerLogosCard(onFossClick, onFlossFundsClick)
+                }
+            }
+
+            // ── Version footer ────────────────────────────────────────
+            item {
+                RethinkAnimatedSection(index = 9) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (uiState.isFirebaseEnabled && !uiState.isFdroid) {
+                            Text(
+                                text = uiState.firebaseToken,
+                                style = MaterialTheme.typography.labelSmall,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .alpha(0.5f)
+                                    .padding(bottom = Dimensions.spacingMd)
+                                    .clickable { onTokenClick() }
+                            )
+                        }
                         Text(
-                            text = uiState.firebaseToken,
-                            style = MaterialTheme.typography.labelSmall,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .alpha(0.5f)
-                                .padding(bottom = Dimensions.spacingMd)
-                                .clickable { onTokenClick() }
-                        )
-                    }
-                    Text(
-                        text = "${uiState.versionName} · ${uiState.installSource}",
-                        style = MaterialTheme.typography.labelSmall,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.fillMaxWidth().alpha(0.65f)
-                    )
-                    if (uiState.buildNumber.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = uiState.buildNumber,
-                            style = MaterialTheme.typography.labelSmall,
+                            text = "${uiState.versionName} · ${uiState.installSource}",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
                             textAlign = TextAlign.Center,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.fillMaxWidth().alpha(0.45f)
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .alpha(0.75f)
                         )
+                        if (uiState.buildNumber.isNotBlank()) {
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = uiState.buildNumber,
+                                style = MaterialTheme.typography.labelSmall,
+                                textAlign = TextAlign.Center,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .alpha(0.55f)
+                            )
+                        }
                     }
                 }
             }
@@ -381,115 +479,95 @@ fun AboutScreen(
     }
 }
 
-// ─── App Identity Hero Card ────────────────────────────────────────────────────
-
-@Composable
-private fun AppHeroCard(uiState: AboutUiState) {
-    Surface(
-        shape = RoundedCornerShape(28.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        Row(
-            modifier = Modifier.padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            // App icon with rounded container
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(64.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Image(
-                        painter = painterResource(id = R.drawable.ic_launcher),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        contentScale = ContentScale.Fit
-                    )
-                }
-            }
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = stringResource(id = R.string.app_name),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = stringResource(id = R.string.about_title_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2
-                )
-                if (uiState.versionName.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Surface(
-                        shape = RoundedCornerShape(50.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer
-                    ) {
-                        Text(
-                            text = "v${uiState.versionName}",
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-// ─── Sponsor Card ─────────────────────────────────────────────────────────────
+// ─── Sponsor Card ───────────────────────────────────────────────────────────
 
 @Composable
 private fun SponsorCard(uiState: AboutUiState, onSponsorClick: () -> Unit) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.98f else 1f,
+        animationSpec = tween(100),
+        label = "sponsor_scale"
+    )
+
     Surface(
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        modifier = Modifier.fillMaxWidth()
+        shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
+        color = MaterialTheme.colorScheme.surfaceContainer,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        onClick = onSponsorClick,
+        interactionSource = interactionSource,
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(scale)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Text(
-                text = stringResource(id = R.string.about_bravedns_explantion),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
-            Text(
-                text = stringResource(
-                    id = R.string.sponser_dialog_usage_msg,
-                    uiState.daysSinceInstall,
-                    uiState.sponsoredAmount
-                ),
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.Medium,
-                color = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    modifier = Modifier.size(52.dp)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+                Text(
+                    text = stringResource(id = R.string.about_bravedns_explantion),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.Top
+            ) {
+                Text(
+                    text = stringResource(
+                        id = R.string.sponser_dialog_usage_msg,
+                        uiState.daysSinceInstall,
+                        uiState.sponsoredAmount
+                    ),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+
             Button(
                 onClick = onSponsorClick,
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(50.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = MaterialTheme.colorScheme.onPrimary
-                )
+                ),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
             ) {
                 Icon(
                     imageVector = Icons.Rounded.Favorite,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(20.dp)
                 )
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 Text(
                     text = stringResource(id = R.string.about_sponsor_link_text),
                     style = MaterialTheme.typography.labelLarge,
@@ -500,83 +578,210 @@ private fun SponsorCard(uiState: AboutUiState, onSponsorClick: () -> Unit) {
     }
 }
 
-// ─── Quick Action Card ─────────────────────────────────────────────────────────
+// ─── Section composable with colored icon containers ────────────────────────
 
 @Composable
-private fun QuickActionCard(
+private fun AboutSection(
     title: String,
-    iconId: Int,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
+    accentColor: Color,
+    items: List<AboutItem>,
 ) {
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        onClick = onClick,
-        modifier = modifier
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            Surface(
-                shape = CircleShape,
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.size(36.dp)
-            ) {
-                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = iconId),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyMedium,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1,
-                color = MaterialTheme.colorScheme.onSurface
+    Column {
+        SectionHeader(title = title, color = accentColor)
+        items.forEachIndexed { index, item ->
+            RethinkListItem(
+                headline = item.headline,
+                leadingIconPainter = item.iconPainter,
+                leadingIconTint = accentColor,
+                leadingIconContainerColor = accentColor.copy(alpha = 0.14f),
+                position = cardPositionFor(index = index, lastIndex = items.lastIndex),
+                highlightContainerColor = accentColor.copy(alpha = 0.24f),
+                onClick = item.onClick
             )
         }
     }
 }
 
 @Composable
-private fun BugReportLoadingCard(modifier: Modifier = Modifier) {
-    Surface(
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        modifier = modifier
-    ) {
+private fun AboutAppSection(
+    uiState: AboutUiState,
+    onWhatsNewClick: () -> Unit,
+    onAppUpdateClick: () -> Unit,
+    onContributorsClick: () -> Unit,
+    onTranslateClick: () -> Unit
+) {
+    val accentColor = MaterialTheme.colorScheme.primary
+    val listItems = buildList {
+        add(
+            AboutItem(
+                headline = stringResource(id = R.string.about_whats_new, uiState.slicedVersion),
+                iconPainter = rememberVectorPainter(image = Icons.Rounded.NewReleases),
+                onClick = onWhatsNewClick
+            )
+        )
+        if (!uiState.isFdroid) {
+            add(
+                AboutItem(
+                    headline = stringResource(id = R.string.about_app_update_check),
+                    iconPainter = painterResource(id = R.drawable.ic_update),
+                    onClick = onAppUpdateClick
+                )
+            )
+        }
+    }
+
+    Column {
+        SectionHeader(title = stringResource(id = R.string.about_app), color = accentColor)
+        listItems.forEachIndexed { index, item ->
+            RethinkListItem(
+                headline = item.headline,
+                leadingIconPainter = item.iconPainter,
+                leadingIconTint = accentColor,
+                leadingIconContainerColor = accentColor.copy(alpha = 0.14f),
+                position = aboutTopClusterPosition(index = index, lastIndex = listItems.lastIndex),
+                highlightContainerColor = accentColor.copy(alpha = 0.24f),
+                onClick = item.onClick
+            )
+        }
+
+        Spacer(modifier = Modifier.height(Dimensions.spacingXs))
+
         Row(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
         ) {
-            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.5.dp)
-            Spacer(modifier = Modifier.width(10.dp))
-            Text(
-                text = stringResource(id = R.string.collecting_logs_progress_text),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
+            RethinkGridTile(
+                title = stringResource(id = R.string.about_app_contributors),
+                iconRes = R.drawable.ic_authors,
+                accentColor = accentColor,
+                shape = RoundedCornerShape(
+                    topStart = 12.dp,
+                    topEnd = 12.dp,
+                    bottomStart = 28.dp,
+                    bottomEnd = 12.dp
+                ),
+                modifier = Modifier.weight(1f),
+                onClick = onContributorsClick
+            )
+            RethinkGridTile(
+                title = stringResource(id = R.string.about_app_translate),
+                iconRes = R.drawable.ic_translate,
+                accentColor = accentColor,
+                shape = RoundedCornerShape(
+                    topStart = 12.dp,
+                    topEnd = 12.dp,
+                    bottomStart = 12.dp,
+                    bottomEnd = 28.dp
+                ),
+                modifier = Modifier.weight(1f),
+                onClick = onTranslateClick
             )
         }
     }
 }
 
-// ─── Partner Logos Card ────────────────────────────────────────────────────────
+@Composable
+private fun AboutConnectSection(
+    onTwitterClick: () -> Unit,
+    onEmailClick: () -> Unit,
+    onRedditClick: () -> Unit,
+    onElementClick: () -> Unit,
+    onMastodonClick: () -> Unit
+) {
+    val accentColor = MaterialTheme.colorScheme.tertiary
+    Column {
+        SectionHeader(title = stringResource(id = R.string.about_connect), color = accentColor)
+
+        RethinkListItem(
+            headline = stringResource(id = R.string.about_twitter),
+            leadingIconPainter = painterResource(id = R.drawable.ic_twitter),
+            leadingIconTint = accentColor,
+            leadingIconContainerColor = accentColor.copy(alpha = 0.14f),
+            position = CardPosition.First,
+            highlightContainerColor = accentColor.copy(alpha = 0.24f),
+            onClick = onTwitterClick
+        )
+
+        Spacer(modifier = Modifier.height(Dimensions.spacingXs))
+
+        Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+            ) {
+                RethinkGridTile(
+                    title = stringResource(id = R.string.about_email),
+                    iconRes = R.drawable.ic_mail,
+                    accentColor = accentColor,
+                    shape = RoundedCornerShape(
+                        topStart = 12.dp,
+                        topEnd = 12.dp,
+                        bottomStart = 12.dp,
+                        bottomEnd = 12.dp
+                    ),
+                    modifier = Modifier.weight(1f),
+                    onClick = onEmailClick
+                )
+                RethinkGridTile(
+                    title = stringResource(id = R.string.lbl_reddit),
+                    iconRes = R.drawable.ic_reddit,
+                    accentColor = accentColor,
+                    shape = RoundedCornerShape(
+                        topStart = 12.dp,
+                        topEnd = 12.dp,
+                        bottomStart = 12.dp,
+                        bottomEnd = 12.dp
+                    ),
+                    modifier = Modifier.weight(1f),
+                    onClick = onRedditClick
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+            ) {
+                RethinkGridTile(
+                    title = stringResource(id = R.string.lbl_matrix),
+                    iconRes = R.drawable.ic_element,
+                    accentColor = accentColor,
+                    shape = RoundedCornerShape(
+                        topStart = 12.dp,
+                        topEnd = 12.dp,
+                        bottomStart = 28.dp,
+                        bottomEnd = 12.dp
+                    ),
+                    modifier = Modifier.weight(1f),
+                    onClick = onElementClick
+                )
+                RethinkGridTile(
+                    title = stringResource(id = R.string.lbl_mastodon),
+                    iconRes = R.drawable.ic_mastodon,
+                    accentColor = accentColor,
+                    shape = RoundedCornerShape(
+                        topStart = 12.dp,
+                        topEnd = 12.dp,
+                        bottomStart = 12.dp,
+                        bottomEnd = 28.dp
+                    ),
+                    modifier = Modifier.weight(1f),
+                    onClick = onMastodonClick
+                )
+            }
+        }
+    }
+}
+
+// ─── Partner Logos Card ──────────────────────────────────────────────────────
 
 @Composable
 private fun PartnerLogosCard(onFossClick: () -> Unit, onFlossFundsClick: () -> Unit) {
     Surface(
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
@@ -587,38 +792,64 @@ private fun PartnerLogosCard(onFossClick: () -> Unit, onFlossFundsClick: () -> U
             Text(
                 text = stringResource(id = R.string.about_mozilla),
                 style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.alpha(0.75f)
+                modifier = Modifier.alpha(0.8f)
             )
             Image(
                 painter = painterResource(id = R.drawable.mozilla),
                 contentDescription = null,
-                modifier = Modifier.width(140.dp),
+                modifier = Modifier.width(150.dp),
                 contentScale = ContentScale.FillWidth
             )
             Row(
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Image(
-                    painter = painterResource(id = R.drawable.foss_logo),
-                    contentDescription = null,
+                val logoShape = RoundedCornerShape(Dimensions.cornerRadiusMdLg)
+                Surface(
+                    shape = logoShape,
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
                     modifier = Modifier
-                        .width(120.dp)
-                        .height(44.dp)
-                        .clickable { onFossClick() },
-                    contentScale = ContentScale.Fit
-                )
-                Image(
-                    painter = painterResource(id = R.drawable.ic_floss_fund_badge),
-                    contentDescription = null,
+                        .clip(logoShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = onFossClick
+                        )
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.foss_logo),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(126.dp)
+                            .height(46.dp)
+                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
+                Surface(
+                    shape = logoShape,
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
                     modifier = Modifier
-                        .width(120.dp)
-                        .height(44.dp)
-                        .clickable { onFlossFundsClick() },
-                    contentScale = ContentScale.Fit
-                )
+                        .clip(logoShape)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            onClick = onFlossFundsClick
+                        )
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_floss_fund_badge),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .width(126.dp)
+                            .height(46.dp)
+                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                        contentScale = ContentScale.Fit
+                    )
+                }
             }
         }
     }

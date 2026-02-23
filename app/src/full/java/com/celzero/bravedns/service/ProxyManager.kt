@@ -40,6 +40,23 @@ object ProxyManager : KoinComponent {
     const val TCP_PROXY_NAME = "Rethink-Proxy"
     const val ORBOT_PROXY_NAME = "Orbot"
 
+    private val VALID_PROXY_ID_PREFIXES =
+        listOf(
+            ID_ORBOT_BASE,
+            ID_WG_BASE,
+            ID_TCP_BASE,
+            ID_S5_BASE,
+            ID_HTTP_BASE,
+            ID_RPN_WIN
+        )
+    private val USER_SET_PROXY_ID_PREFIXES =
+        listOf(
+            ID_WG_BASE,
+            ID_ORBOT_BASE,
+            ID_S5_BASE,
+            ID_HTTP_BASE
+        )
+
     // we are using ProxyAppMapTuple instead of ProxyApplicationMapping for the pamSet as the equals
     // and hash method implementation is overridden and cannot be used for the pamSet
     data class ProxyAppMapTuple(val uid: Int, val packageName: String, val proxyId: String)
@@ -347,13 +364,8 @@ object ProxyManager : KoinComponent {
     }
 
     private fun isValidProxyPrefix(pid: String): Boolean {
-        if (pid == ID_NONE || pid == "") return false
-        return pid.startsWith(ID_ORBOT_BASE) ||
-            pid.startsWith(ID_WG_BASE) ||
-            pid.startsWith(ID_TCP_BASE) ||
-            pid.startsWith(ID_S5_BASE) ||
-            pid.startsWith(ID_HTTP_BASE) ||
-            pid.startsWith(ID_RPN_WIN)
+        if (pid.isEmpty() || pid == ID_NONE) return false
+        return hasKnownPrefix(pid, VALID_PROXY_ID_PREFIXES)
     }
 
     fun getAppCountForProxy(proxyId: String): Int {
@@ -373,11 +385,12 @@ object ProxyManager : KoinComponent {
     }
 
     fun isAnyUserSetProxy(proxyId: String): Boolean {
-        return proxyId.startsWith(ID_WG_BASE) ||
-            proxyId.startsWith(ID_ORBOT_BASE) ||
-            proxyId.startsWith(ID_S5_BASE) ||
-            proxyId.startsWith(ID_HTTP_BASE) ||
+        return hasKnownPrefix(proxyId, USER_SET_PROXY_ID_PREFIXES) ||
             proxyId.endsWith(Backend.RPN)
+    }
+
+    private fun hasKnownPrefix(proxyId: String, prefixes: List<String>): Boolean {
+        return prefixes.any { proxyId.startsWith(it) }
     }
 
     fun isRpnProxy(ipnProxyId: String): Boolean {

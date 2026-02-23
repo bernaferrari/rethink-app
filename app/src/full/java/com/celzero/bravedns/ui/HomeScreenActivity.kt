@@ -34,6 +34,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
+import android.database.Cursor
 import android.net.VpnService
 import android.net.Uri
 import android.os.Bundle
@@ -45,40 +46,45 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -95,6 +101,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -137,10 +144,19 @@ import com.celzero.bravedns.service.WireguardManager
 
 import com.celzero.bravedns.ui.compose.dns.ConfigureRethinkScreenType
 import com.celzero.bravedns.ui.compose.navigation.HomeNavRequest
+import com.celzero.bravedns.ui.compose.navigation.CustomRulesMode
+import com.celzero.bravedns.ui.compose.navigation.CustomRulesTab
 import com.celzero.bravedns.ui.compose.navigation.HomeRoute
 import com.celzero.bravedns.ui.compose.wireguard.WgType
 import com.celzero.bravedns.ui.compose.navigation.HomeScreenRoot
+import com.celzero.bravedns.ui.compose.theme.CardPosition
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
+import com.celzero.bravedns.ui.compose.theme.RethinkColorPreset
+import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 import com.celzero.bravedns.ui.compose.theme.mapThemePreferenceToComposeMode
 import com.celzero.bravedns.ui.compose.settings.AppLockScreen
 import com.celzero.bravedns.ui.compose.settings.AppLockResult
@@ -151,10 +167,8 @@ import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.Constants.Companion.PKG_NAME_PLAY_STORE
 import com.celzero.bravedns.util.Constants.Companion.RETHINKDNS_SPONSOR_LINK
+import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
-import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
-import com.celzero.bravedns.util.Constants.Companion.PKG_NAME_PLAY_STORE
-import com.celzero.bravedns.util.Constants.Companion.RETHINKDNS_SPONSOR_LINK
 import com.celzero.bravedns.util.FirebaseErrorReporting
 import com.celzero.bravedns.util.FirebaseErrorReporting.TOKEN_LENGTH
 import com.celzero.bravedns.util.FirebaseErrorReporting.TOKEN_REGENERATION_PERIOD_DAYS
@@ -171,7 +185,6 @@ import com.celzero.bravedns.util.UIUtils.openUrl
 import com.celzero.bravedns.util.UIUtils.openVpnProfile
 import com.celzero.bravedns.util.UIUtils.sendEmailIntent
 import com.celzero.bravedns.util.Themes
-import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getPackageMetadata
 import com.celzero.bravedns.util.Utilities.getRandomString
@@ -326,9 +339,10 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        theme.applyStyle(getCurrentTheme(isDarkThemeOn(), persistentState.theme), true)
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+
+        val resolvedThemePreference = Themes.resolveThemePreference(isDarkThemeOn(), persistentState.theme)
 
         val homeStartDestination =
             if (persistentState.firstTimeLaunch && !isAppRunningOnTv()) {
@@ -337,7 +351,7 @@ class HomeScreenActivity : AppCompatActivity() {
                 HomeRoute.Home
             }
 
-        handleFrostEffectIfNeeded(persistentState.theme)
+        handleFrostEffectIfNeeded(resolvedThemePreference)
 
         registerForActivityResult()
 
@@ -358,12 +372,19 @@ class HomeScreenActivity : AppCompatActivity() {
         appConfig.getBraveModeObservable().postValue(appConfig.getBraveMode().mode)
 
         setContent {
+            var composeThemePreference by remember { mutableStateOf(persistentState.theme) }
+            var composeThemeColorPreset by remember { mutableStateOf(persistentState.themeColorPreset) }
+
             val isSystemDark = isSystemInDarkTheme()
-            val composeThemeMode = mapThemePreferenceToComposeMode(persistentState.theme, isSystemDark)
-            val useDynamicColors = persistentState.theme == Themes.SYSTEM_DEFAULT.id
+            val resolvedComposeThemePreference =
+                Themes.resolveThemePreference(isSystemDark, composeThemePreference)
+            val composeThemeMode =
+                mapThemePreferenceToComposeMode(resolvedComposeThemePreference, isSystemDark)
+            val colorPreset = RethinkColorPreset.fromId(composeThemeColorPreset)
             RethinkTheme(
                 themeMode = composeThemeMode,
-                dynamicColor = useDynamicColors
+                themePreference = composeThemePreference,
+                colorPreset = colorPreset
             ) {
                 val hostState = remember { SnackbarHostState() }
                 DisposableEffect(hostState) {
@@ -406,7 +427,14 @@ class HomeScreenActivity : AppCompatActivity() {
                     onConfigureDnsClick = { navigateToDnsDetailIfAllowed() },
                     onConfigureFirewallClick = { homeNavRequest = HomeNavRequest.FirewallSettings },
                     onFirewallUniversalClick = { homeNavRequest = HomeNavRequest.UniversalFirewallSettings },
-                    onFirewallCustomIpClick = { homeNavRequest = HomeNavRequest.CustomRules },
+                    onFirewallCustomIpClick = {
+                        homeNavRequest =
+                            HomeNavRequest.CustomRules(
+                                uid = UID_EVERYBODY,
+                                tab = CustomRulesTab.IP,
+                                mode = CustomRulesMode.APP_SPECIFIC
+                            )
+                    },
                     onFirewallAppWiseIpClick = { openAppWiseIpScreen() },
                     onConfigureProxyClick = { homeNavRequest = HomeNavRequest.ProxySettings },
                     onConfigureNetworkClick = { homeNavRequest = HomeNavRequest.TunnelSettings },
@@ -434,6 +462,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     onRedditClick = { openUrl(this, getString(R.string.about_reddit_handle)) },
                     onElementClick = { openUrl(this, getString(R.string.about_matrix_handle)) },
                     onMastodonClick = { openUrl(this, getString(R.string.about_mastodom_handle)) },
+                    onGeneralSettingsClick = { homeNavRequest = HomeNavRequest.MiscSettings },
                     onAppInfoClick = { UIUtils.openAndroidAppInfo(this, packageName) },
                     onVpnProfileClick = { openVpnProfile(this) },
                     onNotificationClick = { openNotificationSettings() },
@@ -458,6 +487,8 @@ class HomeScreenActivity : AppCompatActivity() {
                     appConfig = appConfig,
                     onOpenVpnProfile = { UIUtils.openVpnProfile(this@HomeScreenActivity) },
                     onRefreshDatabase = { lifecycleScope.launch { rdb.refresh(RefreshDatabase.ACTION_REFRESH_INTERACTIVE) } },
+                    onThemeModeChanged = { composeThemePreference = it },
+                    onThemeColorChanged = { composeThemeColorPreset = it },
                     consoleLogViewModel = consoleLogViewModel,
                     consoleLogRepository = consoleLogRepository,
                     onShareConsoleLogs = { homeNavRequest = HomeNavRequest.NetworkLogs }, // Fallback to Activity for complex share
@@ -1106,6 +1137,14 @@ class HomeScreenActivity : AppCompatActivity() {
         data class NewFeatures(val title: String) : HomeDialog
     }
 
+    private data class DatabaseTablePreview(
+        val table: String,
+        val rowCount: Int,
+        val columnCount: Int,
+        val dumpPreview: String,
+        val isTruncated: Boolean
+    )
+
     private fun openDetailedStatsUi(type: SummaryStatisticsType) {
         val timeCategory = summaryViewModel.uiState.value.timeCategory.value
         val category =
@@ -1233,11 +1272,21 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun openCustomIpScreen() {
-        homeNavRequest = HomeNavRequest.CustomRules
+        homeNavRequest =
+            HomeNavRequest.CustomRules(
+                uid = UID_EVERYBODY,
+                tab = CustomRulesTab.IP,
+                mode = CustomRulesMode.APP_SPECIFIC
+            )
     }
 
     private fun openAppWiseIpScreen() {
-        homeNavRequest = HomeNavRequest.CustomRules
+        homeNavRequest =
+            HomeNavRequest.CustomRules(
+                uid = UID_EVERYBODY,
+                tab = CustomRulesTab.IP,
+                mode = CustomRulesMode.ALL_RULES
+            )
     }
 
     private fun startAppsActivity() {
@@ -1411,22 +1460,75 @@ class HomeScreenActivity : AppCompatActivity() {
         return tables
     }
 
-    private fun buildTableDump(table: String): String {
+    private fun buildTableDump(table: String, maxRows: Int? = null): String {
+        val safeTable = table.replace("`", "``")
         val db = appDatabase.openHelper.readableDatabase
-        val cursor = db.query("SELECT * FROM $table")
+        val cursor = db.query("SELECT * FROM `$safeTable`")
         val columnNames = cursor.columnNames
         val result = StringBuilder()
         result.append("Table: $table\n")
         result.append(columnNames.joinToString(separator = "\t"))
         result.append("\n")
+        var rowCount = 0
+        var isTruncated = false
         while (cursor.moveToNext()) {
+            if (maxRows != null && rowCount >= maxRows) {
+                isTruncated = true
+                break
+            }
             for (i in columnNames.indices) {
-                result.append(cursor.getString(i)).append("\t")
+                result.append(cursorValueAsText(cursor, i)).append("\t")
             }
             result.append("\n")
+            rowCount++
         }
         cursor.close()
+        if (isTruncated) {
+            result.append("…\n")
+        }
         return result.toString()
+    }
+
+    private fun getTableColumnCount(table: String): Int {
+        val safeTable = table.replace("`", "``")
+        val db = appDatabase.openHelper.readableDatabase
+        val cursor = db.query("SELECT * FROM `$safeTable` LIMIT 1")
+        val count = cursor.columnCount
+        cursor.close()
+        return count
+    }
+
+    private fun getTableRowCount(table: String): Int {
+        val safeTable = table.replace("`", "``")
+        val db = appDatabase.openHelper.readableDatabase
+        val cursor = db.query("SELECT COUNT(*) FROM `$safeTable`")
+        val count = if (cursor.moveToFirst()) cursor.getInt(0) else 0
+        cursor.close()
+        return count
+    }
+
+    private fun loadDatabaseTablePreview(table: String, maxRows: Int = 140): DatabaseTablePreview {
+        val rowCount = getTableRowCount(table)
+        val columnCount = getTableColumnCount(table)
+        val preview = buildTableDump(table, maxRows = maxRows)
+        return DatabaseTablePreview(
+            table = table,
+            rowCount = rowCount,
+            columnCount = columnCount,
+            dumpPreview = preview,
+            isTruncated = rowCount > maxRows
+        )
+    }
+
+    private fun cursorValueAsText(cursor: Cursor, index: Int): String {
+        return when (cursor.getType(index)) {
+            Cursor.FIELD_TYPE_NULL -> "null"
+            Cursor.FIELD_TYPE_BLOB -> {
+                val size = cursor.getBlob(index)?.size ?: 0
+                "[blob:$size]"
+            }
+            else -> cursor.getString(index).orEmpty()
+        }
     }
 
     private fun hasAnyLogsAvailable(): Boolean {
@@ -1535,12 +1637,17 @@ class HomeScreenActivity : AppCompatActivity() {
         val hasSelection = bugReportFiles.any { it.isSelected }
         val allSelected = bugReportFiles.isNotEmpty() && bugReportFiles.all { it.isSelected }
 
-        ModalBottomSheet(onDismissRequest = onDismiss) {
-            Column(modifier = Modifier.padding(16.dp)) {
+        RethinkModalBottomSheet(
+            onDismissRequest = onDismiss,
+            contentPadding = PaddingValues(Dimensions.spacingNone),
+            verticalSpacing = Dimensions.spacingNone,
+            includeBottomSpacer = false
+        ) {
+            Column(modifier = Modifier.padding(Dimensions.spacingLg)) {
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(bottom = 12.dp),
+                        .padding(bottom = Dimensions.spacingMd),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
@@ -1589,7 +1696,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                Spacer(modifier = Modifier.height(Dimensions.spacingMd))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -1598,8 +1705,8 @@ class HomeScreenActivity : AppCompatActivity() {
                 ) {
                     if (isSending) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            CircularProgressIndicator(modifier = Modifier.size(20.dp))
-                            Spacer(modifier = Modifier.width(8.dp))
+                            CircularProgressIndicator(modifier = Modifier.size(Dimensions.iconSizeSm))
+                            Spacer(modifier = Modifier.width(Dimensions.spacingSm))
                             Text(text = progressText)
                         }
                     }
@@ -1630,35 +1737,24 @@ class HomeScreenActivity : AppCompatActivity() {
         }
 
         pendingDelete?.let { fileItem ->
-            AlertDialog(
+            RethinkConfirmDialog(
                 onDismissRequest = { pendingDelete = null },
-                title = { Text(text = getString(R.string.lbl_delete)) },
-                text = {
-                    Text(
-                        text = getString(R.string.bug_report_delete_confirmation, fileItem.name)
-                    )
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            pendingDelete = null
-                            scope.launch {
-                                deleteBugReportFile(
-                                    fileItem = fileItem,
-                                    bugReportFiles = bugReportFiles,
-                                    onDismiss = onDismiss
-                                )
-                            }
-                        }
-                    ) {
-                        Text(text = getString(R.string.lbl_delete))
+                title = getString(R.string.lbl_delete),
+                message = getString(R.string.bug_report_delete_confirmation, fileItem.name),
+                confirmText = getString(R.string.lbl_delete),
+                dismissText = getString(R.string.lbl_cancel),
+                isConfirmDestructive = true,
+                onConfirm = {
+                    pendingDelete = null
+                    scope.launch {
+                        deleteBugReportFile(
+                            fileItem = fileItem,
+                            bugReportFiles = bugReportFiles,
+                            onDismiss = onDismiss
+                        )
                     }
                 },
-                dismissButton = {
-                    TextButton(onClick = { pendingDelete = null }) {
-                        Text(text = getString(R.string.lbl_cancel))
-                    }
-                }
+                onDismiss = { pendingDelete = null }
             )
         }
     }
@@ -1672,12 +1768,12 @@ class HomeScreenActivity : AppCompatActivity() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 6.dp)
+                .padding(vertical = Dimensions.spacingSm)
                 .background(
                     MaterialTheme.colorScheme.surfaceVariant,
-                    RoundedCornerShape(12.dp)
+                    RoundedCornerShape(Dimensions.cornerRadiusMd)
                 )
-                .padding(12.dp),
+                .padding(Dimensions.spacingMd),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Checkbox(
@@ -2061,7 +2157,7 @@ class HomeScreenActivity : AppCompatActivity() {
         Column(
             modifier =
                 Modifier.fillMaxWidth()
-                    .padding(15.dp)
+                    .padding(Dimensions.spacingLg)
                     .verticalScroll(rememberScrollState())
         ) {
             HtmlText(
@@ -2075,26 +2171,18 @@ class HomeScreenActivity : AppCompatActivity() {
     private fun HomeDialogHost() {
         when (val dialog = homeDialogState) {
             is HomeDialog.Restore -> {
-                AlertDialog(
+                HomeConfirmDialog(
                     onDismissRequest = { homeDialogState = null },
-                    title = { Text(text = getString(R.string.brbs_restore_dialog_title)) },
-                    text = { Text(text = getString(R.string.brbs_restore_dialog_message)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                homeDialogState = null
-                                startRestore(dialog.uri)
-                                observeRestoreWorker()
-                            }
-                        ) {
-                            Text(text = getString(R.string.brbs_restore_dialog_positive))
-                        }
+                    title = getString(R.string.brbs_restore_dialog_title),
+                    message = getString(R.string.brbs_restore_dialog_message),
+                    confirmText = getString(R.string.brbs_restore_dialog_positive),
+                    onConfirm = {
+                        homeDialogState = null
+                        startRestore(dialog.uri)
+                        observeRestoreWorker()
                     },
-                    dismissButton = {
-                        TextButton(onClick = { homeDialogState = null }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
+                    dismissText = getString(R.string.lbl_cancel),
+                    onDismiss = { homeDialogState = null }
                 )
             }
             is HomeDialog.Download -> {
@@ -2105,193 +2193,133 @@ class HomeScreenActivity : AppCompatActivity() {
                     } else {
                         dialog.message
                     }
+                val primaryLabel =
+                    if (isUpdateAvailable && dialog.source != AppUpdater.InstallSource.STORE) {
+                        getString(R.string.hs_download_positive_website)
+                    } else {
+                        getString(R.string.hs_download_positive_default)
+                    }
 
-                AlertDialog(
+                HomeConfirmDialog(
                     onDismissRequest = {
                         if (!isUpdateAvailable) {
                             homeDialogState = null
                         }
                     },
-                    title = { Text(text = dialog.title) },
-                    text = { Text(text = resolvedMessage) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                if (isUpdateAvailable) {
-                                    if (dialog.source == AppUpdater.InstallSource.STORE) {
-                                        appUpdateManager.completeUpdate()
-                                    } else {
-                                        initiateDownload()
-                                    }
-                                }
-                                homeDialogState = null
-                            }
-                        ) {
-                            val label =
-                                if (isUpdateAvailable && dialog.source != AppUpdater.InstallSource.STORE) {
-                                    getString(R.string.hs_download_positive_website)
-                                } else {
-                                    getString(R.string.hs_download_positive_default)
-                                }
-                            Text(text = label)
-                        }
-                    },
-                    dismissButton = {
+                    title = dialog.title,
+                    message = resolvedMessage,
+                    confirmText = primaryLabel,
+                    dismissText =
                         if (isUpdateAvailable) {
-                            TextButton(
-                                onClick = {
-                                    persistentState.lastAppUpdateCheck = System.currentTimeMillis()
-                                    homeDialogState = null
-                                }
-                            ) {
-                                Text(text = getString(R.string.hs_download_negative_default))
+                            getString(R.string.hs_download_negative_default)
+                        } else {
+                            null
+                        },
+                    onConfirm = {
+                        if (isUpdateAvailable) {
+                            if (dialog.source == AppUpdater.InstallSource.STORE) {
+                                appUpdateManager.completeUpdate()
+                            } else {
+                                initiateDownload()
                             }
+                        }
+                        homeDialogState = null
+                    },
+                    onDismiss = {
+                        if (isUpdateAvailable) {
+                            persistentState.lastAppUpdateCheck = System.currentTimeMillis()
+                            homeDialogState = null
                         }
                     }
                 )
 
             }
             is HomeDialog.AlwaysOnStop -> {
-                AlertDialog(
-                    onDismissRequest = {},
-                    title = { Text(text = getString(R.string.always_on_dialog_stop_heading)) },
-                    text = { Text(text = dialog.message) },
-                    confirmButton = {
-                        Column(horizontalAlignment = Alignment.End) {
-                            TextButton(
-                                onClick = {
-                                    homeDialogState = null
-                                    stopVpnService()
-                                }
-                            ) {
-                                Text(text = getString(R.string.always_on_dialog_positive))
-                            }
-                            TextButton(
-                                onClick = {
-                                    homeDialogState = null
-                                    openVpnProfile(this@HomeScreenActivity)
-                                }
-                            ) {
-                                Text(text = getString(R.string.always_on_dialog_neutral))
-                            }
-                        }
+                HomeAlwaysOnStopDialog(
+                    title = getString(R.string.always_on_dialog_stop_heading),
+                    message = dialog.message,
+                    stopText = getString(R.string.always_on_dialog_positive),
+                    openSettingsText = getString(R.string.always_on_dialog_neutral),
+                    cancelText = getString(R.string.lbl_cancel),
+                    onStop = {
+                        homeDialogState = null
+                        stopVpnService()
                     },
-                    dismissButton = {
-                        TextButton(onClick = { homeDialogState = null }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
+                    onOpenSettings = {
+                        homeDialogState = null
+                        openVpnProfile(this@HomeScreenActivity)
+                    },
+                    onCancel = {
+                        homeDialogState = null
                     }
                 )
             }
             HomeDialog.AlwaysOnDisable -> {
-                AlertDialog(
+                HomeConfirmDialog(
                     onDismissRequest = {},
-                    title = { Text(text = getString(R.string.always_on_dialog_heading)) },
-                    text = { Text(text = getString(R.string.always_on_dialog)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                homeDialogState = null
-                                openVpnProfile(this@HomeScreenActivity)
-                            }
-                        ) {
-                            Text(text = getString(R.string.always_on_dialog_positive_btn))
-                        }
+                    title = getString(R.string.always_on_dialog_heading),
+                    message = getString(R.string.always_on_dialog),
+                    confirmText = getString(R.string.always_on_dialog_positive_btn),
+                    dismissText = getString(R.string.lbl_cancel),
+                    onConfirm = {
+                        homeDialogState = null
+                        openVpnProfile(this@HomeScreenActivity)
                     },
-                    dismissButton = {
-                        TextButton(onClick = { homeDialogState = null }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
+                    onDismiss = { homeDialogState = null }
                 )
             }
             HomeDialog.PrivateDns -> {
-                AlertDialog(
+                HomeConfirmDialog(
                     onDismissRequest = {},
-                    title = { Text(text = getString(R.string.private_dns_dialog_heading)) },
-                    text = { Text(text = getString(R.string.private_dns_dialog_desc)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                homeDialogState = null
-                                openNetworkSettings(this@HomeScreenActivity, Settings.ACTION_WIRELESS_SETTINGS)
-                            }
-                        ) {
-                            Text(text = getString(R.string.private_dns_dialog_positive))
-                        }
+                    title = getString(R.string.private_dns_dialog_heading),
+                    message = getString(R.string.private_dns_dialog_desc),
+                    confirmText = getString(R.string.private_dns_dialog_positive),
+                    dismissText = getString(R.string.lbl_dismiss),
+                    onConfirm = {
+                        homeDialogState = null
+                        openNetworkSettings(this@HomeScreenActivity, Settings.ACTION_WIRELESS_SETTINGS)
                     },
-                    dismissButton = {
-                        TextButton(onClick = { homeDialogState = null }) {
-                            Text(text = getString(R.string.lbl_dismiss))
-                        }
-                    }
+                    onDismiss = { homeDialogState = null }
                 )
             }
             is HomeDialog.FirstTimeVpn -> {
-                AlertDialog(
+                HomeConfirmDialog(
                     onDismissRequest = {},
-                    title = { Text(text = getString(R.string.hsf_vpn_dialog_header)) },
-                    text = { Text(text = getString(R.string.hsf_vpn_dialog_message)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                homeDialogState = null
-                                try {
-                                    startForResult.launch(dialog.intent)
-                                } catch (e: ActivityNotFoundException) {
-                                    Logger.e(LOG_TAG_VPN, "Activity not found to start VPN service", e)
-                                    showToastUiCentered(
-                                        this@HomeScreenActivity,
-                                        getString(R.string.hsf_vpn_prepare_failure),
-                                        Toast.LENGTH_LONG
-                                    )
-                                }
-                            }
-                        ) {
-                            Text(text = getString(R.string.lbl_proceed))
+                    title = getString(R.string.hsf_vpn_dialog_header),
+                    message = getString(R.string.hsf_vpn_dialog_message),
+                    confirmText = getString(R.string.lbl_proceed),
+                    dismissText = getString(R.string.lbl_cancel),
+                    onConfirm = {
+                        homeDialogState = null
+                        try {
+                            startForResult.launch(dialog.intent)
+                        } catch (e: ActivityNotFoundException) {
+                            Logger.e(LOG_TAG_VPN, "Activity not found to start VPN service", e)
+                            showToastUiCentered(
+                                this@HomeScreenActivity,
+                                getString(R.string.hsf_vpn_prepare_failure),
+                                Toast.LENGTH_LONG
+                            )
                         }
                     },
-                    dismissButton = {
-                        TextButton(onClick = { homeDialogState = null }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
+                    onDismiss = { homeDialogState = null }
                 )
             }
             is HomeDialog.Stats -> {
-                AlertDialog(
+                HomeStatsDialog(
                     onDismissRequest = { homeDialogState = null },
-                    title = { Text(text = getString(R.string.title_statistics)) },
-                    text = {
-                        SelectionContainer {
-                            Column(
-                                modifier =
-                                    Modifier.fillMaxWidth()
-                                        .verticalScroll(rememberScrollState())
-                                        .padding(8.dp)
-                            ) {
-                                Text(text = dialog.displayText, style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { homeDialogState = null }) {
-                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = {
-                                copyToClipboard("stats_dump", dialog.dump)
-                                showToastUiCentered(
-                                    this@HomeScreenActivity,
-                                    getString(R.string.copied_clipboard),
-                                    Toast.LENGTH_SHORT
-                                )
-                            }
-                        ) {
-                            Text(text = getString(R.string.dns_info_neutral))
-                        }
+                    title = getString(R.string.title_statistics),
+                    displayText = dialog.displayText,
+                    dismissText = getString(R.string.fapps_info_dialog_positive_btn),
+                    copyText = getString(R.string.dns_info_neutral),
+                    onDismiss = { homeDialogState = null },
+                    onCopy = {
+                        copyToClipboard("stats_dump", dialog.dump)
+                        showToastUiCentered(
+                            this@HomeScreenActivity,
+                            getString(R.string.copied_clipboard),
+                            Toast.LENGTH_SHORT
+                        )
                     }
                 )
             }
@@ -2301,18 +2329,18 @@ class HomeScreenActivity : AppCompatActivity() {
                     properties = DialogProperties(usePlatformDefaultWidth = false)
                 ) {
                     Surface(color = MaterialTheme.colorScheme.background) {
-                        Column(modifier = Modifier.fillMaxWidth().padding(16.dp)) {
+                        Column(modifier = Modifier.fillMaxWidth().padding(Dimensions.spacingLg)) {
                             Text(
                                 text = getString(R.string.about_sponsor_link_text),
                                 style = MaterialTheme.typography.titleLarge
                             )
-                            Spacer(modifier = Modifier.height(8.dp))
+                            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
                             SponsorInfoDialogContent(
                                 amount = dialog.amount,
                                 usageMessage = dialog.usageMessage,
                                 onSponsorClick = { openUrl(this@HomeScreenActivity, RETHINKDNS_SPONSOR_LINK) }
                             )
-                            Spacer(modifier = Modifier.height(12.dp))
+                            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
                             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
                                 TextButton(onClick = { homeDialogState = null }) {
                                     Text(text = getString(R.string.lbl_cancel))
@@ -2333,144 +2361,73 @@ class HomeScreenActivity : AppCompatActivity() {
                 }
             }
             is HomeDialog.DatabaseTables -> {
-                AlertDialog(
+                Dialog(
                     onDismissRequest = { homeDialogState = null },
-                    title = { Text(text = getString(R.string.title_database_dump)) },
-                    text = {
-                        Column(
-                            modifier =
-                                Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
-                        ) {
-                            dialog.tables.forEach { table ->
-                                TextButton(
-                                    onClick = {
-                                        homeDialogState = null
-                                        io {
-                                            val dump = buildTableDump(table)
-                                            uiCtx { homeDialogState = HomeDialog.DatabaseDump(table, dump) }
-                                        }
-                                    }
-                                ) {
-                                    Text(text = table)
-                                }
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { homeDialogState = null }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    Surface(color = MaterialTheme.colorScheme.background) {
+                        DatabaseInspectorDialogContent(
+                            tables = dialog.tables,
+                            onDismiss = { homeDialogState = null }
+                        )
                     }
-                )
+                }
             }
             is HomeDialog.DatabaseDump -> {
-                AlertDialog(
+                Dialog(
                     onDismissRequest = { homeDialogState = null },
-                    title = { Text(text = dialog.title) },
-                    text = {
-                        SelectionContainer {
-                            Column(
-                                modifier =
-                                    Modifier.fillMaxWidth()
-                                        .verticalScroll(rememberScrollState())
-                                        .padding(8.dp)
-                            ) {
-                                Text(text = dialog.dump, style = MaterialTheme.typography.bodySmall)
-                            }
-                        }
-                    },
-                    confirmButton = {
-                        TextButton(onClick = { homeDialogState = null }) {
-                            Text(text = getString(R.string.fapps_info_dialog_positive_btn))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = {
-                                copyToClipboard("db_dump", dialog.dump)
-                                showToastUiCentered(
-                                    this@HomeScreenActivity,
-                                    getString(R.string.copied_clipboard),
-                                    Toast.LENGTH_SHORT
-                                )
-                            }
-                        ) {
-                            Text(text = getString(R.string.dns_info_neutral))
-                        }
+                    properties = DialogProperties(usePlatformDefaultWidth = false)
+                ) {
+                    Surface(color = MaterialTheme.colorScheme.background) {
+                        DatabaseInspectorDialogContent(
+                            tables = listOf(dialog.title),
+                            initialTable = dialog.title,
+                            initialDump = dialog.dump,
+                            onDismiss = { homeDialogState = null }
+                        )
                     }
-                )
+                }
             }
             HomeDialog.NoLog -> {
-                AlertDialog(
+                HomeConfirmDialog(
                     onDismissRequest = { homeDialogState = null },
-                    title = { Text(text = getString(R.string.about_bug_no_log_dialog_title)) },
-                    text = { Text(text = getString(R.string.about_bug_no_log_dialog_message)) },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                homeDialogState = null
-                                sendEmailIntent(this@HomeScreenActivity)
-                            }
-                        ) {
-                            Text(text = getString(R.string.about_bug_no_log_dialog_positive_btn))
-                        }
+                    title = getString(R.string.about_bug_no_log_dialog_title),
+                    message = getString(R.string.about_bug_no_log_dialog_message),
+                    confirmText = getString(R.string.about_bug_no_log_dialog_positive_btn),
+                    dismissText = getString(R.string.lbl_cancel),
+                    onConfirm = {
+                        homeDialogState = null
+                        sendEmailIntent(this@HomeScreenActivity)
                     },
-                    dismissButton = {
-                        TextButton(onClick = { homeDialogState = null }) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
+                    onDismiss = { homeDialogState = null }
                 )
             }
             is HomeDialog.NewFeatures -> {
-                AlertDialog(
+                HomeNewFeaturesDialog(
                     onDismissRequest = { homeDialogState = null },
-                    title = { Text(text = dialog.title) },
-                    text = { WhatsNewDialogContent() },
-                    confirmButton = {
-                        TextButton(onClick = { homeDialogState = null }) {
-                            Text(text = getString(R.string.about_dialog_positive_button))
-                        }
+                    title = dialog.title,
+                    dismissText = getString(R.string.about_dialog_positive_button),
+                    contactText = getString(R.string.about_dialog_neutral_button),
+                    onDismiss = { homeDialogState = null },
+                    onContact = {
+                        homeDialogState = null
+                        sendEmailIntent(this@HomeScreenActivity)
                     },
-                    dismissButton = {
-                        TextButton(
-                            onClick = {
-                                homeDialogState = null
-                                sendEmailIntent(this@HomeScreenActivity)
-                            }
-                        ) {
-                            Text(text = getString(R.string.about_dialog_neutral_button))
-                        }
-                    }
+                    content = { WhatsNewDialogContent() }
                 )
             }
             HomeDialog.AccessibilityCrash -> {
-                AlertDialog(
+                HomeConfirmDialog(
                     onDismissRequest = { homeDialogState = null },
-                    title = { Text(text = getString(R.string.lbl_action_required)) },
-                    text = {
-                        Text(text = getString(R.string.alert_firewall_accessibility_regrant_explanation))
+                    title = getString(R.string.lbl_action_required),
+                    message = getString(R.string.alert_firewall_accessibility_regrant_explanation),
+                    confirmText = getString(R.string.univ_accessibility_crash_dialog_positive),
+                    dismissText = getString(R.string.lbl_cancel),
+                    onConfirm = {
+                        UIUtils.openAndroidAppInfo(this@HomeScreenActivity, packageName)
+                        homeDialogState = null
                     },
-                    confirmButton = {
-                        TextButton(
-                            onClick = {
-                                UIUtils.openAndroidAppInfo(this@HomeScreenActivity, packageName)
-                                homeDialogState = null
-                            }
-                        ) {
-                            Text(text = getString(R.string.univ_accessibility_crash_dialog_positive))
-                        }
-                    },
-                    dismissButton = {
-                        TextButton(
-                            onClick = {
-                                homeDialogState = null
-                            }
-                        ) {
-                            Text(text = getString(R.string.lbl_cancel))
-                        }
-                    }
+                    onDismiss = { homeDialogState = null }
                 )
             }
             null -> Unit
@@ -2482,7 +2439,7 @@ class HomeScreenActivity : AppCompatActivity() {
         Column(
             modifier =
                 Modifier.fillMaxWidth()
-                    .padding(20.dp)
+                    .padding(Dimensions.spacingXl)
                     .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -2501,9 +2458,9 @@ class HomeScreenActivity : AppCompatActivity() {
                     Image(
                         painter = painterResource(id = R.drawable.ic_authors),
                         contentDescription = null,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(Dimensions.iconSizeMd)
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.width(Dimensions.spacingSm))
                     Text(
                         text = getString(R.string.contributors_dialog_title),
                         style = MaterialTheme.typography.titleLarge,
@@ -2512,12 +2469,367 @@ class HomeScreenActivity : AppCompatActivity() {
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
 
             HtmlText(
                 text = getString(R.string.contributors_list),
                 textAlign = TextAlign.Center
             )
+        }
+    }
+
+    @Composable
+    private fun DatabaseInspectorDialogContent(
+        tables: List<String>,
+        initialTable: String? = null,
+        initialDump: String? = null,
+        onDismiss: () -> Unit
+    ) {
+        val scope = rememberCoroutineScope()
+        var query by remember { mutableStateOf("") }
+        var selectedTable by remember(tables, initialTable) {
+            mutableStateOf(initialTable ?: tables.firstOrNull())
+        }
+        var preview by remember(initialTable, initialDump) {
+            mutableStateOf(
+                if (initialTable != null && !initialDump.isNullOrBlank()) {
+                    DatabaseTablePreview(
+                        table = initialTable,
+                        rowCount = -1,
+                        columnCount = -1,
+                        dumpPreview = initialDump,
+                        isTruncated = false
+                    )
+                } else {
+                    null
+                }
+            )
+        }
+        var loadingPreview by remember { mutableStateOf(false) }
+        var loadingCopy by remember { mutableStateOf(false) }
+        var errorText by remember { mutableStateOf<String?>(null) }
+
+        val filteredTables = remember(tables, query) {
+            val q = query.trim()
+            if (q.isEmpty()) {
+                tables
+            } else {
+                tables.filter { it.contains(q, ignoreCase = true) }
+            }
+        }
+
+        fun refreshSelection() {
+            val table = selectedTable ?: return
+            loadingPreview = true
+            errorText = null
+            scope.launch(Dispatchers.IO) {
+                runCatching { loadDatabaseTablePreview(table) }
+                    .onSuccess {
+                        withContext(Dispatchers.Main) {
+                            preview = it
+                            loadingPreview = false
+                        }
+                    }
+                    .onFailure {
+                        withContext(Dispatchers.Main) {
+                            errorText = it.message ?: getString(R.string.blocklist_update_check_failure)
+                            loadingPreview = false
+                        }
+                    }
+            }
+        }
+
+        LaunchedEffect(selectedTable) {
+            val table = selectedTable ?: return@LaunchedEffect
+            if (preview?.table != table || preview?.rowCount == -1) {
+                refreshSelection()
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = getString(R.string.title_database_dump),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.SemiBold
+                )
+                TextButton(onClick = onDismiss) {
+                    Text(text = getString(R.string.lbl_cancel))
+                }
+            }
+
+            OutlinedTextField(
+                value = query,
+                onValueChange = { query = it },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = { Text(text = getString(R.string.database_inspector_search_hint)) },
+                shape = RoundedCornerShape(16.dp),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
+                )
+            )
+
+            BoxWithConstraints(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+            ) {
+                val isWide = maxWidth >= 840.dp
+                if (isWide) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        DatabaseTableListPane(
+                            tables = filteredTables,
+                            selectedTable = selectedTable,
+                            modifier = Modifier.widthIn(min = 280.dp, max = 360.dp),
+                            onSelect = { selectedTable = it }
+                        )
+                        DatabaseTableDetailPane(
+                            preview = preview,
+                            loadingPreview = loadingPreview,
+                            loadingCopy = loadingCopy,
+                            errorText = errorText,
+                            modifier = Modifier.weight(1f),
+                            onRefresh = { refreshSelection() },
+                            onCopyFull = {
+                                val table = selectedTable ?: return@DatabaseTableDetailPane
+                                loadingCopy = true
+                                scope.launch(Dispatchers.IO) {
+                                    val fullDump = buildTableDump(table)
+                                    withContext(Dispatchers.Main) {
+                                        copyToClipboard("db_dump", fullDump)
+                                        showToastUiCentered(
+                                            this@HomeScreenActivity,
+                                            getString(R.string.copied_clipboard),
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        loadingCopy = false
+                                    }
+                                }
+                            }
+                        )
+                    }
+                } else {
+                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                        DatabaseTableListPane(
+                            tables = filteredTables,
+                            selectedTable = selectedTable,
+                            modifier = Modifier.weight(0.42f),
+                            onSelect = { selectedTable = it }
+                        )
+                        DatabaseTableDetailPane(
+                            preview = preview,
+                            loadingPreview = loadingPreview,
+                            loadingCopy = loadingCopy,
+                            errorText = errorText,
+                            modifier = Modifier.weight(0.58f),
+                            onRefresh = { refreshSelection() },
+                            onCopyFull = {
+                                val table = selectedTable ?: return@DatabaseTableDetailPane
+                                loadingCopy = true
+                                scope.launch(Dispatchers.IO) {
+                                    val fullDump = buildTableDump(table)
+                                    withContext(Dispatchers.Main) {
+                                        copyToClipboard("db_dump", fullDump)
+                                        showToastUiCentered(
+                                            this@HomeScreenActivity,
+                                            getString(R.string.copied_clipboard),
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        loadingCopy = false
+                                    }
+                                }
+                            }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun DatabaseTableListPane(
+        tables: List<String>,
+        selectedTable: String?,
+        modifier: Modifier = Modifier,
+        onSelect: (String) -> Unit
+    ) {
+        Surface(
+            modifier = modifier.fillMaxSize(),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+        ) {
+            if (tables.isEmpty()) {
+                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text(
+                        text = getString(R.string.database_inspector_no_tables),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    item {
+                        Text(
+                            text = getString(R.string.database_inspector_tables_title),
+                            style = MaterialTheme.typography.labelLarge,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                        )
+                    }
+                    items(tables.size) { index ->
+                        val table = tables[index]
+                        val position: CardPosition = cardPositionFor(index, tables.lastIndex)
+                        RethinkListItem(
+                            headline = table,
+                            supporting = if (selectedTable == table) {
+                                getString(R.string.database_inspector_selected)
+                            } else {
+                                null
+                            },
+                            leadingIconPainter = painterResource(id = R.drawable.ic_backup),
+                            position = position,
+                            highlighted = selectedTable == table,
+                            onClick = { onSelect(table) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    @Composable
+    private fun DatabaseTableDetailPane(
+        preview: DatabaseTablePreview?,
+        loadingPreview: Boolean,
+        loadingCopy: Boolean,
+        errorText: String?,
+        modifier: Modifier = Modifier,
+        onRefresh: () -> Unit,
+        onCopyFull: () -> Unit
+    ) {
+        Surface(
+            modifier = modifier.fillMaxSize(),
+            shape = RoundedCornerShape(24.dp),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                if (preview == null && !loadingPreview) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(
+                            text = getString(R.string.database_inspector_select_table),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    return@Column
+                }
+
+                if (preview != null) {
+                    Text(
+                        text = preview.table,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
+                        ) {
+                            Text(
+                                text = getString(R.string.database_inspector_rows, preview.rowCount.toString()),
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                            )
+                        }
+                        Surface(
+                            shape = RoundedCornerShape(12.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
+                        ) {
+                            Text(
+                                text = getString(R.string.database_inspector_columns, preview.columnCount.toString()),
+                                style = MaterialTheme.typography.labelMedium,
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                            )
+                        }
+                    }
+                }
+
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    TextButton(onClick = onRefresh, enabled = !loadingPreview) {
+                        Text(text = getString(R.string.database_inspector_refresh))
+                    }
+                    TextButton(onClick = onCopyFull, enabled = preview != null && !loadingCopy) {
+                        Text(
+                            text = if (loadingCopy) {
+                                getString(R.string.database_inspector_copying)
+                            } else {
+                                getString(R.string.database_inspector_copy_full)
+                            }
+                        )
+                    }
+                }
+
+                if (!errorText.isNullOrBlank()) {
+                    Text(
+                        text = errorText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
+                if (loadingPreview) {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator()
+                    }
+                } else {
+                    val text = preview?.dumpPreview.orEmpty()
+                    SelectionContainer {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .verticalScroll(rememberScrollState())
+                                .padding(8.dp)
+                        ) {
+                            Text(
+                                text = text,
+                                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)
+                            )
+                            if (preview?.isTruncated == true) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = getString(R.string.database_inspector_preview_truncated),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

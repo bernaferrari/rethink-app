@@ -16,21 +16,11 @@
 package com.celzero.bravedns.ui.dialog
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -41,11 +31,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.WireguardManager
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
+import com.celzero.bravedns.ui.compose.theme.RethinkSecondaryActionStyle
 import com.celzero.bravedns.util.UIUtils.getDurationInHumanReadableFormat
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.tos
@@ -66,13 +57,10 @@ fun WgAddPeerDialog(
     val scope = rememberCoroutineScope()
     val isEditing = wgPeer != null
 
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+    WgDialog(onDismissRequest = onDismiss) {
+        WgDialogColumn(
+            scrollable = true,
+            verticalSpacing = Dimensions.spacingMd
         ) {
             var publicKey by remember { mutableStateOf(wgPeer?.getPublicKey()?.base64()?.tos().orEmpty()) }
             var presharedKey by remember {
@@ -115,79 +103,81 @@ fun WgAddPeerDialog(
                 )
             }
 
-            Text(text = stringResource(R.string.add_peer), style = MaterialTheme.typography.titleLarge)
-            OutlinedTextField(
-                value = publicKey,
-                onValueChange = { publicKey = it },
-                label = { Text(text = stringResource(R.string.lbl_public_key)) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-            )
-            OutlinedTextField(
-                value = presharedKey,
-                onValueChange = { presharedKey = it },
-                label = { Text(text = stringResource(R.string.lbl_preshared_key)) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-            )
-            OutlinedTextField(
-                value = keepAlive,
-                onValueChange = { value ->
-                    keepAlive = value
-                    keepAliveHint =
-                        value.toIntOrNull()?.let { getDurationInHumanReadableFormat(context, it) }
-                            .orEmpty()
-                },
-                label = { Text(text = stringResource(R.string.lbl_persistent_keepalive)) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-            )
-            if (keepAliveHint.isNotBlank()) {
-                Text(text = keepAliveHint, style = MaterialTheme.typography.bodySmall)
-            }
-            OutlinedTextField(
-                value = endpoint,
-                onValueChange = { endpoint = it },
-                label = { Text(text = stringResource(R.string.parse_error_inet_endpoint)) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
-            )
-            OutlinedTextField(
-                value = allowedIps,
-                onValueChange = { allowedIps = it },
-                label = { Text(text = stringResource(R.string.lbl_allowed_ips)) },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
-            )
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onDismiss) {
-                    Text(text = stringResource(R.string.lbl_dismiss))
+            RethinkBottomSheetCard {
+                Text(text = stringResource(R.string.add_peer), style = MaterialTheme.typography.titleLarge)
+                OutlinedTextField(
+                    value = publicKey,
+                    onValueChange = { publicKey = it },
+                    label = { Text(text = stringResource(R.string.lbl_public_key)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                )
+                OutlinedTextField(
+                    value = presharedKey,
+                    onValueChange = { presharedKey = it },
+                    label = { Text(text = stringResource(R.string.lbl_preshared_key)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                )
+                OutlinedTextField(
+                    value = keepAlive,
+                    onValueChange = { value ->
+                        keepAlive = value
+                        keepAliveHint =
+                            value.toIntOrNull()?.let { getDurationInHumanReadableFormat(context, it) }
+                                .orEmpty()
+                    },
+                    label = { Text(text = stringResource(R.string.lbl_persistent_keepalive)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                )
+                if (keepAliveHint.isNotBlank()) {
+                    Text(
+                        text = keepAliveHint,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Button(
-                    onClick = {
-                        scope.launch {
-                            savePeer(
-                                context = context,
-                                configId = configId,
-                                wgPeer = wgPeer,
-                                isEditing = isEditing,
-                                publicKey = publicKey,
-                                presharedKey = presharedKey,
-                                allowedIps = allowedIps,
-                                endpoint = endpoint,
-                                keepAlive = keepAlive,
-                                onSuccess = onDismiss,
-                                onError = { message ->
-                                    Utilities.showToastUiCentered(context, message, Toast.LENGTH_SHORT)
-                                }
-                            )
-                        }
+                OutlinedTextField(
+                    value = endpoint,
+                    onValueChange = { endpoint = it },
+                    label = { Text(text = stringResource(R.string.parse_error_inet_endpoint)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                )
+                OutlinedTextField(
+                    value = allowedIps,
+                    onValueChange = { allowedIps = it },
+                    label = { Text(text = stringResource(R.string.lbl_allowed_ips)) },
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
+                )
+            }
+            RethinkBottomSheetActionRow(
+                primaryText = stringResource(R.string.lbl_save),
+                onPrimaryClick = {
+                    scope.launch {
+                        savePeer(
+                            context = context,
+                            configId = configId,
+                            wgPeer = wgPeer,
+                            isEditing = isEditing,
+                            publicKey = publicKey,
+                            presharedKey = presharedKey,
+                            allowedIps = allowedIps,
+                            endpoint = endpoint,
+                            keepAlive = keepAlive,
+                            onSuccess = onDismiss,
+                            onError = { message ->
+                                Utilities.showToastUiCentered(context, message, Toast.LENGTH_SHORT)
+                            }
+                        )
                     }
-                ) {
-                    Text(text = stringResource(R.string.lbl_save))
-                }
-            }
+                },
+                secondaryText = stringResource(R.string.lbl_dismiss),
+                onSecondaryClick = onDismiss,
+                secondaryStyle = RethinkSecondaryActionStyle.TEXT
+            )
         }
     }
 }

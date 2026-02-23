@@ -3,10 +3,10 @@ package com.celzero.bravedns.ui.compose.dns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.celzero.bravedns.data.AppConfig
+import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.util.Utilities.isAtleastR
-import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -46,7 +46,8 @@ data class DnsSettingsUiState(
 
 class DnsSettingsViewModel(
     private val persistentState: PersistentState,
-    private val appConfig: AppConfig
+    private val appConfig: AppConfig,
+    private val workScheduler: WorkScheduler
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DnsSettingsUiState())
@@ -134,6 +135,11 @@ class DnsSettingsViewModel(
 
     fun setPeriodicallyCheckBlocklistUpdate(enabled: Boolean) {
         persistentState.periodicallyCheckBlocklistUpdate = enabled
+        if (enabled) {
+            workScheduler.scheduleBlocklistUpdateCheckJob()
+        } else {
+            workScheduler.cancelBlocklistUpdateCheckJob()
+        }
         updateUiState()
     }
 

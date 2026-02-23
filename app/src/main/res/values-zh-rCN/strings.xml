@@ -442,7 +442,7 @@
     <string name="ci_dialog_error_invalid_ip">无效 IP 地址、子网或端口。</string>
     <string name="ada_app_exclude">排除</string>
     <string name="rt_dialog_neutral">继续</string>
-    <string name="settings_vpn_heading">vpn</string>
+    <string name="settings_vpn_heading">VPN</string>
     <string name="settings_allow_bypass_desc">允许应用请求访问所有可用网络。这些应用可能按需绕过 RethinkDNS 的 VPN 隧道。一些如 Zoom 和 Meet 的音频/视频会议应用可能会需要按需绕行以正常运行。</string>
     <string name="orbot_bs_status_2">HTTP 代理已设置。</string>
     <string name="settings_orbot_desc">在非 VPN 模式下使用 HTTPS/SOCKS5 的 Orbot。</string>

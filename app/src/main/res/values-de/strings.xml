@@ -94,7 +94,7 @@
     <string name="download_update_dialog_message_ok">Du nutzt bereits die neueste Version.</string>
     <string name="app_mode_firewall">Firewall</string>
     <string name="app_mode_dns">DNS</string>
-    <string name="settings_vpn_heading">vpn</string>
+    <string name="settings_vpn_heading">VPN</string>
     <string name="info_dialog_copy_toast_msg">IP-Adresse kopiert.</string>
     <string name="settings_enable_logs_desc">DNS- und Firewall-Logs lokal auf dem Gerät speichern.</string>
     <string name="settings_enable_logs">Geräteinteres Logging aktivieren</string>
@@ -772,7 +772,7 @@
     <string name="fapps_metered_unblock_dialog_title">Erlaubt im kostenpflichtigen</string>
     <string name="fapps_metered_unblock_dialog_message">Verbindungen in kostenpflichtigen Netzwerken (Mobilfunknetze) für die auf <i>aufgeführten</i> Apps erlauben?</string>
     <string name="rules_load_failure_desc">Keine Firewall-Regeln gefunden</string>
-    <string name="rules_load_failure_reload">neu laden</string>
+    <string name="rules_load_failure_reload">Neu laden</string>
     <string name="socks5_proxy_toast_parameter">SOCKS5 Proxy</string>
     <string name="orbot_toast_parameter">Tor-as-a-proxy</string>
     <string name="system_dns_connection_failure">Der aktuelle DNS-Server kann nicht ermittelt werden</string>
@@ -799,19 +799,19 @@
     <string name="fapps_firewall_filter_desc_category"><![CDATA[<u>%1$s</u> %2$s Apps in Kategorien werden angezeigt: %3$s]]></string>
     <string name="unicode_warning_sign">⚠</string>
     <string name="ci_trust_rule">Vertrauen</string>
-    <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">meistblockierte Apps</string>
-    <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">meisterlaubte Apps</string>
-    <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">meistkontaktierte IPs</string>
-    <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">meistblockierte IPs</string>
+    <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">Meistblockierte Apps</string>
+    <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">Meisterlaubte Apps</string>
+    <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Meistkontaktierte IPs</string>
+    <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Meistblockierte IPs</string>
     <string name="ssv_see_more">Alle anzeigen</string>
     <string name="fapps_bypass_block_dialog_message">Universelle Firewall-Regeln für <i>aufgelistete</i> Apps umgehen\?</string>
-    <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">meistkontaktierte Domains</string>
+    <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">Meistkontaktierte Domains</string>
     <string name="settings_locale_desc">Bevorzugte Sprache wählen</string>
     <string name="settings_locale_dialog_title">Bevorzugte Sprache wählen</string>
     <string name="hs_biometeric_title">Rethink entsperren</string>
     <string name="hs_biometeric_desc">Biometrische Authentifizierung zum Entsperren von Rethink verwenden</string>
     <string name="hs_biometeric_failed">Biometrische Authentifizierung fehlgeschlagen</string>
-    <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">meistblockierte Domains</string>
+    <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">Meistblockierte Domains</string>
     <string name="fapps_unblock_dialog_title">Anwendungen zulassen</string>
     <string name="fapps_info_isolate_msg">Alle außer vertrauenswürdigen IPs blockieren.</string>
     <string name="fapps_info_bypass_msg">Universelle Firewall-Regeln umgehen.</string>
@@ -955,8 +955,8 @@
     <string name="unknown_error" translatable="true">Unbekannter Fehler</string>
     <string name="search_proxy_add_apps" translatable="true">Apps nach Namen suchen</string>
     <string name="include_all_app_wg_dialog_title">Alle Apps einbeziehen</string>
-    <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">meistkontaktierte Länder</string>
-    <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">meistblockierte Länder</string>
+    <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">Meistkontaktierte Länder</string>
+    <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">Meistblockierte Länder</string>
     <string name="status_protected_with_wg" translatable="true">geschützt mit WireGuard</string>
     <string name="config_add_success_toast">Konfiguration hinzugefügt</string>
     <string name="key_contents_error" translatable="true">Falsche Zeichen im Schlüssel</string>
@@ -1153,8 +1153,8 @@
     <string name="hop_add_remove_title" translatable="true">Relay hinzufügen / entfernen</string>
     <string name="about_terms_of_service" translatable="true">Nutzungsbedingungen</string>
     <string name="bypasses_network_restrictions" translatable="true">Erreichbarkeitsprüfungen umgehen alle Netzwerkbeschränkungen. Im <i>Auto</i>-Modus verwendet Rethink zufällig zuvor verbundene IPs und Hostnamen.</string>
-    <string name="most_contacted_asn" translatable="true">meistkontaktierten Anbieter</string>
-    <string name="most_blocked_asn" translatable="true">meist blockierte Anbieter</string>
+    <string name="most_contacted_asn" translatable="true">Meistkontaktierten Anbieter</string>
+    <string name="most_blocked_asn" translatable="true">Meist blockierte Anbieter</string>
     <string name="adv_tasker_dialog_msg" translatable="true">Paketnamen eingeben (kommagetrennt), die Rethink starten oder stoppen dürfen.</string>
     <string name="adv_tasker_dialog_instructions" translatable="true">Anleitung:\nErforderliche Extras in der Broadcast-Nachricht:\n • Schlüssel: sender\n • Wert: Der Paketname der aufrufenden App\n\n Beispiel: key:sender value:com.termux\n\n Unterstützte Aktionen:\n • VPN starten – com.celzero.bravedns.intent.action.VPN_START\n • VPN stoppen – com.celzero.bravedns.intent.action.VPN_STOP</string>
     <string name="adv_tasker_dialog_edit_hint" translatable="true">Paketnamen eingeben (Beispiel: net.dinglisch.android.taskerm)</string>

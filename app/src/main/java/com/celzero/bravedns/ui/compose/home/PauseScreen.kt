@@ -152,7 +152,7 @@ fun PauseScreen(onFinish: () -> Unit) {
             // ── Timer card ────────────────────────────────────────────────
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(28.dp),
+                shape = RoundedCornerShape(Dimensions.cornerRadius5xl),
                 color = MaterialTheme.colorScheme.surfaceContainer,
                 tonalElevation = 0.dp
             ) {
@@ -165,7 +165,7 @@ fun PauseScreen(onFinish: () -> Unit) {
                 ) {
                     // Label chip
                     Surface(
-                        shape = RoundedCornerShape(50.dp),
+                        shape = RoundedCornerShape(Dimensions.cornerRadiusPill),
                         color = MaterialTheme.colorScheme.secondaryContainer
                     ) {
                         Text(
@@ -249,7 +249,7 @@ fun PauseScreen(onFinish: () -> Unit) {
             ElevatedButton(
                 onClick = { VpnController.resumeApp(); onFinish() },
                 modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(18.dp),
+                shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
                 colors = ButtonDefaults.elevatedButtonColors(
                     containerColor = MaterialTheme.colorScheme.error,
                     contentColor = MaterialTheme.colorScheme.onError

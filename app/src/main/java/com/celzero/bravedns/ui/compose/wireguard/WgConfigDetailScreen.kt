@@ -30,15 +30,18 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowForward
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Apps
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -78,9 +81,11 @@ import com.celzero.bravedns.service.WireguardManager.ERR_CODE_WG_INVALID
 import com.celzero.bravedns.service.WireguardManager.INVALID_CONF_ID
 import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
 import com.celzero.bravedns.ui.compose.theme.CardPosition
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkActionListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
-import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkToggleListItem
 import com.celzero.bravedns.ui.dialog.WgAddPeerDialog
 import com.celzero.bravedns.ui.dialog.WgHopDialog
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
@@ -318,30 +323,21 @@ fun WgConfigDetailScreen(
 
     // Dialogs
     if (showInvalidConfigDialog) {
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = {},
-            title = { Text(text = stringResource(R.string.lbl_wireguard)) },
-            text = { Text(text = stringResource(R.string.config_invalid_desc)) },
-            confirmButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(
-                        onClick = {
-                            showInvalidConfigDialog = false
-                            onBackClick()
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.fapps_info_dialog_positive_btn))
-                    }
-                    TextButton(
-                        onClick = {
-                            showInvalidConfigDialog = false
-                            WireguardManager.deleteConfig(configId)
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.lbl_delete))
-                    }
-                }
-            }
+            title = stringResource(R.string.lbl_wireguard),
+            message = stringResource(R.string.config_invalid_desc),
+            confirmText = stringResource(R.string.lbl_delete),
+            dismissText = stringResource(R.string.fapps_info_dialog_positive_btn),
+            onConfirm = {
+                showInvalidConfigDialog = false
+                WireguardManager.deleteConfig(configId)
+            },
+            onDismiss = {
+                showInvalidConfigDialog = false
+                onBackClick()
+            },
+            isConfirmDestructive = true
         )
     }
 
@@ -351,70 +347,53 @@ fun WgConfigDetailScreen(
             stringResource(R.string.config_delete_dialog_title),
             stringResource(R.string.lbl_wireguard)
         )
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = { showDeleteInterfaceDialog = false },
-            title = { Text(text = delText) },
-            text = { Text(text = stringResource(R.string.config_delete_dialog_desc)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteInterfaceDialog = false
-                        scope.launch(Dispatchers.IO) {
-                            WireguardManager.deleteConfig(configId)
-                            withContext(Dispatchers.Main) {
-                                Utilities.showToastUiCentered(
-                                    context,
-                                    context.resources.getString(R.string.config_add_success_toast),
-                                    Toast.LENGTH_SHORT
-                                )
-                                onBackClick()
-                            }
-                            logEvent(
-                                "Delete WireGuard config",
-                                "User deleted WireGuard config with id $configId"
-                            )
-                        }
+            title = delText,
+            message = stringResource(R.string.config_delete_dialog_desc),
+            confirmText = delText,
+            dismissText = stringResource(R.string.lbl_cancel),
+            onConfirm = {
+                showDeleteInterfaceDialog = false
+                scope.launch(Dispatchers.IO) {
+                    WireguardManager.deleteConfig(configId)
+                    withContext(Dispatchers.Main) {
+                        Utilities.showToastUiCentered(
+                            context,
+                            context.resources.getString(R.string.config_add_success_toast),
+                            Toast.LENGTH_SHORT
+                        )
+                        onBackClick()
                     }
-                ) {
-                    Text(text = delText)
+                    logEvent(
+                        "Delete WireGuard config",
+                        "User deleted WireGuard config with id $configId"
+                    )
                 }
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteInterfaceDialog = false }) {
-                    Text(text = stringResource(R.string.lbl_cancel))
-                }
-            }
+            onDismiss = { showDeleteInterfaceDialog = false },
+            isConfirmDestructive = true
         )
     }
 
     if (showSsidPermissionDialog) {
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = { showSsidPermissionDialog = false },
-            title = { Text(text = stringResource(R.string.lbl_ssid)) },
-            text = { Text(text = SsidPermissionManager.getPermissionExplanation(context)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showSsidPermissionDialog = false
-                        val activity = context as? Activity
-                        if (activity != null) {
-                            SsidPermissionManager.requestSsidPermissions(activity)
-                        }
-                    }
-                ) {
-                    Text(text = stringResource(R.string.fapps_info_dialog_positive_btn))
+            title = stringResource(R.string.lbl_ssid),
+            message = SsidPermissionManager.getPermissionExplanation(context),
+            confirmText = stringResource(R.string.fapps_info_dialog_positive_btn),
+            dismissText = stringResource(R.string.lbl_cancel),
+            onConfirm = {
+                showSsidPermissionDialog = false
+                val activity = context as? Activity
+                if (activity != null) {
+                    SsidPermissionManager.requestSsidPermissions(activity)
                 }
             },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showSsidPermissionDialog = false
-                        scope.launch(Dispatchers.IO) {
-                            WireguardManager.updateSsidEnabled(configId, false)
-                        }
-                    }
-                ) {
-                    Text(text = stringResource(R.string.lbl_cancel))
+            onDismiss = {
+                showSsidPermissionDialog = false
+                scope.launch(Dispatchers.IO) {
+                    WireguardManager.updateSsidEnabled(configId, false)
                 }
             }
         )
@@ -520,7 +499,7 @@ fun WgConfigDetailScreen(
             if (wgType.isOneWg()) {
                 item {
                     Surface(
-                        shape = RoundedCornerShape(20.dp),
+                        shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
                         color = MaterialTheme.colorScheme.tertiaryContainer
                     ) {
                         Text(
@@ -536,25 +515,25 @@ fun WgConfigDetailScreen(
             item {
                 SectionHeader(title = stringResource(id = R.string.lbl_configure))
                 RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.lbl_add),
-                        supporting = stringResource(id = R.string.lbl_peer),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_add),
+                    RethinkActionListItem(
+                        title = stringResource(id = R.string.lbl_add),
+                        description = stringResource(id = R.string.lbl_peer),
+                        icon = Icons.Rounded.Add,
                         position = CardPosition.First,
                         onClick = { showAddPeerDialog = true }
                     )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.rt_edit_dialog_positive),
-                        supporting = stringResource(id = R.string.lbl_wireguard),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_edit_icon),
+                    RethinkActionListItem(
+                        title = stringResource(id = R.string.rt_edit_dialog_positive),
+                        description = stringResource(id = R.string.lbl_wireguard),
+                        icon = Icons.Rounded.Edit,
                         position = CardPosition.Middle,
                         onClick = { onEditConfig(configId, wgType) }
                     )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.lbl_delete),
-                        supporting = stringResource(id = R.string.config_delete_dialog_title),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_delete),
-                        leadingIconTint = MaterialTheme.colorScheme.error,
+                    RethinkActionListItem(
+                        title = stringResource(id = R.string.lbl_delete),
+                        description = stringResource(id = R.string.config_delete_dialog_title),
+                        icon = Icons.Rounded.Delete,
+                        accentColor = MaterialTheme.colorScheme.error,
                         position = CardPosition.Last,
                         onClick = { showDeleteInterfaceDialog = true }
                     )
@@ -565,16 +544,16 @@ fun WgConfigDetailScreen(
                 item {
                     SectionHeader(title = stringResource(id = R.string.lbl_apps))
                     RethinkListGroup {
-                        RethinkListItem(
-                            headline = stringResource(R.string.add_remove_apps, appsCount.toString()),
-                            leadingIconPainter = painterResource(id = R.drawable.ic_app_info_accent),
+                        RethinkActionListItem(
+                            title = stringResource(R.string.add_remove_apps, appsCount.toString()),
+                            icon = Icons.Rounded.Apps,
                             position = CardPosition.First,
                             onClick = { openAppsDialog(config?.getName().orEmpty()) },
                             enabled = !catchAllEnabled
                         )
-                        RethinkListItem(
-                            headline = stringResource(id = R.string.hop_add_remove_title),
-                            leadingIconPainter = painterResource(id = R.drawable.ic_right_arrow_small),
+                        RethinkActionListItem(
+                            title = stringResource(id = R.string.hop_add_remove_title),
+                            icon = Icons.AutoMirrored.Rounded.ArrowForward,
                             position = CardPosition.Last,
                             onClick = { openHopDialog() }
                         )
@@ -585,31 +564,21 @@ fun WgConfigDetailScreen(
             item {
                 SectionHeader(title = stringResource(id = R.string.lbl_advanced))
                 RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.catch_all_wg_dialog_title),
-                        supporting = stringResource(id = R.string.catch_all_wg_dialog_desc),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_firewall_shield),
+                    RethinkToggleListItem(
+                        title = stringResource(id = R.string.catch_all_wg_dialog_title),
+                        description = stringResource(id = R.string.catch_all_wg_dialog_desc),
+                        iconRes = R.drawable.ic_firewall_shield,
+                        checked = catchAllEnabled,
+                        onCheckedChange = { enabled -> updateCatchAll(enabled) },
                         position = CardPosition.First,
-                        trailing = {
-                            Switch(
-                                checked = catchAllEnabled,
-                                onCheckedChange = { enabled -> updateCatchAll(enabled) }
-                            )
-                        },
-                        onClick = { updateCatchAll(!catchAllEnabled) }
                     )
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.wg_setting_use_on_mobile),
-                        supporting = stringResource(id = R.string.wg_setting_use_on_mobile_desc),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_meter_mobile_only),
+                    RethinkToggleListItem(
+                        title = stringResource(id = R.string.wg_setting_use_on_mobile),
+                        description = stringResource(id = R.string.wg_setting_use_on_mobile_desc),
+                        iconRes = R.drawable.ic_meter_mobile_only,
+                        checked = useMobileEnabled,
+                        onCheckedChange = { enabled -> updateUseOnMobileNetwork(enabled) },
                         position = if (SsidPermissionManager.isDeviceSupported(context)) CardPosition.Middle else CardPosition.Last,
-                        trailing = {
-                            Switch(
-                                checked = useMobileEnabled,
-                                onCheckedChange = { enabled -> updateUseOnMobileNetwork(enabled) }
-                            )
-                        },
-                        onClick = { updateUseOnMobileNetwork(!useMobileEnabled) }
                     )
                     if (SsidPermissionManager.isDeviceSupported(context)) {
                         val ssidSubtitle =
@@ -625,23 +594,18 @@ fun WgConfigDetailScreen(
                                     append(ssids.joinToString { it.name })
                                 }
                             }
-                        RethinkListItem(
-                            headline = stringResource(id = R.string.wg_setting_ssid_title),
-                            supporting = ssidSubtitle,
-                            leadingIconPainter = painterResource(id = R.drawable.ic_firewall_wifi_on),
+                        RethinkToggleListItem(
+                            title = stringResource(id = R.string.wg_setting_ssid_title),
+                            description = ssidSubtitle,
+                            iconRes = R.drawable.ic_firewall_wifi_on,
+                            checked = ssidEnabled,
+                            onCheckedChange = { enabled -> toggleSsid(enabled) },
                             position = CardPosition.Middle,
-                            trailing = {
-                                Switch(
-                                    checked = ssidEnabled,
-                                    onCheckedChange = { enabled -> toggleSsid(enabled) }
-                                )
-                            },
-                            onClick = { toggleSsid(!ssidEnabled) }
                         )
-                        RethinkListItem(
-                            headline = stringResource(id = R.string.rt_edit_dialog_positive),
-                            supporting = stringResource(id = R.string.lbl_ssids),
-                            leadingIconPainter = painterResource(id = R.drawable.ic_edit_icon),
+                        RethinkActionListItem(
+                            title = stringResource(id = R.string.rt_edit_dialog_positive),
+                            description = stringResource(id = R.string.lbl_ssids),
+                            icon = Icons.Rounded.Edit,
                             position = CardPosition.Last,
                             onClick = { openSsidDialog() }
                         )
@@ -667,32 +631,13 @@ fun WgConfigDetailScreen(
 
 @Composable
 private fun WgConfigOverviewCard(name: String, status: String, statusColor: Int?) {
-    Surface(
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border =
-            androidx.compose.foundation.BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
-            ),
-        tonalElevation = 1.dp
-    ) {
+    WgCardSurface {
         Row(
             modifier = Modifier.fillMaxWidth().padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-            ) {
-                androidx.compose.material3.Icon(
-                    painter = painterResource(id = R.drawable.ic_wireguard_icon),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.padding(8.dp).size(20.dp)
-                )
-            }
+            WgIconBadge()
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = name,
@@ -706,7 +651,7 @@ private fun WgConfigOverviewCard(name: String, status: String, statusColor: Int?
             }
             if (statusColor != null) {
                 Surface(
-                    shape = RoundedCornerShape(999.dp),
+                    shape = RoundedCornerShape(Dimensions.cornerRadiusFull),
                     color = Color(statusColor).copy(alpha = 0.14f)
                 ) {
                     Text(

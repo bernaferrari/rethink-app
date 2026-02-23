@@ -171,7 +171,7 @@
     <string name="search_dns_logs"><font size="12">搵網域或者 IP</font></string>
     <string name="search_universal_ips"><font size="12">搵 IP</font></string>
     <string name="search_custom_domains"><font size="12">搵網域</font></string>
-    <string name="settings_vpn_heading">vpn</string>
+    <string name="settings_vpn_heading">VPN</string>
     <string name="info_dialog_url_copy_toast_msg">複製咗 URL</string>
     <string name="connection_http3">HTTP3</string>
     <string name="settings_ip_network_heading">揀 IP 版本</string>
@@ -332,7 +332,7 @@
     <string name="about_docs">睇文檔</string>
     <string name="about_connect">聯繫我哋</string>
     <string name="about_sponsor_link_text">贊助</string>
-    <string name="about_app">app</string>
+    <string name="about_app">App</string>
     <string name="about_email">電郵聯繫</string>
     <string name="about_settings">系統</string>
     <string name="about_settings_app_info">App 資料</string>

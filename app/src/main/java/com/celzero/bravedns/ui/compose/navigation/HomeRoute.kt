@@ -1,5 +1,6 @@
 package com.celzero.bravedns.ui.compose.navigation
 
+import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
 import kotlinx.serialization.Serializable
 import com.celzero.bravedns.ui.compose.wireguard.WgType
 
@@ -30,7 +31,7 @@ sealed interface HomeRoute {
     data object Events : HomeRoute
 
     @Serializable
-    data object FirewallSettings : HomeRoute
+    data class FirewallSettings(val focusKey: String = "") : HomeRoute
 
     @Serializable
     data object AdvancedSettings : HomeRoute
@@ -39,10 +40,10 @@ sealed interface HomeRoute {
     data object AntiCensorship : HomeRoute
 
     @Serializable
-    data object TunnelSettings : HomeRoute
+    data class TunnelSettings(val focusKey: String = "") : HomeRoute
     
     @Serializable
-    data object MiscSettings : HomeRoute
+    data class MiscSettings(val focusKey: String = "") : HomeRoute
     
     @Serializable
     data object ConsoleLogs : HomeRoute
@@ -54,10 +55,14 @@ sealed interface HomeRoute {
     data object AppList : HomeRoute
 
     @Serializable
-    data object CustomRules : HomeRoute
+    data class CustomRules(
+        val uid: Int = UID_EVERYBODY,
+        val tab: Int = CustomRulesTab.IP.value,
+        val mode: Int = CustomRulesMode.APP_SPECIFIC.value
+    ) : HomeRoute
 
     @Serializable
-    data object ProxySettings : HomeRoute
+    data class ProxySettings(val focusKey: String = "") : HomeRoute
 
     @Serializable
     data object TcpProxyMain : HomeRoute
@@ -72,7 +77,7 @@ sealed interface HomeRoute {
     data object AppLock : HomeRoute
 
     @Serializable
-    data object DnsDetail : HomeRoute
+    data class DnsDetail(val focusKey: String = "") : HomeRoute
     
     @Serializable
     data class DetailedStats(val typeId: Int, val timeCategory: Int) : HomeRoute
@@ -129,4 +134,28 @@ sealed interface HomeRoute {
 
     @Serializable
     data object WgMain : HomeRoute
+}
+
+@Serializable
+enum class CustomRulesTab(val value: Int) {
+    IP(0),
+    DOMAIN(1);
+
+    companion object {
+        fun fromValue(value: Int): CustomRulesTab {
+            return entries.firstOrNull { it.value == value } ?: IP
+        }
+    }
+}
+
+@Serializable
+enum class CustomRulesMode(val value: Int) {
+    ALL_RULES(0),
+    APP_SPECIFIC(1);
+
+    companion object {
+        fun fromValue(value: Int): CustomRulesMode {
+            return entries.firstOrNull { it.value == value } ?: APP_SPECIFIC
+        }
+    }
 }

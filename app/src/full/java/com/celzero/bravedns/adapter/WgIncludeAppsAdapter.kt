@@ -19,24 +19,21 @@ package com.celzero.bravedns.adapter
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
-import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.Image
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,9 +42,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ProxyApplicationMapping
@@ -56,8 +53,8 @@ import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.getDefaultIcon
 import com.celzero.bravedns.util.Utilities.getIcon
-import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import androidx.compose.ui.platform.LocalContext
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
@@ -92,15 +89,9 @@ fun IncludeDialogHost(
             ) to context.resources.getString(R.string.lbl_remove)
         }
 
-    AlertDialog(
+    RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        icon = {
-            Icon(
-                painter = painterResource(id = R.drawable.ic_firewall_exclude_on),
-                contentDescription = null
-            )
-        },
-        title = { Text(text = title) },
+        title = title,
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 state.packageList.forEach { name ->
@@ -108,21 +99,14 @@ fun IncludeDialogHost(
                 }
             }
         },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    onConfirm(state.mapping, state.included)
-                    onDismiss()
-                }
-            ) {
-                Text(text = positiveTxt)
-            }
+        confirmText = positiveTxt,
+        dismissText = context.resources.getString(R.string.ctbs_dialog_negative_btn),
+        onConfirm = {
+            onConfirm(state.mapping, state.included)
+            onDismiss()
         },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = context.resources.getString(R.string.ctbs_dialog_negative_btn))
-            }
-        }
+        onDismiss = onDismiss,
+        isConfirmDestructive = !state.included
     )
 }
 
@@ -170,11 +154,17 @@ fun IncludeAppRow(
     }
 
     val isClickable = !isProxyExcluded
-    val backgroundColor =
+    val containerColor =
         if (isIncluded) {
-            MaterialTheme.colorScheme.surfaceVariant
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.22f)
         } else {
-            MaterialTheme.colorScheme.surface
+            MaterialTheme.colorScheme.surfaceContainerLow
+        }
+    val borderColor =
+        when {
+            isProxyExcluded -> MaterialTheme.colorScheme.error.copy(alpha = 0.34f)
+            isIncluded -> MaterialTheme.colorScheme.primary.copy(alpha = 0.34f)
+            else -> MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)
         }
     val contentAlpha = if (hasInternetPerm) 1f else 0.4f
 
@@ -185,12 +175,14 @@ fun IncludeAppRow(
                 .clickable(enabled = isClickable) {
                     onInterfaceUpdate(mapping, !isIncluded)
                 },
-        colors = CardDefaults.cardColors(containerColor = backgroundColor)
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        border = BorderStroke(1.dp, borderColor)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             val iconPainter =
                 rememberDrawablePainter(iconDrawable)
@@ -208,21 +200,27 @@ fun IncludeAppRow(
             ) {
                 Text(
                     text = mapping.appName,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha)
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
                 )
-                if (descText.isNotEmpty()) {
-                    Text(
-                        text = descText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color =
-                            MaterialTheme.colorScheme.error.copy(
-                                alpha = if (isProxyExcluded) 1f else 0.6f
-                            )
-                    )
-                }
+                val supportingText = if (descText.isNotEmpty()) descText else mapping.packageName
+                val supportingColor =
+                    when {
+                        isProxyExcluded -> MaterialTheme.colorScheme.error
+                        descText.isNotEmpty() -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.92f)
+                        else -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.86f)
+                    }
+                Text(
+                    text = supportingText,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = supportingColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
             }
-            Spacer(modifier = Modifier.weight(0.1f))
             Checkbox(
                 checked = isIncluded,
                 enabled = isClickable,
@@ -245,4 +243,3 @@ fun updateProxyIdForApp(uid: Int, proxyId: String, proxyName: String, include: B
         }
     }
 }
-

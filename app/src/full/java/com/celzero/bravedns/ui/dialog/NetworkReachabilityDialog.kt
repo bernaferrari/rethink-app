@@ -22,20 +22,16 @@ import android.net.NetworkCapabilities
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -47,7 +43,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -58,6 +53,11 @@ import com.celzero.bravedns.service.ConnectionMonitor.Companion.SCHEME_HTTP
 import com.celzero.bravedns.service.ConnectionMonitor.Companion.SCHEME_HTTPS
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.bottomsheet.RuleSheetModeToggle
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
+import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.UIUtils
 import inet.ipaddr.IPAddress.IPVersion
@@ -303,139 +303,139 @@ fun NetworkReachabilitySheet(
         errorMessage = ""
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    RethinkModalBottomSheet(
+        onDismissRequest = onDismiss,
+        contentPadding = PaddingValues(0.dp),
+        verticalSpacing = 0.dp,
+        includeBottomSpacer = false
+    ) {
         val protocols = VpnController.protocols()
         Column(
-            modifier = Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier =
+                Modifier.fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(
+                        horizontal = Dimensions.screenPaddingHorizontal,
+                        vertical = Dimensions.spacingLg
+                    ),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
         ) {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ToggleButton(
-                    selected = useAuto,
-                    text = context.resources.getString(R.string.settings_ip_text_ipv46),
-                    onClick = { useAuto = true; updateAutoModeUi() }
+            RethinkBottomSheetCard {
+                RuleSheetModeToggle(
+                    autoLabel = context.resources.getString(R.string.settings_ip_text_ipv46),
+                    manualLabel = context.resources.getString(R.string.lbl_manual),
+                    isAutoSelected = useAuto,
+                    onAutoClick = {
+                        useAuto = true
+                        updateAutoModeUi()
+                    },
+                    onManualClick = {
+                        useAuto = false
+                        updateManualModeUi()
+                    }
                 )
-                ToggleButton(
-                    selected = !useAuto,
-                    text = context.resources.getString(R.string.lbl_manual),
-                    onClick = { useAuto = false; updateManualModeUi() }
+                Text(
+                    text = context.resources.getString(R.string.bypasses_network_restrictions),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            Text(
-                text = context.resources.getString(R.string.bypasses_network_restrictions),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    StatusIcon(isOk = protocols.contains(URL4))
-                    Text(text = context.resources.getString(R.string.settings_ip_text_ipv4))
-                }
-                if (!useAuto) {
-                    TextButton(onClick = { resetToDefaults() }) {
-                        Text(text = context.resources.getString(R.string.brbs_restore_title))
+            RethinkBottomSheetCard {
+                ProtocolHeaderRow(
+                    title = context.resources.getString(R.string.settings_ip_text_ipv4),
+                    isSupported = protocols.contains(URL4)
+                ) {
+                    if (!useAuto) {
+                        TextButton(onClick = { resetToDefaults() }) {
+                            Text(text = context.resources.getString(R.string.brbs_restore_title))
+                        }
                     }
                 }
-            }
-
-            AddressRow(
-                value = ipv4Address1,
-                onValueChange = { ipv4Address1 = it },
-                enabled = !useAuto,
-                progress = progressIpv41,
-                result = statusIpv41
-            )
-            AddressRow(
-                value = ipv4Address2,
-                onValueChange = { ipv4Address2 = it },
-                enabled = !useAuto,
-                progress = progressIpv42,
-                result = statusIpv42
-            )
-
-            if (!useAuto) {
                 AddressRow(
-                    value = urlV4Address1,
-                    onValueChange = { urlV4Address1 = it },
-                    enabled = true,
-                    progress = progressUrlV41,
-                    result = statusUrlV41
+                    value = ipv4Address1,
+                    onValueChange = { ipv4Address1 = it },
+                    enabled = !useAuto,
+                    progress = progressIpv41,
+                    result = statusIpv41
                 )
                 AddressRow(
-                    value = urlV4Address2,
-                    onValueChange = { urlV4Address2 = it },
-                    enabled = true,
-                    progress = progressUrlV42,
-                    result = statusUrlV42
+                    value = ipv4Address2,
+                    onValueChange = { ipv4Address2 = it },
+                    enabled = !useAuto,
+                    progress = progressIpv42,
+                    result = statusIpv42
                 )
-            }
-
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    StatusIcon(isOk = protocols.contains(URL6))
-                    Text(text = context.resources.getString(R.string.settings_ip_text_ipv6))
+                if (!useAuto) {
+                    AddressRow(
+                        value = urlV4Address1,
+                        onValueChange = { urlV4Address1 = it },
+                        enabled = true,
+                        progress = progressUrlV41,
+                        result = statusUrlV41
+                    )
+                    AddressRow(
+                        value = urlV4Address2,
+                        onValueChange = { urlV4Address2 = it },
+                        enabled = true,
+                        progress = progressUrlV42,
+                        result = statusUrlV42
+                    )
                 }
             }
 
-            AddressRow(
-                value = ipv6Address1,
-                onValueChange = { ipv6Address1 = it },
-                enabled = !useAuto,
-                progress = progressIpv61,
-                result = statusIpv61
-            )
-            AddressRow(
-                value = ipv6Address2,
-                onValueChange = { ipv6Address2 = it },
-                enabled = !useAuto,
-                progress = progressIpv62,
-                result = statusIpv62
-            )
-
-            if (!useAuto) {
-                AddressRow(
-                    value = urlV6Address1,
-                    onValueChange = { urlV6Address1 = it },
-                    enabled = true,
-                    progress = progressUrlV61,
-                    result = statusUrlV61
+            RethinkBottomSheetCard {
+                ProtocolHeaderRow(
+                    title = context.resources.getString(R.string.settings_ip_text_ipv6),
+                    isSupported = protocols.contains(URL6)
                 )
                 AddressRow(
-                    value = urlV6Address2,
-                    onValueChange = { urlV6Address2 = it },
-                    enabled = true,
-                    progress = progressUrlV62,
-                    result = statusUrlV62
+                    value = ipv6Address1,
+                    onValueChange = { ipv6Address1 = it },
+                    enabled = !useAuto,
+                    progress = progressIpv61,
+                    result = statusIpv61
                 )
+                AddressRow(
+                    value = ipv6Address2,
+                    onValueChange = { ipv6Address2 = it },
+                    enabled = !useAuto,
+                    progress = progressIpv62,
+                    result = statusIpv62
+                )
+                if (!useAuto) {
+                    AddressRow(
+                        value = urlV6Address1,
+                        onValueChange = { urlV6Address1 = it },
+                        enabled = true,
+                        progress = progressUrlV61,
+                        result = statusUrlV61
+                    )
+                    AddressRow(
+                        value = urlV6Address2,
+                        onValueChange = { urlV6Address2 = it },
+                        enabled = true,
+                        progress = progressUrlV62,
+                        result = statusUrlV62
+                    )
+                }
             }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Button(
-                    onClick = { testConnections() },
-                    enabled = buttonsEnabled,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = context.resources.getString(R.string.lbl_test))
-                }
-                Button(
-                    onClick = { saveIps() },
-                    enabled = buttonsEnabled,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = context.resources.getString(R.string.lbl_save))
-                }
-            }
+            RethinkBottomSheetActionRow(
+                primaryText = context.resources.getString(R.string.lbl_save),
+                onPrimaryClick = { saveIps() },
+                primaryEnabled = buttonsEnabled,
+                secondaryText = context.resources.getString(R.string.lbl_test),
+                onSecondaryClick = { testConnections() },
+                secondaryEnabled = buttonsEnabled
+            )
 
             if (errorMessage.isNotBlank()) {
                 Text(
                     text = errorMessage,
                     color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = Dimensions.spacingXs)
                 )
             }
         }
@@ -443,20 +443,20 @@ fun NetworkReachabilitySheet(
 }
 
 @Composable
-private fun ToggleButton(selected: Boolean, text: String, onClick: () -> Unit) {
-    val selectedBg = MaterialTheme.colorScheme.tertiary
-    val unselectedBg = MaterialTheme.colorScheme.surface
-    val selectedText = MaterialTheme.colorScheme.onSurface
-    val unselectedText = MaterialTheme.colorScheme.onSurface
-    Button(
-        onClick = onClick,
-        colors =
-            ButtonDefaults.buttonColors(
-                containerColor = if (selected) selectedBg else unselectedBg,
-                contentColor = if (selected) selectedText else unselectedText
-            )
+private fun ProtocolHeaderRow(
+    title: String,
+    isSupported: Boolean,
+    trailing: @Composable (() -> Unit)? = null
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(text = text)
+        Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
+            StatusIcon(isOk = isSupported)
+            Text(text = title)
+        }
+        trailing?.invoke()
     }
 }
 
@@ -483,7 +483,10 @@ private fun AddressRow(
     progress: Boolean,
     result: ConnectionMonitor.ProbeResult?
 ) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+    ) {
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
@@ -493,14 +496,14 @@ private fun AddressRow(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text)
         )
         if (progress) {
-            CircularProgressIndicator(modifier = Modifier.padding(top = 12.dp))
+            CircularProgressIndicator(modifier = Modifier.padding(top = Dimensions.spacingMd))
         } else if (result != null) {
             val resId = getDrawableForProbeResult(result)
             androidx.compose.material3.Icon(
                 painter = painterResource(id = resId),
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(top = 12.dp)
+                modifier = Modifier.padding(top = Dimensions.spacingMd)
             )
         }
     }

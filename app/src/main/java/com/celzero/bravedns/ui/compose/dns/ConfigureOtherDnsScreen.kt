@@ -29,14 +29,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,7 +47,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,7 +56,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -127,88 +127,40 @@ fun ConfigureOtherDnsScreen(
     oDohViewModel: ODoHEndpointViewModel,
     onBackClick: () -> Unit
 ) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             RethinkLargeTopBar(
                 title = getDnsTypeName(dnsType),
+                subtitle = getDnsTypeSubtitle(dnsType),
                 onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior
             )
         }
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(horizontal = Dimensions.screenPaddingHorizontal),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+                .padding(horizontal = Dimensions.screenPaddingHorizontal)
         ) {
-            DnsTypeOverviewCard(dnsType = dnsType)
-
-            Box(modifier = Modifier.weight(1f)) {
-                OtherDnsListContent(
-                    dnsType = dnsType,
-                    paddingValues = PaddingValues(
-                        horizontal = 0.dp,
-                        vertical = Dimensions.spacingSm
-                    ),
-                    appConfig = appConfig,
-                    persistentState = persistentState,
-                    dohViewModel = dohViewModel,
-                    dotViewModel = dotViewModel,
-                    dnsProxyViewModel = dnsProxyViewModel,
-                    dnsCryptViewModel = dnsCryptViewModel,
-                    dnsCryptRelayViewModel = dnsCryptRelayViewModel,
-                    oDohViewModel = oDohViewModel,
-                    scope = scope
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DnsTypeOverviewCard(dnsType: DnsScreenType) {
-    Surface(
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
-        tonalElevation = 1.dp
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(Dimensions.spacingLg),
-            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Surface(
-                shape = RoundedCornerShape(10.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-            ) {
-                Icon(
-                    painter = painterResource(id = getDnsTypeIconRes(dnsType)),
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                    modifier = Modifier.padding(8.dp)
-                )
-            }
-            Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)) {
-                Text(
-                    text = getDnsTypeName(dnsType),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = stringResource(R.string.dns_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            OtherDnsListContent(
+                dnsType = dnsType,
+                paddingValues = PaddingValues(
+                    horizontal = 0.dp,
+                    vertical = Dimensions.spacingXs
+                ),
+                appConfig = appConfig,
+                persistentState = persistentState,
+                dohViewModel = dohViewModel,
+                dotViewModel = dotViewModel,
+                dnsProxyViewModel = dnsProxyViewModel,
+                dnsCryptViewModel = dnsCryptViewModel,
+                dnsCryptRelayViewModel = dnsCryptRelayViewModel,
+                oDohViewModel = oDohViewModel,
+                scope = scope
+            )
         }
     }
 }
@@ -225,13 +177,18 @@ private fun getDnsTypeName(type: DnsScreenType): String {
 }
 
 @Composable
-private fun getDnsTypeIconRes(type: DnsScreenType): Int {
+private fun getDnsTypeSubtitle(type: DnsScreenType): String {
     return when (type) {
-        DnsScreenType.DOH -> R.drawable.ic_dns_welcome
-        DnsScreenType.DNS_CRYPT -> R.drawable.ic_adv_dns_filter
-        DnsScreenType.DNS_PROXY -> R.drawable.ic_prevent_dns_proxy
-        DnsScreenType.DOT -> R.drawable.ic_prevent_dns_leaks
-        DnsScreenType.ODOH -> R.drawable.ic_split_dns
+        DnsScreenType.DOH ->
+            stringResource(R.string.cd_doh_dialog_resolver_url)
+        DnsScreenType.DNS_CRYPT ->
+            stringResource(R.string.cd_dns_crypt_dialog_stamp)
+        DnsScreenType.DNS_PROXY ->
+            stringResource(R.string.dns_proxy_ip_address)
+        DnsScreenType.DOT ->
+            stringResource(R.string.lbl_dot_abbr)
+        DnsScreenType.ODOH ->
+            stringResource(R.string.lbl_odoh_abbr)
     }
 }
 
@@ -283,21 +240,24 @@ private fun <T : Any> DnsEndpointListWithFab(
     Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 72.dp)
+            contentPadding = PaddingValues(top = Dimensions.spacingXs, bottom = 84.dp),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
         ) {
             items(items.itemCount) { index ->
                 val item = items[index] ?: return@items
                 itemContent(item)
             }
         }
-        FloatingActionButton(
+        ExtendedFloatingActionButton(
             onClick = onFabClick,
             modifier = Modifier.align(Alignment.BottomEnd).padding(24.dp)
         ) {
             Icon(
-                painter = painterResource(R.drawable.ic_fab_without_border),
+                imageVector = Icons.Rounded.Add,
                 contentDescription = context.resources.getString(R.string.lbl_create)
             )
+            Spacer(modifier = Modifier.width(Dimensions.spacingSm))
+            Text(text = stringResource(R.string.lbl_create))
         }
     }
 }
@@ -719,25 +679,34 @@ private fun DnsCryptListContent(
         modifier = Modifier.fillMaxSize().padding(paddingValues),
         verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
+        Text(
+            text = stringResource(R.string.cd_dns_crypt_title),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
+        Surface(
+            shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            onClick = { showRelaysDialog = true }
         ) {
-            Text(
-                text = stringResource(R.string.cd_dns_crypt_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            TextButton(onClick = { showRelaysDialog = true }) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(text = stringResource(R.string.cd_dnscrypt_relay_heading))
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Icon(
-                        painter = painterResource(R.drawable.ic_right_arrow_secondary),
-                        contentDescription = null
-                    )
-                }
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.cd_dnscrypt_relay_heading),
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = stringResource(R.string.lbl_configure),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
             }
         }
         DnsEndpointListWithFab(

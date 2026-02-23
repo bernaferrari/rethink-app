@@ -117,7 +117,7 @@
     <string name="alert_permission_accessibility">অনুমতি - অ্যাক্সেসযোগ্যতা</string>
     <string name="firewall_act_network_monitor_tab">নেটওয়ার্ক লগ</string>
     <string name="download_update_dialog_trylater_title">এখনই আপডেট করা যাচ্ছে না</string>
-    <string name="settings_vpn_heading">vpn</string>
+    <string name="settings_vpn_heading">VPN</string>
     <string name="info_dialog_url_copy_toast_msg">ইউআরএল কপি করা হয়েছে</string>
     <string name="orbot_both_desc">উপরের সবগুলো.</string>
     <string name="orbot_install_dialog_positive">ইনস্টল করুন</string>

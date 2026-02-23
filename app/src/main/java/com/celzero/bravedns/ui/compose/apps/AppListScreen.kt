@@ -18,6 +18,7 @@ package com.celzero.bravedns.ui.compose.apps
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -30,16 +31,15 @@ import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.RefreshDatabase
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
+import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.ui.compose.firewall.AppListScreen as FirewallAppListScreen
 import com.celzero.bravedns.ui.compose.firewall.BlockType
 import com.celzero.bravedns.ui.compose.firewall.Filters
 import com.celzero.bravedns.ui.compose.firewall.FirewallFilter
-import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.AppInfoViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -47,7 +47,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.LaunchedEffect
 
-private const val REFRESH_TIMEOUT: Long = 4000
 private const val QUERY_TEXT_DELAY: Long = 1000
 
 /**
@@ -70,10 +69,10 @@ fun AppListScreen(
     
     // State
     var queryText by remember { mutableStateOf("") }
-    var filterLabelText by remember { mutableStateOf<CharSequence>("") }
     var selectedFirewallFilter by remember { mutableStateOf(FirewallFilter.ALL) }
     var isRefreshing by remember { mutableStateOf(false) }
     var currentFilters by remember { mutableStateOf(Filters()) }
+    val latestFilters by remember { derivedStateOf { currentFilters } }
     
     // Bulk action states
     var bulkWifi by remember { mutableStateOf(false) }
@@ -89,39 +88,15 @@ fun AppListScreen(
     var showInfoDialog by remember { mutableStateOf(false) }
     var showBypassToolTip by remember { mutableStateOf(true) }
     
-    val searchQuery = remember { MutableStateFlow("") }
-    
-    // Filter label update
-    fun updateFilterText(filter: Filters) {
-        val filterLabel = filter.topLevelFilter.getLabel(context)
-        val firewallLabel = filter.firewallFilter.getLabel(context)
-        filterLabelText = if (filter.categoryFilters.isEmpty()) {
-            UIUtils.htmlToSpannedText(
-                context.resources.getString(
-                    R.string.fapps_firewall_filter_desc,
-                    firewallLabel.lowercase(),
-                    filterLabel
-                )
-            )
-        } else {
-            UIUtils.htmlToSpannedText(
-                context.resources.getString(
-                    R.string.fapps_firewall_filter_desc_category,
-                    firewallLabel.lowercase(),
-                    filterLabel,
-                    filter.categoryFilters
-                )
-            )
-        }
-    }
+    val searchQuery = remember { MutableStateFlow(queryText) }
     
     // Apply filters
     fun applyFilters(filters: Filters) {
         currentFilters = filters
         viewModel.setFilter(filters)
-        updateFilterText(filters)
         selectedFirewallFilter = filters.firewallFilter
         queryText = filters.searchString
+        searchQuery.value = filters.searchString
     }
     
     // Query filter with debounce
@@ -130,14 +105,9 @@ fun AppListScreen(
             .debounce(QUERY_TEXT_DELAY)
             .distinctUntilChanged()
             .collect { query ->
-                val updated = currentFilters.copy().apply { searchString = query }
+                val updated = latestFilters.copy(searchString = query)
                 applyFilters(updated)
             }
-    }
-    
-    // Initialize
-    LaunchedEffect(Unit) {
-        applyFilters(Filters())
     }
     
     // Bulk action helpers
@@ -292,25 +262,46 @@ fun AppListScreen(
             }
         }
     }
-    
-    fun refreshAppList() {
+
+    fun refreshAppList(action: Int = RefreshDatabase.ACTION_REFRESH_INTERACTIVE, showToast: Boolean = true) {
+        if (isRefreshing) return
+
         isRefreshing = true
         scope.launch(Dispatchers.IO) {
-            refreshDatabase.refresh(RefreshDatabase.ACTION_REFRESH_INTERACTIVE)
-        }
-        scope.launch {
-            delay(REFRESH_TIMEOUT)
-            isRefreshing = false
-            Utilities.showToastUiCentered(context, refreshCompleteText, Toast.LENGTH_SHORT)
+            refreshDatabase.refresh(action) {
+                withContext(Dispatchers.Main) {
+                    isRefreshing = false
+                    if (showToast) {
+                        Utilities.showToastUiCentered(
+                            context,
+                            refreshCompleteText,
+                            Toast.LENGTH_SHORT
+                        )
+                    }
+                }
+            }
         }
     }
-    
+
+    // Initialize
+    LaunchedEffect(Unit) {
+        applyFilters(Filters())
+
+        val hasCachedApps =
+            withContext(Dispatchers.IO) {
+                FirewallManager.load() > 0
+            }
+        if (!hasCachedApps) {
+            // Ensure app list is populated the first time this screen is opened.
+            refreshAppList(action = RefreshDatabase.ACTION_REFRESH_AUTO, showToast = false)
+        }
+    }
+
     // Delegate to the firewall AppListScreen with all parameters
     FirewallAppListScreen(
         viewModel = viewModel,
         eventLogger = eventLogger,
         queryText = queryText,
-        filterLabelText = filterLabelText,
         selectedFirewallFilter = selectedFirewallFilter,
         isRefreshing = isRefreshing,
         bulkWifi = bulkWifi,
@@ -331,9 +322,13 @@ fun AppListScreen(
         },
         onRefreshClick = { refreshAppList() },
         onFilterApply = { applied -> applyFilters(applied) },
-        onFilterClear = { cleared -> applyFilters(cleared) },
+        onFilterClear = { cleared ->
+            applyFilters(
+                cleared.copy(searchString = queryText)
+            )
+        },
         onFirewallFilterClick = { filter ->
-            val updated = currentFilters.copy().apply { firewallFilter = filter }
+            val updated = currentFilters.copy(firewallFilter = filter)
             applyFilters(updated)
         },
         onBulkDialogConfirm = { type ->
@@ -364,14 +359,4 @@ fun AppListScreen(
         showBypassToolTip = showBypassToolTip,
         onBackClick = onBackClick
     )
-}
-
-// Extension to copy a Filters object
-private fun Filters.copy(): Filters {
-    return Filters().also {
-        it.categoryFilters = this.categoryFilters.toMutableSet()
-        it.topLevelFilter = this.topLevelFilter
-        it.firewallFilter = this.firewallFilter
-        it.searchString = this.searchString
-    }
 }

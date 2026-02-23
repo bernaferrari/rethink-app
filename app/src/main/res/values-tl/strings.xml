@@ -20,7 +20,7 @@
     <string name="lbl_domain" translatable="true">Dominyo</string>
     <string name="lbl_wildcard" translatable="true">Wildcard</string>
     <string name="lbl_action_required" translatable="true">Kailangan ng Aksyon</string>
-    <string name="lbl_rules" translatable="true">mga patakaran</string>
+    <string name="lbl_rules" translatable="true">Mga patakaran</string>
     <string name="lbl_configure" translatable="true">I-configure</string>
     <string name="lbl_logs" translatable="true">tala</string>
     <string name="lbl_ip_rules" translatable="true">Mga Patakaran sa IP</string>

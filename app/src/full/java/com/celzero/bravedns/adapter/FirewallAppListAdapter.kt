@@ -23,30 +23,23 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.BorderStroke
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -60,6 +53,9 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
@@ -80,6 +76,7 @@ import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -87,8 +84,20 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
+enum class FirewallRowPosition {
+    First,
+    Middle,
+    Last,
+    Single
+}
+
 @Composable
-fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
+fun FirewallAppRow(
+    appInfo: AppInfo,
+    eventLogger: EventLogger,
+    searchQuery: String = "",
+    rowPosition: FirewallRowPosition = FirewallRowPosition.Single
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var dialogState by remember(appInfo.uid) { mutableStateOf<FirewallAppDialogState?>(null) }
@@ -114,6 +123,46 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
     }
 
     val dataUsageText = buildDataUsageText(context, appInfo)
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(stiffness = Spring.StiffnessMedium),
+        label = "rowScale"
+    )
+    var highlightPulse by remember(appInfo.uid) { mutableStateOf(false) }
+    val matchBackground by animateColorAsState(
+        targetValue =
+            if (highlightPulse) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
+            else Color.Transparent,
+        animationSpec = tween(durationMillis = 240),
+        label = "matchBackground"
+    )
+
+    LaunchedEffect(searchQuery) {
+        if (searchQuery.isNotBlank()) {
+            highlightPulse = true
+            delay(220)
+            highlightPulse = false
+        } else {
+            highlightPulse = false
+        }
+    }
+
+    val highlightedAppName =
+        buildHighlightedText(
+            text = appInfo.appName,
+            query = searchQuery,
+            highlightColor = MaterialTheme.colorScheme.primary,
+            highlightBackground = matchBackground
+        )
+    val highlightedPackageName =
+        buildHighlightedText(
+            text = appInfo.packageName,
+            query = searchQuery,
+            highlightColor = MaterialTheme.colorScheme.primary,
+            highlightBackground = matchBackground
+        )
     val statusText =
         if (isSelfApp) {
             context.resources.getString(R.string.firewall_status_allow)
@@ -129,71 +178,51 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
     val wifiIcon = wifiIconRes(appStatus, connStatus, isSelfApp)
     val mobileIcon = mobileIconRes(appStatus, connStatus, isSelfApp)
 
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "rowScale"
-    )
+    val shape = rowShapeFor(rowPosition)
 
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .scale(scale)
-            .clip(RoundedCornerShape(18.dp))
+            .clip(shape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = { openAppDetailActivity(context, appInfo.uid) }
             ),
-        shape = RoundedCornerShape(18.dp),
+        shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(
-            1.dp,
-            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
-        ),
-        tonalElevation = 1.dp
+        tonalElevation = 0.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
-                    horizontal = Dimensions.spacingLg,
-                    vertical = Dimensions.spacingMd
+                    horizontal = Dimensions.spacingMd,
+                    vertical = 9.dp
                 ),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceContainerHighest
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(44.dp)
-                ) {
-                    val iconPainter =
-                        rememberDrawablePainter(appIcon)
-                            ?: rememberDrawablePainter(Utilities.getDefaultIcon(context))
-                    iconPainter?.let { painter ->
-                        Image(
-                            painter = painter,
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(30.dp)
-                                .clip(RoundedCornerShape(9.dp))
-                        )
-                    }
-                }
+            val iconPainter =
+                rememberDrawablePainter(appIcon)
+                    ?: rememberDrawablePainter(Utilities.getDefaultIcon(context))
+            iconPainter?.let { painter ->
+                Image(
+                    painter = painter,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(9.dp))
+                )
             }
 
             Column(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(3.dp)
+                verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 Text(
-                    text = appInfo.appName,
+                    text = highlightedAppName,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface.copy(alpha = nameAlpha),
@@ -202,7 +231,7 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    text = appInfo.packageName,
+                    text = highlightedPackageName,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
                     maxLines = 1,
@@ -222,8 +251,8 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                             fontWeight = FontWeight.SemiBold,
                             color = accentColor,
                             modifier = Modifier.padding(
-                                horizontal = Dimensions.spacingSm,
-                                vertical = 2.dp
+                                horizontal = 6.dp,
+                                vertical = 1.dp
                             )
                         )
                     }
@@ -237,8 +266,8 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                                 style = MaterialTheme.typography.labelSmall,
                                 color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 modifier = Modifier.padding(
-                                    horizontal = Dimensions.spacingSm,
-                                    vertical = 2.dp
+                                    horizontal = 6.dp,
+                                    vertical = 1.dp
                                 )
                             )
                         }
@@ -270,17 +299,13 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                                 )
                         }
                     },
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            shape = RoundedCornerShape(12.dp)
-                        )
+                    modifier = Modifier.size(34.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = wifiIcon),
                         contentDescription = context.getString(R.string.firewall_rule_block_unmetered),
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -302,17 +327,13 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                                 )
                         }
                     },
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            shape = RoundedCornerShape(12.dp)
-                        )
+                    modifier = Modifier.size(34.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = mobileIcon),
                         contentDescription = context.getString(R.string.lbl_mobile_data),
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -321,24 +342,14 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
 
     dialogState?.let { state ->
         val count = state.packageList.count()
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = { dialogState = null },
-            icon = {
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_firewall_block_grey),
-                    contentDescription = null
-                )
-            },
-            title = {
-                Text(
-                    text =
-                        context.resources.getString(
-                            R.string.ctbs_block_other_apps,
-                            state.appInfo.appName,
-                            count.toString()
-                        )
-                )
-            },
+            title =
+                context.resources.getString(
+                    R.string.ctbs_block_other_apps,
+                    state.appInfo.appName,
+                    count.toString()
+                ),
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)) {
                     state.packageList.forEach { name ->
@@ -346,27 +357,19 @@ fun FirewallAppRow(appInfo: AppInfo, eventLogger: EventLogger) {
                     }
                 }
             },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        scope.launch(Dispatchers.IO) {
-                            if (state.isWifi) {
-                                toggleWifi(eventLogger, state.appInfo, state.connStatus)
-                            } else {
-                                toggleMobileData(eventLogger, state.appInfo, state.connStatus)
-                            }
-                        }
-                        dialogState = null
+            confirmText = context.resources.getString(R.string.lbl_proceed),
+            dismissText = context.resources.getString(R.string.ctbs_dialog_negative_btn),
+            onConfirm = {
+                scope.launch(Dispatchers.IO) {
+                    if (state.isWifi) {
+                        toggleWifi(eventLogger, state.appInfo, state.connStatus)
+                    } else {
+                        toggleMobileData(eventLogger, state.appInfo, state.connStatus)
                     }
-                ) {
-                    Text(text = context.resources.getString(R.string.lbl_proceed))
                 }
+                dialogState = null
             },
-            dismissButton = {
-                TextButton(onClick = { dialogState = null }) {
-                    Text(text = context.resources.getString(R.string.ctbs_dialog_negative_btn))
-                }
-            }
+            onDismiss = { dialogState = null }
         )
     }
 }
@@ -639,4 +642,72 @@ private fun enableAfterDelay(scope: CoroutineScope, delayMs: Long) {
 
 private fun logEvent(eventLogger: EventLogger, details: String) {
     eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, "App list, rule change", EventSource.UI, false, details)
+}
+
+private fun buildHighlightedText(
+    text: String,
+    query: String,
+    highlightColor: Color,
+    highlightBackground: Color = Color.Transparent
+): AnnotatedString {
+    val normalizedQuery = query.trim()
+    if (normalizedQuery.isBlank() || text.isBlank()) return AnnotatedString(text)
+
+    val terms =
+        normalizedQuery
+            .split(Regex("\\s+"))
+            .map { it.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+    if (terms.isEmpty()) return AnnotatedString(text)
+
+    val normalizedText = text.lowercase()
+    val ranges = mutableListOf<IntRange>()
+
+    terms.forEach { term ->
+        val normalizedTerm = term.lowercase()
+        var from = 0
+        while (from < normalizedText.length) {
+            val start = normalizedText.indexOf(normalizedTerm, from)
+            if (start == -1) break
+            ranges.add(start until (start + normalizedTerm.length))
+            from = start + normalizedTerm.length
+        }
+    }
+
+    if (ranges.isEmpty()) return AnnotatedString(text)
+
+    val mergedRanges = ranges.sortedBy { it.first }.fold(mutableListOf<IntRange>()) { acc, range ->
+        val last = acc.lastOrNull()
+        if (last == null || range.first > last.last + 1) {
+            acc.add(range)
+        } else {
+            acc[acc.lastIndex] = last.first..maxOf(last.last, range.last)
+        }
+        acc
+    }
+
+    return buildAnnotatedString {
+        append(text)
+        mergedRanges.forEach { range ->
+            addStyle(
+                style = SpanStyle(color = highlightColor, background = highlightBackground),
+                start = range.first,
+                end = range.last + 1
+            )
+        }
+    }
+}
+
+private fun rowShapeFor(position: FirewallRowPosition): RoundedCornerShape {
+    return when (position) {
+        FirewallRowPosition.First ->
+            RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 10.dp, bottomEnd = 10.dp)
+
+        FirewallRowPosition.Middle -> RoundedCornerShape(10.dp)
+        FirewallRowPosition.Last ->
+            RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp, bottomStart = 18.dp, bottomEnd = 18.dp)
+
+        FirewallRowPosition.Single -> RoundedCornerShape(18.dp)
+    }
 }

@@ -31,21 +31,20 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.rounded.Apps
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Refresh
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -63,10 +62,12 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -88,6 +89,11 @@ import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkActionListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkDropdownSelector
+import com.celzero.bravedns.ui.compose.theme.RethinkMultiActionDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkToggleListItem
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
@@ -103,6 +109,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
+import kotlin.math.roundToInt
 
 private const val REFRESH_TIMEOUT_MS = 4000L
 
@@ -146,6 +153,7 @@ fun ProxySettingsScreen(
     persistentState: PersistentState,
     eventLogger: EventLogger,
     mappingViewModel: ProxyAppsMappingViewModel? = null,
+    initialFocusKey: String? = null,
     onWireguardClick: (() -> Unit)? = null,
     onNavigateToDns: (() -> Unit)? = null,
     onBackClick: (() -> Unit)? = null
@@ -186,6 +194,13 @@ fun ProxySettingsScreen(
 
     val orbotHelper = remember(context, persistentState, appConfig) {
         OrbotHelper(context, persistentState, appConfig)
+    }
+    val listState = rememberLazyListState()
+    val density = LocalDensity.current
+    val initialFocus = initialFocusKey?.trim().orEmpty()
+    var pendingFocusKey by rememberSaveable(initialFocus) { mutableStateOf(initialFocus) }
+    var activeFocusKey by rememberSaveable(initialFocus) {
+        mutableStateOf(initialFocus.ifBlank { null })
     }
 
     var refreshTick by remember { mutableIntStateOf(0) }
@@ -282,6 +297,42 @@ fun ProxySettingsScreen(
         }
     }
 
+    fun tryOpenCustomProxyDialog(
+        canEnableSpecificProxy: () -> Boolean,
+        disabledError: String,
+        openDialog: () -> Unit
+    ) {
+        if (!canEnableProxy) {
+            showProxyDisabledToast()
+            reloadUi()
+            return
+        }
+
+        if (appConfig.getBraveMode().isDnsMode()) {
+            Utilities.showToastUiCentered(context, socks5VpnDisabledError, Toast.LENGTH_SHORT)
+            reloadUi()
+            return
+        }
+
+        if (!canEnableSpecificProxy()) {
+            Utilities.showToastUiCentered(context, disabledError, Toast.LENGTH_SHORT)
+            reloadUi()
+            return
+        }
+
+        openDialog()
+    }
+
+    fun disableCustomProxy(type: AppConfig.ProxyType, logMessage: String) {
+        scope.launch {
+            withContext(Dispatchers.IO) {
+                appConfig.removeProxy(type, AppConfig.ProxyProvider.CUSTOM)
+            }
+            logEvent(logMessage)
+            reloadUi()
+        }
+    }
+
     fun enableOrbotFlow() {
         scope.launch {
             if (!canEnableProxy) {
@@ -358,6 +409,79 @@ fun ProxySettingsScreen(
         orbotDescription = state.orbotDescription
     }
 
+    LaunchedEffect(pendingFocusKey, canEnableProxy, onWireguardClick != null) {
+        val key = pendingFocusKey.trim()
+        if (key.isBlank()) return@LaunchedEffect
+        activeFocusKey = key
+
+        val showWarning = !canEnableProxy
+        var index = 0
+        if (showWarning && key == "proxy_warning") {
+            listState.animateScrollToItem(0)
+            delay(900)
+            if (activeFocusKey == key) {
+                activeFocusKey = null
+            }
+            pendingFocusKey = ""
+            return@LaunchedEffect
+        }
+        if (showWarning) index++
+
+        val hasWireguard = onWireguardClick != null
+        if (hasWireguard && key == "proxy_wireguard") {
+            listState.animateScrollToItem(index)
+            delay(900)
+            if (activeFocusKey == key) {
+                activeFocusKey = null
+            }
+            pendingFocusKey = ""
+            return@LaunchedEffect
+        }
+        if (hasWireguard) index++
+
+        if (key == "proxy_socks") {
+            listState.animateScrollToItem(index)
+            delay(900)
+            if (activeFocusKey == key) {
+                activeFocusKey = null
+            }
+            pendingFocusKey = ""
+            return@LaunchedEffect
+        }
+        index++
+
+        if (key == "proxy_http") {
+            listState.animateScrollToItem(index)
+            delay(900)
+            if (activeFocusKey == key) {
+                activeFocusKey = null
+            }
+            pendingFocusKey = ""
+            return@LaunchedEffect
+        }
+        index++
+
+        val orbotOffsetDp =
+            when (key) {
+                "proxy_orbot" -> 0
+                "proxy_orbot_apps" -> 96
+                "proxy_orbot_open_app",
+                "proxy_orbot_notification" -> if (mappingViewModel != null) 178 else 96
+                "proxy_orbot_info" -> if (mappingViewModel != null) 262 else 178
+                else -> null
+            }
+
+        if (orbotOffsetDp != null) {
+            val offsetPx = with(density) { orbotOffsetDp.dp.toPx().roundToInt() }
+            listState.animateScrollToItem(index, offsetPx)
+            delay(900)
+            if (activeFocusKey == key) {
+                activeFocusKey = null
+            }
+        }
+        pendingFocusKey = ""
+    }
+
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
@@ -367,6 +491,7 @@ fun ProxySettingsScreen(
                 title = stringResource(R.string.settings_proxy_header),
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior,
+                titleStartPadding = Dimensions.spacingSm,
                 actions = {
                     if (canEnableProxy) {
                         IconButton(
@@ -375,7 +500,7 @@ fun ProxySettingsScreen(
                         ) {
                             if (isRefreshing) {
                                 CircularProgressIndicator(
-                                    modifier = Modifier.padding(8.dp),
+                                    modifier = Modifier.padding(Dimensions.spacingSm),
                                     strokeWidth = 2.dp
                                 )
                             } else {
@@ -392,6 +517,7 @@ fun ProxySettingsScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
@@ -399,21 +525,32 @@ fun ProxySettingsScreen(
                 PaddingValues(
                     start = Dimensions.screenPaddingHorizontal,
                     end = Dimensions.screenPaddingHorizontal,
+                    top = Dimensions.spacingMd,
                     bottom = Dimensions.spacing3xl
                 ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
             if (!canEnableProxy) {
                 item {
+                    val warningFocused = activeFocusKey == "proxy_warning"
                     Surface(
-                        shape = RoundedCornerShape(18.dp),
-                        color = MaterialTheme.colorScheme.errorContainer
+                        shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
+                        color =
+                            if (warningFocused) {
+                                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f)
+                            } else {
+                                MaterialTheme.colorScheme.errorContainer
+                            }
                     ) {
                         Text(
                             text = stringResource(R.string.settings_lock_down_proxy_desc),
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
+                            modifier =
+                                Modifier.padding(
+                                    horizontal = Dimensions.spacingMd,
+                                    vertical = Dimensions.spacingSmMd
+                                )
                         )
                     }
                 }
@@ -429,6 +566,7 @@ fun ProxySettingsScreen(
                             supporting = wireguardDescription,
                             leadingIconPainter = painterResource(id = R.drawable.ic_wireguard_icon),
                             position = CardPosition.Single,
+                            highlighted = activeFocusKey == "proxy_wireguard",
                             onClick = {
                                 if (!canEnableProxy) {
                                     showProxyDisabledToast()
@@ -445,69 +583,37 @@ fun ProxySettingsScreen(
             item {
                 SectionHeader(title = stringResource(R.string.settings_socks5_heading))
                 RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_socks5_heading),
-                        supporting = socks5Description,
-                        leadingIconPainter = painterResource(id = R.drawable.ic_socks5),
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_socks5_heading),
+                        description = socks5Description,
+                        iconRes = R.drawable.ic_socks5,
+                        checked = socks5Enabled,
                         position = CardPosition.Single,
-                        onClick = {
+                        highlighted = activeFocusKey == "proxy_socks",
+                        onRowClick = {
                             if (canEnableProxy && socks5Enabled) {
                                 openSocksDialog()
                             } else if (!socks5Enabled) {
-                                if (!canEnableProxy) {
-                                    showProxyDisabledToast()
-                                    reloadUi()
-                                } else if (appConfig.getBraveMode().isDnsMode()) {
-                                    Utilities.showToastUiCentered(context, socks5VpnDisabledError, Toast.LENGTH_SHORT)
-                                    reloadUi()
-                                } else if (!appConfig.canEnableSocks5Proxy()) {
-                                    Utilities.showToastUiCentered(context, socks5DisabledError, Toast.LENGTH_SHORT)
-                                    reloadUi()
-                                } else {
-                                    openSocksDialog()
-                                }
+                                tryOpenCustomProxyDialog(
+                                    canEnableSpecificProxy = { appConfig.canEnableSocks5Proxy() },
+                                    disabledError = socks5DisabledError,
+                                    openDialog = ::openSocksDialog
+                                )
                             }
                         },
-                        trailing = {
-                            Switch(
-                                checked = socks5Enabled,
-                                onCheckedChange = { enabled ->
-                                    if (enabled) {
-                                        if (!canEnableProxy) {
-                                            showProxyDisabledToast()
-                                            reloadUi()
-                                        } else if (appConfig.getBraveMode().isDnsMode()) {
-                                            Utilities.showToastUiCentered(
-                                                context,
-                                                socks5VpnDisabledError,
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            reloadUi()
-                                        } else if (!appConfig.canEnableSocks5Proxy()) {
-                                            Utilities.showToastUiCentered(
-                                                context,
-                                                socks5DisabledError,
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            reloadUi()
-                                        } else {
-                                            openSocksDialog()
-                                        }
-                                    } else {
-                                        scope.launch {
-                                            withContext(Dispatchers.IO) {
-                                                appConfig.removeProxy(
-                                                    AppConfig.ProxyType.SOCKS5,
-                                                    AppConfig.ProxyProvider.CUSTOM
-                                                )
-                                            }
-                                            logEvent("Custom SOCKS5 disabled")
-                                            reloadUi()
-                                        }
-                                    }
-                                },
-                                enabled = canEnableProxy
-                            )
+                        onCheckedChange = { enabled ->
+                            if (enabled) {
+                                tryOpenCustomProxyDialog(
+                                    canEnableSpecificProxy = { appConfig.canEnableSocks5Proxy() },
+                                    disabledError = socks5DisabledError,
+                                    openDialog = ::openSocksDialog
+                                )
+                            } else {
+                                disableCustomProxy(
+                                    type = AppConfig.ProxyType.SOCKS5,
+                                    logMessage = "Custom SOCKS5 disabled"
+                                )
+                            }
                         }
                     )
                 }
@@ -517,69 +623,37 @@ fun ProxySettingsScreen(
             item {
                 SectionHeader(title = stringResource(R.string.settings_https_heading))
                 RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_https_heading),
-                        supporting = httpDescription,
-                        leadingIconPainter = painterResource(id = R.drawable.ic_http),
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_https_heading),
+                        description = httpDescription,
+                        iconRes = R.drawable.ic_http,
+                        checked = httpEnabled,
                         position = CardPosition.Single,
-                        onClick = {
+                        highlighted = activeFocusKey == "proxy_http",
+                        onRowClick = {
                             if (canEnableProxy && httpEnabled) {
                                 openHttpDialog()
                             } else if (!httpEnabled) {
-                                if (!canEnableProxy) {
-                                    showProxyDisabledToast()
-                                    reloadUi()
-                                } else if (appConfig.getBraveMode().isDnsMode()) {
-                                    Utilities.showToastUiCentered(context, socks5VpnDisabledError, Toast.LENGTH_SHORT)
-                                    reloadUi()
-                                } else if (!appConfig.canEnableHttpProxy()) {
-                                    Utilities.showToastUiCentered(context, httpDisabledError, Toast.LENGTH_SHORT)
-                                    reloadUi()
-                                } else {
-                                    openHttpDialog()
-                                }
+                                tryOpenCustomProxyDialog(
+                                    canEnableSpecificProxy = { appConfig.canEnableHttpProxy() },
+                                    disabledError = httpDisabledError,
+                                    openDialog = ::openHttpDialog
+                                )
                             }
                         },
-                        trailing = {
-                            Switch(
-                                checked = httpEnabled,
-                                onCheckedChange = { enabled ->
-                                    if (enabled) {
-                                        if (!canEnableProxy) {
-                                            showProxyDisabledToast()
-                                            reloadUi()
-                                        } else if (appConfig.getBraveMode().isDnsMode()) {
-                                            Utilities.showToastUiCentered(
-                                                context,
-                                                socks5VpnDisabledError,
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            reloadUi()
-                                        } else if (!appConfig.canEnableHttpProxy()) {
-                                            Utilities.showToastUiCentered(
-                                                context,
-                                                httpDisabledError,
-                                                Toast.LENGTH_SHORT
-                                            )
-                                            reloadUi()
-                                        } else {
-                                            openHttpDialog()
-                                        }
-                                    } else {
-                                        scope.launch {
-                                            withContext(Dispatchers.IO) {
-                                                appConfig.removeProxy(
-                                                    AppConfig.ProxyType.HTTP,
-                                                    AppConfig.ProxyProvider.CUSTOM
-                                                )
-                                            }
-                                            logEvent("Custom HTTP disabled")
-                                            reloadUi()
-                                        }
-                                    }
-                                },
-                                enabled = canEnableProxy
-                            )
+                        onCheckedChange = { enabled ->
+                            if (enabled) {
+                                tryOpenCustomProxyDialog(
+                                    canEnableSpecificProxy = { appConfig.canEnableHttpProxy() },
+                                    disabledError = httpDisabledError,
+                                    openDialog = ::openHttpDialog
+                                )
+                            } else {
+                                disableCustomProxy(
+                                    type = AppConfig.ProxyType.HTTP,
+                                    logMessage = "Custom HTTP disabled"
+                                )
+                            }
                         }
                     )
                 }
@@ -590,50 +664,50 @@ fun ProxySettingsScreen(
                 SectionHeader(title = stringResource(R.string.orbot))
                 RethinkListGroup {
                     val isAdvancedVisible = canEnableProxy && !orbotConnecting
-                    RethinkListItem(
-                        headline = stringResource(R.string.orbot),
-                        supporting = if (orbotConnecting) stringResource(R.string.orbot_bs_status_trying_connect) else orbotDescription,
-                        leadingIconPainter = painterResource(id = R.drawable.ic_orbot),
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.orbot),
+                        description = if (orbotConnecting) stringResource(R.string.orbot_bs_status_trying_connect) else orbotDescription,
+                        iconRes = R.drawable.ic_orbot,
+                        checked = orbotEnabled,
                         position = if (isAdvancedVisible) CardPosition.First else CardPosition.Single,
-                        onClick = {
+                        highlighted = activeFocusKey == "proxy_orbot",
+                        onRowClick = {
                             if (canEnableProxy && !orbotConnecting) {
                                 if (orbotEnabled) enableOrbotFlow() else enableOrbotFlow()
                             }
                         },
-                        trailing = {
-                            Switch(
-                                checked = orbotEnabled,
-                                onCheckedChange = { enabled ->
-                                    if (enabled) {
-                                        enableOrbotFlow()
-                                    } else {
-                                        stopOrbotForwarding(showDialog = true)
-                                    }
-                                },
-                                enabled = canEnableProxy && !orbotConnecting
-                            )
+                        enabled = canEnableProxy && !orbotConnecting,
+                        onCheckedChange = { enabled ->
+                            if (enabled) {
+                                enableOrbotFlow()
+                            } else {
+                                stopOrbotForwarding(showDialog = true)
+                            }
                         }
                     )
 
                     if (isAdvancedVisible) {
                         if (mappingViewModel != null) {
-                            RethinkListItem(
-                                headline = stringResource(R.string.add_remove_apps, orbotAppCount.toString()),
-                                leadingIconPainter = painterResource(id = R.drawable.ic_app_info_accent),
+                            RethinkActionListItem(
+                                title = stringResource(R.string.add_remove_apps, orbotAppCount.toString()),
+                                icon = Icons.Rounded.Apps,
                                 position = CardPosition.Middle,
+                                highlighted = activeFocusKey == "proxy_orbot_apps",
                                 onClick = { showOrbotAppsDialog = true }
                             )
                         }
-                        RethinkListItem(
-                            headline = stringResource(R.string.settings_orbot_notification_action),
-                            leadingIconPainter = painterResource(id = R.drawable.ic_right_arrow_small),
+                        RethinkActionListItem(
+                            title = stringResource(R.string.settings_orbot_notification_action),
+                            icon = Icons.AutoMirrored.Filled.ArrowForward,
                             position = CardPosition.Middle,
+                            highlighted = activeFocusKey == "proxy_orbot_open_app",
                             onClick = { orbotHelper.openOrbotApp() }
                         )
-                        RethinkListItem(
-                            headline = stringResource(R.string.lbl_info),
-                            leadingIconPainter = painterResource(id = R.drawable.ic_info),
+                        RethinkActionListItem(
+                            title = stringResource(R.string.lbl_info),
+                            icon = Icons.Rounded.Info,
                             position = CardPosition.Last,
+                            highlighted = activeFocusKey == "proxy_orbot_info",
                             onClick = { showOrbotInfoDialog = true }
                         )
                     }
@@ -652,79 +726,63 @@ fun ProxySettingsScreen(
     }
 
     if (showOrbotInfoDialog) {
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = { showOrbotInfoDialog = false },
-            title = { Text(text = stringResource(R.string.orbot_title)) },
-            text = { Text(text = stringResource(R.string.orbot_explanation)) },
-            confirmButton = {
-                TextButton(onClick = { showOrbotInfoDialog = false }) {
-                    Text(text = stringResource(R.string.lbl_dismiss))
-                }
-            }
+            title = stringResource(R.string.orbot_title),
+            message = stringResource(R.string.orbot_explanation),
+            confirmText = stringResource(R.string.lbl_dismiss),
+            onConfirm = { showOrbotInfoDialog = false }
         )
     }
 
     if (showOrbotInstallDialog) {
-        AlertDialog(
+        RethinkMultiActionDialog(
             onDismissRequest = { showOrbotInstallDialog = false },
-            title = { Text(text = stringResource(R.string.orbot_install_dialog_title)) },
-            text = { Text(text = stringResource(R.string.orbot_install_dialog_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showOrbotInstallDialog = false
-                        val installIntent = orbotHelper.getIntentForDownload()
-                        if (installIntent == null) {
-                            Utilities.showToastUiCentered(
-                                context,
-                                orbotInstallError,
-                                Toast.LENGTH_SHORT
-                            )
-                            return@TextButton
-                        }
+            title = stringResource(R.string.orbot_install_dialog_title),
+            message = stringResource(R.string.orbot_install_dialog_message),
+            primaryText = stringResource(R.string.orbot_install_dialog_positive),
+            onPrimary = {
+                showOrbotInstallDialog = false
+                val installIntent = orbotHelper.getIntentForDownload()
+                if (installIntent == null) {
+                    Utilities.showToastUiCentered(
+                        context,
+                        orbotInstallError,
+                        Toast.LENGTH_SHORT
+                    )
+                    return@RethinkMultiActionDialog
+                }
 
-                        try {
-                            context.startActivity(installIntent)
-                        } catch (_: ActivityNotFoundException) {
-                            Utilities.showToastUiCentered(
-                                context,
-                                orbotInstallError,
-                                Toast.LENGTH_SHORT
-                            )
-                        }
-                    }
-                ) {
-                    Text(text = stringResource(R.string.orbot_install_dialog_positive))
+                try {
+                    context.startActivity(installIntent)
+                } catch (_: ActivityNotFoundException) {
+                    Utilities.showToastUiCentered(
+                        context,
+                        orbotInstallError,
+                        Toast.LENGTH_SHORT
+                    )
                 }
             },
-            dismissButton = {
-                Row {
-                    TextButton(
-                        onClick = {
-                            showOrbotInstallDialog = false
-                            try {
-                                context.startActivity(
-                                    Intent(
-                                        Intent.ACTION_VIEW,
-                                        orbotWebsiteLink.toUri()
-                                    )
-                                )
-                            } catch (_: ActivityNotFoundException) {
-                                Utilities.showToastUiCentered(
-                                    context,
-                                    orbotInstallError,
-                                    Toast.LENGTH_SHORT
-                                )
-                            }
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.orbot_install_dialog_neutral))
-                    }
-                    TextButton(onClick = { showOrbotInstallDialog = false }) {
-                        Text(text = stringResource(R.string.lbl_dismiss))
-                    }
+            secondaryText = stringResource(R.string.orbot_install_dialog_neutral),
+            onSecondary = {
+                showOrbotInstallDialog = false
+                try {
+                    context.startActivity(
+                        Intent(
+                            Intent.ACTION_VIEW,
+                            orbotWebsiteLink.toUri()
+                        )
+                    )
+                } catch (_: ActivityNotFoundException) {
+                    Utilities.showToastUiCentered(
+                        context,
+                        orbotInstallError,
+                        Toast.LENGTH_SHORT
+                    )
                 }
-            }
+            },
+            tertiaryText = stringResource(R.string.lbl_dismiss),
+            onTertiary = { showOrbotInstallDialog = false }
         )
     }
 
@@ -775,40 +833,29 @@ fun ProxySettingsScreen(
     }
 
     if (showOrbotStopDialog) {
-        AlertDialog(
+        RethinkMultiActionDialog(
             onDismissRequest = { showOrbotStopDialog = false },
-            title = { Text(text = orbotStopTitle) },
+            title = orbotStopTitle,
             text = {
                 Text(
                     text = if (orbotStopHasDnsHint) orbotStopMessageCombo else orbotStopMessage
                 )
             },
-            confirmButton = {
-                TextButton(onClick = { showOrbotStopDialog = false }) {
-                    Text(text = stringResource(R.string.lbl_dismiss))
+            primaryText = stringResource(R.string.lbl_dismiss),
+            onPrimary = { showOrbotStopDialog = false },
+            secondaryText = if (orbotStopHasDnsHint && onNavigateToDns != null) stringResource(R.string.orbot_stop_dialog_neutral) else null,
+            onSecondary = if (orbotStopHasDnsHint && onNavigateToDns != null) {
+                {
+                    showOrbotStopDialog = false
+                    onNavigateToDns()
                 }
+            } else {
+                null
             },
-            dismissButton = {
-                Row {
-                    if (orbotStopHasDnsHint && onNavigateToDns != null) {
-                        TextButton(
-                            onClick = {
-                                showOrbotStopDialog = false
-                                onNavigateToDns()
-                            }
-                        ) {
-                            Text(text = stringResource(R.string.orbot_stop_dialog_neutral))
-                        }
-                    }
-                    TextButton(
-                        onClick = {
-                            showOrbotStopDialog = false
-                            orbotHelper.openOrbotApp()
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.orbot_stop_dialog_negative))
-                    }
-                }
+            tertiaryText = stringResource(R.string.orbot_stop_dialog_negative),
+            onTertiary = {
+                showOrbotStopDialog = false
+                orbotHelper.openOrbotApp()
             }
         )
     }
@@ -968,10 +1015,10 @@ private fun ProxyOverviewCard(
     Surface(
         shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = 1.dp,
+        tonalElevation = Dimensions.Elevation.low,
         border =
             androidx.compose.foundation.BorderStroke(
-                1.dp,
+                Dimensions.dividerThicknessBold,
                 MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)
             )
     ) {
@@ -1019,7 +1066,10 @@ private fun WireguardEntryCard(
                 .clickable(enabled = enabled, onClick = onClick)
     ) {
         Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(Dimensions.spacingLg),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -1028,7 +1078,7 @@ private fun WireguardEntryCard(
                     text = title,
                     style = MaterialTheme.typography.titleMedium
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
                 Text(
                     text = description,
                     style = MaterialTheme.typography.bodyMedium,
@@ -1054,7 +1104,10 @@ private fun ProxyCard(
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(Dimensions.spacingLg)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -1072,7 +1125,7 @@ private fun ProxyCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
 
             Text(
                 text = description,
@@ -1081,7 +1134,7 @@ private fun ProxyCard(
             )
 
             if (onConfigureClick != null && cardEnabled) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
                 TextButton(onClick = onConfigureClick) {
                     Text(text = stringResource(R.string.lbl_configure))
                 }
@@ -1108,18 +1161,18 @@ private fun OrbotModeDialog(
             add(AppConfig.ProxyType.NONE.name to R.string.orbot_none)
         }
 
-    AlertDialog(
+    RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = stringResource(R.string.orbot_title)) },
+        title = stringResource(R.string.orbot_title),
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)) {
                 options.forEach { (value, labelRes) ->
                     Row(
                         modifier =
                             Modifier
                                 .fillMaxWidth()
                                 .clickable { onSelectedMode(value) }
-                                .padding(vertical = 4.dp),
+                                .padding(vertical = Dimensions.spacingXs),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
@@ -1134,12 +1187,10 @@ private fun OrbotModeDialog(
                 }
             }
         },
-        confirmButton = {
-            TextButton(onClick = onConfirm) { Text(text = stringResource(R.string.lbl_save)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) { Text(text = stringResource(R.string.lbl_cancel)) }
-        }
+        confirmText = stringResource(R.string.lbl_save),
+        dismissText = stringResource(R.string.lbl_cancel),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss
     )
 }
 
@@ -1151,15 +1202,14 @@ private fun Socks5Dialog(
     onConfirm: () -> Unit
 ) {
     val context = LocalContext.current
-    var showApps by remember { mutableStateOf(false) }
 
-    AlertDialog(
+    RethinkConfirmDialog(
         onDismissRequest = {},
-        title = { Text(text = stringResource(R.string.settings_dns_proxy_dialog_header)) },
+        title = stringResource(R.string.settings_dns_proxy_dialog_header),
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
             ) {
                 OutlinedTextField(
                     value = state.host,
@@ -1196,26 +1246,13 @@ private fun Socks5Dialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                OutlinedButton(
-                    onClick = { showApps = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = state.selectedApp)
-                }
-                DropdownMenu(
-                    expanded = showApps,
-                    onDismissRequest = { showApps = false }
-                ) {
-                    state.appNames.forEach { appName ->
-                        DropdownMenuItem(
-                            text = { Text(text = appName) },
-                            onClick = {
-                                showApps = false
-                                onStateChange(state.copy(selectedApp = appName, error = null))
-                            }
-                        )
+                RethinkDropdownSelector(
+                    selectedText = state.selectedApp,
+                    options = state.appNames,
+                    onOptionSelected = { appName ->
+                        onStateChange(state.copy(selectedApp = appName, error = null))
                     }
-                }
+                )
 
                 Row(
                     modifier =
@@ -1236,7 +1273,7 @@ private fun Socks5Dialog(
                     )
                     Text(
                         text = stringResource(R.string.settings_udp_block),
-                        modifier = Modifier.padding(start = 8.dp)
+                        modifier = Modifier.padding(start = Dimensions.spacingSm)
                     )
                 }
 
@@ -1263,7 +1300,7 @@ private fun Socks5Dialog(
                     )
                     Text(
                         text = stringResource(R.string.settings_exclude_proxy_apps_heading),
-                        modifier = Modifier.padding(start = 8.dp)
+                        modifier = Modifier.padding(start = Dimensions.spacingSm)
                     )
                 }
 
@@ -1285,12 +1322,10 @@ private fun Socks5Dialog(
                 }
             }
         },
-        confirmButton = {
-            TextButton(onClick = onConfirm) { Text(text = stringResource(R.string.lbl_save)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onCancel) { Text(text = stringResource(R.string.lbl_cancel)) }
-        }
+        confirmText = stringResource(R.string.lbl_save),
+        dismissText = stringResource(R.string.lbl_cancel),
+        onConfirm = onConfirm,
+        onDismiss = onCancel
     )
 }
 
@@ -1302,15 +1337,14 @@ private fun HttpDialog(
     onConfirm: () -> Unit
 ) {
     val context = LocalContext.current
-    var showApps by remember { mutableStateOf(false) }
 
-    AlertDialog(
+    RethinkConfirmDialog(
         onDismissRequest = {},
-        title = { Text(text = stringResource(R.string.http_proxy_dialog_heading)) },
+        title = stringResource(R.string.http_proxy_dialog_heading),
         text = {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
             ) {
                 Text(
                     text = stringResource(R.string.http_proxy_dialog_desc),
@@ -1330,26 +1364,13 @@ private fun HttpDialog(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                OutlinedButton(
-                    onClick = { showApps = true },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(text = state.selectedApp)
-                }
-                DropdownMenu(
-                    expanded = showApps,
-                    onDismissRequest = { showApps = false }
-                ) {
-                    state.appNames.forEach { appName ->
-                        DropdownMenuItem(
-                            text = { Text(text = appName) },
-                            onClick = {
-                                showApps = false
-                                onStateChange(state.copy(selectedApp = appName, error = null))
-                            }
-                        )
+                RethinkDropdownSelector(
+                    selectedText = state.selectedApp,
+                    options = state.appNames,
+                    onOptionSelected = { appName ->
+                        onStateChange(state.copy(selectedApp = appName, error = null))
                     }
-                }
+                )
 
                 Row(
                     modifier =
@@ -1374,7 +1395,7 @@ private fun HttpDialog(
                     )
                     Text(
                         text = stringResource(R.string.settings_exclude_proxy_apps_heading),
-                        modifier = Modifier.padding(start = 8.dp)
+                        modifier = Modifier.padding(start = Dimensions.spacingSm)
                     )
                 }
 
@@ -1396,12 +1417,10 @@ private fun HttpDialog(
                 }
             }
         },
-        confirmButton = {
-            TextButton(onClick = onConfirm) { Text(text = stringResource(R.string.lbl_save)) }
-        },
-        dismissButton = {
-            TextButton(onClick = onCancel) { Text(text = stringResource(R.string.lbl_cancel)) }
-        }
+        confirmText = stringResource(R.string.lbl_save),
+        dismissText = stringResource(R.string.lbl_cancel),
+        onConfirm = onConfirm,
+        onDismiss = onCancel
     )
 }
 
@@ -1453,13 +1472,14 @@ private suspend fun formatSocks5Description(
     context: android.content.Context,
     endpoint: ProxyEndpoint?
 ): String {
-    if (endpoint?.proxyIP.isNullOrBlank()) {
+    val endpointValue = endpoint ?: return context.resources.getString(R.string.settings_socks_forwarding_default_desc)
+    if (endpointValue.proxyIP.isNullOrBlank()) {
         return context.resources.getString(R.string.settings_socks_forwarding_default_desc)
     }
 
-    val ip = endpoint?.proxyIP ?: return context.resources.getString(R.string.settings_socks_forwarding_default_desc)
-    val port = (endpoint?.proxyPort ?: 0).toString()
-    val packageName = endpoint.proxyAppName
+    val ip = endpointValue.proxyIP ?: return context.resources.getString(R.string.settings_socks_forwarding_default_desc)
+    val port = endpointValue.proxyPort.toString()
+    val packageName = endpointValue.proxyAppName
     if (packageName.isNullOrBlank()) {
         return context.resources.getString(R.string.settings_socks_forwarding_desc_no_app, ip, port)
     }
@@ -1631,7 +1651,7 @@ private suspend fun buildSocks5DialogState(
         if (endpoint?.proxyAppName.isNullOrBlank()) {
             defaultApp
         } else {
-            FirewallManager.getAppInfoByPackage(endpoint?.proxyAppName)?.appName ?: defaultApp
+            FirewallManager.getAppInfoByPackage(endpoint.proxyAppName)?.appName ?: defaultApp
         }
 
     val appNames =
@@ -1669,7 +1689,7 @@ private suspend fun buildHttpDialogState(
         if (endpoint?.proxyAppName.isNullOrBlank()) {
             defaultApp
         } else {
-            FirewallManager.getAppInfoByPackage(endpoint?.proxyAppName)?.appName ?: defaultApp
+            FirewallManager.getAppInfoByPackage(endpoint.proxyAppName)?.appName ?: defaultApp
         }
     val appNames =
         buildList {

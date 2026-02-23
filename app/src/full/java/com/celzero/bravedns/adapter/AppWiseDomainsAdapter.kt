@@ -18,7 +18,6 @@ package com.celzero.bravedns.adapter
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.material3.AlertDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.layout.Arrangement
@@ -30,7 +29,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
@@ -41,6 +39,7 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
@@ -101,38 +100,26 @@ fun CloseConnsDialog(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    AlertDialog(
+    RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = context.resources.getString(R.string.close_conns_dialog_title)) },
-        text = {
-            Text(
-                text = context.resources.getString(R.string.close_conns_dialog_desc, conn.ipAddress)
+        title = context.resources.getString(R.string.close_conns_dialog_title),
+        message = context.resources.getString(R.string.close_conns_dialog_desc, conn.ipAddress),
+        confirmText = context.resources.getString(R.string.lbl_proceed),
+        dismissText = context.resources.getString(R.string.lbl_cancel),
+        onConfirm = {
+            VpnController.closeConnectionsByUidDomain(
+                conn.uid,
+                conn.ipAddress,
+                "app-wise-domains-manual-close"
             )
+            showToastUiCentered(
+                context,
+                context.resources.getString(R.string.config_add_success_toast),
+                Toast.LENGTH_LONG
+            )
+            onConfirm()
         },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    VpnController.closeConnectionsByUidDomain(
-                        conn.uid,
-                        conn.ipAddress,
-                        "app-wise-domains-manual-close"
-                    )
-                    showToastUiCentered(
-                        context,
-                        context.resources.getString(R.string.config_add_success_toast),
-                        Toast.LENGTH_LONG
-                    )
-                    onConfirm()
-                }
-            ) {
-                Text(text = context.resources.getString(R.string.lbl_proceed))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(text = context.resources.getString(R.string.lbl_cancel))
-            }
-        }
+        onDismiss = onDismiss
     )
 }
 

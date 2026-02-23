@@ -106,7 +106,7 @@
     <string name="app_mode_firewall">防火牆</string>
     <string name="app_mode_dns_firewall">DNS 與防火牆（預設）</string>
     <string name="app_mode_wireguard">VPN</string>
-    <string name="settings_vpn_heading">vpn</string>
+    <string name="settings_vpn_heading">VPN</string>
     <string name="info_dialog_copy_toast_msg">已複製 IP 位址。</string>
     <string name="info_dialog_url_copy_toast_msg">已複製 URL</string>
     <string name="info_dialog_rethink_toast_msg">已作為 RDNS+ DNS-over-HTTPS URL 複製</string>

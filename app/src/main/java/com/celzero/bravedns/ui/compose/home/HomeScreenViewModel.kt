@@ -29,10 +29,9 @@ import android.content.Context
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.DnsLogTracker
 import com.celzero.bravedns.service.ProxyManager
+import com.celzero.bravedns.service.ProxyStateManager
 import com.celzero.bravedns.service.WireguardManager
-import com.celzero.bravedns.util.UIUtils
 import com.celzero.firestack.backend.Backend
-import java.util.concurrent.TimeUnit
 
 class HomeScreenViewModel(
     private val persistentState: PersistentState,
@@ -158,83 +157,12 @@ class HomeScreenViewModel(
 
         val proxyType = AppConfig.ProxyType.of(appConfig.getProxyType())
         if (proxyType.isProxyTypeWireguard()) {
-            val proxies = WireguardManager.getActiveConfigs()
-            var active = 0
-            var failing = 0
-            var idle = 0
-            val now = System.currentTimeMillis()
-
-            if (proxies.isEmpty()) {
-                _uiState.update { it.copy(proxyStatus = "Active") }
-                return
-            }
-
-            proxies.forEach {
-                val proxyId = "${ProxyManager.ID_WG_BASE}${it.getId()}"
-                val stats = VpnController.getProxyStats(proxyId)
-                val statusPair = VpnController.getProxyStatusById(proxyId)
-                val status = UIUtils.ProxyStatus.entries.find { s -> s.id == statusPair.first }
-
-                if (status == UIUtils.ProxyStatus.TPU) {
-                    idle++
-                    return@forEach
-                }
-
-                if (stats == null) {
-                    failing++
-                    return@forEach
-                }
-
-                val lastOk = stats.lastOK
-                val since = stats.since
-
-                if (now - since > WireguardManager.WG_UPTIME_THRESHOLD && lastOk == 0L) {
-                    failing++
-                    return@forEach
-                }
-
-                if (status != null) {
-                    when (status) {
-                        UIUtils.ProxyStatus.TOK -> {
-                            if (lastOk > 0L && (now - lastOk < WireguardManager.WG_HANDSHAKE_TIMEOUT)) {
-                                active++
-                            } else if (lastOk > 0L) {
-                                idle++
-                            } else if (now - since < WireguardManager.WG_UPTIME_THRESHOLD) {
-                                active++
-                            } else {
-                                failing++
-                            }
-                        }
-                        UIUtils.ProxyStatus.TUP -> active++
-                        UIUtils.ProxyStatus.TZZ -> {
-                            if (lastOk > 0L || now - since < WireguardManager.WG_UPTIME_THRESHOLD) {
-                                idle++
-                            } else {
-                                failing++
-                            }
-                        }
-                        else -> failing++
-                    }
-                } else {
-                    failing++
-                }
-            }
-
-            val text = buildProxyStatusText(active, failing, idle)
-            _uiState.update { it.copy(proxyStatus = text) }
+            val status = ProxyStateManager.calculateWireguardProxyStatus()
+            _uiState.update { it.copy(proxyStatus = status.statusText) }
         } else {
             val status = if (appConfig.isProxyEnabled()) "Active" else "Inactive"
             _uiState.update { it.copy(proxyStatus = status) }
         }
-    }
-
-    private fun buildProxyStatusText(active: Int, failing: Int, idle: Int): String {
-        val parts = mutableListOf<String>()
-        if (active > 0) parts.add("$active Active")
-        if (failing > 0) parts.add("$failing Failing")
-        if (idle > 0) parts.add("$idle Idle")
-        return if (parts.isEmpty()) "Inactive" else parts.joinToString("\n")
     }
 
     private fun observeAppStates() {

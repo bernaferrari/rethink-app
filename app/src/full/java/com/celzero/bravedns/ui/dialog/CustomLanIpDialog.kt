@@ -19,38 +19,35 @@ package com.celzero.bravedns.ui.dialog
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.bottomsheet.RuleSheetModeToggle
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
+import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import inet.ipaddr.IPAddressString
 import io.github.aakira.napier.Napier
 
@@ -281,154 +278,140 @@ fun CustomLanIpSheet(
         }
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    RethinkModalBottomSheet(
+        onDismissRequest = onDismiss,
+        contentPadding = PaddingValues(0.dp),
+        verticalSpacing = 0.dp,
+        includeBottomSpacer = false
+    ) {
         val manualEnabled = currentMode
-        val selectedBg = MaterialTheme.colorScheme.tertiary
-        val unselectedBg = MaterialTheme.colorScheme.surface
-        val selectedText = MaterialTheme.colorScheme.onSurface
-        val unselectedText = MaterialTheme.colorScheme.onSurface
 
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp).verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(
+                        horizontal = Dimensions.screenPaddingHorizontal,
+                        vertical = Dimensions.spacingLg
+                    )
+                    .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
         ) {
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                ToggleButton(
-                    text = context.resources.getString(R.string.settings_ip_text_ipv46),
-                    selected = !currentMode,
-                    selectedBg = selectedBg,
-                    unselectedBg = unselectedBg,
-                    selectedText = selectedText,
-                    unselectedText = unselectedText,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    currentMode = false
-                    loadDefaultAutoValues()
-                    hideError()
-                }
-                ToggleButton(
-                    text = context.resources.getString(R.string.lbl_manual),
-                    selected = currentMode,
-                    selectedBg = selectedBg,
-                    unselectedBg = unselectedBg,
-                    selectedText = selectedText,
-                    unselectedText = unselectedText,
-                    modifier = Modifier.weight(1f)
-                ) {
-                    currentMode = true
-                    loadManualValues()
-                    hideError()
-                }
+            RethinkBottomSheetCard {
+                RuleSheetModeToggle(
+                    autoLabel = context.resources.getString(R.string.settings_ip_text_ipv46),
+                    manualLabel = context.resources.getString(R.string.lbl_manual),
+                    isAutoSelected = !currentMode,
+                    onAutoClick = {
+                        currentMode = false
+                        loadDefaultAutoValues()
+                        hideError()
+                    },
+                    onManualClick = {
+                        currentMode = true
+                        loadManualValues()
+                        hideError()
+                    }
+                )
+                Text(
+                    text =
+                        if (currentMode) {
+                            context.resources.getString(R.string.custom_lan_ip_manual_desc)
+                        } else {
+                            context.resources.getString(R.string.custom_lan_ip_auto_desc)
+                        },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
-            Text(
-                text =
-                    if (currentMode) {
-                        context.resources.getString(R.string.custom_lan_ip_manual_desc)
+            RethinkBottomSheetCard {
+                SectionTitle(text = context.resources.getString(R.string.custom_lan_ip_gateway))
+                IpRow(
+                    ipValue = gatewayIpv4,
+                    prefixValue = gatewayIpv4Prefix,
+                    ipHint = context.resources.getString(R.string.settings_ip_text_ipv4),
+                    prefixHint = context.resources.getString(R.string.lbl_prefix),
+                    enabled = manualEnabled,
+                    onIpChange = { gatewayIpv4 = it },
+                    onPrefixChange = { gatewayIpv4Prefix = it }
+                )
+                IpRow(
+                    ipValue = gatewayIpv6,
+                    prefixValue = gatewayIpv6Prefix,
+                    ipHint = context.resources.getString(R.string.settings_ip_text_ipv6),
+                    prefixHint = context.resources.getString(R.string.lbl_prefix),
+                    enabled = manualEnabled,
+                    onIpChange = { gatewayIpv6 = it },
+                    onPrefixChange = { gatewayIpv6Prefix = it }
+                )
+
+                SectionTitle(text = context.resources.getString(R.string.custom_lan_ip_router))
+                IpRow(
+                    ipValue = routerIpv4,
+                    prefixValue = routerIpv4Prefix,
+                    ipHint = context.resources.getString(R.string.settings_ip_text_ipv4),
+                    prefixHint = context.resources.getString(R.string.lbl_prefix),
+                    enabled = manualEnabled,
+                    onIpChange = { routerIpv4 = it },
+                    onPrefixChange = { routerIpv4Prefix = it }
+                )
+                IpRow(
+                    ipValue = routerIpv6,
+                    prefixValue = routerIpv6Prefix,
+                    ipHint = context.resources.getString(R.string.settings_ip_text_ipv6),
+                    prefixHint = context.resources.getString(R.string.lbl_prefix),
+                    enabled = manualEnabled,
+                    onIpChange = { routerIpv6 = it },
+                    onPrefixChange = { routerIpv6Prefix = it }
+                )
+
+                SectionTitle(text = context.resources.getString(R.string.dns_mode_info_title))
+                IpRow(
+                    ipValue = dnsIpv4,
+                    prefixValue = dnsIpv4Prefix,
+                    ipHint = context.resources.getString(R.string.settings_ip_text_ipv4),
+                    prefixHint = context.resources.getString(R.string.lbl_prefix),
+                    enabled = manualEnabled,
+                    onIpChange = { dnsIpv4 = it },
+                    onPrefixChange = { dnsIpv4Prefix = it }
+                )
+                IpRow(
+                    ipValue = dnsIpv6,
+                    prefixValue = dnsIpv6Prefix,
+                    ipHint = context.resources.getString(R.string.settings_ip_text_ipv6),
+                    prefixHint = context.resources.getString(R.string.lbl_prefix),
+                    enabled = manualEnabled,
+                    onIpChange = { dnsIpv6 = it },
+                    onPrefixChange = { dnsIpv6Prefix = it }
+                )
+            }
+
+            RethinkBottomSheetActionRow(
+                primaryText = context.resources.getString(R.string.lbl_save),
+                onPrimaryClick = {
+                    if (!currentMode) {
+                        saveAutoMode()
                     } else {
-                        context.resources.getString(R.string.custom_lan_ip_auto_desc)
-                    },
-                style = MaterialTheme.typography.bodySmall
+                        saveManualMode()
+                    }
+                },
+                secondaryText = context.resources.getString(R.string.lbl_reset),
+                onSecondaryClick = {
+                    if (!currentMode) {
+                        Toast.makeText(context, R.string.custom_lan_ip_saved_auto, Toast.LENGTH_SHORT).show()
+                    } else {
+                        resetManualFields()
+                    }
+                },
+                secondaryEnabled = currentMode
             )
-
-            SectionTitle(text = context.resources.getString(R.string.custom_lan_ip_gateway))
-            IpRow(
-                ipValue = gatewayIpv4,
-                prefixValue = gatewayIpv4Prefix,
-                ipHint = context.resources.getString(R.string.settings_ip_text_ipv4),
-                prefixHint = context.resources.getString(R.string.lbl_prefix),
-                enabled = manualEnabled,
-                onIpChange = { gatewayIpv4 = it },
-                onPrefixChange = { gatewayIpv4Prefix = it }
-            )
-            IpRow(
-                ipValue = gatewayIpv6,
-                prefixValue = gatewayIpv6Prefix,
-                ipHint = context.resources.getString(R.string.settings_ip_text_ipv6),
-                prefixHint = context.resources.getString(R.string.lbl_prefix),
-                enabled = manualEnabled,
-                onIpChange = { gatewayIpv6 = it },
-                onPrefixChange = { gatewayIpv6Prefix = it }
-            )
-
-            SectionTitle(text = context.resources.getString(R.string.custom_lan_ip_router))
-            IpRow(
-                ipValue = routerIpv4,
-                prefixValue = routerIpv4Prefix,
-                ipHint = context.resources.getString(R.string.settings_ip_text_ipv4),
-                prefixHint = context.resources.getString(R.string.lbl_prefix),
-                enabled = manualEnabled,
-                onIpChange = { routerIpv4 = it },
-                onPrefixChange = { routerIpv4Prefix = it }
-            )
-            IpRow(
-                ipValue = routerIpv6,
-                prefixValue = routerIpv6Prefix,
-                ipHint = context.resources.getString(R.string.settings_ip_text_ipv6),
-                prefixHint = context.resources.getString(R.string.lbl_prefix),
-                enabled = manualEnabled,
-                onIpChange = { routerIpv6 = it },
-                onPrefixChange = { routerIpv6Prefix = it }
-            )
-
-            SectionTitle(text = context.resources.getString(R.string.dns_mode_info_title))
-            IpRow(
-                ipValue = dnsIpv4,
-                prefixValue = dnsIpv4Prefix,
-                ipHint = context.resources.getString(R.string.settings_ip_text_ipv4),
-                prefixHint = context.resources.getString(R.string.lbl_prefix),
-                enabled = manualEnabled,
-                onIpChange = { dnsIpv4 = it },
-                onPrefixChange = { dnsIpv4Prefix = it }
-            )
-            IpRow(
-                ipValue = dnsIpv6,
-                prefixValue = dnsIpv6Prefix,
-                ipHint = context.resources.getString(R.string.settings_ip_text_ipv6),
-                prefixHint = context.resources.getString(R.string.lbl_prefix),
-                enabled = manualEnabled,
-                onIpChange = { dnsIpv6 = it },
-                onPrefixChange = { dnsIpv6Prefix = it }
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                TextButton(
-                    onClick = {
-                        if (!currentMode) {
-                            Toast.makeText(context, R.string.custom_lan_ip_saved_auto, Toast.LENGTH_SHORT).show()
-                        } else {
-                            resetManualFields()
-                        }
-                    },
-                    modifier = Modifier.weight(1f),
-                    enabled = currentMode
-                ) {
-                    Text(text = context.resources.getString(R.string.lbl_reset))
-                }
-                Button(
-                    onClick = {
-                        if (!currentMode) {
-                            saveAutoMode()
-                        } else {
-                            saveManualMode()
-                        }
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = context.resources.getString(R.string.lbl_save))
-                }
-            }
 
             if (errorMessage.isNotBlank()) {
                 Text(
                     text = errorMessage,
                     color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.padding(horizontal = Dimensions.spacingXs)
                 )
             }
         }
@@ -436,36 +419,13 @@ fun CustomLanIpSheet(
 }
 
 @Composable
-private fun ToggleButton(
-    text: String,
-    selected: Boolean,
-    selectedBg: Color,
-    unselectedBg: Color,
-    selectedText: Color,
-    unselectedText: Color,
-    modifier: Modifier,
-    onClick: () -> Unit
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier,
-        colors =
-            ButtonDefaults.buttonColors(
-                containerColor = if (selected) selectedBg else unselectedBg,
-                contentColor = if (selected) selectedText else unselectedText
-            )
-    ) {
-        Text(text = text, fontWeight = FontWeight.SemiBold)
-    }
-}
-
-@Composable
 private fun SectionTitle(text: String) {
     Text(
         text = text,
-        style = MaterialTheme.typography.bodyMedium,
+        style = MaterialTheme.typography.titleSmall,
         fontWeight = FontWeight.Bold,
-        modifier = Modifier.padding(top = 8.dp)
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = Dimensions.spacingXs)
     )
 }
 
@@ -479,7 +439,10 @@ private fun IpRow(
     onIpChange: (String) -> Unit,
     onPrefixChange: (String) -> Unit
 ) {
-    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+    ) {
         OutlinedTextField(
             value = ipValue,
             onValueChange = onIpChange,

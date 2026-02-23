@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -37,25 +38,19 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -66,7 +61,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -101,6 +95,12 @@ import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.RethinkBlocklistManager.getStamp
 import com.celzero.bravedns.service.RethinkBlocklistManager.getTagsFromStamp
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
+import com.celzero.bravedns.ui.compose.theme.RethinkMultiActionDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.DEAD_PACK
@@ -118,6 +118,7 @@ import com.celzero.bravedns.viewmodel.RethinkEndpointViewModel
 import com.celzero.bravedns.viewmodel.RethinkLocalFileTagViewModel
 import com.celzero.bravedns.viewmodel.RethinkRemoteFileTagViewModel
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.Dispatchers
@@ -430,64 +431,41 @@ fun ConfigureRethinkBasicScreen(
     // Dialogs
     if (showLockdownDialog && lockdownDialogType != null) {
         val type = lockdownDialogType ?: return
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = { showLockdownDialog = false },
-            title = { Text(text = stringResource(R.string.lockdown_download_enable_inapp)) },
-            text = { Text(text = stringResource(R.string.lockdown_download_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLockdownDialog = false
-                        persistentState.useCustomDownloadManager = true
-                        downloadBlocklist(type)
-                    }
-                ) {
-                    Text(text = stringResource(R.string.lockdown_download_enable_inapp))
-                }
+            title = stringResource(R.string.lockdown_download_enable_inapp),
+            message = stringResource(R.string.lockdown_download_message),
+            confirmText = stringResource(R.string.lockdown_download_enable_inapp),
+            dismissText = stringResource(R.string.lbl_cancel),
+            onConfirm = {
+                showLockdownDialog = false
+                persistentState.useCustomDownloadManager = true
+                downloadBlocklist(type)
             },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showLockdownDialog = false
-                        proceedWithBlocklistDownload(type)
-                    }
-                ) {
-                    Text(text = stringResource(R.string.lbl_cancel))
-                }
+            onDismiss = {
+                showLockdownDialog = false
+                proceedWithBlocklistDownload(type)
             }
         )
     }
 
     if (showApplyChangesDialog) {
-        AlertDialog(
+        RethinkMultiActionDialog(
             onDismissRequest = { showApplyChangesDialog = false },
-            title = { Text(text = stringResource(R.string.rt_dialog_title)) },
-            text = { Text(text = stringResource(R.string.rt_dialog_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showApplyChangesDialog = false
-                        setStamp(modifiedStamp)
-                        onBackClick?.invoke()
-                    }
-                ) {
-                    Text(text = stringResource(R.string.lbl_apply))
-                }
+            title = stringResource(R.string.rt_dialog_title),
+            message = stringResource(R.string.rt_dialog_message),
+            primaryText = stringResource(R.string.lbl_apply),
+            onPrimary = {
+                showApplyChangesDialog = false
+                setStamp(modifiedStamp)
+                onBackClick?.invoke()
             },
-            dismissButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = { showApplyChangesDialog = false }) {
-                        Text(text = stringResource(R.string.rt_dialog_neutral))
-                    }
-                    TextButton(
-                        onClick = {
-                            showApplyChangesDialog = false
-                            onBackClick?.invoke()
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.notif_dialog_pause_dialog_negative))
-                    }
-                }
+            secondaryText = stringResource(R.string.rt_dialog_neutral),
+            onSecondary = { showApplyChangesDialog = false },
+            tertiaryText = stringResource(R.string.notif_dialog_pause_dialog_negative),
+            onTertiary = {
+                showApplyChangesDialog = false
+                onBackClick?.invoke()
             }
         )
     }
@@ -497,14 +475,18 @@ fun ConfigureRethinkBasicScreen(
         ConfigureRethinkScreenType.LOCAL -> stringResource(R.string.dc_local_block_heading)
         ConfigureRethinkScreenType.REMOTE -> stringResource(R.string.dc_rethink_dns_radio)
     }
-
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val subtitle = when (screenType) {
+        ConfigureRethinkScreenType.LOCAL,
+        ConfigureRethinkScreenType.REMOTE -> stringResource(R.string.dns_desc)
+        else -> null
+    }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             RethinkLargeTopBar(
                 title = title,
+                subtitle = subtitle,
                 onBackClick = if (onBackClick == null) null else {
                     {
                         if (screenType != ConfigureRethinkScreenType.DB_LIST && isStampChanged()) {
@@ -513,8 +495,7 @@ fun ConfigureRethinkBasicScreen(
                             onBackClick()
                         }
                     }
-                },
-                scrollBehavior = scrollBehavior
+                }
             )
         }
     ) { paddingValues ->
@@ -522,47 +503,8 @@ fun ConfigureRethinkBasicScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
         ) {
-            Surface(
-                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal),
-                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
-                tonalElevation = 1.dp
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(Dimensions.spacingLg),
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Surface(
-                        shape = RoundedCornerShape(10.dp),
-                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_dns_welcome),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
-                            modifier = Modifier.padding(8.dp).size(20.dp)
-                        )
-                    }
-                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                        Text(
-                            text = title,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = stringResource(R.string.dns_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
             when (screenType) {
                 ConfigureRethinkScreenType.DB_LIST -> {
                     RethinkListContent(
@@ -632,7 +574,6 @@ fun ConfigureRethinkBasicScreen(
 
     if (showPlusFilterSheet) {
         RethinkPlusFilterSheet(
-            context = context,
             fileTags = plusFilterTags,
             filters = filters,
             onDismiss = { showPlusFilterSheet = false }
@@ -708,21 +649,34 @@ private fun RethinkListContent(
             .padding(horizontal = Dimensions.screenPaddingHorizontal),
         verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
     ) {
+        val actionText =
+            when {
+                updateAvailable -> stringResource(id = R.string.rt_chip_update_available)
+                checkUpdateVisible -> stringResource(id = R.string.rt_chip_check_update)
+                redownloadVisible -> stringResource(id = R.string.rt_re_download)
+                else -> null
+            }
+        val actionInProgress =
+            when {
+                updateAvailable || redownloadVisible -> updateInProgress
+                checkUpdateVisible -> checkUpdateInProgress
+                else -> false
+            }
+
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.26f)),
-            tonalElevation = 1.dp
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
+            tonalElevation = 0.dp
         ) {
-            Row(
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 14.dp, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                if (persistentState.remoteBlocklistTimestamp != Constants.INIT_TIME_MS) {
+                if (persistentState.remoteBlocklistTimestamp != Constants.INIT_TIME_MS || actionText != null) {
                     Text(
                         text = context.resources.getString(
                             R.string.settings_local_blocklist_version,
@@ -731,93 +685,61 @@ private fun RethinkListContent(
                                 Constants.TIME_FORMAT_2
                             )
                         ),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.weight(1f)
+                        style = MaterialTheme.typography.bodyMedium
                     )
-                } else {
-                    Spacer(modifier = Modifier.weight(1f))
                 }
 
-                if (updateAvailable) {
-                    Button(
+                if (actionText != null) {
+                    FilledTonalButton(
                         onClick = {
-                            onUpdateInProgressChanged(true)
-                            onDownload(persistentState.remoteBlocklistTimestamp, false)
+                            when {
+                                updateAvailable -> {
+                                    onUpdateInProgressChanged(true)
+                                    onDownload(persistentState.remoteBlocklistTimestamp, false)
+                                }
+                                checkUpdateVisible -> {
+                                    onCheckUpdateInProgressChanged(true)
+                                    onCheckBlocklistUpdate()
+                                }
+                                redownloadVisible -> {
+                                    onUpdateInProgressChanged(true)
+                                    onDownload(persistentState.remoteBlocklistTimestamp, true)
+                                }
+                            }
                         },
-                        enabled = !updateInProgress
+                        enabled = !actionInProgress
                     ) {
-                        if (updateInProgress) {
+                        if (actionInProgress) {
                             CircularProgressIndicator(
                                 modifier = Modifier.height(16.dp).width(16.dp),
                                 strokeWidth = 2.dp
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                         }
-                        Text(text = stringResource(id = R.string.rt_chip_update_available))
-                    }
-                } else if (checkUpdateVisible) {
-                    Button(
-                        onClick = {
-                            onCheckUpdateInProgressChanged(true)
-                            onCheckBlocklistUpdate()
-                        },
-                        enabled = !checkUpdateInProgress
-                    ) {
-                        if (checkUpdateInProgress) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.height(16.dp).width(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                        }
-                        Text(text = stringResource(id = R.string.rt_chip_check_update))
-                    }
-                } else if (redownloadVisible) {
-                    Button(
-                        onClick = {
-                            onUpdateInProgressChanged(true)
-                            onDownload(persistentState.remoteBlocklistTimestamp, true)
-                        },
-                        enabled = !updateInProgress
-                    ) {
-                        if (updateInProgress) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.height(16.dp).width(16.dp),
-                                strokeWidth = 2.dp
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                        }
-                        Text(text = stringResource(id = R.string.rt_re_download))
+                        Text(text = actionText)
                     }
                 }
             }
         }
 
-        SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-            SegmentedButton(
-                selected = !isMax,
-                onClick = {
-                    scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToSky() }
-                    onMaxChanged(false)
-                },
-                shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                label = { Text(text = stringResource(id = R.string.radio_sky_btn)) }
-            )
-            SegmentedButton(
-                selected = isMax,
-                onClick = {
-                    scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToMax() }
-                    onMaxChanged(true)
-                },
-                shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
-                label = { Text(text = stringResource(id = R.string.radio_max_btn)) }
-            )
-        }
+        RethinkTwoOptionSegmentedRow(
+            leftLabel = stringResource(id = R.string.radio_sky_btn),
+            rightLabel = stringResource(id = R.string.radio_max_btn),
+            leftSelected = !isMax,
+            onLeftClick = {
+                scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToSky() }
+                onMaxChanged(false)
+            },
+            onRightClick = {
+                scope.launch(Dispatchers.IO) { appConfig.switchRethinkDnsToMax() }
+                onMaxChanged(true)
+            }
+        )
 
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(18.dp),
-            color = MaterialTheme.colorScheme.secondaryContainer
+            shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
+            color = MaterialTheme.colorScheme.surfaceContainerLow
         ) {
             Text(
                 text = if (isMax) {
@@ -826,15 +748,22 @@ private fun RethinkListContent(
                     stringResource(id = R.string.rethink_sky_desc)
                 },
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)
             )
         }
 
+        Text(
+            text = stringResource(R.string.dc_rethink_dns_radio),
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurface,
+            modifier = Modifier.padding(start = 2.dp)
+        )
+
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
             contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = Dimensions.spacing2xl),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             items(count = pagingItems.itemCount) { index ->
                 val item = pagingItems[index] ?: return@items
@@ -1042,40 +971,55 @@ private fun RethinkBlocklistContent(
     }
 
     Column(
-        modifier = modifier.fillMaxSize().padding(12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        modifier = modifier
+            .fillMaxSize()
+            .padding(horizontal = Dimensions.screenPaddingHorizontal),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
     ) {
         if (showDownload) {
-            Text(text = stringResource(id = R.string.rt_download_desc))
-            if (showRemoteProgress || isDownloading) {
-                CircularProgressIndicator()
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(
-                    onClick = onDownloadBlocklist,
-                    enabled = !isDownloading
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(text = stringResource(id = R.string.rt_download))
-                }
-                TextButton(onClick = onCancelDownload) {
-                    Text(text = stringResource(id = R.string.lbl_cancel))
+                    Text(
+                        text = stringResource(id = R.string.rt_download_desc),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    if (showRemoteProgress || isDownloading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp),
+                            strokeWidth = 2.dp
+                        )
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                        FilledTonalButton(
+                            onClick = onDownloadBlocklist,
+                            enabled = !isDownloading
+                        ) {
+                            Text(text = stringResource(id = R.string.rt_download))
+                        }
+                        TextButton(onClick = onCancelDownload) {
+                            Text(text = stringResource(id = R.string.lbl_cancel))
+                        }
+                    }
                 }
             }
         }
 
         if (showConfigure) {
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                FilterChip(
-                    selected = activeView == RethinkBlocklistState.BlocklistView.PACKS,
-                    onClick = { onActiveViewChanged(RethinkBlocklistState.BlocklistView.PACKS) },
-                    label = { Text(text = stringResource(id = R.string.rt_list_simple_btn_txt)) }
-                )
-                FilterChip(
-                    selected = activeView == RethinkBlocklistState.BlocklistView.ADVANCED,
-                    onClick = { onActiveViewChanged(RethinkBlocklistState.BlocklistView.ADVANCED) },
-                    label = { Text(text = stringResource(id = R.string.lbl_advanced)) }
-                )
-            }
+            RethinkTwoOptionSegmentedRow(
+                leftLabel = stringResource(id = R.string.rt_list_simple_btn_txt),
+                rightLabel = stringResource(id = R.string.lbl_advanced),
+                leftSelected = activeView == RethinkBlocklistState.BlocklistView.PACKS,
+                onLeftClick = { onActiveViewChanged(RethinkBlocklistState.BlocklistView.PACKS) },
+                onRightClick = { onActiveViewChanged(RethinkBlocklistState.BlocklistView.ADVANCED) }
+            )
 
             if (activeView == RethinkBlocklistState.BlocklistView.ADVANCED) {
                 OutlinedTextField(
@@ -1085,20 +1029,25 @@ private fun RethinkBlocklistContent(
                             addQueryToFilters(query)
                         }
                     },
-                    label = { Text(text = stringResource(id = R.string.search_rethinkplus_file_tag)) },
+                    label = { Text(text = stringResource(id = R.string.lbl_search)) },
                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    FilterChip(
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RethinkFilterChip(
+                        label = stringResource(id = R.string.lbl_all),
                         selected = filterState?.filterSelected == RethinkBlocklistState.BlocklistSelectionFilter.ALL,
-                        onClick = { applyFilter(RethinkBlocklistState.BlocklistSelectionFilter.ALL.id) },
-                        label = { Text(text = stringResource(id = R.string.lbl_all)) }
+                        onClick = { applyFilter(RethinkBlocklistState.BlocklistSelectionFilter.ALL.id) }
                     )
-                    FilterChip(
+                    RethinkFilterChip(
+                        label = stringResource(id = R.string.rt_filter_parent_selected),
                         selected = filterState?.filterSelected == RethinkBlocklistState.BlocklistSelectionFilter.SELECTED,
-                        onClick = { applyFilter(RethinkBlocklistState.BlocklistSelectionFilter.SELECTED.id) },
-                        label = { Text(text = stringResource(id = R.string.rt_filter_parent_selected)) }
+                        onClick = { applyFilter(RethinkBlocklistState.BlocklistSelectionFilter.SELECTED.id) }
                     )
                     Spacer(modifier = Modifier.weight(1f))
                     IconButton(onClick = { openFilterBottomSheet() }) {
@@ -1110,14 +1059,16 @@ private fun RethinkBlocklistContent(
                 }
                 Text(
                     text = filterLabelText.ifEmpty { stringResource(id = R.string.rt_filter_hint) },
-                    style = MaterialTheme.typography.bodySmall
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 if (blocklistType.isLocal()) {
                     val advancedItems = localFileTagViewModel.localFiletags.asFlow().collectAsLazyPagingItems()
                     LazyColumn(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 6.dp)
                     ) {
                         items(count = advancedItems.itemCount) { index ->
                             val item = advancedItems[index] ?: return@items
@@ -1135,7 +1086,8 @@ private fun RethinkBlocklistContent(
                     val advancedItems = remoteFileTagViewModel.remoteFileTags.asFlow().collectAsLazyPagingItems()
                     LazyColumn(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 6.dp)
                     ) {
                         items(count = advancedItems.itemCount) { index ->
                             val item = advancedItems[index] ?: return@items
@@ -1155,7 +1107,8 @@ private fun RethinkBlocklistContent(
                     val simpleItems = localBlocklistPacksMapViewModel.simpleTags.asFlow().collectAsLazyPagingItems()
                     LazyColumn(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 6.dp)
                     ) {
                         items(count = simpleItems.itemCount) { index ->
                             val item = simpleItems[index] ?: return@items
@@ -1175,7 +1128,8 @@ private fun RethinkBlocklistContent(
                     val simpleItems = remoteBlocklistPacksMapViewModel.simpleTags.asFlow().collectAsLazyPagingItems()
                     LazyColumn(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 6.dp)
                     ) {
                         items(count = simpleItems.itemCount) { index ->
                             val item = simpleItems[index] ?: return@items
@@ -1194,22 +1148,12 @@ private fun RethinkBlocklistContent(
                 }
             }
 
-            Spacer(modifier = Modifier.height(12.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.surface,
-                        contentColor = MaterialTheme.colorScheme.onSurface
-                    ),
-                    onClick = onRevertChanges
-                ) {
-                    Text(text = stringResource(id = R.string.notif_dialog_pause_dialog_negative))
-                }
-                Button(modifier = Modifier.weight(1f), onClick = onApplyChanges) {
-                    Text(text = stringResource(id = R.string.lbl_apply))
-                }
-            }
+            RethinkBottomSheetActionRow(
+                secondaryText = stringResource(id = R.string.notif_dialog_pause_dialog_negative),
+                primaryText = stringResource(id = R.string.lbl_apply),
+                onSecondaryClick = onRevertChanges,
+                onPrimaryClick = onApplyChanges
+            )
         }
     }
 }
@@ -1217,90 +1161,75 @@ private fun RethinkBlocklistContent(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun RethinkPlusFilterSheet(
-    context: Context,
     fileTags: List<FileTag>,
     filters: MutableLiveData<RethinkBlocklistState.Filters>,
     onDismiss: () -> Unit
 ) {
     val subGroups = remember(fileTags) {
-        fileTags.map { it.subg }.filter { it.isNotBlank() }.distinct()
+        fileTags
+            .map { it.subg.trim() }
+            .filter { it.isNotBlank() }
+            .distinct()
+            .sorted()
     }
     val initialFilters = filters.value
     var selectedSubgroups by remember { mutableStateOf(initialFilters?.subGroups?.toSet() ?: emptySet()) }
-    val borderColor = MaterialTheme.colorScheme.outline
+    val selectedCount = selectedSubgroups.size
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .width(60.dp)
-                    .height(3.dp)
-                    .background(borderColor, RoundedCornerShape(2.dp))
-            )
-
+    RethinkModalBottomSheet(onDismissRequest = onDismiss, includeBottomSpacer = true) {
+        RethinkBottomSheetCard(contentPadding = PaddingValues(Dimensions.cardPadding)) {
             Text(
                 text = stringResource(R.string.bsrf_sub_group_heading),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 5.dp, end = 5.dp)
+                color = MaterialTheme.colorScheme.onSurface
             )
-
+            Text(
+                text = "${stringResource(R.string.rt_filter_parent_selected)}: $selectedCount",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             FlowRow(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
             ) {
                 subGroups.forEach { label ->
                     val selected = selectedSubgroups.contains(label)
-                    FilterChip(
+                    RethinkFilterChip(
+                        label = label,
                         selected = selected,
                         onClick = {
-                            selectedSubgroups = if (selected) {
-                                selectedSubgroups - label
-                            } else {
-                                selectedSubgroups + label
-                            }
-                        },
-                        label = { Text(text = label) }
+                            selectedSubgroups = toggleSelection(selectedSubgroups, label)
+                        }
                     )
                 }
             }
-
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                TextButton(
-                    onClick = {
-                        filters.postValue(RethinkBlocklistState.Filters())
-                        onDismiss()
-                    },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = stringResource(R.string.bsrf_clear_filter))
-                }
-
-                Button(
-                    onClick = {
-                        val updated = initialFilters ?: RethinkBlocklistState.Filters()
-                        updated.subGroups.clear()
-                        updated.subGroups.addAll(selectedSubgroups)
-                        filters.postValue(updated)
-                        onDismiss()
-                    },
-                    modifier = Modifier.weight(2f)
-                ) {
-                    Text(text = stringResource(R.string.lbl_apply))
-                }
-            }
-
-            Spacer(modifier = Modifier.size(8.dp))
         }
+
+        RethinkBottomSheetActionRow(
+            secondaryText = stringResource(R.string.bsrf_clear_filter),
+            primaryText = stringResource(R.string.lbl_apply),
+            onSecondaryClick = {
+                filters.postValue(RethinkBlocklistState.Filters())
+                onDismiss()
+            },
+            onPrimaryClick = {
+                val updated = initialFilters ?: RethinkBlocklistState.Filters()
+                updated.subGroups.clear()
+                updated.subGroups.addAll(selectedSubgroups)
+                filters.postValue(updated)
+                onDismiss()
+            },
+            primaryEnabled = true
+        )
+    }
+}
+
+private fun toggleSelection(current: Set<String>, value: String): Set<String> {
+    return if (current.contains(value)) {
+        current - value
+    } else {
+        current + value
     }
 }
 

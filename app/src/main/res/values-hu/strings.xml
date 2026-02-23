@@ -3,7 +3,7 @@
     <string name="app_name">RethinkDNS</string>
     <string name="title_about" translatable="true">Rólunk</string>
     <string name="about_title_desc" translatable="true">Hálózatbiztonsági fenyegetések észlelése és blokkolása</string>
-    <string name="lbl_rules" translatable="true">szabályok</string>
+    <string name="lbl_rules" translatable="true">Szabályok</string>
     <string name="title_settings" translatable="true">Beállítások</string>
     <string name="pause_title_desc" translatable="true">Pihenés…</string>
     <string name="txt_home" translatable="true">Kezdőlap</string>
@@ -317,7 +317,7 @@
     <string name="search_custom_domains" translatable="true"><font size="12">Domain nevek keresése</font></string>
     <string name="app_mode_dns" translatable="true">DNS</string>
     <string name="app_mode_firewall" translatable="true">Tűzfal</string>
-    <string name="settings_vpn_heading" translatable="true">vpn</string>
+    <string name="settings_vpn_heading" translatable="true">VPN</string>
     <string name="public_key_copy_toast_msg" translatable="true">Nyilvános kulcs másolva.</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">RDNS+ DNS-over-HTTPS URL-ként másolva</string>
     <string name="settings_enable_logs_desc" translatable="true">A DNS- és tűzfal-naplók helyi tárolása az eszközön.</string>
@@ -433,8 +433,8 @@
     <string name="hsf_pause_vpn_failure" translatable="true">Nem lehet szüneteltetni: RethinkDNS nem aktív</string>
     <string name="battery_optimization_dialog_heading" translatable="true">%1$s letiltása</string>
     <string name="restrict_dialog_message" translatable="true">A(z) <i>%1$s</i> kapcsolatvesztést okozhat. Módosítsa a beállítást, hogy a Rethink a háttérben is használhassa az adatforgalmat és egyéb erőforrásokat.</string>
-    <string name="dc_block_heading" translatable="true">szabályok</string>
-    <string name="dc_other_dns_heading" translatable="true">típus</string>
+    <string name="dc_block_heading" translatable="true">Szabályok</string>
+    <string name="dc_other_dns_heading" translatable="true">Típus</string>
     <string name="dc_custom_dns_radio" translatable="true">Egyéb DNS</string>
     <string name="dc_rethink_dns_radio" translatable="true">Rethink DNS</string>
     <string name="dc_entries" translatable="true">%1$s bejegyzések 🔗</string>
@@ -459,17 +459,17 @@
     <string name="about_bug_no_log_dialog_title" translatable="true">Hibajelentés</string>
     <string name="about_bug_no_log_dialog_message" translatable="true">Nem sikerült lekérni az összeomlási naplókat. Szeretné manuálisan jelenteni a hibát?</string>
     <string name="about_bug_no_log_dialog_positive_btn" translatable="true">Email küldése</string>
-    <string name="about_web" translatable="true">linkek</string>
+    <string name="about_web" translatable="true">Linkek</string>
     <string name="about_website" translatable="true">Látogasson el a rethinkdns.com oldalra</string>
     <string name="about_github" translatable="true">Hozzájárulás a GitHubon</string>
     <string name="about_faq" translatable="true">GYIK megtekintése</string>
     <string name="about_docs" translatable="true">Dokumentumok olvasása</string>
     <string name="about_privacy_policy" translatable="true">Adatvédelmi irányelvek elolvasása</string>
-    <string name="about_connect" translatable="true">kapcsolat</string>
+    <string name="about_connect" translatable="true">Kapcsolat</string>
     <string name="about_sponsor_link_text" translatable="true">Szponzor</string>
-    <string name="about_app" translatable="true">alkalmazás</string>
+    <string name="about_app" translatable="true">Alkalmazás</string>
     <string name="about_email" translatable="true">Írjon nekünk e-mailt</string>
-    <string name="about_settings" translatable="true">rendszer</string>
+    <string name="about_settings" translatable="true">Rendszer</string>
     <string name="about_settings_app_info" translatable="true">Alkalmazás adatai</string>
     <string name="about_settings_vpn_profile" translatable="true">VPN profil</string>
     <string name="about_settings_notification" translatable="true">Értesítési beállítások</string>
@@ -1051,7 +1051,7 @@
     <string name="sponser_dialog_usage_msg" translatable="true">Ön már <b>%1$s napja</b> használja a Rethink alkalmazást, ami <b>%2$s USD</b> használati költséget jelentene. Megfontolná, hogy támogatásával hozzájáruljon a fejlesztés fenntartásához?</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">A rendszer DNS használata a nem delegált tartományokhoz</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">A rendszer DNS használata a nem delegált tartományokhoz, mint például <i>.lan</i>, <i>.internal</i> stb.</string>
-    <string name="dc_filtering_heading" translatable="true">szűrés</string>
+    <string name="dc_filtering_heading" translatable="true">Szűrés</string>
     <string name="cd_split_dns_heading" translatable="true">Split DNS (kísérleti)</string>
     <string name="cd_split_dns_desc" translatable="true">A proxyn keresztül irányított alkalmazások DNS-lekérdezéseinek továbbítása a proxy DNS-kiszolgálóihoz.</string>
     <string name="cd_treat_dns_rules_firewall_heading" translatable="true">A DNS-szabályok kezelése tűzfalszabályként (kísérleti)</string>

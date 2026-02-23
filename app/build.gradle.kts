@@ -304,9 +304,6 @@ dependencies {
     implementation(libs.androidx.paging.runtime.ktx)
     implementation(libs.androidx.paging.compose)
     "fullImplementation"(libs.androidx.fragment.ktx)
-
-
-    implementation(libs.google.material)
     "fullImplementation"(libs.androidx.viewpager2)
 
     "fullImplementation"(libs.okhttp)

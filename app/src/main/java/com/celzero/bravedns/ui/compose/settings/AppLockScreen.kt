@@ -209,7 +209,7 @@ private fun AppLockContent(
                 contentAlignment = Alignment.Center
             ) {
                 Surface(
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(28.dp),
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cornerRadius5xl),
                     color = MaterialTheme.colorScheme.surfaceContainerLow,
                     tonalElevation = 1.dp
                 ) {

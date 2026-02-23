@@ -185,6 +185,9 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
     // the current light/dark theme; 0's the default which is "Set by System"
     var theme by intPref("app_theme").withDefault<Int>(0)
 
+    // selected accent/color preset for compose theme, 0 = auto (legacy behavior)
+    var themeColorPreset by intPref("app_theme_color_preset").withDefault<Int>(0)
+
     // user selected notification action type, ref: Constants#NOTIFICATION_ACTION_STOP
     var notificationActionType by intPref("notification_action").withDefault<Int>(0)
 

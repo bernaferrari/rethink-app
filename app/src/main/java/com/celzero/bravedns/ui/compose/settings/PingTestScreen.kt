@@ -29,7 +29,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,7 +40,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -61,6 +59,7 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.service.VpnController
 import com.celzero.firestack.backend.Backend
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import io.github.aakira.napier.Napier
@@ -195,21 +194,19 @@ fun PingTestScreen(
         topBar = {
             RethinkLargeTopBar(
                 title = stringResource(R.string.settings_connectivity_checks),
+                subtitle = stringResource(R.string.settings_connectivity_checks_desc),
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior
             )
         }
     ) { paddingValues ->
         if (showStartVpnDialog) {
-            AlertDialog(
+            RethinkConfirmDialog(
                 onDismissRequest = {},
-                title = { Text(text = stringResource(R.string.vpn_not_active_dialog_title)) },
-                text = { Text(text = stringResource(R.string.vpn_not_active_dialog_desc)) },
-                confirmButton = {
-                    TextButton(onClick = { onBackClick?.invoke() }) {
-                        Text(text = stringResource(R.string.lbl_dismiss))
-                    }
-                }
+                title = stringResource(R.string.vpn_not_active_dialog_title),
+                message = stringResource(R.string.vpn_not_active_dialog_desc),
+                confirmText = stringResource(R.string.lbl_dismiss),
+                onConfirm = { onBackClick?.invoke() }
             )
         }
 
@@ -220,37 +217,11 @@ fun PingTestScreen(
             contentPadding = PaddingValues(
                 start = Dimensions.screenPaddingHorizontal,
                 end = Dimensions.screenPaddingHorizontal,
+                top = Dimensions.spacingSm,
                 bottom = Dimensions.spacing3xl
             ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            item {
-                Surface(
-                    shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
-                    ),
-                    tonalElevation = 1.dp
-                ) {
-                    Column(
-                        modifier = Modifier.padding(Dimensions.spacingLg),
-                        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_connectivity_checks),
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Text(
-                            text = stringResource(R.string.settings_connectivity_checks_desc),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-            }
-
             item {
                 SectionHeader(title = stringResource(R.string.ping_ip_port_title))
                 RethinkListGroup {

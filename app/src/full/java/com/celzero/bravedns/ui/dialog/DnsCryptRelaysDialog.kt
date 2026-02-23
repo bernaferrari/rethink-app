@@ -17,18 +17,15 @@ package com.celzero.bravedns.ui.dialog
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.LiveData
@@ -39,7 +36,10 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.RelayRow
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.DnsCryptRelayEndpoint
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DnsCryptRelaysDialog(
     appConfig: AppConfig,
@@ -56,6 +56,7 @@ fun DnsCryptRelaysDialog(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DnsCryptRelaysContent(
     appConfig: AppConfig,
@@ -63,23 +64,27 @@ private fun DnsCryptRelaysContent(
     onDismiss: () -> Unit
 ) {
     val items = relays.asFlow().collectAsLazyPagingItems()
-    Column(
-        modifier = Modifier.fillMaxSize().padding(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.cd_dnscrypt_relay_heading),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary
-        )
-        LazyColumn(modifier = Modifier.weight(1f).fillMaxWidth()) {
-            items(items.itemCount) { index ->
-                val item = items[index] ?: return@items
-                RelayRow(item, appConfig)
-            }
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            RethinkTopBar(
+                title = stringResource(R.string.cd_dnscrypt_relay_heading),
+                onBackClick = onDismiss
+            )
         }
-        Button(onClick = onDismiss, modifier = Modifier.align(androidx.compose.ui.Alignment.End)) {
-            Text(text = stringResource(R.string.lbl_dismiss))
+    ) { padding ->
+        Column(
+            modifier = Modifier.padding(padding)
+        ) {
+            LazyColumn(
+                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal),
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+            ) {
+                items(items.itemCount) { index ->
+                    val item = items[index] ?: return@items
+                    RelayRow(item, appConfig)
+                }
+            }
         }
     }
 }

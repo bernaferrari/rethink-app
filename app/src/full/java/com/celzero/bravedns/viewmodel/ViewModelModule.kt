@@ -25,7 +25,7 @@ import org.koin.dsl.module
 object ViewModelModule {
     private val viewModelModule = module {
         viewModel { HomeScreenViewModel(get(), get()) }
-        viewModel { DnsSettingsViewModel(get(), get()) }
+        viewModel { DnsSettingsViewModel(get(), get(), get()) }
         viewModel { AboutViewModel(get(), get(), get()) }
         viewModel { ConnectionTrackerViewModel(get()) }
         viewModel { DnsCryptEndpointViewModel(get()) }

@@ -16,13 +16,11 @@
 package com.celzero.bravedns.ui.compose.logs
 
 import android.widget.Toast
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,26 +34,17 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,6 +64,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
+import androidx.paging.LoadState
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.ConnectionRow
@@ -87,13 +78,18 @@ import com.celzero.bravedns.database.RethinkLogRepository
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkSearchField
+import com.celzero.bravedns.ui.compose.theme.RethinkSegmentedChoiceRow
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.ConnectionTrackerViewModel
 import com.celzero.bravedns.viewmodel.DnsLogViewModel
 import com.celzero.bravedns.viewmodel.RethinkLogViewModel
-import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
@@ -102,7 +98,7 @@ import kotlinx.coroutines.launch
 
 enum class LogTab { CONNECTION, DNS }
 
-data class TabSpec(val tab: LogTab, val label: String)
+private data class TabSpec(val tab: LogTab, val label: String)
 
 @OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
@@ -121,70 +117,45 @@ fun NetworkLogsScreen(
         TabSpec(LogTab.CONNECTION, stringResource(R.string.firewall_act_network_monitor_tab)),
         TabSpec(LogTab.DNS, stringResource(R.string.dns_mode_info_title))
     )
-    val clearSearchContentDescription = stringResource(R.string.cd_clear_search)
-    val deleteContentDescription = stringResource(R.string.lbl_delete)
     val selectedTab = remember { mutableIntStateOf(0) }
+
     var selectedConn by remember { mutableStateOf<ConnectionTracker?>(null) }
     var selectedDns by remember { mutableStateOf<DnsLog?>(null) }
 
-    val scrollBehavior = androidx.compose.material3.TopAppBarDefaults.pinnedScrollBehavior()
-
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             RethinkLargeTopBar(
                 title = stringResource(R.string.lbl_logs),
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior
+                subtitle = stringResource(R.string.logs_disabled_summary),
+                onBackClick = onBackClick
             )
-        },
-        containerColor = MaterialTheme.colorScheme.background
+        }
     ) { padding ->
-        Column(modifier = Modifier.fillMaxSize().padding(padding)) {
-            // Integrated TabRow
-            Surface(
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 0.dp
-            ) {
-                PrimaryTabRow(
-                    selectedTabIndex = selectedTab.intValue,
-                    modifier = Modifier.fillMaxWidth(),
-                    containerColor = Color.Transparent,
-                    divider = {
-                        HorizontalDivider(
-                            thickness = Dimensions.dividerThickness,
-                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.25f)
-                        )
-                    }
-                ) {
-                    tabs.forEachIndexed { index, spec ->
-                        val selected = selectedTab.intValue == index
-                        Tab(
-                            selected = selected,
-                            onClick = { selectedTab.intValue = index },
-                            text = {
-                                Text(
-                                    text = spec.label,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = if (selected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (selected) MaterialTheme.colorScheme.primary
-                                    else MaterialTheme.colorScheme.onSurfaceVariant
-                                )
-                            }
-                        )
-                    }
-                }
-            }
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+        ) {
+            LogsTabRow(
+                tabs = tabs,
+                selectedTab = selectedTab.intValue,
+                onTabSelected = { selectedTab.intValue = it }
+            )
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                when (tabs[selectedTab.intValue].tab) {
-                    LogTab.CONNECTION -> ConnectionLogsContent(
+            when (tabs[selectedTab.intValue].tab) {
+                LogTab.CONNECTION -> {
+                    ConnectionLogsContent(
                         viewModel = connectionTrackerViewModel,
                         repository = connectionTrackerRepository,
                         persistentState = persistentState,
                         onShowConnTracker = { selectedConn = it }
                     )
+                }
 
-                    LogTab.DNS -> DnsLogsContent(
+                LogTab.DNS -> {
+                    DnsLogsContent(
                         viewModel = dnsLogViewModel,
                         repository = dnsLogRepository,
                         persistentState = persistentState,
@@ -210,6 +181,36 @@ fun NetworkLogsScreen(
     }
 }
 
+@Composable
+private fun LogsTabRow(
+    tabs: List<TabSpec>,
+    selectedTab: Int,
+    onTabSelected: (Int) -> Unit
+) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimensions.screenPaddingHorizontal)
+                .padding(top = Dimensions.spacingSm, bottom = Dimensions.spacingXs)
+    ) {
+        RethinkSegmentedChoiceRow(
+            options = tabs.indices.toList(),
+            selectedOption = selectedTab,
+            onOptionSelected = onTabSelected,
+            modifier = Modifier.fillMaxWidth(),
+            fillEqually = true,
+            label = { index, isSelected ->
+                Text(
+                    text = tabs[index].label,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
+                )
+            }
+        )
+    }
+}
+
 @OptIn(FlowPreview::class)
 @Composable
 private fun ConnectionLogsContent(
@@ -218,17 +219,13 @@ private fun ConnectionLogsContent(
     persistentState: PersistentState,
     onShowConnTracker: (ConnectionTracker) -> Unit
 ) {
-    val context = LocalContext.current
-    val clearSearchContentDescription = stringResource(R.string.cd_clear_search)
-    val deleteContentDescription = stringResource(R.string.lbl_delete)
-    val refreshCompleteMessage = stringResource(R.string.refresh_complete)
-    val scope = rememberCoroutineScope()
     val items = viewModel.connectionTrackerList.asFlow().collectAsLazyPagingItems()
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     var parentFilter by remember { mutableStateOf(ConnectionTrackerViewModel.TopLevelFilter.ALL) }
     var childFilters by remember { mutableStateOf(setOf<String>()) }
+
     val filterOptions = listOf(
         ConnectionTrackerViewModel.TopLevelFilter.ALL to stringResource(R.string.lbl_all),
         ConnectionTrackerViewModel.TopLevelFilter.ALLOWED to stringResource(R.string.lbl_allowed),
@@ -244,215 +241,95 @@ private fun ConnectionLogsContent(
             }
     }
 
+    if (!persistentState.logsEnabled) {
+        LogsDisabledState()
+        return
+    }
+
+    val ruleFilters = when (parentFilter) {
+        ConnectionTrackerViewModel.TopLevelFilter.BLOCKED -> FirewallRuleset.getBlockedRules()
+        ConnectionTrackerViewModel.TopLevelFilter.ALLOWED -> FirewallRuleset.getAllowedRules()
+        ConnectionTrackerViewModel.TopLevelFilter.ALL -> emptyList()
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
-        if (!persistentState.logsEnabled) {
-            Box(Modifier.fillMaxSize().padding(Dimensions.spacing2xl), contentAlignment = Alignment.Center) {
-                Text(
-                    text = stringResource(R.string.logs_disabled_summary),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-            }
-            return
-        }
+        LogsFilterCard {
+            LogsControls(
+                query = query,
+                onQueryChange = { query = it },
+                onClearQuery = { query = "" },
+                onRefresh = { items.refresh() },
+                onDelete = { showDeleteDialog = true },
+                placeholder = stringResource(R.string.logs_search_network_hint)
+            )
 
-        SectionHeader(
-            title = stringResource(R.string.firewall_act_network_monitor_tab),
-            modifier = Modifier.padding(horizontal = Dimensions.spacingXs)
-        )
+            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
 
-        // Search and filters
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Dimensions.screenPaddingHorizontal),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
-        ) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)
-                )
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = Dimensions.spacingSm),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = Dimensions.spacingSm).size(Dimensions.iconSizeMd)
-                    )
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        modifier = Modifier.weight(1f),
-                        placeholder = {
-                            Text(
-                                stringResource(R.string.lbl_search),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        },
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.Transparent,
-                            unfocusedBorderColor = Color.Transparent,
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent
-                        )
-                    )
-                    AnimatedVisibility(visible = query.isNotEmpty()) {
-                        IconButton(
-                            onClick = { query = "" },
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Close,
-                                contentDescription = clearSearchContentDescription,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(Dimensions.iconSizeSm)
-                            )
-                        }
-                    }
-                    IconButton(
-                        onClick = { showDeleteDialog = true },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Delete,
-                            contentDescription = deleteContentDescription,
-                            tint = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.size(Dimensions.iconSizeMd)
-                        )
-                    }
-                }
-            }
-
-            // Tonal chips row
             LazyRow(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
             ) {
-                items(filterOptions.size) { index ->
-                    val (filter, label) = filterOptions[index]
-                    val selected = parentFilter == filter
-                    FilterChip(
-                        selected = selected,
+                items(filterOptions) { (filter, label) ->
+                    RethinkFilterChip(
+                        label = label,
+                        selected = parentFilter == filter,
                         onClick = {
                             parentFilter = filter
                             childFilters = emptySet()
                         },
-                        label = { Text(text = label, style = MaterialTheme.typography.labelMedium) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        textStyle = MaterialTheme.typography.labelMedium,
+                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 }
             }
 
-            // Sub-category chips (Expressive secondary chips)
-            val categories = when (parentFilter) {
-                ConnectionTrackerViewModel.TopLevelFilter.BLOCKED -> FirewallRuleset.getBlockedRules()
-                ConnectionTrackerViewModel.TopLevelFilter.ALLOWED -> FirewallRuleset.getAllowedRules()
-                ConnectionTrackerViewModel.TopLevelFilter.ALL -> FirewallRuleset.getBlockedRules()
-            }
-
-            LazyRow(
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
-            ) {
-                items(categories.size) { index ->
-                    val rule = categories[index]
-                    val selected = childFilters.contains(rule.id)
-                    FilterChip(
-                        selected = selected,
-                        onClick = {
-                            childFilters = if (selected) childFilters - rule.id else childFilters + rule.id
-                        },
-                        label = {
-                            Text(
-                                text = stringResource(rule.title),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                painter = painterResource(id = FirewallRuleset.getRulesIcon(rule.id)),
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    )
-                }
-            }
-        }
-
-        // Logs List
-        if (items.itemCount == 0 && items.loadState.append.endOfPaginationReached) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = stringResource(id = R.string.lbl_no_logs),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    horizontal = Dimensions.screenPaddingHorizontal,
-                    vertical = Dimensions.spacingSm
-                ),
-                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-            ) {
-                items(items.itemCount) { index ->
-                    val item = items[index] ?: return@items
-                    ConnectionRow(item, onShowConnTracker)
-                }
-            }
-        }
-    }
-
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text(text = stringResource(R.string.conn_track_clear_logs_title)) },
-            text = { Text(text = stringResource(R.string.conn_track_clear_logs_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        scope.launch(Dispatchers.IO) { repository.clearAllData() }
-                        Utilities.showToastUiCentered(
-                            context,
-                            refreshCompleteMessage,
-                            Toast.LENGTH_SHORT
+            if (ruleFilters.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+                LazyRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+                ) {
+                    items(ruleFilters) { rule ->
+                        val selected = childFilters.contains(rule.id)
+                        RethinkFilterChip(
+                            label = stringResource(rule.title),
+                            selected = selected,
+                            onClick = {
+                                childFilters =
+                                    if (selected) childFilters - rule.id
+                                    else childFilters + rule.id
+                            },
+                            textStyle = MaterialTheme.typography.labelSmall,
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(id = FirewallRuleset.getRulesIcon(rule.id)),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            },
+                            selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
                         )
                     }
-                ) {
-                    Text(text = stringResource(R.string.hs_download_positive_default))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(text = stringResource(R.string.lbl_cancel))
                 }
             }
-        )
+        }
+
+        LogsPagedListContent(
+            items = items,
+            modifier = Modifier.weight(1f)
+        ) { item ->
+            ConnectionRow(item, onShowConnTracker)
+        }
     }
+
+    LogsDeleteDialog(
+        show = showDeleteDialog,
+        onDismiss = { showDeleteDialog = false },
+        onDelete = { repository.clearAllData() },
+        onRefresh = { items.refresh() }
+    )
 }
 
 @OptIn(FlowPreview::class)
@@ -463,16 +340,12 @@ private fun DnsLogsContent(
     persistentState: PersistentState,
     onShowDnsLog: (DnsLog) -> Unit
 ) {
-    val context = LocalContext.current
-    val clearSearchContentDescription = stringResource(R.string.cd_clear_search)
-    val deleteContentDescription = stringResource(R.string.lbl_delete)
-    val refreshCompleteMessage = stringResource(R.string.refresh_complete)
-    val scope = rememberCoroutineScope()
     val items = viewModel.dnsLogsList.asFlow().collectAsLazyPagingItems()
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     var filterType by remember { mutableStateOf(DnsLogViewModel.DnsLogFilter.ALL) }
+
     val filterOptions = listOf(
         DnsLogViewModel.DnsLogFilter.ALL to stringResource(R.string.lbl_all),
         DnsLogViewModel.DnsLogFilter.ALLOWED to stringResource(R.string.lbl_allowed),
@@ -488,176 +361,231 @@ private fun DnsLogsContent(
             }
     }
 
+    if (!persistentState.logsEnabled) {
+        LogsDisabledState()
+        return
+    }
+
     Column(modifier = Modifier.fillMaxSize()) {
-        if (!persistentState.logsEnabled) {
-            Box(Modifier.fillMaxSize().padding(Dimensions.spacing2xl), contentAlignment = Alignment.Center) {
-                Text(
-                    text = stringResource(R.string.logs_disabled_summary),
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center
-                )
-            }
-            return
-        }
+        LogsFilterCard {
+            LogsControls(
+                query = query,
+                onQueryChange = { query = it },
+                onClearQuery = { query = "" },
+                onRefresh = { items.refresh() },
+                onDelete = { showDeleteDialog = true },
+                placeholder = stringResource(R.string.logs_search_dns_hint)
+            )
 
-        SectionHeader(
-            title = stringResource(R.string.dns_mode_info_title),
-            modifier = Modifier.padding(horizontal = Dimensions.spacingXs)
-        )
-        // Search and filters
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Dimensions.screenPaddingHorizontal),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
-        ) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                border = BorderStroke(
-                    1.dp,
-                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)
-                )
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = Dimensions.spacingSm),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(start = Dimensions.spacingSm).size(Dimensions.iconSizeMd)
-                    )
-                    OutlinedTextField(
-                        value = query,
-                        onValueChange = { query = it },
-                        modifier = Modifier.weight(1f),
-                        placeholder = {
-                            Text(
-                                stringResource(R.string.lbl_search),
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        },
-                        singleLine = true,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Color.Transparent,
-                            unfocusedBorderColor = Color.Transparent,
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent
-                        )
-                    )
-                    AnimatedVisibility(visible = query.isNotEmpty()) {
-                        IconButton(
-                            onClick = { query = "" },
-                            colors = IconButtonDefaults.iconButtonColors(
-                                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                            )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Close,
-                                contentDescription = clearSearchContentDescription,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(Dimensions.iconSizeSm)
-                            )
-                        }
-                    }
-                    IconButton(
-                        onClick = { showDeleteDialog = true },
-                        colors = IconButtonDefaults.iconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            contentColor = MaterialTheme.colorScheme.onErrorContainer
-                        )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Delete,
-                            contentDescription = deleteContentDescription,
-                            tint = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier = Modifier.size(Dimensions.iconSizeMd)
-                        )
-                    }
-                }
-            }
+            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
 
-            // Tonal chips row
             LazyRow(
+                modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
             ) {
-                items(filterOptions.size) { index ->
-                    val (filter, label) = filterOptions[index]
-                    val selected = filterType == filter
-                    FilterChip(
-                        selected = selected,
+                items(filterOptions) { (filter, label) ->
+                    RethinkFilterChip(
+                        label = label,
+                        selected = filterType == filter,
                         onClick = { filterType = filter },
-                        label = { Text(text = label, style = MaterialTheme.typography.labelMedium) },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
+                        textStyle = MaterialTheme.typography.labelMedium,
+                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
                     )
                 }
             }
         }
 
-        if (items.itemCount == 0 && items.loadState.append.endOfPaginationReached) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = stringResource(id = R.string.lbl_no_logs),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+        LogsPagedListContent(
+            items = items,
+            modifier = Modifier.weight(1f)
+        ) { item ->
+            DnsLogRow(
+                log = item,
+                loadFavIcon = persistentState.fetchFavIcon,
+                isRethinkDns = false,
+                onShowBlocklist = onShowDnsLog
+            )
+        }
+    }
+
+    LogsDeleteDialog(
+        show = showDeleteDialog,
+        onDismiss = { showDeleteDialog = false },
+        onDelete = { repository.clearAllData() },
+        onRefresh = { items.refresh() }
+    )
+}
+
+@Composable
+private fun LogsFilterCard(
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Surface(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimensions.screenPaddingHorizontal),
+        shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f))
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = Dimensions.spacingSm, vertical = Dimensions.spacingSm),
+            content = content
+        )
+    }
+}
+
+@Composable
+private fun LogsControls(
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onClearQuery: () -> Unit,
+    onRefresh: () -> Unit,
+    onDelete: () -> Unit,
+    placeholder: String,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        RethinkSearchField(
+            query = query,
+            onQueryChange = onQueryChange,
+            modifier = Modifier.weight(1f),
+            placeholder = placeholder,
+            onClearQuery = onClearQuery,
+            clearQueryContentDescription = stringResource(R.string.cd_clear_search),
+            shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+
+        FilledTonalIconButton(onClick = onRefresh) {
+            Icon(
+                imageVector = Icons.Rounded.Refresh,
+                contentDescription = stringResource(R.string.cd_refresh)
+            )
+        }
+
+        FilledTonalIconButton(onClick = onDelete) {
+            Icon(
+                imageVector = Icons.Rounded.Delete,
+                contentDescription = stringResource(R.string.lbl_delete),
+                tint = MaterialTheme.colorScheme.error
+            )
+        }
+    }
+}
+
+@Composable
+private fun LogsDisabledState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(R.string.logs_disabled_summary),
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(Dimensions.spacing2xl)
+        )
+    }
+}
+
+@Composable
+private fun <T : Any> LogsPagedListContent(
+    items: LazyPagingItems<T>,
+    modifier: Modifier = Modifier,
+    rowContent: @Composable (T) -> Unit
+) {
+    val isEmpty = items.itemCount == 0 && items.loadState.refresh is LoadState.NotLoading
+
+    Box(
+        modifier = modifier.fillMaxWidth().padding(top = Dimensions.spacingSm)
+    ) {
+        if (isEmpty) {
+            LogsEmptyState()
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
-                    horizontal = Dimensions.screenPaddingHorizontal,
-                    vertical = Dimensions.spacingSm
+                    start = Dimensions.screenPaddingHorizontal,
+                    end = Dimensions.screenPaddingHorizontal,
+                    top = Dimensions.spacingSm,
+                    bottom = Dimensions.spacingLg
                 ),
                 verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
             ) {
                 items(items.itemCount) { index ->
                     val item = items[index] ?: return@items
-                    DnsLogRow(
-                        log = item,
-                        loadFavIcon = persistentState.fetchFavIcon,
-                        isRethinkDns = false,
-                        onShowBlocklist = onShowDnsLog
-                    )
+                    rowContent(item)
                 }
             }
         }
     }
+}
 
-    if (showDeleteDialog) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text(text = stringResource(R.string.conn_track_clear_logs_title)) },
-            text = { Text(text = stringResource(R.string.conn_track_clear_logs_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        scope.launch(Dispatchers.IO) { repository.clearAllData() }
-                        Utilities.showToastUiCentered(
-                            context,
-                            refreshCompleteMessage,
-                            Toast.LENGTH_SHORT
-                        )
-                    }
-                ) {
-                    Text(text = stringResource(R.string.hs_download_positive_default))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(text = stringResource(R.string.lbl_cancel))
-                }
-            }
+@Composable
+private fun LogsDeleteDialog(
+    show: Boolean,
+    onDismiss: () -> Unit,
+    onDelete: suspend () -> Unit,
+    onRefresh: () -> Unit
+) {
+    if (!show) return
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    ConfirmClearLogsDialog(
+        onDismiss = onDismiss,
+        onConfirm = {
+            onDismiss()
+            scope.launch(Dispatchers.IO) { onDelete() }
+            Utilities.showToastUiCentered(
+                context,
+                context.getString(R.string.refresh_complete),
+                Toast.LENGTH_SHORT
+            )
+            onRefresh()
+        }
+    )
+}
+
+@Composable
+private fun LogsEmptyState() {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stringResource(id = R.string.lbl_no_logs),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.padding(Dimensions.spacingXl)
         )
     }
+}
+
+@Composable
+private fun ConfirmClearLogsDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    RethinkConfirmDialog(
+        onDismissRequest = onDismiss,
+        title = stringResource(R.string.conn_track_clear_logs_title),
+        message = stringResource(R.string.conn_track_clear_logs_message),
+        confirmText = stringResource(R.string.lbl_delete),
+        dismissText = stringResource(R.string.lbl_cancel),
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+        isConfirmDestructive = true
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -666,40 +594,17 @@ private fun ConnTrackerDetailsSheet(
     connection: ConnectionTracker,
     onDismiss: () -> Unit
 ) {
-    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onDismiss) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Dimensions.spacingLg),
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f))
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(Dimensions.spacingLg)
-            ) {
-                Text(
-                    text = connection.appName,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-                DetailRow("IP Address", connection.ipAddress)
-                DetailRow("Port", connection.port.toString())
-                DetailRow("Protocol", connection.protocol.toString())
-                val status = if (connection.isBlocked) "Blocked" else "Allowed"
-                DetailRow("Status", status, isError = connection.isBlocked)
-
-                Spacer(modifier = Modifier.height(Dimensions.spacingXl))
-                TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
-                    Text(text = stringResource(R.string.lbl_dismiss))
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(Dimensions.spacing2xl))
-    }
+    val status = if (connection.isBlocked) stringResource(R.string.lbl_blocked) else stringResource(R.string.lbl_allowed)
+    LogDetailsSheet(
+        title = connection.appName,
+        details = listOf(
+            LogDetailEntry(stringResource(R.string.log_detail_ip_address), connection.ipAddress),
+            LogDetailEntry(stringResource(R.string.log_detail_port), connection.port.toString()),
+            LogDetailEntry(stringResource(R.string.log_detail_protocol), connection.protocol.toString()),
+            LogDetailEntry(stringResource(R.string.lbl_status), status, isError = connection.isBlocked)
+        ),
+        onDismiss = onDismiss
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -708,31 +613,55 @@ private fun DnsLogDetailsSheet(
     log: DnsLog,
     onDismiss: () -> Unit
 ) {
-    androidx.compose.material3.ModalBottomSheet(onDismissRequest = onDismiss) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Dimensions.spacingLg),
-            shape = RoundedCornerShape(24.dp),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f))
+    val status = if (log.isBlocked) stringResource(R.string.lbl_blocked) else stringResource(R.string.lbl_allowed)
+    val response = log.responseIps.ifEmpty { stringResource(R.string.settings_app_list_default_app) }
+    LogDetailsSheet(
+        title = log.queryStr,
+        details = listOf(
+            LogDetailEntry(stringResource(R.string.log_detail_app_name), log.appName),
+            LogDetailEntry(stringResource(R.string.log_detail_response), response),
+            LogDetailEntry(stringResource(R.string.dns_detail_latency), "${log.latency}ms"),
+            LogDetailEntry(stringResource(R.string.lbl_status), status, isError = log.isBlocked)
+        ),
+        onDismiss = onDismiss
+    )
+}
+
+private data class LogDetailEntry(
+    val label: String,
+    val value: String,
+    val isError: Boolean = false
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun LogDetailsSheet(
+    title: String,
+    details: List<LogDetailEntry>,
+    onDismiss: () -> Unit
+) {
+    RethinkModalBottomSheet(onDismissRequest = onDismiss, includeBottomSpacer = true) {
+        RethinkBottomSheetCard(
+            shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
+            contentPadding = PaddingValues(Dimensions.spacingLg)
         ) {
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(Dimensions.spacingLg)
+                    .fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
             ) {
                 Text(
-                    text = log.queryStr,
+                    text = title,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
-                Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-                DetailRow("App Name", log.appName)
-                DetailRow("Response", log.responseIps.ifEmpty { "None" })
-                DetailRow("Latency", "${log.latency}ms")
-                val status = if (log.isBlocked) "Blocked" else "Allowed"
-                DetailRow("Status", status, isError = log.isBlocked)
+                details.forEach { entry ->
+                    DetailRow(
+                        label = entry.label,
+                        value = entry.value,
+                        isError = entry.isError
+                    )
+                }
 
                 Spacer(modifier = Modifier.height(Dimensions.spacingXl))
                 TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
@@ -740,14 +669,15 @@ private fun DnsLogDetailsSheet(
                 }
             }
         }
-        Spacer(modifier = Modifier.height(Dimensions.spacing2xl))
     }
 }
 
 @Composable
 private fun DetailRow(label: String, value: String, isError: Boolean = false) {
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = Dimensions.spacingXs),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = Dimensions.spacingXs),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(

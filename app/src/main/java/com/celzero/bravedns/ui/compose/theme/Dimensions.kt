@@ -35,6 +35,22 @@ object Dimensions {
     val spacing3xl: Dp = 48.dp
 
     // M3 Expressive shape scale — larger, more expressive corner radii
+    val cornerRadius2xs: Dp = 3.dp
+    val cornerRadiusXs: Dp = 4.dp
+    val cornerRadiusSm: Dp = 6.dp
+    val cornerRadiusSmMd: Dp = 10.dp
+    val cornerRadiusMd: Dp = 12.dp
+    val cornerRadiusMdLg: Dp = 14.dp
+    val cornerRadiusLg: Dp = 16.dp
+    // Normalized medium-large card radii to one standard (20dp)
+    val cornerRadiusXl: Dp = 20.dp
+    val cornerRadius2xl: Dp = 20.dp
+    val cornerRadius3xl: Dp = 20.dp
+    val cornerRadius4xl: Dp = 24.dp
+    val cornerRadius5xl: Dp = 28.dp
+    val cornerRadiusPill: Dp = 50.dp
+    val cornerRadiusFull: Dp = 999.dp
+
     val cardCornerRadius: Dp = 20.dp           // Cards, list groups
     val cardCornerRadiusLarge: Dp = 28.dp      // Section cards
     val heroCornerRadius: Dp = 32.dp           // Hero/protection cards

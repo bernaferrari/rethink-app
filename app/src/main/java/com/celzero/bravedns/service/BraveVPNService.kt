@@ -1567,7 +1567,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         pauseStateManager = PauseStateManager(this, persistentState, vpnScope)
         dnsConfigurationManager = DnsConfigurationManager(this, persistentState, appConfig, vpnScope)
         underlyingNetworkManager = UnderlyingNetworkManager(this, vpnScope)
-        proxyStateManager = ProxyStateManager(appConfig, persistentState, WireguardManager, vpnScope)
+        proxyStateManager = ProxyStateManager(appConfig, persistentState, vpnScope)
         appsStatsManager = AppsStatsManager(FirewallManager, vpnScope)
         logsCountManager = LogsCountManager(appConfig, vpnScope)
         firewallStatsManager = FirewallStatsManager(persistentState, IpRulesManager, DomainRulesManager, vpnScope)
@@ -5281,66 +5281,66 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     }
 
     private suspend fun isSpecialApp(uid: Int): Boolean {
-        if (!appConfig.getBraveMode().isDnsFirewallMode()) {
-            return false
+        val packageName = FirewallManager.getPackageNameByUid(uid)
+        val isOrbotProxyEnabled = appConfig.isOrbotProxyEnabled()
+        val isCustomSocks5Enabled = appConfig.isCustomSocks5Enabled()
+        val isCustomHttpProxyEnabled = appConfig.isCustomHttpProxyEnabled()
+        val isDnsProxyActive = appConfig.isDnsProxyActive()
+
+        val orbotEndpoint =
+            if (isOrbotProxyEnabled) {
+                appConfig.getConnectedOrbotProxy()
+            } else {
+                null
+            }
+        val socks5Endpoint =
+            if (isCustomSocks5Enabled) {
+                appConfig.getSocks5ProxyDetails()
+            } else {
+                null
+            }
+        val httpEndpoint =
+            if (isCustomHttpProxyEnabled) {
+                appConfig.getHttpProxyDetails()
+            } else {
+                null
+            }
+        val dnsProxyEndpoint =
+            if (isDnsProxyActive) {
+                appConfig.getSelectedDnsProxyDetails()
+            } else {
+                null
+            }
+
+        if (isCustomSocks5Enabled && socks5Endpoint == null) {
+            Logger.e(LOG_TAG_VPN, "flow: socks5 proxy enabled but endpoint is null")
         }
-        // check if the app is selected to forward dns proxy, orbot, socks5, http proxy
-        if (
-            !appConfig.isCustomSocks5Enabled() &&
-            !appConfig.isCustomHttpProxyEnabled() &&
-            !appConfig.isDnsProxyActive() &&
-            !appConfig.isOrbotProxyEnabled()
-        ) {
-            return false
+        if (isCustomHttpProxyEnabled && httpEndpoint == null) {
+            Logger.e(LOG_TAG_VPN, "flow: http proxy enabled but endpoint is null")
+        }
+        if (isCustomSocks5Enabled) {
+            logd("flow/inflow: socks5 proxy is enabled, $packageName, ${socks5Endpoint?.proxyAppName}")
         }
 
-        if (appConfig.isOrbotProxyEnabled()) {
-            val endpoint = appConfig.getConnectedOrbotProxy()
-            val packageName = FirewallManager.getPackageNameByUid(uid)
-            if (endpoint?.proxyAppName == packageName) {
-                logd("flow/inflow: orbot enabled for $packageName, handling as spl app")
-                return true
-            }
-        }
+        val request =
+            ProxyRoutingEngine.SpecialAppRequest(
+                isDnsFirewallMode = appConfig.getBraveMode().isDnsFirewallMode(),
+                isOrbotProxyEnabled = isOrbotProxyEnabled,
+                isCustomSocks5Enabled = isCustomSocks5Enabled,
+                isCustomHttpProxyEnabled = isCustomHttpProxyEnabled,
+                isDnsProxyActive = isDnsProxyActive,
+                packageName = packageName,
+                orbotProxyAppName = orbotEndpoint?.proxyAppName,
+                socks5ProxyAppName = socks5Endpoint?.proxyAppName,
+                httpProxyAppName = httpEndpoint?.proxyAppName,
+                dnsProxyAppName = dnsProxyEndpoint?.proxyAppName
+            )
 
-        if (appConfig.isCustomSocks5Enabled()) {
-            val endpoint = appConfig.getSocks5ProxyDetails()
-            if (endpoint == null) {
-                Logger.e(LOG_TAG_VPN, "flow: socks5 proxy enabled but endpoint is null")
-            }
-            val packageName = FirewallManager.getPackageNameByUid(uid)
-            logd("flow/inflow: socks5 proxy is enabled, $packageName, ${endpoint?.proxyAppName}")
-            // do not block the app if the app is set to forward the traffic via socks5 proxy
-            if (endpoint?.proxyAppName == packageName) {
-                logd("flow/inflow: socks5 enabled for $packageName, handling as spl app")
-                return true
-            }
+        val isSpecialApp = ProxyRoutingEngine.isSpecialApp(request)
+        if (isSpecialApp) {
+            logd("flow/inflow: special app matched for proxy routing, $uid, $packageName")
         }
-
-        if (appConfig.isCustomHttpProxyEnabled()) {
-            val endpoint = appConfig.getHttpProxyDetails()
-            if (endpoint == null) {
-                Logger.e(LOG_TAG_VPN, "flow: http proxy enabled but endpoint is null")
-            }
-            val packageName = FirewallManager.getPackageNameByUid(uid)
-            // do not block the app if the app is set to forward the traffic via http proxy
-            if (endpoint?.proxyAppName == packageName) {
-                logd("flow/inflow: http exit for $packageName, $uid")
-                return true
-            }
-        }
-
-        if (appConfig.isDnsProxyActive()) {
-            val endpoint = appConfig.getSelectedDnsProxyDetails() ?: return false
-            val packageName = FirewallManager.getPackageNameByUid(uid) ?: return false
-            // do not block the app if the app is set to forward the traffic via dns proxy
-            if (endpoint.proxyAppName == packageName) {
-                logd("flow/inflow: dns proxy enabled for $packageName, handling as spl app")
-                return true
-            }
-        }
-
-        return false
+        return isSpecialApp
     }
 
     private suspend fun determineProxyDetails(
@@ -5348,154 +5348,143 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         doubleLoopback: Boolean,
         rinr: Boolean
     ): Mark {
-        var baseOrExit =
-            if (doubleLoopback) {
-                Backend.Base
-            } else if (connTracker.blockedByRule == FirewallRuleset.RULE9.id) {
-                // special case: proxied dns traffic should not Backed.Exit as is. Only traffic
-                // marked with Backend.Base will be handled (proxied) by vpnAdapter's dns-transport
-                Backend.Base
-            } else {
-                if (persistentState.autoProxyEnabled) Backend.Auto else Backend.Exit
-            }
-
-        // override baseOrExit to Exit if rinr is true and the app is rethink because using
-        // base will cause rethink's traffic to be reroute to vpn again
-        // treat it as special case, also remove if this is handled in go side
-        baseOrExit = if (rinr && connTracker.uid == rethinkUid) {
-            if (persistentState.autoProxyEnabled) Backend.Auto else Backend.Exit
-        } else {
-            baseOrExit
-        }
         val connId = connTracker.connId
         val uid = connTracker.uid
+        val packageName = FirewallManager.getPackageNameByUid(uid)
+        val baseOrExit =
+            ProxyRoutingEngine.resolveBaseOrExitProxyId(
+                doubleLoopback = doubleLoopback,
+                blockedByRule = connTracker.blockedByRule,
+                rinr = rinr,
+                uid = uid,
+                rethinkUid = rethinkUid,
+                autoProxyEnabled = persistentState.autoProxyEnabled
+            )
 
-        if (connTracker.uid == rethinkUid && !rinr) {
-            val pid = if (persistentState.autoProxyEnabled) Backend.Auto else Backend.Exit
-            logd("flow/inflow: $pid for rethink, $uid, $connId")
-            return persistAndConstructFlowResponse(connTracker, pid, connId, uid)
-        }
+        // Add baseOrExit in the end of the list if needed (not true for lockdown).
+        val ssid =
+            underlyingNetworks?.activeSsid
+                ?: underlyingNetworks?.ipv4Net?.firstOrNull { it.ssid != null }?.ssid
+                ?: underlyingNetworks?.ipv6Net?.firstOrNull { it.ssid != null }?.ssid
+                ?: ""
+        val wireguardProxyIds =
+            WireguardManager.getAllPossibleConfigIdsForApp(
+                uid,
+                connTracker.destIP,
+                connTracker.destPort,
+                connTracker.query ?: "",
+                true,
+                ssid,
+                baseOrExit
+            )
 
-        if (FirewallManager.isAppExcludedFromProxy(uid)) {
-            logd("flow/inflow: app is excluded from proxy, returning Ipn.Base, $connId, $uid")
-            if (connTracker.blockedByRule == FirewallRuleset.RULE0.id) {
-                connTracker.blockedByRule = FirewallRuleset.RULE15.id
-            }
-            return persistAndConstructFlowResponse(connTracker, baseOrExit, connId, uid)
-        }
-        // add baseOrExit in the end of the list if needed (not true for lockdown)
-        val ssid = underlyingNetworks?.activeSsid ?: underlyingNetworks?.ipv4Net?.firstOrNull { it.ssid != null }?.ssid ?: underlyingNetworks?.ipv6Net?.firstOrNull { it.ssid != null }?.ssid ?: ""
-        val wgs = WireguardManager.getAllPossibleConfigIdsForApp(uid, connTracker.destIP, connTracker.destPort, connTracker.query ?: "", true, ssid, baseOrExit)
-        if (wgs.isNotEmpty() && wgs.first() != baseOrExit) {
-            // canRoute may fail for all configs.
-            // if that happens:
-            //   - traffic is sent to baseOrExit if available,
-            //   - in lockdown mode, traffic is blocked if not active, apply rule#17
-            if (wgs.contains(Backend.Block)) { // block should be the only entry
-                connTracker.isBlocked = true
-                connTracker.blockedByRule = FirewallRuleset.RULE17.id
-            }
-            val ids = wgs.joinToString(",")
-            if (ids.isEmpty()) { // should not happen as wgs is not empty
-                logd("flow/inflow: wg ids is empty, returning $baseOrExit, $connId, $uid")
-                return persistAndConstructFlowResponse(connTracker, baseOrExit, connId, uid)
+        val isOrbotProxyEnabled = appConfig.isOrbotProxyEnabled()
+        val isCustomSocks5Enabled = appConfig.isCustomSocks5Enabled()
+        val isCustomHttpProxyEnabled = appConfig.isCustomHttpProxyEnabled()
+        val isDnsProxyActive = appConfig.isDnsProxyActive()
+
+        val orbotEndpoint =
+            if (isOrbotProxyEnabled) {
+                appConfig.getConnectedOrbotProxy()
             } else {
-                logd("flow/inflow: wg is active, returning $wgs, $connId, $uid")
-                return persistAndConstructFlowResponse(connTracker, ids, connId, uid)
+                null
             }
-        } else {
-            Logger.vv(LOG_TAG_VPN, "flow/inflow: no wg proxy, fall-through")
-        }
-
-        // carry out this check after wireguard, because wireguard has catchAll and lockdown.
-        // if no proxy or dns proxy is enabled, return baseOrExit
-        if (!appConfig.isProxyEnabled() && !appConfig.isDnsProxyActive()) {
-            logd("flow/inflow: no proxy/dnsproxy enabled, returning Ipn.Base, $connId, $uid")
-            return persistAndConstructFlowResponse(connTracker, baseOrExit, connId, uid)
-        }
-
-        if (appConfig.isOrbotProxyEnabled()) {
-            val endpoint = appConfig.getConnectedOrbotProxy()
-            val packageName = FirewallManager.getPackageNameByUid(uid)
-            if (endpoint?.proxyAppName == packageName) {
-                val pid = if (persistentState.autoProxyEnabled) Backend.Auto else Backend.Exit
-                logd("flow/inflow: orbot $pid for $packageName, $connId, $uid")
-                return persistAndConstructFlowResponse(connTracker, pid, connId, uid)
-            }
-
-            val activeId = ProxyManager.getProxyIdForApp(uid)
-            if (!activeId.contains(ProxyManager.ID_ORBOT_BASE)) {
-                Logger.e(LOG_TAG_VPN, "flow/inflow: orbot proxy is enabled but app is not included")
-                // pass-through
+        val socks5Endpoint =
+            if (isCustomSocks5Enabled) {
+                appConfig.getSocks5ProxyDetails()
             } else {
-                logd("flow/inflow: orbot proxy for $uid, $connId")
-                return persistAndConstructFlowResponse(
-                    connTracker,
-                    ProxyManager.ID_ORBOT_BASE,
-                    connId,
-                    uid
+                null
+            }
+        val httpEndpoint =
+            if (isCustomHttpProxyEnabled) {
+                appConfig.getHttpProxyDetails()
+            } else {
+                null
+            }
+        val dnsProxyEndpoint =
+            if (isDnsProxyActive) {
+                appConfig.getSelectedDnsProxyDetails()
+            } else {
+                null
+            }
+
+        if (isCustomSocks5Enabled && socks5Endpoint == null) {
+            Logger.e(LOG_TAG_VPN, "flow: socks5 proxy enabled but endpoint is null")
+        }
+        if (isCustomHttpProxyEnabled && httpEndpoint == null) {
+            Logger.e(LOG_TAG_VPN, "flow: http proxy enabled but endpoint is null")
+        }
+        if (isCustomSocks5Enabled) {
+            logd("flow/inflow: socks5 proxy is enabled, $packageName, ${socks5Endpoint?.proxyAppName}")
+        }
+
+        val decision =
+            ProxyRoutingEngine.determineRoute(
+                ProxyRoutingEngine.RoutingRequest(
+                    uid = uid,
+                    rethinkUid = rethinkUid,
+                    rinr = rinr,
+                    autoProxyEnabled = persistentState.autoProxyEnabled,
+                    blockedByRule = connTracker.blockedByRule,
+                    appExcludedFromProxy = FirewallManager.isAppExcludedFromProxy(uid),
+                    baseOrExitProxyId = baseOrExit,
+                    wireguardProxyIds = wireguardProxyIds,
+                    isProxyEnabled = appConfig.isProxyEnabled(),
+                    isDnsProxyActive = isDnsProxyActive,
+                    isOrbotProxyEnabled = isOrbotProxyEnabled,
+                    isCustomSocks5Enabled = isCustomSocks5Enabled,
+                    isCustomHttpProxyEnabled = isCustomHttpProxyEnabled,
+                    packageName = packageName,
+                    orbotProxyAppName = orbotEndpoint?.proxyAppName,
+                    orbotProxyAssignedToApp =
+                        if (isOrbotProxyEnabled) {
+                            ProxyManager.getProxyIdForApp(uid).contains(ProxyManager.ID_ORBOT_BASE)
+                        } else {
+                            false
+                        },
+                    socks5ProxyAppName = socks5Endpoint?.proxyAppName,
+                    httpProxyAppName = httpEndpoint?.proxyAppName,
+                    dnsProxyAppName = dnsProxyEndpoint?.proxyAppName
                 )
-            }
-        }
-
-        // chose socks5 proxy over http proxy
-        if (appConfig.isCustomSocks5Enabled()) {
-            val endpoint = appConfig.getSocks5ProxyDetails()
-            val packageName = FirewallManager.getPackageNameByUid(uid)
-            if (endpoint == null) {
-                Logger.e(LOG_TAG_VPN, "flow: socks5 proxy enabled but endpoint is null")
-            }
-            logd("flow/inflow: socks5 proxy is enabled, $packageName, ${endpoint?.proxyAppName}")
-            // do not block the app if the app is set to forward the traffic via socks5 proxy
-            if (endpoint?.proxyAppName == packageName) {
-                val pid = if (persistentState.autoProxyEnabled) Backend.Auto else Backend.Exit
-                logd("flow/inflow: socks5 $pid for $packageName, $connId, $uid")
-                return persistAndConstructFlowResponse(connTracker, pid, connId, uid)
-            }
-
-            logd("flow/inflow: socks5 proxy for $connId, $uid")
-            return persistAndConstructFlowResponse(
-                connTracker,
-                ProxyManager.ID_S5_BASE,
-                connId,
-                uid
             )
+
+        if (decision.markBlocked) {
+            connTracker.isBlocked = true
+        }
+        decision.blockedByRuleOverride?.let {
+            connTracker.blockedByRule = it
+        }
+        if (decision.orbotProxyEnabledButAppNotIncluded) {
+            Logger.e(LOG_TAG_VPN, "flow/inflow: orbot proxy is enabled but app is not included")
         }
 
-        if (appConfig.isCustomHttpProxyEnabled()) {
-            val endpoint = appConfig.getHttpProxyDetails()
-            if (endpoint == null) {
-                Logger.e(LOG_TAG_VPN, "flow: http proxy enabled but endpoint is null")
-            }
-            val packageName = FirewallManager.getPackageNameByUid(uid)
-            // do not block the app if the app is set to forward the traffic via http proxy
-            if (endpoint?.proxyAppName == packageName) {
-                val pid = if (persistentState.autoProxyEnabled) Backend.Auto else Backend.Exit
-                logd("flow/inflow: http $pid for $packageName, $connId, $uid")
-                return persistAndConstructFlowResponse(connTracker, pid, connId, uid)
-            }
-            logd("flow/inflow: http proxy for $connId, $uid")
-            return persistAndConstructFlowResponse(
-                connTracker,
-                ProxyManager.ID_HTTP_BASE,
-                connId,
-                uid
-            )
+        when (decision.reason) {
+            ProxyRoutingEngine.Reason.RETHINK_DIRECT ->
+                logd("flow/inflow: ${decision.proxyIds} for rethink, $uid, $connId")
+            ProxyRoutingEngine.Reason.EXCLUDED_APP ->
+                logd("flow/inflow: app is excluded from proxy, returning ${decision.proxyIds}, $connId, $uid")
+            ProxyRoutingEngine.Reason.WIREGUARD ->
+                logd("flow/inflow: wg route selected, ${decision.proxyIds}, $connId, $uid")
+            ProxyRoutingEngine.Reason.NO_PROXY_ACTIVE ->
+                logd("flow/inflow: no proxy/dnsproxy enabled, returning ${decision.proxyIds}, $connId, $uid")
+            ProxyRoutingEngine.Reason.ORBOT_DIRECT_APP ->
+                logd("flow/inflow: orbot ${decision.proxyIds} for $packageName, $connId, $uid")
+            ProxyRoutingEngine.Reason.ORBOT_PROXY ->
+                logd("flow/inflow: orbot proxy for $uid, $connId")
+            ProxyRoutingEngine.Reason.SOCKS5_DIRECT_APP ->
+                logd("flow/inflow: socks5 ${decision.proxyIds} for $packageName, $connId, $uid")
+            ProxyRoutingEngine.Reason.SOCKS5_PROXY ->
+                logd("flow/inflow: socks5 proxy for $connId, $uid")
+            ProxyRoutingEngine.Reason.HTTP_DIRECT_APP ->
+                logd("flow/inflow: http ${decision.proxyIds} for $packageName, $connId, $uid")
+            ProxyRoutingEngine.Reason.HTTP_PROXY ->
+                logd("flow/inflow: http proxy for $connId, $uid")
+            ProxyRoutingEngine.Reason.DNS_PROXY_DIRECT_APP ->
+                logd("flow/inflow: dns proxy enabled for $packageName, return ${decision.proxyIds}, $connId, $uid")
+            ProxyRoutingEngine.Reason.FALLBACK_BASE_OR_EXIT ->
+                logd("flow/inflow: no proxies, ${decision.proxyIds}, $connId, $uid")
         }
-
-        if (appConfig.isDnsProxyActive()) {
-            val endpoint = appConfig.getSelectedDnsProxyDetails()
-            val packageName = FirewallManager.getPackageNameByUid(uid)
-            // do not block the app if the app is set to forward the traffic via dns proxy
-            if (endpoint?.proxyAppName == packageName) {
-                val pid = if (persistentState.autoProxyEnabled) Backend.Auto else Backend.Exit
-                logd("flow/inflow: dns proxy enabled for $packageName, return $pid, $connId, $uid")
-                return persistAndConstructFlowResponse(connTracker, pid, connId, uid)
-            }
-        }
-
-        logd("flow/inflow: no proxies, $baseOrExit, $connId, $uid")
-        return persistAndConstructFlowResponse(connTracker, baseOrExit, connId, uid)
+        return persistAndConstructFlowResponse(connTracker, decision.proxyIds, connId, uid)
     }
 
     fun hasCid(connId: String, uid: Int): Boolean {

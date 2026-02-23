@@ -29,6 +29,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,14 +39,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
@@ -84,6 +83,9 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager.isNotLocalAndRpnProxy
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.HomeScreenActivity
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.celzero.bravedns.util.Protocol
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.htmlToSpannedText
@@ -198,8 +200,12 @@ fun ConnTrackerSheet(
         refreshFirewallRulesUi(info, scope) { firewallSelection = it }
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        val borderColor = MaterialTheme.colorScheme.outline
+    RethinkModalBottomSheet(
+        onDismissRequest = onDismiss,
+        contentPadding = PaddingValues(0.dp),
+        verticalSpacing = 0.dp,
+        includeBottomSpacer = false
+    ) {
         val chipTextColor =
             if (appInfoNegative) {
                 MaterialTheme.colorScheme.error
@@ -212,21 +218,10 @@ fun ConnTrackerSheet(
             } else {
                 MaterialTheme.colorScheme.tertiaryContainer
             }
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Box(
-                modifier =
-                    Modifier.align(Alignment.CenterHorizontally)
-                        .width(60.dp)
-                        .height(3.dp)
-                        .background(borderColor, RoundedCornerShape(2.dp))
-                        .padding(top = 10.dp)
-            )
+        RuleSheetLayout(bottomPadding = 40.dp, verticalSpacing = Dimensions.spacingSmMd) {
 
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacingMd),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -238,7 +233,7 @@ fun ConnTrackerSheet(
                         text = portDetailText,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        modifier = Modifier.padding(horizontal = Dimensions.spacingSm, vertical = Dimensions.spacingXs)
                     )
                 }
                 AssistChip(
@@ -283,7 +278,7 @@ fun ConnTrackerSheet(
                             intent.putExtra(HomeScreenActivity.EXTRA_APP_INFO_UID, info.uid)
                             activity.startActivity(intent)
                         }
-                        .padding(horizontal = 20.dp),
+                        .padding(horizontal = Dimensions.screenPaddingHorizontal),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center
             ) {
@@ -299,7 +294,7 @@ fun ConnTrackerSheet(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(Dimensions.spacingSmMd))
                 Text(
                     text = appName,
                     style = MaterialTheme.typography.titleMedium,
@@ -315,7 +310,7 @@ fun ConnTrackerSheet(
                 Text(
                     text = connectionFlag,
                     style = MaterialTheme.typography.headlineSmall,
-                    modifier = Modifier.padding(end = 8.dp)
+                    modifier = Modifier.padding(end = Dimensions.spacingSm)
                 )
                 SelectionContainer {
                     Text(
@@ -328,69 +323,49 @@ fun ConnTrackerSheet(
 
             if (showDnsCacheText) {
                 SelectionContainer {
-                    Text(
+                    ConnTrackerMutedText(
                         text = dnsCacheText,
-                        style = MaterialTheme.typography.bodySmall,
-                        textAlign = TextAlign.Center,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacingMd),
+                        textAlign = TextAlign.Center
                     )
                 }
             }
 
             if (showSummaryDetails) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 50.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacing3xl),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Column(
                         modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.End
                     ) {
-                        Text(
-                            text = connDurationText,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = connUploadText,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        ConnTrackerMutedText(text = connDurationText)
+                        ConnTrackerMutedText(text = connUploadText)
                     }
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(Dimensions.spacingSmMd))
                     Box(
                         modifier =
                             Modifier.width(1.dp)
                                 .height(32.dp)
                                 .background(MaterialTheme.colorScheme.onSurfaceVariant)
                     )
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(Dimensions.spacingSmMd))
                     Column(
                         modifier = Modifier.weight(1f),
                         horizontalAlignment = Alignment.Start
                     ) {
-                        Text(
-                            text = connTypeText,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = connDownloadText,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        ConnTrackerMutedText(text = connTypeText)
+                        ConnTrackerMutedText(text = connDownloadText)
                     }
                 }
             }
 
             if (showConnTypeSecondary) {
-                Text(
+                ConnTrackerMutedText(
                     text = connTypeSecondaryText,
-                    style = MaterialTheme.typography.bodySmall,
-                    textAlign = TextAlign.Center,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacingMd),
+                    textAlign = TextAlign.Center
                 )
             }
 
@@ -405,7 +380,7 @@ fun ConnTrackerSheet(
 
             if (showUnknownAppSwitch) {
                 Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacingMd),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
@@ -465,43 +440,53 @@ fun ConnTrackerSheet(
 
             if (showConnectionMessage) {
                 SelectionContainer {
-                    Text(
+                    ConnTrackerMutedText(
                         text = connectionMessageText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
+                        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacingMd)
                     )
                 }
             }
         }
 
         if (showRulesDialog) {
-            AlertDialog(
+            RethinkConfirmDialog(
                 onDismissRequest = { showRulesDialog = false },
-                title = { Text(text = rulesDialogTitle) },
-                icon = {
-                    if (rulesDialogIconRes != 0) {
-                        Image(
-                            painter = painterResource(id = rulesDialogIconRes),
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                },
+                title = rulesDialogTitle,
                 text = {
-                    val desc = rulesDialogDesc
-                    if (desc != null) {
-                        HtmlText(desc)
+                    Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
+                        if (rulesDialogIconRes != 0) {
+                            Image(
+                                painter = painterResource(id = rulesDialogIconRes),
+                                contentDescription = null,
+                                modifier = Modifier.size(Dimensions.iconSizeMd)
+                            )
+                        }
+                        val desc = rulesDialogDesc
+                        if (desc != null) {
+                            HtmlText(desc)
+                        }
                     }
                 },
-                confirmButton = {
-                    TextButton(onClick = { showRulesDialog = false }) {
-                        Text(text = activity.getString(R.string.lbl_dismiss))
-                    }
-                }
+                confirmText = activity.getString(R.string.lbl_dismiss),
+                onConfirm = { showRulesDialog = false }
             )
         }
     }
+}
+
+@Composable
+private fun ConnTrackerMutedText(
+    text: String,
+    modifier: Modifier = Modifier,
+    textAlign: TextAlign? = null
+) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        textAlign = textAlign,
+        modifier = modifier
+    )
 }
 
 private fun updateConnDetailsChip(
@@ -977,7 +962,7 @@ private fun SelectionRow(
 ) {
     var expanded by remember { mutableStateOf(false) }
     Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp),
+        modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.spacingMd),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Box(modifier = Modifier.weight(0.6f)) { label() }

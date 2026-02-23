@@ -243,7 +243,7 @@ private fun PaymentContent(
             Spacer(modifier = Modifier.height(Dimensions.spacingMd))
 
             Surface(
-                shape = RoundedCornerShape(20.dp),
+                shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
                 tonalElevation = 1.dp
             ) {
@@ -333,7 +333,7 @@ private fun CheckoutStatusCard(
     ) {
         Surface(
             modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(24.dp),
+            shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
             color = MaterialTheme.colorScheme.surfaceContainerLow,
             border = androidx.compose.foundation.BorderStroke(
                 1.dp,

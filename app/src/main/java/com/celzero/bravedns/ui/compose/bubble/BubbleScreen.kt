@@ -210,7 +210,7 @@ private fun AllowedHeader(count: Int) {
         )
         Surface(
             color = MaterialTheme.colorScheme.secondaryContainer,
-            shape = RoundedCornerShape(14.dp)
+            shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg)
         ) {
             Text(
                 text = count.toString(),
@@ -236,7 +236,7 @@ private fun LoadingCard() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = Dimensions.screenPaddingHorizontal),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
         tonalElevation = 1.dp
@@ -264,7 +264,7 @@ private fun EmptyState() {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = Dimensions.screenPaddingHorizontal),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
         tonalElevation = 1.dp
@@ -276,7 +276,7 @@ private fun EmptyState() {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Surface(
-                shape = RoundedCornerShape(16.dp),
+                shape = RoundedCornerShape(Dimensions.cornerRadiusLg),
                 color = MaterialTheme.colorScheme.secondaryContainer
             ) {
                 Image(
@@ -307,33 +307,20 @@ private fun EmptyState() {
 
 @Composable
 fun AllowedAppRow(app: AllowedAppInfo, onRemove: () -> Unit) {
-    BubbleListCard {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AppIcon(packageName = app.packageName)
-            Spacer(modifier = Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = app.appName,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(2.dp))
-                Text(
-                    text = allowedTimeRemaining(app),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
+    BubbleAppRow(
+        packageName = app.packageName,
+        appName = app.appName,
+        details = {
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = allowedTimeRemaining(app),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        trailing = {
             TextButton(onClick = onRemove) {
                 Text(
                     text = stringResource(R.string.lbl_remove),
@@ -342,12 +329,16 @@ fun AllowedAppRow(app: AllowedAppInfo, onRemove: () -> Unit) {
                 )
             }
         }
-    }
+    )
 }
 
 @Composable
-fun BlockedAppRow(app: BlockedAppInfo, onAllow: () -> Unit) {
-    val context = LocalContext.current
+private fun BubbleAppRow(
+    packageName: String,
+    appName: String,
+    details: @Composable () -> Unit,
+    trailing: @Composable () -> Unit
+) {
     BubbleListCard {
         Row(
             modifier = Modifier
@@ -355,51 +346,66 @@ fun BlockedAppRow(app: BlockedAppInfo, onAllow: () -> Unit) {
                 .padding(horizontal = 14.dp, vertical = 12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            AppIcon(packageName = app.packageName)
+            AppIcon(packageName = packageName)
             Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = app.appName,
+                    text = appName,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(2.dp))
+                details()
+            }
+            trailing()
+        }
+    }
+}
+
+@Composable
+fun BlockedAppRow(app: BlockedAppInfo, onAllow: () -> Unit) {
+    val context = LocalContext.current
+    BubbleAppRow(
+        packageName = app.packageName,
+        appName = app.appName,
+        details = {
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = app.packageName,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    text = app.packageName,
-                    style = MaterialTheme.typography.bodySmall,
+                    text = stringResource(R.string.bubble_blocked_count, app.count),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = timeAgo(context, app.lastBlocked),
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = stringResource(R.string.bubble_blocked_count, app.count),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = timeAgo(context, app.lastBlocked),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
             }
+        },
+        trailing = {
             Button(
                 onClick = onAllow,
-                shape = RoundedCornerShape(14.dp),
+                shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
                 contentPadding = PaddingValues(horizontal = 14.dp, vertical = 9.dp)
             ) {
                 Text(text = stringResource(R.string.bubble_allow_btn))
             }
         }
-    }
+    )
 }
 
 @Composable
@@ -411,7 +417,7 @@ private fun AppIcon(packageName: String) {
             .size(46.dp)
             .background(
                 MaterialTheme.colorScheme.secondaryContainer,
-                shape = RoundedCornerShape(14.dp)
+                shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg)
             ),
         contentAlignment = Alignment.Center
     ) {
@@ -432,7 +438,7 @@ private fun BubbleListCard(content: @Composable RowScope.() -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = Dimensions.screenPaddingHorizontal),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)),
         tonalElevation = 1.dp

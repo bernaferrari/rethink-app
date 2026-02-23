@@ -27,7 +27,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
@@ -38,7 +37,6 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,7 +50,6 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
@@ -66,7 +63,7 @@ import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.ConsoleLogViewModel
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkScreenHeader
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.FlowPreview
@@ -75,7 +72,10 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material.icons.rounded.Share
 import kotlinx.coroutines.launch
 
 private const val QUERY_TEXT_DELAY: Long = 1000
@@ -135,9 +135,9 @@ fun ConsoleLogScreen(
     }
 
     if (showFilterDialog) {
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = { showFilterDialog = false },
-            title = { Text(text = stringResource(R.string.console_log_title)) },
+            title = stringResource(R.string.console_log_title),
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     filterOptions.forEachIndexed { index, label ->
@@ -167,16 +167,10 @@ fun ConsoleLogScreen(
                     }
                 }
             },
-            confirmButton = {
-                TextButton(onClick = { showFilterDialog = false }) {
-                    Text(text = stringResource(R.string.fapps_info_dialog_positive_btn))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showFilterDialog = false }) {
-                    Text(text = stringResource(R.string.lbl_cancel))
-                }
-            }
+            confirmText = stringResource(R.string.fapps_info_dialog_positive_btn),
+            dismissText = stringResource(R.string.lbl_cancel),
+            onConfirm = { showFilterDialog = false },
+            onDismiss = { showFilterDialog = false }
         )
     }
 
@@ -195,7 +189,7 @@ fun ConsoleLogScreen(
                 text = { Text(text = stringResource(R.string.about_bug_report_desc)) },
                 icon = {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_share),
+                        imageVector = Icons.Rounded.Share,
                         contentDescription = null
                     )
                 },
@@ -291,7 +285,7 @@ private fun SearchRow(
             Row(horizontalArrangement = Arrangement.spacedBy(0.dp)) {
                 IconButton(onClick = onFilterClick) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_filter),
+                        imageVector = Icons.Rounded.FilterList,
                         contentDescription = stringResource(R.string.cd_filter),
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -299,7 +293,7 @@ private fun SearchRow(
 
                 IconButton(onClick = onShareClick) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_share),
+                        imageVector = Icons.Rounded.Share,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -307,7 +301,7 @@ private fun SearchRow(
 
                 IconButton(onClick = onDeleteClick) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ic_delete),
+                        imageVector = Icons.Rounded.Delete,
                         contentDescription = stringResource(R.string.lbl_delete),
                         tint = MaterialTheme.colorScheme.error
                     )

@@ -16,13 +16,10 @@
 package com.celzero.bravedns.ui.dialog
 
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -31,12 +28,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.HopRow
 import com.celzero.bravedns.service.WireguardManager
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
 import com.celzero.bravedns.wireguard.Config
 import io.github.aakira.napier.Napier
 
@@ -48,45 +45,42 @@ fun WgHopDialog(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    Dialog(
-        onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false)
-    ) {
+    WgDialog(onDismissRequest = onDismiss) {
         val selectedHopId = remember(selectedId) { mutableStateOf(selectedId) }
-        Column(
-            modifier = Modifier.fillMaxSize().padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+        WgDialogColumn(
+            modifier = Modifier.fillMaxSize(),
+            verticalSpacing = Dimensions.spacingSmMd
         ) {
             Text(
                 text = stringResource(R.string.hop_add_remove_title),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.onSurface
             )
-            LazyColumn(
-                modifier = Modifier.weight(1f).fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(hopables) { config ->
-                    val mapping = WireguardManager.getConfigFilesById(config.getId()) ?: return@items
-                    HopRow(
-                        context = context,
-                        srcId = srcId,
-                        config = config,
-                        isActive = mapping.isActive,
-                        selectedId = selectedHopId.value,
-                        onSelectedIdChange = { selectedHopId.value = it }
-                    )
+            RethinkBottomSheetCard(modifier = Modifier.weight(1f)) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                ) {
+                    items(hopables) { config ->
+                        val mapping = WireguardManager.getConfigFilesById(config.getId()) ?: return@items
+                        HopRow(
+                            context = context,
+                            srcId = srcId,
+                            config = config,
+                            isActive = mapping.isActive,
+                            selectedId = selectedHopId.value,
+                            onSelectedIdChange = { selectedHopId.value = it }
+                        )
+                    }
                 }
             }
-            Button(
-                onClick = {
+            RethinkBottomSheetActionRow(
+                primaryText = stringResource(R.string.ada_noapp_dialog_positive),
+                onPrimaryClick = {
                     Napier.d("Dismiss hop dialog")
                     onDismiss()
-                },
-                modifier = Modifier.align(androidx.compose.ui.Alignment.End)
-            ) {
-                Text(text = stringResource(R.string.ada_noapp_dialog_positive))
-            }
+                }
+            )
         }
     }
 }

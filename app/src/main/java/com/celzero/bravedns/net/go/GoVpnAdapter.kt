@@ -1103,16 +1103,42 @@ class GoVpnAdapter : KoinComponent {
         setHttpProxyIfNeeded(tunProxyMode)
     }
 
-    private suspend fun setSocks5TunnelModeIfNeeded(tunProxyMode: AppConfig.TunProxyMode) {
-        val socksEnabled = AppConfig.ProxyType.of(appConfig.getProxyType()).isSocks5Enabled()
-        if (!socksEnabled) return
+    private suspend fun resolveSocks5ProxyEndpoint(
+        tunProxyMode: AppConfig.TunProxyMode
+    ): ProxyEndpoint? {
+        return if (tunProxyMode.isTunProxyOrbot()) {
+            appConfig.getConnectedOrbotProxy()
+        } else {
+            appConfig.getSocks5ProxyDetails()
+        }
+    }
 
-        val socks5: ProxyEndpoint? =
-            if (tunProxyMode.isTunProxyOrbot()) {
-                appConfig.getConnectedOrbotProxy()
-            } else {
-                appConfig.getSocks5ProxyDetails()
-            }
+    private suspend fun resolveHttpProxyEndpoint(
+        tunProxyMode: AppConfig.TunProxyMode
+    ): Pair<String, ProxyEndpoint>? {
+        return if (tunProxyMode.isTunProxyOrbot()) {
+            val endpoint = appConfig.getOrbotHttpEndpoint() ?: return null
+            Pair(ProxyManager.ID_ORBOT_BASE, endpoint)
+        } else {
+            val endpoint = appConfig.getHttpProxyDetails() ?: return null
+            Pair(ProxyManager.ID_HTTP_BASE, endpoint)
+        }
+    }
+
+    private fun providerForTunProxyMode(
+        tunProxyMode: AppConfig.TunProxyMode
+    ): AppConfig.ProxyProvider {
+        return if (tunProxyMode.isTunProxyOrbot()) {
+            AppConfig.ProxyProvider.ORBOT
+        } else {
+            AppConfig.ProxyProvider.CUSTOM
+        }
+    }
+
+    private suspend fun setSocks5TunnelModeIfNeeded(tunProxyMode: AppConfig.TunProxyMode) {
+        if (!appConfig.hasSocks5ProxyTypeEnabled()) return
+
+        val socks5 = resolveSocks5ProxyEndpoint(tunProxyMode)
         if (socks5 == null) {
             Logger.w(
                 LOG_TAG_VPN,
@@ -1142,27 +1168,22 @@ class GoVpnAdapter : KoinComponent {
     }
 
     private suspend fun setHttpProxyIfNeeded(tunProxyMode: AppConfig.TunProxyMode) {
-        if (!AppConfig.ProxyType.of(appConfig.getProxyType()).isProxyTypeHasHttp()) return
+        if (!appConfig.hasHttpProxyTypeEnabled()) return
 
         try {
-            val endpoint: ProxyEndpoint
-            val id =
-                if (tunProxyMode.isTunProxyOrbot()) {
-                    val orbotEndpoint = appConfig.getOrbotHttpEndpoint()
-                    if (orbotEndpoint == null) {
-                        Logger.e(LOG_TAG_VPN, "$TAG could not fetch Orbot HTTP endpoint for proxyMode: $tunProxyMode")
-                        return
-                    }
-                    endpoint = orbotEndpoint
-                    ProxyManager.ID_ORBOT_BASE
-                } else {
-                    val httpEndpoint = appConfig.getHttpProxyDetails()
-                    if (httpEndpoint == null) {
-                        Logger.e(LOG_TAG_VPN, "$TAG could not fetch http proxy details for proxyMode: $tunProxyMode")
-                        return
-                    }
-                    endpoint = httpEndpoint
-                    ProxyManager.ID_HTTP_BASE
+            val (id, endpoint) =
+                resolveHttpProxyEndpoint(tunProxyMode) ?: run {
+                    val detail =
+                        if (tunProxyMode.isTunProxyOrbot()) {
+                            "Orbot HTTP endpoint"
+                        } else {
+                            "http proxy details"
+                        }
+                    Logger.e(
+                        LOG_TAG_VPN,
+                        "$TAG could not fetch $detail for proxyMode: $tunProxyMode"
+                    )
+                    return
                 }
             val httpProxyUrl = endpoint.proxyIP ?: return
 
@@ -1170,11 +1191,7 @@ class GoVpnAdapter : KoinComponent {
             logEvent(Severity.LOW, "set http proxy", "set http proxy with id: $id, url: $httpProxyUrl")
             Logger.i(LOG_TAG_VPN, "$TAG http proxy set, url: $httpProxyUrl, success? ${p != null}")
         } catch (e: Exception) {
-            if (tunProxyMode.isTunProxyOrbot()) {
-                appConfig.removeProxy(AppConfig.ProxyType.HTTP, AppConfig.ProxyProvider.ORBOT)
-            } else {
-                appConfig.removeProxy(AppConfig.ProxyType.HTTP, AppConfig.ProxyProvider.CUSTOM)
-            }
+            appConfig.removeProxy(AppConfig.ProxyType.HTTP, providerForTunProxyMode(tunProxyMode))
             logEvent(Severity.HIGH, "set http proxy error", "error setting http proxy, reason: ${e.message}")
             Logger.e(LOG_TAG_VPN, "$TAG error setting http proxy: ${e.message}", e)
         }

@@ -16,46 +16,32 @@
 package com.celzero.bravedns.ui.compose.settings
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.RadioButtonChecked
-import androidx.compose.material.icons.rounded.RadioButtonUnchecked
+import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import com.celzero.bravedns.ui.compose.theme.CardPosition
-import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
-import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.SectionHeader
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.CardPosition
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isOsVersionAbove412
 import com.celzero.firestack.settings.Settings
@@ -117,40 +103,36 @@ fun AntiCensorshipScreen(
     var retrySelection by remember { mutableStateOf(initialRetry) }
     val context = LocalContext.current
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            RethinkLargeTopBar(
-                title = stringResource(R.string.anti_censorship_title),
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior
-            )
-        }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding =
-                PaddingValues(
-                    start = Dimensions.screenPaddingHorizontal,
-                    end = Dimensions.screenPaddingHorizontal,
-                    bottom = Dimensions.spacing3xl
-                ),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
-        ) {
-            item {
-                AntiCensorshipOverviewCard(
-                    selectedDial = dialSelection,
-                    selectedRetry = retrySelection
-                )
+    val selectedDialLabel =
+        stringResource(
+            when (dialSelection) {
+                DialStrategies.NEVER_SPLIT -> R.string.settings_app_list_default_app
+                DialStrategies.SPLIT_AUTO -> R.string.settings_ip_text_ipv46
+                DialStrategies.SPLIT_TCP -> R.string.ac_split_tcp
+                DialStrategies.SPLIT_TCP_TLS -> R.string.ac_split_tls
+                DialStrategies.DESYNC -> R.string.ac_desync
+                DialStrategies.TCP_PROXY -> R.string.ac_tcp_proxy
             }
+        )
+    val selectedRetryLabel =
+        stringResource(
+            when (retrySelection) {
+                RetryStrategies.RETRY_NEVER -> R.string.settings_app_list_default_app
+                RetryStrategies.RETRY_WITH_SPLIT -> R.string.settings_ip_text_ipv46
+                RetryStrategies.RETRY_AFTER_SPLIT -> R.string.lbl_always
+            }
+        )
+    val topBarSubtitle =
+        "${stringResource(R.string.lbl_split)}: $selectedDialLabel · " +
+            "${stringResource(R.string.ac_retry_options_title)}: $selectedRetryLabel"
 
+    RethinkTopBarLazyColumnScreen(
+        title = stringResource(R.string.anti_censorship_title),
+        subtitle = topBarSubtitle,
+        onBackClick = onBackClick,
+        containerColor = MaterialTheme.colorScheme.background
+    ) {
             item {
-                SectionHeader(title = stringResource(R.string.anti_censorship_title))
                 RethinkListGroup {
                     val validStrategies =
                         DialStrategies.entries.filter { desyncSupported || it != DialStrategies.DESYNC }
@@ -182,18 +164,7 @@ fun AntiCensorshipScreen(
                             headline = stringResource(titleRes),
                             supporting = stringResource(descRes),
                             position = position,
-                            leadingIcon =
-                                if (dialSelection == strategy) {
-                                    Icons.Rounded.RadioButtonChecked
-                                } else {
-                                    Icons.Rounded.RadioButtonUnchecked
-                                },
-                            leadingIconTint =
-                                if (dialSelection == strategy) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                },
+                            contentOffset = Modifier.offset(x = (-Dimensions.spacingXs)),
                             onClick = {
                                 if (dialSelection != strategy) {
                                     dialSelection = strategy
@@ -266,19 +237,8 @@ fun AntiCensorshipScreen(
                             headline = stringResource(titleRes),
                             supporting = stringResource(descRes),
                             position = position,
-                            leadingIcon =
-                                if (retrySelection == strategy) {
-                                    Icons.Rounded.RadioButtonChecked
-                                } else {
-                                    Icons.Rounded.RadioButtonUnchecked
-                                },
-                            leadingIconTint =
-                                if (enabled) {
-                                    if (retrySelection == strategy) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.38f)
-                                },
                             enabled = enabled,
+                            contentOffset = Modifier.offset(x = (-Dimensions.spacingXs)),
                             onClick = {
                                 if (!enabled) {
                                     Utilities.showToastUiCentered(
@@ -320,78 +280,4 @@ fun AntiCensorshipScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun AntiCensorshipOverviewCard(
-    selectedDial: DialStrategies,
-    selectedRetry: RetryStrategies
-) {
-    val dialLabel =
-        stringResource(
-            when (selectedDial) {
-                DialStrategies.NEVER_SPLIT -> R.string.settings_app_list_default_app
-                DialStrategies.SPLIT_AUTO -> R.string.settings_ip_text_ipv46
-                DialStrategies.SPLIT_TCP -> R.string.ac_split_tcp
-                DialStrategies.SPLIT_TCP_TLS -> R.string.ac_split_tls
-                DialStrategies.DESYNC -> R.string.ac_desync
-                DialStrategies.TCP_PROXY -> R.string.ac_tcp_proxy
-            }
-        )
-    val retryLabel =
-        stringResource(
-            when (selectedRetry) {
-                RetryStrategies.RETRY_NEVER -> R.string.settings_app_list_default_app
-                RetryStrategies.RETRY_WITH_SPLIT -> R.string.settings_ip_text_ipv46
-                RetryStrategies.RETRY_AFTER_SPLIT -> R.string.lbl_always
-            }
-        )
-
-    Surface(
-        shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = 1.dp,
-        border =
-            androidx.compose.foundation.BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)
-            )
-    ) {
-        Column(
-            modifier = Modifier.padding(Dimensions.spacingXl),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-        ) {
-            Text(
-                text = stringResource(R.string.anti_censorship_title),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = stringResource(R.string.ac_split_auto_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text =
-                    stringResource(
-                        R.string.two_argument_colon,
-                        stringResource(R.string.lbl_split),
-                        dialLabel
-                    ),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-            Text(
-                text =
-                    stringResource(
-                        R.string.two_argument_colon,
-                        stringResource(R.string.ac_retry_options_title),
-                        retryLabel
-                    ),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-    }
 }

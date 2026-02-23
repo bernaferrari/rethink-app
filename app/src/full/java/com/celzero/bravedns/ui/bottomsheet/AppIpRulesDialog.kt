@@ -35,9 +35,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -51,20 +49,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
-import com.celzero.bravedns.database.EventSource
-import com.celzero.bravedns.database.EventType
-import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.IpRulesManager
-import com.celzero.bravedns.util.UIUtils
-import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import io.github.aakira.napier.Napier
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -93,20 +85,9 @@ fun AppIpRulesSheet(
     val domainRules = remember { mutableStateMapOf<String, DomainRulesManager.Status>() }
 
     LaunchedEffect(uid, ipAddress, domains) {
-        val loadedAppNames = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(uid) }
-        val pkgName =
-            if (loadedAppNames.isNotEmpty()) {
-                FirewallManager.getPackageNameByAppName(loadedAppNames[0])
-            } else {
-                null
-            }
-        appNames = loadedAppNames
-        appIcon =
-            if (pkgName != null) {
-                Utilities.getIcon(context, pkgName)
-            } else {
-                null
-            }
+        val (names, icon) = withContext(Dispatchers.IO) { fetchRuleSheetAppIdentity(context, uid) }
+        appNames = names
+        appIcon = icon
         ipRule = withContext(Dispatchers.IO) {
             IpRulesManager.getMostSpecificRuleMatch(uid, ipAddress)
         }
@@ -118,141 +99,60 @@ fun AppIpRulesSheet(
         domainRules.putAll(statuses)
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        val appName =
-            when {
-                appNames.isEmpty() -> null
-                appNames.size >= 2 ->
-                    stringResource(
-                        R.string.ctbs_app_other_apps,
-                        appNames[0],
-                        appNames.size.minus(1).toString()
-                    )
-                else -> appNames[0]
-            }
-        val borderColor = MaterialTheme.colorScheme.outline
-        val trustIcon =
-            if (ipRule == IpRulesManager.IpRuleStatus.TRUST) {
-                R.drawable.ic_trust_accent
-            } else {
-                R.drawable.ic_trust
-            }
-        val blockIcon =
-            if (ipRule == IpRulesManager.IpRuleStatus.BLOCK) {
-                R.drawable.ic_block_accent
-            } else {
-                R.drawable.ic_block
-            }
+    RuleSheetModal(onDismissRequest = onDismiss) {
+        val appName = formatRuleSheetAppName(context, appNames)
+        RuleSheetLayout(bottomPadding = RuleSheetBottomPaddingWithActions) {
+            RuleSheetAppHeader(appName = appName, appIcon = appIcon)
 
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 60.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Box(
-                modifier =
-                    Modifier.align(Alignment.CenterHorizontally)
-                        .width(60.dp)
-                        .height(3.dp)
-                        .background(borderColor, RoundedCornerShape(2.dp))
-            )
-
-            if (appName != null) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    appIcon?.let { icon ->
-                        val painter = rememberDrawablePainter(icon)
-                        painter?.let {
-                            Image(
-                                painter = it,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                        }
-                    }
-                    Text(
-                        text = appName.orEmpty(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            Text(
+            RuleSheetSectionTitle(
                 text = stringResource(R.string.bsct_block_ip),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SelectionContainer(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = ipAddress,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+            RuleSheetTrustBlockRow(
+                value = ipAddress,
+                isTrustSelected = ipRule == IpRulesManager.IpRuleStatus.TRUST,
+                isBlockSelected = ipRule == IpRulesManager.IpRuleStatus.BLOCK,
+                onTrustClick = {
+                    val target =
+                        if (ipRule == IpRulesManager.IpRuleStatus.TRUST) {
+                            IpRulesManager.IpRuleStatus.NONE
+                        } else {
+                            IpRulesManager.IpRuleStatus.TRUST
+                        }
+                    applyIpRule(
+                        uid,
+                        ipAddress,
+                        target,
+                        scope,
+                        eventLogger,
+                        onUpdated
+                    ) { ipRule = it }
+                },
+                onBlockClick = {
+                    val target =
+                        if (ipRule == IpRulesManager.IpRuleStatus.BLOCK) {
+                            IpRulesManager.IpRuleStatus.NONE
+                        } else {
+                            IpRulesManager.IpRuleStatus.BLOCK
+                        }
+                    applyIpRule(
+                        uid,
+                        ipAddress,
+                        target,
+                        scope,
+                        eventLogger,
+                        onUpdated
+                    ) { ipRule = it }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Icon(
-                    painter = painterResource(id = trustIcon),
-                    contentDescription = null,
-                    modifier =
-                        Modifier.size(28.dp).clickable {
-                            val target =
-                                if (ipRule == IpRulesManager.IpRuleStatus.TRUST) {
-                                    IpRulesManager.IpRuleStatus.NONE
-                                } else {
-                                    IpRulesManager.IpRuleStatus.TRUST
-                                }
-                            applyIpRule(
-                                uid,
-                                ipAddress,
-                                target,
-                                scope,
-                                eventLogger,
-                                onUpdated
-                            ) { ipRule = it }
-                        }
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Icon(
-                    painter = painterResource(id = blockIcon),
-                    contentDescription = null,
-                    modifier =
-                        Modifier.size(28.dp).clickable {
-                            val target =
-                                if (ipRule == IpRulesManager.IpRuleStatus.BLOCK) {
-                                    IpRulesManager.IpRuleStatus.NONE
-                                } else {
-                                    IpRulesManager.IpRuleStatus.BLOCK
-                                }
-                            applyIpRule(
-                                uid,
-                                ipAddress,
-                                target,
-                                scope,
-                                eventLogger,
-                                onUpdated
-                            ) { ipRule = it }
-                        }
-                )
-            }
+            )
 
             if (domainList.isNotEmpty()) {
-                Text(
+                RuleSheetSectionTitle(
                     text = stringResource(R.string.bsct_block_domain),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
                 )
-                LazyColumn(modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = Dimensions.screenPaddingHorizontal)
+                ) {
                     items(domainList, key = { it }) { domain ->
                         val status = domainRules[domain] ?: DomainRulesManager.Status.NONE
                         DomainRuleRow(
@@ -267,11 +167,8 @@ fun AppIpRulesSheet(
                 }
             }
 
-            Text(
+            RuleSheetSupportingText(
                 text = stringResource(R.string.bsac_title_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
             )
         }
     }
@@ -283,20 +180,8 @@ private fun DomainRuleRow(
     status: DomainRulesManager.Status,
     onUpdate: (DomainRulesManager.Status) -> Unit
 ) {
-    val trustIcon =
-        if (status == DomainRulesManager.Status.TRUST) {
-            R.drawable.ic_trust_accent
-        } else {
-            R.drawable.ic_trust
-        }
-    val blockIcon =
-        if (status == DomainRulesManager.Status.BLOCK) {
-            R.drawable.ic_block_accent
-        } else {
-            R.drawable.ic_block
-        }
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = Dimensions.spacingSm),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(
@@ -305,30 +190,26 @@ private fun DomainRuleRow(
             color = MaterialTheme.colorScheme.onSurface,
             modifier = Modifier.weight(1f)
         )
-        Icon(
-            painter = painterResource(id = trustIcon),
-            contentDescription = null,
-            modifier =
-                Modifier.size(24.dp).clickable {
-                    if (status == DomainRulesManager.Status.TRUST) {
-                        onUpdate(DomainRulesManager.Status.NONE)
-                    } else {
-                        onUpdate(DomainRulesManager.Status.TRUST)
-                    }
+        TrustBlockToggleStrip(
+            isTrustSelected = status == DomainRulesManager.Status.TRUST,
+            isBlockSelected = status == DomainRulesManager.Status.BLOCK,
+            onTrustClick = {
+                if (status == DomainRulesManager.Status.TRUST) {
+                    onUpdate(DomainRulesManager.Status.NONE)
+                } else {
+                    onUpdate(DomainRulesManager.Status.TRUST)
                 }
-        )
-        Spacer(modifier = Modifier.width(10.dp))
-        Icon(
-            painter = painterResource(id = blockIcon),
-            contentDescription = null,
-            modifier =
-                Modifier.size(24.dp).clickable {
-                    if (status == DomainRulesManager.Status.BLOCK) {
-                        onUpdate(DomainRulesManager.Status.NONE)
-                    } else {
-                        onUpdate(DomainRulesManager.Status.BLOCK)
-                    }
+            },
+            onBlockClick = {
+                if (status == DomainRulesManager.Status.BLOCK) {
+                    onUpdate(DomainRulesManager.Status.NONE)
+                } else {
+                    onUpdate(DomainRulesManager.Status.BLOCK)
                 }
+            },
+            iconSize = Dimensions.iconSizeMd,
+            spacingBefore = Dimensions.spacingSmMd,
+            spacingBetween = Dimensions.spacingSmMd
         )
     }
 }
@@ -360,14 +241,7 @@ private fun applyIpRule(
 ) {
     onSetStatus(status)
     val details = "IP Rule set to ${status.name} for IP: $ipAddress, UID: $uid"
-    eventLogger.log(
-        EventType.FW_RULE_MODIFIED,
-        Severity.LOW,
-        "Custom IP",
-        EventSource.UI,
-        false,
-        details
-    )
+    logFirewallRuleChange(eventLogger, "Custom IP", details)
     scope.launch(Dispatchers.IO) {
         val ipPair = IpRulesManager.getIpNetPort(ipAddress)
         val ip = ipPair.first ?: run {

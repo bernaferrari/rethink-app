@@ -21,22 +21,24 @@ import android.content.Context
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.background
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Card
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -47,20 +49,22 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.Event
+import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.Severity
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-private const val ROTATION_EXPANDED = 180f
-private const val ROTATION_COLLAPSED = 0f
 
 fun copyEventToClipboard(context: Context, text: String) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
@@ -70,116 +74,231 @@ fun copyEventToClipboard(context: Context, text: String) {
 }
 
 @Composable
-fun EventCard(event: Event, onCopy: (String) -> Unit) {
+fun EventCard(event: Event, onCopy: (String) -> Unit, query: String = "") {
     val hasDetails = !event.details.isNullOrBlank()
     var expanded by remember(event.id) { mutableStateOf(false) }
-    val rotation by animateFloatAsState(
-        targetValue = if (expanded) ROTATION_EXPANDED else ROTATION_COLLAPSED,
-        label = "event-expand"
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.987f else 1f,
+        animationSpec = tween(durationMillis = 120),
+        label = "event_card_scale"
     )
 
-    val severityColor = Color(
-        when (event.severity) {
-            Severity.LOW -> 0xFF4CAF50.toInt()
-            Severity.MEDIUM -> 0xFFFFC107.toInt()
-            Severity.HIGH -> 0xFFFF9800.toInt()
-            Severity.CRITICAL -> 0xFFF44336.toInt()
-        }
-    )
-    val iconRes = when (event.severity) {
-        Severity.LOW -> R.drawable.ic_tick_normal
-        Severity.MEDIUM -> R.drawable.ic_app_info_accent
-        Severity.HIGH -> R.drawable.ic_block_accent
-        Severity.CRITICAL -> R.drawable.ic_block
+    val accent = event.severity.toAccentColor()
+    val timestampText = remember(event.timestamp) { formatEventTimestamp(event.timestamp) }
+    val highlightColor = MaterialTheme.colorScheme.primary
+    val highlightedMessage = remember(event.message, query, highlightColor) {
+        buildHighlightedText(event.message, query, highlightColor)
+    }
+    val highlightedDetails = remember(event.details, query, highlightColor) {
+        buildHighlightedText(event.details.orEmpty(), query, highlightColor)
     }
 
-    Card(
-        modifier =
-            Modifier
-                .padding(horizontal = 12.dp, vertical = 6.dp)
-                .fillMaxWidth()
-                .combinedClickable(
-                    onClick = { if (hasDetails) expanded = !expanded },
-                    onLongClick = { onCopy(event.message) }
-                )
-    ) {
-        Row(modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Min)) {
-            Box(
-                modifier =
-                    Modifier
-                        .width(2.dp)
-                        .fillMaxHeight()
-                        .background(severityColor)
-            )
-            Column(
-                modifier = Modifier.fillMaxWidth().padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        painter = painterResource(id = iconRes),
-                        contentDescription = null,
-                        tint = severityColor,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Surface(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = MaterialTheme.shapes.small
-                    ) {
-                        Text(
-                            text = event.eventType.name.replace("_", " "),
-                            style = MaterialTheme.typography.labelSmall,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Surface(
-                        color = severityColor,
-                        shape = MaterialTheme.shapes.small
-                    ) {
-                        Text(
-                            text = event.severity.name,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                        )
-                    }
-                    Spacer(modifier = Modifier.weight(1f))
+    Surface(
+        shape = RoundedCornerShape(22.dp),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)),
+        modifier = Modifier
+            .fillMaxWidth()
+            .scale(scale)
+            .combinedClickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = {
                     if (hasDetails) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_down),
-                            contentDescription = null,
-                            modifier = Modifier.rotate(rotation)
-                        )
+                        expanded = !expanded
                     }
-                }
-
-                val date =
-                    remember(event.timestamp) {
-                        val df = SimpleDateFormat("dd MMM yyyy, HH:mm:ss", Locale.getDefault())
-                        df.format(Date(event.timestamp))
-                    }
+                },
+                onLongClick = { onCopy(event.toClipboardText()) }
+            )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                EventBadge(
+                    text = event.severity.name,
+                    containerColor = accent.copy(alpha = 0.16f),
+                    contentColor = accent
+                )
+                EventBadge(
+                    text = event.source.toDisplayLabel(),
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
+                    contentColor = MaterialTheme.colorScheme.onSurface
+                )
+                Spacer(modifier = Modifier.weight(1f))
                 Text(
-                    text = date,
+                    text = timestampText,
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-
-                Text(
-                    text = event.message,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                AnimatedVisibility(visible = expanded && hasDetails) {
-                    Text(
-                        text = event.details ?: "",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                IconButton(
+                    onClick = { onCopy(event.toClipboardText()) },
+                    modifier = Modifier.size(28.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_copy),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
+
+            Text(
+                text = highlightedMessage,
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                EventBadge(
+                    text = event.eventType.name.toDisplayLabel(),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                if (event.userAction) {
+                    EventBadge(
+                        text = "User action",
+                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                }
+            }
+
+            AnimatedVisibility(visible = expanded && hasDetails) {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+                    )
+                    Text(
+                        text = highlightedDetails,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 8,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun EventBadge(
+    text: String,
+    containerColor: Color,
+    contentColor: Color
+) {
+    Surface(
+        shape = RoundedCornerShape(10.dp),
+        color = containerColor
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = contentColor,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            maxLines = 1
+        )
+    }
+}
+
+private fun Event.toClipboardText(): String {
+    return buildString {
+        append(message)
+        details?.takeIf { it.isNotBlank() }?.let {
+            append("\n\n")
+            append(it)
+        }
+    }
+}
+
+private fun EventSource.toDisplayLabel(): String {
+    return name.toDisplayLabel()
+}
+
+private fun String.toDisplayLabel(): String {
+    return lowercase(Locale.getDefault())
+        .replace('_', ' ')
+        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+}
+
+private fun Severity.toAccentColor(): Color {
+    return when (this) {
+        Severity.LOW -> Color(0xFF2E7D32)
+        Severity.MEDIUM -> Color(0xFFAD7F00)
+        Severity.HIGH -> Color(0xFFB85C00)
+        Severity.CRITICAL -> Color(0xFFB3261E)
+    }
+}
+
+private fun formatEventTimestamp(timestamp: Long): String {
+    val formatter = SimpleDateFormat("dd MMM, HH:mm:ss", Locale.getDefault())
+    return formatter.format(Date(timestamp))
+}
+
+private fun buildHighlightedText(
+    text: String,
+    query: String,
+    highlightColor: Color
+): AnnotatedString {
+    if (text.isBlank() || query.isBlank()) return AnnotatedString(text)
+
+    val ranges = mutableListOf<Pair<Int, Int>>()
+    val tokens = query.split(Regex("\\s+")).map { it.trim() }.filter { it.isNotBlank() }.distinct()
+
+    tokens.forEach { token ->
+        var startIndex = 0
+        while (startIndex < text.length) {
+            val index = text.indexOf(token, startIndex = startIndex, ignoreCase = true)
+            if (index < 0) break
+            ranges += index to (index + token.length)
+            startIndex = index + token.length
+        }
+    }
+
+    if (ranges.isEmpty()) return AnnotatedString(text)
+
+    val merged = ranges
+        .sortedBy { it.first }
+        .fold(mutableListOf<Pair<Int, Int>>()) { acc, range ->
+            if (acc.isEmpty()) {
+                acc += range
+                return@fold acc
+            }
+            val last = acc.last()
+            if (range.first <= last.second) {
+                acc[acc.lastIndex] = last.first to maxOf(last.second, range.second)
+            } else {
+                acc += range
+            }
+            acc
+        }
+
+    return buildAnnotatedString {
+        append(text)
+        merged.forEach { (start, end) ->
+            addStyle(
+                style = SpanStyle(color = highlightColor, fontWeight = FontWeight.Bold),
+                start = start,
+                end = end
+            )
         }
     }
 }

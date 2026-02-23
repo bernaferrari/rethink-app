@@ -17,55 +17,34 @@ package com.celzero.bravedns.ui.compose.statistics
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.rounded.ArrowDownward
-import androidx.compose.material.icons.rounded.ArrowUpward
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -76,8 +55,11 @@ import com.celzero.bravedns.data.SummaryStatisticsType
 import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
-import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkSegmentedChoiceRow
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
+import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 import com.celzero.bravedns.util.UIUtils.formatBytes
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel.TimeCategory
@@ -89,33 +71,38 @@ fun SummaryStatisticsScreen(
     onSeeMoreClick: (SummaryStatisticsType) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val listState = rememberLazyListState()
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            RethinkLargeTopBar(
-                title = stringResource(id = R.string.title_statistics),
-                scrollBehavior = scrollBehavior
-            )
-        }
-    ) { paddingValues ->
-        LazyColumn(
-            state = rememberLazyListState(),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(
-                start = Dimensions.screenPaddingHorizontal,
-                end = Dimensions.screenPaddingHorizontal,
-                top = Dimensions.spacingMd,
-                bottom = Dimensions.spacing3xl
-            ),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
-        ) {
+    val topActiveConns = viewModel.getTopActiveConns.collectAsLazyPagingItems()
+    val mostConnectedApps = viewModel.getAllowedAppNetworkActivity.collectAsLazyPagingItems()
+    val mostBlockedApps = viewModel.getBlockedAppNetworkActivity.collectAsLazyPagingItems()
+    val mostConnectedAsn = viewModel.getMostConnectedASN.collectAsLazyPagingItems()
+    val mostBlockedAsn = viewModel.getMostBlockedASN.collectAsLazyPagingItems()
+    val mostContactedDomains = viewModel.mcd.collectAsLazyPagingItems()
+    val mostBlockedDomains = viewModel.mbd.collectAsLazyPagingItems()
+    val mostContactedCountries = viewModel.getMostContactedCountries.collectAsLazyPagingItems()
+    val mostContactedIps = viewModel.getMostContactedIps.collectAsLazyPagingItems()
+    val mostBlockedIps = viewModel.getMostBlockedIps.collectAsLazyPagingItems()
+
+    RethinkTopBarLazyColumnScreen(
+        title = stringResource(id = R.string.title_statistics),
+        containerColor = MaterialTheme.colorScheme.surface,
+        listState = listState,
+        contentPadding = PaddingValues(
+            start = Dimensions.screenPaddingHorizontal,
+            end = Dimensions.screenPaddingHorizontal,
+            top = Dimensions.spacingMd,
+            bottom = Dimensions.spacing3xl
+        )
+    ) {
             item {
                 RethinkAnimatedSection(index = 0) {
+                    UsageOverviewCard(dataUsage = uiState.dataUsage)
+                }
+            }
+
+            item {
+                RethinkAnimatedSection(index = 1) {
                     TimeCategorySelector(
                         selectedCategory = uiState.timeCategory,
                         onCategorySelected = { viewModel.timeCategoryChanged(it) }
@@ -124,67 +111,60 @@ fun SummaryStatisticsScreen(
             }
 
             item {
-                RethinkAnimatedSection(index = 1) {
-                    UsageProgressHeader(dataUsage = uiState.dataUsage)
-                }
-            }
-
-            // Stat Sections
-            item {
-                val data = viewModel.getTopActiveConns.collectAsLazyPagingItems()
                 RethinkAnimatedSection(index = 2) {
-                    StatSection(
+                    SummaryStatSection(
                         title = stringResource(id = R.string.top_active_conns),
                         type = SummaryStatisticsType.TOP_ACTIVE_CONNS,
-                        pagingItems = data,
+                        pagingItems = topActiveConns,
+                        accentColor = MaterialTheme.colorScheme.primary,
                         onSeeMoreClick = onSeeMoreClick
                     )
                 }
             }
 
             item {
-                val data = viewModel.getAllowedAppNetworkActivity.collectAsLazyPagingItems()
                 RethinkAnimatedSection(index = 3) {
-                    StatSection(
+                    SummaryStatSection(
                         title = stringResource(id = R.string.ssv_app_network_activity_heading),
                         type = SummaryStatisticsType.MOST_CONNECTED_APPS,
-                        pagingItems = data,
+                        pagingItems = mostConnectedApps,
+                        accentColor = MaterialTheme.colorScheme.primary,
                         onSeeMoreClick = onSeeMoreClick
                     )
                 }
             }
 
             item {
-                val data = viewModel.getBlockedAppNetworkActivity.collectAsLazyPagingItems()
                 RethinkAnimatedSection(index = 4) {
-                    StatSection(
+                    SummaryStatSection(
                         title = stringResource(id = R.string.ssv_app_blocked_heading),
                         type = SummaryStatisticsType.MOST_BLOCKED_APPS,
-                        pagingItems = data,
+                        pagingItems = mostBlockedApps,
+                        accentColor = MaterialTheme.colorScheme.error,
                         onSeeMoreClick = onSeeMoreClick
                     )
                 }
             }
 
             item {
-                val data = viewModel.getMostConnectedASN.collectAsLazyPagingItems()
                 RethinkAnimatedSection(index = 5) {
-                    StatSection(
+                    SummaryStatSection(
                         title = stringResource(id = R.string.most_contacted_asn),
                         type = SummaryStatisticsType.MOST_CONNECTED_ASN,
-                        pagingItems = data,
+                        pagingItems = mostConnectedAsn,
+                        accentColor = MaterialTheme.colorScheme.secondary,
                         onSeeMoreClick = onSeeMoreClick
                     )
                 }
             }
 
             item {
-                val data = viewModel.getMostBlockedASN.collectAsLazyPagingItems()
                 RethinkAnimatedSection(index = 6) {
-                    StatSection(
+                    SummaryStatSection(
                         title = stringResource(id = R.string.most_blocked_asn),
                         type = SummaryStatisticsType.MOST_BLOCKED_ASN,
-                        pagingItems = data,
+                        pagingItems = mostBlockedAsn,
+                        accentColor = MaterialTheme.colorScheme.error,
                         onSeeMoreClick = onSeeMoreClick
                     )
                 }
@@ -195,13 +175,8 @@ fun SummaryStatisticsScreen(
                     FilledTonalButton(
                         onClick = { viewModel.setLoadMoreClicked(true) },
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(Dimensions.cardCornerRadius)
+                        shape = RoundedCornerShape(Dimensions.cornerRadius2xl)
                     ) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(R.drawable.ic_arrow_down),
-                            contentDescription = null
-                        )
-                        Spacer(modifier = Modifier.width(Dimensions.spacingSm))
                         Text(text = stringResource(id = R.string.load_more))
                     }
                 }
@@ -209,65 +184,149 @@ fun SummaryStatisticsScreen(
 
             if (uiState.loadMoreClicked) {
                 item {
-                    val data = viewModel.mcd.collectAsLazyPagingItems()
-                    RethinkAnimatedSection(index = 7) {
-                        StatSection(
-                            title = stringResource(id = R.string.ssv_most_contacted_domain_heading),
-                            type = SummaryStatisticsType.MOST_CONTACTED_DOMAINS,
-                            pagingItems = data,
-                            onSeeMoreClick = onSeeMoreClick
-                        )
-                    }
+                    SummaryStatSection(
+                        title = stringResource(id = R.string.ssv_most_contacted_domain_heading),
+                        type = SummaryStatisticsType.MOST_CONTACTED_DOMAINS,
+                        pagingItems = mostContactedDomains,
+                        accentColor = MaterialTheme.colorScheme.secondary,
+                        onSeeMoreClick = onSeeMoreClick
+                    )
                 }
 
                 item {
-                    val data = viewModel.mbd.collectAsLazyPagingItems()
-                    RethinkAnimatedSection(index = 8) {
-                        StatSection(
-                            title = stringResource(id = R.string.ssv_most_blocked_domain_heading),
-                            type = SummaryStatisticsType.MOST_BLOCKED_DOMAINS,
-                            pagingItems = data,
-                            onSeeMoreClick = onSeeMoreClick
-                        )
-                    }
+                    SummaryStatSection(
+                        title = stringResource(id = R.string.ssv_most_blocked_domain_heading),
+                        type = SummaryStatisticsType.MOST_BLOCKED_DOMAINS,
+                        pagingItems = mostBlockedDomains,
+                        accentColor = MaterialTheme.colorScheme.error,
+                        onSeeMoreClick = onSeeMoreClick
+                    )
                 }
 
                 item {
-                    val data = viewModel.getMostContactedCountries.collectAsLazyPagingItems()
-                    RethinkAnimatedSection(index = 9) {
-                        StatSection(
-                            title = stringResource(id = R.string.ssv_most_contacted_countries_heading),
-                            type = SummaryStatisticsType.MOST_CONTACTED_COUNTRIES,
-                            pagingItems = data,
-                            onSeeMoreClick = onSeeMoreClick
-                        )
-                    }
+                    SummaryStatSection(
+                        title = stringResource(id = R.string.ssv_most_contacted_countries_heading),
+                        type = SummaryStatisticsType.MOST_CONTACTED_COUNTRIES,
+                        pagingItems = mostContactedCountries,
+                        accentColor = MaterialTheme.colorScheme.tertiary,
+                        onSeeMoreClick = onSeeMoreClick
+                    )
                 }
 
                 item {
-                    val data = viewModel.getMostContactedIps.collectAsLazyPagingItems()
-                    RethinkAnimatedSection(index = 10) {
-                        StatSection(
-                            title = stringResource(id = R.string.ssv_most_contacted_ips_heading),
-                            type = SummaryStatisticsType.MOST_CONTACTED_IPS,
-                            pagingItems = data,
-                            onSeeMoreClick = onSeeMoreClick
-                        )
-                    }
+                    SummaryStatSection(
+                        title = stringResource(id = R.string.ssv_most_contacted_ips_heading),
+                        type = SummaryStatisticsType.MOST_CONTACTED_IPS,
+                        pagingItems = mostContactedIps,
+                        accentColor = MaterialTheme.colorScheme.secondary,
+                        onSeeMoreClick = onSeeMoreClick
+                    )
                 }
 
                 item {
-                    val data = viewModel.getMostBlockedIps.collectAsLazyPagingItems()
-                    RethinkAnimatedSection(index = 11) {
-                        StatSection(
-                            title = stringResource(id = R.string.ssv_most_blocked_ips_heading),
-                            type = SummaryStatisticsType.MOST_BLOCKED_IPS,
-                            pagingItems = data,
-                            onSeeMoreClick = onSeeMoreClick
-                        )
-                    }
+                    SummaryStatSection(
+                        title = stringResource(id = R.string.ssv_most_blocked_ips_heading),
+                        type = SummaryStatisticsType.MOST_BLOCKED_IPS,
+                        pagingItems = mostBlockedIps,
+                        accentColor = MaterialTheme.colorScheme.error,
+                        onSeeMoreClick = onSeeMoreClick
+                    )
                 }
             }
+        }
+}
+
+@Composable
+private fun UsageOverviewCard(dataUsage: DataUsageSummary) {
+    val total = dataUsage.totalDownload + dataUsage.totalUpload
+    val downloadShare = remember(total, dataUsage.totalDownload) {
+        if (total > 0) dataUsage.totalDownload.toFloat() / total.toFloat() else 0f
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f))
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 14.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(id = R.string.lbl_overall),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+
+            LinearProgressIndicator(
+                progress = { downloadShare },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+                    .clip(RoundedCornerShape(Dimensions.cornerRadiusXs)),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                UsageStatPill(
+                    label = stringResource(id = R.string.lbl_download),
+                    value = formatBytes(dataUsage.totalDownload),
+                    modifier = Modifier.weight(1f),
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.44f),
+                    valueColor = MaterialTheme.colorScheme.primary
+                )
+                UsageStatPill(
+                    label = stringResource(id = R.string.lbl_upload),
+                    value = formatBytes(dataUsage.totalUpload),
+                    modifier = Modifier.weight(1f),
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.42f),
+                    valueColor = MaterialTheme.colorScheme.tertiary
+                )
+                UsageStatPill(
+                    label = stringResource(id = R.string.lbl_connections),
+                    value = dataUsage.connectionsCount.toString(),
+                    modifier = Modifier.weight(1f),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    valueColor = MaterialTheme.colorScheme.onSurface
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun UsageStatPill(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier,
+    containerColor: Color,
+    valueColor: Color
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(Dimensions.cornerRadiusLg),
+        color = containerColor
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp)
+        ) {
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = valueColor
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -277,140 +336,41 @@ private fun TimeCategorySelector(
     selectedCategory: TimeCategory,
     onCategorySelected: (TimeCategory) -> Unit
 ) {
-    SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-        TimeCategory.entries.forEachIndexed { index, category ->
-            SegmentedButton(
-                selected = category == selectedCategory,
-                onClick = { onCategorySelected(category) },
-                shape = SegmentedButtonDefaults.itemShape(
-                    index = index,
-                    count = TimeCategory.entries.size
-                ),
-                label = {
-                    Text(
-                        text = when (category) {
-                            TimeCategory.ONE_HOUR -> "1h"
-                            TimeCategory.TWENTY_FOUR_HOUR -> "24h"
-                            TimeCategory.SEVEN_DAYS -> "7d"
-                        },
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = if (category == selectedCategory)
-                            FontWeight.Bold else FontWeight.Medium
-                    )
-                }
-            )
-        }
-    }
-}
-
-@Composable
-private fun UsageProgressHeader(dataUsage: DataUsageSummary) {
-    Surface(
+    RethinkSegmentedChoiceRow(
+        options = TimeCategory.entries,
+        selectedOption = selectedCategory,
+        onOptionSelected = onCategorySelected,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = 2.dp
-    ) {
-        Column(modifier = Modifier.padding(Dimensions.spacingXl)) {
-            val total = dataUsage.totalDownload + dataUsage.totalUpload
-            val progress = remember(total, dataUsage.totalDownload) {
-                if (total > 0) (dataUsage.totalDownload.toFloat() / total.toFloat()) else 0f
-            }
-
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(10.dp)
-                    .clip(RoundedCornerShape(5.dp)),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+        fillEqually = true,
+        label = { category, selected ->
+            Text(
+                text = when (category) {
+                    TimeCategory.ONE_HOUR -> stringResource(id = R.string.time_window_one_hour_short)
+                    TimeCategory.TWENTY_FOUR_HOUR -> stringResource(id = R.string.time_window_twenty_four_hours_short)
+                    TimeCategory.SEVEN_DAYS -> stringResource(id = R.string.time_window_seven_days_short)
+                },
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
             )
-
-            Spacer(modifier = Modifier.height(Dimensions.spacingLg))
-
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                // Download column
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Rounded.ArrowDownward,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(Dimensions.iconSizeSm)
-                    )
-                    Spacer(modifier = Modifier.width(Dimensions.spacingXs))
-                    Column {
-                        Text(
-                            text = formatBytes(dataUsage.totalDownload),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = stringResource(R.string.symbol_download).format(""),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                // Upload column
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Rounded.ArrowUpward,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary,
-                        modifier = Modifier.size(Dimensions.iconSizeSm)
-                    )
-                    Spacer(modifier = Modifier.width(Dimensions.spacingXs))
-                    Column {
-                        Text(
-                            text = formatBytes(dataUsage.totalUpload),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.tertiary
-                        )
-                        Text(
-                            text = stringResource(R.string.lbl_upload),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                // Total column
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = formatBytes(total),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = stringResource(R.string.lbl_overall),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
         }
-    }
+    )
 }
 
 @Composable
-private fun StatSection(
+private fun SummaryStatSection(
     title: String,
     type: SummaryStatisticsType,
     pagingItems: LazyPagingItems<AppConnection>,
+    accentColor: Color,
     onSeeMoreClick: (SummaryStatisticsType) -> Unit
 ) {
-    val hasData = pagingItems.itemCount > 0
+    val visibleCount = minOf(pagingItems.itemCount, 5)
+    val hasData = visibleCount > 0
+
     Column {
         SectionHeader(
             title = title,
+            color = accentColor,
             actionLabel = if (hasData) stringResource(id = R.string.ssv_see_more) else null,
             onAction = if (hasData) {
                 { onSeeMoreClick(type) }
@@ -419,120 +379,55 @@ private fun StatSection(
             }
         )
 
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-            ),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)),
-            elevation = CardDefaults.cardElevation(defaultElevation = Dimensions.Elevation.none)
-        ) {
-            if (!hasData) {
+        if (!hasData) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f))
+            ) {
                 CompactEmptyState(
-                    message = stringResource(R.string.lbl_no_logs),
-                    icon = Icons.Default.Info
+                    message = stringResource(id = R.string.lbl_no_logs),
+                    modifier = Modifier.padding(vertical = Dimensions.spacingSm)
                 )
-            } else {
-                Column(modifier = Modifier.padding(vertical = Dimensions.spacingSm)) {
-                    for (i in 0 until minOf(pagingItems.itemCount, 5)) {
-                        pagingItems[i]?.let { item ->
-                            StatItemRow(item = item, type = type)
-                            if (i < minOf(pagingItems.itemCount, 5) - 1) {
-                                HorizontalDivider(
-                                    modifier = Modifier.padding(horizontal = Dimensions.spacingXl),
-                                    thickness = Dimensions.dividerThickness,
-                                    color = MaterialTheme.colorScheme.outlineVariant.copy(
-                                        alpha = 0.3f
-                                    )
-                                )
-                            }
+            }
+        } else {
+            Column {
+                for (index in 0 until visibleCount) {
+                    val item = pagingItems[index] ?: continue
+                    val metricText = item.totalBytes?.takeIf { it > 0L }?.let { formatBytes(it) } ?: item.count.toString()
+                    val headline = if (type == SummaryStatisticsType.MOST_CONTACTED_COUNTRIES) {
+                        "${item.flag} ${item.appOrDnsName.orEmpty()}".trim()
+                    } else {
+                        item.appOrDnsName?.takeIf { it.isNotBlank() } ?: item.ipAddress
+                    }
+                    val supporting = buildString {
+                        append(stringResource(id = R.string.summary_connections_count, item.count))
+                        item.totalBytes?.takeIf { it > 0L }?.let {
+                            append(" \u00b7 ")
+                            append(formatBytes(it))
                         }
                     }
-                }
-            }
-        }
-    }
-}
 
-@Composable
-private fun StatItemRow(
-    item: AppConnection,
-    type: SummaryStatisticsType
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacingMd),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        // Icon/Flag
-        if (type == SummaryStatisticsType.MOST_CONTACTED_COUNTRIES) {
-            Text(
-                text = item.flag,
-                style = MaterialTheme.typography.headlineSmall,
-                modifier = Modifier.size(Dimensions.iconSizeLg)
-            )
-        } else {
-            androidx.compose.material3.Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-            ) {
-                androidx.compose.foundation.layout.Box(
-                    modifier = Modifier.size(38.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = ImageVector.vectorResource(id = R.drawable.ic_app_info),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                        modifier = Modifier.size(20.dp)
+                    RethinkListItem(
+                        headline = headline.ifBlank { "-" },
+                        supporting = supporting,
+                        leadingIconPainter = if (type == SummaryStatisticsType.MOST_CONTACTED_COUNTRIES) null else painterResource(id = R.drawable.ic_app_info),
+                        leadingIconTint = accentColor,
+                        leadingIconContainerColor = accentColor.copy(alpha = 0.14f),
+                        position = cardPositionFor(index = index, lastIndex = visibleCount - 1),
+                        showTrailingChevron = false,
+                        trailing = {
+                            Text(
+                                text = metricText,
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.SemiBold,
+                                color = accentColor
+                            )
+                        }
                     )
                 }
             }
         }
-
-        Spacer(modifier = Modifier.width(Dimensions.spacingLg))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = item.appOrDnsName ?: "",
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                maxLines = 1,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(Dimensions.spacingXs))
-            Text(
-                text = "Connections: ${item.count}",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            val totalBytes = item.totalBytes ?: 0L
-            val downloadBytes = item.downloadBytes ?: 0L
-            if (totalBytes > 0) {
-                Spacer(modifier = Modifier.height(Dimensions.spacingXs))
-                val progress = remember(downloadBytes, totalBytes) {
-                    if (totalBytes > 0) (downloadBytes.toFloat() / totalBytes.toFloat()) else 0f
-                }
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(Dimensions.spacingXs)
-                        .clip(RoundedCornerShape(Dimensions.spacingXs)),
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = Dimensions.Opacity.MEDIUM),
-                    trackColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                )
-                Text(
-                    text = formatBytes(totalBytes),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.alpha(Dimensions.Opacity.MEDIUM)
-                )
-            }
-        }
-
     }
 }

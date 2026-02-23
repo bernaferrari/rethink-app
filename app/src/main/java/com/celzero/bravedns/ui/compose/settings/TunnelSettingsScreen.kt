@@ -26,17 +26,16 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowForward
-import androidx.compose.material.icons.filled.ArrowForward
 import androidx.compose.material.icons.filled.NetworkCheck
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Tune
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -46,23 +45,23 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Slider
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -79,10 +78,11 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkScreenHeader
+import com.celzero.bravedns.ui.compose.theme.RethinkActionListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
-import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkToggleListItem
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.dialog.CustomLanIpSheet
 import com.celzero.bravedns.ui.dialog.NetworkReachabilitySheet
@@ -95,6 +95,7 @@ import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 private const val SECONDS_PER_MINUTE = 60
 private const val SECONDS_PER_HOUR = 3600
@@ -106,10 +107,134 @@ private const val IP_DIALOG_POS_IPV4 = 0
 private const val IP_DIALOG_POS_IPV6 = 1
 private const val IP_DIALOG_POS_ALWAYS_V46 = 2
 private const val IP_DIALOG_POS_V46 = 3
-private const val ALPHA_ENABLED = 1f
-private const val ALPHA_DISABLED = 0.5f
 
 private data class NetworkPolicyOption(val title: String, val description: String)
+
+private fun tunnelFocusTarget(
+    focusKey: String,
+    isLockdown: Boolean,
+    showPingIps: Boolean,
+    showAllowIncoming: Boolean,
+    showVpnMetered: Boolean
+): Pair<Int, Int>? {
+    val networkIndex = if (isLockdown) 2 else 1
+    val advancedIndex = if (isLockdown) 3 else 2
+    val timeoutIndex = if (isLockdown) 4 else 3
+    val rowHeight = 82
+    val groupStart = 62
+
+    fun groupOffset(row: Int): Int = groupStart + (rowHeight * row)
+
+    val networkRow =
+        when (focusKey) {
+            "network_allow_bypass" -> 0
+            "network_fail_open" -> 1
+            "network_allow_lan" -> 2
+            "network_all_networks" -> 3
+            "network_exclude_apps_proxy" -> 4
+            "network_protocol_translation" -> 5
+            else -> null
+        }
+
+    val advancedRow =
+        when (focusKey) {
+            "network_default_dns" -> 0
+            "network_vpn_policy" -> 1
+            "network_ip_protocol" -> 2
+            "network_connectivity_checks" -> 3
+            "network_ping_ips" -> if (showPingIps) 4 else null
+            "network_mobile_metered" -> if (showPingIps) 5 else 4
+            "network_wg_listen_port" -> if (showPingIps) 6 else 5
+            "network_wg_lockdown" -> if (showPingIps) 7 else 6
+            "network_endpoint_independence" -> if (showPingIps) 8 else 7
+            "network_allow_incoming_wg" ->
+                if (showAllowIncoming) {
+                    if (showPingIps) 9 else 8
+                } else {
+                    null
+                }
+            "network_tcp_keep_alive" ->
+                if (showPingIps) {
+                    if (showAllowIncoming) 10 else 9
+                } else {
+                    if (showAllowIncoming) 9 else 8
+                }
+            "network_jumbo_packets" ->
+                if (showPingIps) {
+                    if (showAllowIncoming) 11 else 10
+                } else {
+                    if (showAllowIncoming) 10 else 9
+                }
+            "network_vpn_metered" ->
+                if (!showVpnMetered) {
+                    null
+                } else if (showPingIps) {
+                    if (showAllowIncoming) 12 else 11
+                } else {
+                    if (showAllowIncoming) 11 else 10
+                }
+            "network_custom_lan_ip" ->
+                if (showPingIps) {
+                    if (showAllowIncoming) {
+                        if (showVpnMetered) 13 else 12
+                    } else {
+                        if (showVpnMetered) 12 else 11
+                    }
+                } else {
+                    if (showAllowIncoming) {
+                        if (showVpnMetered) 12 else 11
+                    } else {
+                        if (showVpnMetered) 11 else 10
+                    }
+                }
+            else -> null
+        }
+
+    return when (focusKey) {
+        "network_core" -> networkIndex to 0
+        "network_advanced" -> advancedIndex to 0
+        "network_dial_timeout" -> timeoutIndex to 0
+        else -> {
+            when {
+                networkRow != null -> networkIndex to groupOffset(networkRow)
+                advancedRow != null -> advancedIndex to groupOffset(advancedRow)
+                else -> null
+            }
+        }
+    }
+}
+
+private fun tunnelFocusIndex(focusKey: String, isLockdown: Boolean): Int? {
+    val networkIndex = if (isLockdown) 2 else 1
+    val advancedIndex = if (isLockdown) 3 else 2
+    val timeoutIndex = if (isLockdown) 4 else 3
+    return when (focusKey) {
+        "network_core",
+        "network_allow_bypass",
+        "network_fail_open",
+        "network_allow_lan",
+        "network_all_networks",
+        "network_exclude_apps_proxy",
+        "network_protocol_translation" -> networkIndex
+        "network_advanced",
+        "network_default_dns",
+        "network_vpn_policy",
+        "network_ip_protocol",
+        "network_connectivity_checks",
+        "network_ping_ips",
+        "network_mobile_metered",
+        "network_wg_listen_port",
+        "network_wg_lockdown",
+        "network_endpoint_independence",
+        "network_allow_incoming_wg",
+        "network_tcp_keep_alive",
+        "network_jumbo_packets",
+        "network_vpn_metered",
+        "network_custom_lan_ip" -> advancedIndex
+        "network_dial_timeout" -> timeoutIndex
+        else -> null
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -118,6 +243,7 @@ fun TunnelSettingsScreen(
     appConfig: AppConfig,
     eventLogger: EventLogger,
     onOpenVpnProfile: () -> Unit,
+    initialFocusKey: String? = null,
     onBackClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -149,6 +275,13 @@ fun TunnelSettingsScreen(
     var showVpnPolicyDialog by remember { mutableStateOf(false) }
     var showIpDialog by remember { mutableStateOf(false) }
     var showConnectivityChecksDialog by remember { mutableStateOf(false) }
+    val listState = rememberLazyListState()
+    val density = LocalDensity.current
+    val initialFocus = initialFocusKey?.trim().orEmpty()
+    var pendingFocusKey by rememberSaveable(initialFocus) { mutableStateOf(initialFocus) }
+    var activeFocusKey by rememberSaveable(initialFocus) {
+        mutableStateOf(initialFocus.ifBlank { null })
+    }
 
     val canModify = !isLockdown
     val showPtrans = internetProtocol == InternetProtocol.IPv6.id
@@ -187,6 +320,12 @@ fun TunnelSettingsScreen(
     }
 
     val dialTimeoutDesc = formatTimeShort(dialTimeoutMin * SECONDS_PER_MINUTE)
+    val topBarSubtitle =
+        stringResource(
+            R.string.two_argument_colon,
+            stringResource(R.string.vpn_policy_title),
+            vpnPolicyDesc
+        )
 
     // Default DNS Dialog
     if (showDefaultDnsDialog) {
@@ -201,7 +340,6 @@ fun TunnelSettingsScreen(
     if (showVpnPolicyDialog) {
         VpnPolicyDialog(
             persistentState = persistentState,
-            context = context,
             onDismiss = { showVpnPolicyDialog = false },
             onConfirm = { selectedIndex ->
                 if (selectedIndex == POLICY_FIXED) {
@@ -245,11 +383,47 @@ fun TunnelSettingsScreen(
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
+    LaunchedEffect(pendingFocusKey, isLockdown, showPingIps, endpointIndependence) {
+        val key = pendingFocusKey.trim()
+        if (key.isBlank()) return@LaunchedEffect
+        activeFocusKey = key
+        val target =
+            tunnelFocusTarget(
+                focusKey = key,
+                isLockdown = isLockdown,
+                showPingIps = showPingIps,
+                showAllowIncoming = endpointIndependence,
+                showVpnMetered = isAtleastQ()
+            )
+        if (target != null) {
+            val (index, offsetDp) = target
+            val offsetPx = with(density) { offsetDp.dp.toPx().roundToInt() }
+            listState.animateScrollToItem(index, offsetPx)
+            delay(900)
+            if (activeFocusKey == key) {
+                activeFocusKey = null
+            }
+            pendingFocusKey = ""
+            return@LaunchedEffect
+        }
+
+        val index = tunnelFocusIndex(key, isLockdown)
+        if (index != null) {
+            listState.animateScrollToItem(index, 0)
+            delay(750)
+            if (activeFocusKey == key) {
+                activeFocusKey = null
+            }
+        }
+        pendingFocusKey = ""
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             RethinkLargeTopBar(
                 title = stringResource(R.string.lbl_network),
+                subtitle = topBarSubtitle,
                 onBackClick = onBackClick,
                 scrollBehavior = scrollBehavior
             )
@@ -257,6 +431,7 @@ fun TunnelSettingsScreen(
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         LazyColumn(
+            state = listState,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
@@ -264,24 +439,17 @@ fun TunnelSettingsScreen(
                 PaddingValues(
                     start = Dimensions.screenPaddingHorizontal,
                     end = Dimensions.screenPaddingHorizontal,
+                    top = Dimensions.spacingSm,
                     bottom = Dimensions.spacing3xl
                 ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            item {
-                TunnelOverviewCard(
-                    vpnPolicyDesc = vpnPolicyDesc,
-                    ipDesc = ipDesc,
-                    dialTimeoutDesc = dialTimeoutDesc
-                )
-            }
-
             if (isLockdown) {
                 item {
                     RethinkListGroup {
-                        RethinkListItem(
-                            headline = stringResource(R.string.settings_lock_down_mode_desc),
-                            leadingIconPainter = painterResource(id = R.drawable.ic_firewall_lockdown_on),
+                        RethinkActionListItem(
+                            title = stringResource(R.string.settings_lock_down_mode_desc),
+                            iconPainter = painterResource(id = R.drawable.ic_firewall_lockdown_on),
                             position = CardPosition.Single,
                             onClick = { onOpenVpnProfile() }
                         )
@@ -290,15 +458,17 @@ fun TunnelSettingsScreen(
             }
 
             item {
-                SectionHeader(title = stringResource(R.string.lbl_network))
                 RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_allow_bypass_heading),
-                        supporting = stringResource(R.string.settings_allow_bypass_desc),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_allow_bypass_heading),
+                        description = stringResource(R.string.settings_allow_bypass_desc),
+                        icon = Icons.Filled.Settings,
                         position = CardPosition.First,
-                        onClick = {
-                            if (Utilities.isPlayStoreFlavour()) return@RethinkListItem
+                        highlighted = activeFocusKey == "network_allow_bypass",
+                        checked = allowBypass,
+                        enabled = canModify && !Utilities.isPlayStoreFlavour(),
+                        onRowClick = {
+                            if (Utilities.isPlayStoreFlavour()) return@RethinkToggleListItem
                             val checked = !allowBypass
                             allowBypass = checked
                             persistentState.allowBypass = checked
@@ -309,54 +479,48 @@ fun TunnelSettingsScreen(
                             }
                             logEvent("allow bypass", "Allow bypass VPN: $checked")
                         },
-                        trailing = {
-                            Switch(
-                                checked = allowBypass,
-                                onCheckedChange = { checked ->
-                                    if (Utilities.isPlayStoreFlavour()) return@Switch
-                                    allowBypass = checked
-                                    persistentState.allowBypass = checked
-                                    allowBypassLoading = true
-                                    scope.launch {
-                                        delay(1000L)
-                                        allowBypassLoading = false
-                                    }
-                                    logEvent("allow bypass", "Allow bypass VPN: $checked")
-                                },
-                                enabled = canModify && !Utilities.isPlayStoreFlavour()
-                            )
+                        onCheckedChange = { checked ->
+                            if (Utilities.isPlayStoreFlavour()) return@RethinkToggleListItem
+                            allowBypass = checked
+                            persistentState.allowBypass = checked
+                            allowBypassLoading = true
+                            scope.launch {
+                                delay(1000L)
+                                allowBypassLoading = false
+                            }
+                            logEvent("allow bypass", "Allow bypass VPN: $checked")
                         }
                     )
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.fail_open_network_title),
-                        supporting = stringResource(R.string.fail_open_network_desc),
-                        leadingIcon = Icons.Filled.Tune,
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.fail_open_network_title),
+                        description = stringResource(R.string.fail_open_network_desc),
+                        icon = Icons.Filled.Tune,
                         position = CardPosition.Middle,
-                        onClick = {
+                        highlighted = activeFocusKey == "network_fail_open",
+                        checked = stallNoNetwork,
+                        onRowClick = {
                             val checked = !stallNoNetwork
                             stallNoNetwork = checked
                             persistentState.stallOnNoNetwork = checked
                             logEvent("stall on no network", "Stall on no network: $checked")
                         },
-                        trailing = {
-                            Switch(
-                                checked = stallNoNetwork,
-                                onCheckedChange = { checked ->
-                                    stallNoNetwork = checked
-                                    persistentState.stallOnNoNetwork = checked
-                                    logEvent("stall on no network", "Stall on no network: $checked")
-                                }
-                            )
+                        onCheckedChange = { checked ->
+                            stallNoNetwork = checked
+                            persistentState.stallOnNoNetwork = checked
+                            logEvent("stall on no network", "Stall on no network: $checked")
                         }
                     )
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_allow_lan_heading),
-                        supporting = stringResource(R.string.settings_allow_lan_desc),
-                        leadingIcon = Icons.Filled.Tune,
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_allow_lan_heading),
+                        description = stringResource(R.string.settings_allow_lan_desc),
+                        icon = Icons.Filled.Tune,
                         position = CardPosition.Middle,
-                        onClick = {
+                        highlighted = activeFocusKey == "network_allow_lan",
+                        checked = routeLan,
+                        enabled = canModify,
+                        onRowClick = {
                             if (canModify) {
                                 val checked = !routeLan
                                 routeLan = checked
@@ -365,26 +529,23 @@ fun TunnelSettingsScreen(
                                 logEvent("route lan traffic", "Route LAN traffic: $checked")
                             }
                         },
-                        trailing = {
-                            Switch(
-                                checked = routeLan,
-                                onCheckedChange = { checked ->
-                                    routeLan = checked
-                                    persistentState.privateIps = checked
-                                    if (checked) persistentState.enableStabilityDependentSettings(context)
-                                    logEvent("route lan traffic", "Route LAN traffic: $checked")
-                                },
-                                enabled = canModify
-                            )
+                        onCheckedChange = { checked ->
+                            routeLan = checked
+                            persistentState.privateIps = checked
+                            if (checked) persistentState.enableStabilityDependentSettings(context)
+                            logEvent("route lan traffic", "Route LAN traffic: $checked")
                         }
                     )
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_network_all_networks),
-                        supporting = stringResource(R.string.settings_network_all_networks_desc),
-                        leadingIcon = Icons.Filled.Tune,
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_network_all_networks),
+                        description = stringResource(R.string.settings_network_all_networks_desc),
+                        icon = Icons.Filled.Tune,
                         position = CardPosition.Middle,
-                        onClick = {
+                        highlighted = activeFocusKey == "network_all_networks",
+                        checked = useMultipleNetworks,
+                        enabled = canModify,
+                        onRowClick = {
                             if (canModify) {
                                 val checked = !useMultipleNetworks
                                 useMultipleNetworks = checked
@@ -396,29 +557,26 @@ fun TunnelSettingsScreen(
                                 logEvent("use all networks", "Use all networks for VPN: $checked")
                             }
                         },
-                        trailing = {
-                            Switch(
-                                checked = useMultipleNetworks,
-                                onCheckedChange = { checked ->
-                                    useMultipleNetworks = checked
-                                    persistentState.useMultipleNetworks = checked
-                                    if (checked) persistentState.enableStabilityDependentSettings(context)
-                                    if (!checked && persistentState.routeRethinkInRethink) {
-                                        persistentState.routeRethinkInRethink = false
-                                    }
-                                    logEvent("use all networks", "Use all networks for VPN: $checked")
-                                },
-                                enabled = canModify
-                            )
+                        onCheckedChange = { checked ->
+                            useMultipleNetworks = checked
+                            persistentState.useMultipleNetworks = checked
+                            if (checked) persistentState.enableStabilityDependentSettings(context)
+                            if (!checked && persistentState.routeRethinkInRethink) {
+                                persistentState.routeRethinkInRethink = false
+                            }
+                            logEvent("use all networks", "Use all networks for VPN: $checked")
                         }
                     )
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_exclude_apps_in_proxy),
-                        supporting = stringResource(R.string.settings_exclude_apps_in_proxy_desc),
-                        leadingIcon = Icons.Filled.Tune,
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_exclude_apps_in_proxy),
+                        description = stringResource(R.string.settings_exclude_apps_in_proxy_desc),
+                        icon = Icons.Filled.Tune,
                         position = CardPosition.Middle,
-                        onClick = {
+                        highlighted = activeFocusKey == "network_exclude_apps_proxy",
+                        checked = excludeApps,
+                        enabled = canModify,
+                        onRowClick = {
                             if (canModify) {
                                 val checked = !excludeApps
                                 excludeApps = checked
@@ -426,25 +584,22 @@ fun TunnelSettingsScreen(
                                 logEvent("exclude apps in proxy", "Exclude apps in proxy: ${!checked}")
                             }
                         },
-                        trailing = {
-                            Switch(
-                                checked = excludeApps,
-                                onCheckedChange = { checked ->
-                                    excludeApps = checked
-                                    persistentState.excludeAppsInProxy = !checked
-                                    logEvent("exclude apps in proxy", "Exclude apps in proxy: ${!checked}")
-                                },
-                                enabled = canModify
-                            )
+                        onCheckedChange = { checked ->
+                            excludeApps = checked
+                            persistentState.excludeAppsInProxy = !checked
+                            logEvent("exclude apps in proxy", "Exclude apps in proxy: ${!checked}")
                         }
                     )
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_protocol_translation),
-                        supporting = stringResource(R.string.settings_protocol_translation_desc),
-                        leadingIcon = Icons.Filled.Tune,
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_protocol_translation),
+                        description = stringResource(R.string.settings_protocol_translation_desc),
+                        icon = Icons.Filled.Tune,
                         position = CardPosition.Last,
-                        onClick = {
+                        highlighted = activeFocusKey == "network_protocol_translation",
+                        checked = protocolTranslation,
+                        enabled = showPtrans,
+                        onRowClick = {
                             if (showPtrans) {
                                 val checked = !protocolTranslation
                                 if (appConfig.getBraveMode().isDnsActive()) {
@@ -461,25 +616,19 @@ fun TunnelSettingsScreen(
                                 logEvent("protocol translation", "Protocol translation: $checked")
                             }
                         },
-                        trailing = {
-                            Switch(
-                                checked = protocolTranslation,
-                                onCheckedChange = { checked ->
-                                    if (appConfig.getBraveMode().isDnsActive()) {
-                                        protocolTranslation = checked
-                                        persistentState.protocolTranslationType = checked
-                                    } else {
-                                        protocolTranslation = false
-                                        showToastUiCentered(
-                                            context,
-                                            context.resources.getString(R.string.settings_protocol_translation_dns_inactive),
-                                            Toast.LENGTH_SHORT
-                                        )
-                                    }
-                                    logEvent("protocol translation", "Protocol translation: $checked")
-                                },
-                                enabled = showPtrans
-                            )
+                        onCheckedChange = { checked ->
+                            if (appConfig.getBraveMode().isDnsActive()) {
+                                protocolTranslation = checked
+                                persistentState.protocolTranslationType = checked
+                            } else {
+                                protocolTranslation = false
+                                showToastUiCentered(
+                                    context,
+                                    context.resources.getString(R.string.settings_protocol_translation_dns_inactive),
+                                    Toast.LENGTH_SHORT
+                                )
+                            }
+                            logEvent("protocol translation", "Protocol translation: $checked")
                         }
                     )
                 }
@@ -488,43 +637,48 @@ fun TunnelSettingsScreen(
             item {
                 SectionHeader(title = stringResource(R.string.lbl_advanced))
                 RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_default_dns_heading),
-                        supporting = stringResource(R.string.settings_default_dns_desc),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                    RethinkActionListItem(
+                        title = stringResource(R.string.settings_default_dns_heading),
+                        description = stringResource(R.string.settings_default_dns_desc),
+                        icon = Icons.Filled.Settings,
                         position = CardPosition.First,
+                        highlighted = activeFocusKey == "network_default_dns",
                         onClick = { showDefaultDnsDialog = true }
                     )
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.vpn_policy_title),
-                        supporting = vpnPolicyDesc,
-                        leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                    RethinkActionListItem(
+                        title = stringResource(R.string.vpn_policy_title),
+                        description = vpnPolicyDesc,
+                        icon = Icons.Filled.Settings,
                         position = CardPosition.Middle,
+                        highlighted = activeFocusKey == "network_vpn_policy",
                         onClick = { showVpnPolicyDialog = true }
                     )
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_ip_dialog_title),
-                        supporting = stringResource(R.string.settings_selected_ip_desc, ipDesc),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                    RethinkActionListItem(
+                        title = stringResource(R.string.settings_ip_dialog_title),
+                        description = stringResource(R.string.settings_selected_ip_desc, ipDesc),
+                        icon = Icons.Filled.Settings,
                         position = CardPosition.Middle,
+                        highlighted = activeFocusKey == "network_ip_protocol",
                         onClick = { if (vpnPolicy != POLICY_FIXED) showIpDialog = true }
                     )
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_connectivity_checks),
-                        supporting = stringResource(R.string.settings_connectivity_checks_desc),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                    RethinkActionListItem(
+                        title = stringResource(R.string.settings_connectivity_checks),
+                        description = stringResource(R.string.settings_connectivity_checks_desc),
+                        icon = Icons.Filled.Settings,
                         position = CardPosition.Middle,
+                        highlighted = activeFocusKey == "network_connectivity_checks",
                         onClick = { if (showConnectivityChecksOption) showConnectivityChecksDialog = true }
                     )
 
                     if (showPingIps) {
-                        RethinkListItem(
-                            headline = stringResource(R.string.settings_ping_ips),
-                            leadingIcon = Icons.Filled.NetworkCheck,
+                        RethinkActionListItem(
+                            title = stringResource(R.string.settings_ping_ips),
+                            icon = Icons.Filled.NetworkCheck,
                             position = CardPosition.Middle,
+                            highlighted = activeFocusKey == "network_ping_ips",
                             onClick = {
                                 if (!VpnController.hasTunnel()) {
                                     showToastUiCentered(
@@ -539,83 +693,76 @@ fun TunnelSettingsScreen(
                         )
                     }
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_treat_mobile_metered),
-                        supporting = stringResource(R.string.settings_treat_mobile_metered_desc),
-                        leadingIcon = Icons.Filled.Tune,
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_treat_mobile_metered),
+                        description = stringResource(R.string.settings_treat_mobile_metered_desc),
+                        icon = Icons.Filled.Tune,
                         position = CardPosition.Middle,
-                        onClick = {
+                        highlighted = activeFocusKey == "network_mobile_metered",
+                        checked = meteredOnlyMobile,
+                        onRowClick = {
                             val checked = !meteredOnlyMobile
                             meteredOnlyMobile = checked
                             persistentState.treatOnlyMobileNetworkAsMetered = checked
                             logEvent("mobile metered", "Treat mobile as metered: $checked")
                         },
-                        trailing = {
-                            Switch(
-                                checked = meteredOnlyMobile,
-                                onCheckedChange = { checked ->
-                                    meteredOnlyMobile = checked
-                                    persistentState.treatOnlyMobileNetworkAsMetered = checked
-                                    logEvent("mobile metered", "Treat mobile as metered: $checked")
-                                }
-                            )
+                        onCheckedChange = { checked ->
+                            meteredOnlyMobile = checked
+                            persistentState.treatOnlyMobileNetworkAsMetered = checked
+                            logEvent("mobile metered", "Treat mobile as metered: $checked")
                         }
                     )
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_wg_listen_port),
-                        supporting = stringResource(R.string.settings_wg_listen_port_desc),
-                        leadingIcon = Icons.Filled.Tune,
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_wg_listen_port),
+                        description = stringResource(R.string.settings_wg_listen_port_desc),
+                        icon = Icons.Filled.Tune,
                         position = CardPosition.Middle,
-                        onClick = {
+                        highlighted = activeFocusKey == "network_wg_listen_port",
+                        checked = listenPortFixed,
+                        onRowClick = {
                             val checked = !listenPortFixed
                             listenPortFixed = checked
                             persistentState.randomizeListenPort = !checked
                             logEvent("listen port", "Randomize listen port: ${!checked}")
                         },
-                        trailing = {
-                            Switch(
-                                checked = listenPortFixed,
-                                onCheckedChange = { checked ->
-                                    listenPortFixed = checked
-                                    persistentState.randomizeListenPort = !checked
-                                    logEvent("listen port", "Randomize listen port: ${!checked}")
-                                }
-                            )
+                        onCheckedChange = { checked ->
+                            listenPortFixed = checked
+                            persistentState.randomizeListenPort = !checked
+                            logEvent("listen port", "Randomize listen port: ${!checked}")
                         }
                     )
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_wg_lockdown),
-                        supporting = stringResource(R.string.settings_wg_lockdown_desc),
-                        leadingIcon = Icons.Filled.Tune,
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_wg_lockdown),
+                        description = stringResource(R.string.settings_wg_lockdown_desc),
+                        icon = Icons.Filled.Tune,
                         position = CardPosition.Middle,
-                        onClick = {
+                        highlighted = activeFocusKey == "network_wg_lockdown",
+                        checked = wgLockdown,
+                        onRowClick = {
                             val checked = !wgLockdown
                             wgLockdown = checked
                             persistentState.wgGlobalLockdown = checked
                             NewSettingsManager.markSettingSeen(NewSettingsManager.WG_GLOBAL_LOCKDOWN_MODE_SETTING)
                             logEvent("wg lockdown", "WG global lockdown: $checked")
                         },
-                        trailing = {
-                            Switch(
-                                checked = wgLockdown,
-                                onCheckedChange = { checked ->
-                                    wgLockdown = checked
-                                    persistentState.wgGlobalLockdown = checked
-                                    NewSettingsManager.markSettingSeen(NewSettingsManager.WG_GLOBAL_LOCKDOWN_MODE_SETTING)
-                                    logEvent("wg lockdown", "WG global lockdown: $checked")
-                                }
-                            )
+                        onCheckedChange = { checked ->
+                            wgLockdown = checked
+                            persistentState.wgGlobalLockdown = checked
+                            NewSettingsManager.markSettingSeen(NewSettingsManager.WG_GLOBAL_LOCKDOWN_MODE_SETTING)
+                            logEvent("wg lockdown", "WG global lockdown: $checked")
                         }
                     )
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_endpoint_independence),
-                        supporting = stringResource(R.string.settings_endpoint_independence_desc),
-                        leadingIcon = Icons.Filled.Tune,
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_endpoint_independence),
+                        description = stringResource(R.string.settings_endpoint_independence_desc),
+                        icon = Icons.Filled.Tune,
                         position = CardPosition.Middle,
-                        onClick = {
+                        highlighted = activeFocusKey == "network_endpoint_independence",
+                        checked = endpointIndependence,
+                        onRowClick = {
                             val checked = !endpointIndependence
                             endpointIndependence = checked
                             persistentState.endpointIndependence = checked
@@ -627,78 +774,70 @@ fun TunnelSettingsScreen(
                             }
                             logEvent("endpoint independence", "Endpoint independence: $checked")
                         },
-                        trailing = {
-                            Switch(
-                                checked = endpointIndependence,
-                                onCheckedChange = { checked ->
-                                    endpointIndependence = checked
-                                    persistentState.endpointIndependence = checked
-                                    if (!checked) {
-                                        allowIncoming = false
-                                        persistentState.nwEngExperimentalFeatures = false
-                                    } else {
-                                        allowIncoming = persistentState.nwEngExperimentalFeatures
-                                    }
-                                    logEvent("endpoint independence", "Endpoint independence: $checked")
-                                }
-                            )
+                        onCheckedChange = { checked ->
+                            endpointIndependence = checked
+                            persistentState.endpointIndependence = checked
+                            if (!checked) {
+                                allowIncoming = false
+                                persistentState.nwEngExperimentalFeatures = false
+                            } else {
+                                allowIncoming = persistentState.nwEngExperimentalFeatures
+                            }
+                            logEvent("endpoint independence", "Endpoint independence: $checked")
                         }
                     )
 
                     if (endpointIndependence) {
-                        RethinkListItem(
-                            headline = stringResource(R.string.settings_allow_incoming_wg_packets),
-                            supporting = stringResource(R.string.settings_allow_incoming_wg_packets_desc),
-                            leadingIcon = Icons.Filled.Tune,
+                        RethinkToggleListItem(
+                            title = stringResource(R.string.settings_allow_incoming_wg_packets),
+                            description = stringResource(R.string.settings_allow_incoming_wg_packets_desc),
+                            icon = Icons.Filled.Tune,
                             position = CardPosition.Middle,
-                            onClick = {
+                            highlighted = activeFocusKey == "network_allow_incoming_wg",
+                            checked = allowIncoming,
+                            onRowClick = {
                                 val checked = !allowIncoming
                                 allowIncoming = checked
                                 persistentState.nwEngExperimentalFeatures = checked
                                 logEvent("allow incoming", "Allow incoming WG packets: $checked")
                             },
-                            trailing = {
-                                Switch(
-                                    checked = allowIncoming,
-                                    onCheckedChange = { checked ->
-                                        allowIncoming = checked
-                                        persistentState.nwEngExperimentalFeatures = checked
-                                        logEvent("allow incoming", "Allow incoming WG packets: $checked")
-                                    }
-                                )
+                            onCheckedChange = { checked ->
+                                allowIncoming = checked
+                                persistentState.nwEngExperimentalFeatures = checked
+                                logEvent("allow incoming", "Allow incoming WG packets: $checked")
                             }
                         )
                     }
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_tcp_keep_alive),
-                        supporting = stringResource(R.string.settings_tcp_keep_alive_desc),
-                        leadingIcon = Icons.Filled.Tune,
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_tcp_keep_alive),
+                        description = stringResource(R.string.settings_tcp_keep_alive_desc),
+                        icon = Icons.Filled.Tune,
                         position = CardPosition.Middle,
-                        onClick = {
+                        highlighted = activeFocusKey == "network_tcp_keep_alive",
+                        checked = tcpKeepAlive,
+                        onRowClick = {
                             val checked = !tcpKeepAlive
                             tcpKeepAlive = checked
                             persistentState.tcpKeepAlive = checked
                             logEvent("tcp keep alive", "TCP keep alive: $checked")
                         },
-                        trailing = {
-                            Switch(
-                                checked = tcpKeepAlive,
-                                onCheckedChange = { checked ->
-                                    tcpKeepAlive = checked
-                                    persistentState.tcpKeepAlive = checked
-                                    logEvent("tcp keep alive", "TCP keep alive: $checked")
-                                }
-                            )
+                        onCheckedChange = { checked ->
+                            tcpKeepAlive = checked
+                            persistentState.tcpKeepAlive = checked
+                            logEvent("tcp keep alive", "TCP keep alive: $checked")
                         }
                     )
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.settings_jumbo_packets),
-                        supporting = stringResource(R.string.settings_jumbo_packets_desc),
-                        leadingIcon = Icons.Filled.Tune,
+                    RethinkToggleListItem(
+                        title = stringResource(R.string.settings_jumbo_packets),
+                        description = stringResource(R.string.settings_jumbo_packets_desc),
+                        icon = Icons.Filled.Tune,
                         position = CardPosition.Middle,
-                        onClick = {
+                        highlighted = activeFocusKey == "network_jumbo_packets",
+                        checked = useMaxMtu,
+                        enabled = vpnPolicy != POLICY_FIXED && !persistentState.routeRethinkInRethink,
+                        onRowClick = {
                             if (vpnPolicy != POLICY_FIXED && !persistentState.routeRethinkInRethink) {
                                 val checked = !useMaxMtu
                                 useMaxMtu = checked
@@ -706,49 +845,41 @@ fun TunnelSettingsScreen(
                                 logEvent("jumbo packets", "Use jumbo packets: $checked")
                             }
                         },
-                        trailing = {
-                            Switch(
-                                checked = useMaxMtu,
-                                onCheckedChange = { checked ->
-                                    useMaxMtu = checked
-                                    persistentState.useMaxMtu = checked
-                                    logEvent("jumbo packets", "Use jumbo packets: $checked")
-                                },
-                                enabled = vpnPolicy != POLICY_FIXED && !persistentState.routeRethinkInRethink
-                            )
+                        onCheckedChange = { checked ->
+                            useMaxMtu = checked
+                            persistentState.useMaxMtu = checked
+                            logEvent("jumbo packets", "Use jumbo packets: $checked")
                         }
                     )
 
                     if (isAtleastQ()) {
-                        RethinkListItem(
-                            headline = stringResource(R.string.settings_vpn_builder_metered),
-                            supporting = stringResource(R.string.settings_vpn_builder_metered_desc),
-                            leadingIcon = Icons.Filled.Tune,
+                        RethinkToggleListItem(
+                            title = stringResource(R.string.settings_vpn_builder_metered),
+                            description = stringResource(R.string.settings_vpn_builder_metered_desc),
+                            icon = Icons.Filled.Tune,
                             position = CardPosition.Middle,
-                            onClick = {
+                            highlighted = activeFocusKey == "network_vpn_metered",
+                            checked = tunnelMetered,
+                            onRowClick = {
                                 val checked = !tunnelMetered
                                 tunnelMetered = checked
                                 persistentState.setVpnBuilderToMetered = checked
                                 logEvent("vpn metered", "VPN builder metered: $checked")
                             },
-                            trailing = {
-                                Switch(
-                                    checked = tunnelMetered,
-                                    onCheckedChange = { checked ->
-                                        tunnelMetered = checked
-                                        persistentState.setVpnBuilderToMetered = checked
-                                        logEvent("vpn metered", "VPN builder metered: $checked")
-                                    }
-                                )
+                            onCheckedChange = { checked ->
+                                tunnelMetered = checked
+                                persistentState.setVpnBuilderToMetered = checked
+                                logEvent("vpn metered", "VPN builder metered: $checked")
                             }
                         )
                     }
 
-                    RethinkListItem(
-                        headline = stringResource(R.string.custom_lan_ip_title),
-                        supporting = stringResource(R.string.custom_lan_ip_desc),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_settings),
+                    RethinkActionListItem(
+                        title = stringResource(R.string.custom_lan_ip_title),
+                        description = stringResource(R.string.custom_lan_ip_desc),
+                        icon = Icons.Filled.Settings,
                         position = CardPosition.Last,
+                        highlighted = activeFocusKey == "network_custom_lan_ip",
                         onClick = { showCustomLanIpSheet = true }
                     )
                 }
@@ -757,6 +888,15 @@ fun TunnelSettingsScreen(
             // Dial Timeout Slider
             item {
                 RethinkListGroup {
+                    Surface(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = if (activeFocusKey == "network_dial_timeout") {
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        } else {
+                            Color.Transparent
+                        },
+                        shape = RoundedCornerShape(Dimensions.cornerRadiusLg)
+                    ) {
                     Column(modifier = Modifier.fillMaxWidth().padding(Dimensions.cardPadding)) {
                         Text(
                             text = stringResource(R.string.settings_dial_timeout),
@@ -783,6 +923,7 @@ fun TunnelSettingsScreen(
                             )
                         )
                     }
+                    }
                 }
             }
         }
@@ -803,103 +944,6 @@ fun TunnelSettingsScreen(
 }
 
 @Composable
-private fun TunnelOverviewCard(
-    vpnPolicyDesc: String,
-    ipDesc: String,
-    dialTimeoutDesc: String
-) {
-    Surface(
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = 1.dp,
-        border =
-            androidx.compose.foundation.BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)
-            )
-    ) {
-        Column(
-            modifier = Modifier.padding(Dimensions.spacingXl),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-        ) {
-            Text(
-                text = stringResource(R.string.lbl_network),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            Text(
-                text = stringResource(R.string.vpn_policy_title) + ": $vpnPolicyDesc",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = stringResource(R.string.settings_ip_dialog_title) + ": $ipDesc",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = stringResource(R.string.settings_dial_timeout) + ": $dialTimeoutDesc",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.primary
-            )
-        }
-    }
-}
-
-@Composable
-private fun SettingToggleRow(
-    icon: ImageVector,
-    title: String,
-    description: String,
-    checked: Boolean,
-    enabled: Boolean,
-    alpha: Float = 1f,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = enabled) { onCheckedChange(!checked) }
-            .alpha(alpha),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Row(modifier = Modifier.weight(1f), verticalAlignment = Alignment.CenterVertically) {
-            Icon(imageVector = icon, contentDescription = null)
-            Column(modifier = Modifier.padding(start = 12.dp)) {
-                Text(text = title, style = MaterialTheme.typography.titleSmall)
-                Text(text = description, style = MaterialTheme.typography.bodySmall)
-            }
-        }
-        Switch(checked = checked, onCheckedChange = onCheckedChange, enabled = enabled)
-    }
-}
-
-@Composable
-private fun SettingActionRow(
-    icon: ImageVector,
-    title: String,
-    description: String,
-    enabled: Boolean = true,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(enabled = enabled) { onClick() }
-            .alpha(if (enabled) 1f else 0.5f),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(imageVector = icon, contentDescription = null)
-        Column(modifier = Modifier.weight(1f).padding(start = 12.dp)) {
-            Text(text = title, style = MaterialTheme.typography.titleSmall)
-            Text(text = description, style = MaterialTheme.typography.bodySmall)
-        }
-        Icon(imageVector = Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
-    }
-}
-
-@Composable
 private fun DefaultDnsDialog(
     persistentState: PersistentState,
     onDismiss: () -> Unit,
@@ -909,35 +953,34 @@ private fun DefaultDnsDialog(
     val checkedItem = options.firstOrNull { it.url == persistentState.defaultDnsUrl }?.let { options.indexOf(it) } ?: 0
     var selectedIndex by remember { mutableIntStateOf(checkedItem) }
 
-    AlertDialog(
+    RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_default_dns_heading)) },
+        title = stringResource(R.string.settings_default_dns_heading),
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 options.forEachIndexed { index, item ->
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                        RadioButton(selected = selectedIndex == index, onClick = { selectedIndex = index })
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(text = item.name, style = MaterialTheme.typography.bodyMedium)
-                    }
+                    DialogRadioOptionRow(
+                        title = item.name,
+                        selected = selectedIndex == index,
+                        onClick = { selectedIndex = index }
+                    )
                 }
             }
         },
-        confirmButton = {
-            TextButton(onClick = {
-                persistentState.defaultDnsUrl = options[selectedIndex].url
-                onConfirm()
-                onDismiss()
-            }) { Text(stringResource(R.string.fapps_info_dialog_positive_btn)) }
+        confirmText = stringResource(R.string.fapps_info_dialog_positive_btn),
+        dismissText = stringResource(R.string.lbl_cancel),
+        onConfirm = {
+            persistentState.defaultDnsUrl = options[selectedIndex].url
+            onConfirm()
+            onDismiss()
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } }
+        onDismiss = onDismiss
     )
 }
 
 @Composable
 private fun VpnPolicyDialog(
     persistentState: PersistentState,
-    context: Context,
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit
 ) {
@@ -959,27 +1002,28 @@ private fun VpnPolicyDialog(
     )
     var selectedIndex by remember { mutableIntStateOf(persistentState.vpnBuilderPolicy) }
 
-    AlertDialog(
+    RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.vpn_policy_title)) },
+        title = stringResource(R.string.vpn_policy_title),
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 options.forEachIndexed { index, option ->
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                        RadioButton(selected = selectedIndex == index, onClick = { selectedIndex = index })
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Column {
-                            Text(option.title, style = MaterialTheme.typography.bodyMedium)
-                            Text(option.description, style = MaterialTheme.typography.bodySmall)
-                        }
-                    }
+                    DialogRadioOptionRow(
+                        title = option.title,
+                        description = option.description,
+                        selected = selectedIndex == index,
+                        onClick = { selectedIndex = index }
+                    )
                 }
             }
         },
-        confirmButton = {
-            TextButton(onClick = { onConfirm(selectedIndex); onDismiss() }) { Text(stringResource(R.string.fapps_info_dialog_positive_btn)) }
+        confirmText = stringResource(R.string.fapps_info_dialog_positive_btn),
+        dismissText = stringResource(R.string.lbl_cancel),
+        onConfirm = {
+            onConfirm(selectedIndex)
+            onDismiss()
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } }
+        onDismiss = onDismiss
     )
 }
 
@@ -1010,42 +1054,42 @@ private fun IpProtocolDialog(
     }
     var selectedIndex by remember { mutableIntStateOf(checkedItem) }
 
-    AlertDialog(
+    RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_ip_dialog_title)) },
+        title = stringResource(R.string.settings_ip_dialog_title),
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 items.forEachIndexed { index, label ->
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                        RadioButton(selected = selectedIndex == index, onClick = { selectedIndex = index })
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(label, style = MaterialTheme.typography.bodyMedium)
-                    }
+                    DialogRadioOptionRow(
+                        title = label,
+                        selected = selectedIndex == index,
+                        onClick = { selectedIndex = index }
+                    )
                 }
             }
         },
-        confirmButton = {
-            TextButton(onClick = {
-                val selectedItem = when (selectedIndex) {
-                    IP_DIALOG_POS_V46 -> InternetProtocol.IPv46.id
-                    IP_DIALOG_POS_ALWAYS_V46 -> InternetProtocol.ALWAYSv46.id
-                    else -> selectedIndex
+        confirmText = stringResource(R.string.fapps_info_dialog_positive_btn),
+        dismissText = stringResource(R.string.lbl_cancel),
+        onConfirm = {
+            val selectedItem = when (selectedIndex) {
+                IP_DIALOG_POS_V46 -> InternetProtocol.IPv46.id
+                IP_DIALOG_POS_ALWAYS_V46 -> InternetProtocol.ALWAYSv46.id
+                else -> selectedIndex
+            }
+            if (persistentState.internetProtocolType != selectedItem) {
+                val protocolType = InternetProtocol.getInternetProtocol(selectedItem)
+                persistentState.internetProtocolType = protocolType.id
+                if (protocolType.id == InternetProtocol.IPv6.id ||
+                    protocolType.id == InternetProtocol.IPv46.id ||
+                    protocolType.id == InternetProtocol.ALWAYSv46.id
+                ) {
+                    persistentState.enableStabilityDependentSettings(context)
                 }
-                if (persistentState.internetProtocolType != selectedItem) {
-                    val protocolType = InternetProtocol.getInternetProtocol(selectedItem)
-                    persistentState.internetProtocolType = protocolType.id
-                    if (protocolType.id == InternetProtocol.IPv6.id ||
-                        protocolType.id == InternetProtocol.IPv46.id ||
-                        protocolType.id == InternetProtocol.ALWAYSv46.id
-                    ) {
-                        persistentState.enableStabilityDependentSettings(context)
-                    }
-                    onConfirm(protocolType.id)
-                }
-                onDismiss()
-            }) { Text(stringResource(R.string.fapps_info_dialog_positive_btn)) }
+                onConfirm(protocolType.id)
+            }
+            onDismiss()
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } }
+        onDismiss = onDismiss
     )
 }
 
@@ -1065,44 +1109,77 @@ private fun ConnectivityChecksDialog(
     val checkedItem = if (!enabled) 0 else if (type) 1 else 2
     var selectedIndex by remember { mutableIntStateOf(checkedItem) }
 
-    AlertDialog(
+    RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.settings_connectivity_checks)) },
+        title = stringResource(R.string.settings_connectivity_checks),
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 items.forEachIndexed { index, label ->
-                    Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
-                        RadioButton(selected = selectedIndex == index, onClick = { selectedIndex = index })
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(label, style = MaterialTheme.typography.bodyMedium)
-                    }
+                    DialogRadioOptionRow(
+                        title = label,
+                        selected = selectedIndex == index,
+                        onClick = { selectedIndex = index }
+                    )
                 }
             }
         },
-        confirmButton = {
-            TextButton(onClick = {
-                when (selectedIndex) {
-                    0 -> {
-                        persistentState.performAutoNetworkConnectivityChecks = true
-                        persistentState.connectivityChecks = false
-                        onConfirm(false)
-                    }
-
-                    1 -> {
-                        persistentState.performAutoNetworkConnectivityChecks = true
-                        persistentState.connectivityChecks = true
-                        onConfirm(true)
-                    }
-
-                    2 -> {
-                        persistentState.performAutoNetworkConnectivityChecks = false
-                        persistentState.connectivityChecks = true
-                        onConfirm(true)
-                    }
+        confirmText = stringResource(R.string.fapps_info_dialog_positive_btn),
+        dismissText = stringResource(R.string.lbl_cancel),
+        onConfirm = {
+            when (selectedIndex) {
+                0 -> {
+                    persistentState.performAutoNetworkConnectivityChecks = true
+                    persistentState.connectivityChecks = false
+                    onConfirm(false)
                 }
-                onDismiss()
-            }) { Text(stringResource(R.string.fapps_info_dialog_positive_btn)) }
+
+                1 -> {
+                    persistentState.performAutoNetworkConnectivityChecks = true
+                    persistentState.connectivityChecks = true
+                    onConfirm(true)
+                }
+
+                2 -> {
+                    persistentState.performAutoNetworkConnectivityChecks = false
+                    persistentState.connectivityChecks = true
+                    onConfirm(true)
+                }
+            }
+            onDismiss()
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } }
+        onDismiss = onDismiss
     )
+}
+
+@Composable
+private fun DialogRadioOptionRow(
+    title: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+    description: String? = null
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = 48.dp)
+            .clickable(onClick = onClick)
+            .padding(horizontal = 4.dp, vertical = 2.dp)
+    ) {
+        RadioButton(
+            selected = selected,
+            onClick = onClick
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column {
+            Text(title, style = MaterialTheme.typography.bodyMedium)
+            if (!description.isNullOrBlank()) {
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
 }

@@ -15,27 +15,32 @@
  */
 package com.celzero.bravedns.ui.compose.firewall
 
-import android.content.Context
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -43,49 +48,40 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButton
-import androidx.compose.material3.SegmentedButtonDefaults
-import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -93,127 +89,32 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.paging.LoadState
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.FirewallAppRow
+import com.celzero.bravedns.adapter.FirewallRowPosition
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
-import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.celzero.bravedns.ui.compose.theme.RethinkSearchField
+import com.celzero.bravedns.ui.compose.theme.RethinkSegmentedChoiceRow
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.viewmodel.AppInfoViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.Locale
+import androidx.compose.foundation.ExperimentalFoundationApi
+import com.celzero.bravedns.database.AppInfo
 
 private const val ANIMATION_DURATION = 750
-
-enum class BlockType {
-    UNMETER,
-    METER,
-    BYPASS,
-    LOCKDOWN,
-    EXCLUDE,
-    BYPASS_DNS_FIREWALL
-}
-
-enum class TopLevelFilter(val id: Int) {
-    ALL(0),
-    INSTALLED(1),
-    SYSTEM(2);
-
-    fun getLabel(context: Context): String {
-        return when (this) {
-            ALL -> ""
-            INSTALLED -> context.resources.getString(R.string.fapps_filter_parent_installed)
-            SYSTEM -> context.resources.getString(R.string.fapps_filter_parent_system)
-        }
-    }
-}
-
-@Suppress("MagicNumber")
-enum class FirewallFilter(val id: Int) {
-    ALL(0),
-    ALLOWED(1),
-    BLOCKED(2),
-    BLOCKED_WIFI(3),
-    BLOCKED_MOBILE_DATA(4),
-    BYPASS(5),
-    EXCLUDED(6),
-    LOCKDOWN(7);
-
-    fun getFilter(): Set<Int> {
-        return when (this) {
-            ALL -> setOf(0, 1, 2, 3, 4, 5, 7)
-            ALLOWED -> setOf(5)
-            BLOCKED_WIFI -> setOf(5)
-            BLOCKED_MOBILE_DATA -> setOf(5)
-            BLOCKED -> setOf(5)
-            BYPASS -> setOf(2, 7)
-            EXCLUDED -> setOf(3)
-            LOCKDOWN -> setOf(4)
-        }
-    }
-
-    fun getConnectionStatusFilter(): Set<Int> {
-        return when (this) {
-            ALL -> setOf(0, 1, 2, 3)
-            ALLOWED -> setOf(3)
-            BLOCKED_WIFI -> setOf(1)
-            BLOCKED_MOBILE_DATA -> setOf(2)
-            BLOCKED -> setOf(0)
-            BYPASS -> setOf(0, 1, 2, 3)
-            EXCLUDED -> setOf(0, 1, 2, 3)
-            LOCKDOWN -> setOf(0, 1, 2, 3)
-        }
-    }
-
-    fun getLabel(context: Context): String {
-        return when (this) {
-            ALL -> context.resources.getString(R.string.lbl_all)
-            ALLOWED -> context.resources.getString(R.string.lbl_allowed)
-            BLOCKED_WIFI -> context.resources.getString(
-                R.string.two_argument_colon,
-                context.resources.getString(R.string.lbl_blocked),
-                context.resources.getString(R.string.firewall_rule_block_unmetered)
-            )
-
-            BLOCKED_MOBILE_DATA -> context.resources.getString(
-                R.string.two_argument_colon,
-                context.resources.getString(R.string.lbl_blocked),
-                context.resources.getString(R.string.firewall_rule_block_metered)
-            )
-
-            BLOCKED -> context.resources.getString(R.string.lbl_blocked)
-            BYPASS -> context.resources.getString(R.string.fapps_firewall_filter_bypass_universal)
-            EXCLUDED -> context.resources.getString(R.string.fapps_firewall_filter_excluded)
-            LOCKDOWN -> context.resources.getString(R.string.fapps_firewall_filter_isolate)
-        }
-    }
-
-    companion object {
-        fun filter(id: Int): FirewallFilter {
-            return when (id) {
-                ALL.id -> ALL
-                ALLOWED.id -> ALLOWED
-                BLOCKED_WIFI.id -> BLOCKED_WIFI
-                BLOCKED_MOBILE_DATA.id -> BLOCKED_MOBILE_DATA
-                BLOCKED.id -> BLOCKED
-                BYPASS.id -> BYPASS
-                EXCLUDED.id -> EXCLUDED
-                LOCKDOWN.id -> LOCKDOWN
-                else -> ALL
-            }
-        }
-    }
-}
-
-class Filters {
-    var categoryFilters: MutableSet<String> = mutableSetOf()
-    var topLevelFilter = TopLevelFilter.ALL
-    var firewallFilter = FirewallFilter.ALL
-    var searchString: String = ""
-}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -221,7 +122,6 @@ fun AppListScreen(
     viewModel: AppInfoViewModel,
     eventLogger: EventLogger,
     queryText: String,
-    filterLabelText: CharSequence,
     selectedFirewallFilter: FirewallFilter,
     isRefreshing: Boolean,
     bulkWifi: Boolean,
@@ -250,9 +150,6 @@ fun AppListScreen(
     showBypassToolTip: Boolean,
     onBackClick: (() -> Unit)? = null
 ) {
-    val context = LocalContext.current
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
     val refreshRotation = rememberInfiniteTransition(label = "refresh").animateFloat(
         initialValue = 0f,
         targetValue = if (isRefreshing) 360f else 0f,
@@ -264,6 +161,7 @@ fun AppListScreen(
     )
 
     var showFilterSheet by remember { mutableStateOf(false) }
+    var isSearchOpen by rememberSaveable { mutableStateOf(queryText.isNotBlank()) }
 
     val hasActiveFilters = currentFilters?.let {
         it.topLevelFilter != TopLevelFilter.ALL ||
@@ -288,44 +186,54 @@ fun AppListScreen(
     }
 
     if (showBulkUpdateDialog && bulkDialogType != null) {
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = onBulkDialogDismiss,
-            title = { Text(text = bulkDialogTitle) },
-            text = { Text(text = bulkDialogMessage) },
-            confirmButton = {
-                TextButton(onClick = { onBulkDialogConfirm(bulkDialogType) }) {
-                    Text(text = stringResource(R.string.lbl_apply))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onBulkDialogDismiss) {
-                    Text(text = stringResource(R.string.lbl_cancel))
-                }
-            }
+            title = bulkDialogTitle,
+            message = bulkDialogMessage,
+            confirmText = stringResource(R.string.lbl_apply),
+            dismissText = stringResource(R.string.lbl_cancel),
+            onConfirm = { onBulkDialogConfirm(bulkDialogType) },
+            onDismiss = onBulkDialogDismiss
         )
     }
 
     if (showInfoDialog) {
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = onInfoDialogDismiss,
             text = { FirewallInfoDialogContent() },
-            confirmButton = {
-                TextButton(onClick = onInfoDialogDismiss) {
-                    Text(text = stringResource(R.string.fapps_info_dialog_positive_btn))
-                }
-            }
+            confirmText = stringResource(R.string.fapps_info_dialog_positive_btn),
+            onConfirm = onInfoDialogDismiss
         )
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         topBar = {
-            RethinkLargeTopBar(
+            RethinkTopBar(
                 title = stringResource(R.string.apps_info_title),
                 onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior,
                 actions = {
+                    IconButton(
+                        onClick = {
+                            if (isSearchOpen && queryText.isNotBlank()) {
+                                onQueryChange("")
+                                isSearchOpen = false
+                            } else {
+                                isSearchOpen = !isSearchOpen
+                            }
+                        }
+                    ) {
+                        Icon(
+                            imageVector = if (isSearchOpen) Icons.Rounded.Close else Icons.Rounded.Search,
+                            contentDescription =
+                                if (isSearchOpen) {
+                                    stringResource(R.string.cd_clear_search)
+                                } else {
+                                    stringResource(R.string.lbl_search)
+                                }
+                        )
+                    }
                     IconButton(
                         onClick = onRefreshClick,
                         enabled = !isRefreshing
@@ -336,11 +244,10 @@ fun AppListScreen(
                             modifier = Modifier.rotate(if (isRefreshing) refreshRotation.value else 0f)
                         )
                     }
-                    // Filter icon with active indicator dot
                     IconButton(onClick = { showFilterSheet = true }) {
                         Box {
                             Icon(
-                                imageVector = Icons.Rounded.FilterList,
+                                imageVector = Icons.Default.FilterList,
                                 contentDescription = stringResource(R.string.cd_filter)
                             )
                             if (hasActiveFilters) {
@@ -363,18 +270,10 @@ fun AppListScreen(
                 .fillMaxSize()
                 .padding(paddingValues),
         ) {
-            // ── Search card — inline, always visible (reference UI style) ─
-            AppListSearchCard(
+            AppListControlsCompact(
                 queryText = queryText,
-                filterLabelText = filterLabelText,
+                isSearchOpen = isSearchOpen,
                 selectedFirewallFilter = selectedFirewallFilter,
-                context = context,
-                onQueryChange = onQueryChange,
-                onFirewallFilterClick = onFirewallFilterClick
-            )
-
-            // ── Bulk actions ──────────────────────────────────────────────
-            BulkToggleRow(
                 bulkWifi = bulkWifi,
                 bulkMobile = bulkMobile,
                 bulkBypass = bulkBypass,
@@ -382,131 +281,29 @@ fun AppListScreen(
                 bulkExclude = bulkExclude,
                 bulkLockdown = bulkLockdown,
                 showBypassToolTip = showBypassToolTip,
+                onQueryChange = onQueryChange,
+                onSearchToggle = { isSearchOpen = it },
+                onFirewallFilterClick = onFirewallFilterClick,
                 onShowInfoDialog = onShowInfoDialog,
                 onShowBulkDialog = onShowBulkDialog,
                 onBypassDnsTooltip = onBypassDnsTooltip
             )
 
-            // ── App list ──────────────────────────────────────────────────
             AppListRecycler(
                 modifier = Modifier.weight(1f),
                 viewModel = viewModel,
-                eventLogger = eventLogger
+                eventLogger = eventLogger,
+                searchQuery = queryText
             )
         }
     }
 }
 
-/**
- * Inline search and quick-filter card, mirroring the reference UI's compact header card.
- */
 @Composable
-private fun AppListSearchCard(
+private fun AppListControlsCompact(
     queryText: String,
-    filterLabelText: CharSequence,
+    isSearchOpen: Boolean,
     selectedFirewallFilter: FirewallFilter,
-    context: Context,
-    onQueryChange: (String) -> Unit,
-    onFirewallFilterClick: (FirewallFilter) -> Unit
-) {
-    val quickFilters = listOf(FirewallFilter.ALL, FirewallFilter.ALLOWED, FirewallFilter.BLOCKED)
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = Dimensions.screenPaddingHorizontal)
-            .padding(bottom = Dimensions.spacingMd),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainer,
-        tonalElevation = 0.dp
-    ) {
-        Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Search field — filled style, no underline (reference MainScreen pattern)
-            TextField(
-                value = queryText,
-                onValueChange = onQueryChange,
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                placeholder = {
-                    Text(
-                        text = stringResource(R.string.lbl_search),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        imageVector = Icons.Rounded.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                },
-                trailingIcon = if (queryText.isNotEmpty()) {
-                    {
-                        IconButton(
-                            onClick = { onQueryChange("") },
-                            modifier = Modifier.size(32.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Close,
-                                contentDescription = stringResource(R.string.cd_clear_search),
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                    }
-                } else null,
-                shape = RoundedCornerShape(14.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent,
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                ),
-                textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium)
-            )
-
-            // Active filter label
-            if (filterLabelText.isNotEmpty()) {
-                Text(
-                    text = filterLabelText.toString(),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.padding(horizontal = 4.dp)
-                )
-            }
-
-            // Quick filter segmented row
-            SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
-                quickFilters.forEachIndexed { index, filter ->
-                    SegmentedButton(
-                        selected = selectedFirewallFilter == filter,
-                        onClick = { onFirewallFilterClick(filter) },
-                        shape = SegmentedButtonDefaults.itemShape(
-                            index = index,
-                            count = quickFilters.size
-                        ),
-                        label = {
-                            Text(
-                                text = filter.getLabel(context),
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun BulkToggleRow(
     bulkWifi: Boolean,
     bulkMobile: Boolean,
     bulkBypass: Boolean,
@@ -514,50 +311,95 @@ private fun BulkToggleRow(
     bulkExclude: Boolean,
     bulkLockdown: Boolean,
     showBypassToolTip: Boolean,
+    onQueryChange: (String) -> Unit,
+    onSearchToggle: (Boolean) -> Unit,
+    onFirewallFilterClick: (FirewallFilter) -> Unit,
     onShowInfoDialog: () -> Unit,
     onShowBulkDialog: (BlockType) -> Unit,
     onBypassDnsTooltip: () -> Unit
 ) {
-    Surface(
+    val context = LocalContext.current
+    val searchFocusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val quickFilters = listOf(FirewallFilter.ALL, FirewallFilter.ALLOWED, FirewallFilter.BLOCKED)
+
+    LaunchedEffect(isSearchOpen) {
+        if (isSearchOpen) {
+            delay(120)
+            searchFocusRequester.requestFocus()
+            keyboardController?.show()
+        } else {
+            keyboardController?.hide()
+        }
+    }
+
+    Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Dimensions.screenPaddingHorizontal),
-        shape = RoundedCornerShape(20.dp),
-        color = MaterialTheme.colorScheme.surfaceContainerLow
+            .padding(horizontal = Dimensions.screenPaddingHorizontal)
+            .padding(bottom = Dimensions.spacingXs),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+        if (isSearchOpen) {
+            RethinkSearchField(
+                query = queryText,
+                onQueryChange = onQueryChange,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .focusRequester(searchFocusRequester),
+                placeholder = stringResource(R.string.lbl_search),
+                onClearQuery = { onQueryChange("") },
+                onCloseWhenEmpty = { onSearchToggle(false) },
+                clearQueryContentDescription = stringResource(R.string.cd_clear_search),
+                closeWhenEmptyContentDescription = stringResource(R.string.configure_search_close),
+                shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
+                containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                iconSize = 20.dp,
+                trailingIconSize = 16.dp,
+                trailingIconButtonSize = 32.dp
+            )
+        }
+
+        RethinkSegmentedChoiceRow(
+            options = quickFilters,
+            selectedOption = selectedFirewallFilter,
+            onOptionSelected = onFirewallFilterClick,
+            modifier = Modifier.fillMaxWidth(),
+            fillEqually = true,
+            icon = { filter, _ ->
+                val imageVector =
+                    when (filter) {
+                        FirewallFilter.ALL -> Icons.Rounded.Tune
+                        FirewallFilter.ALLOWED -> Icons.Rounded.CheckCircle
+                        FirewallFilter.BLOCKED -> Icons.Rounded.Block
+                        else -> Icons.Rounded.Tune
+                    }
+                Icon(
+                    imageVector = imageVector,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+            },
+            label = { filter, _ ->
+                Text(
+                    text = filter.getLabel(context),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Text(
-                    text = "Bulk actions",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.weight(1f)
-                )
-                IconButton(
-                    onClick = onShowInfoDialog,
-                    modifier = Modifier.size(32.dp),
-                    colors = IconButtonDefaults.iconButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.ic_info_white),
-                        contentDescription = stringResource(R.string.lbl_info),
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
-            }
-
-            FlowRow(
+                modifier = Modifier
+                    .weight(1f)
+                    .horizontalScroll(rememberScrollState()),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(6.dp)
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 BulkChip(
                     icon = if (bulkLockdown) R.drawable.ic_firewall_lockdown_on else R.drawable.ic_firewall_lockdown_off,
@@ -579,7 +421,7 @@ private fun BulkToggleRow(
                 )
                 BulkChip(
                     icon = if (bulkBypassDns) R.drawable.ic_bypass_dns_firewall_on else R.drawable.ic_bypass_dns_firewall_off,
-                    label = "DNS",
+                    label = stringResource(R.string.lbl_dns),
                     isActive = bulkBypassDns,
                     onClick = {
                         if (showBypassToolTip) onBypassDnsTooltip()
@@ -588,7 +430,7 @@ private fun BulkToggleRow(
                 )
                 BulkChip(
                     icon = if (bulkWifi) R.drawable.ic_firewall_wifi_off else R.drawable.ic_firewall_wifi_on_grey,
-                    label = "Wi-Fi",
+                    label = stringResource(R.string.ada_app_unmetered),
                     isActive = bulkWifi,
                     onClick = { onShowBulkDialog(BlockType.UNMETER) }
                 )
@@ -597,6 +439,18 @@ private fun BulkToggleRow(
                     label = stringResource(R.string.lbl_mobile_data),
                     isActive = bulkMobile,
                     onClick = { onShowBulkDialog(BlockType.METER) }
+                )
+            }
+
+            IconButton(
+                onClick = onShowInfoDialog,
+                modifier = Modifier.size(36.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Info,
+                    contentDescription = stringResource(R.string.lbl_info),
+                    modifier = Modifier.size(18.dp),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -610,10 +464,21 @@ private fun BulkChip(
     isActive: Boolean,
     onClick: () -> Unit
 ) {
-    FilterChip(
+    RethinkFilterChip(
+        label = label,
         selected = isActive,
         onClick = onClick,
-        label = { Text(text = label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+        textStyle = MaterialTheme.typography.labelMedium,
+        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+        labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        shape = RoundedCornerShape(Dimensions.cornerRadiusMd),
+        border = BorderStroke(
+            1.dp,
+            if (isActive) Color.Transparent else MaterialTheme.colorScheme.outlineVariant
+        ),
         leadingIcon = {
             Icon(
                 painter = painterResource(icon),
@@ -621,19 +486,7 @@ private fun BulkChip(
                 modifier = Modifier.size(18.dp)
             )
         },
-        shape = RoundedCornerShape(12.dp),
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            selectedLeadingIconColor = MaterialTheme.colorScheme.onSecondaryContainer
-        ),
-        border = FilterChipDefaults.filterChipBorder(
-            enabled = true,
-            selected = isActive,
-            borderColor = if (isActive) Color.Transparent
-            else MaterialTheme.colorScheme.outlineVariant,
-            borderWidth = 1.dp
-        )
+        modifier = Modifier
     )
 }
 
@@ -641,21 +494,226 @@ private fun BulkChip(
 private fun AppListRecycler(
     modifier: Modifier = Modifier,
     viewModel: AppInfoViewModel,
-    eventLogger: EventLogger
+    eventLogger: EventLogger,
+    searchQuery: String
 ) {
     val items = viewModel.appInfo.asFlow().collectAsLazyPagingItems()
+    val isRefreshing = items.loadState.refresh is LoadState.Loading
+
+    if (items.itemCount == 0 && !isRefreshing) {
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(horizontal = Dimensions.screenPaddingHorizontal),
+            contentAlignment = Alignment.Center
+        ) {
+            Surface(
+                shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
+                color = MaterialTheme.colorScheme.surfaceContainerLow
+            ) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 18.dp, vertical = 14.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.fapps_empty_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = stringResource(R.string.fapps_empty_subtitle),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+        }
+        return
+    }
+
+    val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+    val sectionAnchors = remember(items.itemCount, items.itemSnapshotList.items) {
+        buildSectionAnchors(items)
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        AppListContent(
+            items = items,
+            listState = listState,
+            eventLogger = eventLogger,
+            searchQuery = searchQuery
+        )
+
+        if (sectionAnchors.size >= 8) {
+            AppListFastScroller(
+                anchors = sectionAnchors,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 4.dp),
+                onSelect = { anchor ->
+                    scope.launch { listState.animateScrollToItem(anchor.listIndex) }
+                }
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+private fun AppListContent(
+    items: androidx.paging.compose.LazyPagingItems<AppInfo>,
+    listState: androidx.compose.foundation.lazy.LazyListState,
+    eventLogger: EventLogger,
+    searchQuery: String
+) {
     LazyColumn(
-        state = rememberLazyListState(),
-        modifier = modifier.fillMaxSize(),
+        state = listState,
+        modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             horizontal = Dimensions.screenPaddingHorizontal,
-            vertical = Dimensions.spacingMd
+            vertical = Dimensions.spacingXs
         ),
-        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        items(items.itemCount) { index ->
-            val item = items[index] ?: return@items
-            FirewallAppRow(item, eventLogger)
+        for (index in 0 until items.itemCount) {
+            val item = items[index] ?: continue
+
+            val currentInitial = appInitial(item.appName, item.packageName)
+            val previousItem = if (index > 0) items.peek(index - 1) else null
+            val previousInitial =
+                previousItem?.let { appInitial(it.appName, it.packageName) }
+            val nextItem = if (index < items.itemCount - 1) items.peek(index + 1) else null
+            val nextInitial =
+                nextItem?.let { appInitial(it.appName, it.packageName) }
+            val isFirstInGroup = previousInitial == null || currentInitial != previousInitial
+            val isLastInGroup = nextInitial == null || currentInitial != nextInitial
+
+            val rowPosition =
+                when {
+                    isFirstInGroup && isLastInGroup -> FirewallRowPosition.Single
+                    isFirstInGroup -> FirewallRowPosition.First
+                    isLastInGroup -> FirewallRowPosition.Last
+                    else -> FirewallRowPosition.Middle
+                }
+
+            if (index == 0 || isFirstInGroup) {
+                stickyHeader(key = "header_${item.uid}_${item.packageName}_$currentInitial") {
+                    AppListLetterHeader(letter = currentInitial)
+                }
+            }
+
+            item(key = "app_${item.uid}_${item.packageName}_$index") {
+                FirewallAppRow(
+                    appInfo = item,
+                    eventLogger = eventLogger,
+                    searchQuery = searchQuery,
+                    rowPosition = rowPosition
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AppListLetterHeader(letter: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(start = 4.dp, top = 4.dp, bottom = 2.dp)
+    ) {
+        Text(
+            text = letter,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.SemiBold
+        )
+    }
+}
+
+private fun appInitial(appName: String, packageName: String): String {
+    val source = appName.ifBlank { packageName }.trim()
+    if (source.isEmpty()) return "#"
+    val first = source.first()
+    return if (first.isLetter()) {
+        first.uppercaseChar().toString()
+    } else {
+        source.first().toString().uppercase(Locale.getDefault())
+    }
+}
+
+private data class SectionAnchor(
+    val letter: String,
+    val listIndex: Int
+)
+
+private fun buildSectionAnchors(
+    items: androidx.paging.compose.LazyPagingItems<AppInfo>
+): List<SectionAnchor> {
+    val anchors = mutableListOf<SectionAnchor>()
+    var previousInitial: String? = null
+    var listIndex = 0
+
+    for (index in 0 until items.itemCount) {
+        val item = items.peek(index) ?: continue
+        val initial = appInitial(item.appName, item.packageName)
+        if (initial != previousInitial) {
+            if (anchors.none { it.letter == initial }) {
+                anchors.add(SectionAnchor(letter = initial, listIndex = listIndex))
+            }
+            listIndex += 1
+            previousInitial = initial
+        }
+        listIndex += 1
+    }
+
+    return anchors
+}
+
+@Composable
+private fun AppListFastScroller(
+    anchors: List<SectionAnchor>,
+    modifier: Modifier = Modifier,
+    onSelect: (SectionAnchor) -> Unit
+) {
+    var activeLetter by remember { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(activeLetter) {
+        if (activeLetter != null) {
+            delay(450)
+            activeLetter = null
+        }
+    }
+
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(Dimensions.cornerRadiusLg),
+        color = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.92f)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            anchors.forEach { anchor ->
+                val isActive = anchor.letter == activeLetter
+                Text(
+                    text = anchor.letter,
+                    style = MaterialTheme.typography.labelSmall,
+                    color =
+                        if (isActive) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .sizeIn(minWidth = 24.dp, minHeight = 24.dp)
+                        .clickable {
+                            activeLetter = anchor.letter
+                            onSelect(anchor)
+                        }
+                        .padding(horizontal = 5.dp, vertical = 3.dp)
+                )
+            }
         }
     }
 }
@@ -698,7 +756,7 @@ private fun InfoRow(icon: Int, text: String) {
     ) {
         Surface(
             shape = CircleShape,
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
+            color = MaterialTheme.colorScheme.surfaceContainerHighest,
             modifier = Modifier.size(36.dp)
         ) {
             Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
@@ -727,7 +785,6 @@ fun FirewallAppFilterSheet(
     onApply: (Filters) -> Unit,
     onClear: (Filters) -> Unit
 ) {
-    val context = LocalContext.current
     var topFilter by remember {
         mutableStateOf(initialFilters?.topLevelFilter ?: TopLevelFilter.ALL)
     }
@@ -745,7 +802,12 @@ fun FirewallAppFilterSheet(
         selectedCategories.retainAll(result.toSet())
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    RethinkModalBottomSheet(
+        onDismissRequest = onDismiss,
+        contentPadding = PaddingValues(0.dp),
+        verticalSpacing = 0.dp,
+        includeBottomSpacer = true
+    ) {
         Column(
             modifier = Modifier.padding(
                 horizontal = Dimensions.screenPaddingHorizontal,
@@ -793,17 +855,15 @@ fun FirewallAppFilterSheet(
                         .padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingMd)
                 ) {
                     categories.forEach { category ->
-                        FilterChip(
+                        RethinkFilterChip(
+                            label = category,
                             selected = selectedCategories.contains(category),
                             onClick = {
                                 if (selectedCategories.contains(category)) selectedCategories.remove(category)
                                 else selectedCategories.add(category)
                             },
-                            label = { Text(text = category) },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                            )
+                            selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
                 }
@@ -811,54 +871,46 @@ fun FirewallAppFilterSheet(
 
             Spacer(modifier = Modifier.height(Dimensions.spacingXl))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd, Alignment.End)
-            ) {
-                OutlinedButton(
-                    onClick = {
-                        selectedCategories.clear()
-                        topFilter = TopLevelFilter.ALL
-                        onClear(Filters().apply {
-                            topLevelFilter = TopLevelFilter.ALL
-                            this.firewallFilter = firewallFilter
-                        })
-                    }
-                ) { Text(text = stringResource(R.string.fapps_filter_clear_btn)) }
-                FilledTonalButton(
-                    onClick = {
-                        onApply(Filters().apply {
-                            topLevelFilter = topFilter
-                            this.firewallFilter = firewallFilter
-                            categoryFilters = selectedCategories.toMutableSet()
-                        })
-                    }
-                ) { Text(text = stringResource(R.string.lbl_apply)) }
-            }
-
-            Spacer(modifier = Modifier.height(Dimensions.spacing2xl))
+            RethinkBottomSheetActionRow(
+                primaryText = stringResource(R.string.lbl_apply),
+                onPrimaryClick = {
+                    onApply(
+                        Filters(
+                            categoryFilters = selectedCategories.toSet(),
+                            topLevelFilter = topFilter,
+                            firewallFilter = firewallFilter,
+                            searchString = initialFilters?.searchString.orEmpty()
+                        )
+                    )
+                },
+                secondaryText = stringResource(R.string.fapps_filter_clear_btn),
+                onSecondaryClick = {
+                    selectedCategories.clear()
+                    topFilter = TopLevelFilter.ALL
+                    onClear(
+                        Filters(
+                            topLevelFilter = TopLevelFilter.ALL,
+                            firewallFilter = firewallFilter,
+                            searchString = initialFilters?.searchString.orEmpty()
+                        )
+                    )
+                }
+            )
         }
     }
 }
 
 @Composable
 private fun TopFilterChip(label: String, selected: Boolean, onClick: () -> Unit) {
-    FilterChip(
+    RethinkFilterChip(
+        label = label,
         selected = selected,
         onClick = onClick,
-        label = {
-            Text(
-                text = label,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal,
-                style = MaterialTheme.typography.labelMedium,
-                modifier = Modifier.padding(horizontal = Dimensions.spacingSm, vertical = Dimensions.spacingXs)
-            )
-        },
-        shape = RoundedCornerShape(14.dp),
-        colors = FilterChipDefaults.filterChipColors(
-            selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-            selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
-        )
+        selectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+        selectedLabelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+        shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
+        selectedLabelWeight = FontWeight.SemiBold,
+        defaultLabelWeight = FontWeight.Normal
     )
 }
 
@@ -871,4 +923,3 @@ private suspend fun fetchCategories(filter: TopLevelFilter): List<String> {
         }
     }
 }
-

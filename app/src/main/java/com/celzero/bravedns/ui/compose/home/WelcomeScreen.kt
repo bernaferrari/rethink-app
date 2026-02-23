@@ -138,7 +138,7 @@ fun WelcomeScreen(onFinish: () -> Unit) {
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    shape = RoundedCornerShape(18.dp),
+                    shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     )
@@ -179,7 +179,7 @@ private fun WelcomeSlideContent(slide: WelcomeSlide) {
     // Each slide fills the allocated space — M3 tonal card, no border
     Surface(
         modifier = Modifier.fillMaxSize(),
-        shape = RoundedCornerShape(28.dp),
+        shape = RoundedCornerShape(Dimensions.cornerRadius5xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         tonalElevation = 0.dp
     ) {
@@ -256,7 +256,7 @@ private fun PillDotIndicator(count: Int, pagerState: PagerState) {
                 modifier = Modifier
                     .height(dotSize)
                     .width(width)
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(Dimensions.cornerRadiusXs))
                     .background(color)
             )
         }

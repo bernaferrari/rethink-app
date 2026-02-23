@@ -17,6 +17,14 @@ package com.celzero.bravedns.ui.compose.navigation
 
 import android.graphics.drawable.Drawable
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
@@ -25,16 +33,23 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
+import androidx.compose.material3.NavigationRail
+import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -47,6 +62,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -68,6 +84,7 @@ import com.celzero.bravedns.ui.compose.about.AboutScreen
 import com.celzero.bravedns.ui.compose.about.AboutUiState
 import com.celzero.bravedns.ui.compose.app.AppInfoScreen
 import com.celzero.bravedns.ui.compose.configure.ConfigureScreen
+import com.celzero.bravedns.ui.compose.configure.SettingsSearchDestination
 import com.celzero.bravedns.ui.compose.events.EventsScreen
 import com.celzero.bravedns.ui.compose.firewall.FirewallSettingsScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreen
@@ -88,6 +105,8 @@ import com.celzero.bravedns.ui.compose.apps.AppListScreen
 import com.celzero.bravedns.ui.compose.firewall.CustomRulesScreen
 import com.celzero.bravedns.ui.compose.home.WelcomeScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreenUiState
+import com.celzero.bravedns.ui.compose.firewall.RulesMode
+import com.celzero.bravedns.ui.compose.firewall.RulesTab
 import com.celzero.bravedns.ui.compose.wireguard.WgConfigDetailScreen
 import com.celzero.bravedns.ui.compose.wireguard.WgConfigEditorScreen
 import com.celzero.bravedns.ui.compose.wireguard.WgType
@@ -142,12 +161,17 @@ import com.celzero.bravedns.viewmodel.DnsCryptRelayEndpointViewModel
 import com.celzero.bravedns.viewmodel.ODoHEndpointViewModel
 import com.celzero.bravedns.viewmodel.CheckoutViewModel
 import com.celzero.bravedns.ui.compose.logs.AppWiseDomainLogsScreen
-import com.celzero.bravedns.ui.compose.logs.AppWiseDomainLogsState
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
 import com.celzero.bravedns.ui.compose.wireguard.WgMainScreen
+import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.celzero.bravedns.util.Utilities
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+
+private const val BOTTOM_BAR_ENTER_DURATION = 220
+private const val BOTTOM_BAR_EXIT_DURATION = 180
+private const val NAV_ENTER_DURATION = 240
+private const val NAV_EXIT_DURATION = 200
 
 enum class HomeDestination(
     val route: HomeRoute,
@@ -179,7 +203,11 @@ sealed interface HomeNavRequest {
     data object ConsoleLogs : HomeNavRequest
     data object NetworkLogs : HomeNavRequest
     data object AppList : HomeNavRequest
-    data object CustomRules : HomeNavRequest
+    data class CustomRules(
+        val uid: Int = UID_EVERYBODY,
+        val tab: CustomRulesTab = CustomRulesTab.IP,
+        val mode: CustomRulesMode = CustomRulesMode.APP_SPECIFIC
+    ) : HomeNavRequest
     data object ProxySettings : HomeNavRequest
     data object TcpProxyMain : HomeNavRequest
     data object Welcome : HomeNavRequest
@@ -262,6 +290,7 @@ fun HomeScreenRoot(
     onRedditClick: () -> Unit,
     onElementClick: () -> Unit,
     onMastodonClick: () -> Unit,
+    onGeneralSettingsClick: () -> Unit,
     onAppInfoClick: () -> Unit,
     onVpnProfileClick: () -> Unit,
     onNotificationClick: () -> Unit,
@@ -286,6 +315,8 @@ fun HomeScreenRoot(
     appConfig: AppConfig,
     onOpenVpnProfile: () -> Unit,
     onRefreshDatabase: (() -> Unit)? = null,
+    onThemeModeChanged: ((Int) -> Unit)? = null,
+    onThemeColorChanged: ((Int) -> Unit)? = null,
     consoleLogViewModel: ConsoleLogViewModel,
     consoleLogRepository: ConsoleLogRepository,
     onShareConsoleLogs: () -> Unit,
@@ -337,6 +368,7 @@ fun HomeScreenRoot(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
+    val currentHierarchy = currentDestination?.hierarchy.orEmpty()
     val currentRoute = currentDestination?.route
     val topLevelRoutes = remember {
         HomeDestination.entries.mapNotNull { it.route::class.qualifiedName }.toSet()
@@ -345,7 +377,10 @@ fun HomeScreenRoot(
     val isWelcomeRoute = currentRoute == HomeRoute.Welcome::class.qualifiedName
     val showBottomBar =
         !isWelcomeRoute &&
-                (currentDestination?.hierarchy?.any { it.route != null && topLevelRoutes.contains(it.route) } == true)
+                currentHierarchy.any { it.route != null && topLevelRoutes.contains(it.route) }
+    val isWideScreen = LocalConfiguration.current.screenWidthDp >= 840
+    val showNavigationRail = showBottomBar && isWideScreen
+    val showNavigationBar = showBottomBar && !isWideScreen
 
     LaunchedEffect(homeNavRequest) {
         val request = homeNavRequest ?: return@LaunchedEffect
@@ -371,7 +406,7 @@ fun HomeScreenRoot(
             }
 
             HomeNavRequest.FirewallSettings -> {
-                navController.navigate(HomeRoute.FirewallSettings)
+                navController.navigate(HomeRoute.FirewallSettings())
             }
 
             HomeNavRequest.AdvancedSettings -> {
@@ -383,11 +418,11 @@ fun HomeScreenRoot(
             }
 
             HomeNavRequest.TunnelSettings -> {
-                navController.navigate(HomeRoute.TunnelSettings)
+                navController.navigate(HomeRoute.TunnelSettings())
             }
 
             HomeNavRequest.MiscSettings -> {
-                navController.navigate(HomeRoute.MiscSettings)
+                navController.navigate(HomeRoute.MiscSettings())
             }
 
             HomeNavRequest.ConsoleLogs -> {
@@ -402,12 +437,18 @@ fun HomeScreenRoot(
                 navController.navigate(HomeRoute.AppList)
             }
 
-            HomeNavRequest.CustomRules -> {
-                navController.navigate(HomeRoute.CustomRules)
+            is HomeNavRequest.CustomRules -> {
+                navController.navigate(
+                    HomeRoute.CustomRules(
+                        uid = request.uid,
+                        tab = request.tab.value,
+                        mode = request.mode.value
+                    )
+                )
             }
 
             HomeNavRequest.ProxySettings -> {
-                navController.navigate(HomeRoute.ProxySettings)
+                navController.navigate(HomeRoute.ProxySettings())
             }
 
             HomeNavRequest.TcpProxyMain -> {
@@ -427,7 +468,7 @@ fun HomeScreenRoot(
             }
 
             HomeNavRequest.DnsDetail -> {
-                navController.navigate(HomeRoute.DnsDetail)
+                navController.navigate(HomeRoute.DnsDetail())
             }
 
             is HomeNavRequest.RpnWinProxyDetails -> {
@@ -524,61 +565,144 @@ fun HomeScreenRoot(
         ),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
-            if (!showBottomBar) return@Scaffold
-            NavigationBar(
-                modifier = Modifier.fillMaxWidth(),
-                containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                tonalElevation = 0.dp,
-                windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
-            ) {
-                HomeDestination.entries.forEach { destination ->
-                    val routeName = destination.route::class.qualifiedName
-                    val isSelected =
-                        currentDestination?.hierarchy?.any { it.route == routeName } == true
-                    NavigationBarItem(
-                        selected = isSelected,
-                        onClick = {
-                            navController.navigate(destination.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                launchSingleTop = true
-                                restoreState = true
-                            }
-                        },
-                        icon = {
-                            Icon(
-                                imageVector =
-                                    if (isSelected) destination.selectedIcon else destination.unselectedIcon,
-                                contentDescription = stringResource(id = destination.labelRes)
-                            )
-                        },
-                        label = {
-                            Text(
-                                text = stringResource(id = destination.labelRes),
-                                style = MaterialTheme.typography.labelMedium
-                            )
-                        },
-                        alwaysShowLabel = true,
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                            selectedTextColor = MaterialTheme.colorScheme.onSurface,
-                            indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+            AnimatedVisibility(
+                visible = showNavigationBar,
+                enter = slideInVertically(
+                    initialOffsetY = { it },
+                    animationSpec = tween(
+                        durationMillis = BOTTOM_BAR_ENTER_DURATION,
+                        easing = FastOutSlowInEasing
                     )
+                ) + fadeIn(animationSpec = tween(durationMillis = BOTTOM_BAR_ENTER_DURATION)),
+                exit = slideOutVertically(
+                    targetOffsetY = { it },
+                    animationSpec = tween(
+                        durationMillis = BOTTOM_BAR_EXIT_DURATION,
+                        easing = FastOutSlowInEasing
+                    )
+                ) + fadeOut(animationSpec = tween(durationMillis = BOTTOM_BAR_EXIT_DURATION))
+            ) {
+                NavigationBar(
+                    modifier = Modifier.fillMaxWidth(),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    tonalElevation = 0.dp,
+                    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
+                ) {
+                    HomeDestination.entries.forEach { destination ->
+                        val routeName = destination.route::class.qualifiedName
+                        val isSelected = currentHierarchy.any { it.route == routeName }
+                        NavigationBarItem(
+                            selected = isSelected,
+                            onClick = {
+                                navController.navigate(destination.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector =
+                                        if (isSelected) destination.selectedIcon else destination.unselectedIcon,
+                                    contentDescription = stringResource(id = destination.labelRes)
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = stringResource(id = destination.labelRes),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            },
+                            alwaysShowLabel = true,
+                            colors = NavigationBarItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                                indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
                 }
             }
         }
     ) { paddingValues ->
-        NavHost(
-            navController = navController,
-            startDestination = startDestination,
-            modifier = Modifier
-                .padding(paddingValues)
-                .consumeWindowInsets(paddingValues)
-        ) {
+        val navHostModifier = Modifier
+            .padding(paddingValues)
+            .consumeWindowInsets(paddingValues)
+
+        val navHostContent: @Composable (Modifier) -> Unit = { modifier ->
+            NavHost(
+                navController = navController,
+                startDestination = startDestination,
+                modifier = modifier,
+                enterTransition = {
+                    val topLevelTransition =
+                        topLevelRoutes.contains(initialState.destination.route) &&
+                            topLevelRoutes.contains(targetState.destination.route)
+                    if (topLevelTransition) {
+                        fadeIn(animationSpec = tween(durationMillis = NAV_EXIT_DURATION))
+                    } else {
+                        slideIntoContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                            animationSpec = tween(
+                                durationMillis = NAV_ENTER_DURATION,
+                                easing = FastOutSlowInEasing
+                            )
+                        ) + fadeIn(animationSpec = tween(durationMillis = NAV_ENTER_DURATION))
+                    }
+                },
+                exitTransition = {
+                    val topLevelTransition =
+                        topLevelRoutes.contains(initialState.destination.route) &&
+                            topLevelRoutes.contains(targetState.destination.route)
+                    if (topLevelTransition) {
+                        fadeOut(animationSpec = tween(durationMillis = NAV_EXIT_DURATION))
+                    } else {
+                        slideOutOfContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                            animationSpec = tween(
+                                durationMillis = NAV_EXIT_DURATION,
+                                easing = FastOutSlowInEasing
+                            )
+                        ) + fadeOut(animationSpec = tween(durationMillis = NAV_EXIT_DURATION))
+                    }
+                },
+                popEnterTransition = {
+                    val topLevelTransition =
+                        topLevelRoutes.contains(initialState.destination.route) &&
+                            topLevelRoutes.contains(targetState.destination.route)
+                    if (topLevelTransition) {
+                        fadeIn(animationSpec = tween(durationMillis = NAV_EXIT_DURATION))
+                    } else {
+                        slideIntoContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                            animationSpec = tween(
+                                durationMillis = NAV_ENTER_DURATION,
+                                easing = FastOutSlowInEasing
+                            )
+                        ) + fadeIn(animationSpec = tween(durationMillis = NAV_ENTER_DURATION))
+                    }
+                },
+                popExitTransition = {
+                    val topLevelTransition =
+                        topLevelRoutes.contains(initialState.destination.route) &&
+                            topLevelRoutes.contains(targetState.destination.route)
+                    if (topLevelTransition) {
+                        fadeOut(animationSpec = tween(durationMillis = NAV_EXIT_DURATION))
+                    } else {
+                        slideOutOfContainer(
+                            towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                            animationSpec = tween(
+                                durationMillis = NAV_EXIT_DURATION,
+                                easing = FastOutSlowInEasing
+                            )
+                        ) + fadeOut(animationSpec = tween(durationMillis = NAV_EXIT_DURATION))
+                    }
+                }
+            ) {
             composable<HomeRoute.Home> {
                 HomeScreen(
                     uiState = homeUiState,
@@ -613,11 +737,13 @@ fun HomeScreenRoot(
                     onBackClick = { navController.popBackStack() }
                 )
             }
-            composable<HomeRoute.FirewallSettings> {
+            composable<HomeRoute.FirewallSettings> { entry ->
+                val args = entry.toRoute<HomeRoute.FirewallSettings>()
                 FirewallSettingsScreen(
                     onUniversalFirewallClick = onFirewallUniversalClick,
                     onCustomIpDomainClick = onFirewallCustomIpClick,
                     onAppWiseIpDomainClick = onFirewallAppWiseIpClick,
+                    initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
                     onBackClick = { navController.popBackStack() }
                 )
             }
@@ -634,21 +760,27 @@ fun HomeScreenRoot(
                     onBackClick = { navController.popBackStack() }
                 )
             }
-            composable<HomeRoute.TunnelSettings> {
+            composable<HomeRoute.TunnelSettings> { entry ->
+                val args = entry.toRoute<HomeRoute.TunnelSettings>()
                 TunnelSettingsScreen(
                     persistentState = persistentState,
                     appConfig = appConfig,
                     eventLogger = appInfoEventLogger,
                     onOpenVpnProfile = onOpenVpnProfile,
+                    initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
                     onBackClick = { navController.popBackStack() }
                 )
             }
-            composable<HomeRoute.MiscSettings> {
+            composable<HomeRoute.MiscSettings> { entry ->
+                val args = entry.toRoute<HomeRoute.MiscSettings>()
                 MiscSettingsScreen(
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
+                    initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
                     onBackClick = { navController.popBackStack() },
-                    onRefreshDatabase = onRefreshDatabase
+                    onRefreshDatabase = onRefreshDatabase,
+                    onThemeModeChanged = onThemeModeChanged,
+                    onThemeColorChanged = onThemeColorChanged
                 )
             }
             composable<HomeRoute.PingTest> {
@@ -689,8 +821,12 @@ fun HomeScreenRoot(
                 )
             }
 
-            composable<HomeRoute.CustomRules> {
+            composable<HomeRoute.CustomRules> { entry ->
+                val args = entry.toRoute<HomeRoute.CustomRules>()
                 CustomRulesScreen(
+                    uid = args.uid,
+                    initialTab = RulesTab.fromValue(args.tab),
+                    initialMode = RulesMode.fromValue(args.mode),
                     domainViewModel = appInfoDomainRulesViewModel,
                     ipViewModel = appInfoIpRulesViewModel,
                     eventLogger = appInfoEventLogger,
@@ -698,14 +834,16 @@ fun HomeScreenRoot(
                 )
             }
 
-            composable<HomeRoute.ProxySettings> {
+            composable<HomeRoute.ProxySettings> { entry ->
+                val args = entry.toRoute<HomeRoute.ProxySettings>()
                 ProxySettingsScreen(
                     appConfig = appConfig,
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
                     mappingViewModel = proxyAppsMappingViewModel,
+                    initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
                     onWireguardClick = { navController.navigate(HomeRoute.WgMain) },
-                    onNavigateToDns = { navController.navigate(HomeRoute.DnsDetail) },
+                    onNavigateToDns = { navController.navigate(HomeRoute.DnsDetail()) },
                     onBackClick = { navController.popBackStack() }
                 )
             }
@@ -737,11 +875,13 @@ fun HomeScreenRoot(
                     }
                 )
             }
-            composable<HomeRoute.DnsDetail> {
+            composable<HomeRoute.DnsDetail> { entry ->
+                val args = entry.toRoute<HomeRoute.DnsDetail>()
                 DnsDetailScreen(
                     viewModel = dnsSettingsViewModel,
                     persistentState = persistentState,
                     appDownloadManager = appDownloadManager,
+                    initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
                     onCustomDnsClick = onDnsCustomDnsClick,
                     onRethinkPlusDnsClick = onDnsRethinkPlusDnsClick,
                     onLocalBlocklistConfigureClick = onDnsLocalBlocklistConfigureClick,
@@ -760,8 +900,23 @@ fun HomeScreenRoot(
                     onAppWiseIpLogsClick = { u, isAsn ->
                         navController.navigate(HomeRoute.AppWiseIpLogs(u, isAsn))
                     },
-                    onCustomRulesClick = { u ->
-                        navController.navigate(HomeRoute.CustomRules)
+                    onCustomIpRulesClick = { u ->
+                        navController.navigate(
+                            HomeRoute.CustomRules(
+                                uid = u,
+                                tab = CustomRulesTab.IP.value,
+                                mode = CustomRulesMode.APP_SPECIFIC.value
+                            )
+                        )
+                    },
+                    onCustomDomainRulesClick = { u ->
+                        navController.navigate(
+                            HomeRoute.CustomRules(
+                                uid = u,
+                                tab = CustomRulesTab.DOMAIN.value,
+                                mode = CustomRulesMode.APP_SPECIFIC.value
+                            )
+                        )
                     }
                 )
             }
@@ -869,7 +1024,30 @@ fun HomeScreenRoot(
                     onOthersClick = onConfigureOthersClick,
                     onLogsClick = onConfigureLogsClick,
                     onAntiCensorshipClick = onConfigureAntiCensorshipClick,
-                    onAdvancedClick = onConfigureAdvancedClick
+                    onAdvancedClick = onConfigureAdvancedClick,
+                    onSearchDestinationClick = { destination ->
+                        when (destination) {
+                            SettingsSearchDestination.Apps -> navController.navigate(HomeRoute.AppList)
+                            is SettingsSearchDestination.Dns -> navController.navigate(
+                                HomeRoute.DnsDetail(destination.focusKey)
+                            )
+                            is SettingsSearchDestination.Firewall -> navController.navigate(
+                                HomeRoute.FirewallSettings(destination.focusKey)
+                            )
+                            is SettingsSearchDestination.Proxy -> navController.navigate(
+                                HomeRoute.ProxySettings(destination.focusKey)
+                            )
+                            is SettingsSearchDestination.Network -> navController.navigate(
+                                HomeRoute.TunnelSettings(destination.focusKey)
+                            )
+                            is SettingsSearchDestination.General -> navController.navigate(
+                                HomeRoute.MiscSettings(destination.focusKey)
+                            )
+                            SettingsSearchDestination.Logs -> navController.navigate(HomeRoute.NetworkLogs)
+                            SettingsSearchDestination.AntiCensorship -> navController.navigate(HomeRoute.AntiCensorship)
+                            SettingsSearchDestination.Advanced -> navController.navigate(HomeRoute.AdvancedSettings)
+                        }
+                    }
                 )
             }
             composable<HomeRoute.About> {
@@ -894,6 +1072,7 @@ fun HomeScreenRoot(
                     onRedditClick = onRedditClick,
                     onElementClick = onElementClick,
                     onMastodonClick = onMastodonClick,
+                    onGeneralSettingsClick = onGeneralSettingsClick,
                     onAppInfoClick = onAppInfoClick,
                     onVpnProfileClick = onVpnProfileClick,
                     onNotificationClick = onNotificationClick,
@@ -904,7 +1083,10 @@ fun HomeScreenRoot(
                     onTokenClick = onTokenClick,
                     onTokenDoubleTap = onTokenDoubleTap,
                     onFossClick = onFossClick,
-                    onFlossFundsClick = onFlossFundsClick
+                    onFlossFundsClick = onFlossFundsClick,
+                    persistentState = persistentState,
+                    onThemeModeChanged = onThemeModeChanged,
+                    onThemeColorChanged = onThemeColorChanged
                 )
             }
             composable<HomeRoute.ConfigureRethinkBasic> { entry ->
@@ -975,62 +1157,11 @@ fun HomeScreenRoot(
             }
             composable<HomeRoute.AppWiseDomainLogs> { entry ->
                 val args = entry.toRoute<HomeRoute.AppWiseDomainLogs>()
-                val uid = args.uid
-                val context = LocalContext.current
-                val searchHint = stringResource(R.string.search_custom_domains)
-                val defaultIcon = remember(context) { Utilities.getDefaultIcon(context) }
-                var appName by remember(uid) { mutableStateOf(uid.toString()) }
-                var appIcon by remember(uid) { mutableStateOf<Drawable?>(null) }
-                var isRethinkApp by remember(uid) { mutableStateOf(false) }
-
-                LaunchedEffect(uid) {
-                    appInfoNetworkLogsViewModel.setUid(uid)
-                    appInfoNetworkLogsViewModel.setFilter("", AppConnectionsViewModel.FilterType.DOMAIN)
-                }
-
-                LaunchedEffect(uid, context.packageName) {
-                    val resolved =
-                        withContext(Dispatchers.IO) {
-                            val info = FirewallManager.getAppInfoByUid(uid)
-                            val packageNames = FirewallManager.getPackageNamesByUid(uid)
-                            val resolvedAppName = info?.appName?.takeIf { it.isNotBlank() } ?: uid.toString()
-                            val resolvedIcon = info?.let { Utilities.getIcon(context, it.packageName, it.appName) }
-                            Triple(resolvedAppName, resolvedIcon, packageNames.any { it == context.packageName })
-                        }
-                    appName = resolved.first
-                    appIcon = resolved.second
-                    isRethinkApp = resolved.third
-                }
-
-                // Flow<PagingData>
-                val items = remember(uid) {
-                    appInfoNetworkLogsViewModel.appDomainLogs.asFlow()
-                }.collectAsLazyPagingItems()
-
-                val state = AppWiseDomainLogsState(
-                    uid = uid,
-                    isActiveConns = false,
-                    isRethinkApp = isRethinkApp,
-                    searchHint = searchHint,
-                    appIcon = appIcon,
-                    showToggleGroup = true,
-                    showDeleteIcon = true,
-                    selectedCategory = AppConnectionsViewModel.TimeCategory.SEVEN_DAYS
-                )
-
                 AppWiseDomainLogsScreen(
-                    state = state,
-                    items = items,
+                    uid = args.uid,
+                    viewModel = appInfoNetworkLogsViewModel,
                     eventLogger = appInfoEventLogger,
-                    onTimeCategoryChange = { appInfoNetworkLogsViewModel.timeCategoryChanged(it, true) },
-                    onFilterChange = {
-                        appInfoNetworkLogsViewModel.setFilter(
-                            it,
-                            AppConnectionsViewModel.FilterType.DOMAIN
-                        )
-                    },
-                    onDeleteLogs = { appInfoNetworkLogsViewModel.deleteLogs(uid) },
-                    defaultIcon = defaultIcon
+                    onBackClick = { navController.popBackStack() }
                 )
             }
             composable<HomeRoute.WgMain> {
@@ -1048,6 +1179,65 @@ fun HomeScreenRoot(
                     }
                 )
             }
+            }
+        }
+
+        if (showNavigationRail) {
+            Row(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .consumeWindowInsets(paddingValues)
+            ) {
+                NavigationRail(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(88.dp),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
+                    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Start)
+                ) {
+                    HomeDestination.entries.forEach { destination ->
+                        val routeName = destination.route::class.qualifiedName
+                        val isSelected = currentHierarchy.any { it.route == routeName }
+                        NavigationRailItem(
+                            selected = isSelected,
+                            onClick = {
+                                navController.navigate(destination.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    imageVector = if (isSelected) destination.selectedIcon else destination.unselectedIcon,
+                                    contentDescription = stringResource(id = destination.labelRes)
+                                )
+                            },
+                            label = {
+                                Text(
+                                    text = stringResource(id = destination.labelRes),
+                                    style = MaterialTheme.typography.labelMedium
+                                )
+                            },
+                            alwaysShowLabel = true,
+                            colors = NavigationRailItemDefaults.colors(
+                                selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                selectedTextColor = MaterialTheme.colorScheme.onSurface,
+                                indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
+                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        )
+                    }
+                }
+
+                navHostContent(Modifier.weight(1f))
+            }
+        } else {
+            navHostContent(navHostModifier)
         }
     }
 }

@@ -16,87 +16,30 @@
 package com.celzero.bravedns.ui.compose.logs
 
 import android.graphics.drawable.Drawable
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.rounded.Close
-import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.graphics.Color
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.ui.graphics.asImageBitmap
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.core.graphics.drawable.toBitmap
 import androidx.lifecycle.asFlow
-import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.IpRow
-import com.celzero.bravedns.database.AppInfo
 import com.celzero.bravedns.service.EventLogger
-import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.ui.bottomsheet.AppIpRulesSheet
-import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
-import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
 import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
-import com.celzero.bravedns.ui.compose.theme.Dimensions
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppWiseIpLogsScreen(
     uid: Int,
@@ -106,149 +49,71 @@ fun AppWiseIpLogsScreen(
     onBackClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
-    val backContentDescription = stringResource(R.string.cd_navigate_back)
-    val clearSearchContentDescription = stringResource(R.string.cd_clear_search)
-    val deleteContentDescription = stringResource(R.string.lbl_delete)
-    var appInfo by remember { mutableStateOf<AppInfo?>(null) }
+    var appName by remember(uid) { mutableStateOf("") }
     var searchHint by remember { mutableStateOf("") }
     var appIcon by remember { mutableStateOf<Drawable?>(null) }
     val showDeleteIcon = remember { !isAsn }
     var showDeleteDialog by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf(AppConnectionsViewModel.TimeCategory.SEVEN_DAYS) }
-    val isRethinkApp = remember(uid) {
-        Utilities.getApplicationInfo(context, context.packageName)?.uid == uid
-    }
+    var isRethinkApp by remember(uid) { mutableStateOf(false) }
 
-    LaunchedEffect(uid) {
+    LaunchedEffect(uid, isAsn) {
         if (uid == INVALID_UID) {
             onBackClick?.invoke()
             return@LaunchedEffect
         }
         viewModel.timeCategoryChanged(selectedCategory, isDomain = false)
         withContext(Dispatchers.IO) {
-            val info = FirewallManager.getAppInfoByUid(uid)
-            if (info == null) {
+            val meta = resolveAppWiseLogsHeader(context, uid, isAsn)
+            if (meta == null) {
                 withContext(Dispatchers.Main) { onBackClick?.invoke() }
                 return@withContext
             }
-            val packages = FirewallManager.getPackageNamesByUid(info.uid)
-            val count = packages.count()
-            val appName = if (count >= 2) {
-                context.resources.getString(R.string.ctbs_app_other_apps, info.appName, (count - 1).toString())
-            } else {
-                info.appName
-            }
-            val appNameTruncated = appName.substring(0, appName.length.coerceAtMost(10))
-            val hint = if (isAsn) {
-                val txt = context.resources.getString(
-                    R.string.two_argument_space,
-                    context.resources.getString(R.string.lbl_search),
-                    context.resources.getString(R.string.lbl_service_providers)
-                )
-                context.resources.getString(R.string.two_argument_colon, appNameTruncated, txt)
-            } else {
-                context.resources.getString(
-                    R.string.two_argument_colon,
-                    appNameTruncated,
-                    context.resources.getString(R.string.search_universal_ips)
-                )
-            }
-            val icon = Utilities.getIcon(context, info.packageName, info.appName)
             withContext(Dispatchers.Main) {
-                appInfo = info
-                searchHint = hint
-                appIcon = icon
+                appName = meta.appName
+                searchHint = meta.searchHint
+                appIcon = meta.appIcon
+                isRethinkApp = meta.isRethinkApp
             }
         }
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            RethinkLargeTopBar(
-                title = appInfo?.appName ?: "",
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
+    AppWiseLogsScaffold(
+        title = appName,
+        onBackClick = onBackClick
     ) { paddingValues ->
         if (showDeleteDialog) {
-            AlertDialog(
-                onDismissRequest = { showDeleteDialog = false },
-                title = { Text(text = stringResource(R.string.ada_delete_logs_dialog_title)) },
-                text = { Text(text = stringResource(R.string.ada_delete_logs_dialog_desc)) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showDeleteDialog = false
-                            viewModel.deleteLogs(uid)
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.lbl_proceed))
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showDeleteDialog = false }) {
-                        Text(text = stringResource(R.string.lbl_cancel))
-                    }
-                }
+            AppWiseLogsDeleteDialog(
+                onDismiss = { showDeleteDialog = false },
+                onConfirm = { viewModel.deleteLogs(uid) }
             )
         }
 
-        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            Surface(
-                modifier = Modifier.padding(
-                    horizontal = Dimensions.screenPaddingHorizontal,
-                    vertical = Dimensions.spacingSm
-                ),
-                shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                tonalElevation = 1.dp
-            ) {
-                Column(
-                    modifier = Modifier.padding(Dimensions.spacingLg),
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
-                ) {
-                    Text(
-                        text = appInfo?.appName ?: stringResource(R.string.lbl_logs),
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = searchHint,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            Column(
-                modifier = Modifier.padding(
-                    horizontal = Dimensions.screenPaddingHorizontal,
-                    vertical = Dimensions.spacingMd
-                )
-            ) {
-                ToggleRow(
-                    selectedCategory = selectedCategory,
-                    onCategoryChange = { category ->
-                        selectedCategory = category
-                        viewModel.timeCategoryChanged(category, isDomain = false)
+        AppWiseLogsScreenContent(
+            title = appName.ifBlank { stringResource(R.string.lbl_logs) },
+            searchHint = searchHint,
+            appIcon = appIcon ?: Utilities.getDefaultIcon(context),
+            showToggleGroup = true,
+            selectedCategory = selectedCategory,
+            onCategorySelected = { category ->
+                selectedCategory = category
+                viewModel.timeCategoryChanged(category, isDomain = false)
+            },
+            defaultHintRes = R.string.search_universal_ips,
+            showDeleteIcon = showDeleteIcon,
+            onDeleteClick = { showDeleteDialog = true },
+            onQueryChange = { query ->
+                val type =
+                    if (isAsn) {
+                        AppConnectionsViewModel.FilterType.ASN
+                    } else {
+                        AppConnectionsViewModel.FilterType.IP
                     }
-                )
-                Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-                HeaderRow(
-                    viewModel = viewModel,
-                    isAsn = isAsn,
-                    searchHint = searchHint,
-                    appIcon = appIcon,
-                    showDeleteIcon = showDeleteIcon,
-                    onDeleteClick = { showDeleteDialog = true }
-                )
-            }
-
+                viewModel.setFilter(query, type)
+            },
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            queryEnabled = !isAsn
+        ) {
             AppWiseIpList(
                 viewModel = viewModel,
                 uid = uid,
@@ -256,164 +121,6 @@ fun AppWiseIpLogsScreen(
                 isRethinkApp = isRethinkApp,
                 eventLogger = eventLogger
             )
-        }
-    }
-}
-
-@Composable
-private fun ToggleRow(
-    selectedCategory: AppConnectionsViewModel.TimeCategory,
-    onCategoryChange: (AppConnectionsViewModel.TimeCategory) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = Dimensions.spacingSm),
-        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        listOf(
-            AppConnectionsViewModel.TimeCategory.ONE_HOUR to stringResource(
-                R.string.ci_desc,
-                "1",
-                stringResource(R.string.lbl_hour)
-            ),
-            AppConnectionsViewModel.TimeCategory.TWENTY_FOUR_HOUR to stringResource(
-                R.string.ci_desc,
-                "24",
-                stringResource(R.string.lbl_hour)
-            ),
-            AppConnectionsViewModel.TimeCategory.SEVEN_DAYS to stringResource(
-                R.string.ci_desc,
-                "7",
-                stringResource(R.string.lbl_day)
-            )
-        ).forEach { (category, label) ->
-            ToggleButton(
-                label = label,
-                selected = selectedCategory == category,
-                onClick = { onCategoryChange(category) },
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun ToggleButton(label: String, selected: Boolean, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(36.dp),
-        contentPadding = PaddingValues(horizontal = 8.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (selected) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh,
-            contentColor = if (selected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
-        ),
-        shape = RoundedCornerShape(Dimensions.buttonCornerRadiusLarge)
-    ) {
-        Text(text = label, style = MaterialTheme.typography.labelSmall, maxLines = 1, overflow = TextOverflow.Ellipsis)
-    }
-}
-
-@OptIn(FlowPreview::class)
-@Composable
-private fun HeaderRow(
-    viewModel: AppConnectionsViewModel,
-    isAsn: Boolean,
-    searchHint: String,
-    appIcon: Drawable?,
-    showDeleteIcon: Boolean,
-    onDeleteClick: () -> Unit
-) {
-    val clearSearchContentDescription = stringResource(R.string.cd_clear_search)
-    val deleteContentDescription = stringResource(R.string.lbl_delete)
-    var query by remember { mutableStateOf("") }
-    LaunchedEffect(Unit) {
-        snapshotFlow { query }
-            .debounce(500)
-            .distinctUntilChanged()
-            .collect { value ->
-                val type = if (isAsn) AppConnectionsViewModel.FilterType.ASN else AppConnectionsViewModel.FilterType.IP
-                viewModel.setFilter(value, type)
-            }
-    }
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = Dimensions.spacingSm),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(Dimensions.spacingSm)
-                    .size(Dimensions.iconSizeMd)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
-                contentAlignment = Alignment.Center
-            ) {
-                val iconDrawable = appIcon ?: Utilities.getDefaultIcon(LocalContext.current)
-                val bitmap = remember(iconDrawable) { iconDrawable?.toBitmap(width = 48, height = 48) }
-                if (bitmap != null) {
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Rounded.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                enabled = !isAsn,
-                placeholder = {
-                    Text(
-                        text = searchHint.ifEmpty { stringResource(R.string.search_universal_ips) },
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent
-                )
-            )
-
-            AnimatedVisibility(visible = query.isNotEmpty()) {
-                IconButton(onClick = { query = "" }) {
-                    Icon(
-                        imageVector = Icons.Rounded.Close,
-                        contentDescription = clearSearchContentDescription,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(Dimensions.iconSizeSm)
-                    )
-                }
-            }
-
-            if (showDeleteIcon) {
-                IconButton(onClick = onDeleteClick) {
-                    Icon(
-                        imageVector = Icons.Rounded.Delete,
-                        contentDescription = deleteContentDescription,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(Dimensions.iconSizeMd)
-                    )
-                }
-            }
         }
     }
 }
@@ -451,16 +158,7 @@ private fun AppWiseIpList(
     }
     val items = flow.asFlow().collectAsLazyPagingItems()
 
-    LazyColumn(
-        modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(
-            horizontal = Dimensions.screenPaddingHorizontal,
-            vertical = Dimensions.spacingSm
-        ),
-        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-    ) {
-        items(count = items.itemCount) { index ->
-            val item = items[index] ?: return@items
+    AppWiseLogsPagedList(items = items) { item ->
             IpRow(
                 conn = item,
                 isAsn = isAsn,
@@ -474,6 +172,5 @@ private fun AppWiseIpList(
                     }
                 }
             )
-        }
     }
 }

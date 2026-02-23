@@ -112,7 +112,7 @@
     <string name="about_bravedns_explantion">Rethink es la forma más sencilla de supervisar la actividad de las aplicaciones, eludir la censura en Internet y utilizar cortafuegos en su dispositivo Android.</string>
     <string name="about_bug_no_log_dialog_message">No se han podido obtener los registros de fallos. ¿Quiere informar manualmente de su error\?</string>
     <string name="about_privacy_policy">Normativa de privacidad</string>
-    <string name="about_connect">contacto</string>
+    <string name="about_connect">Contacto</string>
     <string name="contributors_dialog_title">Autores</string>
     <string name="accessibility_service_description">Rethink utiliza el servicio de accesibilidad para detectar y bloquear aplicaciones en segundo plano. Rethink no recopila ni vende ninguna información.</string>
     <string name="finish">Finalizar</string>
@@ -247,7 +247,7 @@
     <string name="unicode_warning_sign">⚠</string>
     <string name="rules_load_failure_heading">Nota</string>
     <string name="rules_load_failure_desc">No se han encontrado reglas de cortafuegos</string>
-    <string name="rules_load_failure_reload">recargar</string>
+    <string name="rules_load_failure_reload">Recargar</string>
     <string name="network_log_app_name_unknown">Desconocido</string>
     <string name="dns_crypt_connection_failure">Error conectando al servidor DNSCrypt.</string>
     <string name="dns_proxy_connection_failure">Error conectando al servidor proxy DNS.</string>
@@ -374,7 +374,7 @@
     <string name="brbs_backup_complete_toast">Copia de seguridad completa</string>
     <string name="settings_theme_dialog_title">Apariencia</string>
     <string name="settings_socks_forwarding_default_desc">Reenvía las conexiones al punto de acceso SOCKS5.</string>
-    <string name="about_settings">sistema</string>
+    <string name="about_settings">Sistema</string>
     <string name="about_whats_new">Novedades en %1$s</string>
     <string name="about_app_contributors">Autores</string>
     <string name="dc_dns_website_desc">Obtener los iconos del sitio web <i>nextdns.io</i> y <i>duckduckgo.com</i>. Consume hasta 350 mb de espacio en disco</string>
@@ -411,7 +411,7 @@
     <string name="app_mode_dns_low_battery">DNS (ahorro de batería)</string>
     <string name="app_mode_dns">DNS</string>
     <string name="app_mode_wireguard">VPN</string>
-    <string name="settings_vpn_heading">vpn</string>
+    <string name="settings_vpn_heading">VPN</string>
     <string name="info_dialog_copy_toast_msg">Dirección IP copiada.</string>
     <string name="info_dialog_url_copy_toast_msg">URL copiada</string>
     <string name="info_dialog_rethink_toast_msg">Copiada URL como RDNS+ DNS-sobre-HTTPS</string>
@@ -460,7 +460,7 @@
     <string name="hsf_blocklist_updating_text">Activando…</string>
     <string name="hsf_chip_appearance">Tema: %1$s</string>
     <string name="hsf_pause_vpn_failure">No se puede pausar: Rethink no está activo</string>
-    <string name="dc_other_dns_heading">tipo</string>
+    <string name="dc_other_dns_heading">Tipo</string>
     <string name="dc_custom_dns_radio">Otros DNS</string>
     <string name="hsf_exclude_error">La exclusión no es posible en el modo bloqueo de VPN</string>
     <string name="dc_dns_website_heading">Mostrar el icono del sitio web en los registros de DNS (en pruebas)</string>
@@ -473,7 +473,7 @@
     <string name="about_bug_no_log_dialog_title">Informe de errores</string>
     <string name="about_bug_no_log_dialog_positive_btn">Enviar correo electrónico</string>
     <string name="about_bug_report_dialog_positive_btn">Enviar correo electrónico</string>
-    <string name="about_web">enlaces</string>
+    <string name="about_web">Enlaces</string>
     <string name="about_website">Visite rethinkdns.com</string>
     <string name="about_github">Contribuir en GitHub</string>
     <string name="about_docs">Leer documentación</string>
@@ -601,7 +601,7 @@
     <string name="dns_connected_rethink_plus">Conectado. %1$s listas de bloqueo en uso</string>
     <string name="settings_notification_desc1">Pausar / Detener (por defecto)</string>
     <string name="configure_dns_connected_dns_proxy_status">Proxy DNS</string>
-    <string name="dc_block_heading">reglas</string>
+    <string name="dc_block_heading">Reglas</string>
     <string name="new_app_notification_action_deny">Seguir bloqueando</string>
     <string name="new_app_bulk_notification_title">Atención</string>
     <string name="cd_custom_dns_proxy_title">Proxy DNS personalizado</string>
@@ -612,7 +612,7 @@
     <string name="firewall_card_text_inactive">Activar el modo cortafuegos.</string>
     <string name="about_faq">Ver preguntas frecuentes</string>
     <string name="dns_btm_sheet_dialog_message"> \u0020<Data><![CDATA[ <h3><u><font size="8">%1$s</font></u>: %2$s lista(s) de bloqueo</h3>%3$s.<br/><br/>]]></Data> \u0020</string>
-    <string name="about_app">aplicación</string>
+    <string name="about_app">Aplicación</string>
     <string name="show_logs_disabled_dns_message">El registro de solicitudes DNS ha sido desactivado. Para volver a activarlo, vaya a <i>Ajustes</i> y habilite <i>Activar el registro en el dispositivo.</i></string>
     <string name="orbot_bs_status_3">Reenviando %1$s a Orbot, Proxy HTTP también configurado.</string>
     <string name="settings_dns_proxy_dialog_app">Aplicación</string>
@@ -753,9 +753,9 @@
     <string name="fapps_isolate_block_dialog_title">Aislamiento de aplicaciones</string>
     <string name="fapps_exclude_block_dialog_message">¿Excluir las aplicaciones en la <i>lista</i> del DNS y Firewall\?</string>
     <string name="ci_trust_rule">Confiar</string>
-    <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">aplicaciones más permitidas</string>
-    <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">aplicaciones más bloqueadas</string>
-    <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">dominios más contactados</string>
+    <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">Aplicaciones más permitidas</string>
+    <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">Aplicaciones más bloqueadas</string>
+    <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">Dominios más contactados</string>
     <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">IPs más contactadas</string>
     <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app">Iniciar Rethink para continuar</string>
     <string name="ssv_see_more">Mostrar todo</string>
@@ -765,7 +765,7 @@
     <string name="hs_biometeric_desc">Utilice la autenticación biométrica para desbloquear Rethink</string>
     <string name="fapps_unblock_dialog_title">Permitir aplicaciones</string>
     <string name="fapps_exclude_block_dialog_title">Excluir aplicaciones</string>
-    <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">dominios más bloqueados</string>
+    <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">Dominios más bloqueados</string>
     <string name="fapps_info_bypass_msg">Omite las reglas del cortafuegos universal.</string>
     <string name="fapps_bypass_block_dialog_message">¿Omitir las reglas del cortafuegos universal para las aplicaciones de la <i>lista</i>\?</string>
     <string name="fapps_info_unmetered_msg">Permitir/Bloquear en red sin límites (WiFi).</string>
@@ -790,7 +790,7 @@
     <string name="firewall_rule_trusted_domain_desc" translatable="true">Esta conexión se permitió porque el <i>dominio</i> está configurado como Dominio de confianza.<br/><br/> Para cambiarlo, vaya a la pantalla <i>Cortafuegos específico de la aplicación</i>.</string>
     <string name="cd_no_rules_text" translatable="true">No hay reglas de dominio.</string>
     <string name="firewall_rule_block_domain" translatable="true">Dominio (App)</string>
-    <string name="lbl_rules" translatable="true">reglas</string>
+    <string name="lbl_rules" translatable="true">Reglas</string>
     <string name="lbl_configure" translatable="true">Configurar</string>
     <string name="bypass_dns_firewall" translatable="true">omitir dns y cortafuegos</string>
     <string name="settings_general_customize" translatable="true">personalizar</string>
@@ -886,7 +886,7 @@
     <string name="app_ip_domain_rules" translatable="true">Reglas IP/Dominio por aplicación</string>
     <string name="app_ip_domain_rules_desc" translatable="true">Modificar las reglas IP / Dominio por aplicación.</string>
     <string name="fapps_info_bypass_dns_firewall_msg" translatable="true">Omitir las reglas DNS y el cortafuegos.</string>
-    <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">países más bloqueados</string>
+    <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">Países más bloqueados</string>
     <string name="bad_config_reason_invalid_key" translatable="true">Clave no válida</string>
     <string name="bad_config_reason_invalid_number" translatable="true">Número no válido</string>
     <string name="bad_config_reason_invalid_value" translatable="true">Valor no válido</string>
@@ -901,7 +901,7 @@
     <string name="parse_error_inet_address" translatable="true">Direcciones IP</string>
     <string name="cd_deleted_toast" translatable="true">Eliminadas todas las reglas de dominio</string>
     <string name="firewall_rule_proxied_desc" translatable="true">Esta conexión se ha desviado al proxy preferido por el usuario.<br/><br/> Para cambiarlo vaya a <i>Proxy</i> en la pantalla <i>Configurar</i>.</string>
-    <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">países más contactados</string>
+    <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">Países más contactados</string>
     <string name="firewall_rule_proxied" translatable="true">Por proxy</string>
     <string name="parse_error_integer" translatable="true">número</string>
     <string name="bad_config_explanation_pka" translatable="true">: Debe ser positivo y no más de 65535</string>
@@ -1032,7 +1032,7 @@
     <string name="settings_biometric_dialog_heading" translatable="true">Autenticación Biométrica</string>
     <string name="settings_biometric_dialog_option_2" translatable="true">Después de 5 minutos</string>
     <string name="settings_biometric_dialog_option_3" translatable="true">Después de 15 minutos</string>
-    <string name="dc_filtering_heading" translatable="true">filtrando</string>
+    <string name="dc_filtering_heading" translatable="true">Filtrando</string>
     <string name="univ_delete_domain_dialog_title" translatable="true">¿Eliminar todas las Reglas de Dominio?</string>
     <string name="firewall_rule_private_dns" translatable="true">DNS Privado</string>
     <string name="firewall_rule_paused_app" translatable="true">Aplicación Pausada</string>
@@ -1048,8 +1048,8 @@
     <string name="lbl_ultra_secure" translatable="true">ultra seguro</string>
     <string name="blocklist_not_available_toast" translatable="true">Para actualizar las listas de bloqueo, descarga la última versión de la app.</string>
     <string name="about_terms_of_service" translatable="true">Términos de Servicio</string>
-    <string name="most_contacted_asn" translatable="true">proveedores más contactados</string>
-    <string name="most_blocked_asn" translatable="true">proveedores más bloqueados</string>
+    <string name="most_contacted_asn" translatable="true">Proveedores más contactados</string>
+    <string name="most_blocked_asn" translatable="true">Proveedores más bloqueados</string>
     <string name="download_ip_info_title" translatable="true">Mostrar información del proveedor</string>
     <string name="adv_taster_title" translatable="true">Automatización</string>
     <string name="adv_taster_desc" translatable="true">Configurar aplicaciones que pueden iniciar o detener Rethink.</string>

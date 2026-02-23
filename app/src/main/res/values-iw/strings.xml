@@ -85,7 +85,7 @@
     <string name="app_mode_firewall" translatable="true">חומת אש</string>
     <string name="app_mode_dns_firewall" translatable="true">DNS וחומת אש (ברירת מחדל)</string>
     <string name="app_mode_wireguard" translatable="true">VPN</string>
-    <string name="settings_vpn_heading" translatable="true">vpn</string>
+    <string name="settings_vpn_heading" translatable="true">VPN</string>
     <string name="info_dialog_copy_toast_msg" translatable="true">כתובת ה-IP הועתקה.</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">כתובת האתר הועתקה</string>
     <string name="app_mode_choose" translatable="true">בחר מצב</string>

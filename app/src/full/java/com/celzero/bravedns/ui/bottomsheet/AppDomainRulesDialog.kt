@@ -19,10 +19,8 @@ package com.celzero.bravedns.ui.bottomsheet
 import android.graphics.drawable.Drawable
 import android.widget.Toast
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -34,9 +32,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -50,14 +46,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CustomDomain
-import com.celzero.bravedns.database.EventSource
-import com.celzero.bravedns.database.EventType
-import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.database.WgConfigFilesImmutable
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.EventLogger
@@ -67,9 +58,10 @@ import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import io.github.aakira.napier.Napier
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.foundation.lazy.LazyColumn
@@ -102,21 +94,9 @@ fun AppDomainRulesSheet(
             onDismiss()
             return@LaunchedEffect
         }
-        val loadedAppNames = withContext(Dispatchers.IO) { FirewallManager.getAppNamesByUid(uid) }
-        val appCount = loadedAppNames.count()
-        val pkgName =
-            if (loadedAppNames.isNotEmpty()) {
-                FirewallManager.getPackageNameByAppName(loadedAppNames[0])
-            } else {
-                null
-            }
-        appNames = loadedAppNames
-        appIcon =
-            if (pkgName != null) {
-                Utilities.getIcon(context, pkgName)
-            } else {
-                null
-            }
+        val (names, icon) = withContext(Dispatchers.IO) { fetchRuleSheetAppIdentity(context, uid) }
+        appNames = names
+        appIcon = icon
         domainRule = withContext(Dispatchers.IO) { DomainRulesManager.status(domain, uid) }
         customDomain =
             withContext(Dispatchers.IO) {
@@ -124,141 +104,55 @@ fun AppDomainRulesSheet(
             }
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        val appName =
-            when {
-                appNames.isEmpty() -> null
-                appNames.size >= 2 ->
-                    stringResource(
-                        R.string.ctbs_app_other_apps,
-                        appNames[0],
-                        appNames.size.minus(1).toString()
-                    )
-                else -> appNames[0]
-            }
-        val borderColor = MaterialTheme.colorScheme.outline
-        val trustIcon =
-            if (domainRule == DomainRulesManager.Status.TRUST) {
-                R.drawable.ic_trust_accent
-            } else {
-                R.drawable.ic_trust
-            }
-        val blockIcon =
-            if (domainRule == DomainRulesManager.Status.BLOCK) {
-                R.drawable.ic_block_accent
-            } else {
-                R.drawable.ic_block
-            }
+    RuleSheetModal(onDismissRequest = onDismiss) {
+        val appName = formatRuleSheetAppName(context, appNames)
+        RuleSheetLayout(bottomPadding = RuleSheetBottomPaddingWithActions) {
+            RuleSheetAppHeader(appName = appName, appIcon = appIcon)
 
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 60.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            Box(
-                modifier =
-                    Modifier.align(Alignment.CenterHorizontally)
-                        .width(60.dp)
-                        .height(3.dp)
-                        .background(borderColor, RoundedCornerShape(2.dp))
-            )
-
-            if (appName != null) {
-                Row(
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .padding(horizontal = 20.dp)
-                            .background(Color.Transparent),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    appIcon?.let { icon ->
-                        val painter = rememberDrawablePainter(icon)
-                        painter?.let {
-                            Image(
-                                painter = it,
-                                contentDescription = null,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                        }
-                    }
-                    Text(
-                        text = appName.orEmpty(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
-            Text(
+            RuleSheetSectionTitle(
                 text = stringResource(R.string.bsct_block_domain),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp, vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                SelectionContainer(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = domain,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+            RuleSheetTrustBlockRow(
+                value = domain,
+                isTrustSelected = domainRule == DomainRulesManager.Status.TRUST,
+                isBlockSelected = domainRule == DomainRulesManager.Status.BLOCK,
+                onTrustClick = {
+                    val target =
+                        if (domainRule == DomainRulesManager.Status.TRUST) {
+                            DomainRulesManager.Status.NONE
+                        } else {
+                            DomainRulesManager.Status.TRUST
+                        }
+                    applyDomainRule(
+                        domain,
+                        uid,
+                        target,
+                        scope,
+                        eventLogger,
+                        onUpdated
+                    ) { domainRule = it }
+                },
+                onBlockClick = {
+                    val target =
+                        if (domainRule == DomainRulesManager.Status.BLOCK) {
+                            DomainRulesManager.Status.NONE
+                        } else {
+                            DomainRulesManager.Status.BLOCK
+                        }
+                    applyDomainRule(
+                        domain,
+                        uid,
+                        target,
+                        scope,
+                        eventLogger,
+                        onUpdated
+                    ) { domainRule = it }
                 }
-                Spacer(modifier = Modifier.width(16.dp))
-                Icon(
-                    painter = painterResource(id = trustIcon),
-                    contentDescription = null,
-                    modifier =
-                        Modifier.size(28.dp).clickable {
-                            val target =
-                                if (domainRule == DomainRulesManager.Status.TRUST) {
-                                    DomainRulesManager.Status.NONE
-                                } else {
-                                    DomainRulesManager.Status.TRUST
-                                }
-                            applyDomainRule(
-                                domain,
-                                uid,
-                                target,
-                                scope,
-                                eventLogger,
-                                onUpdated
-                            ) { domainRule = it }
-                        }
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Icon(
-                    painter = painterResource(id = blockIcon),
-                    contentDescription = null,
-                    modifier =
-                        Modifier.size(28.dp).clickable {
-                            val target =
-                                if (domainRule == DomainRulesManager.Status.BLOCK) {
-                                    DomainRulesManager.Status.NONE
-                                } else {
-                                    DomainRulesManager.Status.BLOCK
-                                }
-                            applyDomainRule(
-                                domain,
-                                uid,
-                                target,
-                                scope,
-                                eventLogger,
-                                onUpdated
-                            ) { domainRule = it }
-                        }
-                )
-            }
+            )
 
-            Text(
+            RuleSheetSupportingText(
                 text = stringResource(R.string.bsac_title_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp)
             )
         }
 
@@ -308,14 +202,7 @@ private fun applyDomainRule(
 ) {
     onSetStatus(status)
     val details = "Domain rule applied: $domain, $uid, ${status.name}"
-    eventLogger.log(
-        EventType.FW_RULE_MODIFIED,
-        Severity.LOW,
-        "App domain rule",
-        EventSource.UI,
-        false,
-        details
-    )
+    logFirewallRuleChange(eventLogger, "App domain rule", details)
     scope.launch(Dispatchers.IO) {
         DomainRulesManager.changeStatus(
             domain,
@@ -339,21 +226,13 @@ private fun WireguardListSheet(
 ) {
     val context = LocalContext.current
     var currentProxyId by remember(inputLabel, selectedProxyId) { mutableStateOf(selectedProxyId) }
-    val borderColor = MaterialTheme.colorScheme.outline
-
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    RuleSheetModal(onDismissRequest = onDismiss) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier =
+                Modifier.fillMaxWidth()
+                    .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingLg),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
         ) {
-            Box(
-                modifier =
-                    Modifier.align(Alignment.CenterHorizontally)
-                        .width(60.dp)
-                        .height(3.dp)
-                        .background(borderColor, RoundedCornerShape(2.dp))
-            )
-
             inputLabel?.let {
                 Text(
                     text = it,
@@ -385,9 +264,9 @@ private fun WireguardListSheet(
                                     onSelected(conf)
                                     onDismiss()
                                 }
-                                .padding(vertical = 8.dp, horizontal = 4.dp),
+                                .padding(vertical = Dimensions.spacingSm, horizontal = Dimensions.spacingXs),
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
                     ) {
                         Text(
                             text = ID_WG_BASE.uppercase(),
@@ -406,7 +285,7 @@ private fun WireguardListSheet(
                 }
             }
 
-            Spacer(modifier = Modifier.size(8.dp))
+            Spacer(modifier = Modifier.size(Dimensions.spacingSm))
         }
     }
 }

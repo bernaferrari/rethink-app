@@ -16,22 +16,19 @@
 package com.celzero.bravedns.ui.compose.proxy
 
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Apps
+import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.VpnKey
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -41,22 +38,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.TcpProxyHelper
-import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
-import com.celzero.bravedns.ui.compose.theme.SectionHeader
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
+import com.celzero.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
+import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
@@ -80,7 +74,6 @@ fun TcpProxyMainScreen(
     var tcpProxySwitchChecked by remember { mutableStateOf(false) }
     var tcpProxyStatus by remember { mutableStateOf("") }
     var tcpProxyDesc by remember { mutableStateOf("") }
-    var tcpProxyAddAppsText by remember { mutableStateOf("") }
     var tcpErrorVisible by remember { mutableStateOf(false) }
     var tcpErrorText by remember { mutableStateOf("") }
     var enableUdpRelayChecked by remember { mutableStateOf(false) }
@@ -89,27 +82,14 @@ fun TcpProxyMainScreen(
     var includeAppsProxyId by remember { mutableStateOf("") }
     var includeAppsProxyName by remember { mutableStateOf("") }
 
-    // Observe app count for TCP proxy
     val appCount by mappingViewModel.getAppCountById(ProxyManager.ID_TCP_BASE)
         .asFlow()
-        .collectAsState(initial = null)
+        .collectAsState(initial = 0)
 
-    // Update add apps text when app count changes
-    LaunchedEffect(appCount) {
-        tcpProxyAddAppsText = if (appCount == null || appCount == 0) {
-            context.resources.getString(R.string.add_remove_apps, "0")
-        } else {
-            context.resources.getString(R.string.add_remove_apps, appCount.toString())
-        }
-    }
-
-    // Initialize description
     LaunchedEffect(Unit) {
         tcpProxyDesc = context.resources.getString(R.string.settings_https_desc)
-        tcpProxyAddAppsText = context.resources.getString(R.string.add_remove_apps, "0")
     }
 
-    // Display TCP proxy status on launch
     LaunchedEffect(Unit) {
         displayTcpProxyStatus(
             onStatusUpdate = { status, switchChecked, errorVisible, errorText ->
@@ -121,17 +101,12 @@ fun TcpProxyMainScreen(
         )
     }
 
-    fun showTcpErrorLayout() {
-        tcpErrorVisible = true
-        tcpErrorText = context.resources.getString(R.string.something_went_wrong)
-    }
-
     fun onTcpProxySwitchChanged(checked: Boolean) {
         tcpProxySwitchChecked = checked
         scope.launch(Dispatchers.IO) {
-            val isActive = true
+            val isWarpActive = warpSwitchChecked
             withContext(Dispatchers.Main) {
-                if (checked && isActive) {
+                if (checked && isWarpActive) {
                     tcpProxySwitchChecked = false
                     Utilities.showToastUiCentered(
                         context,
@@ -166,29 +141,24 @@ fun TcpProxyMainScreen(
                 }
 
                 if (!appConfig.canEnableTcpProxy()) {
-                    val s = appConfig.getProxyProvider()
-                        .lowercase()
-                        .replaceFirstChar(Char::titlecase)
+                    val provider = appConfig.getProxyProvider().lowercase().replaceFirstChar(Char::titlecase)
                     Utilities.showToastUiCentered(
                         context,
-                        context.resources.getString(R.string.settings_https_disabled_error, s),
+                        context.resources.getString(R.string.settings_https_disabled_error, provider),
                         Toast.LENGTH_SHORT
                     )
                     tcpProxySwitchChecked = false
                     return@withContext
                 }
-                scope.launch(Dispatchers.IO) {
-                    TcpProxyHelper.enable()
-                }
+
+                scope.launch(Dispatchers.IO) { TcpProxyHelper.enable() }
             }
         }
     }
 
     fun openAppsDialog() {
-        val proxyId = ProxyManager.ID_TCP_BASE
-        val proxyName = ProxyManager.TCP_PROXY_NAME
-        includeAppsProxyId = proxyId
-        includeAppsProxyName = proxyName
+        includeAppsProxyId = ProxyManager.ID_TCP_BASE
+        includeAppsProxyName = ProxyManager.TCP_PROXY_NAME
         showIncludeAppsDialog = true
     }
 
@@ -201,86 +171,85 @@ fun TcpProxyMainScreen(
         )
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            RethinkLargeTopBar(
-                title = stringResource(id = R.string.settings_proxy_header),
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior
-            )
+    val listState = rememberLazyListState()
+    val subtitle =
+        if (tcpProxySwitchChecked) {
+            stringResource(R.string.lbl_active)
+        } else {
+            stringResource(R.string.lbl_inactive)
         }
-    ) { paddingValues ->
-        LazyColumn(
-            state = rememberLazyListState(),
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding =
-                PaddingValues(
-                    start = Dimensions.screenPaddingHorizontal,
-                    end = Dimensions.screenPaddingHorizontal,
-                    bottom = Dimensions.spacing3xl
-                ),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
-        ) {
+
+    RethinkTopBarLazyColumnScreen(
+        title = stringResource(id = R.string.settings_https_heading),
+        subtitle = subtitle,
+        onBackClick = onBackClick,
+        containerColor = MaterialTheme.colorScheme.surface,
+        listState = listState,
+        contentPadding = PaddingValues(
+            start = Dimensions.screenPaddingHorizontal,
+            end = Dimensions.screenPaddingHorizontal,
+            top = Dimensions.spacingMd,
+            bottom = Dimensions.spacing3xl
+        )
+    ) {
             item {
-                TcpProxyOverviewCard(
-                    status = if (tcpErrorVisible) tcpErrorText else tcpProxyStatus.ifEmpty { stringResource(R.string.lbl_inactive) },
-                    appCount = appCount ?: 0
-                )
-            }
-
-            item {
-                SectionHeader(title = stringResource(id = R.string.tcp_proxy_rethink_proxy_title))
-                RethinkListGroup {
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.tcp_proxy_rethink_proxy_title),
-                        supporting = if (tcpErrorVisible) tcpErrorText else tcpProxyStatus.ifEmpty { tcpProxyDesc },
-                        leadingIconPainter = painterResource(id = R.drawable.ic_proxy),
-                        position = CardPosition.First,
-                        onClick = { onTcpProxySwitchChanged(!tcpProxySwitchChecked) },
-                        trailing = {
-                            Switch(
-                                checked = tcpProxySwitchChecked,
-                                onCheckedChange = { onTcpProxySwitchChanged(it) }
-                            )
-                        }
+                RethinkAnimatedSection(index = 0) {
+                    SectionHeaderWithSubtitle(
+                        title = stringResource(id = R.string.tcp_proxy_rethink_proxy_title),
+                        subtitle = stringResource(id = R.string.settings_https_desc)
                     )
+                    Column {
+                        val entries = 3
+                        RethinkListItem(
+                            headline = stringResource(id = R.string.tcp_proxy_rethink_proxy_title),
+                            supporting = if (tcpErrorVisible) tcpErrorText else tcpProxyStatus.ifEmpty { tcpProxyDesc },
+                            leadingIcon = Icons.Rounded.VpnKey,
+                            position = cardPositionFor(index = 0, lastIndex = entries - 1),
+                            onClick = { onTcpProxySwitchChanged(!tcpProxySwitchChecked) },
+                            trailing = {
+                                Switch(
+                                    checked = tcpProxySwitchChecked,
+                                    onCheckedChange = { onTcpProxySwitchChanged(it) }
+                                )
+                            }
+                        )
 
-                    RethinkListItem(
-                        headline = stringResource(id = R.string.tcp_proxy_enable_udp_relay),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_settings),
-                        position = CardPosition.Middle,
-                        onClick = { enableUdpRelayChecked = !enableUdpRelayChecked },
-                        trailing = {
-                            Switch(
-                                checked = enableUdpRelayChecked,
-                                onCheckedChange = { enableUdpRelayChecked = it }
-                            )
-                        }
-                    )
+                        RethinkListItem(
+                            headline = stringResource(id = R.string.tcp_proxy_enable_udp_relay),
+                            supporting = stringResource(id = R.string.adv_set_experimental_desc),
+                            leadingIcon = Icons.Rounded.Settings,
+                            position = cardPositionFor(index = 1, lastIndex = entries - 1),
+                            onClick = { enableUdpRelayChecked = !enableUdpRelayChecked },
+                            trailing = {
+                                Switch(
+                                    checked = enableUdpRelayChecked,
+                                    onCheckedChange = { enableUdpRelayChecked = it }
+                                )
+                            }
+                        )
 
-                    RethinkListItem(
-                        headline = tcpProxyAddAppsText,
-                        leadingIconPainter = painterResource(id = R.drawable.ic_app_info_accent),
-                        position = CardPosition.Last,
-                        onClick = { openAppsDialog() }
-                    )
+                        RethinkListItem(
+                            headline = stringResource(id = R.string.lbl_apps),
+                            supporting = context.resources.getString(R.string.add_remove_apps, appCount.toString()),
+                            leadingIcon = Icons.Rounded.Apps,
+                            position = cardPositionFor(index = 2, lastIndex = entries - 1),
+                            onClick = { openAppsDialog() }
+                        )
+                    }
                 }
             }
 
             item {
-                SectionHeader(title = stringResource(id = R.string.tcp_proxy_cloudflare_warp_title))
-                RethinkListGroup {
+                RethinkAnimatedSection(index = 1) {
+                    SectionHeaderWithSubtitle(
+                        title = stringResource(id = R.string.tcp_proxy_cloudflare_warp_title),
+                        subtitle = stringResource(id = R.string.tcp_proxy_cloudflare_warp_desc)
+                    )
                     RethinkListItem(
                         headline = stringResource(id = R.string.tcp_proxy_cloudflare_warp_title),
                         supporting = stringResource(id = R.string.tcp_proxy_cloudflare_warp_desc),
-                        leadingIconPainter = painterResource(id = R.drawable.ic_proxy),
-                        position = CardPosition.Single,
+                        leadingIcon = Icons.Rounded.VpnKey,
+                        position = cardPositionFor(index = 0, lastIndex = 0),
                         onClick = { warpSwitchChecked = !warpSwitchChecked },
                         trailing = {
                             Switch(
@@ -291,42 +260,11 @@ fun TcpProxyMainScreen(
                     )
                 }
             }
-        }
-    }
-}
 
-@Composable
-private fun TcpProxyOverviewCard(status: String, appCount: Int) {
-    Surface(
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border =
-            androidx.compose.foundation.BorderStroke(
-                1.dp,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
-            ),
-        tonalElevation = 1.dp
-    ) {
-        Column(
-            modifier = Modifier.padding(Dimensions.spacingXl),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-        ) {
-            Text(
-                text = stringResource(id = R.string.tcp_proxy_rethink_proxy_title),
-                style = MaterialTheme.typography.titleMedium
-            )
-            Text(
-                text = status,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = stringResource(id = R.string.add_remove_apps, appCount.toString()),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
+            item {
+                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+            }
         }
-    }
 }
 
 private suspend fun displayTcpProxyStatus(

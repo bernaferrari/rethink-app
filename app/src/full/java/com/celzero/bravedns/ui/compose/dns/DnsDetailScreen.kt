@@ -21,8 +21,7 @@ import Logger.LOG_TAG_DNS
 import android.content.Context
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,17 +34,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -58,9 +54,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -78,6 +73,15 @@ import com.celzero.bravedns.data.AppConfig.Companion.DOT_INDEX
 import com.celzero.bravedns.download.AppDownloadManager
 import com.celzero.bravedns.download.DownloadConstants
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.CardPosition
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.celzero.bravedns.ui.compose.theme.RethinkMultiActionDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
@@ -97,8 +101,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
 
-private const val BUTTON_ALPHA_DISABLED = 0.5f
-
 /**
  * DNS Detail Screen - A composable screen that shows DNS settings and configuration.
  * This is the Compose equivalent of DnsDetailActivity.
@@ -116,6 +118,7 @@ fun DnsDetailScreen(
     viewModel: DnsSettingsViewModel,
     persistentState: PersistentState,
     appDownloadManager: AppDownloadManager,
+    initialFocusKey: String? = null,
     onCustomDnsClick: () -> Unit,
     onRethinkPlusDnsClick: () -> Unit,
     onLocalBlocklistConfigureClick: () -> Unit,
@@ -141,8 +144,6 @@ fun DnsDetailScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showLockdownDialog by remember { mutableStateOf(false) }
 
-    var enableLabel by remember { mutableStateOf("") }
-    var enableColor by remember { mutableStateOf(Color.Unspecified) }
     var headingText by remember { mutableStateOf("") }
     var versionText by remember { mutableStateOf("") }
     var canConfigure by remember { mutableStateOf(false) }
@@ -154,9 +155,6 @@ fun DnsDetailScreen(
     var isChecking by remember { mutableStateOf(false) }
     var isDownloading by remember { mutableStateOf(false) }
     var isRedownloading by remember { mutableStateOf(false) }
-    val enabledBlocklistColor = MaterialTheme.colorScheme.tertiary
-    val disabledBlocklistColor = MaterialTheme.colorScheme.error
-
     // Helper functions for local blocklist UI state
     fun showCheckUpdateUi() {
         showCheckDownload = true
@@ -186,8 +184,6 @@ fun DnsDetailScreen(
     }
 
     fun enableBlocklistUi() {
-        enableLabel = context.resources.getString(R.string.lbbs_enabled)
-        enableColor = enabledBlocklistColor
         headingText = context.resources.getString(
             R.string.settings_local_blocklist_in_use,
             persistentState.numberOfLocalBlocklists.toString()
@@ -198,8 +194,6 @@ fun DnsDetailScreen(
     }
 
     fun disableBlocklistUi() {
-        enableLabel = context.resources.getString(R.string.lbl_disabled)
-        enableColor = disabledBlocklistColor
         headingText = context.resources.getString(R.string.lbbs_heading)
         canConfigure = false
         canCopy = false
@@ -570,6 +564,7 @@ fun DnsDetailScreen(
     // Main content
     DnsSettingsScreen(
         uiState = uiState,
+        initialFocusKey = initialFocusKey,
         onRefreshClick = { viewModel.refreshDns() },
         onSystemDnsClick = { viewModel.enableSystemDns() },
         onSystemDnsInfoClick = {
@@ -609,66 +604,50 @@ fun DnsDetailScreen(
 
     // System DNS Dialog
     if (showSystemDnsDialog) {
-        AlertDialog(
+        RethinkMultiActionDialog(
             onDismissRequest = { showSystemDnsDialog = false },
-            title = { Text(text = stringResource(R.string.network_dns)) },
-            text = { Text(text = systemDnsDialogText) },
-            confirmButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = { showSystemDnsDialog = false }) {
-                        Text(text = stringResource(R.string.ada_noapp_dialog_positive))
-                    }
-                    TextButton(
-                        onClick = {
-                            UIUtils.clipboardCopy(
-                                context,
-                                systemDnsDialogText,
-                                context.resources.getString(R.string.copy_clipboard_label)
-                            )
-                            Utilities.showToastUiCentered(
-                                context,
-                                context.resources.getString(R.string.info_dialog_url_copy_toast_msg),
-                                Toast.LENGTH_SHORT
-                            )
-                            showSystemDnsDialog = false
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.dns_info_neutral))
-                    }
-                }
+            title = stringResource(R.string.network_dns),
+            message = systemDnsDialogText,
+            primaryText = stringResource(R.string.ada_noapp_dialog_positive),
+            onPrimary = { showSystemDnsDialog = false },
+            secondaryText = stringResource(R.string.dns_info_neutral),
+            onSecondary = {
+                UIUtils.clipboardCopy(
+                    context,
+                    systemDnsDialogText,
+                    context.resources.getString(R.string.copy_clipboard_label)
+                )
+                Utilities.showToastUiCentered(
+                    context,
+                    context.resources.getString(R.string.info_dialog_url_copy_toast_msg),
+                    Toast.LENGTH_SHORT
+                )
+                showSystemDnsDialog = false
             }
         )
     }
 
     // Smart DNS Dialog
     if (showSmartDnsDialog) {
-        AlertDialog(
+        RethinkMultiActionDialog(
             onDismissRequest = { showSmartDnsDialog = false },
-            title = { Text(text = stringResource(R.string.smart_dns)) },
-            text = { Text(text = smartDnsDialogText) },
-            confirmButton = {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = { showSmartDnsDialog = false }) {
-                        Text(text = stringResource(R.string.ada_noapp_dialog_positive))
-                    }
-                    TextButton(
-                        onClick = {
-                            UIUtils.clipboardCopy(
-                                context,
-                                smartDnsDialogText,
-                                context.resources.getString(R.string.copy_clipboard_label)
-                            )
-                            Utilities.showToastUiCentered(
-                                context,
-                                context.resources.getString(R.string.info_dialog_url_copy_toast_msg),
-                                Toast.LENGTH_SHORT
-                            )
-                            showSmartDnsDialog = false
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.dns_info_neutral))
-                    }
-                }
+            title = stringResource(R.string.smart_dns),
+            message = smartDnsDialogText,
+            primaryText = stringResource(R.string.ada_noapp_dialog_positive),
+            onPrimary = { showSmartDnsDialog = false },
+            secondaryText = stringResource(R.string.dns_info_neutral),
+            onSecondary = {
+                UIUtils.clipboardCopy(
+                    context,
+                    smartDnsDialogText,
+                    context.resources.getString(R.string.copy_clipboard_label)
+                )
+                Utilities.showToastUiCentered(
+                    context,
+                    context.resources.getString(R.string.info_dialog_url_copy_toast_msg),
+                    Toast.LENGTH_SHORT
+                )
+                showSmartDnsDialog = false
             }
         )
     }
@@ -676,10 +655,7 @@ fun DnsDetailScreen(
     // Local Blocklists Sheet
     if (showLocalBlocklistsSheet) {
         LocalBlocklistsSheet(
-            context = context,
             headingText = headingText,
-            enableLabel = enableLabel,
-            enableColor = enableColor,
             versionText = versionText,
             canConfigure = canConfigure,
             canCopy = canCopy,
@@ -690,7 +666,7 @@ fun DnsDetailScreen(
             isChecking = isChecking,
             isDownloading = isDownloading,
             isRedownloading = isRedownloading,
-            persistentState = persistentState,
+            isBlocklistEnabled = persistentState.blocklistEnabled,
             onDismiss = { dismissLocalBlocklistsSheet() },
             onEnableBlocklist = { enableBlocklist() },
             onConfigure = { invokeLocalBlocklistActivity() },
@@ -746,78 +722,53 @@ fun DnsDetailScreen(
         } else {
             stringResource(R.string.local_blocklist_download_desc)
         }
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = { showDownloadDialog = false },
-            title = { Text(text = title) },
-            text = { Text(text = message) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDownloadDialog = false
-                        downloadLocalBlocklist(downloadDialogIsRedownload)
-                    }
-                ) {
-                    Text(text = stringResource(R.string.settings_local_blocklist_dialog_positive))
-                }
+            title = title,
+            message = message,
+            confirmText = stringResource(R.string.settings_local_blocklist_dialog_positive),
+            dismissText = stringResource(R.string.lbl_cancel),
+            onConfirm = {
+                showDownloadDialog = false
+                downloadLocalBlocklist(downloadDialogIsRedownload)
             },
-            dismissButton = {
-                TextButton(onClick = { showDownloadDialog = false }) {
-                    Text(text = stringResource(R.string.lbl_cancel))
-                }
-            }
+            onDismiss = { showDownloadDialog = false }
         )
     }
 
     // Delete Dialog
     if (showDeleteDialog) {
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text(text = stringResource(R.string.lbl_delete)) },
-            text = { Text(text = stringResource(R.string.local_blocklist_delete_desc)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showDeleteDialog = false
-                        deleteLocalBlocklist()
-                    }
-                ) {
-                    Text(text = stringResource(R.string.lbl_delete))
-                }
+            title = stringResource(R.string.lbl_delete),
+            message = stringResource(R.string.local_blocklist_delete_desc),
+            confirmText = stringResource(R.string.lbl_delete),
+            dismissText = stringResource(R.string.lbl_cancel),
+            isConfirmDestructive = true,
+            onConfirm = {
+                showDeleteDialog = false
+                deleteLocalBlocklist()
             },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text(text = stringResource(R.string.lbl_cancel))
-                }
-            }
+            onDismiss = { showDeleteDialog = false }
         )
     }
 
     // Lockdown Dialog
     if (showLockdownDialog) {
-        AlertDialog(
+        RethinkConfirmDialog(
             onDismissRequest = { showLockdownDialog = false },
-            title = { Text(text = stringResource(R.string.lockdown_download_enable_inapp)) },
-            text = { Text(text = stringResource(R.string.lockdown_download_message)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showLockdownDialog = false
-                        persistentState.useCustomDownloadManager = true
-                        downloadLocalBlocklist(downloadDialogIsRedownload)
-                    }
-                ) {
-                    Text(text = stringResource(R.string.lockdown_download_enable_inapp))
-                }
+            title = stringResource(R.string.lockdown_download_enable_inapp),
+            message = stringResource(R.string.lockdown_download_message),
+            confirmText = stringResource(R.string.lockdown_download_enable_inapp),
+            dismissText = stringResource(R.string.lbl_cancel),
+            onConfirm = {
+                showLockdownDialog = false
+                persistentState.useCustomDownloadManager = true
+                downloadLocalBlocklist(downloadDialogIsRedownload)
             },
-            dismissButton = {
-                TextButton(
-                    onClick = {
-                        showLockdownDialog = false
-                        proceedWithDownload(downloadDialogIsRedownload)
-                    }
-                ) {
-                    Text(text = stringResource(R.string.lbl_cancel))
-                }
+            onDismiss = {
+                showLockdownDialog = false
+                proceedWithDownload(downloadDialogIsRedownload)
             }
         )
     }
@@ -840,64 +791,133 @@ private fun DnsRecordTypesSheet(
         ResourceRecordTypes.entries.filter { it != ResourceRecordTypes.UNKNOWN }
     }
 
-    val sortedTypes by remember(isAutoMode, selected.toList()) {
-        derivedStateOf {
-            allTypes.sortedWith(
-                compareByDescending<ResourceRecordTypes> {
-                    if (isAutoMode) true else selected.contains(it.name)
-                }.thenBy { it.name }
-            )
-        }
+    val sortedTypes by remember {
+        derivedStateOf { allTypes.sortedBy { it.name } }
     }
+    val selectedCount = if (isAutoMode) allTypes.size else selected.size
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        Column(modifier = Modifier.padding(16.dp)) {
-            Box(
-                modifier = Modifier
-                    .width(60.dp)
-                    .height(3.dp)
-                    .background(
-                        MaterialTheme.colorScheme.surfaceVariant,
-                        RoundedCornerShape(4.dp)
+    RethinkModalBottomSheet(
+        onDismissRequest = onDismiss,
+        contentPadding = PaddingValues(0.dp),
+        verticalSpacing = 0.dp,
+        includeBottomSpacer = false
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = Dimensions.screenPaddingHorizontal,
+                    vertical = Dimensions.spacingSm
+                ),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
+        ) {
+            Surface(
+                shape = MaterialTheme.shapes.large,
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)
+                )
+            ) {
+                Column(
+                    modifier = Modifier.padding(Dimensions.cardPadding),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd),
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Surface(
+                            shape = MaterialTheme.shapes.medium,
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.size(Dimensions.iconContainerMd)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_allow_dns_records),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(Dimensions.iconSizeSm)
+                                )
+                            }
+                        }
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.cd_allowed_dns_record_types_heading),
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = stringResource(R.string.cd_allowed_dns_record_types_desc),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                    ) {
+                        RecordSummaryPill(
+                            text = if (isAutoMode) {
+                                stringResource(R.string.settings_ip_text_ipv46)
+                            } else {
+                                stringResource(R.string.lbl_manual)
+                            }
+                        )
+                        RecordSummaryPill(
+                            text = "${stringResource(R.string.rt_filter_parent_selected)} $selectedCount/${allTypes.size}"
+                        )
+                    }
+
+                    RethinkTwoOptionSegmentedRow(
+                        leftLabel = stringResource(R.string.settings_ip_text_ipv46),
+                        rightLabel = stringResource(R.string.lbl_manual),
+                        leftSelected = isAutoMode,
+                        onLeftClick = {
+                            if (!isAutoMode) {
+                                isAutoMode = true
+                                persistentState.dnsRecordTypesAutoMode = true
+                            }
+                        },
+                        onRightClick = {
+                            if (isAutoMode) {
+                                isAutoMode = false
+                                persistentState.dnsRecordTypesAutoMode = false
+                            }
+                        }
                     )
-                    .align(Alignment.CenterHorizontally)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = stringResource(R.string.cd_allowed_dns_record_types_heading),
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 8.dp, end = 8.dp)
-            )
-            Text(
-                text = stringResource(R.string.cd_allowed_dns_record_types_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.padding(start = 8.dp, end = 8.dp, bottom = 8.dp)
-            )
-
-            RecordModeToggleRow(
-                isAutoMode = isAutoMode,
-                onAutoSelected = {
-                    isAutoMode = true
-                    persistentState.dnsRecordTypesAutoMode = true
-                },
-                onManualSelected = {
-                    isAutoMode = false
-                    persistentState.dnsRecordTypesAutoMode = false
                 }
-            )
+            }
+
+            SectionHeader(title = stringResource(R.string.lbl_allowed))
 
             LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(bottom = 40.dp)
+                modifier = Modifier.fillMaxWidth(),
+                contentPadding = PaddingValues(
+                    top = Dimensions.spacingXs,
+                    bottom = Dimensions.spacing2xl
+                )
             ) {
-                items(sortedTypes) { type ->
+                itemsIndexed(
+                    items = sortedTypes,
+                    key = { _, type -> type.value }
+                ) { index, type ->
+                    val position = when {
+                        sortedTypes.size == 1 -> CardPosition.Single
+                        index == 0 -> CardPosition.First
+                        index == sortedTypes.lastIndex -> CardPosition.Last
+                        else -> CardPosition.Middle
+                    }
                     RecordTypeRow(
                         type = type,
                         isAutoMode = isAutoMode,
                         isSelected = if (isAutoMode) true else selected.contains(type.name),
+                        position = position,
                         onToggle = {
                             if (isAutoMode) return@RecordTypeRow
                             if (selected.contains(type.name)) {
@@ -915,90 +935,57 @@ private fun DnsRecordTypesSheet(
 }
 
 @Composable
-private fun RecordModeToggleRow(
-    isAutoMode: Boolean,
-    onAutoSelected: () -> Unit,
-    onManualSelected: () -> Unit
-) {
-    val selectedBg = MaterialTheme.colorScheme.primaryContainer
-    val unselectedBg = MaterialTheme.colorScheme.surfaceVariant
-    val selectedText = MaterialTheme.colorScheme.onPrimaryContainer
-    val unselectedText = MaterialTheme.colorScheme.onSurfaceVariant
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 8.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        TextButton(
-            onClick = onAutoSelected,
-            modifier = Modifier
-                .weight(1f)
-                .background(
-                    if (isAutoMode) selectedBg else unselectedBg,
-                    RoundedCornerShape(16.dp)
-                )
-        ) {
-            Text(
-                text = stringResource(R.string.settings_ip_text_ipv46),
-                color = if (isAutoMode) selectedText else unselectedText
-            )
-        }
-        TextButton(
-            onClick = onManualSelected,
-            modifier = Modifier
-                .weight(1f)
-                .background(
-                    if (!isAutoMode) selectedBg else unselectedBg,
-                    RoundedCornerShape(16.dp)
-                )
-        ) {
-            Text(
-                text = stringResource(R.string.lbl_manual),
-                color = if (!isAutoMode) selectedText else unselectedText
-            )
-        }
-    }
-}
-
-@Composable
 private fun RecordTypeRow(
     type: ResourceRecordTypes,
     isAutoMode: Boolean,
     isSelected: Boolean,
+    position: CardPosition,
     onToggle: () -> Unit
 ) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 8.dp, vertical = 6.dp)
-            .alpha(if (isAutoMode) 0.6f else 1f)
-            .clickable(enabled = !isAutoMode) { onToggle() }
-            .padding(8.dp),
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = type.name,
-                style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(bottom = 2.dp)
-            )
-            Text(
-                text = type.desc,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Checkbox(
-            checked = isSelected,
-            onCheckedChange = if (isAutoMode) null else { _ -> onToggle() },
-            modifier = Modifier.padding(start = 8.dp)
-        )
+    val containerColor = if (isSelected && !isAutoMode) {
+        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.48f)
+    } else {
+        MaterialTheme.colorScheme.surfaceContainerLow
     }
-    if (isAutoMode) {
-        Spacer(modifier = Modifier.height(2.dp))
+
+    RethinkListItem(
+        headline = type.name,
+        supporting = type.desc,
+        position = position,
+        defaultContainerColor = containerColor,
+        enabled = true,
+        onClick = if (isAutoMode) null else onToggle,
+        trailing = {
+            Box(
+                modifier = Modifier.width(Dimensions.touchTargetMin),
+                contentAlignment = Alignment.CenterEnd
+            ) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { _ -> onToggle() },
+                    enabled = !isAutoMode
+                )
+            }
+        }
+    )
+}
+
+@Composable
+private fun RecordSummaryPill(text: String) {
+    Surface(
+        shape = MaterialTheme.shapes.extraLarge,
+        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.72f)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(
+                horizontal = Dimensions.spacingMd,
+                vertical = Dimensions.spacingSm
+            )
+        )
     }
 }
 
@@ -1022,10 +1009,7 @@ private fun getInitialRecordSelection(persistentState: PersistentState): List<St
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LocalBlocklistsSheet(
-    context: Context,
     headingText: String,
-    enableLabel: String,
-    enableColor: Color,
     versionText: String,
     canConfigure: Boolean,
     canCopy: Boolean,
@@ -1036,7 +1020,7 @@ private fun LocalBlocklistsSheet(
     isChecking: Boolean,
     isDownloading: Boolean,
     isRedownloading: Boolean,
-    persistentState: PersistentState,
+    isBlocklistEnabled: Boolean,
     onDismiss: () -> Unit,
     onEnableBlocklist: () -> Unit,
     onConfigure: () -> Unit,
@@ -1047,114 +1031,128 @@ private fun LocalBlocklistsSheet(
     onRedownload: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val borderColor = MaterialTheme.colorScheme.outline
-
-    ModalBottomSheet(onDismissRequest = onDismiss) {
+    RethinkModalBottomSheet(
+        onDismissRequest = onDismiss,
+        contentPadding = PaddingValues(0.dp),
+        verticalSpacing = 0.dp,
+        includeBottomSpacer = false
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(bottom = 40.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .width(60.dp)
-                    .height(3.dp)
-                    .background(borderColor, RoundedCornerShape(2.dp))
-            )
-
             Text(
                 text = headingText,
-                style = MaterialTheme.typography.titleMedium,
-                modifier = Modifier.padding(horizontal = 12.dp)
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(horizontal = 4.dp)
             )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = enableLabel,
-                    color = enableColor,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                TextButton(onClick = onEnableBlocklist) {
-                    Text(text = stringResource(R.string.lbl_apply))
-                }
-            }
 
             if (versionText.isNotEmpty()) {
                 Text(
                     text = versionText,
                     style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(horizontal = 12.dp)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 4.dp)
                 )
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                ActionButton(
-                    text = stringResource(R.string.lbl_configure),
+            SectionHeader(title = stringResource(R.string.lbbs_state_header))
+            RethinkListGroup {
+                BottomSheetActionItem(
+                    headline = if (isBlocklistEnabled) {
+                        stringResource(R.string.lbbs_toggle_off)
+                    } else {
+                        stringResource(R.string.lbbs_toggle_on)
+                    },
+                    supporting = stringResource(R.string.lbbs_toggle_desc),
+                    iconRes = R.drawable.ic_local_blocklist,
+                    position = CardPosition.Single,
+                    onClick = onEnableBlocklist
+                )
+            }
+
+            SectionHeader(title = stringResource(R.string.lbbs_actions_header))
+            RethinkListGroup {
+                BottomSheetActionItem(
+                    headline = stringResource(R.string.lbbs_configure),
+                    iconRes = R.drawable.ic_settings,
+                    position = CardPosition.First,
                     enabled = canConfigure,
-                    modifier = Modifier.weight(1f),
                     onClick = onConfigure
                 )
-                ActionButton(
-                    text = stringResource(R.string.lbbs_copy),
+                BottomSheetActionItem(
+                    headline = stringResource(R.string.lbbs_copy),
+                    iconRes = R.drawable.ic_copy,
+                    position = CardPosition.Middle,
                     enabled = canCopy,
-                    modifier = Modifier.weight(1f),
                     onClick = onCopy
                 )
-                ActionButton(
-                    text = stringResource(R.string.lbl_search),
+                BottomSheetActionItem(
+                    headline = stringResource(R.string.lbbs_search),
+                    iconRes = R.drawable.ic_search,
+                    position = CardPosition.Last,
                     enabled = canSearch,
-                    modifier = Modifier.weight(1f),
                     onClick = onSearch
                 )
             }
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 12.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
+            SectionHeader(title = stringResource(R.string.lbbs_maintenance_header))
+            RethinkListGroup {
+                var maintenanceIndex = 0
+                val maintenanceCount =
+                    (if (showCheckDownload) 1 else 0) +
+                        (if (showDownload) 1 else 0) +
+                        (if (showRedownload) 1 else 0) +
+                        1
+
+                fun pos(): CardPosition {
+                    return when {
+                        maintenanceCount == 1 -> CardPosition.Single
+                        maintenanceIndex == 0 -> CardPosition.First
+                        maintenanceIndex == maintenanceCount - 1 -> CardPosition.Last
+                        else -> CardPosition.Middle
+                    }
+                }
+
                 if (showCheckDownload) {
-                    DownloadRow(
-                        label = stringResource(R.string.lbbs_update_check),
-                        isLoading = isChecking,
+                    BottomSheetActionItem(
+                        headline = stringResource(R.string.lbbs_update_check),
+                        iconRes = R.drawable.ic_blocklist_update_check,
+                        position = pos(),
                         enabled = !isChecking,
+                        isLoading = isChecking,
                         onClick = onCheckUpdate
                     )
+                    maintenanceIndex += 1
                 }
                 if (showDownload) {
-                    DownloadRow(
-                        label = stringResource(R.string.local_blocklist_download),
-                        isLoading = isDownloading,
+                    BottomSheetActionItem(
+                        headline = stringResource(R.string.local_blocklist_download),
+                        iconRes = R.drawable.ic_update,
+                        position = pos(),
                         enabled = !isDownloading,
+                        isLoading = isDownloading,
                         onClick = onDownload
                     )
+                    maintenanceIndex += 1
                 }
                 if (showRedownload) {
-                    DownloadRow(
-                        label = stringResource(R.string.local_blocklist_redownload),
-                        isLoading = isRedownloading,
+                    BottomSheetActionItem(
+                        headline = stringResource(R.string.local_blocklist_redownload),
+                        iconRes = R.drawable.ic_update,
+                        position = pos(),
                         enabled = !isRedownloading,
+                        isLoading = isRedownloading,
                         onClick = onRedownload
                     )
+                    maintenanceIndex += 1
                 }
-                DownloadRow(
-                    label = stringResource(R.string.lbl_delete),
-                    isLoading = false,
-                    enabled = true,
+                BottomSheetActionItem(
+                    headline = stringResource(R.string.lbl_delete),
+                    iconRes = R.drawable.ic_delete,
+                    position = pos(),
                     onClick = onDelete
                 )
             }
@@ -1163,44 +1161,28 @@ private fun LocalBlocklistsSheet(
 }
 
 @Composable
-private fun DownloadRow(
-    label: String,
-    isLoading: Boolean,
-    enabled: Boolean,
+private fun BottomSheetActionItem(
+    headline: String,
+    iconRes: Int,
+    position: CardPosition,
+    supporting: String? = null,
+    enabled: Boolean = true,
+    isLoading: Boolean = false,
     onClick: () -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
-    ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium)
-        if (isLoading) {
-            CircularProgressIndicator(modifier = Modifier.size(18.dp))
-        } else {
-            TextButton(onClick = onClick, enabled = enabled) {
-                Text(text = stringResource(R.string.lbl_proceed))
-            }
-        }
-    }
-}
-
-@Composable
-private fun ActionButton(
-    text: String,
-    enabled: Boolean,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit
-) {
-    val alpha = if (enabled) 1f else BUTTON_ALPHA_DISABLED
-    Button(
-        onClick = onClick,
+    RethinkListItem(
+        headline = headline,
+        supporting = supporting,
+        leadingIconPainter = painterResource(id = iconRes),
+        position = position,
         enabled = enabled,
-        modifier = modifier
-            .height(36.dp)
-            .alpha(alpha),
-        contentPadding = PaddingValues(0.dp)
-    ) {
-        Text(text = text, modifier = Modifier.padding(horizontal = 6.dp))
-    }
+        trailing = if (isLoading) {
+            {
+                CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+            }
+        } else {
+            null
+        },
+        onClick = if (enabled && !isLoading) onClick else null
+    )
 }

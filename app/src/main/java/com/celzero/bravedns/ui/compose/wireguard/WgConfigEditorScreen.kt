@@ -32,12 +32,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -62,7 +60,9 @@ import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.PrimaryButton
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.SecondaryButton
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.wireguard.Config
 import com.celzero.bravedns.wireguard.WgInterface
@@ -278,7 +278,7 @@ fun WgConfigEditorScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(Dimensions.cardPadding),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
                     ) {
                         OutlinedTextField(
                             value = interfaceName,
@@ -371,21 +371,20 @@ fun WgConfigEditorScreen(
             }
 
             item {
-                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                    OutlinedButton(
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+                ) {
+                    SecondaryButton(
+                        text = stringResource(R.string.lbl_cancel),
                         onClick = onBackClick,
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text(text = stringResource(R.string.lbl_cancel))
-                    }
-                    Button(
+                        modifier = Modifier.weight(1f)
+                    )
+                    PrimaryButton(
+                        text = stringResource(R.string.lbl_save),
                         onClick = { saveConfig() },
-                        modifier = Modifier.weight(1f),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text(text = stringResource(R.string.lbl_save))
-                    }
+                        modifier = Modifier.weight(1f)
+                    )
                 }
             }
         }
@@ -394,12 +393,7 @@ fun WgConfigEditorScreen(
 
 @Composable
 private fun WgEditorOverviewCard(name: String, isOneWg: Boolean) {
-    Surface(
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
-        tonalElevation = 1.dp
-    ) {
+    WgCardSurface {
         Column(
             modifier = Modifier.padding(Dimensions.spacingXl),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)

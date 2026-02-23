@@ -255,7 +255,7 @@
     <string name="download_update_dialog_message" translatable="true">Новата версия на приложението е достъпна за изтегляне от уебсайта. Искате ли да продължите?</string>
     <string name="status_protected_with_wg_private_dns" translatable="true">защитен с wireguard и частен dns</string>
     <string name="public_key_copy_toast_msg" translatable="true">Копиран публичният ключ.</string>
-    <string name="settings_vpn_heading" translatable="true">vpn</string>
+    <string name="settings_vpn_heading" translatable="true">VPN</string>
     <string name="orbot_both" translatable="true">TCP + HTTP прокси</string>
     <string name="dns_proxy_remove_success" translatable="true">Изтриване на DNS прокси.</string>
     <string name="local_blocklist_download" translatable="true">Изтегляне на блокови списъци</string>

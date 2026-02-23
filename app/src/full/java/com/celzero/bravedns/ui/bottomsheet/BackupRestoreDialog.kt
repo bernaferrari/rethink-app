@@ -26,35 +26,23 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.ActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -80,6 +68,12 @@ import com.celzero.bravedns.backup.BackupHelper.Companion.INTENT_RESTART_APP
 import com.celzero.bravedns.backup.BackupHelper.Companion.INTENT_TYPE_OCTET
 import com.celzero.bravedns.backup.BackupHelper.Companion.INTENT_TYPE_XZIP
 import com.celzero.bravedns.backup.RestoreAgent
+import com.celzero.bravedns.ui.compose.theme.CardPosition
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.delay
@@ -128,177 +122,121 @@ fun BackupRestoreSheet(
         observeRestoreWorker(activity, workManager, onFailure = { showRestoreFailureDialog = true })
     }
 
-    ModalBottomSheet(onDismissRequest = onDismiss) {
-        val borderColor = MaterialTheme.colorScheme.outline
+    RethinkModalBottomSheet(
+        onDismissRequest = onDismiss,
+        contentPadding = PaddingValues(0.dp),
+        verticalSpacing = 0.dp,
+        includeBottomSpacer = false
+    ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Dimensions.screenPaddingHorizontal)
+                    .padding(top = Dimensions.spacingXs, bottom = Dimensions.spacing3xl),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            Box(
-                modifier =
-                    Modifier.align(Alignment.CenterHorizontally)
-                        .width(60.dp)
-                        .height(3.dp)
-                        .background(borderColor, RoundedCornerShape(2.dp))
-            )
-
-            Text(
-                text = stringResource(R.string.brbs_title),
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier.padding(horizontal = 12.dp)
-            )
-
-            Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
-                ActionRow(
-                    icon = R.drawable.ic_backup,
-                    title = stringResource(R.string.brbs_backup_title),
-                    description = stringResource(R.string.brbs_backup_desc)
-                ) {
-                    showBackupDialog = true
-                }
-                Spacer(modifier = Modifier.height(12.dp))
-                ActionRow(
-                    icon = R.drawable.ic_restore,
-                    title = stringResource(R.string.brbs_restore_title),
-                    description = stringResource(R.string.brbs_restore_desc)
-                ) {
-                    showRestoreDialog = true
-                }
+            Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)) {
+                Text(
+                    text = stringResource(R.string.brbs_title),
+                    style = MaterialTheme.typography.titleLarge
+                )
+                Text(
+                    text = stringResource(R.string.brbs_backup_restore_desc),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
 
-            Text(
-                text = stringResource(R.string.brbs_backup_restore_desc),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
-            )
+            RethinkListGroup {
+                RethinkListItem(
+                    headline = stringResource(R.string.brbs_backup_title),
+                    supporting = stringResource(R.string.brbs_backup_desc),
+                    leadingIconPainter = painterResource(id = R.drawable.ic_backup),
+                    position = CardPosition.First,
+                    onClick = { showBackupDialog = true }
+                )
+                RethinkListItem(
+                    headline = stringResource(R.string.brbs_restore_title),
+                    supporting = stringResource(R.string.brbs_restore_desc),
+                    leadingIconPainter = painterResource(id = R.drawable.ic_restore),
+                    position = CardPosition.Last,
+                    onClick = { showRestoreDialog = true }
+                )
+            }
 
-            Text(
-                text = versionText,
-                style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 12.dp)
-            )
+            Surface(
+                shape = RoundedCornerShape(Dimensions.cardCornerRadius),
+                color = MaterialTheme.colorScheme.surfaceContainerHigh
+            ) {
+                Text(
+                    text = versionText,
+                    style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth().padding(Dimensions.spacingMd)
+                )
+            }
         }
 
         if (showBackupDialog) {
-            AlertDialog(
+            RethinkConfirmDialog(
                 onDismissRequest = { showBackupDialog = false },
-                title = { Text(text = stringResource(R.string.brbs_backup_dialog_title)) },
-                text = { Text(text = stringResource(R.string.brbs_backup_dialog_message)) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showBackupDialog = false
-                            backup(activity, backupLauncher)
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.brbs_backup_dialog_positive))
-                    }
+                title = stringResource(R.string.brbs_backup_dialog_title),
+                message = stringResource(R.string.brbs_backup_dialog_message),
+                confirmText = stringResource(R.string.brbs_backup_dialog_positive),
+                dismissText = stringResource(R.string.lbl_cancel),
+                onConfirm = {
+                    showBackupDialog = false
+                    backup(activity, backupLauncher)
                 },
-                dismissButton = {
-                    TextButton(onClick = { showBackupDialog = false }) {
-                        Text(text = stringResource(R.string.lbl_cancel))
-                    }
-                }
+                onDismiss = { showBackupDialog = false }
             )
         }
 
         if (showRestoreDialog) {
-            AlertDialog(
+            RethinkConfirmDialog(
                 onDismissRequest = { showRestoreDialog = false },
-                title = { Text(text = stringResource(R.string.brbs_restore_dialog_title)) },
-                text = { Text(text = stringResource(R.string.brbs_restore_dialog_message)) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showRestoreDialog = false
-                            restore(activity, restoreLauncher)
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.brbs_restore_dialog_positive))
-                    }
+                title = stringResource(R.string.brbs_restore_dialog_title),
+                message = stringResource(R.string.brbs_restore_dialog_message),
+                confirmText = stringResource(R.string.brbs_restore_dialog_positive),
+                dismissText = stringResource(R.string.lbl_cancel),
+                onConfirm = {
+                    showRestoreDialog = false
+                    restore(activity, restoreLauncher)
                 },
-                dismissButton = {
-                    TextButton(onClick = { showRestoreDialog = false }) {
-                        Text(text = stringResource(R.string.lbl_cancel))
-                    }
-                }
+                onDismiss = { showRestoreDialog = false }
             )
         }
 
         if (showBackupFailureDialog) {
-            AlertDialog(
+            RethinkConfirmDialog(
                 onDismissRequest = { showBackupFailureDialog = false },
-                title = { Text(text = stringResource(R.string.brbs_backup_dialog_failure_title)) },
-                text = { Text(text = stringResource(R.string.brbs_backup_dialog_failure_message)) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showBackupFailureDialog = false
-                            backup(activity, backupLauncher)
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.brbs_backup_dialog_failure_positive))
-                    }
+                title = stringResource(R.string.brbs_backup_dialog_failure_title),
+                message = stringResource(R.string.brbs_backup_dialog_failure_message),
+                confirmText = stringResource(R.string.brbs_backup_dialog_failure_positive),
+                dismissText = stringResource(R.string.lbl_dismiss),
+                onConfirm = {
+                    showBackupFailureDialog = false
+                    backup(activity, backupLauncher)
                 },
-                dismissButton = {
-                    TextButton(onClick = { showBackupFailureDialog = false }) {
-                        Text(text = stringResource(R.string.lbl_dismiss))
-                    }
-                }
+                onDismiss = { showBackupFailureDialog = false }
             )
         }
 
         if (showRestoreFailureDialog) {
-            AlertDialog(
+            RethinkConfirmDialog(
                 onDismissRequest = { showRestoreFailureDialog = false },
-                title = { Text(text = stringResource(R.string.brbs_restore_dialog_failure_title)) },
-                text = { Text(text = stringResource(R.string.brbs_restore_dialog_failure_message)) },
-                confirmButton = {
-                    TextButton(
-                        onClick = {
-                            showRestoreFailureDialog = false
-                            restore(activity, restoreLauncher)
-                        }
-                    ) {
-                        Text(text = stringResource(R.string.brbs_restore_dialog_failure_positive))
-                    }
+                title = stringResource(R.string.brbs_restore_dialog_failure_title),
+                message = stringResource(R.string.brbs_restore_dialog_failure_message),
+                confirmText = stringResource(R.string.brbs_restore_dialog_failure_positive),
+                dismissText = stringResource(R.string.lbl_dismiss),
+                onConfirm = {
+                    showRestoreFailureDialog = false
+                    restore(activity, restoreLauncher)
                 },
-                dismissButton = {
-                    TextButton(onClick = { showRestoreFailureDialog = false }) {
-                        Text(text = stringResource(R.string.lbl_dismiss))
-                    }
-                }
+                onDismiss = { showRestoreFailureDialog = false }
             )
         }
-    }
-}
-
-@Composable
-private fun ActionRow(icon: Int, title: String, description: String, onClick: () -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth().clickable { onClick() }.padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Image(
-            painter = painterResource(id = icon),
-            contentDescription = null,
-            modifier = Modifier.size(32.dp).padding(4.dp)
-        )
-        Column(modifier = Modifier.weight(1f).padding(start = 8.dp)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium)
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-        Image(
-            painter = painterResource(id = R.drawable.ic_right_arrow_white),
-            contentDescription = null,
-            modifier = Modifier.size(20.dp)
-        )
     }
 }
 

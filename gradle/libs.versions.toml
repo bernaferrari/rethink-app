@@ -1,5 +1,5 @@
 [versions]
-activityCompose = "1.12.2"
+activityCompose = "1.12.4"
 # Plugins
 agp = "9.0.1"
 androidxTestCore = "1.7.0"
@@ -10,7 +10,7 @@ archCoreTesting = "2.2.0"
 benManesVersions = "0.53.0"
 betterypermissionhelper = "1.0.3"
 biometric = "1.4.0-alpha05"
-composeBom = "2025.12.01"
+composeBom = "2026.02.00"
 constraintlayout = "2.2.1"
 # AndroidX
 coreKtx = "1.17.0"
@@ -42,7 +42,7 @@ lifecycle = "2.10.0"
 lifecycleRuntimeCompose = "2.10.0"
 lint = "1.0.4"
 # UI & Material
-material = "1.14.0-alpha09"
+m3 = "1.5.0-alpha14"
 mockito = "5.21.0"
 mockk = "1.14.9"
 napier = "2.7.1"
@@ -68,6 +68,7 @@ viewbindingpropertydelegate = "1.5.9"
 viewpager2 = "1.1.0"
 work = "2.11.1"
 zxing = "4.3.0"
+materialkolor = "5.0.0-alpha06"
 
 [libraries]
 android-security-lint = { module = "com.android.security.lint:lint", version.ref = "lint" }
@@ -86,7 +87,7 @@ androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-lived
 androidx-lifecycle-runtime-compose = { module = "androidx.lifecycle:lifecycle-runtime-compose", version.ref = "lifecycleRuntimeCompose" }
 androidx-lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycle" }
 androidx-lifecycle-viewmodel-ktx = { module = "androidx.lifecycle:lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
-androidx-material3 = { module = "androidx.compose.material3:material3" }
+androidx-material3 = { module = "androidx.compose.material3:material3", version.ref = "m3" }
 # Navigation
 androidx-navigation-fragment-ktx = { module = "androidx.navigation:navigation-fragment-ktx", version.ref = "navigation" }
 androidx-navigation-ui-ktx = { module = "androidx.navigation:navigation-ui-ktx", version.ref = "navigation" }
@@ -127,7 +128,6 @@ glide = { module = "com.github.bumptech.glide:glide", version.ref = "glide" }
 glide-compiler = { module = "com.github.bumptech.glide:compiler", version.ref = "glide" }
 glide-okhttp3-integration = { module = "com.github.bumptech.glide:okhttp3-integration", version.ref = "glide" }
 # Google Material
-google-material = { module = "com.google.android.material:material", version.ref = "material" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 ipaddress = { module = "com.github.seancfoley:ipaddress", version.ref = "ipaddress" }
@@ -167,6 +167,7 @@ shimmer = { module = "com.facebook.shimmer:shimmer", version.ref = "shimmer" }
 viewbindingpropertydelegate = { module = "com.github.kirich1409:viewbindingpropertydelegate", version.ref = "viewbindingpropertydelegate" }
 viewbindingpropertydelegate-noreflection = { module = "com.github.kirich1409:viewbindingpropertydelegate-noreflection", version.ref = "viewbindingpropertydelegate" }
 zxing-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxing" }
+materialkolor = { module = "com.materialkolor:material-kolor-android", version.ref = "materialkolor" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

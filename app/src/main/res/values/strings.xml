@@ -30,7 +30,7 @@
     <string name="lbl_domain" translatable="true">Domain</string>
     <string name="lbl_wildcard" translatable="true">Wildcard</string>
     <string name="lbl_action_required" translatable="true">Action Required</string>
-    <string name="lbl_rules" translatable="true">rules</string>
+    <string name="lbl_rules" translatable="true">Rules</string>
     <string name="lbl_configure" translatable="true">Configure</string>
     <string name="lbl_logs" translatable="true">logs</string>
     <string name="lbl_network" translatable="true">network</string>
@@ -488,7 +488,7 @@
     <string name="app_mode_dns_firewall" translatable="true">DNS and Firewall (default)</string>
     <string name="app_mode_wireguard" translatable="true">VPN</string>
 
-    <string name="settings_vpn_heading" translatable="true">vpn</string>
+    <string name="settings_vpn_heading" translatable="true">VPN</string>
 
     <string name="info_dialog_copy_toast_msg" translatable="true">IP address copied.</string>
     <string name="info_dialog_url_copy_toast_msg" translatable="true">URL copied</string>
@@ -661,6 +661,17 @@
 
     <string name="settings_theme_heading" translatable="true">Appearance</string>
     <string name="settings_theme_desc" translatable="true">Dark/light theme</string>
+    <string name="settings_theme_color_heading" translatable="true">Color style</string>
+    <string name="settings_theme_color_desc" translatable="true">Choose a color style for the app.</string>
+    <string name="settings_theme_color_dynamic_unavailable" translatable="true">Dynamic color is unavailable on this device.</string>
+    <string name="settings_theme_color_auto" translatable="true">Auto</string>
+    <string name="settings_theme_color_dynamic" translatable="true">Dynamic</string>
+    <string name="settings_theme_color_coral" translatable="true">Coral</string>
+    <string name="settings_theme_color_teal" translatable="true">Teal</string>
+    <string name="settings_theme_color_blue" translatable="true">Blue</string>
+    <string name="settings_theme_color_purple" translatable="true">Purple</string>
+    <string name="settings_theme_color_orange" translatable="true">Orange</string>
+    <string name="settings_theme_color_green" translatable="true">Green</string>
 
     <string name="settings_go_log_heading" translatable="true">Log level</string>
     <string name="settings_go_log_desc" translatable="true">For debugging purposes</string>
@@ -710,7 +721,7 @@
     <string name="settings_socks5_dialog_hint_password" translatable="true">Password (optional)</string>
 
     <string name="settings_theme_dialog_title" translatable="true">Appearance</string>
-    <string name="settings_theme_dialog_themes_1" translatable="true">Set by System</string>
+    <string name="settings_theme_dialog_themes_1" translatable="true">System</string>
     <string name="settings_theme_dialog_themes_2" translatable="true">Light</string>
     <string name="settings_theme_dialog_themes_3" translatable="true">Dark</string>
     <string name="settings_theme_dialog_themes_4" translatable="true">True Black</string>
@@ -853,8 +864,12 @@
 
     <!-- DNS configure screen -->
 
-    <string name="dc_block_heading" translatable="true">rules</string>
-    <string name="dc_other_dns_heading" translatable="true">type</string>
+    <string name="dc_block_heading" translatable="true">Rules</string>
+    <string name="dc_other_dns_heading" translatable="true">Type</string>
+    <string name="dns_mode_system_desc" translatable="true">Use the DNS server configured by the system.</string>
+    <string name="dns_mode_other_desc" translatable="true">Use a user-selected DNS server.</string>
+    <string name="dns_mode_rethink_desc" translatable="true">Use Rethink DNS with in-app blocklists and policies.</string>
+    <string name="dns_mode_smart_desc" translatable="true"><i>Smart DNS</i> picks from a rotating set of resolvers.</string>
 
     <string name="dc_custom_dns_radio" translatable="true">Other DNS</string>
     <string name="dc_rethink_dns_radio" translatable="true">Rethink DNS</string>
@@ -874,6 +889,7 @@
 
     <string name="dc_check_update_heading" translatable="true">Prompt on blocklist updates</string>
     <string name="dc_check_update_desc" translatable="true">Check for blocklist updates once every <i>three</i> days</string>
+    <string name="dc_check_update_desc_compact" translatable="true">Check for updates every three days.</string>
 
     <string name="dc_proxy_dns_heading" translatable="true">Never proxy DNS</string>
     <string name="dc_proxy_dns_desc" translatable="true">Do not proxy DNS over Always-on WireGuard, SOCKS5, HTTP proxies.</string>
@@ -881,7 +897,7 @@
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Use System DNS for undelegated domains</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Use System DNS for undelgated domains like <i>.lan</i>, <i>.internal</i>, etc.</string>
 
-    <string name="dc_filtering_heading" translatable="true">filtering</string>
+    <string name="dc_filtering_heading" translatable="true">Filtering</string>
 
     <!-- About fragment -->
     <string name="about_bravedns_explantion" translatable="true">Rethink is the easiest way to monitor app activity, circumvent Internet censorship, and firewall apps on your Android device. </string>
@@ -907,17 +923,17 @@
     <string name="bug_report_delete_failed" translatable="false">Failed to delete \"%1$s\"</string>
     <string name="bug_report_no_files_available" translatable="false">No bug report files available</string>
 
-    <string name="about_web" translatable="true">links</string>
+    <string name="about_web" translatable="true">Links</string>
     <string name="about_website" translatable="true">Visit rethinkdns.com</string>
     <string name="about_github" translatable="true">Contribute on GitHub</string>
     <string name="about_faq" translatable="true">View FAQs</string>
     <string name="about_docs" translatable="true">Read docs</string>
     <string name="about_privacy_policy" translatable="true">Read privacy policy</string>
-    <string name="about_connect" translatable="true">contact</string>
+    <string name="about_connect" translatable="true">Contact</string>
     <string name="about_sponsor_link_text" translatable="true">Sponsor</string>
-    <string name="about_app" translatable="true">app</string>
+    <string name="about_app" translatable="true">App</string>
     <string name="about_email" translatable="true">Email us</string>
-    <string name="about_settings" translatable="true">system</string>
+    <string name="about_settings" translatable="true">System</string>
     <string name="about_settings_app_info" translatable="true">App Info</string>
     <string name="about_settings_vpn_profile" translatable="true">VPN Profile</string>
     <string name="about_settings_notification" translatable="true">Notification Settings</string>
@@ -1245,7 +1261,7 @@
     <!-- BraveVPN service rules failure -->
     <string name="rules_load_failure_heading" translatable="true">Note</string>
     <string name="rules_load_failure_desc" translatable="true">No firewall rules found</string>
-    <string name="rules_load_failure_reload" translatable="true">reload</string>
+    <string name="rules_load_failure_reload" translatable="true">Reload</string>
 
     <string name="network_log_app_name_unknown" translatable="true">Unknown</string>
     <string name="network_log_app_name_unnamed" translatable="true">Unnamed (%1$s)</string>
@@ -1543,9 +1559,9 @@
     <string name="rt_re_download" translatable="true">Re-download blocklists</string>
 
     <string name="rt_list_simple_btn_txt" translatable="true">simple</string>
-    <string name="lbl_protection" translatable="true">protection</string>
-    <string name="lbl_system" translatable="true">system</string>
-    <string name="lbl_advanced" translatable="true">advanced</string>
+    <string name="lbl_protection" translatable="true">Protection</string>
+    <string name="lbl_system" translatable="true">System</string>
+    <string name="lbl_advanced" translatable="true">Advanced</string>
 
     <string name="rt_filter_parent_selected" translatable="true">Selected</string>
 
@@ -1580,13 +1596,39 @@
 
     <!-- local blocklist bottom sheet -->
     <string name="lbbs_enabled" translatable="true">Enabled</string>
+    <string name="lbbs_state_header" translatable="true">Blocklist state</string>
+    <string name="lbbs_toggle_off" translatable="true">Disable blocklists</string>
+    <string name="lbbs_toggle_on" translatable="true">Enable blocklists</string>
+    <string name="lbbs_toggle_desc" translatable="true">Turn on to use on-device blocklists for DNS filtering.</string>
+    <string name="lbbs_actions_header" translatable="true">Blocklist actions</string>
     <string name="lbbs_configure" translatable="true">Configure</string>
     <string name="lbbs_copy" translatable="true">Copy as RDNS+ URL</string>
     <string name="lbbs_search" translatable="true">Search domains in blocklists</string>
+    <string name="lbbs_maintenance_header" translatable="true">Maintenance</string>
     <string name="lbbs_update_check" translatable="true">Check for update</string>
     <string name="lbbs_redownload" translatable="true">Redownload blocklists</string>
     <string name="lbbs_download" translatable="true">Update blocklists</string>
     <string name="lbbs_heading" translatable="true">Configure 195+ blocklists</string>
+
+    <!-- Compose settings search -->
+    <string name="configure_search_close" translatable="true">Close search</string>
+    <string name="configure_search_open" translatable="true">Open search</string>
+    <string name="configure_search_hint" translatable="true">Search settings</string>
+    <string name="configure_search_empty_title" translatable="true">No matches</string>
+    <string name="configure_search_empty_subtitle" translatable="true">Try searching by name, section, or keyword.</string>
+
+    <!-- App list -->
+    <string name="fapps_empty_title" translatable="true">No apps found</string>
+    <string name="fapps_empty_subtitle" translatable="true">No apps match your current filters.</string>
+
+    <!-- Logs -->
+    <string name="logs_search_network_hint" translatable="true">Search apps, IPs, domains</string>
+    <string name="logs_search_dns_hint" translatable="true">Search domain names or IPs</string>
+
+    <!-- Wireguard -->
+    <string name="wireguard_fab_more_actions" translatable="true">More actions</string>
+    <string name="wireguard_fab_expanded" translatable="true">More actions, expanded</string>
+    <string name="wireguard_fab_collapsed" translatable="true">More actions, collapsed</string>
 
     <!-- backup / restore bottom sheet -->
     <string name="brbs_title" translatable="true">Backup &amp; restore</string>
@@ -1620,14 +1662,14 @@
     <string name="rsv_blocklist_count_text" description="This label will appear in rethink configure simple view screen which shows number of blocklists for each category" translatable="true">%1$s blocklists</string>
 
     <!-- Summary statistics view-->
-    <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">most allowed apps</string>
-    <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">most blocked apps</string>
-    <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">most contacted domains</string>
-    <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">most contacted countries</string>
-    <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">most blocked domains</string>
-    <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">most contacted ips</string>
-    <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">most blocked ips</string>
-    <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">most blocked countries</string>
+    <string name="ssv_app_network_activity_heading" description="This label will appear on the stats screen as a header for allowed apps." translatable="true">Most allowed apps</string>
+    <string name="ssv_app_blocked_heading" description="This label will appear on the stats screen as a header for blocked applications." translatable="true">Most blocked apps</string>
+    <string name="ssv_most_contacted_domain_heading" description="This label will appear on the stats screen as a header for most visited domains" translatable="true">Most contacted domains</string>
+    <string name="ssv_most_contacted_countries_heading" description="This label will appear on the stats screen as a header for most visited domains by country" translatable="true">Most contacted countries</string>
+    <string name="ssv_most_blocked_domain_heading" description="This label will appear on the stats screen as a header for most blocked domains" translatable="true">Most blocked domains</string>
+    <string name="ssv_most_contacted_ips_heading" description="This label will appear on the stats screen as a header for most visited ips" translatable="true">Most contacted ips</string>
+    <string name="ssv_most_blocked_ips_heading" description="This label will appear on the stats screen as a header for most blocked ips" translatable="true">Most blocked ips</string>
+    <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">Most blocked countries</string>
     <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Start Rethink to proceed</string>
     <string name="ssv_see_more" translatable="true">Show All</string>
 
@@ -1793,7 +1835,7 @@
     <string name="tcp_proxy_cloudflare_warp_desc" translatable="true">Modern, fast, and secure way to connect to a VPN server. Secure all your internet traffic with an ultra-secure, lightning-quick VPN service that lets you connect with the WireGuard protocol.</string>
     <string name="something_went_wrong" translatable="true">Something went wrong</string>
 
-    <string name="ac_retry_options_title" translatable="true">strategy</string>
+    <string name="ac_retry_options_title" translatable="true">Strategy</string>
     <string name="ac_retry_options_desc" translatable="true">Set how retries work for censored connections.</string>
 
     <string name="ac_retry_options_never_desc" translatable="true">On failure, never retry anti-censorship techniques.</string>
@@ -1843,8 +1885,8 @@
 
     <string name="bypasses_network_restrictions" translatable="true">Reachability checks bypass all network restrictions. In <i>Auto</i> mode, Rethink randomly uses previously connected IPs and hostnames.</string>
 
-    <string name="most_contacted_asn" translatable="true">most contacted providers</string>
-    <string name="most_blocked_asn" translatable="true">most blocked providers</string>
+    <string name="most_contacted_asn" translatable="true">Most contacted providers</string>
+    <string name="most_blocked_asn" translatable="true">Most blocked providers</string>
 
     <string name="adv_tasker_dialog_msg" translatable="true">Enter package names (comma-separated) allowed to start or stop Rethink.</string>
     <string name="adv_tasker_dialog_instructions" translatable="true">Instructions:\n
@@ -1869,7 +1911,7 @@
     <string name="adv_taster_title" translatable="true">Automation</string>
     <string name="adv_taster_desc" translatable="true">Configure apps that can start or stop Rethink.</string>
 
-    <string name="top_active_conns" translatable="true">top active connections</string>
+    <string name="top_active_conns" translatable="true">Top active connections</string>
 
     <string name="load_more" translatable="true">Load All</string>
     <string name="close_conns_dialog_title" translatable="true">Close Connections</string>
@@ -1989,6 +2031,17 @@
     <string name="alert_actions_ip_domain_blocked" translatable="true">View</string>
     <string name="alert_solution_ip_domain_blocked" translatable="true">Rethink is blocking a connection</string>-->
     <string name="title_database_dump" translatable="true">Database</string>
+    <string name="database_inspector_search_hint" translatable="true">Search tables</string>
+    <string name="database_inspector_no_tables" translatable="true">No database tables available.</string>
+    <string name="database_inspector_tables_title" translatable="true">Tables</string>
+    <string name="database_inspector_selected" translatable="true">Selected</string>
+    <string name="database_inspector_select_table" translatable="true">Select a table to inspect.</string>
+    <string name="database_inspector_rows" translatable="true">%1$s rows</string>
+    <string name="database_inspector_columns" translatable="true">%1$s columns</string>
+    <string name="database_inspector_refresh" translatable="true">Refresh</string>
+    <string name="database_inspector_copying" translatable="true">Copying…</string>
+    <string name="database_inspector_copy_full" translatable="true">Copy full dump</string>
+    <string name="database_inspector_preview_truncated" translatable="true">Preview truncated. Copy full dump to see complete output.</string>
     <string name="copied_clipboard" translatable="true">Copied</string>
 
     <string name="lbl_ssids" translatable="false">SSIDs</string>
@@ -2089,6 +2142,8 @@
     <string name="lbl_start" translatable="true">Start</string>
     <string name="lbl_stop" translatable="true">Stop</string>
     <string name="lbl_dns" translatable="true">DNS</string>
+    <string name="lbl_download" translatable="true">Download</string>
+    <string name="lbl_connections" translatable="true">Connections</string>
     <string name="lbl_firewall" translatable="true">Firewall</string>
     <string name="lbl_proxy" translatable="true">Proxy</string>
     <string name="lbl_apps" translatable="true">Apps</string>
@@ -2123,6 +2178,15 @@
     <string name="rpn_proxy_last_connected" translatable="true">Last connected</string>
     <string name="rpn_proxy_status" translatable="true">Status</string>
     <string name="rpn_proxy_connected" translatable="true">Connected</string>
+    <string name="log_detail_ip_address" translatable="true">IP Address</string>
+    <string name="log_detail_port" translatable="true">Port</string>
+    <string name="log_detail_protocol" translatable="true">Protocol</string>
+    <string name="log_detail_app_name" translatable="true">App Name</string>
+    <string name="log_detail_response" translatable="true">Response</string>
+    <string name="time_window_one_hour_short" translatable="true">1h</string>
+    <string name="time_window_twenty_four_hours_short" translatable="true">24h</string>
+    <string name="time_window_seven_days_short" translatable="true">7d</string>
+    <string name="summary_connections_count" translatable="true">Connections: %1$d</string>
     <string name="rpn_proxy_placeholder_who" translatable="true">who_or_service_email@domain.com</string>
     <string name="rpn_proxy_placeholder_latency" translatable="true">37 ms</string>
     <string name="rpn_proxy_placeholder_last_connected" translatable="true">2 min ago</string>

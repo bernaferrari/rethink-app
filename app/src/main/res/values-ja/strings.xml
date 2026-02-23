@@ -124,7 +124,7 @@
     <string name="app_mode_dns" translatable="true">DNS</string>
     <string name="app_mode_firewall" translatable="true">ファイアウォール</string>
     <string name="app_mode_dns_firewall" translatable="true">DNSとファイアウォール（デフォルト）</string>
-    <string name="settings_vpn_heading" translatable="true">vpn</string>
+    <string name="settings_vpn_heading" translatable="true">VPN</string>
     <string name="info_dialog_rethink_toast_msg" translatable="true">RDNS+ DNS over HTTPS URL としてコピー</string>
     <string name="app_mode_choose" translatable="true">モードの選択</string>
     <string name="connection_http3" translatable="true">HTTP3</string>
