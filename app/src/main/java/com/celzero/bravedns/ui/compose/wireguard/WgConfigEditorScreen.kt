@@ -108,6 +108,8 @@ fun WgConfigEditorScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val publicKeyCopyToast = stringResource(R.string.public_key_copy_toast_msg)
+    val configAddSuccessToast = stringResource(R.string.config_add_success_toast)
 
     var wgConfig by remember { mutableStateOf<Config?>(null) }
     var wgInterface by remember { mutableStateOf<WgInterface?>(null) }
@@ -190,7 +192,7 @@ fun WgConfigEditorScreen(
         clipboardCopy(context, publicKey, CLIPBOARD_PUBLIC_KEY_LBL)
         Utilities.showToastUiCentered(
             context,
-            context.getString(R.string.public_key_copy_toast_msg),
+            publicKeyCopyToast,
             Toast.LENGTH_SHORT
         )
     }
@@ -218,7 +220,7 @@ fun WgConfigEditorScreen(
                     withContext(Dispatchers.Main) {
                         Utilities.showToastUiCentered(
                             context,
-                            context.getString(R.string.config_add_success_toast),
+                            configAddSuccessToast,
                             Toast.LENGTH_LONG
                         )
                         onSaveSuccess()

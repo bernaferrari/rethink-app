@@ -219,6 +219,9 @@ fun TunnelSettingsScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val disabledText = stringResource(R.string.lbl_disabled)
+    val protocolTranslationInactiveText = stringResource(R.string.settings_protocol_translation_dns_inactive)
+    val socks5VpnDisabledErrorText = stringResource(R.string.settings_socks5_vpn_disabled_error)
 
     var isLockdown by remember { mutableStateOf(VpnController.isVpnLockdown()) }
     var allowBypass by remember { mutableStateOf(persistentState.allowBypass) }
@@ -263,7 +266,7 @@ fun TunnelSettingsScreen(
         eventLogger.log(EventType.TUN_ESTABLISHED, Severity.LOW, msg, EventSource.UI, false, details)
     }
 
-    fun formatTimeShort(totalSeconds: Int): String {
+    fun formatTimeShort(totalSeconds: Int, disabledText: String): String {
         val hours = totalSeconds / SECONDS_PER_HOUR
         val minutes = (totalSeconds % SECONDS_PER_HOUR) / SECONDS_PER_MINUTE
         val seconds = totalSeconds % SECONDS_PER_MINUTE
@@ -271,7 +274,7 @@ fun TunnelSettingsScreen(
         if (hours > 0) parts.add("${hours}h")
         if (minutes > 0) parts.add("${minutes}m")
         if (seconds > 0) parts.add("${seconds}s")
-        return if (parts.isEmpty()) context.getString(R.string.lbl_disabled) else parts.joinToString(" ")
+        return if (parts.isEmpty()) disabledText else parts.joinToString(" ")
     }
 
     val ipDesc = when (internetProtocol) {
@@ -290,7 +293,7 @@ fun TunnelSettingsScreen(
         else -> stringResource(R.string.settings_ip_text_ipv46)
     }
 
-    val dialTimeoutDesc = formatTimeShort(dialTimeoutMin * SECONDS_PER_MINUTE)
+    val dialTimeoutDesc = formatTimeShort(dialTimeoutMin * SECONDS_PER_MINUTE, disabledText)
     val topBarSubtitle =
         stringResource(
             R.string.two_argument_colon,
@@ -587,7 +590,7 @@ fun TunnelSettingsScreen(
                                     protocolTranslation = false
                                     showToastUiCentered(
                                         context,
-                                        context.getString(R.string.settings_protocol_translation_dns_inactive),
+                                        protocolTranslationInactiveText,
                                         Toast.LENGTH_SHORT
                                     )
                                 }
@@ -602,7 +605,7 @@ fun TunnelSettingsScreen(
                                 protocolTranslation = false
                                 showToastUiCentered(
                                     context,
-                                    context.getString(R.string.settings_protocol_translation_dns_inactive),
+                                    protocolTranslationInactiveText,
                                     Toast.LENGTH_SHORT
                                 )
                             }
@@ -663,7 +666,7 @@ fun TunnelSettingsScreen(
                                 if (!VpnController.hasTunnel()) {
                                     showToastUiCentered(
                                         context,
-                                        context.getString(R.string.settings_socks5_vpn_disabled_error),
+                                        socks5VpnDisabledErrorText,
                                         Toast.LENGTH_SHORT
                                     )
                                 } else {

@@ -17,28 +17,33 @@ package com.celzero.bravedns.ui.compose.app
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -48,17 +53,21 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
-import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.DomainRow
 import com.celzero.bravedns.adapter.CloseConnsDialog
-import com.celzero.bravedns.adapter.IpRow
+import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.database.AppInfo
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
@@ -70,17 +79,28 @@ import com.celzero.bravedns.service.ProxyManager.ID_NONE
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.bottomsheet.AppDomainRulesSheet
 import com.celzero.bravedns.ui.bottomsheet.AppIpRulesSheet
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
+import com.celzero.bravedns.ui.compose.theme.CardPosition
+import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkActionListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkToggleListItem
+import com.celzero.bravedns.ui.compose.theme.SectionHeader
+import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Constants.Companion.RETHINK_PACKAGE
 import com.celzero.bravedns.util.UIUtils.openAndroidAppInfo
+import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
 import com.celzero.bravedns.viewmodel.CustomDomainViewModel
 import com.celzero.bravedns.viewmodel.CustomIpViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -98,13 +118,14 @@ fun AppInfoScreen(
     onCustomDomainRulesClick: (Int) -> Unit
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
 
     var appInfo by remember(uid) { mutableStateOf<AppInfo?>(null) }
     var appStatus by remember(uid) { mutableStateOf(FirewallManager.FirewallStatus.NONE) }
     var connStatus by remember(uid) { mutableStateOf(FirewallManager.ConnectionStatus.ALLOW) }
+    var baselineConnStatus by remember(uid) { mutableStateOf(FirewallManager.ConnectionStatus.ALLOW) }
     var firewallStatusText by remember(uid) { mutableStateOf("") }
+    var firewallUpdateVersion by remember(uid) { mutableStateOf(0) }
     var isProxyExcluded by remember(uid) { mutableStateOf(false) }
     var isTempAllowed by remember(uid) { mutableStateOf(false) }
     var proxyDetails by remember(uid) { mutableStateOf("") }
@@ -119,6 +140,36 @@ fun AppInfoScreen(
     var refreshToken by remember(uid) { mutableStateOf(0) }
     var closeDialogConn by remember(uid) { mutableStateOf<com.celzero.bravedns.data.AppConnection?>(null) }
 
+    val wireguardAppsProxyMapDesc = stringResource(R.string.wireguard_apps_proxy_map_desc)
+    val excludeNoPackageErrToast = stringResource(R.string.exclude_no_package_err_toast)
+    val adaAppStatusBlockMd = stringResource(R.string.ada_app_status_block_md)
+    val adaAppStatusBlockWifi = stringResource(R.string.ada_app_status_block_wifi)
+    val adaAppStatusBlock = stringResource(R.string.ada_app_status_block)
+    val adaAppStatusAllow = stringResource(R.string.ada_app_status_allow)
+    val adaAppStatusExclude = stringResource(R.string.ada_app_status_exclude)
+    val adaAppStatusWhitelist = stringResource(R.string.ada_app_status_whitelist)
+    val adaAppStatusIsolate = stringResource(R.string.ada_app_status_isolate)
+    val adaAppStatusBypassDnsFirewall = stringResource(R.string.ada_app_status_bypass_dns_firewall)
+    val adaAppStatusUnknown = stringResource(R.string.ada_app_status_unknown)
+    val getFirewallStatusText: (FirewallManager.FirewallStatus, FirewallManager.ConnectionStatus) -> String =
+        { firewallStatus, connectionStatus ->
+            when (firewallStatus) {
+                FirewallManager.FirewallStatus.NONE -> {
+                    when (connectionStatus) {
+                        FirewallManager.ConnectionStatus.METERED -> adaAppStatusBlockMd
+                        FirewallManager.ConnectionStatus.UNMETERED -> adaAppStatusBlockWifi
+                        FirewallManager.ConnectionStatus.BOTH -> adaAppStatusBlock
+                        FirewallManager.ConnectionStatus.ALLOW -> adaAppStatusAllow
+                    }
+                }
+                FirewallManager.FirewallStatus.EXCLUDE -> adaAppStatusExclude
+                FirewallManager.FirewallStatus.BYPASS_UNIVERSAL -> adaAppStatusWhitelist
+                FirewallManager.FirewallStatus.ISOLATE -> adaAppStatusIsolate
+                FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL -> adaAppStatusBypassDnsFirewall
+                FirewallManager.FirewallStatus.UNTRACKED -> adaAppStatusUnknown
+            }
+        }
+
     LaunchedEffect(uid) {
         if (uid == INVALID_UID) {
             showNoAppFoundDialog = true
@@ -128,12 +179,16 @@ fun AppInfoScreen(
         domainRulesViewModel.setUid(uid)
         networkLogsViewModel.setUid(uid)
         loadAppInfo(
-            context = context,
             uid = uid,
+            wireguardAppsProxyMapDesc = wireguardAppsProxyMapDesc,
+            getFirewallStatusText = getFirewallStatusText,
             onLoaded = {
                 appInfo = it.info
                 appStatus = it.appStatus
                 connStatus = it.connStatus
+                if (it.appStatus == FirewallManager.FirewallStatus.NONE) {
+                    baselineConnStatus = it.connStatus
+                }
                 isProxyExcluded = it.isProxyExcluded
                 isTempAllowed = it.isTempAllowed
                 proxyDetails = it.proxyDetails
@@ -209,363 +264,743 @@ fun AppInfoScreen(
         } else {
             networkLogsViewModel.getIpLogsLimited(uid).asFlow().collectAsLazyPagingItems()
         }
-
-    Scaffold(
-        topBar = {
-            RethinkTopBar(
-                title = stringResource(id = R.string.bsct_app_info),
-                onBackClick = onBackClick
-            )
+    val activePreview =
+        remember(activeItems.itemSnapshotList.items, refreshToken) {
+            activeItems.itemSnapshotList.items.take(8)
         }
-    ) { paddingValues ->
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            if (appInfo == null) {
-                Text(text = stringResource(id = R.string.ada_noapp_dialog_message))
-                Button(onClick = onBackClick) {
-                    Text(text = stringResource(id = R.string.ada_noapp_dialog_positive))
-                }
-                return@Column
-            }
+    val domainPreview =
+        remember(domainItems.itemSnapshotList.items, refreshToken) {
+            domainItems.itemSnapshotList.items.take(8)
+        }
+    val ipPreview =
+        remember(ipItems.itemSnapshotList.items, refreshToken) {
+            ipItems.itemSnapshotList.items.take(8)
+        }
+    val density = LocalDensity.current
+    val bottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val info = appInfo
+    val title = info?.appName?.takeIf { it.isNotBlank() } ?: stringResource(id = R.string.bsct_app_info)
+    val subtitle = info?.packageName?.takeIf { it.isNotBlank() }
+    val wifiBlocked =
+        connStatus == FirewallManager.ConnectionStatus.UNMETERED ||
+            connStatus == FirewallManager.ConnectionStatus.BOTH
+    val mobileBlocked =
+        connStatus == FirewallManager.ConnectionStatus.METERED ||
+            connStatus == FirewallManager.ConnectionStatus.BOTH
+    val isIsolated = appStatus == FirewallManager.FirewallStatus.ISOLATE
+    val isBypassDnsFirewall = appStatus == FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL
+    val isBypassUniversal = appStatus == FirewallManager.FirewallStatus.BYPASS_UNIVERSAL
+    val isExcluded = appStatus == FirewallManager.FirewallStatus.EXCLUDE
+    var appIcon by remember(uid) { mutableStateOf<Drawable?>(null) }
 
-            Card(colors = CardDefaults.cardColors()) {
-                Column(
-                    modifier = Modifier.fillMaxWidth().padding(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(6.dp)
-                ) {
-                    Text(text = appInfo?.appName.orEmpty(), style = MaterialTheme.typography.titleLarge)
-                    Text(text = appInfo?.packageName.orEmpty(), style = MaterialTheme.typography.bodySmall)
-                    Text(text = firewallStatusText, style = MaterialTheme.typography.bodySmall)
-                    if (proxyDetails.isNotEmpty()) {
-                        Text(text = proxyDetails, style = MaterialTheme.typography.bodySmall)
-                    }
-                }
+    LaunchedEffect(info?.packageName, info?.appName) {
+        if (info == null) {
+            appIcon = null
+            return@LaunchedEffect
+        }
+        appIcon =
+            withContext(Dispatchers.IO) {
+                Utilities.getIcon(context, info.packageName, info.appName)
             }
+    }
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Button(
-                    onClick = { openAndroidAppInfo(context, appInfo?.packageName) },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = stringResource(id = R.string.about_settings_app_info))
-                }
-                Button(
-                    onClick = { onCustomIpRulesClick(uid) },
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Text(text = stringResource(id = R.string.lbl_ip_rules))
-                }
-            }
+    fun applyFirewallRule(
+        firewallStatus: FirewallManager.FirewallStatus,
+        connectionStatus: FirewallManager.ConnectionStatus
+    ) {
+        val requestVersion = firewallUpdateVersion + 1
+        firewallUpdateVersion = requestVersion
 
-            Button(
-                onClick = { onCustomDomainRulesClick(uid) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(text = stringResource(id = R.string.lbl_domain_rules))
-            }
+        // Optimistic update to keep UI deterministic and avoid stale rapid-tap states.
+        val optimisticText = getFirewallStatusText(firewallStatus, connectionStatus)
+        firewallStatusText = optimisticText
+        appStatus = firewallStatus
+        connStatus = connectionStatus
+        if (firewallStatus == FirewallManager.FirewallStatus.NONE) {
+            baselineConnStatus = connectionStatus
+        }
 
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(id = R.string.exclude_apps_from_proxy))
-                    Text(
-                        text = stringResource(id = R.string.settings_exclude_proxy_apps_desc),
-                        style = MaterialTheme.typography.bodySmall
-                    )
-                }
-                Switch(
-                    checked = isProxyExcluded,
-                    onCheckedChange = { enabled ->
-                        isProxyExcluded = enabled
-                        scope.launch(Dispatchers.IO) {
-                            FirewallManager.updateIsProxyExcluded(uid, enabled)
-                        }
-                    }
-                )
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(text = stringResource(id = R.string.temp_allow_label))
-                    Text(text = stringResource(id = R.string.temp_allow_desc), style = MaterialTheme.typography.bodySmall)
-                }
-                Switch(
-                    checked = isTempAllowed,
-                    onCheckedChange = { enabled ->
-                        isTempAllowed = enabled
-                        scope.launch(Dispatchers.IO) {
-                            FirewallManager.updateTempAllow(uid, enabled)
-                        }
-                    }
-                )
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(onClick = {
-                    val newConnStatus =
-                        when (connStatus) {
-                            FirewallManager.ConnectionStatus.UNMETERED ->
-                                FirewallManager.ConnectionStatus.ALLOW
-                            FirewallManager.ConnectionStatus.BOTH ->
-                                FirewallManager.ConnectionStatus.METERED
-                            FirewallManager.ConnectionStatus.METERED ->
-                                FirewallManager.ConnectionStatus.BOTH
-                            FirewallManager.ConnectionStatus.ALLOW ->
-                                FirewallManager.ConnectionStatus.UNMETERED
-                        }
-                    updateFirewallStatus(
-                        scope,
-                        context,
-                        uid,
-                        appInfo,
-                        FirewallManager.FirewallStatus.NONE,
-                        newConnStatus,
-                        connStatus,
-                        eventLogger
-                    ) { statusText, updatedAppStatus, updatedConnStatus ->
-                        firewallStatusText = statusText
-                        appStatus = updatedAppStatus
-                        connStatus = updatedConnStatus
-                    }
-                }) {
-                    Text(text = stringResource(id = R.string.ada_app_unmetered))
-                }
-                Button(onClick = {
-                    val newConnStatus =
-                        when (connStatus) {
-                            FirewallManager.ConnectionStatus.METERED ->
-                                FirewallManager.ConnectionStatus.ALLOW
-                            FirewallManager.ConnectionStatus.UNMETERED ->
-                                FirewallManager.ConnectionStatus.BOTH
-                            FirewallManager.ConnectionStatus.BOTH ->
-                                FirewallManager.ConnectionStatus.UNMETERED
-                            FirewallManager.ConnectionStatus.ALLOW ->
-                                FirewallManager.ConnectionStatus.METERED
-                        }
-                    updateFirewallStatus(
-                        scope,
-                        context,
-                        uid,
-                        appInfo,
-                        FirewallManager.FirewallStatus.NONE,
-                        newConnStatus,
-                        connStatus,
-                        eventLogger
-                    ) { statusText, updatedAppStatus, updatedConnStatus ->
-                        firewallStatusText = statusText
-                        appStatus = updatedAppStatus
-                        connStatus = updatedConnStatus
-                    }
-                }) {
-                    Text(text = stringResource(id = R.string.ada_app_metered))
-                }
-                Button(onClick = {
-                    val next =
-                        if (appStatus == FirewallManager.FirewallStatus.ISOLATE) {
-                            FirewallManager.FirewallStatus.NONE
-                        } else {
-                            FirewallManager.FirewallStatus.ISOLATE
-                        }
-                    updateFirewallStatus(
-                        scope,
-                        context,
-                        uid,
-                        appInfo,
-                        next,
-                        FirewallManager.ConnectionStatus.ALLOW,
-                        connStatus,
-                        eventLogger
-                    ) { statusText, updatedAppStatus, updatedConnStatus ->
-                        firewallStatusText = statusText
-                        appStatus = updatedAppStatus
-                        connStatus = updatedConnStatus
-                    }
-                }) {
-                    Text(text = stringResource(id = R.string.ada_app_isolate))
-                }
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Button(onClick = {
-                    val next =
-                        if (appStatus == FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL) {
-                            FirewallManager.FirewallStatus.NONE
-                        } else {
-                            FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL
-                        }
-                    updateFirewallStatus(
-                        scope,
-                        context,
-                        uid,
-                        appInfo,
-                        next,
-                        FirewallManager.ConnectionStatus.ALLOW,
-                        connStatus,
-                        eventLogger
-                    ) { statusText, updatedAppStatus, updatedConnStatus ->
-                        firewallStatusText = statusText
-                        appStatus = updatedAppStatus
-                        connStatus = updatedConnStatus
-                    }
-                }) {
-                    Text(text = stringResource(id = R.string.ada_app_bypass_dns_firewall))
-                }
-                Button(onClick = {
-                    val next =
-                        if (appStatus == FirewallManager.FirewallStatus.BYPASS_UNIVERSAL) {
-                            FirewallManager.FirewallStatus.NONE
-                        } else {
-                            FirewallManager.FirewallStatus.BYPASS_UNIVERSAL
-                        }
-                    updateFirewallStatus(
-                        scope,
-                        context,
-                        uid,
-                        appInfo,
-                        next,
-                        FirewallManager.ConnectionStatus.ALLOW,
-                        connStatus,
-                        eventLogger
-                    ) { statusText, updatedAppStatus, updatedConnStatus ->
-                        firewallStatusText = statusText
-                        appStatus = updatedAppStatus
-                        connStatus = updatedConnStatus
-                    }
-                }) {
-                    Text(text = stringResource(id = R.string.ada_app_bypass_univ))
-                }
-                Button(onClick = {
-                    val next =
-                        if (appStatus == FirewallManager.FirewallStatus.EXCLUDE) {
-                            FirewallManager.FirewallStatus.NONE
-                        } else {
-                            FirewallManager.FirewallStatus.EXCLUDE
-                        }
-                    updateFirewallStatus(
-                        scope,
-                        context,
-                        uid,
-                        appInfo,
-                        next,
-                        FirewallManager.ConnectionStatus.ALLOW,
-                        connStatus,
-                        eventLogger
-                    ) { statusText, updatedAppStatus, updatedConnStatus ->
-                        firewallStatusText = statusText
-                        appStatus = updatedAppStatus
-                        connStatus = updatedConnStatus
-                    }
-                }) {
-                    Text(text = stringResource(id = R.string.ada_app_exclude))
-                }
-            }
-
-            Spacer(modifier = Modifier.height(8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth().clickable { onAppWiseIpLogsClick(uid, false) },
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(id = R.string.top_active_conns),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_right_arrow_small),
-                    contentDescription = null
-                )
-            }
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.height(200.dp)
-            ) {
-                items(count = activeItems.itemCount) { index ->
-                    val item = activeItems[index] ?: return@items
-                    DomainRow(
-                        conn = item,
-                        uid = uid,
-                        isActiveConn = true,
-                        refreshToken = refreshToken,
-                        onIpClick = { closeDialogConn = it }
-                    )
-                }
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth().clickable { onAppWiseIpLogsClick(uid, false) },
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(id = R.string.ssv_most_contacted_domain_heading),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_right_arrow_small),
-                    contentDescription = null
-                )
-            }
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.height(200.dp)
-            ) {
-                items(count = domainItems.itemCount) { index ->
-                    val item = domainItems[index] ?: return@items
-                    DomainRow(
-                        conn = item,
-                        uid = uid,
-                        isActiveConn = false,
-                        refreshToken = refreshToken,
-                        onIpClick = {
-                            selectedDomain = it.appOrDnsName.orEmpty()
-                            showDomainRulesSheet = true
-                        }
-                    )
-                }
-            }
-
-            Row(
-                modifier = Modifier.fillMaxWidth().clickable { onAppWiseIpLogsClick(uid, false) },
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = stringResource(id = R.string.ssv_most_contacted_ips_heading),
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Icon(
-                    painter = painterResource(id = R.drawable.ic_right_arrow_small),
-                    contentDescription = null
-                )
-            }
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.height(200.dp)
-            ) {
-                items(count = ipItems.itemCount) { index ->
-                    val item = ipItems[index] ?: return@items
-                    IpRow(
-                        conn = item,
-                        isAsn = false,
-                        refreshToken = refreshToken,
-                        onIpClick = {
-                            selectedIp = it.ipAddress
-                            selectedDomains = it.appOrDnsName.orEmpty()
-                            showIpRulesSheet = true
-                        }
-                    )
-                }
+        updateFirewallStatus(
+            scope = scope,
+            context = context,
+            uid = uid,
+            appInfo = info,
+            aStat = firewallStatus,
+            cStat = connectionStatus,
+            eventLogger = eventLogger,
+            excludeNoPackageErrToast = excludeNoPackageErrToast,
+            getFirewallStatusText = getFirewallStatusText
+        ) { statusText, updatedAppStatus, updatedConnStatus ->
+            if (requestVersion != firewallUpdateVersion) return@updateFirewallStatus
+            firewallStatusText = statusText
+            appStatus = updatedAppStatus
+            connStatus = updatedConnStatus
+            if (updatedAppStatus == FirewallManager.FirewallStatus.NONE) {
+                baselineConnStatus = updatedConnStatus
             }
         }
     }
+
+    fun toggleExclusiveStatus(target: FirewallManager.FirewallStatus) {
+        val turningOff = appStatus == target
+        if (!turningOff && appStatus == FirewallManager.FirewallStatus.NONE) {
+            baselineConnStatus = connStatus
+        }
+        val nextStatus =
+            if (turningOff) {
+                FirewallManager.FirewallStatus.NONE
+            } else {
+                target
+            }
+        val nextConnStatus =
+            if (nextStatus == FirewallManager.FirewallStatus.NONE) {
+                baselineConnStatus
+            } else {
+                FirewallManager.ConnectionStatus.ALLOW
+            }
+        applyFirewallRule(nextStatus, nextConnStatus)
+    }
+
+    Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+        topBar = {
+            RethinkLargeTopBar(
+                title = title,
+                subtitle = subtitle,
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior,
+                titleLeading = {
+                    val iconPainter =
+                        rememberDrawablePainter(appIcon ?: Utilities.getDefaultIcon(context))
+                    iconPainter?.let { painter ->
+                        Image(
+                            painter = painter,
+                            contentDescription = null,
+                            modifier =
+                                Modifier
+                                    .size(30.dp)
+                                    .clip(RoundedCornerShape(9.dp))
+                        )
+                    }
+                }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+            contentPadding =
+                PaddingValues(
+                    start = Dimensions.screenPaddingHorizontal,
+                    end = Dimensions.screenPaddingHorizontal,
+                    top = Dimensions.spacingSm,
+                    bottom = Dimensions.screenPaddingHorizontal + bottomInset
+                ),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
+        ) {
+            if (info == null) {
+                item {
+                    Surface(
+                        shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
+                        color = MaterialTheme.colorScheme.surfaceContainerLow
+                    ) {
+                        Column(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(20.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            CompactEmptyState(message = stringResource(id = R.string.ada_noapp_dialog_message))
+                            RethinkActionListItem(
+                                title = stringResource(id = R.string.ada_noapp_dialog_positive),
+                                iconRes = R.drawable.ic_arrow_back_24,
+                                position = CardPosition.Single,
+                                onClick = onBackClick
+                            )
+                        }
+                    }
+                }
+                return@LazyColumn
+            }
+
+            item {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
+                    color = MaterialTheme.colorScheme.surfaceContainerLow
+                ) {
+                    Column(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 14.dp, vertical = 14.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(id = R.string.lbl_status),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            AppInfoStatusBadge(
+                                label = firewallStatusText,
+                                active = true
+                            )
+                            if (isTempAllowed) {
+                                AppInfoStatusBadge(
+                                    label = stringResource(id = R.string.temp_allow_label),
+                                    active = true
+                                )
+                            }
+                        }
+                        if (proxyDetails.isNotBlank()) {
+                            Text(
+                                text = proxyDetails,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                }
+            }
+
+            item { SectionHeader(title = stringResource(id = R.string.lbl_firewall)) }
+            item {
+                AppFirewallPairRow(
+                    leftTitle = stringResource(id = R.string.ada_app_unmetered),
+                    leftDescription = stringResource(id = R.string.firewall_status_block_unmetered),
+                    leftEnabled = wifiBlocked,
+                    leftEnabledIcon = R.drawable.ic_firewall_wifi_off,
+                    leftDisabledIcon = R.drawable.ic_firewall_wifi_on_grey,
+                    onLeftClick = {
+                        val newConnStatus =
+                            when (connStatus) {
+                                FirewallManager.ConnectionStatus.UNMETERED -> FirewallManager.ConnectionStatus.ALLOW
+                                FirewallManager.ConnectionStatus.BOTH -> FirewallManager.ConnectionStatus.METERED
+                                FirewallManager.ConnectionStatus.METERED -> FirewallManager.ConnectionStatus.BOTH
+                                FirewallManager.ConnectionStatus.ALLOW -> FirewallManager.ConnectionStatus.UNMETERED
+                            }
+                        applyFirewallRule(FirewallManager.FirewallStatus.NONE, newConnStatus)
+                    },
+                    rightTitle = stringResource(id = R.string.lbl_mobile_data),
+                    rightDescription = stringResource(id = R.string.firewall_status_block_metered),
+                    rightEnabled = mobileBlocked,
+                    rightEnabledIcon = R.drawable.ic_firewall_data_off,
+                    rightDisabledIcon = R.drawable.ic_firewall_data_on_grey,
+                    onRightClick = {
+                        val newConnStatus =
+                            when (connStatus) {
+                                FirewallManager.ConnectionStatus.METERED -> FirewallManager.ConnectionStatus.ALLOW
+                                FirewallManager.ConnectionStatus.UNMETERED -> FirewallManager.ConnectionStatus.BOTH
+                                FirewallManager.ConnectionStatus.BOTH -> FirewallManager.ConnectionStatus.UNMETERED
+                                FirewallManager.ConnectionStatus.ALLOW -> FirewallManager.ConnectionStatus.METERED
+                            }
+                        applyFirewallRule(FirewallManager.FirewallStatus.NONE, newConnStatus)
+                    }
+                )
+            }
+            item {
+                RethinkListGroup {
+                    RethinkActionListItem(
+                        title = stringResource(id = R.string.ada_app_isolate),
+                        description = stringResource(id = R.string.firewall_status_isolate),
+                        iconRes = R.drawable.ic_firewall_lockdown_off,
+                        accentColor = MaterialTheme.colorScheme.error,
+                        position = cardPositionFor(0, 3),
+                        trailing = {
+                            AppInfoStatusBadge(
+                                label =
+                                    stringResource(
+                                        id = if (isIsolated) R.string.lbbs_enabled else R.string.lbl_disabled
+                                    ),
+                                active = isIsolated
+                            )
+                        },
+                        onClick = {
+                            toggleExclusiveStatus(FirewallManager.FirewallStatus.ISOLATE)
+                        }
+                    )
+                    RethinkActionListItem(
+                        title = stringResource(id = R.string.ada_app_bypass_dns_firewall),
+                        description = stringResource(id = R.string.firewall_status_bypass_dns_firewall),
+                        iconRes = R.drawable.ic_bypass_dns_firewall_off,
+                        accentColor = MaterialTheme.colorScheme.tertiary,
+                        position = cardPositionFor(1, 3),
+                        trailing = {
+                            AppInfoStatusBadge(
+                                label =
+                                    stringResource(
+                                        id = if (isBypassDnsFirewall) R.string.lbbs_enabled else R.string.lbl_disabled
+                                    ),
+                                active = isBypassDnsFirewall
+                            )
+                        },
+                        onClick = {
+                            toggleExclusiveStatus(FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL)
+                        }
+                    )
+                    RethinkActionListItem(
+                        title = stringResource(id = R.string.ada_app_bypass_univ),
+                        description = stringResource(id = R.string.firewall_status_whitelisted),
+                        iconRes = R.drawable.ic_firewall_bypass_off,
+                        accentColor = MaterialTheme.colorScheme.tertiary,
+                        position = cardPositionFor(2, 3),
+                        trailing = {
+                            AppInfoStatusBadge(
+                                label =
+                                    stringResource(
+                                        id = if (isBypassUniversal) R.string.lbbs_enabled else R.string.lbl_disabled
+                                    ),
+                                active = isBypassUniversal
+                            )
+                        },
+                        onClick = {
+                            toggleExclusiveStatus(FirewallManager.FirewallStatus.BYPASS_UNIVERSAL)
+                        }
+                    )
+                    RethinkActionListItem(
+                        title = stringResource(id = R.string.ada_app_exclude),
+                        description = stringResource(id = R.string.firewall_status_excluded),
+                        iconRes = R.drawable.ic_firewall_exclude_off,
+                        accentColor = MaterialTheme.colorScheme.secondary,
+                        position = cardPositionFor(3, 3),
+                        trailing = {
+                            AppInfoStatusBadge(
+                                label =
+                                    stringResource(
+                                        id = if (isExcluded) R.string.lbbs_enabled else R.string.lbl_disabled
+                                    ),
+                                active = isExcluded
+                            )
+                        },
+                        onClick = {
+                            toggleExclusiveStatus(FirewallManager.FirewallStatus.EXCLUDE)
+                        }
+                    )
+                }
+            }
+
+            item { SectionHeader(title = stringResource(id = R.string.lbl_advanced)) }
+            item {
+                RethinkListGroup {
+                    RethinkToggleListItem(
+                        title = stringResource(id = R.string.exclude_apps_from_proxy),
+                        description = stringResource(id = R.string.settings_exclude_proxy_apps_desc),
+                        checked = isProxyExcluded,
+                        onCheckedChange = { enabled ->
+                            isProxyExcluded = enabled
+                            scope.launch(Dispatchers.IO) {
+                                FirewallManager.updateIsProxyExcluded(uid, enabled)
+                            }
+                        },
+                        iconRes = R.drawable.ic_proxy,
+                        accentColor = MaterialTheme.colorScheme.secondary,
+                        position = cardPositionFor(0, 1)
+                    )
+                    RethinkToggleListItem(
+                        title = stringResource(id = R.string.temp_allow_label),
+                        description = stringResource(id = R.string.temp_allow_desc),
+                        checked = isTempAllowed,
+                        onCheckedChange = { enabled ->
+                            isTempAllowed = enabled
+                            scope.launch(Dispatchers.IO) {
+                                FirewallManager.updateTempAllow(uid, enabled)
+                            }
+                        },
+                        iconRes = R.drawable.ic_timeout,
+                        accentColor = MaterialTheme.colorScheme.tertiary,
+                        position = cardPositionFor(1, 1)
+                    )
+                }
+            }
+
+            item { SectionHeader(title = stringResource(id = R.string.lbl_rules)) }
+            item {
+                RethinkListGroup {
+                    RethinkActionListItem(
+                        title = stringResource(id = R.string.about_settings_app_info),
+                        iconRes = R.drawable.ic_app_info,
+                        position = cardPositionFor(0, 2),
+                        trailing = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_right_arrow_small),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        onClick = { openAndroidAppInfo(context, info.packageName) }
+                    )
+                    RethinkActionListItem(
+                        title = stringResource(id = R.string.lbl_ip_rules),
+                        iconRes = R.drawable.ic_ip_info,
+                        position = cardPositionFor(1, 2),
+                        trailing = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_right_arrow_small),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        onClick = { onCustomIpRulesClick(uid) }
+                    )
+                    RethinkActionListItem(
+                        title = stringResource(id = R.string.lbl_domain_rules),
+                        iconRes = R.drawable.ic_dns_rules_as_firewall,
+                        position = cardPositionFor(2, 2),
+                        trailing = {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_right_arrow_small),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        onClick = { onCustomDomainRulesClick(uid) }
+                    )
+                }
+            }
+
+            item {
+                LogSectionCard(
+                    title = stringResource(id = R.string.top_active_conns),
+                    badgeCount = activeItems.itemCount,
+                    onClick = { onAppWiseIpLogsClick(uid, false) }
+                ) {
+                    if (activeItems.loadState.refresh is LoadState.Loading && activeItems.itemCount == 0) {
+                        CompactEmptyState(message = stringResource(id = R.string.lbl_loading))
+                    } else if (activeItems.itemCount == 0) {
+                        CompactEmptyState(message = stringResource(id = R.string.fapps_empty_subtitle))
+                    } else {
+                        AppInfoLogPreviewList(
+                            items = activePreview,
+                            title = { beautifyCommaSeparated(it.ipAddress) },
+                            subtitle = { beautifyCommaSeparated(it.appOrDnsName) },
+                            onClick = { closeDialogConn = it }
+                        )
+                    }
+                }
+            }
+
+            item {
+                LogSectionCard(
+                    title = stringResource(id = R.string.ssv_most_contacted_domain_heading),
+                    badgeCount = domainItems.itemCount,
+                    onClick = { onAppWiseIpLogsClick(uid, false) }
+                ) {
+                    if (domainItems.loadState.refresh is LoadState.Loading && domainItems.itemCount == 0) {
+                        CompactEmptyState(message = stringResource(id = R.string.lbl_loading))
+                    } else if (domainItems.itemCount == 0) {
+                        CompactEmptyState(message = stringResource(id = R.string.fapps_empty_subtitle))
+                    } else {
+                        AppInfoLogPreviewList(
+                            items = domainPreview,
+                            title = {
+                                val domain = beautifyCommaSeparated(it.appOrDnsName)
+                                if (domain.isNotBlank()) domain else beautifyCommaSeparated(it.ipAddress)
+                            },
+                            subtitle = {
+                                val ip = beautifyCommaSeparated(it.ipAddress)
+                                ip.takeIf { value -> value.isNotBlank() && value != beautifyCommaSeparated(it.appOrDnsName) }
+                            },
+                            onClick = {
+                                selectedDomain = it.appOrDnsName.orEmpty()
+                                showDomainRulesSheet = true
+                            }
+                        )
+                    }
+                }
+            }
+
+            item {
+                LogSectionCard(
+                    title = stringResource(id = R.string.ssv_most_contacted_ips_heading),
+                    badgeCount = ipItems.itemCount,
+                    onClick = { onAppWiseIpLogsClick(uid, false) }
+                ) {
+                    if (ipItems.loadState.refresh is LoadState.Loading && ipItems.itemCount == 0) {
+                        CompactEmptyState(message = stringResource(id = R.string.lbl_loading))
+                    } else if (ipItems.itemCount == 0) {
+                        CompactEmptyState(message = stringResource(id = R.string.fapps_empty_subtitle))
+                    } else {
+                        AppInfoLogPreviewList(
+                            items = ipPreview,
+                            title = { beautifyCommaSeparated(it.ipAddress) },
+                            subtitle = { beautifyCommaSeparated(it.appOrDnsName) },
+                            onClick = {
+                                selectedIp = it.ipAddress
+                                selectedDomains = it.appOrDnsName.orEmpty()
+                                showIpRulesSheet = true
+                            }
+                        )
+                    }
+                }
+            }
+
+            item { Spacer(modifier = Modifier.height(Dimensions.spacingSm)) }
+        }
+    }
+}
+
+@Composable
+private fun AppInfoStatusBadge(
+    label: String,
+    active: Boolean
+) {
+    Surface(
+        shape = RoundedCornerShape(100.dp),
+        color =
+            if (active) MaterialTheme.colorScheme.primaryContainer
+            else MaterialTheme.colorScheme.surfaceContainerHighest
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color =
+                if (active) MaterialTheme.colorScheme.onPrimaryContainer
+                else MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+}
+
+@Composable
+private fun AppFirewallPairRow(
+    leftTitle: String,
+    leftDescription: String,
+    leftEnabled: Boolean,
+    leftEnabledIcon: Int,
+    leftDisabledIcon: Int,
+    onLeftClick: () -> Unit,
+    rightTitle: String,
+    rightDescription: String,
+    rightEnabled: Boolean,
+    rightEnabledIcon: Int,
+    rightDisabledIcon: Int,
+    onRightClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(2.dp)
+    ) {
+        AppFirewallTile(
+            modifier = Modifier.weight(1f),
+            title = leftTitle,
+            description = leftDescription,
+            enabled = leftEnabled,
+            enabledIcon = leftEnabledIcon,
+            disabledIcon = leftDisabledIcon,
+            shape = RoundedCornerShape(topStart = 22.dp, topEnd = 8.dp, bottomStart = 22.dp, bottomEnd = 8.dp),
+            onClick = onLeftClick
+        )
+        AppFirewallTile(
+            modifier = Modifier.weight(1f),
+            title = rightTitle,
+            description = rightDescription,
+            enabled = rightEnabled,
+            enabledIcon = rightEnabledIcon,
+            disabledIcon = rightDisabledIcon,
+            shape = RoundedCornerShape(topStart = 8.dp, topEnd = 22.dp, bottomStart = 8.dp, bottomEnd = 22.dp),
+            onClick = onRightClick
+        )
+    }
+}
+
+@Composable
+private fun AppFirewallTile(
+    modifier: Modifier = Modifier,
+    title: String,
+    description: String,
+    enabled: Boolean,
+    enabledIcon: Int,
+    disabledIcon: Int,
+    shape: RoundedCornerShape,
+    onClick: () -> Unit
+) {
+    val accent =
+        if (enabled) MaterialTheme.colorScheme.error
+        else MaterialTheme.colorScheme.primary
+    Surface(
+        modifier = modifier,
+        shape = shape,
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        onClick = onClick
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = accent.copy(alpha = if (enabled) 0.18f else 0.12f),
+                modifier = Modifier.size(36.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        painter = painterResource(id = if (enabled) enabledIcon else disabledIcon),
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+            AppInfoStatusBadge(
+                label = stringResource(id = if (enabled) R.string.lbbs_enabled else R.string.lbl_disabled),
+                active = enabled
+            )
+        }
+    }
+}
+
+@Composable
+private fun LogSectionCard(
+    title: String,
+    badgeCount: Int = 0,
+    onClick: () -> Unit,
+    content: @Composable () -> Unit
+) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
+        color = MaterialTheme.colorScheme.surfaceContainerLow
+    ) {
+        Column(
+            modifier = Modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
+        ) {
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onClick)
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    if (badgeCount > 0) {
+                        AppInfoStatusBadge(
+                            label = badgeCount.toString(),
+                            active = true
+                        )
+                    }
+                }
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_right_arrow_small),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 6.dp, vertical = 6.dp)
+            ) {
+                content()
+            }
+        }
+    }
+}
+
+@Composable
+private fun AppInfoLogPreviewList(
+    items: List<AppConnection>,
+    title: (AppConnection) -> String,
+    subtitle: (AppConnection) -> String?,
+    onClick: (AppConnection) -> Unit
+) {
+    RethinkListGroup {
+        items.forEachIndexed { index, conn ->
+            AppInfoLogPreviewRow(
+                title = title(conn),
+                subtitle = subtitle(conn),
+                count = conn.count,
+                flag = conn.flag,
+                position = cardPositionFor(index, items.lastIndex),
+                onClick = { onClick(conn) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun AppInfoLogPreviewRow(
+    title: String,
+    subtitle: String?,
+    count: Int,
+    flag: String,
+    position: CardPosition,
+    onClick: () -> Unit
+) {
+    RethinkListItem(
+        headline = title.ifBlank { "-" },
+        supporting = subtitle?.takeIf { it.isNotBlank() },
+        position = position,
+        leadingContent = {
+            Surface(
+                shape = RoundedCornerShape(12.dp),
+                color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                modifier = Modifier.size(34.dp)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Text(
+                        text = flag.takeIf { it.isNotBlank() } ?: "\u2022",
+                        style = MaterialTheme.typography.titleSmall
+                    )
+                }
+            }
+        },
+        trailing = {
+            AppInfoStatusBadge(
+                label = count.toString(),
+                active = false
+            )
+        },
+        onClick = onClick
+    )
+}
+
+private fun beautifyCommaSeparated(value: String?): String {
+    if (value.isNullOrBlank()) return ""
+    return value
+        .split(",")
+        .map { it.trim() }
+        .filter { it.isNotBlank() }
+        .joinToString(", ")
 }
 
 private data class AppInfoLoad(
@@ -579,8 +1014,9 @@ private data class AppInfoLoad(
 )
 
 private suspend fun loadAppInfo(
-    context: Context,
     uid: Int,
+    wireguardAppsProxyMapDesc: String,
+    getFirewallStatusText: (FirewallManager.FirewallStatus, FirewallManager.ConnectionStatus) -> String,
     onLoaded: (AppInfoLoad) -> Unit,
     onMissing: () -> Unit
 ) {
@@ -593,9 +1029,9 @@ private suspend fun loadAppInfo(
     val conn = FirewallManager.connectionStatus(info.uid)
     val proxy =
         ProxyManager.getProxyIdForApp(uid).takeIf { it.isNotEmpty() && it != ID_NONE }
-            ?.let { context.getString(R.string.wireguard_apps_proxy_map_desc, it) }
+            ?.let { wireguardAppsProxyMapDesc.format(it) }
             .orEmpty()
-    val firewallStatusText = getFirewallText(context, status, conn)
+    val firewallStatusText = getFirewallStatusText(status, conn)
     onLoaded(
         AppInfoLoad(
             info = info,
@@ -616,18 +1052,19 @@ private fun updateFirewallStatus(
     appInfo: AppInfo?,
     aStat: FirewallManager.FirewallStatus,
     cStat: FirewallManager.ConnectionStatus,
-    prevConnStat: FirewallManager.ConnectionStatus,
     eventLogger: EventLogger,
+    excludeNoPackageErrToast: String,
+    getFirewallStatusText: (FirewallManager.FirewallStatus, FirewallManager.ConnectionStatus) -> String,
     onUpdated: (String, FirewallManager.FirewallStatus, FirewallManager.ConnectionStatus) -> Unit
 ) {
     val info = appInfo ?: return
     if (aStat == FirewallManager.FirewallStatus.EXCLUDE && FirewallManager.isUnknownPackage(uid)) {
-        showToastUiCentered(context, context.getString(R.string.exclude_no_package_err_toast), Toast.LENGTH_LONG)
+        showToastUiCentered(context, excludeNoPackageErrToast, Toast.LENGTH_LONG)
         return
     }
     scope.launch(Dispatchers.IO) {
         FirewallManager.updateFirewallStatus(info.uid, aStat, cStat)
-        val statusText = getFirewallText(context, aStat, cStat)
+        val statusText = getFirewallStatusText(aStat, cStat)
         withContext(Dispatchers.Main) {
             onUpdated(statusText, aStat, cStat)
         }
@@ -639,33 +1076,5 @@ private fun updateFirewallStatus(
             userAction = true,
             details = "Firewall status changed for ${info.appName} (${info.uid}), new status: $aStat, conn status: $cStat"
         )
-    }
-}
-
-private fun getFirewallText(
-    context: Context,
-    aStat: FirewallManager.FirewallStatus,
-    cStat: FirewallManager.ConnectionStatus
-): String {
-    return when (aStat) {
-        FirewallManager.FirewallStatus.NONE -> {
-            when (cStat) {
-                FirewallManager.ConnectionStatus.METERED ->
-                    context.getString(R.string.ada_app_status_block_md)
-                FirewallManager.ConnectionStatus.UNMETERED ->
-                    context.getString(R.string.ada_app_status_block_wifi)
-                FirewallManager.ConnectionStatus.BOTH ->
-                    context.getString(R.string.ada_app_status_block)
-                FirewallManager.ConnectionStatus.ALLOW ->
-                    context.getString(R.string.ada_app_status_allow)
-            }
-        }
-        FirewallManager.FirewallStatus.EXCLUDE -> context.getString(R.string.ada_app_status_exclude)
-        FirewallManager.FirewallStatus.BYPASS_UNIVERSAL ->
-            context.getString(R.string.ada_app_status_whitelist)
-        FirewallManager.FirewallStatus.ISOLATE -> context.getString(R.string.ada_app_status_isolate)
-        FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL ->
-            context.getString(R.string.ada_app_status_bypass_dns_firewall)
-        FirewallManager.FirewallStatus.UNTRACKED -> context.getString(R.string.ada_app_status_unknown)
     }
 }

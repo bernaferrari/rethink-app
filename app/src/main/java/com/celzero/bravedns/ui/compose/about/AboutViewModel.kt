@@ -104,9 +104,9 @@ class AboutViewModel(
     }
 
     private fun getDownloadSource(): String {
-        return if (isFdroidFlavour()) context.getString(R.string.build__flavor_fdroid)
-        else if (isPlayStoreFlavour()) context.getString(R.string.build__flavor_play_store)
-        else context.getString(R.string.build__flavor_website)
+        return if (isFdroidFlavour()) "F-Droid"
+        else if (isPlayStoreFlavour()) "Google Play"
+        else "Website"
     }
 
     private fun calculateSponsorInfo(): Pair<String, String> {

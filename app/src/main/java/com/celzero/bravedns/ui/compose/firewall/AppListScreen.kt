@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 package com.celzero.bravedns.ui.compose.firewall
-
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -38,11 +37,13 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -66,11 +67,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -81,15 +82,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.asFlow
-import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.LoadState
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.FirewallAppRow
 import com.celzero.bravedns.adapter.FirewallRowPosition
@@ -116,6 +115,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import com.celzero.bravedns.database.AppInfo
 
 private const val ANIMATION_DURATION = 750
+private val FAST_SCROLLER_LIST_END_PADDING = 32.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,6 +149,7 @@ fun AppListScreen(
     onShowBulkDialog: (BlockType) -> Unit,
     onBypassDnsTooltip: () -> Unit,
     showBypassToolTip: Boolean,
+    onAppClick: ((Int) -> Unit)? = null,
     onBackClick: (() -> Unit)? = null
 ) {
     val refreshRotation = rememberInfiniteTransition(label = "refresh").animateFloat(
@@ -165,7 +166,7 @@ fun AppListScreen(
     var isSearchOpen by rememberSaveable { mutableStateOf(queryText.isNotBlank()) }
 
     val hasActiveFilters = currentFilters?.let {
-        it.topLevelFilter != TopLevelFilter.ALL ||
+        it.topLevelFilter != TopLevelFilter.INSTALLED ||
                 it.categoryFilters.isNotEmpty() ||
                 selectedFirewallFilter != FirewallFilter.ALL
     } ?: (selectedFirewallFilter != FirewallFilter.ALL)
@@ -294,7 +295,8 @@ fun AppListScreen(
                 modifier = Modifier.weight(1f),
                 viewModel = viewModel,
                 eventLogger = eventLogger,
-                searchQuery = queryText
+                searchQuery = queryText,
+                onAppClick = onAppClick
             )
         }
     }
@@ -384,7 +386,7 @@ private fun AppListControlsCompact(
             },
             label = { filter, _ ->
                 Text(
-                    text = filter.getLabel(context),
+                    text = filter.getLabel(),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -496,12 +498,13 @@ private fun AppListRecycler(
     modifier: Modifier = Modifier,
     viewModel: AppInfoViewModel,
     eventLogger: EventLogger,
-    searchQuery: String
+    searchQuery: String,
+    onAppClick: ((Int) -> Unit)? = null
 ) {
-    val items = viewModel.appInfo.asFlow().collectAsLazyPagingItems()
-    val isRefreshing = items.loadState.refresh is LoadState.Loading
+    val items by viewModel.appInfo.collectAsState()
+    val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
 
-    if (items.itemCount == 0 && !isRefreshing) {
+    if (items.isEmpty()) {
         Box(
             modifier = modifier
                 .fillMaxSize()
@@ -532,29 +535,30 @@ private fun AppListRecycler(
         return
     }
 
-    val listState = rememberLazyListState()
-    val scope = rememberCoroutineScope()
-    val sectionAnchors = remember(items.itemCount, items.itemSnapshotList.items) {
-        buildSectionAnchors(items)
-    }
+    val showFastScroller = items.size >= 8
+    val fastScrollerKeys = remember(items) { buildFastScrollerIndexKeys(items) }
 
     Box(modifier = modifier.fillMaxSize()) {
         AppListContent(
-            items = items,
+            loadedItems = items,
             listState = listState,
             eventLogger = eventLogger,
-            searchQuery = searchQuery
+            searchQuery = searchQuery,
+            showFastScroller = showFastScroller,
+            onAppClick = onAppClick
         )
 
-        if (sectionAnchors.size >= 8) {
-            AppListFastScroller(
-                anchors = sectionAnchors,
+        if (showFastScroller) {
+            IndexedFastScroller(
+                items = fastScrollerKeys,
+                listState = listState,
+                getIndexKey = { it },
+                scrollItemOffset = 2,
+                minItemCount = 8,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
-                    .padding(end = 4.dp),
-                onSelect = { anchor ->
-                    scope.launch { listState.animateScrollToItem(anchor.listIndex) }
-                }
+                    .padding(vertical = Dimensions.spacingSm)
+                    .padding(end = 2.dp),
             )
         }
     }
@@ -563,28 +567,33 @@ private fun AppListRecycler(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 private fun AppListContent(
-    items: androidx.paging.compose.LazyPagingItems<AppInfo>,
+    loadedItems: List<AppInfo>,
     listState: androidx.compose.foundation.lazy.LazyListState,
     eventLogger: EventLogger,
-    searchQuery: String
+    searchQuery: String,
+    showFastScroller: Boolean,
+    onAppClick: ((Int) -> Unit)? = null
 ) {
+    val density = LocalDensity.current
+    val navBarBottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+
     LazyColumn(
         state = listState,
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
-            horizontal = Dimensions.screenPaddingHorizontal,
-            vertical = Dimensions.spacingXs
+            start = Dimensions.screenPaddingHorizontal,
+            end = Dimensions.screenPaddingHorizontal + if (showFastScroller) FAST_SCROLLER_LIST_END_PADDING else 8.dp,
+            top = Dimensions.spacingXs,
+            bottom = Dimensions.screenPaddingHorizontal + navBarBottomInset
         ),
         verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        for (index in 0 until items.itemCount) {
-            val item = items[index] ?: continue
-
+        loadedItems.forEachIndexed { index, item ->
             val currentInitial = appInitial(item.appName, item.packageName)
-            val previousItem = if (index > 0) items.peek(index - 1) else null
+            val previousItem = loadedItems.getOrNull(index - 1)
             val previousInitial =
                 previousItem?.let { appInitial(it.appName, it.packageName) }
-            val nextItem = if (index < items.itemCount - 1) items.peek(index + 1) else null
+            val nextItem = loadedItems.getOrNull(index + 1)
             val nextInitial =
                 nextItem?.let { appInitial(it.appName, it.packageName) }
             val isFirstInGroup = previousInitial == null || currentInitial != previousInitial
@@ -599,17 +608,18 @@ private fun AppListContent(
                 }
 
             if (index == 0 || isFirstInGroup) {
-                stickyHeader(key = "header_${item.uid}_${item.packageName}_$currentInitial") {
+                stickyHeader(key = "header_$currentInitial") {
                     AppListLetterHeader(letter = currentInitial)
                 }
             }
 
-            item(key = "app_${item.uid}_${item.packageName}_$index") {
+            item(key = "app_${item.uid}_${item.packageName}") {
                 FirewallAppRow(
                     appInfo = item,
                     eventLogger = eventLogger,
                     searchQuery = searchQuery,
-                    rowPosition = rowPosition
+                    rowPosition = rowPosition,
+                    onAppClick = onAppClick
                 )
             }
         }
@@ -622,13 +632,13 @@ private fun AppListLetterHeader(letter: String) {
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(start = 4.dp, top = 4.dp, bottom = 2.dp)
+            .padding(start = 20.dp, top = 12.dp, bottom = 4.dp)
     ) {
         Text(
             text = letter,
-            style = MaterialTheme.typography.labelMedium,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.SemiBold
+            fontWeight = FontWeight.Bold
         )
     }
 }
@@ -644,79 +654,20 @@ private fun appInitial(appName: String, packageName: String): String {
     }
 }
 
-private data class SectionAnchor(
-    val letter: String,
-    val listIndex: Int
-)
-
-private fun buildSectionAnchors(
-    items: androidx.paging.compose.LazyPagingItems<AppInfo>
-): List<SectionAnchor> {
-    val anchors = mutableListOf<SectionAnchor>()
+private fun buildFastScrollerIndexKeys(loadedItems: List<AppInfo>): List<String> {
+    val indexKeys = mutableListOf<String>()
     var previousInitial: String? = null
-    var listIndex = 0
 
-    for (index in 0 until items.itemCount) {
-        val item = items.peek(index) ?: continue
+    loadedItems.forEach { item ->
         val initial = appInitial(item.appName, item.packageName)
         if (initial != previousInitial) {
-            if (anchors.none { it.letter == initial }) {
-                anchors.add(SectionAnchor(letter = initial, listIndex = listIndex))
-            }
-            listIndex += 1
+            indexKeys.add(initial) // sticky header index
             previousInitial = initial
         }
-        listIndex += 1
+        indexKeys.add(item.appName.ifBlank { item.packageName }) // app row index
     }
 
-    return anchors
-}
-
-@Composable
-private fun AppListFastScroller(
-    anchors: List<SectionAnchor>,
-    modifier: Modifier = Modifier,
-    onSelect: (SectionAnchor) -> Unit
-) {
-    var activeLetter by remember { mutableStateOf<String?>(null) }
-
-    LaunchedEffect(activeLetter) {
-        if (activeLetter != null) {
-            delay(450)
-            activeLetter = null
-        }
-    }
-
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(Dimensions.cornerRadiusLg),
-        color = MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.92f)
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 4.dp, vertical = 6.dp),
-            verticalArrangement = Arrangement.spacedBy(2.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            anchors.forEach { anchor ->
-                val isActive = anchor.letter == activeLetter
-                Text(
-                    text = anchor.letter,
-                    style = MaterialTheme.typography.labelSmall,
-                    color =
-                        if (isActive) MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .clip(CircleShape)
-                        .sizeIn(minWidth = 24.dp, minHeight = 24.dp)
-                        .clickable {
-                            activeLetter = anchor.letter
-                            onSelect(anchor)
-                        }
-                        .padding(horizontal = 5.dp, vertical = 3.dp)
-                )
-            }
-        }
-    }
+    return indexKeys
 }
 
 @Composable
@@ -787,7 +738,7 @@ fun FirewallAppFilterSheet(
     onClear: (Filters) -> Unit
 ) {
     var topFilter by remember {
-        mutableStateOf(initialFilters?.topLevelFilter ?: TopLevelFilter.ALL)
+        mutableStateOf(initialFilters?.topLevelFilter ?: TopLevelFilter.INSTALLED)
     }
     val selectedCategories = remember {
         mutableStateListOf<String>().apply {
@@ -887,10 +838,10 @@ fun FirewallAppFilterSheet(
                 secondaryText = stringResource(R.string.fapps_filter_clear_btn),
                 onSecondaryClick = {
                     selectedCategories.clear()
-                    topFilter = TopLevelFilter.ALL
+                    topFilter = TopLevelFilter.INSTALLED
                     onClear(
                         Filters(
-                            topLevelFilter = TopLevelFilter.ALL,
+                            topLevelFilter = TopLevelFilter.INSTALLED,
                             firewallFilter = firewallFilter,
                             searchString = initialFilters?.searchString.orEmpty()
                         )

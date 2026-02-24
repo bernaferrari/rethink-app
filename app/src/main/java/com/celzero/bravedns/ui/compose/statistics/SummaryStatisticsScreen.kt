@@ -17,41 +17,52 @@ package com.celzero.bravedns.ui.compose.statistics
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Unspecified
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.data.DataUsageSummary
 import com.celzero.bravedns.data.SummaryStatisticsType
+import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkSegmentedChoiceRow
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
@@ -65,6 +76,7 @@ import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel.TimeCategory
 @Composable
 fun SummaryStatisticsScreen(
     viewModel: SummaryStatisticsViewModel,
+    persistentState: PersistentState,
     onSeeMoreClick: (SummaryStatisticsType) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -111,11 +123,13 @@ fun SummaryStatisticsScreen(
             item {
                 RethinkAnimatedSection(index = 2) {
                     SummaryStatSection(
-                        title = stringResource(id = R.string.top_active_conns),
-                        type = SummaryStatisticsType.TOP_ACTIVE_CONNS,
-                        pagingItems = topActiveConns,
+                        title = stringResource(id = R.string.ssv_app_network_activity_heading),
+                        type = SummaryStatisticsType.MOST_CONNECTED_APPS,
+                        pagingItems = mostConnectedApps,
                         accentColor = MaterialTheme.colorScheme.primary,
-                        onSeeMoreClick = onSeeMoreClick
+                        onSeeMoreClick = onSeeMoreClick,
+                        viewModel = viewModel,
+                        refreshToken = uiState.timeCategory
                     )
                 }
             }
@@ -123,11 +137,13 @@ fun SummaryStatisticsScreen(
             item {
                 RethinkAnimatedSection(index = 3) {
                     SummaryStatSection(
-                        title = stringResource(id = R.string.ssv_app_network_activity_heading),
-                        type = SummaryStatisticsType.MOST_CONNECTED_APPS,
-                        pagingItems = mostConnectedApps,
-                        accentColor = MaterialTheme.colorScheme.primary,
-                        onSeeMoreClick = onSeeMoreClick
+                        title = stringResource(id = R.string.ssv_app_blocked_heading),
+                        type = SummaryStatisticsType.MOST_BLOCKED_APPS,
+                        pagingItems = mostBlockedApps,
+                        accentColor = MaterialTheme.colorScheme.error,
+                        onSeeMoreClick = onSeeMoreClick,
+                        viewModel = viewModel,
+                        refreshToken = uiState.timeCategory
                     )
                 }
             }
@@ -135,99 +151,105 @@ fun SummaryStatisticsScreen(
             item {
                 RethinkAnimatedSection(index = 4) {
                     SummaryStatSection(
-                        title = stringResource(id = R.string.ssv_app_blocked_heading),
-                        type = SummaryStatisticsType.MOST_BLOCKED_APPS,
-                        pagingItems = mostBlockedApps,
-                        accentColor = MaterialTheme.colorScheme.error,
-                        onSeeMoreClick = onSeeMoreClick
-                    )
-                }
-            }
-
-            item {
-                RethinkAnimatedSection(index = 5) {
-                    SummaryStatSection(
-                        title = stringResource(id = R.string.most_contacted_asn),
-                        type = SummaryStatisticsType.MOST_CONNECTED_ASN,
-                        pagingItems = mostConnectedAsn,
-                        accentColor = MaterialTheme.colorScheme.secondary,
-                        onSeeMoreClick = onSeeMoreClick
-                    )
-                }
-            }
-
-            item {
-                RethinkAnimatedSection(index = 6) {
-                    SummaryStatSection(
-                        title = stringResource(id = R.string.most_blocked_asn),
-                        type = SummaryStatisticsType.MOST_BLOCKED_ASN,
-                        pagingItems = mostBlockedAsn,
-                        accentColor = MaterialTheme.colorScheme.error,
-                        onSeeMoreClick = onSeeMoreClick
-                    )
-                }
-            }
-
-            if (!uiState.loadMoreClicked) {
-                item {
-                    FilledTonalButton(
-                        onClick = { viewModel.setLoadMoreClicked(true) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(Dimensions.cornerRadius2xl)
-                    ) {
-                        Text(text = stringResource(id = R.string.load_more))
-                    }
-                }
-            }
-
-            if (uiState.loadMoreClicked) {
-                item {
-                    SummaryStatSection(
-                        title = stringResource(id = R.string.ssv_most_contacted_domain_heading),
-                        type = SummaryStatisticsType.MOST_CONTACTED_DOMAINS,
-                        pagingItems = mostContactedDomains,
-                        accentColor = MaterialTheme.colorScheme.secondary,
-                        onSeeMoreClick = onSeeMoreClick
-                    )
-                }
-
-                item {
-                    SummaryStatSection(
-                        title = stringResource(id = R.string.ssv_most_blocked_domain_heading),
-                        type = SummaryStatisticsType.MOST_BLOCKED_DOMAINS,
-                        pagingItems = mostBlockedDomains,
-                        accentColor = MaterialTheme.colorScheme.error,
-                        onSeeMoreClick = onSeeMoreClick
-                    )
-                }
-
-                item {
-                    SummaryStatSection(
                         title = stringResource(id = R.string.ssv_most_contacted_countries_heading),
                         type = SummaryStatisticsType.MOST_CONTACTED_COUNTRIES,
                         pagingItems = mostContactedCountries,
                         accentColor = MaterialTheme.colorScheme.tertiary,
-                        onSeeMoreClick = onSeeMoreClick
+                        onSeeMoreClick = onSeeMoreClick,
+                        viewModel = viewModel,
+                        refreshToken = uiState.timeCategory
                     )
                 }
+            }
 
-                item {
-                    SummaryStatSection(
-                        title = stringResource(id = R.string.ssv_most_contacted_ips_heading),
-                        type = SummaryStatisticsType.MOST_CONTACTED_IPS,
-                        pagingItems = mostContactedIps,
-                        accentColor = MaterialTheme.colorScheme.secondary,
-                        onSeeMoreClick = onSeeMoreClick
-                    )
+            if (persistentState.downloadIpInfo) {
+                if (shouldShowOptionalSection(mostConnectedAsn)) {
+                    item {
+                        SummaryStatSection(
+                            title = stringResource(id = R.string.most_contacted_asn),
+                            type = SummaryStatisticsType.MOST_CONNECTED_ASN,
+                            pagingItems = mostConnectedAsn,
+                            accentColor = MaterialTheme.colorScheme.secondary,
+                            onSeeMoreClick = onSeeMoreClick,
+                            viewModel = viewModel,
+                            refreshToken = uiState.timeCategory
+                        )
+                    }
                 }
 
+                if (shouldShowOptionalSection(mostBlockedAsn)) {
+                    item {
+                        SummaryStatSection(
+                            title = stringResource(id = R.string.most_blocked_asn),
+                            type = SummaryStatisticsType.MOST_BLOCKED_ASN,
+                            pagingItems = mostBlockedAsn,
+                            accentColor = MaterialTheme.colorScheme.error,
+                            onSeeMoreClick = onSeeMoreClick,
+                            viewModel = viewModel,
+                            refreshToken = uiState.timeCategory
+                        )
+                    }
+                }
+            }
+
+            item {
+                SummaryStatSection(
+                    title = stringResource(id = R.string.ssv_most_contacted_domain_heading),
+                    type = SummaryStatisticsType.MOST_CONTACTED_DOMAINS,
+                    pagingItems = mostContactedDomains,
+                    accentColor = MaterialTheme.colorScheme.secondary,
+                    onSeeMoreClick = onSeeMoreClick,
+                    viewModel = viewModel,
+                    refreshToken = uiState.timeCategory
+                )
+            }
+
+            item {
+                SummaryStatSection(
+                    title = stringResource(id = R.string.ssv_most_blocked_domain_heading),
+                    type = SummaryStatisticsType.MOST_BLOCKED_DOMAINS,
+                    pagingItems = mostBlockedDomains,
+                    accentColor = MaterialTheme.colorScheme.error,
+                    onSeeMoreClick = onSeeMoreClick,
+                    viewModel = viewModel,
+                    refreshToken = uiState.timeCategory
+                )
+            }
+
+            item {
+                SummaryStatSection(
+                    title = stringResource(id = R.string.ssv_most_contacted_ips_heading),
+                    type = SummaryStatisticsType.MOST_CONTACTED_IPS,
+                    pagingItems = mostContactedIps,
+                    accentColor = MaterialTheme.colorScheme.secondary,
+                    onSeeMoreClick = onSeeMoreClick,
+                    viewModel = viewModel,
+                    refreshToken = uiState.timeCategory
+                )
+            }
+
+            item {
+                SummaryStatSection(
+                    title = stringResource(id = R.string.ssv_most_blocked_ips_heading),
+                    type = SummaryStatisticsType.MOST_BLOCKED_IPS,
+                    pagingItems = mostBlockedIps,
+                    accentColor = MaterialTheme.colorScheme.error,
+                    onSeeMoreClick = onSeeMoreClick,
+                    viewModel = viewModel,
+                    refreshToken = uiState.timeCategory
+                )
+            }
+
+            if (shouldShowOptionalSection(topActiveConns)) {
                 item {
                     SummaryStatSection(
-                        title = stringResource(id = R.string.ssv_most_blocked_ips_heading),
-                        type = SummaryStatisticsType.MOST_BLOCKED_IPS,
-                        pagingItems = mostBlockedIps,
-                        accentColor = MaterialTheme.colorScheme.error,
-                        onSeeMoreClick = onSeeMoreClick
+                        title = stringResource(id = R.string.top_active_conns),
+                        type = SummaryStatisticsType.TOP_ACTIVE_CONNS,
+                        pagingItems = topActiveConns,
+                        accentColor = MaterialTheme.colorScheme.primary,
+                        onSeeMoreClick = onSeeMoreClick,
+                        viewModel = viewModel,
+                        refreshToken = uiState.timeCategory
                     )
                 }
             }
@@ -236,11 +258,6 @@ fun SummaryStatisticsScreen(
 
 @Composable
 private fun UsageOverviewCard(dataUsage: DataUsageSummary) {
-    val total = dataUsage.totalDownload + dataUsage.totalUpload
-    val downloadShare = remember(total, dataUsage.totalDownload) {
-        if (total > 0) dataUsage.totalDownload.toFloat() / total.toFloat() else 0f
-    }
-
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
@@ -255,16 +272,6 @@ private fun UsageOverviewCard(dataUsage: DataUsageSummary) {
                 text = stringResource(id = R.string.lbl_overall),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
-            )
-
-            LinearProgressIndicator(
-                progress = { downloadShare },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(8.dp)
-                    .clip(RoundedCornerShape(Dimensions.cornerRadiusXs)),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surfaceContainerHighest
             )
 
             Row(
@@ -360,24 +367,49 @@ private fun SummaryStatSection(
     type: SummaryStatisticsType,
     pagingItems: LazyPagingItems<AppConnection>,
     accentColor: Color,
-    onSeeMoreClick: (SummaryStatisticsType) -> Unit
+    onSeeMoreClick: (SummaryStatisticsType) -> Unit,
+    viewModel: SummaryStatisticsViewModel,
+    refreshToken: TimeCategory
 ) {
-    val visibleCount = minOf(pagingItems.itemCount, 5)
-    val hasData = visibleCount > 0
+    val isCountrySection = type == SummaryStatisticsType.MOST_CONTACTED_COUNTRIES
+    val refreshState = pagingItems.loadState.refresh
+    val isLoading = refreshState is LoadState.Loading && pagingItems.itemCount == 0
+    val hasData = pagingItems.itemCount > 0
+    val isEmpty = !hasData && !isLoading
+    var showAllInlineCountries by remember(type) { mutableStateOf(false) }
+    val visibleItems =
+        if (isCountrySection && showAllInlineCountries) {
+            (0 until pagingItems.itemCount).mapNotNull { index -> pagingItems[index] }
+        } else {
+            pagingItems.itemSnapshotList.items.filterNotNull().take(5)
+        }
+    var expandedCountryFlag by remember(type) { mutableStateOf<String?>(null) }
 
     Column {
         SectionHeader(
             title = title,
             color = accentColor,
-            actionLabel = if (hasData) stringResource(id = R.string.ssv_see_more) else null,
-            onAction = if (hasData) {
-                { onSeeMoreClick(type) }
-            } else {
-                null
-            }
+            actionLabel = null,
+            onAction = null
         )
 
-        if (!hasData) {
+        if (isLoading) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f))
+            ) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = Dimensions.spacingLg),
+                    contentAlignment = androidx.compose.ui.Alignment.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(Dimensions.iconSizeMd))
+                }
+            }
+        } else if (isEmpty) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
@@ -390,12 +422,20 @@ private fun SummaryStatSection(
                 )
             }
         } else {
-            Column {
-                for (index in 0 until visibleCount) {
-                    val item = pagingItems[index] ?: continue
+            RethinkListGroup {
+                visibleItems.forEachIndexed { index, item ->
                     val metricText = item.totalBytes?.takeIf { it > 0L }?.let { formatBytes(it) } ?: item.count.toString()
-                    val headline = if (type == SummaryStatisticsType.MOST_CONTACTED_COUNTRIES) {
-                        "${item.flag} ${item.appOrDnsName.orEmpty()}".trim()
+                    val isCountryItem = type == SummaryStatisticsType.MOST_CONTACTED_COUNTRIES
+                    val countryName = if (isCountryItem) countryNameFromFlag(item.flag) else null
+                    val countryHeadline = when {
+                        item.appOrDnsName?.isNotBlank() == true && item.flag.isNotBlank() ->
+                            "${item.flag} ${item.appOrDnsName}"
+                        item.appOrDnsName?.isNotBlank() == true -> item.appOrDnsName
+                        item.flag.isNotBlank() -> item.flag
+                        else -> stringResource(id = R.string.network_log_app_name_unknown)
+                    }
+                    val headline = if (isCountryItem) {
+                        countryName ?: countryHeadline
                     } else {
                         item.appOrDnsName?.takeIf { it.isNotBlank() } ?: item.ipAddress
                     }
@@ -414,33 +454,225 @@ private fun SummaryStatSection(
                         }
                     val hasTrueAppIcon = appIconPainter != null
                     val fallbackPainter =
-                        if (type == SummaryStatisticsType.MOST_CONTACTED_COUNTRIES) {
+                        if (isCountryItem && item.flag.isBlank()) {
+                            painterResource(id = R.drawable.ic_flag_placeholder)
+                        } else if (isCountryItem) {
                             null
                         } else {
                             painterResource(id = R.drawable.ic_app_info)
                         }
+                    val customLeadingContent: (@Composable () -> Unit)? =
+                        when {
+                            isCountryItem && item.flag.isNotBlank() -> {
+                                {
+                                    Text(
+                                        text = item.flag,
+                                        style = MaterialTheme.typography.headlineMedium
+                                    )
+                                }
+                            }
+                            hasTrueAppIcon && appIconPainter != null -> {
+                                {
+                                    Icon(
+                                        painter = appIconPainter,
+                                        contentDescription = null,
+                                        tint = Unspecified,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                            else -> null
+                        }
+                    val isExpanded = isCountryItem && expandedCountryFlag == item.flag
 
                     RethinkListItem(
                         headline = headline.ifBlank { "-" },
-                        supporting = supporting,
-                        leadingIconPainter = appIconPainter ?: fallbackPainter,
-                        leadingIconTint = if (hasTrueAppIcon) Unspecified else accentColor,
-                        leadingIconContainerColor = if (hasTrueAppIcon) {
+                        supporting = if (isCountryItem) null else supporting,
+                        leadingContent = customLeadingContent,
+                        leadingIconPainter = if (customLeadingContent == null) appIconPainter ?: fallbackPainter else null,
+                        leadingIconTint = when {
+                            hasTrueAppIcon -> Unspecified
+                            isCountryItem -> MaterialTheme.colorScheme.tertiary
+                            else -> accentColor
+                        },
+                        leadingIconContainerColor = if (isCountryItem) {
+                            MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.32f)
+                        } else if (hasTrueAppIcon) {
                             MaterialTheme.colorScheme.surfaceContainerHighest
                         } else {
                             accentColor.copy(alpha = 0.14f)
                         },
-                        position = cardPositionFor(index = index, lastIndex = visibleCount - 1),
+                        position = cardPositionFor(index = index, lastIndex = visibleItems.lastIndex),
                         showTrailingChevron = false,
+                        onClick = if (isCountryItem) {
+                            {
+                                expandedCountryFlag =
+                                    if (isExpanded) null else item.flag
+                            }
+                        } else {
+                            null
+                        },
                         trailing = {
-                            Text(
-                                text = metricText,
-                                style = MaterialTheme.typography.labelMedium,
-                                fontWeight = FontWeight.SemiBold,
-                                color = accentColor
-                            )
+                            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                                Text(
+                                    text = metricText,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = accentColor
+                                )
+                                if (isCountryItem) {
+                                    Spacer(modifier = Modifier.size(Dimensions.spacingXs))
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                                        modifier = Modifier
+                                            .size(18.dp)
+                                            .rotate(if (isExpanded) 90f else 0f)
+                                    )
+                                }
+                            }
                         }
                     )
+
+                    if (isExpanded && item.flag.isNotBlank()) {
+                        CountryBreakdown(
+                            flag = item.flag,
+                            accentColor = accentColor,
+                            viewModel = viewModel,
+                            refreshToken = refreshToken
+                        )
+                    }
+                }
+            }
+
+            val shouldShowInlineCountriesToggle =
+                isCountrySection && (showAllInlineCountries || pagingItems.itemCount > 5)
+            val shouldShowDefaultSeeMore = !isCountrySection && pagingItems.itemCount > 5
+
+            if (shouldShowInlineCountriesToggle || shouldShowDefaultSeeMore) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = Dimensions.spacingSm),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    FilledTonalButton(
+                        onClick = {
+                            if (isCountrySection) {
+                                showAllInlineCountries = !showAllInlineCountries
+                            } else {
+                                onSeeMoreClick(type)
+                            }
+                        },
+                        shape = RoundedCornerShape(Dimensions.cornerRadiusPill)
+                    ) {
+                        Text(
+                            text = if (isCountrySection && showAllInlineCountries) {
+                                stringResource(id = R.string.ssv_see_less)
+                            } else {
+                                stringResource(id = R.string.ssv_see_more)
+                            },
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+private fun shouldShowOptionalSection(pagingItems: LazyPagingItems<AppConnection>): Boolean {
+    val isLoading = pagingItems.loadState.refresh is LoadState.Loading
+    return isLoading || pagingItems.itemCount > 0
+}
+
+@Composable
+private fun CountryBreakdown(
+    flag: String,
+    accentColor: Color,
+    viewModel: SummaryStatisticsViewModel,
+    refreshToken: TimeCategory
+) {
+    val apps by produceState<List<AppConnection>>(initialValue = emptyList(), flag, refreshToken) {
+        value = viewModel.getTopAppsForCountry(flag, limit = 4)
+    }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = Dimensions.spacingXs, bottom = Dimensions.spacingXs),
+        shape = RoundedCornerShape(Dimensions.cornerRadiusLg),
+        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingSm),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+        ) {
+            Text(
+                text = stringResource(id = R.string.ssv_app_network_activity_heading),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = accentColor
+            )
+            if (apps.isEmpty()) {
+                Text(
+                    text = stringResource(id = R.string.lbl_no_logs),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                apps.forEach { app ->
+                    val iconPainter = rememberStatisticsAppIconPainter(app.uid)
+                    val appName = app.appOrDnsName?.takeIf { it.isNotBlank() }
+                        ?: stringResource(id = R.string.network_log_app_name_unknown)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 2.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                    ) {
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
+                            verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier.size(20.dp)
+                            ) {
+                                if (iconPainter != null) {
+                                    Icon(
+                                        painter = iconPainter,
+                                        contentDescription = null,
+                                        tint = Unspecified,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                } else {
+                                    Icon(
+                                        painter = painterResource(id = R.drawable.ic_app_info),
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(18.dp)
+                                    )
+                                }
+                            }
+                            Text(
+                                text = appName,
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface,
+                                maxLines = 1
+                            )
+                        }
+                        Text(
+                            text = app.count.toString(),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = accentColor,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
             }
         }

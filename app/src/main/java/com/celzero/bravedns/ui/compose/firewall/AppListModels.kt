@@ -15,7 +15,8 @@
  */
 package com.celzero.bravedns.ui.compose.firewall
 
-import android.content.Context
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.res.stringResource
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.FirewallManager.ConnectionStatus
 import com.celzero.bravedns.service.FirewallManager.FirewallStatus
@@ -34,11 +35,12 @@ enum class TopLevelFilter(val id: Int) {
     INSTALLED(1),
     SYSTEM(2);
 
-    fun getLabel(context: Context): String {
+    @Composable
+    fun getLabel(): String {
         return when (this) {
             ALL -> ""
-            INSTALLED -> context.getString(R.string.fapps_filter_parent_installed)
-            SYSTEM -> context.getString(R.string.fapps_filter_parent_system)
+            INSTALLED -> stringResource(id = R.string.fapps_filter_parent_installed)
+            SYSTEM -> stringResource(id = R.string.fapps_filter_parent_system)
         }
     }
 }
@@ -56,7 +58,7 @@ enum class FirewallFilter(val id: Int) {
 
     fun getFilter(): Set<Int> {
         return when (this) {
-            ALL -> setOf(0, 1, 2, 3, 4, 5, 7)
+            ALL -> FirewallStatus.values().map { it.id }.toSet() + setOf(0, 1)
             ALLOWED -> setOf(FirewallStatus.NONE.id)
             BLOCKED_WIFI -> setOf(FirewallStatus.NONE.id)
             BLOCKED_MOBILE_DATA -> setOf(FirewallStatus.NONE.id)
@@ -73,33 +75,39 @@ enum class FirewallFilter(val id: Int) {
             ALLOWED -> setOf(ConnectionStatus.ALLOW.id)
             BLOCKED_WIFI -> setOf(ConnectionStatus.UNMETERED.id)
             BLOCKED_MOBILE_DATA -> setOf(ConnectionStatus.METERED.id)
-            BLOCKED -> setOf(ConnectionStatus.BOTH.id)
+            BLOCKED ->
+                setOf(
+                    ConnectionStatus.UNMETERED.id,
+                    ConnectionStatus.METERED.id,
+                    ConnectionStatus.BOTH.id
+                )
             BYPASS -> ConnectionStatus.values().map { it.id }.toSet()
             EXCLUDED -> ConnectionStatus.values().map { it.id }.toSet()
             LOCKDOWN -> ConnectionStatus.values().map { it.id }.toSet()
         }
     }
 
-    fun getLabel(context: Context): String {
+    @Composable
+    fun getLabel(): String {
         return when (this) {
-            ALL -> context.getString(R.string.lbl_all)
-            ALLOWED -> context.getString(R.string.lbl_allowed)
+            ALL -> stringResource(id = R.string.lbl_all)
+            ALLOWED -> stringResource(id = R.string.lbl_allowed)
             BLOCKED_WIFI ->
-                context.getString(
+                stringResource(
                     R.string.two_argument_colon,
-                    context.getString(R.string.lbl_blocked),
-                    context.getString(R.string.firewall_rule_block_unmetered)
+                    stringResource(id = R.string.lbl_blocked),
+                    stringResource(id = R.string.firewall_rule_block_unmetered)
                 )
             BLOCKED_MOBILE_DATA ->
-                context.getString(
+                stringResource(
                     R.string.two_argument_colon,
-                    context.getString(R.string.lbl_blocked),
-                    context.getString(R.string.firewall_rule_block_metered)
+                    stringResource(id = R.string.lbl_blocked),
+                    stringResource(id = R.string.firewall_rule_block_metered)
                 )
-            BLOCKED -> context.getString(R.string.lbl_blocked)
-            BYPASS -> context.getString(R.string.fapps_firewall_filter_bypass_universal)
-            EXCLUDED -> context.getString(R.string.fapps_firewall_filter_excluded)
-            LOCKDOWN -> context.getString(R.string.fapps_firewall_filter_isolate)
+            BLOCKED -> stringResource(id = R.string.lbl_blocked)
+            BYPASS -> stringResource(id = R.string.fapps_firewall_filter_bypass_universal)
+            EXCLUDED -> stringResource(id = R.string.fapps_firewall_filter_excluded)
+            LOCKDOWN -> stringResource(id = R.string.fapps_firewall_filter_isolate)
         }
     }
 
@@ -122,7 +130,7 @@ enum class FirewallFilter(val id: Int) {
 
 data class Filters(
     val categoryFilters: Set<String> = emptySet(),
-    val topLevelFilter: TopLevelFilter = TopLevelFilter.ALL,
+    val topLevelFilter: TopLevelFilter = TopLevelFilter.INSTALLED,
     val firewallFilter: FirewallFilter = FirewallFilter.ALL,
     val searchString: String = ""
 )

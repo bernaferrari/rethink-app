@@ -276,7 +276,6 @@ class HomeScreenActivity : AppCompatActivity() {
     private val wgConfigViewModel by viewModel<com.celzero.bravedns.viewmodel.WgConfigViewModel>()
 
 
-
     // TODO: see if this can be replaced with a more robust solution
     // keep track of when app went to background
     private var appInBackground = false
@@ -287,7 +286,7 @@ class HomeScreenActivity : AppCompatActivity() {
 
     private lateinit var startForResult: androidx.activity.result.ActivityResultLauncher<Intent>
     private lateinit var notificationPermissionResult: androidx.activity.result.ActivityResultLauncher<String>
-    
+
     // WireGuard Import Launchers
     private val tunnelFileImportResultLauncher =
         registerForActivityResult(ActivityResultContracts.GetContent()) { data ->
@@ -319,7 +318,11 @@ class HomeScreenActivity : AppCompatActivity() {
                     }
                 } else {
                     TunnelImporter.importTunnel(contentResolver, data) {
-                        showToastUiCentered(this@HomeScreenActivity, it.toString(), Toast.LENGTH_LONG)
+                        showToastUiCentered(
+                            this@HomeScreenActivity,
+                            it.toString(),
+                            Toast.LENGTH_LONG
+                        )
                     }
                 }
             }
@@ -331,7 +334,11 @@ class HomeScreenActivity : AppCompatActivity() {
             if (qrCode != null) {
                 lifecycleScope.launch {
                     TunnelImporter.importTunnel(qrCode) {
-                        showToastUiCentered(this@HomeScreenActivity, it.toString(), Toast.LENGTH_LONG)
+                        showToastUiCentered(
+                            this@HomeScreenActivity,
+                            it.toString(),
+                            Toast.LENGTH_LONG
+                        )
                     }
                 }
             }
@@ -343,7 +350,6 @@ class HomeScreenActivity : AppCompatActivity() {
                 UI_MODE_NIGHT_YES
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(
@@ -362,17 +368,15 @@ class HomeScreenActivity : AppCompatActivity() {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS)
         window.clearFlags(
             WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS or
-                WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION
+                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION
         )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            window.navigationBarDividerColor = AndroidColor.TRANSPARENT
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            window.isNavigationBarContrastEnforced = false
-            window.isStatusBarContrastEnforced = false
-        }
+        window.navigationBarDividerColor = AndroidColor.TRANSPARENT
+        window.isNavigationBarContrastEnforced = false
+        window.isStatusBarContrastEnforced = false
 
-        val resolvedThemePreference = Themes.resolveThemePreference(isDarkThemeOn(), persistentState.theme)
+
+        val resolvedThemePreference =
+            Themes.resolveThemePreference(isDarkThemeOn(), persistentState.theme)
 
         val homeStartDestination =
             if (persistentState.firstTimeLaunch && !isAppRunningOnTv()) {
@@ -427,152 +431,210 @@ class HomeScreenActivity : AppCompatActivity() {
                 }
                 val homeState by homeViewModel.uiState.collectAsStateWithLifecycle()
                 val aboutState by aboutViewModel.uiState.collectAsStateWithLifecycle()
-                
+
                 var isUnlocked by remember { mutableStateOf(false) }
-                val vpnState by remember { VpnController.connectionStatus.asFlow() }.collectAsStateWithLifecycle(initialValue = null)
+                val vpnState by remember { VpnController.connectionStatus.asFlow() }.collectAsStateWithLifecycle(
+                    initialValue = null
+                )
 
                 if (vpnState == BraveVPNService.State.PAUSED) {
                     PauseScreen(onFinish = { })
                 } else if (isUnlocked) {
                     HomeScreenRoot(
                         homeUiState = homeState,
-                    onHomeStartStopClick = { handleMainScreenBtnClickEvent() },
-                    onHomeDnsClick = { navigateToDnsDetailIfAllowed() },
-                    onHomeFirewallClick = { homeNavRequest = HomeNavRequest.FirewallSettings },
-                    onHomeProxyClick = {
-                        if (appConfig.isWireGuardEnabled()) {
-                            homeNavRequest = HomeNavRequest.WgMain
-                        } else {
-                            homeNavRequest = HomeNavRequest.ProxySettings
-                        }
-                    },
-                    onHomeLogsClick = { homeNavRequest = HomeNavRequest.NetworkLogs },
-                    onHomeAppsClick = { homeNavRequest = HomeNavRequest.AppList },
-                    onHomeSponsorClick = { promptForAppSponsorship() },
-                    summaryViewModel = summaryViewModel,
-                    onOpenDetailedStats = { type -> openDetailedStatsUi(type) },
-                    startDestination = homeStartDestination,
-                    isDebug = DEBUG,
-                    onConfigureAppsClick = { homeNavRequest = HomeNavRequest.AppList },
-                    onConfigureDnsClick = { navigateToDnsDetailIfAllowed() },
-                    onConfigureFirewallClick = { homeNavRequest = HomeNavRequest.FirewallSettings },
-                    onFirewallUniversalClick = { homeNavRequest = HomeNavRequest.UniversalFirewallSettings },
-                    onFirewallCustomIpClick = {
-                        homeNavRequest =
-                            HomeNavRequest.CustomRules(
-                                uid = UID_EVERYBODY,
-                                tab = CustomRulesTab.IP,
-                                mode = CustomRulesMode.APP_SPECIFIC
+                        onHomeStartStopClick = { handleMainScreenBtnClickEvent() },
+                        onHomeDnsClick = { navigateToDnsDetailIfAllowed() },
+                        onHomeFirewallClick = { homeNavRequest = HomeNavRequest.FirewallSettings },
+                        onHomeProxyClick = {
+                            if (appConfig.isWireGuardEnabled()) {
+                                homeNavRequest = HomeNavRequest.WgMain
+                            } else {
+                                homeNavRequest = HomeNavRequest.ProxySettings
+                            }
+                        },
+                        onHomeLogsClick = { homeNavRequest = HomeNavRequest.NetworkLogs },
+                        onHomeAppsClick = { homeNavRequest = HomeNavRequest.AppList },
+                        onHomeSponsorClick = { promptForAppSponsorship() },
+                        summaryViewModel = summaryViewModel,
+                        onOpenDetailedStats = { type -> openDetailedStatsUi(type) },
+                        startDestination = homeStartDestination,
+                        isDebug = DEBUG,
+                        onConfigureAppsClick = { homeNavRequest = HomeNavRequest.AppList },
+                        onConfigureDnsClick = { navigateToDnsDetailIfAllowed() },
+                        onConfigureFirewallClick = {
+                            homeNavRequest = HomeNavRequest.FirewallSettings
+                        },
+                        onFirewallUniversalClick = {
+                            homeNavRequest = HomeNavRequest.UniversalFirewallSettings
+                        },
+                        onFirewallCustomIpClick = {
+                            homeNavRequest =
+                                HomeNavRequest.CustomRules(
+                                    uid = UID_EVERYBODY,
+                                    tab = CustomRulesTab.IP,
+                                    mode = CustomRulesMode.APP_SPECIFIC
+                                )
+                        },
+                        onFirewallAppWiseIpClick = { openAppWiseIpScreen() },
+                        onConfigureProxyClick = { homeNavRequest = HomeNavRequest.ProxySettings },
+                        onConfigureNetworkClick = {
+                            homeNavRequest = HomeNavRequest.TunnelSettings
+                        },
+                        onConfigureOthersClick = { homeNavRequest = HomeNavRequest.MiscSettings },
+                        onConfigureLogsClick = { homeNavRequest = HomeNavRequest.NetworkLogs },
+                        onConfigureAntiCensorshipClick = {
+                            homeNavRequest = HomeNavRequest.AntiCensorship
+                        },
+                        onConfigureAdvancedClick = {
+                            homeNavRequest = HomeNavRequest.AdvancedSettings
+                        },
+                        aboutUiState = aboutState,
+                        onSponsorClick = { openUrl(this, RETHINKDNS_SPONSOR_LINK) },
+                        onTelegramClick = {
+                            openUrl(
+                                this,
+                                getString(R.string.about_telegram_link)
                             )
-                    },
-                    onFirewallAppWiseIpClick = { openAppWiseIpScreen() },
-                    onConfigureProxyClick = { homeNavRequest = HomeNavRequest.ProxySettings },
-                    onConfigureNetworkClick = { homeNavRequest = HomeNavRequest.TunnelSettings },
-                    onConfigureOthersClick = { homeNavRequest = HomeNavRequest.MiscSettings },
-                    onConfigureLogsClick = { homeNavRequest = HomeNavRequest.NetworkLogs },
-                    onConfigureAntiCensorshipClick = { homeNavRequest = HomeNavRequest.AntiCensorship },
-                    onConfigureAdvancedClick = { homeNavRequest = HomeNavRequest.AdvancedSettings },
-                    aboutUiState = aboutState,
-                    onSponsorClick = { openUrl(this, RETHINKDNS_SPONSOR_LINK) },
-                    onTelegramClick = { openUrl(this, getString(R.string.about_telegram_link)) },
-                    onBugReportClick = { aboutViewModel.triggerBugReport() },
-                    onWhatsNewClick = { showNewFeaturesDialog() },
-                    onAppUpdateClick = { checkForUpdate(AppUpdater.UserPresent.INTERACTIVE) },
-                    onContributorsClick = { showContributors() },
-                    onTranslateClick = { openUrl(this, getString(R.string.about_translate_link)) },
-                    onWebsiteClick = { openUrl(this, getString(R.string.about_website_link)) },
-                    onGithubClick = { openUrl(this, getString(R.string.about_github_link)) },
-                    onFaqClick = { openUrl(this, getString(R.string.about_faq_link)) },
-                    onDocsClick = { openUrl(this, getString(R.string.about_docs_link)) },
-                    onPrivacyPolicyClick = { openUrl(this, getString(R.string.about_privacy_policy_link)) },
-                    onTermsOfServiceClick = { openUrl(this, getString(R.string.about_terms_link)) },
-                    onLicenseClick = { openUrl(this, getString(R.string.about_license_link)) },
-                    onTwitterClick = { openUrl(this, getString(R.string.about_twitter_handle)) },
-                    onEmailClick = { disableFrostTemporarily(); sendEmailIntent(this) },
-                    onRedditClick = { openUrl(this, getString(R.string.about_reddit_handle)) },
-                    onElementClick = { openUrl(this, getString(R.string.about_matrix_handle)) },
-                    onMastodonClick = { openUrl(this, getString(R.string.about_mastodom_handle)) },
-                    onGeneralSettingsClick = { homeNavRequest = HomeNavRequest.MiscSettings },
-                    onAppInfoClick = { UIUtils.openAndroidAppInfo(this, packageName) },
-                    onVpnProfileClick = { openVpnProfile(this) },
-                    onNotificationClick = { openNotificationSettings() },
-                    onStatsClick = { openStatsDialog() },
-                    onDbStatsClick = { openDatabaseDumpDialog() },
-                    onFlightRecordClick = { initiateFlightRecord() },
-                    onEventLogsClick = { openEventLogs() },
-                    onTokenClick = { copyTokenToClipboard() },
-                    onTokenDoubleTap = { aboutViewModel.generateNewToken() },
-                    onFossClick = { openUrl(this, getString(R.string.about_foss_link)) },
-                    onFlossFundsClick = { openUrl(this, getString(R.string.about_floss_fund_link)) },
-                    snackbarHostState = hostState,
-                    detailedStatsViewModel = detailedStatsViewModel,
-                    domainConnectionsViewModel = domainConnectionsViewModel,
-                    eventsViewModel = eventsViewModel,
-                    eventDao = eventDao,
-                    appInfoEventLogger = eventLogger,
-                    appInfoIpRulesViewModel = appInfoIpRulesViewModel,
-                    appInfoDomainRulesViewModel = appInfoDomainRulesViewModel,
-                    appInfoNetworkLogsViewModel = appInfoNetworkLogsViewModel,
-                    persistentState = persistentState,
-                    appConfig = appConfig,
-                    onOpenVpnProfile = { UIUtils.openVpnProfile(this@HomeScreenActivity) },
-                    onRefreshDatabase = { lifecycleScope.launch { rdb.refresh(RefreshDatabase.ACTION_REFRESH_INTERACTIVE) } },
-                    onThemeModeChanged = { composeThemePreference = it },
-                    onThemeColorChanged = { composeThemeColorPreset = it },
-                    consoleLogViewModel = consoleLogViewModel,
-                    consoleLogRepository = consoleLogRepository,
-                    onShareConsoleLogs = { homeNavRequest = HomeNavRequest.NetworkLogs }, // Fallback to Activity for complex share
-                    onConsoleLogsDeleteComplete = {
-                        showToastUiCentered(this@HomeScreenActivity, getString(R.string.config_add_success_toast), Toast.LENGTH_SHORT)
-                    },
-                    proxyAppsMappingViewModel = proxyAppsMappingViewModel,
-                    dnsSettingsViewModel = dnsSettingsViewModel,
-                    appDownloadManager = appDownloadManager,
-                    onDnsCustomDnsClick = { startCustomDnsActivity() },
-                    onDnsLocalBlocklistConfigureClick = { startLocalBlocklistConfigureActivity() },
-                    onDnsRethinkPlusDnsClick = { startRethinkPlusDnsActivity() },
-                    homeNavRequest = homeNavRequest,
-                    onHomeNavConsumed = { homeNavRequest = null },
-                    rethinkEndpointViewModel = rethinkEndpointViewModel,
-                    remoteFileTagViewModel = remoteFileTagViewModel,
-                    localFileTagViewModel = localFileTagViewModel,
-                    remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
-                    localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
-                    appInfoViewModel = appInfoViewModel,
-                    refreshDatabase = rdb,
-                    connectionTrackerViewModel = connectionTrackerViewModel,
-                    dnsLogViewModel = dnsLogViewModel,
-                    rethinkLogViewModel = rethinkLogViewModel,
-                    connectionTrackerRepository = connectionTrackerRepository,
-                    dnsLogRepository = dnsLogRepository,
-                    rethinkLogRepository = rethinkLogRepository,
-                    onConfigureOtherDns = { index ->
-                        homeNavRequest = HomeNavRequest.ConfigureOtherDns(index)
-                    },
-                    // ConfigureOtherDns ViewModels
-                    dohViewModel = dohViewModel,
-                    dotViewModel = dotViewModel,
-                    dnsProxyViewModel = dnsProxyViewModel,
-                    dnsCryptViewModel = dnsCryptViewModel,
-                    dnsCryptRelayViewModel = dnsCryptRelayViewModel,
-                    oDohViewModel = oDohViewModel,
-                    // UniversalFirewallSettings callbacks
-                    onNavigateToLogs = { searchQuery ->
-                        homeNavRequest = HomeNavRequest.NetworkLogs
-                    },
-                    onOpenAccessibilitySettings = {
-                        startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-                    },
-                    // WireGuard dependencies
-                    wgConfigViewModel = wgConfigViewModel,
-                    // Checkout dependencies
-                    checkoutViewModel = checkoutViewModel,
-                    onNavigateToProxy = { homeNavRequest = HomeNavRequest.ProxySettings },
-                    // WgMain callbacks
-                    onWgCreateClick = { homeNavRequest = HomeNavRequest.WgConfigEditor(com.celzero.bravedns.service.WireguardManager.INVALID_CONF_ID, com.celzero.bravedns.ui.compose.wireguard.WgType.DEFAULT) },
-                    onWgImportClick = { launchFileImport() },
-                    onWgQrScanClick = { launchQrScanner() }
-                )
+                        },
+                        onBugReportClick = { aboutViewModel.triggerBugReport() },
+                        onWhatsNewClick = { showNewFeaturesDialog() },
+                        onAppUpdateClick = { checkForUpdate(AppUpdater.UserPresent.INTERACTIVE) },
+                        onContributorsClick = { showContributors() },
+                        onTranslateClick = {
+                            openUrl(
+                                this,
+                                getString(R.string.about_translate_link)
+                            )
+                        },
+                        onWebsiteClick = { openUrl(this, getString(R.string.about_website_link)) },
+                        onGithubClick = { openUrl(this, getString(R.string.about_github_link)) },
+                        onFaqClick = { openUrl(this, getString(R.string.about_faq_link)) },
+                        onDocsClick = { openUrl(this, getString(R.string.about_docs_link)) },
+                        onPrivacyPolicyClick = {
+                            openUrl(
+                                this,
+                                getString(R.string.about_privacy_policy_link)
+                            )
+                        },
+                        onTermsOfServiceClick = {
+                            openUrl(
+                                this,
+                                getString(R.string.about_terms_link)
+                            )
+                        },
+                        onLicenseClick = { openUrl(this, getString(R.string.about_license_link)) },
+                        onTwitterClick = {
+                            openUrl(
+                                this,
+                                getString(R.string.about_twitter_handle)
+                            )
+                        },
+                        onEmailClick = { disableFrostTemporarily(); sendEmailIntent(this) },
+                        onRedditClick = { openUrl(this, getString(R.string.about_reddit_handle)) },
+                        onElementClick = { openUrl(this, getString(R.string.about_matrix_handle)) },
+                        onMastodonClick = {
+                            openUrl(
+                                this,
+                                getString(R.string.about_mastodom_handle)
+                            )
+                        },
+                        onGeneralSettingsClick = { homeNavRequest = HomeNavRequest.MiscSettings },
+                        onAppInfoClick = { UIUtils.openAndroidAppInfo(this, packageName) },
+                        onVpnProfileClick = { openVpnProfile(this) },
+                        onNotificationClick = { openNotificationSettings() },
+                        onStatsClick = { openStatsDialog() },
+                        onDbStatsClick = { openDatabaseDumpDialog() },
+                        onFlightRecordClick = { initiateFlightRecord() },
+                        onEventLogsClick = { openEventLogs() },
+                        onTokenClick = { copyTokenToClipboard() },
+                        onTokenDoubleTap = { aboutViewModel.generateNewToken() },
+                        onFossClick = { openUrl(this, getString(R.string.about_foss_link)) },
+                        onFlossFundsClick = {
+                            openUrl(
+                                this,
+                                getString(R.string.about_floss_fund_link)
+                            )
+                        },
+                        snackbarHostState = hostState,
+                        detailedStatsViewModel = detailedStatsViewModel,
+                        domainConnectionsViewModel = domainConnectionsViewModel,
+                        eventsViewModel = eventsViewModel,
+                        eventDao = eventDao,
+                        appInfoEventLogger = eventLogger,
+                        appInfoIpRulesViewModel = appInfoIpRulesViewModel,
+                        appInfoDomainRulesViewModel = appInfoDomainRulesViewModel,
+                        appInfoNetworkLogsViewModel = appInfoNetworkLogsViewModel,
+                        persistentState = persistentState,
+                        appConfig = appConfig,
+                        onOpenVpnProfile = { UIUtils.openVpnProfile(this@HomeScreenActivity) },
+                        onRefreshDatabase = { lifecycleScope.launch { rdb.refresh(RefreshDatabase.ACTION_REFRESH_INTERACTIVE) } },
+                        onThemeModeChanged = { composeThemePreference = it },
+                        onThemeColorChanged = { composeThemeColorPreset = it },
+                        consoleLogViewModel = consoleLogViewModel,
+                        consoleLogRepository = consoleLogRepository,
+                        onShareConsoleLogs = {
+                            homeNavRequest = HomeNavRequest.NetworkLogs
+                        }, // Fallback to Activity for complex share
+                        onConsoleLogsDeleteComplete = {
+                            showToastUiCentered(
+                                this@HomeScreenActivity,
+                                getString(R.string.config_add_success_toast),
+                                Toast.LENGTH_SHORT
+                            )
+                        },
+                        proxyAppsMappingViewModel = proxyAppsMappingViewModel,
+                        dnsSettingsViewModel = dnsSettingsViewModel,
+                        appDownloadManager = appDownloadManager,
+                        onDnsCustomDnsClick = { startCustomDnsActivity() },
+                        onDnsLocalBlocklistConfigureClick = { startLocalBlocklistConfigureActivity() },
+                        onDnsRethinkPlusDnsClick = { startRethinkPlusDnsActivity() },
+                        homeNavRequest = homeNavRequest,
+                        onHomeNavConsumed = { homeNavRequest = null },
+                        rethinkEndpointViewModel = rethinkEndpointViewModel,
+                        remoteFileTagViewModel = remoteFileTagViewModel,
+                        localFileTagViewModel = localFileTagViewModel,
+                        remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
+                        localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
+                        appInfoViewModel = appInfoViewModel,
+                        refreshDatabase = rdb,
+                        connectionTrackerViewModel = connectionTrackerViewModel,
+                        dnsLogViewModel = dnsLogViewModel,
+                        rethinkLogViewModel = rethinkLogViewModel,
+                        connectionTrackerRepository = connectionTrackerRepository,
+                        dnsLogRepository = dnsLogRepository,
+                        rethinkLogRepository = rethinkLogRepository,
+                        onConfigureOtherDns = { index ->
+                            homeNavRequest = HomeNavRequest.ConfigureOtherDns(index)
+                        },
+                        // ConfigureOtherDns ViewModels
+                        dohViewModel = dohViewModel,
+                        dotViewModel = dotViewModel,
+                        dnsProxyViewModel = dnsProxyViewModel,
+                        dnsCryptViewModel = dnsCryptViewModel,
+                        dnsCryptRelayViewModel = dnsCryptRelayViewModel,
+                        oDohViewModel = oDohViewModel,
+                        // UniversalFirewallSettings callbacks
+                        onNavigateToLogs = { searchQuery ->
+                            homeNavRequest = HomeNavRequest.NetworkLogs
+                        },
+                        onOpenAccessibilitySettings = {
+                            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+                        },
+                        // WireGuard dependencies
+                        wgConfigViewModel = wgConfigViewModel,
+                        // Checkout dependencies
+                        checkoutViewModel = checkoutViewModel,
+                        onNavigateToProxy = { homeNavRequest = HomeNavRequest.ProxySettings },
+                        // WgMain callbacks
+                        onWgCreateClick = {
+                            homeNavRequest = HomeNavRequest.WgConfigEditor(
+                                com.celzero.bravedns.service.WireguardManager.INVALID_CONF_ID,
+                                com.celzero.bravedns.ui.compose.wireguard.WgType.DEFAULT
+                            )
+                        },
+                        onWgImportClick = { launchFileImport() },
+                        onWgQrScanClick = { launchQrScanner() }
+                    )
                 } else {
                     AppLockScreen(
                         persistentState = persistentState,
@@ -581,9 +643,11 @@ class HomeScreenActivity : AppCompatActivity() {
                                 AppLockResult.Success, AppLockResult.NotRequired -> {
                                     isUnlocked = true
                                 }
+
                                 AppLockResult.Failure -> {
                                     finish()
                                 }
+
                                 AppLockResult.Pending -> {
                                     // Waiting for user interaction
                                 }
@@ -685,7 +749,9 @@ class HomeScreenActivity : AppCompatActivity() {
                 val isBlocked = intent.getBooleanExtra(EXTRA_DC_IS_BLOCKED, false)
                 val timeCategoryValue = intent.getIntExtra(EXTRA_DC_TIME_CATEGORY, 0)
                 val type =
-                    com.celzero.bravedns.ui.compose.logs.DomainConnectionsInputType.fromValue(typeValue)
+                    com.celzero.bravedns.ui.compose.logs.DomainConnectionsInputType.fromValue(
+                        typeValue
+                    )
                 val timeCategory =
                     DomainConnectionsViewModel.TimeCategory.fromValue(timeCategoryValue)
                         ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR
@@ -700,15 +766,18 @@ class HomeScreenActivity : AppCompatActivity() {
                         timeCategory = timeCategory
                     )
             }
+
             NAV_TARGET_APP_INFO -> {
                 val uid = intent.getIntExtra(EXTRA_APP_INFO_UID, Constants.INVALID_UID)
                 if (uid == Constants.INVALID_UID) return
                 homeNavRequest = HomeNavRequest.AppInfo(uid = uid)
             }
+
             NAV_TARGET_NETWORK_LOGS -> {
                 // Navigate to network logs screen
                 homeNavRequest = HomeNavRequest.NetworkLogs
             }
+
             NAV_TARGET_WG_MAIN -> {
                 homeNavRequest = HomeNavRequest.WgMain
             }
@@ -716,28 +785,29 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
     private fun handleNotificationAction(intent: Intent) {
-         if (intent.extras == null) return
+        if (intent.extras == null) return
 
-         val accessibility = intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_ACCESSIBILITY_NAME)
-         if (Constants.NOTIF_INTENT_EXTRA_ACCESSIBILITY_VALUE == accessibility) {
-             homeDialogState = HomeDialog.AccessibilityCrash
-             return
-         }
+        val accessibility = intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_ACCESSIBILITY_NAME)
+        if (Constants.NOTIF_INTENT_EXTRA_ACCESSIBILITY_VALUE == accessibility) {
+            homeDialogState = HomeDialog.AccessibilityCrash
+            return
+        }
 
-         val newApp = intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_NEW_APP_NAME)
-         if (Constants.NOTIF_INTENT_EXTRA_NEW_APP_VALUE == newApp) {
-             val uid = intent.getIntExtra(Constants.NOTIF_INTENT_EXTRA_APP_UID, Constants.INVALID_UID)
-             if (uid > 0) {
-                 homeNavRequest = HomeNavRequest.AppInfo(uid = uid)
-             }
-             return
-         }
+        val newApp = intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_NEW_APP_NAME)
+        if (Constants.NOTIF_INTENT_EXTRA_NEW_APP_VALUE == newApp) {
+            val uid =
+                intent.getIntExtra(Constants.NOTIF_INTENT_EXTRA_APP_UID, Constants.INVALID_UID)
+            if (uid > 0) {
+                homeNavRequest = HomeNavRequest.AppInfo(uid = uid)
+            }
+            return
+        }
 
-         val wg = intent.getStringExtra(Constants.NOTIF_WG_PERMISSION_NAME)
-         if (Constants.NOTIF_WG_PERMISSION_VALUE == wg) {
-             homeNavRequest = HomeNavRequest.WgMain
-             return
-         }
+        val wg = intent.getStringExtra(Constants.NOTIF_WG_PERMISSION_NAME)
+        if (Constants.NOTIF_WG_PERMISSION_VALUE == wg) {
+            homeNavRequest = HomeNavRequest.WgMain
+            return
+        }
     }
 
 
@@ -906,7 +976,6 @@ class HomeScreenActivity : AppCompatActivity() {
             RemoteFileTagUtil.moveFileToLocalDir(this.applicationContext, persistentState)
         }
     }
-
 
 
     private fun updateNewVersion() {
@@ -1145,7 +1214,6 @@ class HomeScreenActivity : AppCompatActivity() {
     }
 
 
-
     private sealed interface HomeDialog {
         data class Restore(val uri: Uri) : HomeDialog
         data class Download(
@@ -1153,6 +1221,7 @@ class HomeScreenActivity : AppCompatActivity() {
             val title: String,
             val message: String
         ) : HomeDialog
+
         data class AlwaysOnStop(val message: String) : HomeDialog
         data object AlwaysOnDisable : HomeDialog
         data object PrivateDns : HomeDialog
@@ -1190,9 +1259,17 @@ class HomeScreenActivity : AppCompatActivity() {
         val month = days / 30.0
         val amount = month * (0.60 + 0.20)
 
-        val msg = getString(R.string.sponser_dialog_usage_msg, days.toInt().toString(), "%.2f".format(amount))
+        val msg = getString(
+            R.string.sponser_dialog_usage_msg,
+            days.toInt().toString(),
+            "%.2f".format(amount)
+        )
         val formattedAmount =
-            getString(R.string.two_argument_no_space, getString(R.string.symbol_dollar), "%.2f".format(amount))
+            getString(
+                R.string.two_argument_no_space,
+                getString(R.string.symbol_dollar),
+                "%.2f".format(amount)
+            )
         homeDialogState = HomeDialog.Sponsor(msg, formattedAmount)
     }
 
@@ -1228,7 +1305,8 @@ class HomeScreenActivity : AppCompatActivity() {
     private fun showAlwaysOnStopDialog() {
         val message =
             if (VpnController.isVpnLockdown()) {
-                UIUtils.htmlToSpannedText(getString(R.string.always_on_dialog_lockdown_stop_message)).toString()
+                UIUtils.htmlToSpannedText(getString(R.string.always_on_dialog_lockdown_stop_message))
+                    .toString()
             } else {
                 getString(R.string.always_on_dialog_stop_message)
             }
@@ -1387,6 +1465,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     Activity.RESULT_OK -> {
                         startVpnService()
                     }
+
                     Activity.RESULT_CANCELED -> {
                         showToastUiCentered(
                             this,
@@ -1394,6 +1473,7 @@ class HomeScreenActivity : AppCompatActivity() {
                             Toast.LENGTH_LONG
                         )
                     }
+
                     else -> {
                         stopVpnService()
                     }
@@ -1557,6 +1637,7 @@ class HomeScreenActivity : AppCompatActivity() {
                 val size = cursor.getBlob(index)?.size ?: 0
                 "[blob:$size]"
             }
+
             else -> cursor.getString(index).orEmpty()
         }
     }
@@ -2186,7 +2267,8 @@ class HomeScreenActivity : AppCompatActivity() {
     private fun WhatsNewDialogContent() {
         Column(
             modifier =
-                Modifier.fillMaxWidth()
+                Modifier
+                    .fillMaxWidth()
                     .padding(Dimensions.spacingLg)
                     .verticalScroll(rememberScrollState())
         ) {
@@ -2215,8 +2297,10 @@ class HomeScreenActivity : AppCompatActivity() {
                     onDismiss = { homeDialogState = null }
                 )
             }
+
             is HomeDialog.Download -> {
-                val isUpdateAvailable = dialog.title == getString(R.string.download_update_dialog_title)
+                val isUpdateAvailable =
+                    dialog.title == getString(R.string.download_update_dialog_title)
                 val resolvedMessage =
                     if (isUpdateAvailable && dialog.source == AppUpdater.InstallSource.STORE) {
                         "A new version is available. Please update from Play Store."
@@ -2264,6 +2348,7 @@ class HomeScreenActivity : AppCompatActivity() {
                 )
 
             }
+
             is HomeDialog.AlwaysOnStop -> {
                 HomeAlwaysOnStopDialog(
                     title = getString(R.string.always_on_dialog_stop_heading),
@@ -2284,6 +2369,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     }
                 )
             }
+
             HomeDialog.AlwaysOnDisable -> {
                 HomeConfirmDialog(
                     onDismissRequest = {},
@@ -2298,6 +2384,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     onDismiss = { homeDialogState = null }
                 )
             }
+
             HomeDialog.PrivateDns -> {
                 HomeConfirmDialog(
                     onDismissRequest = {},
@@ -2307,11 +2394,15 @@ class HomeScreenActivity : AppCompatActivity() {
                     dismissText = getString(R.string.lbl_dismiss),
                     onConfirm = {
                         homeDialogState = null
-                        openNetworkSettings(this@HomeScreenActivity, Settings.ACTION_WIRELESS_SETTINGS)
+                        openNetworkSettings(
+                            this@HomeScreenActivity,
+                            Settings.ACTION_WIRELESS_SETTINGS
+                        )
                     },
                     onDismiss = { homeDialogState = null }
                 )
             }
+
             is HomeDialog.FirstTimeVpn -> {
                 HomeConfirmDialog(
                     onDismissRequest = {},
@@ -2335,6 +2426,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     onDismiss = { homeDialogState = null }
                 )
             }
+
             is HomeDialog.Stats -> {
                 HomeStatsDialog(
                     onDismissRequest = { homeDialogState = null },
@@ -2353,13 +2445,16 @@ class HomeScreenActivity : AppCompatActivity() {
                     }
                 )
             }
+
             is HomeDialog.Sponsor -> {
                 Dialog(
                     onDismissRequest = { homeDialogState = null },
                     properties = DialogProperties(usePlatformDefaultWidth = false)
                 ) {
                     Surface(color = MaterialTheme.colorScheme.background) {
-                        Column(modifier = Modifier.fillMaxWidth().padding(Dimensions.spacingLg)) {
+                        Column(modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(Dimensions.spacingLg)) {
                             Text(
                                 text = getString(R.string.about_sponsor_link_text),
                                 style = MaterialTheme.typography.titleLarge
@@ -2368,10 +2463,18 @@ class HomeScreenActivity : AppCompatActivity() {
                             SponsorInfoDialogContent(
                                 amount = dialog.amount,
                                 usageMessage = dialog.usageMessage,
-                                onSponsorClick = { openUrl(this@HomeScreenActivity, RETHINKDNS_SPONSOR_LINK) }
+                                onSponsorClick = {
+                                    openUrl(
+                                        this@HomeScreenActivity,
+                                        RETHINKDNS_SPONSOR_LINK
+                                    )
+                                }
                             )
                             Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-                            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
+                            ) {
                                 TextButton(onClick = { homeDialogState = null }) {
                                     Text(text = getString(R.string.lbl_cancel))
                                 }
@@ -2380,6 +2483,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     }
                 }
             }
+
             HomeDialog.Contributors -> {
                 Dialog(
                     onDismissRequest = { homeDialogState = null },
@@ -2390,6 +2494,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     }
                 }
             }
+
             is HomeDialog.DatabaseTables -> {
                 Dialog(
                     onDismissRequest = { homeDialogState = null },
@@ -2403,6 +2508,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     }
                 }
             }
+
             is HomeDialog.DatabaseDump -> {
                 Dialog(
                     onDismissRequest = { homeDialogState = null },
@@ -2418,6 +2524,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     }
                 }
             }
+
             HomeDialog.NoLog -> {
                 HomeConfirmDialog(
                     onDismissRequest = { homeDialogState = null },
@@ -2432,6 +2539,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     onDismiss = { homeDialogState = null }
                 )
             }
+
             is HomeDialog.NewFeatures -> {
                 HomeNewFeaturesDialog(
                     onDismissRequest = { homeDialogState = null },
@@ -2446,6 +2554,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     content = { WhatsNewDialogContent() }
                 )
             }
+
             HomeDialog.AccessibilityCrash -> {
                 HomeConfirmDialog(
                     onDismissRequest = { homeDialogState = null },
@@ -2460,6 +2569,7 @@ class HomeScreenActivity : AppCompatActivity() {
                     onDismiss = { homeDialogState = null }
                 )
             }
+
             null -> Unit
         }
     }
@@ -2468,7 +2578,8 @@ class HomeScreenActivity : AppCompatActivity() {
     private fun ContributorsDialogContent(onDismiss: () -> Unit) {
         Column(
             modifier =
-                Modifier.fillMaxWidth()
+                Modifier
+                    .fillMaxWidth()
                     .padding(Dimensions.spacingXl)
                     .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
@@ -2562,7 +2673,8 @@ class HomeScreenActivity : AppCompatActivity() {
                     }
                     .onFailure {
                         withContext(Dispatchers.Main) {
-                            errorText = it.message ?: getString(R.string.blocklist_update_check_failure)
+                            errorText =
+                                it.message ?: getString(R.string.blocklist_update_check_failure)
                             loadingPreview = false
                         }
                     }
@@ -2790,7 +2902,10 @@ class HomeScreenActivity : AppCompatActivity() {
                             color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
                         ) {
                             Text(
-                                text = getString(R.string.database_inspector_rows, preview.rowCount.toString()),
+                                text = getString(
+                                    R.string.database_inspector_rows,
+                                    preview.rowCount.toString()
+                                ),
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                             )
@@ -2800,7 +2915,10 @@ class HomeScreenActivity : AppCompatActivity() {
                             color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
                         ) {
                             Text(
-                                text = getString(R.string.database_inspector_columns, preview.columnCount.toString()),
+                                text = getString(
+                                    R.string.database_inspector_columns,
+                                    preview.columnCount.toString()
+                                ),
                                 style = MaterialTheme.typography.labelMedium,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
                             )
@@ -2870,7 +2988,9 @@ class HomeScreenActivity : AppCompatActivity() {
         onSponsorClick: () -> Unit
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Text(text = amount, style = MaterialTheme.typography.titleLarge)
@@ -2921,13 +3041,22 @@ class HomeScreenActivity : AppCompatActivity() {
     private suspend fun uiCtx(f: suspend () -> Unit) {
         withContext(Dispatchers.Main) { f() }
     }
+
     private fun launchFileImport() {
         try {
             tunnelFileImportResultLauncher.launch("*/*")
         } catch (e: ActivityNotFoundException) {
-            showToastUiCentered(this, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
+            showToastUiCentered(
+                this,
+                getString(R.string.blocklist_update_check_failure),
+                Toast.LENGTH_SHORT
+            )
         } catch (e: Exception) {
-            showToastUiCentered(this, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
+            showToastUiCentered(
+                this,
+                getString(R.string.blocklist_update_check_failure),
+                Toast.LENGTH_SHORT
+            )
         }
     }
 
@@ -2940,9 +3069,17 @@ class HomeScreenActivity : AppCompatActivity() {
                     .setPrompt(resources.getString(R.string.lbl_qr_code))
             )
         } catch (e: ActivityNotFoundException) {
-            showToastUiCentered(this, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
+            showToastUiCentered(
+                this,
+                getString(R.string.blocklist_update_check_failure),
+                Toast.LENGTH_SHORT
+            )
         } catch (e: Exception) {
-            showToastUiCentered(this, getString(R.string.blocklist_update_check_failure), Toast.LENGTH_SHORT)
+            showToastUiCentered(
+                this,
+                getString(R.string.blocklist_update_check_failure),
+                Toast.LENGTH_SHORT
+            )
         }
     }
 }

@@ -23,6 +23,7 @@ import androidx.compose.runtime.produceState
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalContext
 import com.celzero.bravedns.data.SummaryStatisticsType
+import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.celzero.bravedns.util.Utilities
 import kotlinx.coroutines.Dispatchers
@@ -39,15 +40,26 @@ internal fun rememberStatisticsAppIconPainter(uid: Int): Painter? {
     val drawable by produceState<Drawable?>(initialValue = null, uid) {
         value =
             withContext(Dispatchers.IO) {
-                val packageName = Utilities.getPackageInfoForUid(context, uid)?.firstOrNull()
-                if (packageName.isNullOrBlank()) return@withContext null
+                val normalizedUid = FirewallManager.appId(uid, mainUserOnly = true)
+                val candidateUids = listOf(uid, normalizedUid).distinct()
 
-                try {
-                    context.packageManager.getApplicationIcon(packageName)
-                } catch (_: PackageManager.NameNotFoundException) {
+                val packageName =
+                    candidateUids.firstNotNullOfOrNull { candidate ->
+                        FirewallManager.getPackageNameByUid(candidate)
+                    } ?: candidateUids.firstNotNullOfOrNull { candidate ->
+                        Utilities.getPackageInfoForUid(context, candidate)?.firstOrNull()
+                    }
+
+                if (packageName.isNullOrBlank()) {
                     null
-                } catch (_: SecurityException) {
-                    null
+                } else {
+                    try {
+                        context.packageManager.getApplicationIcon(packageName)
+                    } catch (_: PackageManager.NameNotFoundException) {
+                        null
+                    } catch (_: SecurityException) {
+                        null
+                    }
                 }
             }
     }

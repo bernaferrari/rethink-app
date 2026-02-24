@@ -122,6 +122,10 @@ fun WgMainScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val wireguardDisclaimerText = stringResource(R.string.wireguard_disclaimer)
+    val fallbackDnsLabel = stringResource(R.string.lbl_fallback)
+    val wireguardDisableFailure = stringResource(R.string.wireguard_disable_failure)
+    val wireguardDisableFailureRelay = stringResource(R.string.wireguard_disable_failure_relay)
 
     var selectedTab by remember {
         mutableStateOf(
@@ -150,7 +154,7 @@ fun WgMainScreen(
         val activeConfigs = WireguardManager.getActiveConfigs()
         disclaimerText = if (WireguardManager.oneWireGuardEnabled()) {
             val dnsName = activeConfigs.firstOrNull()?.getName() ?: ""
-            context.getString(R.string.wireguard_disclaimer, dnsName)
+            String.format(wireguardDisclaimerText, dnsName)
         } else {
             var dnsNames = connectedDns
             if (persistentState.splitDns && activeConfigs.isNotEmpty()) {
@@ -160,9 +164,9 @@ fun WgMainScreen(
                 dnsNames += activeConfigs.joinToString(",") { it.getName() }
             }
             if (persistentState.useFallbackDnsToBypass) {
-                dnsNames += ", " + context.getString(R.string.lbl_fallback)
+                dnsNames += ", $fallbackDnsLabel"
             }
-            context.getString(R.string.wireguard_disclaimer, dnsNames)
+            String.format(wireguardDisclaimerText, dnsNames)
         }
     }
 
@@ -201,14 +205,14 @@ fun WgMainScreen(
                     } else {
                         val configs = WireguardManager.getActiveCatchAllConfig()
                         withContext(Dispatchers.Main) {
-                            val msgRes = if (configs.isNotEmpty()) {
-                                R.string.wireguard_disable_failure
+                            val msgText = if (configs.isNotEmpty()) {
+                                wireguardDisableFailure
                             } else {
-                                R.string.wireguard_disable_failure_relay
+                                wireguardDisableFailureRelay
                             }
                             Utilities.showToastUiCentered(
                                 context,
-                                context.getString(msgRes),
+                                msgText,
                                 Toast.LENGTH_LONG
                             )
                         }

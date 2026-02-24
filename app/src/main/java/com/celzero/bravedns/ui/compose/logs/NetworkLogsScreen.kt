@@ -540,6 +540,7 @@ private fun LogsDeleteDialog(
     if (!show) return
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val refreshCompleteText = stringResource(R.string.refresh_complete)
     ConfirmClearLogsDialog(
         onDismiss = onDismiss,
         onConfirm = {
@@ -547,7 +548,7 @@ private fun LogsDeleteDialog(
             scope.launch(Dispatchers.IO) { onDelete() }
             Utilities.showToastUiCentered(
                 context,
-                context.getString(R.string.refresh_complete),
+                refreshCompleteText,
                 Toast.LENGTH_SHORT
             )
             onRefresh()

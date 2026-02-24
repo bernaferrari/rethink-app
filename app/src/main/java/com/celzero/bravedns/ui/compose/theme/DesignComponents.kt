@@ -20,6 +20,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -957,31 +958,36 @@ fun RethinkLargeTopBar(
     scrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     titleTextStyle: TextStyle = MaterialTheme.typography.titleLarge,
     titleStartPadding: Dp = 0.dp,
+    titleLeading: (@Composable () -> Unit)? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     LargeTopAppBar(
         title = {
-            Column(
+            Row(
                 modifier = Modifier.padding(start = titleStartPadding),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = title,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    style = titleTextStyle,
-                    fontWeight = FontWeight.SemiBold,
-                    letterSpacing = (-0.2).sp
-                )
-                if (!subtitle.isNullOrBlank()) {
+                titleLeading?.invoke()
+                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     Text(
-                        text = subtitle,
+                        text = title,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        style = titleTextStyle,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = (-0.2).sp
                     )
+                    if (!subtitle.isNullOrBlank()) {
+                        Text(
+                            text = subtitle,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         },
@@ -1052,6 +1058,7 @@ fun RethinkListItem(
     leadingIconTint: Color = MaterialTheme.colorScheme.primary,
     leadingIconContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
     leadingIconContainerShape: Shape = RoundedCornerShape(Dimensions.iconContainerRadius),
+    leadingContent: @Composable (() -> Unit)? = null,
     trailing: @Composable (() -> Unit)? = null,
     position: CardPosition = CardPosition.Middle,
     enabled: Boolean = true,
@@ -1137,9 +1144,11 @@ fun RethinkListItem(
                         }
                     } else {
                         null
-                    },
+                },
                 leadingContent = {
-                    if (leadingIcon != null || leadingIconPainter != null) {
+                    if (leadingContent != null) {
+                        leadingContent()
+                    } else if (leadingIcon != null || leadingIconPainter != null) {
                         Surface(
                             shape = leadingIconContainerShape,
                             color = leadingIconContainerColor,
@@ -1157,12 +1166,20 @@ fun RethinkListItem(
                                         modifier = Modifier.size(Dimensions.iconSizeSm)
                                     )
                                 } else if (leadingIconPainter != null) {
-                                    Icon(
-                                        painter = leadingIconPainter,
-                                        contentDescription = null,
-                                        tint = leadingIconTint.copy(alpha = contentAlpha),
-                                        modifier = Modifier.size(18.dp)
-                                    )
+                                    if (leadingIconTint == Color.Unspecified) {
+                                        Image(
+                                            painter = leadingIconPainter,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    } else {
+                                        Icon(
+                                            painter = leadingIconPainter,
+                                            contentDescription = null,
+                                            tint = leadingIconTint.copy(alpha = contentAlpha),
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
                                 }
                             }
                         }

@@ -191,6 +191,27 @@ fun ProxySettingsScreen(
     val defaultSocks5Description = stringResource(R.string.settings_socks_forwarding_default_desc)
     val defaultHttpDescription = stringResource(R.string.settings_https_desc)
     val defaultOrbotDescription = stringResource(R.string.orbot_bs_status_4)
+    val defaultSocks5NoAppTemplate = stringResource(R.string.settings_socks_forwarding_desc_no_app)
+    val defaultSocks5WithAppTemplate = stringResource(R.string.settings_socks_forwarding_desc)
+    val httpProxyDescriptionTemplate = stringResource(R.string.settings_http_proxy_desc)
+    val orbotInstallDescription = stringResource(R.string.settings_orbot_install_desc)
+    val orbotStatus2Description = stringResource(R.string.orbot_bs_status_2)
+    val orbotStatus1Template = stringResource(R.string.orbot_bs_status_1)
+    val orbotStatus3Template = stringResource(R.string.orbot_bs_status_3)
+    val orbotStatusArgDns = stringResource(R.string.orbot_status_arg_3)
+    val orbotStatusArgProxy = stringResource(R.string.orbot_status_arg_2)
+    val wireguardStatusFailingText = stringResource(R.string.status_failing).replaceFirstChar(Char::titlecase)
+    val wireguardStatusWaitingText = stringResource(R.string.status_waiting)
+    val wireguardVersionTemplate = stringResource(R.string.about_version_install_source)
+    val wireguardIpLabelTemplate = stringResource(R.string.ci_ip_label)
+    val proxyStatusLabelById = mutableMapOf<Long, String>().apply {
+        for (status in UIUtils.ProxyStatus.entries) {
+            put(
+                status.id,
+                stringResource(UIUtils.getProxyStatusStringRes(status.id)).replaceFirstChar(Char::titlecase)
+            )
+        }
+    }
 
     val orbotHelper = remember(context, persistentState, appConfig) {
         OrbotHelper(context, persistentState, appConfig)
@@ -283,7 +304,12 @@ fun ProxySettingsScreen(
         scope.launch {
             socks5DialogState =
                 withContext(Dispatchers.IO) {
-                    buildSocks5DialogState(context, appConfig, persistentState)
+                    buildSocks5DialogState(
+                        context = context,
+                        appConfig = appConfig,
+                        persistentState = persistentState,
+                        defaultApp = defaultAppLabel
+                    )
                 }
         }
     }
@@ -292,7 +318,12 @@ fun ProxySettingsScreen(
         scope.launch {
             httpDialogState =
                 withContext(Dispatchers.IO) {
-                    buildHttpDialogState(context, appConfig, persistentState)
+                    buildHttpDialogState(
+                        context = context,
+                        appConfig = appConfig,
+                        persistentState = persistentState,
+                        defaultApp = defaultAppLabel
+                    )
                 }
         }
     }
@@ -396,7 +427,28 @@ fun ProxySettingsScreen(
     LaunchedEffect(refreshTick) {
         val state =
             withContext(Dispatchers.IO) {
-                buildProxyScreenState(context, appConfig)
+                buildProxyScreenState(
+                    context = context,
+                    appConfig = appConfig,
+                    defaultSocks5Description = defaultSocks5Description,
+                    defaultHttpDescription = defaultHttpDescription,
+                    httpProxyDescriptionTemplate = httpProxyDescriptionTemplate,
+                    defaultSocks5DescriptionNoApp = defaultSocks5NoAppTemplate,
+                    defaultSocks5DescriptionWithApp = defaultSocks5WithAppTemplate,
+                    orbotInstallDescription = orbotInstallDescription,
+                    orbotDisabledDescription = defaultOrbotDescription,
+                    orbotStatus2Description = orbotStatus2Description,
+                    orbotStatus1Template = orbotStatus1Template,
+                    orbotStatus3Template = orbotStatus3Template,
+                    orbotStatusArgDns = orbotStatusArgDns,
+                    orbotStatusArgProxy = orbotStatusArgProxy,
+                    defaultWireguardDescription = defaultWireguardDescription,
+                    statusTextById = proxyStatusLabelById,
+                    statusFailingText = wireguardStatusFailingText,
+                    statusWaitingText = wireguardStatusWaitingText,
+                    wireguardVersionTemplate = wireguardVersionTemplate,
+                    ciIpLabelTemplate = wireguardIpLabelTemplate
+                )
             }
 
         canEnableProxy = state.canEnableProxy
@@ -1426,7 +1478,25 @@ private fun HttpDialog(
 
 private suspend fun buildProxyScreenState(
     context: android.content.Context,
-    appConfig: AppConfig
+    appConfig: AppConfig,
+    defaultSocks5Description: String,
+    defaultHttpDescription: String,
+    httpProxyDescriptionTemplate: String,
+    defaultSocks5DescriptionNoApp: String,
+    defaultSocks5DescriptionWithApp: String,
+    orbotInstallDescription: String,
+    orbotDisabledDescription: String,
+    orbotStatus2Description: String,
+    orbotStatus1Template: String,
+    orbotStatus3Template: String,
+    orbotStatusArgDns: String,
+    orbotStatusArgProxy: String,
+    defaultWireguardDescription: String,
+    statusTextById: Map<Long, String>,
+    statusFailingText: String,
+    statusWaitingText: String,
+    wireguardVersionTemplate: String,
+    ciIpLabelTemplate: String
 ): ProxyScreenState {
     val canEnableProxy = appConfig.canEnableProxy()
     val socks5Enabled = appConfig.isCustomSocks5Enabled()
@@ -1435,26 +1505,51 @@ private suspend fun buildProxyScreenState(
 
     val socks5Description =
         if (!socks5Enabled) {
-            context.getString(R.string.settings_socks_forwarding_default_desc)
+            defaultSocks5Description
         } else {
-            formatSocks5Description(context, runCatching { appConfig.getSocks5ProxyDetails() }.getOrNull())
+            formatSocks5Description(
+                context,
+                runCatching { appConfig.getSocks5ProxyDetails() }.getOrNull(),
+                defaultSocks5Description,
+                defaultSocks5DescriptionNoApp,
+                defaultSocks5DescriptionWithApp
+            )
         }
 
     val httpDescription =
         if (!httpEnabled) {
-            context.getString(R.string.settings_https_desc)
+            defaultHttpDescription
         } else {
             val endpoint = runCatching { appConfig.getHttpProxyDetails() }.getOrNull()
             val host = endpoint?.proxyIP ?: ""
             if (host.isBlank()) {
-                context.getString(R.string.settings_https_desc)
+                defaultHttpDescription
             } else {
-                context.getString(R.string.settings_http_proxy_desc, host)
+                String.format(httpProxyDescriptionTemplate, host)
             }
         }
 
-    val orbotDescription = formatOrbotDescription(context, appConfig)
-    val wireguardDescription = formatWireguardDescription(context)
+    val orbotDescription =
+        formatOrbotDescription(
+            context,
+            appConfig,
+            orbotInstallDescription,
+            orbotDisabledDescription,
+            orbotStatus2Description,
+            orbotStatus1Template,
+            orbotStatus3Template,
+            orbotStatusArgDns,
+            orbotStatusArgProxy
+        )
+    val wireguardDescription =
+        formatWireguardDescription(
+            defaultWireguardDescription,
+            statusTextById,
+            statusWaitingText,
+            statusFailingText,
+            wireguardVersionTemplate,
+            ciIpLabelTemplate
+        )
 
     return ProxyScreenState(
         canEnableProxy = canEnableProxy,
@@ -1470,85 +1565,88 @@ private suspend fun buildProxyScreenState(
 
 private suspend fun formatSocks5Description(
     context: android.content.Context,
-    endpoint: ProxyEndpoint?
+    endpoint: ProxyEndpoint?,
+    defaultDescription: String,
+    defaultDescriptionNoAppTemplate: String,
+    defaultDescriptionWithAppTemplate: String
 ): String {
-    val endpointValue = endpoint ?: return context.getString(R.string.settings_socks_forwarding_default_desc)
+    val endpointValue = endpoint ?: return defaultDescription
     if (endpointValue.proxyIP.isNullOrBlank()) {
-        return context.getString(R.string.settings_socks_forwarding_default_desc)
+        return defaultDescription
     }
 
-    val ip = endpointValue.proxyIP ?: return context.getString(R.string.settings_socks_forwarding_default_desc)
+    val ip = endpointValue.proxyIP ?: return defaultDescription
     val port = endpointValue.proxyPort.toString()
     val packageName = endpointValue.proxyAppName
     if (packageName.isNullOrBlank()) {
-        return context.getString(R.string.settings_socks_forwarding_desc_no_app, ip, port)
+        return String.format(defaultDescriptionNoAppTemplate, ip, port)
     }
 
     val appName = FirewallManager.getAppInfoByPackage(packageName)?.appName
     return if (appName.isNullOrBlank()) {
-        context.getString(R.string.settings_socks_forwarding_desc_no_app, ip, port)
+        String.format(defaultDescriptionNoAppTemplate, ip, port)
     } else {
-        context.getString(R.string.settings_socks_forwarding_desc, ip, port, appName)
+        String.format(defaultDescriptionWithAppTemplate, ip, port, appName)
     }
 }
 
 private suspend fun formatOrbotDescription(
     context: android.content.Context,
-    appConfig: AppConfig
+    appConfig: AppConfig,
+    orbotInstallDescription: String,
+    orbotDisabledDescription: String,
+    orbotStatus2Description: String,
+    orbotStatus1Template: String,
+    orbotStatus3Template: String,
+    orbotStatusArgDns: String,
+    orbotStatusArgProxy: String
 ): String {
     val isInstalled = FirewallManager.isOrbotInstalled()
     if (!isInstalled) {
-        return context.getString(R.string.settings_orbot_install_desc)
+        return orbotInstallDescription
     }
 
     if (!appConfig.isOrbotProxyEnabled()) {
-        return context.getString(R.string.orbot_bs_status_4)
+        return orbotDisabledDescription
     }
 
     val isOrbotDns = appConfig.isOrbotDns()
     return when (appConfig.getProxyType()) {
         AppConfig.ProxyType.HTTP.name -> {
-            context.getString(R.string.orbot_bs_status_2)
+            orbotStatus2Description
         }
 
         AppConfig.ProxyType.SOCKS5.name -> {
             if (isOrbotDns) {
-                context.getString(
-                    R.string.orbot_bs_status_1,
-                    context.getString(R.string.orbot_status_arg_3)
-                )
+                String.format(orbotStatus1Template, orbotStatusArgDns)
             } else {
-                context.getString(
-                    R.string.orbot_bs_status_1,
-                    context.getString(R.string.orbot_status_arg_2)
-                )
+                String.format(orbotStatus1Template, orbotStatusArgProxy)
             }
         }
 
         AppConfig.ProxyType.HTTP_SOCKS5.name -> {
             if (isOrbotDns) {
-                context.getString(
-                    R.string.orbot_bs_status_3,
-                    context.getString(R.string.orbot_status_arg_3)
-                )
+                String.format(orbotStatus3Template, orbotStatusArgDns)
             } else {
-                context.getString(
-                    R.string.orbot_bs_status_3,
-                    context.getString(R.string.orbot_status_arg_2)
-                )
+                String.format(orbotStatus3Template, orbotStatusArgProxy)
             }
         }
 
-        else -> context.getString(R.string.orbot_bs_status_4)
+        else -> orbotDisabledDescription
     }
 }
 
 private suspend fun formatWireguardDescription(
-    context: android.content.Context
+    defaultDescription: String,
+    statusTextById: Map<Long, String>,
+    statusWaitingText: String,
+    statusFailingText: String,
+    wireguardVersionTemplate: String,
+    ciIpLabelTemplate: String
 ): String {
     val activeWgs = WireguardManager.getActiveConfigs()
     if (activeWgs.isEmpty()) {
-        return context.getString(R.string.wireguard_description)
+        return defaultDescription
     }
 
     val details = StringBuilder()
@@ -1560,17 +1658,23 @@ private suspend fun formatWireguardDescription(
 
         val statusText =
             if (statusPair.first == Backend.TPU) {
-                context.getString(UIUtils.getProxyStatusStringRes(UIUtils.ProxyStatus.TPU.id))
-                    .replaceFirstChar(Char::titlecase)
+                statusTextById[UIUtils.ProxyStatus.TPU.id] ?: statusFailingText
             } else if (isDnsError(dnsStatusId)) {
-                context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
+                statusFailingText
             } else {
-                getProxyStatusText(context, statusPair, stats)
+                getProxyStatusText(
+                    statusPair = statusPair,
+                    stats = stats,
+                    statusTextById = statusTextById,
+                    statusWaitingText = statusWaitingText,
+                    statusFailingText = statusFailingText,
+                    wireguardVersionTemplate = wireguardVersionTemplate
+                )
             }
 
         details.append(
-            context.getString(
-                R.string.ci_ip_label,
+            String.format(
+                ciIpLabelTemplate,
                 it.getName(),
                 statusText.padStart(1, ' ')
             )
@@ -1595,17 +1699,20 @@ private fun isDnsError(statusId: Long?): Boolean {
 }
 
 private fun getProxyStatusText(
-    context: android.content.Context,
     statusPair: Pair<Long?, String>,
-    stats: RouterStats?
+    stats: RouterStats?,
+    statusTextById: Map<Long, String>,
+    statusWaitingText: String,
+    statusFailingText: String,
+    wireguardVersionTemplate: String
 ): String {
     val status = UIUtils.ProxyStatus.entries.find { it.id == statusPair.first }
     if (status == null) {
         val txt =
             if (!statusPair.second.isNullOrBlank()) {
-                context.getString(R.string.status_waiting) + " (${statusPair.second})"
+                "$statusWaitingText (${statusPair.second})"
             } else {
-                context.getString(R.string.status_waiting)
+                statusWaitingText
             }
         return txt.replaceFirstChar(Char::titlecase)
     }
@@ -1614,12 +1721,11 @@ private fun getProxyStatusText(
     val lastOk = stats?.lastOK ?: 0L
     val since = stats?.since ?: 0L
     if (now - since > WireguardManager.WG_UPTIME_THRESHOLD && lastOk == 0L) {
-        return context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
+        return statusFailingText
     }
 
     val baseText =
-        context.getString(UIUtils.getProxyStatusStringRes(status.id))
-            .replaceFirstChar(Char::titlecase)
+        statusTextById.getValue(status.id)
     val handshakeTime =
         if (stats != null && stats.lastOK > 0L) {
             DateUtils.getRelativeTimeSpanString(
@@ -1634,7 +1740,7 @@ private fun getProxyStatusText(
         }
 
     return if (stats?.lastOK != 0L && handshakeTime != null) {
-        context.getString(R.string.about_version_install_source, baseText, handshakeTime)
+        String.format(wireguardVersionTemplate, baseText, handshakeTime)
     } else {
         baseText
     }
@@ -1643,9 +1749,9 @@ private fun getProxyStatusText(
 private suspend fun buildSocks5DialogState(
     context: android.content.Context,
     appConfig: AppConfig,
-    persistentState: PersistentState
+    persistentState: PersistentState,
+    defaultApp: String
 ): Socks5DialogState {
-    val defaultApp = context.getString(R.string.settings_app_list_default_app)
     val endpoint = runCatching { appConfig.getSocks5ProxyDetails() }.getOrNull()
     val selectedApp =
         if (endpoint?.proxyAppName.isNullOrBlank()) {
@@ -1681,9 +1787,9 @@ private suspend fun buildSocks5DialogState(
 private suspend fun buildHttpDialogState(
     context: android.content.Context,
     appConfig: AppConfig,
-    persistentState: PersistentState
+    persistentState: PersistentState,
+    defaultApp: String
 ): HttpDialogState {
-    val defaultApp = context.getString(R.string.settings_app_list_default_app)
     val endpoint = runCatching { appConfig.getHttpProxyDetails() }.getOrNull()
     val selectedApp =
         if (endpoint?.proxyAppName.isNullOrBlank()) {

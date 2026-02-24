@@ -31,34 +31,30 @@ import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.RefreshDatabase
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.service.EventLogger
-import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.ui.compose.firewall.AppListScreen as FirewallAppListScreen
 import com.celzero.bravedns.ui.compose.firewall.BlockType
 import com.celzero.bravedns.ui.compose.firewall.Filters
 import com.celzero.bravedns.ui.compose.firewall.FirewallFilter
+import com.celzero.bravedns.ui.compose.firewall.TopLevelFilter
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.AppInfoViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.FlowPreview
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.debounce
-import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.compose.runtime.LaunchedEffect
 
-private const val QUERY_TEXT_DELAY: Long = 1000
+private fun defaultAppFilters() = Filters(topLevelFilter = TopLevelFilter.INSTALLED)
 
 /**
  * Full App List Screen for navigation integration.
  * Manages all state internally and delegates UI to firewall/AppListScreen.
  */
-@OptIn(FlowPreview::class)
 @Composable
 fun AppListScreen(
     viewModel: AppInfoViewModel,
     eventLogger: EventLogger,
     refreshDatabase: RefreshDatabase,
+    onAppClick: ((Int) -> Unit)? = null,
     onBackClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -71,7 +67,7 @@ fun AppListScreen(
     var queryText by remember { mutableStateOf("") }
     var selectedFirewallFilter by remember { mutableStateOf(FirewallFilter.ALL) }
     var isRefreshing by remember { mutableStateOf(false) }
-    var currentFilters by remember { mutableStateOf(Filters()) }
+    var currentFilters by remember { mutableStateOf(defaultAppFilters()) }
     val latestFilters by remember { derivedStateOf { currentFilters } }
     
     // Bulk action states
@@ -110,28 +106,15 @@ fun AppListScreen(
     val excludeBlockDialogMessage = stringResource(id = R.string.fapps_exclude_block_dialog_message)
     val unblockDialogMessage = stringResource(id = R.string.fapps_unblock_dialog_message)
 
-    val searchQuery = remember { MutableStateFlow(queryText) }
-    
+
     // Apply filters
     fun applyFilters(filters: Filters) {
         currentFilters = filters
         viewModel.setFilter(filters)
         selectedFirewallFilter = filters.firewallFilter
         queryText = filters.searchString
-        searchQuery.value = filters.searchString
     }
-    
-    // Query filter with debounce
-    LaunchedEffect(Unit) {
-        searchQuery
-            .debounce(QUERY_TEXT_DELAY)
-            .distinctUntilChanged()
-            .collect { query ->
-                val updated = latestFilters.copy(searchString = query)
-                applyFilters(updated)
-            }
-    }
-    
+
     fun resetBulkStates(type: BlockType) {
         when (type) {
             BlockType.UNMETER -> {
@@ -248,13 +231,13 @@ fun AppListScreen(
 
     // Initialize
     LaunchedEffect(Unit) {
-        applyFilters(Filters())
+        applyFilters(defaultAppFilters())
 
-        val hasCachedApps =
+        val appCount =
             withContext(Dispatchers.IO) {
-                FirewallManager.load() > 0
+                viewModel.getAppCount()
             }
-        if (!hasCachedApps) {
+        if (appCount == 0) {
             // Bootstrap app entries immediately when local app cache is empty.
             refreshAppList(action = RefreshDatabase.ACTION_REFRESH_FORCE, showToast = false)
         }
@@ -281,13 +264,16 @@ fun AppListScreen(
         currentFilters = currentFilters,
         onQueryChange = { query ->
             queryText = query
-            searchQuery.value = query
+            applyFilters(latestFilters.copy(searchString = query))
         },
         onRefreshClick = { refreshAppList() },
         onFilterApply = { applied -> applyFilters(applied) },
         onFilterClear = { cleared ->
             applyFilters(
-                cleared.copy(searchString = queryText)
+                cleared.copy(
+                    topLevelFilter = TopLevelFilter.INSTALLED,
+                    searchString = queryText
+                )
             )
         },
         onFirewallFilterClick = { filter ->
@@ -348,6 +334,7 @@ fun AppListScreen(
             )
         },
         showBypassToolTip = showBypassToolTip,
+        onAppClick = onAppClick,
         onBackClick = onBackClick
     )
 }

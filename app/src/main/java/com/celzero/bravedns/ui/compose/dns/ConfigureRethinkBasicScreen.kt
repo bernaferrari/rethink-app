@@ -152,6 +152,11 @@ fun ConfigureRethinkBasicScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val localBlocklistVersionTemplate = stringResource(R.string.settings_local_blocklist_version)
+    val downloadSuccessMessage = stringResource(R.string.download_update_dialog_message_success)
+    val downloadFailureMessage = stringResource(R.string.download_update_dialog_failure_message)
+    val filterDescriptionTemplate = stringResource(R.string.rt_filter_desc)
+    val filterDescriptionSubgroupsTemplate = stringResource(R.string.rt_filter_desc_subgroups)
 
     val blocklistType = remember {
         if (screenType == ConfigureRethinkScreenType.LOCAL) {
@@ -262,7 +267,7 @@ fun ConfigureRethinkBasicScreen(
         showRemoteProgress = false
         showToastUiCentered(
             context,
-            context.getString(R.string.download_update_dialog_message_success),
+            downloadSuccessMessage,
             Toast.LENGTH_SHORT
         )
     }
@@ -395,7 +400,7 @@ fun ConfigureRethinkBasicScreen(
                 withContext(Dispatchers.Main) {
                     showToastUiCentered(
                         context,
-                        context.getString(R.string.download_update_dialog_failure_message),
+                        downloadFailureMessage,
                         Toast.LENGTH_SHORT
                     )
                 }
@@ -528,7 +533,9 @@ fun ConfigureRethinkBasicScreen(
                         onCheckUpdateInProgressChanged = { checkUpdateInProgress = it },
                         onUpdateInProgressChanged = { updateInProgress = it },
                         onCheckBlocklistUpdate = { checkBlocklistUpdate() },
-                        onDownload = { timestamp, isRedownload -> download(timestamp, isRedownload) }
+                        onDownload = { timestamp, isRedownload -> download(timestamp, isRedownload) },
+                        localBlocklistVersionTemplate = localBlocklistVersionTemplate,
+                        downloadFailureMessage = downloadFailureMessage
                     )
                 }
 
@@ -559,6 +566,8 @@ fun ConfigureRethinkBasicScreen(
                         onApplyChanges = { applyChangesAndFinish() },
                         onRevertChanges = { revertChangesAndFinish() },
                         onRefreshBlocklistAvailability = { refreshBlocklistAvailability() },
+                        filterDescriptionTemplate = filterDescriptionTemplate,
+                        filterDescriptionSubgroupsTemplate = filterDescriptionSubgroupsTemplate,
                         onProcessSelectedFileTags = { stamp ->
                             scope.launch { processSelectedFileTags(stamp) }
                         },
@@ -603,7 +612,9 @@ private fun RethinkListContent(
     onCheckUpdateInProgressChanged: (Boolean) -> Unit,
     onUpdateInProgressChanged: (Boolean) -> Unit,
     onCheckBlocklistUpdate: () -> Unit,
-    onDownload: (Long, Boolean) -> Unit
+    onDownload: (Long, Boolean) -> Unit,
+    localBlocklistVersionTemplate: String,
+    downloadFailureMessage: String
 ) {
     val scope = rememberCoroutineScope()
     val pagingItems = rethinkEndpointViewModel.rethinkEndpointList.asFlow().collectAsLazyPagingItems()
@@ -635,7 +646,7 @@ private fun RethinkListContent(
                 onRefreshUpdateUi()
                 Utilities.showToastUiCentered(
                     context,
-                    context.getString(R.string.download_update_dialog_failure_message),
+                    downloadFailureMessage,
                     Toast.LENGTH_SHORT
                 )
             }
@@ -679,8 +690,7 @@ private fun RethinkListContent(
             ) {
                 if (persistentState.remoteBlocklistTimestamp != Constants.INIT_TIME_MS || actionText != null) {
                     Text(
-                        text = context.getString(
-                            R.string.settings_local_blocklist_version,
+                        text = localBlocklistVersionTemplate.format(
                             Utilities.convertLongToTime(
                                 persistentState.remoteBlocklistTimestamp,
                                 Constants.TIME_FORMAT_2
@@ -806,7 +816,9 @@ private fun RethinkBlocklistContent(
     getStampValue: () -> String,
     onDownloadStart: () -> Unit,
     onDownloadFail: () -> Unit,
-    onDownloadSuccess: () -> Unit
+    onDownloadSuccess: () -> Unit,
+    filterDescriptionTemplate: String,
+    filterDescriptionSubgroupsTemplate: String
 ) {
     val scope = rememberCoroutineScope()
     val filterState by filters.asFlow().collectAsState(initial = filters.value)
@@ -836,7 +848,13 @@ private fun RethinkBlocklistContent(
         } else {
             localFileTagViewModel.setFilter(filter)
         }
-        onFilterLabelTextChanged(buildFilterDescription(context, filter))
+        onFilterLabelTextChanged(
+            buildFilterDescription(
+                filter,
+                filterDescriptionTemplate,
+                filterDescriptionSubgroupsTemplate
+            )
+        )
     }
 
     LaunchedEffect(selectedTags) {
@@ -1279,12 +1297,15 @@ private fun isBase64(stamp: String): Boolean {
     return pattern.matcher(result).matches()
 }
 
-private fun buildFilterDescription(context: Context, filter: RethinkBlocklistState.Filters): String {
+private fun buildFilterDescription(
+    filter: RethinkBlocklistState.Filters,
+    filterDescriptionTemplate: String,
+    filterDescriptionSubgroupsTemplate: String
+): String {
     val text = if (filter.subGroups.isEmpty()) {
-        context.getString(R.string.rt_filter_desc, filter.filterSelected.name.lowercase())
+        filterDescriptionTemplate.format(filter.filterSelected.name.lowercase())
     } else {
-        context.getString(
-            R.string.rt_filter_desc_subgroups,
+        filterDescriptionSubgroupsTemplate.format(
             filter.filterSelected.name.lowercase(),
             "",
             filter.subGroups

@@ -16,7 +16,6 @@
 package com.celzero.bravedns.ui.compose.wireguard
 
 import android.app.Activity
-import android.content.Context
 import android.text.format.DateUtils
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
@@ -117,6 +116,10 @@ fun WgConfigDetailScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val socks5VpnDisabledErrorText = stringResource(R.string.settings_socks5_vpn_disabled_error)
+    val wireguardEnabledFailureText = stringResource(R.string.wireguard_enabled_failure)
+    val configAddSuccessToast = stringResource(R.string.config_add_success_toast)
+    val lblSsidsText = stringResource(R.string.lbl_ssids)
 
     // State variables
     var configFiles by remember { mutableStateOf<WgConfigFilesImmutable?>(null) }
@@ -143,6 +146,20 @@ fun WgConfigDetailScreen(
     val onSurfaceVariantColor = MaterialTheme.colorScheme.onSurfaceVariant.toArgb()
     val errorColor = MaterialTheme.colorScheme.error.toArgb()
     val tertiaryColor = MaterialTheme.colorScheme.tertiary.toArgb()
+    val statusFailingText =
+        stringResource(id = R.string.status_failing).replaceFirstChar(Char::titlecase)
+    val statusDisabledText =
+        stringResource(id = R.string.lbl_disabled).replaceFirstChar(Char::titlecase)
+    val statusWaitingText = stringResource(id = R.string.status_waiting)
+    val statusTextById = mutableMapOf<Long, String>().apply {
+        for (status in UIUtils.ProxyStatus.entries) {
+            put(
+                status.id,
+                stringResource(id = UIUtils.getProxyStatusStringRes(status.id)).replaceFirstChar(Char::titlecase)
+            )
+        }
+    }
+    val wireguardVersionTemplate = stringResource(id = R.string.about_version_install_source)
 
     val appsCount by mappingViewModel
         .getAppCountById(ID_WG_BASE + configId)
@@ -169,12 +186,16 @@ fun WgConfigDetailScreen(
     // Update status UI when config changes
     LaunchedEffect(configFiles?.isActive, configFiles?.id) {
         updateStatusUi(
-            context = context,
             id = configId,
             persistentState = persistentState,
             onSurfaceVariantColor = onSurfaceVariantColor,
             errorColor = errorColor,
             tertiaryColor = tertiaryColor,
+            statusTextById = statusTextById,
+            statusFailingText = statusFailingText,
+            statusDisabledText = statusDisabledText,
+            statusWaitingText = statusWaitingText,
+            wireguardVersionTemplate = wireguardVersionTemplate,
             onStatusUpdate = { text, color ->
                 statusText = text
                 statusColor = color
@@ -229,7 +250,7 @@ fun WgConfigDetailScreen(
                     catchAllEnabled = !enabled
                     Utilities.showToastUiCentered(
                         context,
-                        ERR_CODE_VPN_NOT_ACTIVE + context.getString(R.string.settings_socks5_vpn_disabled_error),
+                        ERR_CODE_VPN_NOT_ACTIVE + socks5VpnDisabledErrorText,
                         Toast.LENGTH_LONG
                     )
                 }
@@ -241,7 +262,7 @@ fun WgConfigDetailScreen(
                     catchAllEnabled = false
                     Utilities.showToastUiCentered(
                         context,
-                        ERR_CODE_VPN_NOT_FULL + context.getString(R.string.wireguard_enabled_failure),
+                        ERR_CODE_VPN_NOT_FULL + wireguardEnabledFailureText,
                         Toast.LENGTH_LONG
                     )
                 }
@@ -253,7 +274,7 @@ fun WgConfigDetailScreen(
                     catchAllEnabled = false
                     Utilities.showToastUiCentered(
                         context,
-                        ERR_CODE_OTHER_WG_ACTIVE + context.getString(R.string.wireguard_enabled_failure),
+                        ERR_CODE_OTHER_WG_ACTIVE + wireguardEnabledFailureText,
                         Toast.LENGTH_LONG
                     )
                 }
@@ -266,7 +287,7 @@ fun WgConfigDetailScreen(
                     catchAllEnabled = false
                     Utilities.showToastUiCentered(
                         context,
-                        ERR_CODE_WG_INVALID + context.getString(R.string.wireguard_enabled_failure),
+                        ERR_CODE_WG_INVALID + wireguardEnabledFailureText,
                         Toast.LENGTH_LONG
                     )
                 }
@@ -360,7 +381,7 @@ fun WgConfigDetailScreen(
                     withContext(Dispatchers.Main) {
                         Utilities.showToastUiCentered(
                             context,
-                            context.getString(R.string.config_add_success_toast),
+                            configAddSuccessToast,
                             Toast.LENGTH_SHORT
                         )
                         onBackClick()
@@ -584,10 +605,7 @@ fun WgConfigDetailScreen(
                         val ssidSubtitle =
                             buildString {
                                 append(
-                                    context.getString(
-                                        R.string.wg_setting_ssid_desc,
-                                        context.getString(R.string.lbl_ssids)
-                                    )
+                                    stringResource(R.string.wg_setting_ssid_desc, lblSsidsText)
                                 )
                                 if (ssids.isNotEmpty()) {
                                     append("\n")
@@ -667,12 +685,16 @@ private fun WgConfigOverviewCard(name: String, status: String, statusColor: Int?
 }
 
 private suspend fun updateStatusUi(
-    context: Context,
     id: Int,
     persistentState: PersistentState,
     onSurfaceVariantColor: Int,
     errorColor: Int,
     tertiaryColor: Int,
+    statusTextById: Map<Long, String>,
+    statusFailingText: String,
+    statusDisabledText: String,
+    statusWaitingText: String,
+    wireguardVersionTemplate: String,
     onStatusUpdate: (String, Int?) -> Unit
 ) {
     val mapping = WireguardManager.getConfigFilesById(id)
@@ -688,19 +710,28 @@ private suspend fun updateStatusUi(
         }
         withContext(Dispatchers.Main) {
             if (dnsStatusId != null && isDnsError(dnsStatusId)) {
-                val text = context.getString(R.string.status_failing)
-                    .replaceFirstChar(Char::titlecase)
+                val text = statusFailingText
                 val color = errorColor
                 onStatusUpdate(text, color)
                 return@withContext
             }
-            val text = getStatusText(context, ps, getHandshakeTime(stats).toString(), stats, statusPair.second)
+            val text =
+                getStatusText(
+                    statusTextById = statusTextById,
+                    statusFailingText = statusFailingText,
+                    statusWaitingText = statusWaitingText,
+                    wireguardVersionTemplate = wireguardVersionTemplate,
+                    status = ps,
+                    handshakeTime = getHandshakeTime(stats).toString(),
+                    stats = stats,
+                    errMsg = statusPair.second
+                )
             val color = getStrokeColorForStatus(ps, stats, onSurfaceVariantColor, errorColor, tertiaryColor)
             onStatusUpdate(text, color)
         }
     } else {
         withContext(Dispatchers.Main) {
-            val text = context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase)
+            val text = statusDisabledText
             onStatusUpdate(text, null)
         }
     }
@@ -720,38 +751,40 @@ private fun isDnsError(statusId: Long?): Boolean {
 }
 
 private fun getStatusText(
-    context: Context,
+    statusTextById: Map<Long, String>,
+    statusFailingText: String,
+    statusWaitingText: String,
+    wireguardVersionTemplate: String,
     status: UIUtils.ProxyStatus?,
     handshakeTime: String? = null,
     stats: RouterStats?,
     errMsg: String? = null
 ): String {
     if (status == null) {
-        val txt = if (!errMsg.isNullOrEmpty()) {
-            context.getString(R.string.status_waiting) + " ($errMsg)"
-        } else {
-            context.getString(R.string.status_waiting)
-        }
+        val txt =
+            if (!errMsg.isNullOrEmpty()) {
+                "$statusWaitingText ($errMsg)"
+            } else {
+                statusWaitingText
+            }
         return txt.replaceFirstChar(Char::titlecase)
     }
 
     if (status == UIUtils.ProxyStatus.TPU) {
-        return context.getString(UIUtils.getProxyStatusStringRes(status.id))
-            .replaceFirstChar(Char::titlecase)
+        return statusTextById.getValue(status.id)
     }
 
     val now = System.currentTimeMillis()
     val lastOk = stats?.lastOK ?: 0L
     val since = stats?.since ?: 0L
     if (now - since > WG_UPTIME_THRESHOLD && lastOk == 0L) {
-        return context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
+        return statusFailingText
     }
 
-    val baseText = context.getString(UIUtils.getProxyStatusStringRes(status.id))
-        .replaceFirstChar(Char::titlecase)
+    val baseText = statusTextById.getValue(status.id)
 
     return if (stats?.lastOK != 0L && handshakeTime != null) {
-        context.getString(R.string.about_version_install_source, baseText, handshakeTime)
+        String.format(wireguardVersionTemplate, baseText, handshakeTime)
     } else {
         baseText
     }

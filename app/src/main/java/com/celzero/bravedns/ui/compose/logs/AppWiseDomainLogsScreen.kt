@@ -49,6 +49,12 @@ fun AppWiseDomainLogsScreen(
     onBackClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
+    val twoArgumentColonTemplate = stringResource(R.string.two_argument_colon)
+    val twoArgumentSpaceTemplate = stringResource(R.string.two_argument_space)
+    val appOtherAppsTemplate = stringResource(R.string.ctbs_app_other_apps, "", "")
+    val searchLabel = stringResource(R.string.lbl_search)
+    val serviceProviderLabel = stringResource(R.string.lbl_service_providers)
+    val universalIpLabel = stringResource(R.string.search_universal_ips)
     var appName by remember(uid) { mutableStateOf("") }
     var searchHint by remember { mutableStateOf("") }
     var appIcon by remember { mutableStateOf<Drawable?>(null) }
@@ -66,7 +72,17 @@ fun AppWiseDomainLogsScreen(
         viewModel.timeCategoryChanged(selectedCategory, true)
 
         withContext(Dispatchers.IO) {
-            val meta = resolveAppWiseLogsHeader(context, uid, isAsn = false)
+            val meta = resolveAppWiseLogsHeader(
+                context = context,
+                uid = uid,
+                isAsn = false,
+                appOtherAppsTemplate = appOtherAppsTemplate,
+                twoArgumentColonTemplate = twoArgumentColonTemplate,
+                twoArgumentSpaceTemplate = twoArgumentSpaceTemplate,
+                searchLabel = searchLabel,
+                serviceProvidersLabel = serviceProviderLabel,
+                universalIpsLabel = universalIpLabel
+            )
             if (meta == null) {
                 withContext(Dispatchers.Main) { onBackClick?.invoke() }
                 return@withContext

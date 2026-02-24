@@ -287,7 +287,8 @@ private fun DohListContent(
     }
 
     if (showDialog) {
-        FullWidthDialog(onDismiss = { showDialog = false }) {
+            FullWidthDialog(onDismiss = { showDialog = false }) {
+            val dohNameTemplate = stringResource(R.string.cd_custom_doh_url_name)
             CustomDohDialogContent(
                 title = heading,
                 nameLabel = nameLabel,
@@ -297,7 +298,7 @@ private fun DohListContent(
                 checkboxLabel = checkboxLabel,
                 loadNextIndex = { appConfig.getDohCount().plus(1) },
                 nameForIndex = { index ->
-                    context.getString(R.string.cd_custom_doh_url_name, index.toString())
+                    String.format(dohNameTemplate, index.toString())
                 },
                 onSubmit = { name, url, isSecure ->
                     if (checkUrl(url)) {
@@ -483,10 +484,13 @@ private fun DnsProxyDialogContent(
     val context = LocalContext.current
     var selectedAppIndex by remember { mutableStateOf(0) }
     var appMenuExpanded by remember { mutableStateOf(false) }
+    val dnsProxyDefaultTemplate = stringResource(R.string.cd_custom_dns_proxy_name)
+    val dnsProxyDefaultIp = stringResource(R.string.cd_custom_dns_proxy_default_ip)
+    val modeInternal = stringResource(R.string.cd_dns_proxy_mode_internal)
     var proxyName by remember {
-        mutableStateOf(context.getString(R.string.cd_custom_dns_proxy_name, nextIndex.toString()))
+        mutableStateOf(String.format(dnsProxyDefaultTemplate, nextIndex.toString()))
     }
-    var ipAddress by remember { mutableStateOf(context.getString(R.string.cd_custom_dns_proxy_default_ip)) }
+    var ipAddress by remember { mutableStateOf(dnsProxyDefaultIp) }
     var portText by remember { mutableStateOf("") }
     var errorText by remember { mutableStateOf("") }
     var excludeAppsChecked by remember { mutableStateOf(!persistentState.excludeAppsInProxy) }
@@ -637,8 +641,19 @@ private fun DnsProxyDialogContent(
                     }
 
                     val ipString = validIps.joinToString(",")
+                    val isModeInternal = mode == modeInternal
                     scope.launch(Dispatchers.IO) {
-                        insertDNSProxyEndpointDB(context, appConfig, mode, proxyName, appName, ipString, port)
+                        insertDNSProxyEndpointDB(
+                            context,
+                            appConfig,
+                            mode,
+                            proxyName,
+                            appName,
+                            ipString,
+                            port,
+                            defaultApp = appNames.firstOrNull().orEmpty(),
+                            isInternalMode = isModeInternal
+                        )
                     }
                     persistentState.excludeAppsInProxy = !excludeAppsChecked
                     onDismiss()
@@ -657,18 +672,20 @@ private suspend fun insertDNSProxyEndpointDB(
     name: String,
     appName: String?,
     ip: String,
-    port: Int
+    port: Int,
+    defaultApp: String,
+    isInternalMode: Boolean
 ) {
     if (appName == null) return
 
-    val packageName = if (appName == context.getString(R.string.settings_app_list_default_app)) {
+    val packageName = if (appName == defaultApp) {
         ""
     } else {
         FirewallManager.getPackageNameByAppName(appName) ?: ""
     }
     var proxyName = name
     if (proxyName.isBlank()) {
-        proxyName = if (mode == context.getString(R.string.cd_dns_proxy_mode_internal)) {
+        proxyName = if (isInternalMode) {
             appName
         } else ip
     }
@@ -767,11 +784,13 @@ private fun DnsCryptDialogContent(
     scope: CoroutineScope,
     onDismiss: () -> Unit
 ) {
-    val context = LocalContext.current
     var isServer by remember { mutableStateOf(true) }
     var dnscryptNextIndex by remember { mutableStateOf(0) }
     var relayNextIndex by remember { mutableStateOf(0) }
-    var name by remember { mutableStateOf(context.getString(R.string.cd_dns_crypt_name_default)) }
+    val dnsCryptServerNameTemplate = stringResource(R.string.cd_dns_crypt_name)
+    val dnsCryptRelayNameTemplate = stringResource(R.string.cd_dns_crypt_relay_name)
+    val dnsCryptNameDefault = stringResource(R.string.cd_dns_crypt_name_default)
+    var name by remember { mutableStateOf(dnsCryptNameDefault) }
     var url by remember { mutableStateOf("") }
     var desc by remember { mutableStateOf("") }
     var errorText by remember { mutableStateOf("") }
@@ -783,9 +802,9 @@ private fun DnsCryptDialogContent(
 
     LaunchedEffect(isServer, dnscryptNextIndex, relayNextIndex) {
         name = if (isServer) {
-            context.getString(R.string.cd_dns_crypt_name, dnscryptNextIndex.toString())
+            String.format(dnsCryptServerNameTemplate, dnscryptNextIndex.toString())
         } else {
-            context.getString(R.string.cd_dns_crypt_relay_name, relayNextIndex.toString())
+            String.format(dnsCryptRelayNameTemplate, relayNextIndex.toString())
         }
     }
     val dialogHeading = stringResource(R.string.cd_dns_crypt_dialog_heading)

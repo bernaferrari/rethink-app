@@ -2860,7 +2860,8 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             Log.INFO -> Logger.i(LOG_TAG_VPN, msg)
             else -> Logger.d(LOG_TAG_VPN, msg)
         }
-        uiCtx("toast") { if (DEBUG) showToastUiCentered(this, msg, Toast.LENGTH_LONG) }
+        // Avoid transient UI noise for internal restart diagnostics.
+        // These messages remain in logs for debugging.
     }
 
     private fun notifyConnectionStateChangeIfNeeded() {

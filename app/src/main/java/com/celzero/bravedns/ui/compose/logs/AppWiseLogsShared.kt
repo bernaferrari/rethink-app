@@ -110,7 +110,13 @@ internal data class AppWiseLogsHeader(
 internal suspend fun resolveAppWiseLogsHeader(
     context: Context,
     uid: Int,
-    isAsn: Boolean
+    isAsn: Boolean,
+    appOtherAppsTemplate: String,
+    twoArgumentColonTemplate: String,
+    twoArgumentSpaceTemplate: String,
+    searchLabel: String,
+    serviceProvidersLabel: String,
+    universalIpsLabel: String
 ): AppWiseLogsHeader? {
     if (uid == INVALID_UID) return null
 
@@ -120,8 +126,8 @@ internal suspend fun resolveAppWiseLogsHeader(
 
     val visibleName =
         if (packageNames.size >= 2) {
-            context.getString(
-                R.string.ctbs_app_other_apps,
+            String.format(
+                appOtherAppsTemplate,
                 info.appName,
                 (packageNames.size - 1).toString()
             )
@@ -132,18 +138,10 @@ internal suspend fun resolveAppWiseLogsHeader(
     val hint =
         if (isAsn) {
             val txt =
-                context.getString(
-                    R.string.two_argument_space,
-                    context.getString(R.string.lbl_search),
-                    context.getString(R.string.lbl_service_providers)
-                )
-            context.getString(R.string.two_argument_colon, truncated, txt)
+                String.format(twoArgumentSpaceTemplate, searchLabel, serviceProvidersLabel)
+            String.format(twoArgumentColonTemplate, truncated, txt)
         } else {
-            context.getString(
-                R.string.two_argument_colon,
-                truncated,
-                context.getString(R.string.search_universal_ips)
-            )
+            String.format(twoArgumentColonTemplate, truncated, universalIpsLabel)
         }
 
     return AppWiseLogsHeader(

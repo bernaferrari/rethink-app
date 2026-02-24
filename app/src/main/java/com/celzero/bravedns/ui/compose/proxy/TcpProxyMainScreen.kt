@@ -81,6 +81,10 @@ fun TcpProxyMainScreen(
     var includeAppsProxyId by remember { mutableStateOf("") }
     var includeAppsProxyName by remember { mutableStateOf("") }
     val tcpProxyDefaultDesc = stringResource(R.string.settings_https_desc)
+    val tcpProxyWarpActiveError = stringResource(R.string.tcp_proxy_warp_active_error)
+    val tcpProxyNoAppsError = stringResource(R.string.tcp_proxy_no_apps_error)
+    val tcpProxyDisabledDescription = stringResource(R.string.settings_https_desc)
+    val tcpProxyDisabledErrorTemplate = stringResource(R.string.settings_https_disabled_error)
     val activeText = stringResource(R.string.lbl_active)
     val inactiveText = stringResource(R.string.lbl_inactive)
     val udpExperimentalDesc = stringResource(R.string.adv_set_experimental_desc)
@@ -115,7 +119,7 @@ fun TcpProxyMainScreen(
                     tcpProxySwitchChecked = false
                     Utilities.showToastUiCentered(
                         context,
-                        context.getString(R.string.tcp_proxy_warp_active_error),
+                        tcpProxyWarpActiveError,
                         Toast.LENGTH_SHORT
                     )
                     return@withContext
@@ -126,7 +130,7 @@ fun TcpProxyMainScreen(
                 if (!apps) {
                     Utilities.showToastUiCentered(
                         context,
-                        context.getString(R.string.tcp_proxy_no_apps_error),
+                        tcpProxyNoAppsError,
                         Toast.LENGTH_SHORT
                     )
                     warpSwitchChecked = false
@@ -136,7 +140,7 @@ fun TcpProxyMainScreen(
 
                 if (!checked) {
                     scope.launch(Dispatchers.IO) { TcpProxyHelper.disable() }
-                    tcpProxyDesc = context.getString(R.string.settings_https_desc)
+                    tcpProxyDesc = tcpProxyDisabledDescription
                     return@withContext
                 }
 
@@ -149,7 +153,7 @@ fun TcpProxyMainScreen(
                     val provider = appConfig.getProxyProvider().lowercase().replaceFirstChar(Char::titlecase)
                     Utilities.showToastUiCentered(
                         context,
-                        context.getString(R.string.settings_https_disabled_error, provider),
+                        String.format(tcpProxyDisabledErrorTemplate, provider),
                         Toast.LENGTH_SHORT
                     )
                     tcpProxySwitchChecked = false

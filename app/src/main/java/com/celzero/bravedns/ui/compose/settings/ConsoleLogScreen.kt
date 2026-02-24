@@ -92,6 +92,9 @@ fun ConsoleLogScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val consoleLogDesc = stringResource(R.string.console_log_desc)
+    val logsCardDuration = stringResource(R.string.logs_card_duration)
+    val twoArgumentSpace = stringResource(R.string.two_argument_space)
 
     var query by remember { mutableStateOf("") }
     var infoText by remember { mutableStateOf("") }
@@ -116,9 +119,8 @@ fun ConsoleLogScreen(
             val sinceTime = viewModel.sinceTime()
             if (sinceTime != 0L) {
                 val since = Utilities.convertLongToTime(sinceTime, Constants.TIME_FORMAT_3)
-                val desc = context.getString(R.string.console_log_desc)
-                val sinceTxt = context.getString(R.string.logs_card_duration, since)
-                infoText = context.getString(R.string.two_argument_space, desc, sinceTxt)
+                val sinceTxt = String.format(logsCardDuration, since)
+                infoText = String.format(twoArgumentSpace, consoleLogDesc, sinceTxt)
             }
         }
     }

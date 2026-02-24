@@ -367,6 +367,10 @@ private fun BubbleAppRow(
 @Composable
 fun BlockedAppRow(app: BlockedAppInfo, onAllow: () -> Unit) {
     val context = LocalContext.current
+    val bubbleTimeJustNow = stringResource(R.string.bubble_time_just_now)
+    val bubbleTimeMinutesAgoTemplate = stringResource(R.string.bubble_time_minutes_ago)
+    val bubbleTimeHoursAgoTemplate = stringResource(R.string.bubble_time_hours_ago)
+
     BubbleAppRow(
         packageName = app.packageName,
         appName = app.appName,
@@ -388,7 +392,16 @@ fun BlockedAppRow(app: BlockedAppInfo, onAllow: () -> Unit) {
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = timeAgo(context, app.lastBlocked),
+                    text = timeAgo(
+                        timestamp = app.lastBlocked,
+                        justNowText = bubbleTimeJustNow,
+                        minutesAgoText = {
+                            String.format(Locale.getDefault(), bubbleTimeMinutesAgoTemplate, it)
+                        },
+                        hoursAgoText = {
+                            String.format(Locale.getDefault(), bubbleTimeHoursAgoTemplate, it)
+                        }
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 1,
@@ -471,20 +484,23 @@ private fun allowedTimeRemaining(app: AllowedAppInfo): String {
     }
 }
 
-private fun timeAgo(context: android.content.Context, timestamp: Long): String {
+private fun timeAgo(
+    timestamp: Long,
+    justNowText: String,
+    minutesAgoText: (Long) -> String,
+    hoursAgoText: (Long) -> String
+): String {
     val now = System.currentTimeMillis()
     val diff = now - timestamp
     return when {
-        diff < TimeUnit.MINUTES.toMillis(1) -> {
-            context.getString(R.string.bubble_time_just_now)
-        }
+        diff < TimeUnit.MINUTES.toMillis(1) -> justNowText
         diff < TimeUnit.HOURS.toMillis(1) -> {
             val minutes = TimeUnit.MILLISECONDS.toMinutes(diff)
-            context.getString(R.string.bubble_time_minutes_ago, minutes)
+            minutesAgoText(minutes)
         }
         diff < TimeUnit.DAYS.toMillis(1) -> {
             val hours = TimeUnit.MILLISECONDS.toHours(diff)
-            context.getString(R.string.bubble_time_hours_ago, hours)
+            hoursAgoText(hours)
         }
         else -> {
             val dateFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())

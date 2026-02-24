@@ -717,6 +717,7 @@ fun HomeScreenRoot(
             composable<HomeRoute.Stats> {
                 SummaryStatisticsScreen(
                     viewModel = summaryViewModel,
+                    persistentState = persistentState,
                     onSeeMoreClick = onOpenDetailedStats
                 )
             }
@@ -816,6 +817,7 @@ fun HomeScreenRoot(
                     viewModel = appInfoViewModel,
                     eventLogger = appInfoEventLogger,
                     refreshDatabase = refreshDatabase,
+                    onAppClick = { uid -> navController.navigate(HomeRoute.AppInfo(uid)) },
                     onBackClick = { navController.popBackStack() }
                 )
             }

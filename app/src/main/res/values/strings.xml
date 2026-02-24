@@ -1672,6 +1672,7 @@
     <string name="ssv_most_blocked_countries_heading" description="This label will appear on the stats screen as a header for most blocked domains by country" translatable="true">Most blocked countries</string>
     <string name="ssv_toast_start_rethink" description="This label will appear on the stats screen as toast to start Rethink app" translatable="true">Start Rethink to proceed</string>
     <string name="ssv_see_more" translatable="true">Show All</string>
+    <string name="ssv_see_less" translatable="true">Show Less</string>
 
     <!-- wireguard -->
     <string name="bad_config_reason_invalid_key" translatable="true">Invalid key</string>

@@ -19,6 +19,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
+import android.util.LruCache
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -34,6 +35,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -81,8 +83,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import java.util.concurrent.TimeUnit
 
 enum class FirewallRowPosition {
     First,
@@ -96,33 +99,48 @@ fun FirewallAppRow(
     appInfo: AppInfo,
     eventLogger: EventLogger,
     searchQuery: String = "",
-    rowPosition: FirewallRowPosition = FirewallRowPosition.Single
+    rowPosition: FirewallRowPosition = FirewallRowPosition.Single,
+    onAppClick: ((Int) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var dialogState by remember(appInfo.uid) { mutableStateOf<FirewallAppDialogState?>(null) }
     val packageManager = context.packageManager
-    var appStatus by remember(appInfo.uid) {
+    var appStatus by remember(appInfo.uid, appInfo.firewallStatus) {
         mutableStateOf(FirewallManager.FirewallStatus.getStatus(appInfo.firewallStatus))
     }
-    var connStatus by remember(appInfo.uid) {
+    var connStatus by remember(appInfo.uid, appInfo.connectionStatus) {
         mutableStateOf(FirewallManager.ConnectionStatus.getStatus(appInfo.connectionStatus))
     }
-    var appIcon by remember(appInfo.uid) { mutableStateOf<Drawable?>(null) }
+    var appIcon by
+        remember(appInfo.packageName) {
+            mutableStateOf<Drawable?>(FirewallAppIconCache.get(appInfo.packageName))
+        }
     var proxyEnabled by remember(appInfo.uid) { mutableStateOf(false) }
     val isSelfApp = appInfo.packageName == context.packageName
     val tombstoned = appInfo.tombstoneTs > 0
     val nameAlpha = if (appInfo.hasInternetPermission(packageManager)) 1f else 0.4f
 
-    LaunchedEffect(appInfo.uid, appInfo.packageName, appInfo.appName) {
-        appStatus = withContext(Dispatchers.IO) { FirewallManager.appStatus(appInfo.uid) }
-        connStatus = withContext(Dispatchers.IO) { FirewallManager.connectionStatus(appInfo.uid) }
-        appIcon = getIcon(context, appInfo.packageName, appInfo.appName)
+    LaunchedEffect(appInfo.uid, appInfo.firewallStatus, appInfo.connectionStatus) {
+        appStatus = FirewallManager.FirewallStatus.getStatus(appInfo.firewallStatus)
+        connStatus = FirewallManager.ConnectionStatus.getStatus(appInfo.connectionStatus)
+    }
+
+    LaunchedEffect(appInfo.uid, appInfo.packageName, appInfo.appName, appInfo.isProxyExcluded) {
+        if (appIcon == null) {
+            val icon =
+                withContext(Dispatchers.IO) {
+                    getIcon(context, appInfo.packageName, appInfo.appName)
+                }
+            appIcon = icon
+            FirewallAppIconCache.put(appInfo.packageName, icon)
+        }
         val proxyId = ProxyManager.getProxyIdForApp(appInfo.uid)
         proxyEnabled = !appInfo.isProxyExcluded && proxyId.isNotEmpty() && proxyId != ID_NONE
     }
 
-    val dataUsageText = buildDataUsageText(context, appInfo)
+    val hasDataUsage = appInfo.uploadBytes > 0L || appInfo.downloadBytes > 0L
+    val dataUsageText = if (hasDataUsage) buildDataUsageText(context, appInfo) else ""
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -156,16 +174,9 @@ fun FirewallAppRow(
             highlightColor = MaterialTheme.colorScheme.primary,
             highlightBackground = matchBackground
         )
-    val highlightedPackageName =
-        buildHighlightedText(
-            text = appInfo.packageName,
-            query = searchQuery,
-            highlightColor = MaterialTheme.colorScheme.primary,
-            highlightBackground = matchBackground
-        )
     val statusText =
         if (isSelfApp) {
-            context.resources.getString(R.string.firewall_status_allow)
+            ""
         } else {
             getFirewallText(context, appStatus, connStatus)
         }
@@ -177,6 +188,38 @@ fun FirewallAppRow(
     )
     val wifiIcon = wifiIconRes(appStatus, connStatus, isSelfApp)
     val mobileIcon = mobileIconRes(appStatus, connStatus, isSelfApp)
+    val wifiTint =
+        if (wifiIcon == R.drawable.ic_firewall_wifi_off) {
+            MaterialTheme.colorScheme.error
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        }
+    val mobileTint =
+        if (mobileIcon == R.drawable.ic_firewall_data_off) {
+            MaterialTheme.colorScheme.error
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        }
+    val wifiContainerColor by animateColorAsState(
+        targetValue =
+            if (wifiIcon == R.drawable.ic_firewall_wifi_off) {
+                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.45f)
+            } else {
+                Color.Transparent
+            },
+        animationSpec = tween(durationMillis = 200),
+        label = "wifiContainerColor"
+    )
+    val mobileContainerColor by animateColorAsState(
+        targetValue =
+            if (mobileIcon == R.drawable.ic_firewall_data_off) {
+                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.45f)
+            } else {
+                Color.Transparent
+            },
+        animationSpec = tween(durationMillis = 200),
+        label = "mobileContainerColor"
+    )
 
     val shape = rowShapeFor(rowPosition)
 
@@ -188,7 +231,9 @@ fun FirewallAppRow(
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
-                onClick = { openAppDetailActivity(context, appInfo.uid) }
+                onClick = {
+                    onAppClick?.invoke(appInfo.uid) ?: openAppDetailActivity(context, appInfo.uid)
+                }
             ),
         shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
@@ -212,8 +257,8 @@ fun FirewallAppRow(
                     painter = painter,
                     contentDescription = null,
                     modifier = Modifier
-                        .size(32.dp)
-                        .clip(RoundedCornerShape(9.dp))
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
                 )
             }
 
@@ -230,32 +275,10 @@ fun FirewallAppRow(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = highlightedPackageName,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.78f),
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Surface(
-                        shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
-                        color = accentColor.copy(alpha = 0.12f)
-                    ) {
-                        Text(
-                            text = statusText,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = accentColor,
-                            modifier = Modifier.padding(
-                                horizontal = 6.dp,
-                                vertical = 1.dp
-                            )
-                        )
-                    }
                     if (proxyEnabled) {
                         Surface(
                             shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
@@ -273,68 +296,106 @@ fun FirewallAppRow(
                         }
                     }
                 }
-                Text(
-                    text = dataUsageText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                        alpha = Dimensions.Opacity.MEDIUM
-                    )
-                )
-            }
-
-            if (wifiIcon != null) {
-                IconButton(
-                    onClick = {
-                        handleWifiToggle(
-                            scope,
-                            eventLogger,
-                            appInfo
-                        ) { packageList, cs ->
-                            dialogState =
-                                FirewallAppDialogState(
-                                    packageList,
-                                    appInfo,
-                                    isWifi = true,
-                                    cs
-                                )
-                        }
-                    },
-                    modifier = Modifier.size(34.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = wifiIcon),
-                        contentDescription = context.getString(R.string.firewall_rule_block_unmetered),
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                if (hasDataUsage) {
+                    Text(
+                        text = dataUsageText,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                            alpha = Dimensions.Opacity.MEDIUM
+                        )
                     )
                 }
             }
 
-            if (mobileIcon != null) {
-                IconButton(
-                    onClick = {
-                        handleMobileToggle(
-                            scope,
-                            eventLogger,
-                            appInfo
-                        ) { packageList, cs ->
-                            dialogState =
-                                FirewallAppDialogState(
-                                    packageList,
-                                    appInfo,
-                                    isWifi = false,
-                                    cs
-                                )
-                        }
-                    },
-                    modifier = Modifier.size(34.dp)
+            if (statusText.isNotBlank()) {
+                Surface(
+                    shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
+                    color = accentColor.copy(alpha = 0.12f)
                 ) {
-                    Icon(
-                        painter = painterResource(id = mobileIcon),
-                        contentDescription = context.getString(R.string.lbl_mobile_data),
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    Text(
+                        text = statusText,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = accentColor,
+                        modifier = Modifier.padding(
+                            horizontal = 6.dp,
+                            vertical = 2.dp
+                        )
                     )
+                }
+            }
+
+            if (wifiIcon != null) {
+                Surface(
+                    shape = CircleShape,
+                    color = wifiContainerColor
+                ) {
+                    IconButton(
+                        onClick = {
+                            handleWifiToggle(
+                                scope = scope,
+                                eventLogger = eventLogger,
+                                appInfo = appInfo,
+                                onShowDialog = { packageList ->
+                                    dialogState =
+                                        FirewallAppDialogState(
+                                            packageList,
+                                            appInfo,
+                                            isWifi = true
+                                        )
+                                },
+                                onStatusUpdated = { newAppStatus, newConnStatus ->
+                                    appStatus = newAppStatus
+                                    connStatus = newConnStatus
+                                }
+                            )
+                        },
+                        modifier = Modifier.size(34.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = wifiIcon),
+                            contentDescription = context.getString(R.string.firewall_rule_block_unmetered),
+                            modifier = Modifier.size(16.dp),
+                            tint = wifiTint
+                        )
+                    }
+                }
+            }
+
+            if (mobileIcon != null) {
+                Surface(
+                    shape = CircleShape,
+                    color = mobileContainerColor
+                ) {
+                    IconButton(
+                        onClick = {
+                            handleMobileToggle(
+                                scope = scope,
+                                eventLogger = eventLogger,
+                                appInfo = appInfo,
+                                onShowDialog = { packageList ->
+                                    dialogState =
+                                        FirewallAppDialogState(
+                                            packageList,
+                                            appInfo,
+                                            isWifi = false
+                                        )
+                                },
+                                onStatusUpdated = { newAppStatus, newConnStatus ->
+                                    appStatus = newAppStatus
+                                    connStatus = newConnStatus
+                                }
+                            )
+                        },
+                        modifier = Modifier.size(34.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(id = mobileIcon),
+                            contentDescription = context.getString(R.string.lbl_mobile_data),
+                            modifier = Modifier.size(16.dp),
+                            tint = mobileTint
+                        )
+                    }
                 }
             }
         }
@@ -361,10 +422,15 @@ fun FirewallAppRow(
             dismissText = context.resources.getString(R.string.ctbs_dialog_negative_btn),
             onConfirm = {
                 scope.launch(Dispatchers.IO) {
-                    if (state.isWifi) {
-                        toggleWifi(eventLogger, state.appInfo, state.connStatus)
-                    } else {
-                        toggleMobileData(eventLogger, state.appInfo, state.connStatus)
+                    val updatedConnStatus =
+                        if (state.isWifi) {
+                            toggleWifi(eventLogger, state.appInfo)
+                        } else {
+                            toggleMobileData(eventLogger, state.appInfo)
+                        }
+                    withContext(Dispatchers.Main) {
+                        appStatus = FirewallManager.FirewallStatus.NONE
+                        connStatus = updatedConnStatus
                     }
                 }
                 dialogState = null
@@ -399,8 +465,7 @@ private fun getStatusColor(
 private data class FirewallAppDialogState(
     val packageList: List<String>,
     val appInfo: AppInfo,
-    val isWifi: Boolean,
-    val connStatus: FirewallManager.ConnectionStatus
+    val isWifi: Boolean
 )
 
 private fun buildDataUsageText(context: Context, appInfo: AppInfo): String {
@@ -419,33 +484,29 @@ private fun getFirewallText(
     return when (aStat) {
         FirewallManager.FirewallStatus.NONE ->
             when (cStat) {
-                FirewallManager.ConnectionStatus.ALLOW ->
-                    context.resources.getString(R.string.firewall_status_allow)
-
+                FirewallManager.ConnectionStatus.ALLOW -> ""
                 FirewallManager.ConnectionStatus.METERED ->
-                    context.resources.getString(R.string.firewall_status_block_metered)
-
+                    context.resources.getString(R.string.lbl_blocked)
                 FirewallManager.ConnectionStatus.UNMETERED ->
-                    context.resources.getString(R.string.firewall_status_block_unmetered)
-
+                    context.resources.getString(R.string.lbl_blocked)
                 FirewallManager.ConnectionStatus.BOTH ->
-                    context.resources.getString(R.string.firewall_status_blocked)
+                    context.resources.getString(R.string.lbl_blocked)
             }
 
         FirewallManager.FirewallStatus.EXCLUDE ->
-            context.resources.getString(R.string.firewall_status_excluded)
+            context.resources.getString(R.string.fapps_firewall_filter_excluded)
 
         FirewallManager.FirewallStatus.ISOLATE ->
-            context.resources.getString(R.string.firewall_status_isolate)
+            context.resources.getString(R.string.fapps_firewall_filter_isolate)
 
         FirewallManager.FirewallStatus.BYPASS_UNIVERSAL ->
-            context.resources.getString(R.string.firewall_status_whitelisted)
+            context.resources.getString(R.string.fapps_firewall_filter_bypass_universal)
 
         FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL ->
-            context.resources.getString(R.string.firewall_status_bypass_dns_firewall)
+            context.resources.getString(R.string.fapps_firewall_filter_bypass_universal)
 
         FirewallManager.FirewallStatus.UNTRACKED ->
-            context.resources.getString(R.string.firewall_status_unknown)
+            context.resources.getString(R.string.network_log_app_name_unknown)
     }
 }
 
@@ -503,19 +564,21 @@ private fun handleWifiToggle(
     scope: CoroutineScope,
     eventLogger: EventLogger,
     appInfo: AppInfo,
-    onShowDialog: (List<String>, FirewallManager.ConnectionStatus) -> Unit
+    onShowDialog: (List<String>) -> Unit,
+    onStatusUpdated: (FirewallManager.FirewallStatus, FirewallManager.ConnectionStatus) -> Unit
 ) {
-    enableAfterDelay(scope, TimeUnit.SECONDS.toMillis(1L))
     scope.launch(Dispatchers.IO) {
         val appNames = FirewallManager.getAppNamesByUid(appInfo.uid)
-        val connStatus = FirewallManager.connectionStatus(appInfo.uid)
         if (appNames.count() > 1) {
             withContext(Dispatchers.Main) {
-                onShowDialog(appNames, connStatus)
+                onShowDialog(appNames)
             }
             return@launch
         }
-        toggleWifi(eventLogger, appInfo, connStatus)
+        val updatedConnStatus = toggleWifi(eventLogger, appInfo)
+        withContext(Dispatchers.Main) {
+            onStatusUpdated(FirewallManager.FirewallStatus.NONE, updatedConnStatus)
+        }
     }
 }
 
@@ -523,108 +586,140 @@ private fun handleMobileToggle(
     scope: CoroutineScope,
     eventLogger: EventLogger,
     appInfo: AppInfo,
-    onShowDialog: (List<String>, FirewallManager.ConnectionStatus) -> Unit
+    onShowDialog: (List<String>) -> Unit,
+    onStatusUpdated: (FirewallManager.FirewallStatus, FirewallManager.ConnectionStatus) -> Unit
 ) {
-    enableAfterDelay(scope, TimeUnit.SECONDS.toMillis(1L))
     scope.launch(Dispatchers.IO) {
         val appNames = FirewallManager.getAppNamesByUid(appInfo.uid)
-        val connStatus = FirewallManager.connectionStatus(appInfo.uid)
         if (appNames.count() > 1) {
             withContext(Dispatchers.Main) {
-                onShowDialog(appNames, connStatus)
+                onShowDialog(appNames)
             }
             return@launch
         }
-        toggleMobileData(eventLogger, appInfo, connStatus)
+        val updatedConnStatus = toggleMobileData(eventLogger, appInfo)
+        withContext(Dispatchers.Main) {
+            onStatusUpdated(FirewallManager.FirewallStatus.NONE, updatedConnStatus)
+        }
     }
 }
 
 private suspend fun toggleMobileData(
     eventLogger: EventLogger,
-    appInfo: AppInfo,
-    connStatus: FirewallManager.ConnectionStatus
-) {
-    when (connStatus) {
-        FirewallManager.ConnectionStatus.METERED -> {
-            updateFirewallStatus(
-                appInfo.uid,
-                FirewallManager.FirewallStatus.NONE,
-                FirewallManager.ConnectionStatus.ALLOW
-            )
-        }
+    appInfo: AppInfo
+) : FirewallManager.ConnectionStatus {
+    return FirewallToggleLock.withLock {
+        val connStatus = FirewallManager.connectionStatus(appInfo.uid)
+        val updatedConnStatus = nextConnStatusForMobileToggle(connStatus)
+        when (connStatus) {
+            FirewallManager.ConnectionStatus.METERED -> {
+                updateFirewallStatus(
+                    appInfo.uid,
+                    FirewallManager.FirewallStatus.NONE,
+                    FirewallManager.ConnectionStatus.ALLOW
+                )
+            }
 
-        FirewallManager.ConnectionStatus.UNMETERED -> {
-            updateFirewallStatus(
-                appInfo.uid,
-                FirewallManager.FirewallStatus.NONE,
-                FirewallManager.ConnectionStatus.BOTH
-            )
-        }
+            FirewallManager.ConnectionStatus.UNMETERED -> {
+                updateFirewallStatus(
+                    appInfo.uid,
+                    FirewallManager.FirewallStatus.NONE,
+                    FirewallManager.ConnectionStatus.BOTH
+                )
+            }
 
-        FirewallManager.ConnectionStatus.BOTH -> {
-            updateFirewallStatus(
-                appInfo.uid,
-                FirewallManager.FirewallStatus.NONE,
-                FirewallManager.ConnectionStatus.UNMETERED
-            )
-        }
+            FirewallManager.ConnectionStatus.BOTH -> {
+                updateFirewallStatus(
+                    appInfo.uid,
+                    FirewallManager.FirewallStatus.NONE,
+                    FirewallManager.ConnectionStatus.UNMETERED
+                )
+            }
 
-        FirewallManager.ConnectionStatus.ALLOW -> {
-            updateFirewallStatus(
-                appInfo.uid,
-                FirewallManager.FirewallStatus.NONE,
-                FirewallManager.ConnectionStatus.METERED
-            )
+            FirewallManager.ConnectionStatus.ALLOW -> {
+                updateFirewallStatus(
+                    appInfo.uid,
+                    FirewallManager.FirewallStatus.NONE,
+                    FirewallManager.ConnectionStatus.METERED
+                )
+            }
         }
+        logEvent(
+            eventLogger,
+            "UID: ${appInfo.uid}, App: ${appInfo.appName}, New FW status: ${FirewallManager.connectionStatus(appInfo.uid)}"
+        )
+        updatedConnStatus
     }
-    logEvent(
-        eventLogger,
-        "UID: ${appInfo.uid}, App: ${appInfo.appName}, New FW status: ${FirewallManager.connectionStatus(appInfo.uid)}"
-    )
 }
 
 private suspend fun toggleWifi(
     eventLogger: EventLogger,
-    appInfo: AppInfo,
-    connStatus: FirewallManager.ConnectionStatus
-) {
-    when (connStatus) {
-        FirewallManager.ConnectionStatus.METERED -> {
-            updateFirewallStatus(
-                appInfo.uid,
-                FirewallManager.FirewallStatus.NONE,
-                FirewallManager.ConnectionStatus.BOTH
-            )
-        }
+    appInfo: AppInfo
+) : FirewallManager.ConnectionStatus {
+    return FirewallToggleLock.withLock {
+        val connStatus = FirewallManager.connectionStatus(appInfo.uid)
+        val updatedConnStatus = nextConnStatusForWifiToggle(connStatus)
+        when (connStatus) {
+            FirewallManager.ConnectionStatus.METERED -> {
+                updateFirewallStatus(
+                    appInfo.uid,
+                    FirewallManager.FirewallStatus.NONE,
+                    FirewallManager.ConnectionStatus.BOTH
+                )
+            }
 
-        FirewallManager.ConnectionStatus.UNMETERED -> {
-            updateFirewallStatus(
-                appInfo.uid,
-                FirewallManager.FirewallStatus.NONE,
-                FirewallManager.ConnectionStatus.ALLOW
-            )
-        }
+            FirewallManager.ConnectionStatus.UNMETERED -> {
+                updateFirewallStatus(
+                    appInfo.uid,
+                    FirewallManager.FirewallStatus.NONE,
+                    FirewallManager.ConnectionStatus.ALLOW
+                )
+            }
 
-        FirewallManager.ConnectionStatus.BOTH -> {
-            updateFirewallStatus(
-                appInfo.uid,
-                FirewallManager.FirewallStatus.NONE,
-                FirewallManager.ConnectionStatus.METERED
-            )
-        }
+            FirewallManager.ConnectionStatus.BOTH -> {
+                updateFirewallStatus(
+                    appInfo.uid,
+                    FirewallManager.FirewallStatus.NONE,
+                    FirewallManager.ConnectionStatus.METERED
+                )
+            }
 
-        FirewallManager.ConnectionStatus.ALLOW -> {
-            updateFirewallStatus(
-                appInfo.uid,
-                FirewallManager.FirewallStatus.NONE,
-                FirewallManager.ConnectionStatus.UNMETERED
-            )
+            FirewallManager.ConnectionStatus.ALLOW -> {
+                updateFirewallStatus(
+                    appInfo.uid,
+                    FirewallManager.FirewallStatus.NONE,
+                    FirewallManager.ConnectionStatus.UNMETERED
+                )
+            }
         }
+        logEvent(
+            eventLogger,
+            "UID: ${appInfo.uid}, App: ${appInfo.appName}, New FW status: ${FirewallManager.connectionStatus(appInfo.uid)}"
+        )
+        updatedConnStatus
     }
-    logEvent(
-        eventLogger,
-        "UID: ${appInfo.uid}, App: ${appInfo.appName}, New FW status: ${FirewallManager.connectionStatus(appInfo.uid)}"
-    )
+}
+
+private fun nextConnStatusForMobileToggle(
+    connStatus: FirewallManager.ConnectionStatus
+): FirewallManager.ConnectionStatus {
+    return when (connStatus) {
+        FirewallManager.ConnectionStatus.METERED -> FirewallManager.ConnectionStatus.ALLOW
+        FirewallManager.ConnectionStatus.UNMETERED -> FirewallManager.ConnectionStatus.BOTH
+        FirewallManager.ConnectionStatus.BOTH -> FirewallManager.ConnectionStatus.UNMETERED
+        FirewallManager.ConnectionStatus.ALLOW -> FirewallManager.ConnectionStatus.METERED
+    }
+}
+
+private fun nextConnStatusForWifiToggle(
+    connStatus: FirewallManager.ConnectionStatus
+): FirewallManager.ConnectionStatus {
+    return when (connStatus) {
+        FirewallManager.ConnectionStatus.METERED -> FirewallManager.ConnectionStatus.BOTH
+        FirewallManager.ConnectionStatus.UNMETERED -> FirewallManager.ConnectionStatus.ALLOW
+        FirewallManager.ConnectionStatus.BOTH -> FirewallManager.ConnectionStatus.METERED
+        FirewallManager.ConnectionStatus.ALLOW -> FirewallManager.ConnectionStatus.UNMETERED
+    }
 }
 
 private fun openAppDetailActivity(context: Context, uid: Int) {
@@ -632,12 +727,6 @@ private fun openAppDetailActivity(context: Context, uid: Int) {
     intent.putExtra(HomeScreenActivity.EXTRA_NAV_TARGET, HomeScreenActivity.NAV_TARGET_APP_INFO)
     intent.putExtra(HomeScreenActivity.EXTRA_APP_INFO_UID, uid)
     context.startActivity(intent)
-}
-
-private fun enableAfterDelay(scope: CoroutineScope, delayMs: Long) {
-    scope.launch {
-        delay(delayMs)
-    }
 }
 
 private fun logEvent(eventLogger: EventLogger, details: String) {
@@ -709,5 +798,25 @@ private fun rowShapeFor(position: FirewallRowPosition): RoundedCornerShape {
             RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp, bottomStart = 18.dp, bottomEnd = 18.dp)
 
         FirewallRowPosition.Single -> RoundedCornerShape(18.dp)
+    }
+}
+
+private object FirewallAppIconCache {
+    private const val CACHE_SIZE = 256
+    private val cache = LruCache<String, Drawable>(CACHE_SIZE)
+
+    fun get(packageName: String): Drawable? = cache.get(packageName)
+
+    fun put(packageName: String, icon: Drawable?) {
+        if (packageName.isBlank() || icon == null) return
+        cache.put(packageName, icon)
+    }
+}
+
+private object FirewallToggleLock {
+    private val mutex = Mutex()
+
+    suspend fun <T> withLock(block: suspend () -> T): T {
+        return mutex.withLock { block() }
     }
 }

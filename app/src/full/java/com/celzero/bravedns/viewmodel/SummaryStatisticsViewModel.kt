@@ -68,18 +68,12 @@ class SummaryStatisticsViewModel(
 
     data class SummaryStatisticsUiState(
         val timeCategory: TimeCategory = TimeCategory.ONE_HOUR,
-        val loadMoreClicked: Boolean = false,
         val dataUsage: DataUsageSummary = DataUsageSummary(0, 0, 0, 0)
     )
 
 
     init {
         updateDataUsage()
-    }
-
-    fun setLoadMoreClicked(b: Boolean) {
-        _uiState.update { it.copy(loadMoreClicked = b) }
-        refreshTick.update { it + 1 }
     }
 
     fun timeCategoryChanged(tc: TimeCategory) {
@@ -200,4 +194,12 @@ class SummaryStatisticsViewModel(
                 .flow
                 .cachedIn(viewModelScope)
         }
+
+    suspend fun getTopAppsForCountry(flag: String, limit: Int = 5): List<AppConnection> {
+        if (flag.isBlank()) return emptyList()
+        val to = startTime.value
+        return withContext(Dispatchers.IO) {
+            statsDao.getFlagDetailsLimited(flag = flag, to = to, limit = limit)
+        }
+    }
 }
