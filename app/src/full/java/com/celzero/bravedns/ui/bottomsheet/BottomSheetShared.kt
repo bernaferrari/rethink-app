@@ -628,7 +628,7 @@ fun formatRuleSheetAppName(context: Context, appNames: List<String>): String? {
 fun formatCustomRuleSheetAppName(context: Context, uid: Int, appNames: List<String>): String {
     return when {
         uid == UID_EVERYBODY ->
-            context.getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
+            context.getString(R.string.firewall_act_universal_tab)
         appNames.isEmpty() ->
             context.getString(R.string.network_log_app_name_unknown) + " ($uid)"
         appNames.size >= 2 ->

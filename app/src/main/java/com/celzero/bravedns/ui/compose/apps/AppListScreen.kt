@@ -255,8 +255,8 @@ fun AppListScreen(
                 FirewallManager.load() > 0
             }
         if (!hasCachedApps) {
-            // Ensure app list is populated the first time this screen is opened.
-            refreshAppList(action = RefreshDatabase.ACTION_REFRESH_AUTO, showToast = false)
+            // Bootstrap app entries immediately when local app cache is empty.
+            refreshAppList(action = RefreshDatabase.ACTION_REFRESH_FORCE, showToast = false)
         }
     }
 

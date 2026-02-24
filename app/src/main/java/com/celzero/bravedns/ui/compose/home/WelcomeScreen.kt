@@ -16,9 +16,14 @@
 package com.celzero.bravedns.ui.compose.home
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -26,15 +31,17 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.PagerState
 import androidx.compose.foundation.pager.rememberPagerState
@@ -82,12 +89,14 @@ fun WelcomeScreen(onFinish: () -> Unit) {
     val scope = rememberCoroutineScope()
     val isLastPage = pagerState.currentPage >= slides.lastIndex
 
-    Scaffold(containerColor = MaterialTheme.colorScheme.surface) { paddingValues ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.surface,
+        contentWindowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+    ) { paddingValues ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .windowInsetsPadding(WindowInsets.navigationBars)
         ) {
             // Skip link — top right, subtle
             Row(
@@ -96,7 +105,11 @@ fun WelcomeScreen(onFinish: () -> Unit) {
                     .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = 8.dp),
                 horizontalArrangement = Arrangement.End
             ) {
-                if (!isLastPage) {
+                AnimatedVisibility(
+                    visible = !isLastPage,
+                    enter = expandVertically() + fadeIn(),
+                    exit = fadeOut() + shrinkVertically()
+                ) {
                     TextButton(onClick = onFinish) {
                         Text(
                             text = stringResource(R.string.skip),
@@ -124,7 +137,9 @@ fun WelcomeScreen(onFinish: () -> Unit) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = Dimensions.screenPaddingHorizontal)
-                    .padding(top = 20.dp, bottom = 28.dp),
+                    .padding(top = 20.dp)
+                    .padding(bottom = 12.dp)
+                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {

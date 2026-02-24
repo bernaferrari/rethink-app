@@ -177,7 +177,7 @@ interface AppInfoDAO {
     @Query("update AppInfo set isProxyExcluded = :bypass where packageName = 'com.celzero.bravedns'")
     fun setRethinkToBypassProxy(bypass: Boolean)
 
-    @Query("update AppInfo set firewallStatus = 7 and connectionStatus = 3 where packageName = 'com.celzero.bravedns'")
+    @Query("update AppInfo set firewallStatus = 7, connectionStatus = 3 where packageName = 'com.celzero.bravedns'")
     fun setRethinkToBypassDnsAndFirewall()
 
     @Query("select * from AppInfo where tempAllowEnabled = 1 and tempAllowExpiryTime > 0")

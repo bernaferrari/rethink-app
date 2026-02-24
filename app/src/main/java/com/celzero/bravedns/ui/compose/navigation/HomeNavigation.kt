@@ -560,9 +560,7 @@ fun HomeScreenRoot(
 
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets.safeDrawing.only(
-            WindowInsetsSides.Top + WindowInsetsSides.Horizontal
-        ),
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
         bottomBar = {
             AnimatedVisibility(
@@ -584,9 +582,10 @@ fun HomeScreenRoot(
             ) {
                 NavigationBar(
                     modifier = Modifier.fillMaxWidth(),
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    tonalElevation = 0.dp,
-                    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom)
+                    windowInsets =
+                        WindowInsets.safeDrawing.only(
+                            WindowInsetsSides.Start + WindowInsetsSides.End + WindowInsetsSides.Bottom
+                        )
                 ) {
                     HomeDestination.entries.forEach { destination ->
                         val routeName = destination.route::class.qualifiedName
@@ -631,7 +630,7 @@ fun HomeScreenRoot(
     ) { paddingValues ->
         val navHostModifier = Modifier
             .padding(paddingValues)
-            .consumeWindowInsets(paddingValues)
+            .consumeWindowInsets(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
 
         val navHostContent: @Composable (Modifier) -> Unit = { modifier ->
             NavHost(

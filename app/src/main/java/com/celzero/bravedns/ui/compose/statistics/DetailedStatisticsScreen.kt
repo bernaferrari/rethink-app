@@ -16,6 +16,7 @@
 package com.celzero.bravedns.ui.compose.statistics
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -51,9 +52,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
@@ -216,12 +216,21 @@ private fun DetailedStatisticsTopBar(
     RethinkLargeTopBar(
         title = stringResource(id = getTitleResId(type)),
         onBackClick = onBackClick,
-        scrollBehavior = scrollBehavior
+        scrollBehavior = scrollBehavior,
+        titleTextStyle = MaterialTheme.typography.headlineMedium
     )
 }
 
 @Composable
 private fun DetailedStatItemCard(item: AppConnection, type: SummaryStatisticsType) {
+    val appIconPainter =
+        if (type.supportsAppIcon()) {
+            rememberStatisticsAppIconPainter(item.uid)
+        } else {
+            null
+        }
+    val hasTrueAppIcon = appIconPainter != null
+
     Card(
         shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
         colors = CardDefaults.cardColors(
@@ -247,18 +256,30 @@ private fun DetailedStatItemCard(item: AppConnection, type: SummaryStatisticsTyp
             } else {
                 Surface(
                     shape = RoundedCornerShape(Dimensions.cornerRadiusMd),
-                    color = MaterialTheme.colorScheme.surfaceContainerHighest
+                    color = if (hasTrueAppIcon) {
+                        MaterialTheme.colorScheme.surfaceContainerHigh
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainerHighest
+                    }
                 ) {
                     Box(
                         modifier = Modifier.size(38.dp),
                         contentAlignment = Alignment.Center
                     ) {
-                        Icon(
-                            imageVector = ImageVector.vectorResource(id = R.drawable.ic_app_info),
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        if (appIconPainter != null) {
+                            Image(
+                                painter = appIconPainter,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        } else {
+                            Icon(
+                                painter = painterResource(id = R.drawable.ic_app_info),
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
                 }
             }

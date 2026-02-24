@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.celzero.bravedns.R
@@ -131,7 +132,9 @@ fun AntiCensorshipScreen(
         title = stringResource(R.string.anti_censorship_title),
         subtitle = topBarSubtitle,
         onBackClick = onBackClick,
-        containerColor = MaterialTheme.colorScheme.background
+        containerColor = MaterialTheme.colorScheme.background,
+        topBarContainerColor = Color.Transparent,
+        topBarScrolledContainerColor = Color.Transparent
     ) {
             item {
                 RethinkListGroup {

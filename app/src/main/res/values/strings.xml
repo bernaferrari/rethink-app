@@ -104,7 +104,7 @@
     <string name="lbl_slow" translatable="true">slow</string>
     <string name="lbl_very" translatable="true">very</string>
     <string name="lbl_add" translatable="true">add</string>
-    <string name="lbl_app_wise" translatable="true">per app</string>
+    <string name="lbl_app_wise" translatable="true">Per App</string>
     <string name="lbl_sec" translatable="true">sec</string>
     <string name="lbl_min" translatable="true">min</string>
     <string name="lbl_hour" translatable="true">hr</string>
@@ -244,7 +244,7 @@
 
     <string name="allow" translatable="true">allow</string>
     <string name="block" translatable="true">block</string>
-    <string name="bypass_universal" translatable="true">bypass universal</string>
+    <string name="bypass_universal" translatable="true">Bypass Universal</string>
     <string name="exclude" translatable="true">exclude</string>
     <string name="isolate" translatable="true">isolate</string>
     <string name="untracked" translatable="true">untracked</string>
@@ -412,7 +412,7 @@
     <string name="private_dns_dialog_desc" translatable="true">Rethink\'s DNS settings are overridden by Android\'s Private DNS.\n\nTo use Rethink\'s DNS go to Android Settings and turn off \"Private DNS\".</string>
     <string name="private_dns_dialog_positive" translatable="true">Go to Settings</string>
 
-    <string name="firewall_act_universal_tab" translatable="true">universal</string>
+    <string name="firewall_act_universal_tab" translatable="true">Universal</string>
 
     <string name="firewall_act_network_monitor_tab" translatable="true">Network</string>
 
@@ -569,7 +569,7 @@
     <string name="settings_allow_bypass_desc" translatable="true">Allow requesting apps to access all available networks. These apps may bypass Rethink\'s VPN tunnel on-demand. Some audio/video conference apps like Zoom and Meet may require this to function properly.</string>
     <string name="settings_lock_down_mode_desc" translatable="true">Certain options disabled when VPN is in lockdown mode. <u>See VPN settings</u>.</string>
     <string name="settings_lock_down_proxy_desc" translatable="true">Cannot setup proxies when VPN is running in DNS only mode.</string>
-    <string name="settings_proxy_header" translatable="true">proxy</string>
+    <string name="settings_proxy_header" translatable="true">Proxy</string>
     <string name="settings_socks5_heading" translatable="true">Setup SOCKS5 Proxy</string>
     <string name="settings_socks5_desc" translatable="true">Forward connections to SOCKS5 endpoint.</string>
     <string name="settings_https_heading" translatable="true">Setup HTTP(S) CONNECT Proxy</string>

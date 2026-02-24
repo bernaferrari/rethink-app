@@ -16,6 +16,7 @@
 package com.celzero.bravedns.ui.compose.home
 
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -70,6 +71,11 @@ fun StartStopButton(
     }
 
     val icon = if (isPlaying) Icons.Rounded.Stop else Icons.Rounded.PlayArrow
+    val cornerRadius by animateDpAsState(
+        targetValue = if (isPlaying) Dimensions.cornerRadiusSmMd else Dimensions.buttonCornerRadius,
+        animationSpec = spring(dampingRatio = 0.72f, stiffness = Spring.StiffnessMediumLow),
+        label = "startStopCornerRadius"
+    )
 
     Button(
         onClick = onClick,
@@ -77,8 +83,7 @@ fun StartStopButton(
             .height(44.dp)
             .scale(scale),
         interactionSource = interactionSource,
-        // Full pill shape — M3 Expressive default
-        shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
+        shape = RoundedCornerShape(cornerRadius),
         colors = ButtonDefaults.buttonColors(
             containerColor = containerColor,
             contentColor = contentColor

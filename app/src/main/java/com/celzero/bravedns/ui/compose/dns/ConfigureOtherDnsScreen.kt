@@ -929,8 +929,7 @@ private fun OdohListContent(
         stringResource(R.string.lbl_odoh)
     )
     val nameLabel = stringResource(R.string.cd_doh_dialog_resolver_name)
-    val proxyLabel = stringResource(R.string.settings_proxy_header).replaceFirstChar(Char::uppercase) +
-        stringResource(R.string.lbl_optional)
+    val proxyLabel = stringResource(R.string.settings_proxy_header) + stringResource(R.string.lbl_optional)
     val resolverLabel = stringResource(R.string.cd_doh_dialog_resolver_url)
     val defaultName = stringResource(R.string.lbl_odoh)
     val invalidUrlMessage = stringResource(R.string.custom_url_error_invalid_url)

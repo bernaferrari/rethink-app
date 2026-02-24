@@ -701,16 +701,14 @@ object FirewallManager : KoinComponent {
 
     suspend fun load(): Int {
         val apps = db.getAppInfo()
-        if (apps.isEmpty()) {
-            Logger.w(LOG_TAG_FIREWALL, "no apps found in db, no app-based rules to load")
-            return 0
-        }
-
         mutex.withLock {
             appInfos.clear()
             apps.forEach { appInfos.put(it.uid, it) }
         }
         informObservers()
+        if (apps.isEmpty()) {
+            Logger.w(LOG_TAG_FIREWALL, "no apps found in db, no app-based rules to load")
+        }
         return apps.size
     }
 

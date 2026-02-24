@@ -33,7 +33,6 @@ import com.celzero.bravedns.ui.compose.theme.RethinkMultiActionDialog
 import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.ui.compose.dns.ConfigureRethinkScreenType
-import kotlinx.coroutines.launch
 
 private const val TAG = "RethinkEndpointAdapter"
 
@@ -78,7 +77,7 @@ fun RethinkEndpointRow(
         selection = DnsRowSelection.Radio,
         onActionClick = { dialogState = RethinkDialogState.Info(endpoint) },
         onSelectionChange = {
-            scope.launch {
+            launchDnsEndpointSelectionUpdate(scope, context, TAG) {
                 endpoint.isActive = true
                 appConfig.handleRethinkChanges(endpoint)
             }

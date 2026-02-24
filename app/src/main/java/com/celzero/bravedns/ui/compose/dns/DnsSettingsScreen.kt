@@ -58,8 +58,10 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
+import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.cardPositionFor
@@ -72,6 +74,7 @@ import com.celzero.bravedns.ui.compose.theme.RethinkToggleListItem
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 import kotlinx.coroutines.delay
+import java.net.URI
 import kotlin.math.roundToInt
 
 private fun dnsFocusSectionIndex(focusKey: String): Int? {
@@ -163,6 +166,37 @@ private fun dnsFocusTarget(
     if (advancedRow != null) return 3 to groupOffset(advancedRow)
 
     return null
+}
+
+private fun connectedDnsDisplayName(raw: String): String {
+    val name = raw.substringBefore(",").trim()
+    return if (name.isBlank()) "--" else name
+}
+
+private fun connectedDnsEndpoint(raw: String): String {
+    return raw.substringAfter(",", "").trim()
+}
+
+private fun endpointHost(value: String): String {
+    if (value.isBlank()) return ""
+    return runCatching { URI(value).host.orEmpty() }.getOrDefault("")
+}
+
+private fun connectedProtocolLabel(dnsType: AppConfig.DnsType, endpoint: String): String {
+    return when (dnsType) {
+        AppConfig.DnsType.DOH,
+        AppConfig.DnsType.RETHINK_REMOTE,
+        AppConfig.DnsType.SMART_DNS -> {
+            if (endpoint.startsWith("https://", true)) "HTTPS"
+            else if (endpoint.startsWith("http://", true)) "HTTP"
+            else "DNS"
+        }
+        AppConfig.DnsType.DOT -> "DoT"
+        AppConfig.DnsType.ODOH -> "ODoH"
+        AppConfig.DnsType.DNSCRYPT -> "DNSCrypt"
+        AppConfig.DnsType.DNS_PROXY -> "DNS Proxy"
+        AppConfig.DnsType.SYSTEM_DNS -> "System DNS"
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -282,7 +316,7 @@ fun DnsSettingsScreen(
             item {
                 SectionHeader(title = stringResource(id = R.string.dc_other_dns_heading))
                 RethinkListGroup {
-                    val dnsModeItemCount = if (uiState.isRethinkDnsConnected) 6 else 4
+                    val dnsModeItemCount = 4
 
                     DnsRadioButtonItem(
                         title = stringResource(id = R.string.network_dns),
@@ -322,20 +356,17 @@ fun DnsSettingsScreen(
                         highlighted = activeFocusKey == "dns_mode_smart",
                         position = cardPositionFor(3, dnsModeItemCount - 1)
                     )
+                }
+            }
 
-                    if (uiState.isRethinkDnsConnected) {
-                        RethinkListItem(
-                            headline = stringResource(id = R.string.dc_rethink_dns_radio),
-                            supporting = stringResource(id = R.string.rethink_sky_desc),
-                            position = cardPositionFor(4, dnsModeItemCount - 1),
-                            highlighted = activeFocusKey == "dns_mode_rethink"
-                        )
-                        RethinkListItem(
-                            headline = uiState.connectedDnsName.ifEmpty { "--" },
-                            supporting = uiState.dnsLatency.ifEmpty { null },
-                            position = cardPositionFor(5, dnsModeItemCount - 1)
-                        )
-                    }
+            if (uiState.isRethinkDnsConnected) {
+                item {
+                    RethinkDnsStatusCard(
+                        connectedDnsRaw = uiState.connectedDnsName,
+                        dnsType = uiState.dnsType,
+                        latency = uiState.dnsLatency,
+                        highlighted = activeFocusKey == "dns_mode_rethink"
+                    )
                 }
             }
 
@@ -511,6 +542,118 @@ fun DnsSettingsScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RethinkDnsStatusCard(
+    connectedDnsRaw: String,
+    dnsType: AppConfig.DnsType,
+    latency: String,
+    highlighted: Boolean
+) {
+    val endpoint = connectedDnsEndpoint(connectedDnsRaw)
+    val host = endpointHost(endpoint)
+    val protocol = connectedProtocolLabel(dnsType, endpoint)
+    val latencyText = latency.removePrefix("(").removeSuffix(")")
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimensions.spacingSm, vertical = Dimensions.spacingXs),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+    ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(Dimensions.iconContainerRadius),
+                    color = MaterialTheme.colorScheme.primaryContainer
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.ic_rethink_plus),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(8.dp)
+                    )
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(id = R.string.dc_rethink_dns_radio),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (highlighted) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        }
+                    )
+                    Text(
+                        text = connectedDnsDisplayName(connectedDnsRaw),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+
+                if (latencyText.isNotBlank()) {
+                    DnsStatusPill(
+                        text = latencyText,
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                    )
+                }
+            }
+
+            Text(
+                text = stringResource(id = R.string.rethink_sky_desc),
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                DnsStatusPill(
+                    text = protocol,
+                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+                if (host.isNotBlank()) {
+                    DnsStatusPill(
+                        text = host,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+    }
+}
+
+@Composable
+private fun DnsStatusPill(
+    text: String,
+    containerColor: androidx.compose.ui.graphics.Color,
+    contentColor: androidx.compose.ui.graphics.Color
+) {
+    Surface(
+        shape = RoundedCornerShape(999.dp),
+        color = containerColor
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            color = contentColor,
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
+        )
     }
 }
 

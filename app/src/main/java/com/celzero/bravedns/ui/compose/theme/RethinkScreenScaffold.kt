@@ -31,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.text.TextStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,6 +40,9 @@ fun RethinkTopBarLazyColumnScreen(
     subtitle: String? = null,
     onBackClick: (() -> Unit)? = null,
     containerColor: Color = MaterialTheme.colorScheme.background,
+    topBarContainerColor: Color = MaterialTheme.colorScheme.surface,
+    topBarScrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    topBarTitleTextStyle: TextStyle = MaterialTheme.typography.titleLarge,
     listState: LazyListState? = null,
     contentPadding: PaddingValues =
         PaddingValues(
@@ -60,7 +64,10 @@ fun RethinkTopBarLazyColumnScreen(
                 title = title,
                 subtitle = subtitle,
                 onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
+                containerColor = topBarContainerColor,
+                scrolledContainerColor = topBarScrolledContainerColor,
+                titleTextStyle = topBarTitleTextStyle
             )
         }
     ) { paddingValues ->

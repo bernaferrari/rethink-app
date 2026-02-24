@@ -113,6 +113,7 @@ private data class NetworkPolicyOption(val title: String, val description: Strin
 private fun tunnelFocusTarget(
     focusKey: String,
     isLockdown: Boolean,
+    showConnectivityChecksOption: Boolean,
     showPingIps: Boolean,
     showAllowIncoming: Boolean,
     showVpnMetered: Boolean
@@ -136,59 +137,29 @@ private fun tunnelFocusTarget(
             else -> null
         }
 
-    val advancedRow =
-        when (focusKey) {
-            "network_default_dns" -> 0
-            "network_vpn_policy" -> 1
-            "network_ip_protocol" -> 2
-            "network_connectivity_checks" -> 3
-            "network_ping_ips" -> if (showPingIps) 4 else null
-            "network_mobile_metered" -> if (showPingIps) 5 else 4
-            "network_wg_listen_port" -> if (showPingIps) 6 else 5
-            "network_wg_lockdown" -> if (showPingIps) 7 else 6
-            "network_endpoint_independence" -> if (showPingIps) 8 else 7
-            "network_allow_incoming_wg" ->
-                if (showAllowIncoming) {
-                    if (showPingIps) 9 else 8
-                } else {
-                    null
-                }
-            "network_tcp_keep_alive" ->
-                if (showPingIps) {
-                    if (showAllowIncoming) 10 else 9
-                } else {
-                    if (showAllowIncoming) 9 else 8
-                }
-            "network_jumbo_packets" ->
-                if (showPingIps) {
-                    if (showAllowIncoming) 11 else 10
-                } else {
-                    if (showAllowIncoming) 10 else 9
-                }
-            "network_vpn_metered" ->
-                if (!showVpnMetered) {
-                    null
-                } else if (showPingIps) {
-                    if (showAllowIncoming) 12 else 11
-                } else {
-                    if (showAllowIncoming) 11 else 10
-                }
-            "network_custom_lan_ip" ->
-                if (showPingIps) {
-                    if (showAllowIncoming) {
-                        if (showVpnMetered) 13 else 12
-                    } else {
-                        if (showVpnMetered) 12 else 11
-                    }
-                } else {
-                    if (showAllowIncoming) {
-                        if (showVpnMetered) 12 else 11
-                    } else {
-                        if (showVpnMetered) 11 else 10
-                    }
-                }
-            else -> null
-        }
+    val advancedRows = mutableMapOf<String, Int>()
+    var row = 0
+    fun addAdvancedRow(key: String, visible: Boolean = true) {
+        if (!visible) return
+        advancedRows[key] = row
+        row++
+    }
+
+    addAdvancedRow("network_default_dns")
+    addAdvancedRow("network_vpn_policy")
+    addAdvancedRow("network_ip_protocol")
+    addAdvancedRow("network_connectivity_checks", showConnectivityChecksOption)
+    addAdvancedRow("network_ping_ips", showPingIps)
+    addAdvancedRow("network_mobile_metered")
+    addAdvancedRow("network_wg_listen_port")
+    addAdvancedRow("network_wg_lockdown")
+    addAdvancedRow("network_endpoint_independence")
+    addAdvancedRow("network_allow_incoming_wg", showAllowIncoming)
+    addAdvancedRow("network_tcp_keep_alive")
+    addAdvancedRow("network_jumbo_packets")
+    addAdvancedRow("network_vpn_metered", showVpnMetered)
+    addAdvancedRow("network_custom_lan_ip")
+    val advancedRow = advancedRows[focusKey]
 
     return when (focusKey) {
         "network_core" -> networkIndex to 0
@@ -383,7 +354,13 @@ fun TunnelSettingsScreen(
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
-    LaunchedEffect(pendingFocusKey, isLockdown, showPingIps, endpointIndependence) {
+    LaunchedEffect(
+        pendingFocusKey,
+        isLockdown,
+        showConnectivityChecksOption,
+        showPingIps,
+        endpointIndependence
+    ) {
         val key = pendingFocusKey.trim()
         if (key.isBlank()) return@LaunchedEffect
         activeFocusKey = key
@@ -391,6 +368,7 @@ fun TunnelSettingsScreen(
             tunnelFocusTarget(
                 focusKey = key,
                 isLockdown = isLockdown,
+                showConnectivityChecksOption = showConnectivityChecksOption,
                 showPingIps = showPingIps,
                 showAllowIncoming = endpointIndependence,
                 showVpnMetered = isAtleastQ()
@@ -664,14 +642,16 @@ fun TunnelSettingsScreen(
                         onClick = { if (vpnPolicy != POLICY_FIXED) showIpDialog = true }
                     )
 
-                    RethinkActionListItem(
-                        title = stringResource(R.string.settings_connectivity_checks),
-                        description = stringResource(R.string.settings_connectivity_checks_desc),
-                        icon = Icons.Filled.Settings,
-                        position = CardPosition.Middle,
-                        highlighted = activeFocusKey == "network_connectivity_checks",
-                        onClick = { if (showConnectivityChecksOption) showConnectivityChecksDialog = true }
-                    )
+                    if (showConnectivityChecksOption) {
+                        RethinkActionListItem(
+                            title = stringResource(R.string.settings_connectivity_checks),
+                            description = stringResource(R.string.settings_connectivity_checks_desc),
+                            icon = Icons.Filled.Settings,
+                            position = CardPosition.Middle,
+                            highlighted = activeFocusKey == "network_connectivity_checks",
+                            onClick = { showConnectivityChecksDialog = true }
+                        )
+                    }
 
                     if (showPingIps) {
                         RethinkActionListItem(

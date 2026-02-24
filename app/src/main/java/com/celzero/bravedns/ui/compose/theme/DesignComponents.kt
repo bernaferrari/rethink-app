@@ -15,22 +15,11 @@
  */
 package com.celzero.bravedns.ui.compose.theme
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -48,17 +37,13 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.TrendingDown
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
-import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -66,18 +51,16 @@ import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.LargeTopAppBar
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MaterialShapes
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
@@ -86,7 +69,6 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -104,13 +86,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -122,87 +105,6 @@ import com.celzero.bravedns.ui.compose.theme.Dimensions.Elevation
 import com.celzero.bravedns.ui.compose.theme.Dimensions.Opacity
 
 // ==================== ANIMATED SECTIONS ====================
-
-/**
- * Animated section that reveals content with fade and slide animation.
- * Similar to animations seen in Statistics screens and reference UI.
- */
-@Composable
-fun RethinkAnimatedSection(
-    visible: Boolean,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    AnimatedVisibility(
-        visible = visible,
-        modifier = modifier,
-        enter = fadeIn(
-            animationSpec = spring(
-                dampingRatio = 0.8f,
-                stiffness = Spring.StiffnessMediumLow
-            )
-        ) + slideInVertically(
-            initialOffsetY = { it / 4 },
-            animationSpec = spring(
-                dampingRatio = 0.75f,
-                stiffness = Spring.StiffnessLow
-            )
-        ),
-        exit = fadeOut(
-            animationSpec = spring(
-                dampingRatio = 0.85f,
-                stiffness = Spring.StiffnessMediumLow
-            )
-        ) + slideOutVertically(
-            targetOffsetY = { -it / 4 },
-            animationSpec = spring(
-                dampingRatio = 0.75f,
-                stiffness = Spring.StiffnessLow
-            )
-        )
-    ) {
-        content()
-    }
-}
-
-/**
- * Animated section with expand/collapse support for collapsible content.
- */
-@Composable
-fun AnimatedExpandSection(
-    expanded: Boolean,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    AnimatedVisibility(
-        visible = expanded,
-        modifier = modifier,
-        enter = expandVertically(
-            animationSpec = spring(
-                dampingRatio = 0.7f,
-                stiffness = Spring.StiffnessMediumLow
-            )
-        ) + fadeIn(
-            animationSpec = spring(
-                dampingRatio = 0.8f,
-                stiffness = Spring.StiffnessMediumLow
-            )
-        ),
-        exit = shrinkVertically(
-            animationSpec = spring(
-                dampingRatio = 0.7f,
-                stiffness = Spring.StiffnessMediumLow
-            )
-        ) + fadeOut(
-            animationSpec = spring(
-                dampingRatio = 0.8f,
-                stiffness = Spring.StiffnessMediumLow
-            )
-        )
-    ) {
-        content()
-    }
-}
 
 // ==================== CARDS ====================
 
@@ -238,230 +140,7 @@ fun AppCard(
     }
 }
 
-/**
- * Card with header section for grouped content.
- */
-@Composable
-fun GroupedCard(
-    modifier: Modifier = Modifier,
-    title: String? = null,
-    titleIcon: ImageVector? = null,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    AppCard(modifier = modifier) {
-        Column(modifier = Modifier.padding(Dimensions.cardPadding)) {
-            if (title != null) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-                ) {
-                    if (titleIcon != null) {
-                        Icon(
-                            imageVector = titleIcon,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(Dimensions.iconSizeMd)
-                        )
-                    }
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-                Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-            }
-            content()
-        }
-    }
-}
-
-/**
- * Modern stat card for displaying statistics with icon, value, label, and optional trend indicator.
- * Uses M3 Expressive tonal palettes and animations.
- */
-@Composable
-fun StatCard(
-    value: String,
-    label: String,
-    modifier: Modifier = Modifier,
-    icon: ImageVector? = null,
-    iconTint: Color = MaterialTheme.colorScheme.primary,
-    iconBackgroundColor: Color = MaterialTheme.colorScheme.primaryContainer,
-    trendValue: String? = null,
-    isPositiveTrend: Boolean = true,
-    onClick: (() -> Unit)? = null
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMediumLow),
-        label = "statCardScale"
-    )
-
-    val cardModifier = if (onClick != null) {
-        modifier
-            .scale(scale)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = onClick
-            )
-    } else {
-        modifier.scale(scale)
-    }
-
-    ElevatedCard(
-        modifier = cardModifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = Elevation.low,
-            pressedElevation = Elevation.medium
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.cardPadding),
-            horizontalAlignment = Alignment.Start
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                if (icon != null) {
-                    Surface(
-                        shape = RoundedCornerShape(Dimensions.iconContainerRadius),
-                        color = iconBackgroundColor.copy(alpha = 0.75f),
-                        modifier = Modifier.size(Dimensions.iconContainerMd)
-                    ) {
-                        Box(
-                            contentAlignment = Alignment.Center,
-                            modifier = Modifier.size(Dimensions.iconContainerMd)
-                        ) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = null,
-                                tint = iconTint,
-                                modifier = Modifier.size(Dimensions.iconSizeSm)
-                            )
-                        }
-                    }
-                } else {
-                    Spacer(modifier = Modifier.size(Dimensions.iconContainerMd))
-                }
-
-                if (trendValue != null) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Icon(
-                            imageVector = if (isPositiveTrend) Icons.AutoMirrored.Filled.TrendingUp else Icons.AutoMirrored.Filled.TrendingDown,
-                            contentDescription = null,
-                            tint = if (isPositiveTrend) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error,
-                            modifier = Modifier.size(Dimensions.iconSizeXs)
-                        )
-                        Text(
-                            text = trendValue,
-                            style = MaterialTheme.typography.labelMedium,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (isPositiveTrend) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.error
-                        )
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface,
-                letterSpacing = (-0.5).sp
-            )
-
-            Spacer(modifier = Modifier.height(Dimensions.spacingXs))
-
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.Medium
-            )
-        }
-    }
-}
-
 // ==================== EMPTY STATES ====================
-
-/**
- * Empty state view with illustration, message, and optional action.
- */
-@Composable
-fun EmptyStateView(
-    modifier: Modifier = Modifier,
-    illustration: Painter? = null,
-    title: String? = null,
-    message: String,
-    actionLabel: String? = null,
-    onAction: (() -> Unit)? = null
-) {
-    Column(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(Dimensions.spacingXl),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        if (illustration != null) {
-            Icon(
-                painter = illustration,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(120.dp)
-                    .alpha(Opacity.MEDIUM),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Spacer(modifier = Modifier.height(Dimensions.spacingXl))
-        }
-
-        if (title != null) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-        }
-
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.alpha(Opacity.MEDIUM)
-        )
-
-        if (actionLabel != null && onAction != null) {
-            Spacer(modifier = Modifier.height(Dimensions.spacingXl))
-            FilledTonalButton(
-                onClick = onAction,
-                shape = RoundedCornerShape(Dimensions.buttonCornerRadius)
-            ) {
-                Text(text = actionLabel)
-            }
-        }
-    }
-}
 
 /**
  * Compact empty state for inline use in lists/sections.
@@ -483,7 +162,9 @@ fun CompactEmptyState(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                modifier = Modifier.size(Dimensions.iconSizeSm).alpha(Opacity.HINT),
+                modifier = Modifier
+                    .size(Dimensions.iconSizeSm)
+                    .alpha(Opacity.HINT),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(modifier = Modifier.width(Dimensions.spacingSm))
@@ -501,124 +182,6 @@ fun CompactEmptyState(
 // ==================== LIST ITEMS ====================
 
 /**
- * Standard list item with icon, title, description, and optional trailing content.
- * Enhanced with spring press animation, elevation changes, and better visual hierarchy.
- */
-@Composable
-fun AppListItem(
-    modifier: Modifier = Modifier,
-    icon: ImageVector? = null,
-    iconPainter: Painter? = null,
-    title: String,
-    description: String? = null,
-    trailing: @Composable (() -> Unit)? = null,
-    onClick: (() -> Unit)? = null
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(dampingRatio = 0.55f, stiffness = Spring.StiffnessMediumLow),
-        label = "itemScale"
-    )
-
-    val elevation by animateDpAsState(
-        targetValue = if (isPressed) Elevation.medium else Elevation.none,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMediumLow),
-        label = "itemElevation"
-    )
-
-    val clickModifier = if (onClick != null) {
-        modifier.clickable(
-            interactionSource = interactionSource,
-            indication = null,
-            onClick = onClick
-        )
-    } else {
-        modifier
-    }
-
-    Surface(
-        modifier = clickModifier
-            .fillMaxWidth()
-            .scale(scale),
-        shape = RoundedCornerShape(Dimensions.cardCornerRadius),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = elevation,
-        shadowElevation = elevation
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = Dimensions.listItemHeight)
-                .padding(horizontal = Dimensions.cardPadding, vertical = Dimensions.spacingSm),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (icon != null || iconPainter != null) {
-                Surface(
-                    shape = RoundedCornerShape(Dimensions.iconContainerRadius),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.55f),
-                    modifier = Modifier.size(Dimensions.iconContainerMd)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(Dimensions.iconContainerMd)
-                    ) {
-                        if (icon != null) {
-                            Icon(
-                                imageVector = icon,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(Dimensions.iconSizeSm)
-                            )
-                        } else if (iconPainter != null) {
-                            Icon(
-                                painter = iconPainter,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(Dimensions.iconSizeSm)
-                            )
-                        }
-                    }
-                }
-                Spacer(modifier = Modifier.width(Dimensions.spacingMd))
-            }
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    letterSpacing = (-0.15).sp
-                )
-                if (description != null) {
-                    Spacer(modifier = Modifier.height(Dimensions.spacingXs))
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.labelLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                        letterSpacing = 0.sp
-                    )
-                }
-            }
-
-            if (trailing != null) {
-                Spacer(modifier = Modifier.width(Dimensions.spacingMd))
-                trailing()
-            }
-        }
-    }
-}
-
-/**
  * Shared grid tile used by configure/about quick actions.
  */
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -629,6 +192,10 @@ fun RethinkGridTile(
     accentColor: Color,
     shape: RoundedCornerShape,
     modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerLow,
+    titleColor: Color = MaterialTheme.colorScheme.onSurface,
+    iconTint: Color = accentColor,
+    iconContainerColor: Color = accentColor.copy(alpha = 0.16f),
     trailing: @Composable (() -> Unit)? = null,
     onClick: (() -> Unit)? = null
 ) {
@@ -638,7 +205,7 @@ fun RethinkGridTile(
         Surface(
             onClick = onClick,
             shape = shape,
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            color = containerColor,
             modifier = modifier
         ) {
             Row(
@@ -650,14 +217,14 @@ fun RethinkGridTile(
             ) {
                 Surface(
                     shape = iconShape,
-                    color = accentColor.copy(alpha = 0.16f),
+                    color = iconContainerColor,
                     modifier = Modifier.size(34.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             painter = painterResource(id = iconRes),
                             contentDescription = null,
-                            tint = accentColor,
+                            tint = iconTint,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -668,7 +235,7 @@ fun RethinkGridTile(
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = titleColor,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -679,7 +246,7 @@ fun RethinkGridTile(
     } else {
         Surface(
             shape = shape,
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            color = containerColor,
             modifier = modifier
         ) {
             Row(
@@ -691,14 +258,14 @@ fun RethinkGridTile(
             ) {
                 Surface(
                     shape = iconShape,
-                    color = accentColor.copy(alpha = 0.16f),
+                    color = iconContainerColor,
                     modifier = Modifier.size(34.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             painter = painterResource(id = iconRes),
                             contentDescription = null,
-                            tint = accentColor,
+                            tint = iconTint,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -709,7 +276,7 @@ fun RethinkGridTile(
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
+                    color = titleColor,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
@@ -802,7 +369,10 @@ fun RethinkDropdownSelector(
         Surface(
             shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
             color = containerColor,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)),
+            border = BorderStroke(
+                1.dp,
+                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)
+            ),
             modifier =
                 Modifier
                     .fillMaxWidth()
@@ -1030,11 +600,11 @@ fun RethinkBottomSheetCard(
 
 @Composable
 fun RethinkBottomSheetActionRow(
+    modifier: Modifier = Modifier,
     primaryText: String,
     onPrimaryClick: () -> Unit,
     secondaryText: String? = null,
     onSecondaryClick: (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
     primaryEnabled: Boolean = true,
     secondaryEnabled: Boolean = true,
     secondaryStyle: RethinkSecondaryActionStyle = RethinkSecondaryActionStyle.TONAL,
@@ -1063,6 +633,7 @@ fun RethinkBottomSheetActionRow(
                             Text(text = secondaryText)
                         }
                     }
+
                     RethinkSecondaryActionStyle.OUTLINED -> {
                         OutlinedButton(
                             modifier = Modifier.weight(1f),
@@ -1072,6 +643,7 @@ fun RethinkBottomSheetActionRow(
                             Text(text = secondaryText)
                         }
                     }
+
                     RethinkSecondaryActionStyle.TEXT -> {
                         TextButton(
                             modifier = Modifier.weight(1f),
@@ -1176,9 +748,9 @@ fun SectionHeader(
  */
 @Composable
 fun SectionHeaderWithSubtitle(
+    modifier: Modifier = Modifier,
     title: String,
     subtitle: String? = null,
-    modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null
@@ -1208,7 +780,10 @@ fun SectionHeaderWithSubtitle(
             if (actionLabel != null && onAction != null) {
                 TextButton(
                     onClick = onAction,
-                    contentPadding = PaddingValues(horizontal = Dimensions.spacingSm, vertical = 0.dp)
+                    contentPadding = PaddingValues(
+                        horizontal = Dimensions.spacingSm,
+                        vertical = 0.dp
+                    )
                 ) {
                     Text(
                         text = actionLabel,
@@ -1231,26 +806,6 @@ fun SectionHeaderWithSubtitle(
             )
         }
     }
-}
-
-// ==================== DIVIDERS ====================
-
-/**
- * Standard horizontal divider.
- */
-@Composable
-fun AppDivider(
-    modifier: Modifier = Modifier,
-    indent: Dp = Dimensions.spacingNone,
-    color: Color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f)
-) {
-    androidx.compose.material3.HorizontalDivider(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(start = indent),
-        thickness = Dimensions.dividerThickness,
-        color = color
-    )
 }
 
 // ==================== BUTTONS ====================
@@ -1347,35 +902,6 @@ fun StatItem(
     }
 }
 
-// ==================== ANIMATIONS ====================
-
-/**
- * Animated visibility with fade and scale.
- */
-@Composable
-fun AnimatedVisibilityFadeScale(
-    visible: Boolean,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    AnimatedVisibility(
-        visible = visible,
-        modifier = modifier,
-        enter = fadeIn(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
-                scaleIn(
-                    initialScale = 0.92f,
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                ),
-        exit = fadeOut(animationSpec = spring(stiffness = Spring.StiffnessMediumLow)) +
-                scaleOut(
-                    targetScale = 0.92f,
-                    animationSpec = spring(stiffness = Spring.StiffnessMediumLow)
-                )
-    ) {
-        content()
-    }
-}
-
 // ==================== EXPRESSIVE LAYOUT PRIMITIVES ====================
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -1384,6 +910,8 @@ fun RethinkTopBar(
     title: String,
     onBackClick: (() -> Unit)? = null,
     scrollBehavior: TopAppBarScrollBehavior? = null,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    scrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     TopAppBar(
@@ -1409,8 +937,8 @@ fun RethinkTopBar(
         actions = actions,
         scrollBehavior = scrollBehavior,
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = containerColor,
+            scrolledContainerColor = scrolledContainerColor,
             navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             titleContentColor = MaterialTheme.colorScheme.onSurface,
             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1425,6 +953,9 @@ fun RethinkLargeTopBar(
     subtitle: String? = null,
     onBackClick: (() -> Unit)? = null,
     scrollBehavior: TopAppBarScrollBehavior? = null,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    scrolledContainerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
+    titleTextStyle: TextStyle = MaterialTheme.typography.titleLarge,
     titleStartPadding: Dp = 0.dp,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
@@ -1438,7 +969,7 @@ fun RethinkLargeTopBar(
                     text = title,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = titleTextStyle,
                     fontWeight = FontWeight.SemiBold,
                     letterSpacing = (-0.2).sp
                 )
@@ -1467,8 +998,8 @@ fun RethinkLargeTopBar(
         actions = actions,
         scrollBehavior = scrollBehavior,
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-            scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
+            containerColor = containerColor,
+            scrolledContainerColor = scrolledContainerColor,
             navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             titleContentColor = MaterialTheme.colorScheme.onSurface,
             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant
@@ -1506,93 +1037,21 @@ fun RethinkListGroup(
 }
 
 /**
- * Full-width hero header for settings/detail screens — M3 Expressive bold style.
- */
-@Composable
-fun RethinkScreenHeader(
-    title: String,
-    modifier: Modifier = Modifier,
-    subtitle: String? = null,
-    leadingIcon: ImageVector? = null,
-    leadingIconPainter: Painter? = null,
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh,
-    contentColor: Color = MaterialTheme.colorScheme.onSurface
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(
-                start = Dimensions.screenPaddingHorizontal,
-                end = Dimensions.screenPaddingHorizontal,
-                top = Dimensions.spacingMd,
-                bottom = Dimensions.spacingSm
-            ),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
-    ) {
-        if (leadingIcon != null || leadingIconPainter != null) {
-            Surface(
-                shape = RoundedCornerShape(Dimensions.iconContainerRadius),
-                color = MaterialTheme.colorScheme.primaryContainer,
-                modifier = Modifier.size(Dimensions.iconContainerMd)
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier.size(Dimensions.iconContainerMd)
-                ) {
-                    if (leadingIcon != null) {
-                        Icon(
-                            imageVector = leadingIcon,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(Dimensions.iconSizeSm)
-                        )
-                    } else if (leadingIconPainter != null) {
-                        Icon(
-                            painter = leadingIconPainter,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(Dimensions.iconSizeSm)
-                        )
-                    }
-                }
-            }
-        }
-        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = contentColor,
-                letterSpacing = (-0.2).sp
-            )
-            if (subtitle != null) {
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    fontWeight = FontWeight.Normal
-                )
-            }
-        }
-    }
-}
-
-/**
  * Expressive list item with spring press animation and tinted icon container.
  */
 @Composable
 fun RethinkListItem(
+    modifier: Modifier = Modifier,
     headline: String,
     headlineAnnotated: AnnotatedString? = null,
     supporting: String? = null,
     supportingAnnotated: AnnotatedString? = null,
-    modifier: Modifier = Modifier,
     contentOffset: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
     leadingIconPainter: Painter? = null,
     leadingIconTint: Color = MaterialTheme.colorScheme.primary,
     leadingIconContainerColor: Color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f),
+    leadingIconContainerShape: Shape = RoundedCornerShape(Dimensions.iconContainerRadius),
     trailing: @Composable (() -> Unit)? = null,
     position: CardPosition = CardPosition.Middle,
     enabled: Boolean = true,
@@ -1612,8 +1071,20 @@ fun RethinkListItem(
 
     val itemShape = when (position) {
         CardPosition.Single -> RoundedCornerShape(Dimensions.cornerRadius3xl)
-        CardPosition.First -> RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp, bottomStart = 6.dp, bottomEnd = 6.dp)
-        CardPosition.Last -> RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 22.dp, bottomEnd = 22.dp)
+        CardPosition.First -> RoundedCornerShape(
+            topStart = 22.dp,
+            topEnd = 22.dp,
+            bottomStart = 6.dp,
+            bottomEnd = 6.dp
+        )
+
+        CardPosition.Last -> RoundedCornerShape(
+            topStart = 6.dp,
+            topEnd = 6.dp,
+            bottomStart = 22.dp,
+            bottomEnd = 22.dp
+        )
+
         CardPosition.Middle -> RoundedCornerShape(Dimensions.cornerRadiusSm)
     }
 
@@ -1625,7 +1096,11 @@ fun RethinkListItem(
     )
     val containerColor = lerp(defaultContainerColor, highlightContainerColor, highlightAlpha)
 
-    Column(modifier = modifier.fillMaxWidth().scale(scale)) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .scale(scale)
+    ) {
         Surface(
             shape = itemShape,
             color = containerColor,
@@ -1666,8 +1141,8 @@ fun RethinkListItem(
                 leadingContent = {
                     if (leadingIcon != null || leadingIconPainter != null) {
                         Surface(
-                            shape = RoundedCornerShape(Dimensions.iconContainerRadius),
-                            color = leadingIconContainerColor.copy(alpha = (leadingIconContainerColor.alpha * 0.72f) * contentAlpha),
+                            shape = leadingIconContainerShape,
+                            color = leadingIconContainerColor,
                             modifier = Modifier.size(Dimensions.iconContainerSm)
                         ) {
                             Box(
@@ -1705,6 +1180,7 @@ fun RethinkListItem(
                                 )
                             }
                         }
+
                         else -> null
                     },
                 colors = ListItemDefaults.colors(
@@ -1848,307 +1324,4 @@ fun RethinkRadioListItem(
         },
         onClick = onSelect
     )
-}
-
-// ==================== SETTINGS COMPONENTS ====================
-
-/**
- * Collapsible settings section with animation.
- */
-@Composable
-fun CollapsibleSettingsSection(
-    title: String,
-    modifier: Modifier = Modifier,
-    initiallyExpanded: Boolean = true,
-    headerIcon: ImageVector? = null,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    var expanded by remember { mutableStateOf(initiallyExpanded) }
-
-    val rotationAngle by animateFloatAsState(
-        targetValue = if (expanded) 180f else 0f,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = Spring.StiffnessMedium),
-        label = "chevronRotation"
-    )
-
-    Column(modifier = modifier.fillMaxWidth()) {
-        Surface(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { expanded = !expanded },
-            color = MaterialTheme.colorScheme.surfaceContainerHigh,
-            shape = RoundedCornerShape(
-                topStart = if (expanded) Dimensions.cardCornerRadius else Dimensions.cardCornerRadius,
-                topEnd = if (expanded) Dimensions.cardCornerRadius else Dimensions.cardCornerRadius,
-                bottomStart = if (expanded) 0.dp else Dimensions.cardCornerRadius,
-                bottomEnd = if (expanded) 0.dp else Dimensions.cardCornerRadius
-            )
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = Dimensions.cardPadding,
-                        vertical = Dimensions.spacingMd
-                    ),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-                ) {
-                    if (headerIcon != null) {
-                        Icon(
-                            imageVector = headerIcon,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(Dimensions.iconSizeMd)
-                        )
-                    }
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        letterSpacing = (-0.1).sp
-                    )
-                }
-                Icon(
-                    imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = if (expanded) "Collapse" else "Expand",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier
-                        .size(Dimensions.iconSizeMd)
-                        .graphicsLayer { rotationZ = rotationAngle }
-                )
-            }
-        }
-
-        AnimatedExpandSection(expanded = expanded) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                shape = RoundedCornerShape(
-                    topStart = 0.dp,
-                    topEnd = 0.dp,
-                    bottomStart = Dimensions.cardCornerRadius,
-                    bottomEnd = Dimensions.cardCornerRadius
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(vertical = Dimensions.spacingSm),
-                    content = content
-                )
-            }
-        }
-    }
-}
-
-/**
- * Settings toggle row with animation and proper visual feedback.
- */
-@Composable
-fun SettingToggleRow(
-    title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    modifier: Modifier = Modifier,
-    description: String? = null,
-    icon: ImageVector? = null,
-    enabled: Boolean = true
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMediumLow),
-        label = "toggleRowScale"
-    )
-
-    val contentAlpha = if (enabled) 1f else 0.5f
-
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .scale(scale)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                enabled = enabled
-            ) { onCheckedChange(!checked) },
-        color = Color.Transparent
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = Dimensions.cardPadding,
-                    vertical = Dimensions.spacingMd
-                ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (icon != null) {
-                Surface(
-                    shape = RoundedCornerShape(Dimensions.iconContainerRadius),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f * contentAlpha),
-                    modifier = Modifier.size(Dimensions.iconContainerSm)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(Dimensions.iconContainerSm)
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary.copy(alpha = contentAlpha),
-                            modifier = Modifier.size(Dimensions.iconSizeSm)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(Dimensions.spacingMd))
-            }
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha),
-                    letterSpacing = 0.sp
-                )
-                if (description != null) {
-                    Spacer(modifier = Modifier.height(Dimensions.spacingXs))
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f * contentAlpha),
-                        letterSpacing = 0.sp
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.width(Dimensions.spacingMd))
-
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange,
-                enabled = enabled,
-                colors = SwitchDefaults.colors(
-                    checkedThumbColor = MaterialTheme.colorScheme.primary,
-                    checkedTrackColor = MaterialTheme.colorScheme.primaryContainer,
-                    uncheckedThumbColor = MaterialTheme.colorScheme.outline,
-                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceContainerHighest
-                ),
-                modifier = Modifier.graphicsLayer {
-                    scaleX = 1.1f
-                    scaleY = 1.1f
-                }
-            )
-        }
-    }
-}
-
-/**
- * Settings clickable row with chevron indicator.
- */
-@Composable
-fun SettingClickableRow(
-    title: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier,
-    description: String? = null,
-    icon: ImageVector? = null,
-    enabled: Boolean = true,
-    trailing: @Composable (() -> Unit)? = null
-) {
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMediumLow),
-        label = "clickableRowScale"
-    )
-
-    val contentAlpha = if (enabled) 1f else 0.5f
-
-    Surface(
-        modifier = modifier
-            .fillMaxWidth()
-            .scale(scale)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                enabled = enabled,
-                onClick = onClick
-            ),
-        color = Color.Transparent
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = Dimensions.cardPadding,
-                    vertical = Dimensions.spacingMd
-                ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            if (icon != null) {
-                Surface(
-                    shape = RoundedCornerShape(Dimensions.iconContainerRadius),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f * contentAlpha),
-                    modifier = Modifier.size(Dimensions.iconContainerSm)
-                ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.size(Dimensions.iconContainerSm)
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary.copy(alpha = contentAlpha),
-                            modifier = Modifier.size(Dimensions.iconSizeSm)
-                        )
-                    }
-                }
-                Spacer(modifier = Modifier.width(Dimensions.spacingMd))
-            }
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = contentAlpha),
-                    letterSpacing = 0.sp
-                )
-                if (description != null) {
-                    Spacer(modifier = Modifier.height(Dimensions.spacingXs))
-                    Text(
-                        text = description,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f * contentAlpha),
-                        letterSpacing = 0.sp
-                    )
-                }
-            }
-
-            if (trailing != null) {
-                trailing()
-            } else {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f * contentAlpha),
-                    modifier = Modifier.size(Dimensions.iconSizeMd)
-                )
-            }
-        }
-    }
 }

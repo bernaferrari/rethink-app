@@ -41,6 +41,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Article
+import androidx.compose.material.icons.automirrored.rounded.HelpOutline
 import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Gavel
@@ -72,6 +73,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -175,6 +177,9 @@ fun AboutScreen(
             }
         }
     }
+    val quickActionIconTint = MaterialTheme.colorScheme.onPrimaryFixed.copy(alpha = 0.8f)
+    val telegramTint = Color(0xFF74C5FF)
+    val bugReportTint = Color(0xFFFF907F)
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
@@ -183,7 +188,8 @@ fun AboutScreen(
             RethinkLargeTopBar(
                 title = topBarTitle,
                 subtitle = topBarSubtitle,
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
+                titleTextStyle = MaterialTheme.typography.headlineMedium
             )
         }
     ) { paddingValues ->
@@ -232,12 +238,14 @@ fun AboutScreen(
                 RethinkAnimatedSection(index = 2) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingGridTile)
                     ) {
                         RethinkGridTile(
                             title = stringResource(id = R.string.about_join_telegram),
                             iconRes = R.drawable.ic_telegram,
-                            accentColor = MaterialTheme.colorScheme.tertiary,
+                            accentColor = telegramTint,
+                            iconTint = quickActionIconTint,
+                            iconContainerColor = telegramTint,
                             shape = RoundedCornerShape(
                                 topStart = 28.dp,
                                 topEnd = 12.dp,
@@ -251,7 +259,9 @@ fun AboutScreen(
                             RethinkGridTile(
                                 title = stringResource(id = R.string.collecting_logs_progress_text),
                                 iconRes = R.drawable.ic_android_icon,
-                                accentColor = MaterialTheme.colorScheme.primary,
+                                accentColor = bugReportTint,
+                                iconTint = quickActionIconTint,
+                                iconContainerColor = bugReportTint,
                                 shape = RoundedCornerShape(
                                     topStart = 12.dp,
                                     topEnd = 28.dp,
@@ -263,7 +273,7 @@ fun AboutScreen(
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(18.dp),
                                         strokeWidth = 2.dp,
-                                        color = MaterialTheme.colorScheme.primary
+                                        color = bugReportTint
                                     )
                                 }
                             )
@@ -271,7 +281,9 @@ fun AboutScreen(
                             RethinkGridTile(
                                 title = stringResource(id = R.string.about_bug_report),
                                 iconRes = R.drawable.ic_android_icon,
-                                accentColor = MaterialTheme.colorScheme.primary,
+                                accentColor = bugReportTint,
+                                iconTint = quickActionIconTint,
+                                iconContainerColor = bugReportTint,
                                 shape = RoundedCornerShape(
                                     topStart = 12.dp,
                                     topEnd = 28.dp,
@@ -314,7 +326,7 @@ fun AboutScreen(
                             AboutItem(stringResource(id = R.string.about_github), painterResource(id = R.drawable.ic_github), onGithubClick),
                             AboutItem(
                                 headline = stringResource(id = R.string.about_faq),
-                                iconPainter = rememberVectorPainter(image = Icons.Rounded.HelpOutline),
+                                iconPainter = rememberVectorPainter(image = Icons.AutoMirrored.Rounded.HelpOutline),
                                 onClick = onFaqClick
                             ),
                             AboutItem(
@@ -648,7 +660,7 @@ private fun AboutAppSection(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingGridTile)
         ) {
             RethinkGridTile(
                 title = stringResource(id = R.string.about_app_contributors),
@@ -704,10 +716,10 @@ private fun AboutConnectSection(
 
         Spacer(modifier = Modifier.height(Dimensions.spacingXs))
 
-        Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)) {
+        Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingGridTile)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingGridTile)
             ) {
                 RethinkGridTile(
                     title = stringResource(id = R.string.about_email),
@@ -739,7 +751,7 @@ private fun AboutConnectSection(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingGridTile)
             ) {
                 RethinkGridTile(
                     title = stringResource(id = R.string.lbl_matrix),
@@ -776,10 +788,24 @@ private fun AboutConnectSection(
 
 @Composable
 private fun PartnerLogosCard(onFossClick: () -> Unit, onFlossFundsClick: () -> Unit) {
+    val isLightTheme = MaterialTheme.colorScheme.surface.luminance() > 0.5f
+    val cardColor =
+        if (isLightTheme) Color(0xFF141922) else MaterialTheme.colorScheme.surfaceContainerLow
+    val cardBorderColor =
+        if (isLightTheme) Color.White.copy(alpha = 0.18f)
+        else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
+    val textColor =
+        if (isLightTheme) Color(0xFFE8EDF8) else MaterialTheme.colorScheme.onSurfaceVariant
+    val logoChipColor =
+        if (isLightTheme) Color.White.copy(alpha = 0.08f) else MaterialTheme.colorScheme.surface
+    val logoChipBorderColor =
+        if (isLightTheme) Color.White.copy(alpha = 0.22f)
+        else MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)
+
     Surface(
         shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)),
+        color = cardColor,
+        border = BorderStroke(1.dp, cardBorderColor),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
         modifier = Modifier.fillMaxWidth()
@@ -794,7 +820,7 @@ private fun PartnerLogosCard(onFossClick: () -> Unit, onFlossFundsClick: () -> U
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Medium,
                 textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = textColor,
                 modifier = Modifier.alpha(0.8f)
             )
             Image(
@@ -810,8 +836,8 @@ private fun PartnerLogosCard(onFossClick: () -> Unit, onFlossFundsClick: () -> U
                 val logoShape = RoundedCornerShape(Dimensions.cornerRadiusMdLg)
                 Surface(
                     shape = logoShape,
-                    color = MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+                    color = logoChipColor,
+                    border = BorderStroke(1.dp, logoChipBorderColor),
                     modifier = Modifier
                         .clip(logoShape)
                         .clickable(
@@ -831,8 +857,8 @@ private fun PartnerLogosCard(onFossClick: () -> Unit, onFlossFundsClick: () -> U
                 }
                 Surface(
                     shape = logoShape,
-                    color = MaterialTheme.colorScheme.surface,
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.35f)),
+                    color = logoChipColor,
+                    border = BorderStroke(1.dp, logoChipBorderColor),
                     modifier = Modifier
                         .clip(logoShape)
                         .clickable(

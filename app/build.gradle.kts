@@ -84,6 +84,10 @@ android {
     compileSdk = 36
     namespace = "com.celzero.bravedns"
 
+    androidResources {
+        generateLocaleConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.celzero.bravedns"
         minSdk = 23

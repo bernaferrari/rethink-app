@@ -656,10 +656,7 @@ private fun RuleScopeSelector(
     rulesMode: RulesMode,
     onRulesModeChange: (RulesMode) -> Unit
 ) {
-    val universalLabel =
-        stringResource(R.string.firewall_act_universal_tab).replaceFirstChar {
-            if (it.isLowerCase()) it.titlecase() else it.toString()
-        }
+    val universalLabel = stringResource(R.string.firewall_act_universal_tab)
     val options =
         listOf(
             RulesMode.APP_SPECIFIC to universalLabel,

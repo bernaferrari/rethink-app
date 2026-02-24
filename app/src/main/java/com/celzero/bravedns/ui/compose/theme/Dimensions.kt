@@ -26,6 +26,7 @@ object Dimensions {
     // Spacing scale (4dp base)
     val spacingNone: Dp = 0.dp
     val spacingXs: Dp = 4.dp
+    val spacingGridTile: Dp = 2.dp
     val spacingSm: Dp = 8.dp
     val spacingMd: Dp = 12.dp
     val spacingSmMd: Dp = 10.dp
