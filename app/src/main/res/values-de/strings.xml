@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">RethinkDNS</string>
+    <string name="app_name" translatable="false">Re-Rethink</string>
     <string name="app_name_small_case">rethink</string>
     <string name="title_settings">Einstellungen</string>
     <string name="title_about">Über</string>
@@ -40,7 +40,7 @@
     <string name="status_protected_with_proxy">geschützt mit Proxy</string>
     <string name="status_strict" description="This is similar to dns_on, but the protection is being provided by the operating system, not by Rethink.  It is not color-highlighted.">private DNS ist eingeschaltet</string>
     <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit.">nicht geschützt</string>
-    <string name="dns_explanation_dns_connected">Verbunden mit RethinkDNS</string>
+    <string name="dns_explanation_dns_connected">Verbunden mit Re-RethinkDNS</string>
     <string name="dns_explanation_firewall_connected">Verbunden mit der Firewall</string>
     <string name="dns_explanation_connected" description="The message will be shown when the DNS is connected">Verbunden mit RethinkDNS und Firewall</string>
     <string name="notification_action_resume_vpn">FORTSETZEN</string>

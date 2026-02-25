@@ -103,9 +103,8 @@ private data class AboutItem(
 
 private fun aboutTopClusterPosition(index: Int, lastIndex: Int): CardPosition {
     return when {
-        lastIndex <= 0 -> CardPosition.First
-        index == 0 -> CardPosition.First
-        index == lastIndex -> CardPosition.Middle
+        lastIndex <= 0 -> CardPosition.Last
+        index == lastIndex -> CardPosition.Last
         else -> CardPosition.Middle
     }
 }
@@ -153,9 +152,13 @@ fun AboutScreen(
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val expandedTitle = remember(appName) { appName }
     val expandedSubtitle = remember(uiState.versionName, uiState.slicedVersion) {
+        fun withSingleVPrefix(version: String): String {
+            return if (version.startsWith("v", ignoreCase = true)) version else "v$version"
+        }
+
         when {
-            uiState.versionName.isNotBlank() -> "v${uiState.versionName}"
-            uiState.slicedVersion.isNotBlank() -> "v${uiState.slicedVersion}"
+            uiState.versionName.isNotBlank() -> withSingleVPrefix(uiState.versionName)
+            uiState.slicedVersion.isNotBlank() -> withSingleVPrefix(uiState.slicedVersion)
             else -> null
         }
     }
@@ -206,12 +209,12 @@ fun AboutScreen(
             ),
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
         ) {
-            // ── Sponsor card ──────────────────────────────────────────
-            item {
-                RethinkAnimatedSection(index = 0) {
-                    SponsorCard(uiState, onSponsorClick)
-                }
-            }
+            // ── Sponsor card (hidden intentionally) ───────────────────
+            // item {
+            //     RethinkAnimatedSection(index = 0) {
+            //         SponsorCard(uiState, onSponsorClick)
+            //     }
+            // }
 
             // ── Appearance (shared settings component) ───────────────
             item {
@@ -228,6 +231,7 @@ fun AboutScreen(
                             persistentState.themeColorPreset = preset.id
                             onThemeColorChanged?.invoke(preset.id)
                         },
+                        sectionHeaderColor = MaterialTheme.colorScheme.primary,
                         showSectionHeader = true
                     )
                 }
@@ -236,84 +240,22 @@ fun AboutScreen(
             // ── Quick actions (Telegram + Bug Report) ─────────────────
             item {
                 RethinkAnimatedSection(index = 2) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingGridTile)
-                    ) {
-                        RethinkGridTile(
-                            title = stringResource(id = R.string.about_join_telegram),
-                            iconRes = R.drawable.ic_telegram,
-                            accentColor = telegramTint,
-                            iconTint = quickActionIconTint,
-                            iconContainerColor = telegramTint,
-                            shape = RoundedCornerShape(
-                                topStart = 28.dp,
-                                topEnd = 12.dp,
-                                bottomStart = 28.dp,
-                                bottomEnd = 12.dp
-                            ),
-                            modifier = Modifier.weight(1f),
-                            onClick = onTelegramClick
-                        )
-                        if (uiState.isBugReportRunning) {
-                            RethinkGridTile(
-                                title = stringResource(id = R.string.collecting_logs_progress_text),
-                                iconRes = R.drawable.ic_android_icon,
-                                accentColor = bugReportTint,
-                                iconTint = quickActionIconTint,
-                                iconContainerColor = bugReportTint,
-                                shape = RoundedCornerShape(
-                                    topStart = 12.dp,
-                                    topEnd = 28.dp,
-                                    bottomStart = 12.dp,
-                                    bottomEnd = 28.dp
-                                ),
-                                modifier = Modifier.weight(1f),
-                                trailing = {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(18.dp),
-                                        strokeWidth = 2.dp,
-                                        color = bugReportTint
-                                    )
-                                }
-                            )
-                        } else {
-                            RethinkGridTile(
-                                title = stringResource(id = R.string.about_bug_report),
-                                iconRes = R.drawable.ic_android_icon,
-                                accentColor = bugReportTint,
-                                iconTint = quickActionIconTint,
-                                iconContainerColor = bugReportTint,
-                                shape = RoundedCornerShape(
-                                    topStart = 12.dp,
-                                    topEnd = 28.dp,
-                                    bottomStart = 12.dp,
-                                    bottomEnd = 28.dp
-                                ),
-                                modifier = Modifier.weight(1f),
-                                onClick = onBugReportClick
-                            )
-                        }
-                    }
-                }
-            }
-
-            // ── App section ───────────────────────────────────────────
-            item {
-                RethinkAnimatedSection(index = 3) {
                     AboutAppSection(
                         uiState = uiState,
+                        onTelegramClick = onTelegramClick,
+                        onBugReportClick = onBugReportClick,
                         onWhatsNewClick = onWhatsNewClick,
                         onAppUpdateClick = onAppUpdateClick,
-                        onContributorsClick = onContributorsClick,
-                        onTranslateClick = onTranslateClick
+                        quickActionIconTint = quickActionIconTint,
+                        telegramTint = telegramTint,
+                        bugReportTint = bugReportTint
                     )
                 }
             }
 
             // ── Web section ───────────────────────────────────────────
             item {
-                RethinkAnimatedSection(index = 4) {
+                RethinkAnimatedSection(index = 3) {
                     AboutSection(
                         title = stringResource(id = R.string.about_web),
                         accentColor = MaterialTheme.colorScheme.secondary,
@@ -356,7 +298,7 @@ fun AboutScreen(
 
             // ── Connect / community section ───────────────────────────
             item {
-                RethinkAnimatedSection(index = 5) {
+                RethinkAnimatedSection(index = 4) {
                     AboutConnectSection(
                         onTwitterClick = onTwitterClick,
                         onEmailClick = onEmailClick,
@@ -369,7 +311,7 @@ fun AboutScreen(
 
             // ── System settings section ───────────────────────────────
             item {
-                RethinkAnimatedSection(index = 6) {
+                RethinkAnimatedSection(index = 5) {
                     AboutSection(
                         title = stringResource(id = R.string.about_settings),
                         accentColor = MaterialTheme.colorScheme.primary,
@@ -427,7 +369,7 @@ fun AboutScreen(
                         )
                     )
                 }
-                RethinkAnimatedSection(index = 7) {
+                RethinkAnimatedSection(index = 6) {
                     AboutSection(
                         title = stringResource(id = R.string.title_statistics),
                         accentColor = MaterialTheme.colorScheme.secondary,
@@ -438,14 +380,14 @@ fun AboutScreen(
 
             // ── Partner logos ─────────────────────────────────────────
             item {
-                RethinkAnimatedSection(index = 8) {
+                RethinkAnimatedSection(index = 7) {
                     PartnerLogosCard(onFossClick, onFlossFundsClick)
                 }
             }
 
             // ── Version footer ────────────────────────────────────────
             item {
-                RethinkAnimatedSection(index = 9) {
+                RethinkAnimatedSection(index = 8) {
                     Column(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -493,6 +435,7 @@ fun AboutScreen(
 
 // ─── Sponsor Card ───────────────────────────────────────────────────────────
 
+@Suppress("unused")
 @Composable
 private fun SponsorCard(uiState: AboutUiState, onSponsorClick: () -> Unit) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -617,10 +560,13 @@ private fun AboutSection(
 @Composable
 private fun AboutAppSection(
     uiState: AboutUiState,
+    onTelegramClick: () -> Unit,
+    onBugReportClick: () -> Unit,
     onWhatsNewClick: () -> Unit,
     onAppUpdateClick: () -> Unit,
-    onContributorsClick: () -> Unit,
-    onTranslateClick: () -> Unit
+    quickActionIconTint: Color,
+    telegramTint: Color,
+    bugReportTint: Color
 ) {
     val accentColor = MaterialTheme.colorScheme.primary
     val listItems = buildList {
@@ -644,6 +590,67 @@ private fun AboutAppSection(
 
     Column {
         SectionHeader(title = stringResource(id = R.string.about_app), color = accentColor)
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingGridTile)
+        ) {
+            RethinkGridTile(
+                title = stringResource(id = R.string.about_join_telegram),
+                iconRes = R.drawable.ic_telegram,
+                accentColor = telegramTint,
+                iconTint = quickActionIconTint,
+                iconContainerColor = telegramTint,
+                shape = RoundedCornerShape(
+                    topStart = 22.dp,
+                    topEnd = 12.dp,
+                    bottomStart = 6.dp,
+                    bottomEnd = 6.dp
+                ),
+                modifier = Modifier.weight(1f),
+                onClick = onTelegramClick
+            )
+            if (uiState.isBugReportRunning) {
+                RethinkGridTile(
+                    title = stringResource(id = R.string.collecting_logs_progress_text),
+                    iconRes = R.drawable.ic_android_icon,
+                    accentColor = bugReportTint,
+                    iconTint = quickActionIconTint,
+                    iconContainerColor = bugReportTint,
+                    shape = RoundedCornerShape(
+                        topStart = 12.dp,
+                        topEnd = 22.dp,
+                        bottomStart = 6.dp,
+                        bottomEnd = 6.dp
+                    ),
+                    modifier = Modifier.weight(1f),
+                    trailing = {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                            color = bugReportTint
+                        )
+                    }
+                )
+            } else {
+                RethinkGridTile(
+                    title = stringResource(id = R.string.about_bug_report),
+                    iconRes = R.drawable.ic_android_icon,
+                    accentColor = bugReportTint,
+                    iconTint = quickActionIconTint,
+                    iconContainerColor = bugReportTint,
+                    shape = RoundedCornerShape(
+                        topStart = 12.dp,
+                        topEnd = 22.dp,
+                        bottomStart = 6.dp,
+                        bottomEnd = 6.dp
+                    ),
+                    modifier = Modifier.weight(1f),
+                    onClick = onBugReportClick
+                )
+            }
+        }
+
         listItems.forEachIndexed { index, item ->
             RethinkListItem(
                 headline = item.headline,
@@ -653,40 +660,6 @@ private fun AboutAppSection(
                 position = aboutTopClusterPosition(index = index, lastIndex = listItems.lastIndex),
                 highlightContainerColor = accentColor.copy(alpha = 0.24f),
                 onClick = item.onClick
-            )
-        }
-
-        Spacer(modifier = Modifier.height(Dimensions.spacingXs))
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingGridTile)
-        ) {
-            RethinkGridTile(
-                title = stringResource(id = R.string.about_app_contributors),
-                iconRes = R.drawable.ic_authors,
-                accentColor = accentColor,
-                shape = RoundedCornerShape(
-                    topStart = 12.dp,
-                    topEnd = 12.dp,
-                    bottomStart = 28.dp,
-                    bottomEnd = 12.dp
-                ),
-                modifier = Modifier.weight(1f),
-                onClick = onContributorsClick
-            )
-            RethinkGridTile(
-                title = stringResource(id = R.string.about_app_translate),
-                iconRes = R.drawable.ic_translate,
-                accentColor = accentColor,
-                shape = RoundedCornerShape(
-                    topStart = 12.dp,
-                    topEnd = 12.dp,
-                    bottomStart = 12.dp,
-                    bottomEnd = 28.dp
-                ),
-                modifier = Modifier.weight(1f),
-                onClick = onTranslateClick
             )
         }
     }
@@ -716,10 +689,10 @@ private fun AboutConnectSection(
 
         Spacer(modifier = Modifier.height(Dimensions.spacingXs))
 
-        Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingGridTile)) {
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingGridTile)
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 RethinkGridTile(
                     title = stringResource(id = R.string.about_email),
@@ -751,7 +724,7 @@ private fun AboutConnectSection(
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingGridTile)
+                horizontalArrangement = Arrangement.spacedBy(2.dp)
             ) {
                 RethinkGridTile(
                     title = stringResource(id = R.string.lbl_matrix),

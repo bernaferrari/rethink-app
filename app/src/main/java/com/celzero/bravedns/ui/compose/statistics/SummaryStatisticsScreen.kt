@@ -19,6 +19,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -30,25 +31,32 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.produceState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Unspecified
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
@@ -64,7 +72,6 @@ import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkAnimatedSection
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.RethinkSegmentedChoiceRow
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.compose.theme.cardPositionFor
@@ -103,7 +110,13 @@ fun SummaryStatisticsScreen(
             end = Dimensions.screenPaddingHorizontal,
             top = Dimensions.spacingMd,
             bottom = Dimensions.spacing3xl
-        )
+        ),
+        topBarActions = {
+            TimeCategorySelector(
+                selectedCategory = uiState.timeCategory,
+                onCategorySelected = { viewModel.timeCategoryChanged(it) }
+            )
+        }
     ) {
             item {
                 RethinkAnimatedSection(index = 0) {
@@ -113,15 +126,6 @@ fun SummaryStatisticsScreen(
 
             item {
                 RethinkAnimatedSection(index = 1) {
-                    TimeCategorySelector(
-                        selectedCategory = uiState.timeCategory,
-                        onCategorySelected = { viewModel.timeCategoryChanged(it) }
-                    )
-                }
-            }
-
-            item {
-                RethinkAnimatedSection(index = 2) {
                     SummaryStatSection(
                         title = stringResource(id = R.string.ssv_app_network_activity_heading),
                         type = SummaryStatisticsType.MOST_CONNECTED_APPS,
@@ -135,7 +139,7 @@ fun SummaryStatisticsScreen(
             }
 
             item {
-                RethinkAnimatedSection(index = 3) {
+                RethinkAnimatedSection(index = 2) {
                     SummaryStatSection(
                         title = stringResource(id = R.string.ssv_app_blocked_heading),
                         type = SummaryStatisticsType.MOST_BLOCKED_APPS,
@@ -149,7 +153,7 @@ fun SummaryStatisticsScreen(
             }
 
             item {
-                RethinkAnimatedSection(index = 4) {
+                RethinkAnimatedSection(index = 3) {
                     SummaryStatSection(
                         title = stringResource(id = R.string.ssv_most_contacted_countries_heading),
                         type = SummaryStatisticsType.MOST_CONTACTED_COUNTRIES,
@@ -337,28 +341,63 @@ private fun UsageStatPill(
 }
 
 @Composable
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 private fun TimeCategorySelector(
     selectedCategory: TimeCategory,
-    onCategorySelected: (TimeCategory) -> Unit
+    onCategorySelected: (TimeCategory) -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    RethinkSegmentedChoiceRow(
-        options = TimeCategory.entries,
-        selectedOption = selectedCategory,
-        onOptionSelected = onCategorySelected,
-        modifier = Modifier.fillMaxWidth(),
-        fillEqually = true,
-        label = { category, selected ->
-            Text(
-                text = when (category) {
-                    TimeCategory.ONE_HOUR -> stringResource(id = R.string.time_window_one_hour_short)
-                    TimeCategory.TWENTY_FOUR_HOUR -> stringResource(id = R.string.time_window_twenty_four_hours_short)
-                    TimeCategory.SEVEN_DAYS -> stringResource(id = R.string.time_window_seven_days_short)
-                },
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
-            )
-        }
+    val options = listOf(
+        TimeCategory.ONE_HOUR to timeCategoryShortLabel(TimeCategory.ONE_HOUR),
+        TimeCategory.TWENTY_FOUR_HOUR to timeCategoryShortLabel(TimeCategory.TWENTY_FOUR_HOUR),
+        TimeCategory.SEVEN_DAYS to timeCategoryShortLabel(TimeCategory.SEVEN_DAYS)
     )
+    val selectedIndex = options.indexOfFirst { it.first == selectedCategory }
+
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        options.forEachIndexed { index, (category, label) ->
+            val selected = index == selectedIndex
+            ToggleButton(
+                checked = selected,
+                onCheckedChange = { isChecked ->
+                    if (isChecked && selectedCategory != category) {
+                        onCategorySelected(category)
+                    }
+                },
+                shapes = when (index) {
+                    0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                    options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                    else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                },
+                colors = ToggleButtonDefaults.toggleButtonColors(
+                    checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                    checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                modifier = Modifier.semantics { role = Role.RadioButton }
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.labelLarge,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun timeCategoryShortLabel(category: TimeCategory): String {
+    return when (category) {
+        TimeCategory.ONE_HOUR -> stringResource(id = R.string.time_window_one_hour_short)
+        TimeCategory.TWENTY_FOUR_HOUR -> stringResource(id = R.string.time_window_twenty_four_hours_short)
+        TimeCategory.SEVEN_DAYS -> stringResource(id = R.string.time_window_seven_days_short)
+    }
 }
 
 @Composable

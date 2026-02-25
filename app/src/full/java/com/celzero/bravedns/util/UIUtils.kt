@@ -580,10 +580,7 @@ object UIUtils {
         return when (appTheme) {
             Themes.LIGHT.id, Themes.LIGHT_PLUS.id -> R.color.accentGoodLight
             Themes.DARK.id -> R.color.accentGood
-            Themes.TRUE_BLACK.id,
-            Themes.DARK_PLUS.id,
-            Themes.DARK_FROST.id,
-            Themes.SYSTEM_DEFAULT.id -> R.color.accentGoodBlack
+            Themes.DARK_PLUS.id, Themes.SYSTEM_DEFAULT.id -> R.color.accentGoodBlack
             else -> R.color.accentGoodBlack
         }
     }

@@ -89,8 +89,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
@@ -549,6 +551,7 @@ fun RethinkModalBottomSheet(
     onDismissRequest: () -> Unit,
     modifier: Modifier = Modifier,
     dragHandle: @Composable (() -> Unit)? = { RethinkBottomSheetDragHandle() },
+    containerColor: Color = Color.Unspecified,
     contentPadding: PaddingValues = PaddingValues(
         horizontal = Dimensions.screenPaddingHorizontal,
         vertical = Dimensions.spacingSm
@@ -559,7 +562,13 @@ fun RethinkModalBottomSheet(
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
-        dragHandle = dragHandle
+        dragHandle = dragHandle,
+        containerColor =
+            if (containerColor == Color.Unspecified) {
+                MaterialTheme.colorScheme.surface
+            } else {
+                containerColor
+            }
     ) {
         Column(
             modifier = modifier
@@ -1068,6 +1077,7 @@ fun RethinkListItem(
     showTrailingChevron: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
@@ -1102,6 +1112,15 @@ fun RethinkListItem(
         label = "listItemHighlight"
     )
     val containerColor = lerp(defaultContainerColor, highlightContainerColor, highlightAlpha)
+    val wrappedOnClick =
+        if (onClick != null) {
+            {
+                hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                onClick()
+            }
+        } else {
+            null
+        }
 
     Column(
         modifier = modifier
@@ -1116,8 +1135,8 @@ fun RethinkListItem(
                 .padding(
                     top = if (position == CardPosition.First || position == CardPosition.Single) 0.dp else 2.dp
                 ),
-            onClick = onClick ?: {},
-            enabled = onClick != null && enabled,
+            onClick = wrappedOnClick ?: {},
+            enabled = wrappedOnClick != null && enabled,
             interactionSource = interactionSource
         ) {
             ListItem(
@@ -1260,6 +1279,11 @@ fun RethinkToggleListItem(
     onRowClick: (() -> Unit)? = null,
     trailingPrefix: @Composable (() -> Unit)? = null
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
+    val onSwitchChange: (Boolean) -> Unit = { value ->
+        hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        onCheckedChange(value)
+    }
     RethinkActionListItem(
         title = title,
         description = description,
@@ -1274,7 +1298,7 @@ fun RethinkToggleListItem(
             if (trailingPrefix == null) {
                 Switch(
                     checked = checked,
-                    onCheckedChange = onCheckedChange,
+                    onCheckedChange = onSwitchChange,
                     enabled = enabled
                 )
             } else {
@@ -1285,7 +1309,7 @@ fun RethinkToggleListItem(
                     trailingPrefix()
                     Switch(
                         checked = checked,
-                        onCheckedChange = onCheckedChange,
+                        onCheckedChange = onSwitchChange,
                         enabled = enabled
                     )
                 }
@@ -1309,6 +1333,7 @@ fun RethinkRadioListItem(
     highlighted: Boolean = false,
     onInfoClick: (() -> Unit)? = null
 ) {
+    val hapticFeedback = LocalHapticFeedback.current
     RethinkActionListItem(
         title = title,
         description = description,
@@ -1335,7 +1360,10 @@ fun RethinkRadioListItem(
                 }
                 RadioButton(
                     selected = selected,
-                    onClick = onSelect
+                    onClick = {
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        onSelect()
+                    }
                 )
             }
         },

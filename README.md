@@ -33,11 +33,9 @@ It operates in three primary modes: **VPN**, **DNS**, and **Firewall**. By suppo
 
 ## 📸 Screenshots
 
-| Home | Apps |
-| :---: | :---: |
-| ![Home](assets/home.png) | ![Apps](assets/apps.png) |
-| **Stats** | **Settings** |
-| ![Stats](assets/stats.png) | ![Settings](assets/settings.png) |
+<p align="center">
+  <img src="assets/comparison.png" alt="Re-Rethink Screenshots" width="980">
+</p>
 
 ## ✨ What's New in Re-Rethink
 
@@ -59,6 +57,26 @@ Because the app routes the traffic *internally on your device*, **it never sends
 - This app is local-first by default.
 - Some device manufacturers apply stricter VPN policies; background behavior can vary.
 - Certain background/network capabilities depend on notification, battery optimization, and device permissions.
+
+## 🛠️ Technology Stack
+
+- **Language:** Modern [Kotlin](https://kotlinlang.org/).
+- **UI Toolkit:** Fully rebuilt with [Jetpack Compose](https://developer.android.com/jetpack/compose) and [Material 3 Expressive](https://m3.material.io/).
+- **Concurrency:** Kotlin Coroutines & Flow for asynchronous data streams.
+- **Local Storage:** Room Database and DataStore for persistent configurations and logs.
+
+## 📥 Getting Started
+
+To build and run Re-Rethink locally on your machine:
+
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/bernaferrari/rethink-app.git
+   ```
+2. Open the project in the latest version of **Android Studio**.
+3. Let Gradle sync download all required dependencies.
+4. Connect an Android device or start an emulator.
+5. Click **Run** (`Shift + F10`).
 
 ## 📜 Credits & License
 

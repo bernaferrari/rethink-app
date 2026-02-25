@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">RethinkDNS</string>
+    <string name="app_name" translatable="false">Re-Rethink</string>
     <string name="app_name_small_case">rethink</string>
     <string name="title_about">À propos</string>
     <string name="title_settings">Paramètres</string>
@@ -25,7 +25,7 @@
     <string name="status_protected_with_proxy_private_dns">protégé par proxy &amp; DNS privé</string>
     <string name="status_protected_with_http_private_dns">protégé par proxy HTTP &amp; DNS privé</string>
     <string name="status_protected_with_socks5_private_dns">protégé par proxy SOCKS5 &amp; DNS privé</string>
-    <string name="dns_explanation_dns_connected">Connecté via RethinkDNS</string>
+    <string name="dns_explanation_dns_connected">Connecté via Re-RethinkDNS</string>
     <string name="dns_explanation_firewall_connected">Connecté via pare-feu</string>
     <string name="universal_firewall_explanation">Appliquer des règles de pare-feu à toutes les applications en fonction des événements survenant sur l’appareil, par exemple, lorsque l’appareil est verrouillé ou lorsqu’une application particulière n’est pas utilisée.</string>
     <string name="notification_action_dns_mode">DNS</string>

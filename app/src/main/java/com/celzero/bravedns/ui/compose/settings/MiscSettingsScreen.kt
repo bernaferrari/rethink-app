@@ -277,17 +277,6 @@ fun MiscSettingsScreen(
         ) {
             item {
                 RethinkAnimatedSection(index = 0) {
-                    val modeHighlightAlpha by animateFloatAsState(
-                        targetValue = if (activeFocusKey == "general_theme_mode") 1f else 0f,
-                        animationSpec = tween(120),
-                        label = "general_theme_mode_flash"
-                    )
-                    val colorHighlightAlpha by animateFloatAsState(
-                        targetValue = if (activeFocusKey == "general_theme_color") 1f else 0f,
-                        animationSpec = tween(120),
-                        label = "general_theme_color_flash"
-                    )
-
                     AppearanceSettingsCard(
                         themePreference = persistentState.theme,
                         colorPresetId = persistentState.themeColorPreset,
@@ -310,8 +299,6 @@ fun MiscSettingsScreen(
                                 details = "Color preset set to ${preset.name.lowercase()}"
                             )
                         },
-                        modeHighlightAlpha = modeHighlightAlpha,
-                        colorHighlightAlpha = colorHighlightAlpha,
                         showSectionHeader = true
                     )
                 }

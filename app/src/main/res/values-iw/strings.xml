@@ -63,7 +63,7 @@
     <string name="bsct_conn_block_desc_device" translatable="true">%1$s נחסם על המכשיר</string>
     <string name="bsct_conn_desc_allowed" translatable="true">מותר ב-%1$s %2$s</string>
     <string name="bsct_conn_desc_blocked" translatable="true">חסום ב-%1$s %2$s</string>
-    <string name="dns_explanation_dns_connected" translatable="true">מחובר ל-RethinkDNS</string>
+    <string name="dns_explanation_dns_connected" translatable="true">מחובר ל-Re-RethinkDNS</string>
     <string name="dns_explanation_connected" description="The message will be shown when the DNS is connected" translatable="true">מחובר ל-RethinkDNS ולחומת האש</string>
     <string name="notification_action_resume_vpn" translatable="true">המשך</string>
     <string name="notification_action_dns_mode" translatable="true">DNS</string>

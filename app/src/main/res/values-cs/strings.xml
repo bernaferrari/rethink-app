@@ -130,7 +130,7 @@
     <string name="failed_using_default" translatable="true">Selhalo: používá se záložní DNS</string>
     <string name="dns_explanation_connected" description="The message will be shown when the DNS is connected" translatable="true">Připojeno k RethinkDNS a Firewallu</string>
     <string name="firewall_mode_info_explanation_new" translatable="true">Monitorujte síťovou aktivitu a firewallujte jakoukoli aplikaci nebo IP adresu.</string>
-    <string name="dns_explanation_dns_connected" translatable="true">Připojeno k RethinkDNS</string>
+    <string name="dns_explanation_dns_connected" translatable="true">Připojeno k Re-RethinkDNS</string>
     <string name="brave_dns_connect_mode_change_firewall" translatable="true">Vyberte mód.</string>
     <string name="apps_info_title" translatable="true">Aplikace</string>
     <string name="hybrid_mode_info_title" translatable="true">DNS + Firewall</string>

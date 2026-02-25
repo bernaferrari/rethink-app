@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="title_settings">Nustatymai</string>
-    <string name="dns_explanation_dns_connected">Prisijungta prie RethinkDNS</string>
+    <string name="dns_explanation_dns_connected">Prisijungta prie Re-RethinkDNS</string>
     <string name="dns_explanation_firewall_connected">Prisijungta prie ugniasienės</string>
     <string name="app_name_small_case">rethink</string>
     <string name="universal_firewall_explanation">Taikykite ugniasienės taisykles visoms programėlėms pagal įrenginio įvykius, pvz., ugniasienę, kai įrenginys užrakintas arba kai tam tikra programėlė nenaudojama.</string>
-    <string name="app_name">RethinkDNS</string>
+    <string name="app_name" translatable="false">Re-Rethink</string>
     <string name="title_about">Apie</string>
     <string name="about_title_desc">Aptik ir blokuok tinklo saugumo grėsmes</string>
     <string name="txt_home">Pagrindinis</string>
@@ -191,7 +191,7 @@
     <string name="dc_block_heading">Taisyklės</string>
     <string name="dc_other_dns_heading">Tipas</string>
     <string name="dc_custom_dns_radio">Kitas DNS</string>
-    <string name="dc_rethink_dns_radio">RethinkDNS</string>
+    <string name="dc_rethink_dns_radio">Re-RethinkDNS</string>
     <string name="dc_entries">%1$s įrašai 🔗</string>
     <string name="dc_local_block_desc_1">Galite rinktis iš daugiau nei 185 blokavimo sąrašų. Spustelėkite čia, jei norite atsisiųsti arba konfigūruoti blokavimo sąrašus.</string>
     <string name="dc_custom_block_heading">Leisti arba neleisti atskirų domenų</string>
@@ -623,7 +623,7 @@
     <string name="build__flavor_play_store">play</string>
     <string name="cd_dialog_title">Pridėti domeną</string>
     <string name="new_app_bulk_notification_content">RethinkDNS užblokavo %1$s naujas (-ą) programėles (-ę). Bakstelėkite norėdami peržiūrėti arba keisti.</string>
-    <string name="notif_channel_desc_vpn_failure">Informuoti, kai Android arba kita VPN programa sustabdo RethinkDNS</string>
+    <string name="notif_channel_desc_vpn_failure">Informuoti, kai Android arba kita VPN programa sustabdo Re-RethinkDNS</string>
     <string name="notif_channed_desc_download">Įspėti apie įrenginio blokavimo sąrašų atsisiuntimo eigą</string>
     <string name="build__flavor_fdroid">fdroid</string>
     <string name="notif_channel_desc_firewall_alerts">Įspėti apie ugniasienės klaidas ir anomalijas</string>

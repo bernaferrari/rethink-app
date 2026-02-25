@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Rethink</string>
+    <string name="app_name" translatable="false">Re-Rethink</string>
     <string name="app_name_small_case" translatable="false">rethink</string>
     <string name="title_about" translatable="true">About</string>
     <string name="title_settings" translatable="true">Settings</string>
@@ -237,7 +237,7 @@
         <item>Block (unmetered)</item>
         <item>Block (metered)</item>
         <item>Isolate</item>
-        <item>Bypass DNS and Firewall</item>
+        <item>Bypass DNS &amp; Firewall</item>
         <item>Bypass Universal</item>
         <item>Exclude</item>
     </string-array>
@@ -248,7 +248,7 @@
     <string name="exclude" translatable="true">exclude</string>
     <string name="isolate" translatable="true">isolate</string>
     <string name="untracked" translatable="true">untracked</string>
-    <string name="bypass_dns_firewall" translatable="true">bypass dns &amp; firewall</string>
+    <string name="bypass_dns_firewall" translatable="true">Bypass DNS &amp; Firewall</string>
 
     <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">
     Warning: Rethink has been deactivated
@@ -330,7 +330,7 @@
     not protected
     </string>
 
-    <string name="dns_explanation_dns_connected" translatable="true">Connected to RethinkDNS</string>
+    <string name="dns_explanation_dns_connected" translatable="true">Connected to Re-RethinkDNS</string>
     <string name="dns_explanation_firewall_connected" translatable="true">Connected to Firewall</string>
 
     <string name="dns_explanation_connected" description="The message will be shown when the DNS is connected" translatable="true">
@@ -481,6 +481,7 @@
     <string name="search_custom_domains" translatable="true"><font size="12">Search domain names</font></string>
     <string name="search_rethinkplus_file_tag" translatable="true"><font size="12">Search blocklists</font></string>
     <string name="search_proxy_add_apps" translatable="true">Search apps by name</string>
+    <string name="search_apps_count_placeholder" translatable="true">Search %1$d apps</string>
 
     <string name="app_mode_dns_low_battery" translatable="true">DNS (battery saver)</string>
     <string name="app_mode_dns" translatable="true">DNS</string>
@@ -667,11 +668,15 @@
     <string name="settings_theme_color_auto" translatable="true">Auto</string>
     <string name="settings_theme_color_dynamic" translatable="true">Dynamic</string>
     <string name="settings_theme_color_coral" translatable="true">Coral</string>
+    <string name="settings_theme_color_rose" translatable="true">Rose</string>
     <string name="settings_theme_color_teal" translatable="true">Teal</string>
     <string name="settings_theme_color_blue" translatable="true">Blue</string>
     <string name="settings_theme_color_purple" translatable="true">Purple</string>
     <string name="settings_theme_color_orange" translatable="true">Orange</string>
     <string name="settings_theme_color_green" translatable="true">Green</string>
+    <string name="settings_theme_color_amber" translatable="true">Amber</string>
+    <string name="settings_theme_color_cyan" translatable="true">Cyan</string>
+    <string name="settings_theme_color_indigo" translatable="true">Indigo</string>
 
     <string name="settings_go_log_heading" translatable="true">Log level</string>
     <string name="settings_go_log_desc" translatable="true">For debugging purposes</string>
@@ -944,11 +949,11 @@
     <string name="about_app_contributors" translatable="true">Authors</string>
     <string name="about_app_translate" translatable="true">Translate</string>
     <string name="about_dialog_positive_button" translatable="true">Let\'s Go</string>
-    <string name="about_mail_to" translatable="true">hello@celzero.com</string>
+    <string name="about_mail_to" translatable="true">bernaferrari2@gmail.com</string>
     <string name="about_mail_to_string" translatable="true">mailto:</string>
     <string name="about_mail_subject" translatable="true">[Rethink]:</string>
     <string name="about_mail_bugreport_subject" translatable="true">[Rethink]: Bug report</string>
-    <string name="about_mail_bugreport_text" translatable="true">Send this email to : hello@celzero.com</string>
+    <string name="about_mail_bugreport_text" translatable="true">Send this email to : bernaferrari2@gmail.com</string>
     <string name="about_mail_bugreport_share_title" translatable="true">Select email provider</string>
     <string name="about_telegram_link" translatable="false">https://telegram.me/rethinkdns</string>
     <string name="about_docs_link" translatable="false">https://docs.rethinkdns.com/</string>

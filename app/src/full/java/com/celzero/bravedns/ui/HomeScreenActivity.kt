@@ -55,7 +55,6 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -162,7 +161,6 @@ import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.compose.theme.RethinkColorPreset
 import com.celzero.bravedns.ui.compose.theme.cardPositionFor
-import com.celzero.bravedns.ui.compose.theme.mapThemePreferenceToComposeMode
 import com.celzero.bravedns.ui.compose.settings.AppLockScreen
 import com.celzero.bravedns.ui.compose.settings.AppLockResult
 import com.celzero.bravedns.ui.compose.home.PauseScreen
@@ -409,14 +407,8 @@ class HomeScreenActivity : AppCompatActivity() {
             var composeThemePreference by remember { mutableStateOf(persistentState.theme) }
             var composeThemeColorPreset by remember { mutableStateOf(persistentState.themeColorPreset) }
 
-            val isSystemDark = isSystemInDarkTheme()
-            val resolvedComposeThemePreference =
-                Themes.resolveThemePreference(isSystemDark, composeThemePreference)
-            val composeThemeMode =
-                mapThemePreferenceToComposeMode(resolvedComposeThemePreference, isSystemDark)
             val colorPreset = RethinkColorPreset.fromId(composeThemeColorPreset)
             RethinkTheme(
-                themeMode = composeThemeMode,
                 themePreference = composeThemePreference,
                 colorPreset = colorPreset
             ) {
@@ -454,7 +446,9 @@ class HomeScreenActivity : AppCompatActivity() {
                         },
                         onHomeLogsClick = { homeNavRequest = HomeNavRequest.NetworkLogs },
                         onHomeAppsClick = { homeNavRequest = HomeNavRequest.AppList },
-                        onHomeSponsorClick = { promptForAppSponsorship() },
+                        onHomeSponsorClick = {
+                            // promptForAppSponsorship()
+                        },
                         summaryViewModel = summaryViewModel,
                         onOpenDetailedStats = { type -> openDetailedStatsUi(type) },
                         startDestination = homeStartDestination,
@@ -2447,40 +2441,47 @@ class HomeScreenActivity : AppCompatActivity() {
             }
 
             is HomeDialog.Sponsor -> {
-                Dialog(
-                    onDismissRequest = { homeDialogState = null },
-                    properties = DialogProperties(usePlatformDefaultWidth = false)
-                ) {
-                    Surface(color = MaterialTheme.colorScheme.background) {
-                        Column(modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(Dimensions.spacingLg)) {
-                            Text(
-                                text = getString(R.string.about_sponsor_link_text),
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-                            SponsorInfoDialogContent(
-                                amount = dialog.amount,
-                                usageMessage = dialog.usageMessage,
-                                onSponsorClick = {
-                                    openUrl(
-                                        this@HomeScreenActivity,
-                                        RETHINKDNS_SPONSOR_LINK
-                                    )
-                                }
-                            )
-                            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.End
-                            ) {
-                                TextButton(onClick = { homeDialogState = null }) {
-                                    Text(text = getString(R.string.lbl_cancel))
-                                }
-                            }
-                        }
-                    }
+                /*
+                 * Sponsor dialog intentionally hidden for now.
+                 *
+                 * Dialog(
+                 *     onDismissRequest = { homeDialogState = null },
+                 *     properties = DialogProperties(usePlatformDefaultWidth = false)
+                 * ) {
+                 *     Surface(color = MaterialTheme.colorScheme.background) {
+                 *         Column(modifier = Modifier
+                 *             .fillMaxWidth()
+                 *             .padding(Dimensions.spacingLg)) {
+                 *             Text(
+                 *                 text = getString(R.string.about_sponsor_link_text),
+                 *                 style = MaterialTheme.typography.titleLarge
+                 *             )
+                 *             Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+                 *             SponsorInfoDialogContent(
+                 *                 amount = dialog.amount,
+                 *                 usageMessage = dialog.usageMessage,
+                 *                 onSponsorClick = {
+                 *                     openUrl(
+                 *                         this@HomeScreenActivity,
+                 *                         RETHINKDNS_SPONSOR_LINK
+                 *                     )
+                 *                 }
+                 *             )
+                 *             Spacer(modifier = Modifier.height(Dimensions.spacingMd))
+                 *             Row(
+                 *                 modifier = Modifier.fillMaxWidth(),
+                 *                 horizontalArrangement = Arrangement.End
+                 *             ) {
+                 *                 TextButton(onClick = { homeDialogState = null }) {
+                 *                     Text(text = getString(R.string.lbl_cancel))
+                 *                 }
+                 *             }
+                 *         }
+                 *     }
+                 * }
+                 */
+                LaunchedEffect(Unit) {
+                    homeDialogState = null
                 }
             }
 
@@ -2981,6 +2982,7 @@ class HomeScreenActivity : AppCompatActivity() {
         }
     }
 
+    @Suppress("unused")
     @Composable
     private fun SponsorInfoDialogContent(
         amount: String,

@@ -578,7 +578,7 @@
     <string name="hsf_packet_capture_chip_text" translatable="true">パケット キャプチャがアクティブ</string>
     <string name="hsf_packet_capture_chip_disabled_toast" translatable="true">パケット キャプチャが無効</string>
     <string name="hsf_whats_new_remove_text" translatable="true">閉じる..</string>
-    <string name="dc_rethink_dns_radio" translatable="true">RethinkDNS</string>
+    <string name="dc_rethink_dns_radio" translatable="true">Re-RethinkDNS</string>
     <string name="hsf_whats_new_chip_text" translatable="true">更新情報</string>
     <string name="hsf_proxy_chip_text" translatable="true">プロキシがアクティブ</string>
     <string name="hsf_proxy_chip_remove_text" translatable="true">停止中…</string>

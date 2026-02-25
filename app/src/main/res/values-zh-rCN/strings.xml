@@ -569,7 +569,7 @@
     <string name="about_docs_link">https://docs.rethinkdns.com/</string>
     <string name="ada_app_status_allow">已放行</string>
     <string name="lbbs_copy">复制为 RDNS+ URL</string>
-    <string name="app_name">RethinkDNS</string>
+    <string name="app_name" translatable="false">Re-Rethink</string>
     <string name="settings_title_desc">一款可高度自定义的 DNS 与防火墙软件</string>
     <string name="app_name_small_case">rethink</string>
     <string name="title_about">关于</string>
@@ -588,7 +588,7 @@
     <string name="status_protected_with_tor">已由 Tor 保护</string>
     <string name="status_protected_with_private_dns">已由私人 DNS 保护</string>
     <string name="status_strict" description="This is similar to dns_on, but the protection is being provided by the operating system, not by Rethink.  It is not color-highlighted.">私人 DNS 已启用</string>
-    <string name="dns_explanation_dns_connected">已连接至 RethinkDNS</string>
+    <string name="dns_explanation_dns_connected">已连接至 Re-RethinkDNS</string>
     <string name="universal_firewall_explanation">根据设备事件应用防火墙规则，如在设备被锁定时或未使用某一应用程序时拦截。</string>
     <string name="notification_action_resume_vpn">恢复</string>
     <string name="bsct_conn_rule_explanation"><u>#1</u>：阻止某应用联网。 \n <u>#2</u>：阻止任意应用连接至某特定 IP 。 \n <u>#3</u>：在设备锁定时阻止所有连接（通用拦截规则）。 \n <u>#4</u>：阻止任意未使用的应用程序连接（通用拦截规则）。 \n <u>#5</u>：阻止未知应用的连接（通用拦截规则）。 \n <u>#6</u>：拦截除 DNS 外的所有 UDP 流量（通用拦截规则）。 \n <u>#7</u>：拦截绕过 DNS 的流量（通用拦截规则）。</string>

@@ -601,7 +601,7 @@
     <string name="title_settings">الإعدادات</string>
     <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]">يفشل</string>
     <string name="status_dns_server_down">خادم نظام أسماء النطاقات متوقف</string>
-    <string name="app_name">إعادة التفكير</string>
+    <string name="app_name" translatable="false">Re-Rethink</string>
     <string name="pause_title_desc">يأخذ غفوة…</string>
     <string name="next">التالي</string>
     <string name="slide_2_title">أهلاً وسهلاً</string>
@@ -646,7 +646,7 @@
     <string name="dns_crypt_url_remove_dialog_message">حذف محلل DNSCrypt من التكوين المحفوظ.</string>
     <string name="download_update_dialog_failure_title">هناك خطأ ما !</string>
     <string name="download_update_dialog_failure_message">إما أن خوادمنا معطلة أو لا يمكن إنشاء الاتصال. من فضلك حاول مرة أخرى بعد بعض من الوقت.</string>
-    <string name="dns_explanation_dns_connected">متصل بـ RethinkDNS</string>
+    <string name="dns_explanation_dns_connected">متصل بـ Re-RethinkDNS</string>
     <string name="settings_http_proxy_error_text1">يجب أن يتراوح نطاق المنفذ بين 1024 و 65535</string>
     <string name="local_blocklist_redownload_desc">قوائم الحظر على الجهاز موجودة بالفعل في أحدث إصدار v %1$s.</string>
     <string name="blocklist_update_check_failure">هناك خطأ ما. حاول مرة أخرى في وقت لاحق!</string>

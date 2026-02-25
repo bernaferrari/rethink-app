@@ -15,56 +15,52 @@
  */
 package com.celzero.bravedns.util
 
-import com.celzero.bravedns.util.Utilities.isAtleastS
-
 // Application themes enum
 enum class Themes(val id: Int) {
     SYSTEM_DEFAULT(0),
     LIGHT(1),
     DARK(2),
-    TRUE_BLACK(3),
     LIGHT_PLUS(4),
-    DARK_PLUS(5),
-    DARK_FROST(6);
+    DARK_PLUS(5);
 
     companion object {
+        private const val LEGACY_TRUE_BLACK_ID = 3
+        private const val LEGACY_DARK_FROST_ID = 6
+
         fun getThemeCount(): Int {
             return entries.count()
         }
 
         fun getAvailableThemeCount(): Int {
-            return if (isAtleastS()) {
-                entries.count()
-            } else {
-                // Exclude DARK_FROST for pre-Android S devices
-                entries.count() - 1
-            }
+            return entries.count()
         }
 
         fun isFrostTheme(id: Int): Boolean {
-            return id == DARK_FROST.id
+            return false
         }
 
         fun isThemeAvailable(id: Int): Boolean {
-            if (isFrostTheme(id)) {
-                return isAtleastS()
+            return when (id) {
+                SYSTEM_DEFAULT.id,
+                LIGHT.id,
+                DARK.id,
+                LIGHT_PLUS.id,
+                DARK_PLUS.id,
+                LEGACY_TRUE_BLACK_ID,
+                LEGACY_DARK_FROST_ID -> true
+                else -> false
             }
-            return true
         }
 
         fun resolveThemePreference(isDarkThemeOn: Boolean, preference: Int): Int {
-            if (isFrostTheme(preference) && !isAtleastS()) {
-                return DARK_PLUS.id
-            }
-
             return when (preference) {
                 SYSTEM_DEFAULT.id -> if (isDarkThemeOn) DARK_PLUS.id else LIGHT_PLUS.id
                 LIGHT.id,
                 DARK.id,
-                TRUE_BLACK.id,
                 LIGHT_PLUS.id,
-                DARK_PLUS.id,
-                DARK_FROST.id -> preference
+                DARK_PLUS.id -> preference
+                LEGACY_TRUE_BLACK_ID,
+                LEGACY_DARK_FROST_ID -> DARK_PLUS.id
                 else -> if (isDarkThemeOn) DARK_PLUS.id else LIGHT_PLUS.id
             }
         }

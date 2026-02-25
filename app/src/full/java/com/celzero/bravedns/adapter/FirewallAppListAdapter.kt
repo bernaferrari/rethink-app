@@ -81,7 +81,6 @@ import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -148,31 +147,11 @@ fun FirewallAppRow(
         animationSpec = spring(stiffness = Spring.StiffnessMedium),
         label = "rowScale"
     )
-    var highlightPulse by remember(appInfo.uid) { mutableStateOf(false) }
-    val matchBackground by animateColorAsState(
-        targetValue =
-            if (highlightPulse) MaterialTheme.colorScheme.primary.copy(alpha = 0.16f)
-            else Color.Transparent,
-        animationSpec = tween(durationMillis = 240),
-        label = "matchBackground"
-    )
-
-    LaunchedEffect(searchQuery) {
-        if (searchQuery.isNotBlank()) {
-            highlightPulse = true
-            delay(220)
-            highlightPulse = false
-        } else {
-            highlightPulse = false
-        }
-    }
-
     val highlightedAppName =
         buildHighlightedText(
             text = appInfo.appName,
             query = searchQuery,
-            highlightColor = MaterialTheme.colorScheme.primary,
-            highlightBackground = matchBackground
+            highlightColor = MaterialTheme.colorScheme.primary
         )
     val statusText =
         if (isSelfApp) {
@@ -266,15 +245,39 @@ fun FirewallAppRow(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(2.dp)
             ) {
-                Text(
-                    text = highlightedAppName,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = nameAlpha),
-                    textDecoration = if (tombstoned) TextDecoration.LineThrough else null,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = highlightedAppName,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = nameAlpha),
+                        textDecoration = if (tombstoned) TextDecoration.LineThrough else null,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    if (statusText.isNotBlank()) {
+                        Surface(
+                            shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
+                            color = accentColor.copy(alpha = 0.12f)
+                        ) {
+                            Text(
+                                text = statusText,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = accentColor,
+                                modifier = Modifier.padding(
+                                    horizontal = 6.dp,
+                                    vertical = 2.dp
+                                )
+                            )
+                        }
+                    }
+                }
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
                     verticalAlignment = Alignment.CenterVertically
@@ -302,24 +305,6 @@ fun FirewallAppRow(
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
                             alpha = Dimensions.Opacity.MEDIUM
-                        )
-                    )
-                }
-            }
-
-            if (statusText.isNotBlank()) {
-                Surface(
-                    shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
-                    color = accentColor.copy(alpha = 0.12f)
-                ) {
-                    Text(
-                        text = statusText,
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = accentColor,
-                        modifier = Modifier.padding(
-                            horizontal = 6.dp,
-                            vertical = 2.dp
                         )
                     )
                 }
@@ -736,8 +721,7 @@ private fun logEvent(eventLogger: EventLogger, details: String) {
 private fun buildHighlightedText(
     text: String,
     query: String,
-    highlightColor: Color,
-    highlightBackground: Color = Color.Transparent
+    highlightColor: Color
 ): AnnotatedString {
     val normalizedQuery = query.trim()
     if (normalizedQuery.isBlank() || text.isBlank()) return AnnotatedString(text)
@@ -780,7 +764,7 @@ private fun buildHighlightedText(
         append(text)
         mergedRanges.forEach { range ->
             addStyle(
-                style = SpanStyle(color = highlightColor, background = highlightBackground),
+                style = SpanStyle(color = highlightColor),
                 start = range.first,
                 end = range.last + 1
             )

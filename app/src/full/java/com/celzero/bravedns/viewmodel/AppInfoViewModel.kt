@@ -117,9 +117,7 @@ class AppInfoViewModel(private val appInfoDAO: AppInfoDAO) : ViewModel() {
     ): Boolean {
         if (search.isBlank()) return true
         val query = search.trim()
-        return app.appName.contains(query, ignoreCase = true) ||
-            app.packageName.contains(query, ignoreCase = true) ||
-            app.uid.toString().contains(query, ignoreCase = true)
+        return app.appName.contains(query, ignoreCase = true)
     }
 
     // apply the firewall rules to the filtered apps

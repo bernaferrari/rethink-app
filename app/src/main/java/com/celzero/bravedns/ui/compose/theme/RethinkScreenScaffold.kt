@@ -17,6 +17,7 @@ package com.celzero.bravedns.ui.compose.theme
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -52,6 +53,7 @@ fun RethinkTopBarLazyColumnScreen(
             bottom = Dimensions.spacing3xl
         ),
     verticalArrangement: Arrangement.Vertical = Arrangement.spacedBy(Dimensions.spacingLg),
+    topBarActions: @Composable RowScope.() -> Unit = {},
     content: LazyListScope.() -> Unit
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -67,7 +69,8 @@ fun RethinkTopBarLazyColumnScreen(
                 scrollBehavior = scrollBehavior,
                 containerColor = topBarContainerColor,
                 scrolledContainerColor = topBarScrolledContainerColor,
-                titleTextStyle = topBarTitleTextStyle
+                titleTextStyle = topBarTitleTextStyle,
+                actions = topBarActions
             )
         }
     ) { paddingValues ->

@@ -16,7 +16,7 @@
     <string name="notification_content" description="Indicates what will happen if the user taps the notification.">Koruma ayarını değiştirmek için dokunun</string>
     <string name="dns_mode_notification_title">Korunuyor! Hızlı ve Güvenli DNS\'e Bağlandı.</string>
     <string name="firewall_mode_notification_title">Korunuyor! Güvenlik Duvarına Bağlandı.</string>
-    <string name="app_name">RethinkDNS</string>
+    <string name="app_name" translatable="false">Re-Rethink</string>
     <string name="hybrid_mode_notification_title">Korunuyor! DNS ve Güvenlik Duvarına Bağlandı.</string>
     <string name="title_settings">Ayarlar</string>
     <string name="about_title_desc">Ağ güvenliği tehditlerini tespit edin ve engelleyin</string>

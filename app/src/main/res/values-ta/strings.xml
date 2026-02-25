@@ -8,7 +8,7 @@
     <string name="settings_title_desc">மிகவும் தனிப்பயனாக்கக்கூடிய டிஎன்எச் மற்றும் ஃபயர்வால்</string>
     <string name="dns_mode_info_title">டிஎன்எச்</string>
     <string name="always_on_dialog_neutral">அமைப்புகள்</string>
-    <string name="app_name">"மறுபரிசீலனை  டிஎன்எஸ்"</string>
+    <string name="app_name" translatable="false">Re-Rethink</string>
     <string name="app_name_small_case">மறுபரிசீலனை</string>
     <string name="title_about">பற்றி</string>
     <string name="title_settings">அமைப்புகள்</string>
