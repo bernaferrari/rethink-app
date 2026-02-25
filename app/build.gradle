@@ -10,14 +10,18 @@ plugins {
 def taskNames = gradle.startParameter.taskNames.join(',').toLowerCase()
 def apkBuild = taskNames.contains("full")
 def fdroidBuild = taskNames.contains("fdroid")
+// for alpha builds generate universal apk only
+def alphaBuild = taskNames.contains("alpha")
 
 // check for fdroidserver value is set in system env
 def fdroidBuildServer = System.getenv("fdroidserver")
 def isFdroidBuildServer = fdroidBuildServer != null && !fdroidBuildServer.isEmpty() && fdroidBuildServer != "null"
 def deGoogled = !apkBuild || fdroidBuild || isFdroidBuildServer
+def shouldSplit = !alphaBuild
 
 println("app-task names: '$taskNames'")
 println("gradle deGoogled? $deGoogled (fdroidBuild: $fdroidBuild, fdroidBuildServer: $isFdroidBuildServer, apkBuild: $apkBuild)")
+println("gradle alphaBuild? $alphaBuild, should split? $shouldSplit")
 
 // don't apply firebase plugins for fdroid CLI builds
 if (!deGoogled) {
@@ -104,19 +108,24 @@ android {
     }
 
     // https://developer.android.com/studio/build/configure-apk-splits
+    // alpha builds produce a single universal apk
+    // release builds produce split apk and universal apk
     splits.abi {
-        println('Create separate apks')
-        // generates multiple APKs based on the ABIs you define
-        enable true
-        reset()
-        // comma-separated list of ABIs that you want Gradle to generate APKs for
-        include 'x86', 'armeabi', 'armeabi-v7a', 'arm64-v8a', 'x86_64'
-        // generates a universal APK in addition to per-ABI APKs
-        universalApk true
+        if (!shouldSplit) {
+            println('universal apk only (splits disabled)')
+            enable false
+        } else {
+            println('split apks and universal apk (splits enabled)')
+            enable true
+            reset()
+            // comma-separated list of ABIs to generate apks for
+            include 'x86', 'armeabi-v7a', 'arm64-v8a', 'x86_64'
+            // generates a universal APK in addition to per-ABI apks
+            universalApk true
+        }
     }
     // version codes for each ABI variant
     project.ext.versionCodes = [
-            'armeabi'    : 1,
             'armeabi-v7a': 2,
             'arm64-v8a'  : 3,
             'x86'        : 8,
@@ -370,18 +379,18 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.3.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.7.0'
     androidTestImplementation 'androidx.test:rules:1.7.0'
-    testImplementation 'org.robolectric:robolectric:4.16'
+    testImplementation 'org.robolectric:robolectric:4.16.1'
     testImplementation 'androidx.test:core:1.7.0'
     testImplementation 'androidx.test.ext:junit:1.3.0'
     testImplementation 'org.mockito:mockito-core:5.21.0'
     // Added test dependencies for comprehensive testing
-    testImplementation 'io.mockk:mockk:1.14.7'
-    testImplementation 'io.mockk:mockk-android:1.14.7'
+    testImplementation 'io.mockk:mockk:1.14.9'
+    testImplementation 'io.mockk:mockk-android:1.14.9'
     testImplementation 'androidx.arch.core:core-testing:2.2.0'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
     testImplementation 'io.insert-koin:koin-test:4.1.1'
     testImplementation 'io.insert-koin:koin-test-junit4:4.1.1'
-    androidTestImplementation 'io.mockk:mockk-android:1.14.7'
+    androidTestImplementation 'io.mockk:mockk-android:1.14.9'
 
     leakCanaryImplementation 'com.squareup.leakcanary:leakcanary-android:2.14'
 
