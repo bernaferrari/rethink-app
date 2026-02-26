@@ -121,7 +121,10 @@ import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.celzero.bravedns.ui.compose.theme.RethinkSearchField
@@ -1075,79 +1078,72 @@ private fun LogsRulesDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 560.dp)
-                .padding(horizontal = Dimensions.spacingMd)
+            modifier = Modifier.fillMaxWidth(0.96f),
+            shape = RoundedCornerShape(Dimensions.cornerRadiusLg),
+            color = MaterialTheme.colorScheme.surface,
+            tonalElevation = 4.dp
         ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        horizontal = Dimensions.spacingSm,
-                        vertical = Dimensions.spacingSm
-                    ),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
+                    .heightIn(max = 560.dp)
             ) {
-                Surface(
-                    shape = RoundedCornerShape(Dimensions.cornerRadiusLg),
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            start = Dimensions.screenPaddingHorizontal,
+                            end = Dimensions.spacingXs,
+                            top = Dimensions.spacingMd,
+                            bottom = Dimensions.spacingSm
+                        ),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingSm),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.FilterList,
-                            contentDescription = null,
-                            modifier = Modifier.size(18.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                    Icon(
+                        imageVector = Icons.Rounded.FilterList,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.size(Dimensions.spacingSm))
+                    Text(
+                        text = stringResource(R.string.lbl_rules),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    if (selectedCount > 0) {
                         Spacer(modifier = Modifier.size(Dimensions.spacingSm))
-                        Text(
-                            text = stringResource(R.string.lbl_rules),
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                        Spacer(modifier = Modifier.size(Dimensions.spacingSm))
-                        if (selectedCount > 0) {
-                            Surface(
-                                shape = RoundedCornerShape(Dimensions.cornerRadiusPill),
-                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.9f)
-                            ) {
-                                Text(
-                                    text = selectedCount.toString(),
-                                    style = MaterialTheme.typography.labelSmall,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                                )
-                            }
-                        }
-                        Spacer(modifier = Modifier.weight(1f))
-                        if (selectedCount > 0) {
-                            TextButton(onClick = onClear) {
-                                Text(
-                                    text = stringResource(R.string.fapps_filter_clear_btn),
-                                    color = MaterialTheme.colorScheme.error,
-                                    fontWeight = FontWeight.SemiBold
-                                )
-                            }
-                        }
-                        IconButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.size(30.dp)
+                        Surface(
+                            shape = RoundedCornerShape(Dimensions.cornerRadiusPill),
+                            color = MaterialTheme.colorScheme.primaryContainer
                         ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Close,
-                                contentDescription = stringResource(R.string.lbl_dismiss),
-                                modifier = Modifier.size(16.dp)
+                            Text(
+                                text = selectedCount.toString(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 2.dp)
                             )
                         }
+                    }
+                    Spacer(modifier = Modifier.weight(1f))
+                    if (selectedCount > 0) {
+                        TextButton(onClick = onClear) {
+                            Text(
+                                text = stringResource(R.string.fapps_filter_clear_btn),
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.size(36.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Close,
+                            contentDescription = stringResource(R.string.lbl_dismiss),
+                            modifier = Modifier.size(18.dp)
+                        )
                     }
                 }
 
@@ -1155,96 +1151,36 @@ private fun LogsRulesDialog(
                     modifier = Modifier
                         .fillMaxWidth()
                         .weight(1f, fill = false),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    contentPadding = PaddingValues(
+                        start = Dimensions.spacingSm,
+                        end = Dimensions.spacingSm,
+                        bottom = Dimensions.spacingSm
+                    )
                 ) {
-                    itemsIndexed(rules, key = { _, rule -> rule.id }) { _, rule ->
-                        LogsRuleListItem(
-                            title = stringResource(rule.title),
-                            description = htmlToAnnotatedString(stringResource(rule.desc)),
-                            iconRes = FirewallRuleset.getRulesIcon(rule.id),
-                            selected = selectedRules.contains(rule.id),
+                    itemsIndexed(rules, key = { _, rule -> rule.id }) { index, rule ->
+                        val selected = selectedRules.contains(rule.id)
+                        RethinkListItem(
+                            headline = stringResource(rule.title),
+                            supportingAnnotated = htmlToAnnotatedString(stringResource(rule.desc)),
+                            leadingIconPainter = painterResource(id = FirewallRuleset.getRulesIcon(rule.id)),
+                            leadingIconTint = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            leadingIconContainerColor = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f) else MaterialTheme.colorScheme.surfaceContainerHighest,
+                            position = cardPositionFor(index = index, lastIndex = rules.lastIndex),
+                            highlighted = selected,
+                            highlightContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.28f),
+                            trailing = if (selected) {
+                                {
+                                    Icon(
+                                        imageVector = Icons.Rounded.CheckCircle,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                }
+                            } else null,
                             onClick = { onToggleRule(rule.id) }
                         )
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun LogsRuleListItem(
-    title: String,
-    description: AnnotatedString,
-    iconRes: Int,
-    selected: Boolean,
-    onClick: () -> Unit
-) {
-    Surface(
-        onClick = onClick,
-        shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
-        color =
-            if (selected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.34f)
-            else MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = 0.dp,
-        shadowElevation = 0.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingSm),
-            verticalAlignment = Alignment.Top
-        ) {
-            Surface(
-                shape = RoundedCornerShape(Dimensions.iconContainerRadius),
-                color =
-                    if (selected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
-                    else MaterialTheme.colorScheme.surfaceContainerHigh
-            ) {
-                Icon(
-                    painter = painterResource(id = iconRes),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(Dimensions.iconContainerSm)
-                        .padding(7.dp),
-                    tint =
-                        if (selected) MaterialTheme.colorScheme.secondary
-                        else MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Spacer(modifier = Modifier.size(Dimensions.spacingMd))
-
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(2.dp)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            Box(
-                modifier = Modifier
-                    .size(20.dp)
-                    .padding(top = 2.dp),
-                contentAlignment = Alignment.TopCenter
-            ) {
-                if (selected) {
-                    Icon(
-                        imageVector = Icons.Rounded.CheckCircle,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                        tint = MaterialTheme.colorScheme.secondary
-                    )
                 }
             }
         }

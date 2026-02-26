@@ -97,7 +97,6 @@ import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.UIUtils
-import com.celzero.bravedns.util.Utilities.getDefaultIcon
 import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.firestack.backend.Backend
 import io.github.aakira.napier.Napier
@@ -164,7 +163,6 @@ fun DnsLogRow(
 ) {
     val context = LocalContext.current
     val palette = dnsRowPalette(log)
-    val defaultIcon = remember(context) { getDefaultIcon(context) }
     val dnsType = dnsTypeName(context, log, isRethinkDns)
     val hint = unicodeHint(context, log, isRethinkDns)
     val appLabel = log.appName.ifEmpty {
@@ -232,7 +230,7 @@ fun DnsLogRow(
     LaunchedEffect(log.packageName) {
         appIcon =
             if (log.packageName.isEmpty() || log.packageName == Constants.EMPTY_PACKAGE_NAME) {
-                defaultIcon
+                null
             } else {
                 getIcon(context, log.packageName)
             }
@@ -303,8 +301,6 @@ fun DnsLogRow(
                         showFav = showFav,
                         favIcon = favIcon,
                         appIcon = appIcon,
-                        fallbackIcon = defaultIcon,
-                        flag = log.flag,
                         statusColor = palette.statusContainer,
                     )
 
@@ -432,11 +428,9 @@ private fun AppIconSlot(
     showFav: Boolean,
     favIcon: Drawable?,
     appIcon: Drawable?,
-    fallbackIcon: Drawable?,
-    flag: String,
     statusColor: Color,
 ) {
-    val iconDrawable = if (showFav && favIcon != null) favIcon else appIcon ?: fallbackIcon
+    val iconDrawable = if (showFav && favIcon != null) favIcon else appIcon
 
     Box(modifier = Modifier.size(36.dp), contentAlignment = Alignment.Center) {
         if (iconDrawable != null) {
@@ -456,17 +450,10 @@ private fun AppIconSlot(
             Box(
                 modifier =
                     Modifier
-                        .size(36.dp)
+                        .size(34.dp)
                         .clip(RoundedCornerShape(10.dp))
-                        .background(statusColor),
-                contentAlignment = Alignment.Center,
-            ) {
-                Text(
-                    text = flag.ifEmpty { "?" },
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-            }
+                        .background(statusColor.copy(alpha = 0.5f))
+            )
         }
     }
 }

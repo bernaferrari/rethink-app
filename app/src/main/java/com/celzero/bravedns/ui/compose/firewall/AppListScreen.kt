@@ -51,6 +51,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterList
+import androidx.compose.material.icons.outlined.CheckCircle
 import androidx.compose.material.icons.rounded.CheckCircle
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material.icons.rounded.Block
@@ -380,7 +381,7 @@ private fun AppListControlDeck(
                     border = null,
                     modifier = Modifier.semantics { role = Role.RadioButton }
                 ) {
-                    FirewallFilterIcon(filter = filter, modifier = Modifier.size(14.dp))
+                    FirewallFilterIcon(filter = filter, selected = selected, modifier = Modifier.size(14.dp))
                     Spacer(modifier = Modifier.size(ToggleButtonDefaults.IconSpacing))
                     Text(
                         text = filter.getLabel(),
@@ -1115,6 +1116,7 @@ fun FirewallAppFilterSheet(
                             ) {
                                 FirewallFilterIcon(
                                     filter = option,
+                                    selected = selected,
                                     modifier = Modifier.size(14.dp)
                                 )
                                 Spacer(modifier = Modifier.size(ToggleButtonDefaults.IconSpacing))
@@ -1205,6 +1207,7 @@ fun FirewallAppFilterSheet(
 @Composable
 private fun FirewallFilterIcon(
     filter: FirewallFilter,
+    selected: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     when (filter) {
@@ -1214,7 +1217,7 @@ private fun FirewallFilterIcon(
             modifier = modifier
         )
         FirewallFilter.ALLOWED -> Icon(
-            imageVector = Icons.Rounded.CheckCircle,
+            imageVector = if (selected) Icons.Rounded.CheckCircle else Icons.Outlined.CheckCircle,
             contentDescription = null,
             modifier = modifier
         )

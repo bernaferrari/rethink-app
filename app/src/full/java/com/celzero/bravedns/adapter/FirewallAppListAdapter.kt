@@ -37,7 +37,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MobileOff
+import androidx.compose.material.icons.rounded.PhoneAndroid
+import androidx.compose.material.icons.rounded.Wifi
+import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -54,7 +58,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -74,6 +77,7 @@ import com.celzero.bravedns.service.FirewallManager.updateFirewallStatus
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.ProxyManager.ID_NONE
 import com.celzero.bravedns.ui.HomeScreenActivity
+import com.celzero.bravedns.ui.compose.apps.DiagonalWipeIcon
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
@@ -168,21 +172,23 @@ fun FirewallAppRow(
     )
     val wifiIcon = wifiIconRes(appStatus, connStatus, isSelfApp)
     val mobileIcon = mobileIconRes(appStatus, connStatus, isSelfApp)
+    val wifiBlocked = wifiIcon == R.drawable.ic_firewall_wifi_off
+    val mobileBlocked = mobileIcon == R.drawable.ic_firewall_data_off
     val wifiTint =
-        if (wifiIcon == R.drawable.ic_firewall_wifi_off) {
+        if (wifiBlocked) {
             MaterialTheme.colorScheme.error
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         }
     val mobileTint =
-        if (mobileIcon == R.drawable.ic_firewall_data_off) {
+        if (mobileBlocked) {
             MaterialTheme.colorScheme.error
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         }
     val wifiContainerColor by animateColorAsState(
         targetValue =
-            if (wifiIcon == R.drawable.ic_firewall_wifi_off) {
+            if (wifiBlocked) {
                 MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.45f)
             } else {
                 Color.Transparent
@@ -192,7 +198,7 @@ fun FirewallAppRow(
     )
     val mobileContainerColor by animateColorAsState(
         targetValue =
-            if (mobileIcon == R.drawable.ic_firewall_data_off) {
+            if (mobileBlocked) {
                 MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.45f)
             } else {
                 Color.Transparent
@@ -338,11 +344,14 @@ fun FirewallAppRow(
                         },
                         modifier = Modifier.size(34.dp)
                     ) {
-                        Icon(
-                            painter = painterResource(id = wifiIcon),
+                        DiagonalWipeIcon(
+                            blocked = wifiBlocked,
+                            allowedIcon = Icons.Rounded.Wifi,
+                            blockedIcon = Icons.Rounded.WifiOff,
+                            allowedTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            blockedTint = wifiTint,
                             contentDescription = stringResource(R.string.firewall_rule_block_unmetered),
-                            modifier = Modifier.size(16.dp),
-                            tint = wifiTint
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
@@ -375,11 +384,14 @@ fun FirewallAppRow(
                         },
                         modifier = Modifier.size(34.dp)
                     ) {
-                        Icon(
-                            painter = painterResource(id = mobileIcon),
+                        DiagonalWipeIcon(
+                            blocked = mobileBlocked,
+                            allowedIcon = Icons.Rounded.PhoneAndroid,
+                            blockedIcon = Icons.Rounded.MobileOff,
+                            allowedTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            blockedTint = mobileTint,
                             contentDescription = stringResource(R.string.lbl_mobile_data),
-                            modifier = Modifier.size(16.dp),
-                            tint = mobileTint
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }

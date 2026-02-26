@@ -37,6 +37,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MobileOff
+import androidx.compose.material.icons.rounded.PhoneAndroid
+import androidx.compose.material.icons.rounded.Wifi
+import androidx.compose.material.icons.rounded.WifiOff
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -79,6 +84,7 @@ import com.celzero.bravedns.service.ProxyManager.ID_NONE
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.bottomsheet.AppDomainRulesSheet
 import com.celzero.bravedns.ui.bottomsheet.AppIpRulesSheet
+import com.celzero.bravedns.ui.compose.apps.DiagonalWipeIcon
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
@@ -380,8 +386,8 @@ fun AppInfoScreen(
                             contentDescription = null,
                             modifier =
                                 Modifier
-                                    .size(30.dp)
-                                    .clip(RoundedCornerShape(9.dp))
+                                    .size(Dimensions.iconSizeXl)
+                                    .clip(RoundedCornerShape(Dimensions.cornerRadiusMd))
                         )
                     }
                 }
@@ -478,8 +484,8 @@ fun AppInfoScreen(
                     leftTitle = stringResource(id = R.string.ada_app_unmetered),
                     leftDescription = stringResource(id = R.string.firewall_status_block_unmetered),
                     leftEnabled = wifiBlocked,
-                    leftEnabledIcon = R.drawable.ic_firewall_wifi_off,
-                    leftDisabledIcon = R.drawable.ic_firewall_wifi_on_grey,
+                    leftAllowedIcon = Icons.Rounded.Wifi,
+                    leftBlockedIcon = Icons.Rounded.WifiOff,
                     onLeftClick = {
                         val newConnStatus =
                             when (connStatus) {
@@ -493,8 +499,8 @@ fun AppInfoScreen(
                     rightTitle = stringResource(id = R.string.lbl_mobile_data),
                     rightDescription = stringResource(id = R.string.firewall_status_block_metered),
                     rightEnabled = mobileBlocked,
-                    rightEnabledIcon = R.drawable.ic_firewall_data_off,
-                    rightDisabledIcon = R.drawable.ic_firewall_data_on_grey,
+                    rightAllowedIcon = Icons.Rounded.PhoneAndroid,
+                    rightBlockedIcon = Icons.Rounded.MobileOff,
                     onRightClick = {
                         val newConnStatus =
                             when (connStatus) {
@@ -777,14 +783,14 @@ private fun AppFirewallPairRow(
     leftTitle: String,
     leftDescription: String,
     leftEnabled: Boolean,
-    leftEnabledIcon: Int,
-    leftDisabledIcon: Int,
+    leftAllowedIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    leftBlockedIcon: androidx.compose.ui.graphics.vector.ImageVector,
     onLeftClick: () -> Unit,
     rightTitle: String,
     rightDescription: String,
     rightEnabled: Boolean,
-    rightEnabledIcon: Int,
-    rightDisabledIcon: Int,
+    rightAllowedIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    rightBlockedIcon: androidx.compose.ui.graphics.vector.ImageVector,
     onRightClick: () -> Unit
 ) {
     Row(
@@ -796,8 +802,8 @@ private fun AppFirewallPairRow(
             title = leftTitle,
             description = leftDescription,
             enabled = leftEnabled,
-            enabledIcon = leftEnabledIcon,
-            disabledIcon = leftDisabledIcon,
+            allowedIcon = leftAllowedIcon,
+            blockedIcon = leftBlockedIcon,
             shape = RoundedCornerShape(topStart = 22.dp, topEnd = 8.dp, bottomStart = 22.dp, bottomEnd = 8.dp),
             onClick = onLeftClick
         )
@@ -806,8 +812,8 @@ private fun AppFirewallPairRow(
             title = rightTitle,
             description = rightDescription,
             enabled = rightEnabled,
-            enabledIcon = rightEnabledIcon,
-            disabledIcon = rightDisabledIcon,
+            allowedIcon = rightAllowedIcon,
+            blockedIcon = rightBlockedIcon,
             shape = RoundedCornerShape(topStart = 8.dp, topEnd = 22.dp, bottomStart = 8.dp, bottomEnd = 22.dp),
             onClick = onRightClick
         )
@@ -820,14 +826,13 @@ private fun AppFirewallTile(
     title: String,
     description: String,
     enabled: Boolean,
-    enabledIcon: Int,
-    disabledIcon: Int,
+    allowedIcon: androidx.compose.ui.graphics.vector.ImageVector,
+    blockedIcon: androidx.compose.ui.graphics.vector.ImageVector,
     shape: RoundedCornerShape,
     onClick: () -> Unit
 ) {
-    val accent =
-        if (enabled) MaterialTheme.colorScheme.error
-        else MaterialTheme.colorScheme.primary
+    val blockedTint = MaterialTheme.colorScheme.error
+    val allowedTint = MaterialTheme.colorScheme.onSurfaceVariant
     Surface(
         modifier = modifier,
         shape = shape,
@@ -838,19 +843,21 @@ private fun AppFirewallTile(
             modifier = Modifier.padding(horizontal = 12.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = accent.copy(alpha = if (enabled) 0.18f else 0.12f),
-                modifier = Modifier.size(36.dp)
+            Box(
+                modifier =
+                    Modifier
+                        .size(28.dp),
+                contentAlignment = Alignment.Center
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        painter = painterResource(id = if (enabled) enabledIcon else disabledIcon),
-                        contentDescription = null,
-                        tint = accent,
-                        modifier = Modifier.size(18.dp)
-                    )
-                }
+                DiagonalWipeIcon(
+                    blocked = enabled,
+                    allowedIcon = allowedIcon,
+                    blockedIcon = blockedIcon,
+                    allowedTint = allowedTint,
+                    blockedTint = blockedTint,
+                    contentDescription = title,
+                    modifier = Modifier.size(22.dp)
+                )
             }
             Text(
                 text = title,
