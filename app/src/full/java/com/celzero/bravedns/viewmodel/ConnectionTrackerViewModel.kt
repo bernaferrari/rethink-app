@@ -164,11 +164,20 @@ class ConnectionTrackerViewModel(private val connectionTrackerDAO: ConnectionTra
     }
 
     private fun getAllNetworkLogs(input: String): LiveData<PagingData<ConnectionTracker>> {
-        return Pager(pagingConfig) {
-                if (input.isBlank()) connectionTrackerDAO.getConnectionTrackerByName()
-                else connectionTrackerDAO.getConnectionTrackerByName("%$input%")
-            }
-            .liveData
-            .cachedIn(viewModelScope)
+        return if (filterRules.isNotEmpty()) {
+            Pager(pagingConfig) {
+                    if (input.isBlank()) connectionTrackerDAO.getConnectionsFiltered(filterRules)
+                    else connectionTrackerDAO.getConnectionsFiltered("%$input%", filterRules)
+                }
+                .liveData
+                .cachedIn(viewModelScope)
+        } else {
+            Pager(pagingConfig) {
+                    if (input.isBlank()) connectionTrackerDAO.getConnectionTrackerByName()
+                    else connectionTrackerDAO.getConnectionTrackerByName("%$input%")
+                }
+                .liveData
+                .cachedIn(viewModelScope)
+        }
     }
 }

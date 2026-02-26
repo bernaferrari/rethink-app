@@ -34,6 +34,8 @@ internal fun countryNameFromFlag(flag: String?): String? {
     }
 
     val countryCode = "${first.toChar()}${second.toChar()}"
-    val displayName = Locale("", countryCode).getDisplayCountry(Locale.getDefault())
+    val countryLocale =
+        runCatching { Locale.Builder().setRegion(countryCode).build() }.getOrNull() ?: return null
+    val displayName = countryLocale.getDisplayCountry(Locale.getDefault())
     return displayName.takeIf { it.isNotBlank() && !it.equals(countryCode, ignoreCase = true) }
 }

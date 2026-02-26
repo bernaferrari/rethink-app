@@ -85,6 +85,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import androidx.compose.ui.res.stringResource
 
 enum class FirewallRowPosition {
     First,
@@ -112,9 +113,9 @@ fun FirewallAppRow(
         mutableStateOf(FirewallManager.ConnectionStatus.getStatus(appInfo.connectionStatus))
     }
     var appIcon by
-        remember(appInfo.packageName) {
-            mutableStateOf<Drawable?>(FirewallAppIconCache.get(appInfo.packageName))
-        }
+    remember(appInfo.packageName) {
+        mutableStateOf<Drawable?>(FirewallAppIconCache.get(appInfo.packageName))
+    }
     var proxyEnabled by remember(appInfo.uid) { mutableStateOf(false) }
     val isSelfApp = appInfo.packageName == context.packageName
     val tombstoned = appInfo.tombstoneTs > 0
@@ -339,7 +340,7 @@ fun FirewallAppRow(
                     ) {
                         Icon(
                             painter = painterResource(id = wifiIcon),
-                            contentDescription = context.getString(R.string.firewall_rule_block_unmetered),
+                            contentDescription = stringResource(R.string.firewall_rule_block_unmetered),
                             modifier = Modifier.size(16.dp),
                             tint = wifiTint
                         )
@@ -376,7 +377,7 @@ fun FirewallAppRow(
                     ) {
                         Icon(
                             painter = painterResource(id = mobileIcon),
-                            contentDescription = context.getString(R.string.lbl_mobile_data),
+                            contentDescription = stringResource(R.string.lbl_mobile_data),
                             modifier = Modifier.size(16.dp),
                             tint = mobileTint
                         )
@@ -391,7 +392,7 @@ fun FirewallAppRow(
         RethinkConfirmDialog(
             onDismissRequest = { dialogState = null },
             title =
-                context.getString(
+                stringResource(
                     R.string.ctbs_block_other_apps,
                     state.appInfo.appName,
                     count.toString()
@@ -403,8 +404,8 @@ fun FirewallAppRow(
                     }
                 }
             },
-            confirmText = context.getString(R.string.lbl_proceed),
-            dismissText = context.getString(R.string.ctbs_dialog_negative_btn),
+            confirmText = stringResource(R.string.lbl_proceed),
+            dismissText = stringResource(R.string.ctbs_dialog_negative_btn),
             onConfirm = {
                 scope.launch(Dispatchers.IO) {
                     val updatedConnStatus =
@@ -472,8 +473,10 @@ private fun getFirewallText(
                 FirewallManager.ConnectionStatus.ALLOW -> ""
                 FirewallManager.ConnectionStatus.METERED ->
                     context.getString(R.string.lbl_blocked)
+
                 FirewallManager.ConnectionStatus.UNMETERED ->
                     context.getString(R.string.lbl_blocked)
+
                 FirewallManager.ConnectionStatus.BOTH ->
                     context.getString(R.string.lbl_blocked)
             }
@@ -592,7 +595,7 @@ private fun handleMobileToggle(
 private suspend fun toggleMobileData(
     eventLogger: EventLogger,
     appInfo: AppInfo
-) : FirewallManager.ConnectionStatus {
+): FirewallManager.ConnectionStatus {
     return FirewallToggleLock.withLock {
         val connStatus = FirewallManager.connectionStatus(appInfo.uid)
         val updatedConnStatus = nextConnStatusForMobileToggle(connStatus)
@@ -631,7 +634,11 @@ private suspend fun toggleMobileData(
         }
         logEvent(
             eventLogger,
-            "UID: ${appInfo.uid}, App: ${appInfo.appName}, New FW status: ${FirewallManager.connectionStatus(appInfo.uid)}"
+            "UID: ${appInfo.uid}, App: ${appInfo.appName}, New FW status: ${
+                FirewallManager.connectionStatus(
+                    appInfo.uid
+                )
+            }"
         )
         updatedConnStatus
     }
@@ -640,7 +647,7 @@ private suspend fun toggleMobileData(
 private suspend fun toggleWifi(
     eventLogger: EventLogger,
     appInfo: AppInfo
-) : FirewallManager.ConnectionStatus {
+): FirewallManager.ConnectionStatus {
     return FirewallToggleLock.withLock {
         val connStatus = FirewallManager.connectionStatus(appInfo.uid)
         val updatedConnStatus = nextConnStatusForWifiToggle(connStatus)
@@ -679,7 +686,11 @@ private suspend fun toggleWifi(
         }
         logEvent(
             eventLogger,
-            "UID: ${appInfo.uid}, App: ${appInfo.appName}, New FW status: ${FirewallManager.connectionStatus(appInfo.uid)}"
+            "UID: ${appInfo.uid}, App: ${appInfo.appName}, New FW status: ${
+                FirewallManager.connectionStatus(
+                    appInfo.uid
+                )
+            }"
         )
         updatedConnStatus
     }
@@ -715,7 +726,14 @@ private fun openAppDetailActivity(context: Context, uid: Int) {
 }
 
 private fun logEvent(eventLogger: EventLogger, details: String) {
-    eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, "App list, rule change", EventSource.UI, false, details)
+    eventLogger.log(
+        EventType.FW_RULE_MODIFIED,
+        Severity.LOW,
+        "App list, rule change",
+        EventSource.UI,
+        false,
+        details
+    )
 }
 
 private fun buildHighlightedText(
@@ -775,11 +793,21 @@ private fun buildHighlightedText(
 private fun rowShapeFor(position: FirewallRowPosition): RoundedCornerShape {
     return when (position) {
         FirewallRowPosition.First ->
-            RoundedCornerShape(topStart = 18.dp, topEnd = 18.dp, bottomStart = 10.dp, bottomEnd = 10.dp)
+            RoundedCornerShape(
+                topStart = 18.dp,
+                topEnd = 18.dp,
+                bottomStart = 10.dp,
+                bottomEnd = 10.dp
+            )
 
         FirewallRowPosition.Middle -> RoundedCornerShape(10.dp)
         FirewallRowPosition.Last ->
-            RoundedCornerShape(topStart = 10.dp, topEnd = 10.dp, bottomStart = 18.dp, bottomEnd = 18.dp)
+            RoundedCornerShape(
+                topStart = 10.dp,
+                topEnd = 10.dp,
+                bottomStart = 18.dp,
+                bottomEnd = 18.dp
+            )
 
         FirewallRowPosition.Single -> RoundedCornerShape(18.dp)
     }

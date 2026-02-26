@@ -77,8 +77,12 @@ class ConnectionTrackerRepository(private val connectionTrackerDAO: ConnectionTr
         return connectionTrackerDAO.logsCount()
     }
 
-    suspend fun getAllLoggedAppsWithCount(): List<LogAppCount> {
-        return connectionTrackerDAO.getAllLoggedAppsWithCount()
+    suspend fun getAllLoggedAppsWithCount(rules: Set<String> = emptySet()): List<LogAppCount> {
+        return if (rules.isEmpty()) {
+            connectionTrackerDAO.getAllLoggedAppsWithCount()
+        } else {
+            connectionTrackerDAO.getAllLoggedAppsWithCountFiltered(rules)
+        }
     }
 
     suspend fun getAllowedLoggedAppsWithCount(rules: Set<String> = emptySet()): List<LogAppCount> {

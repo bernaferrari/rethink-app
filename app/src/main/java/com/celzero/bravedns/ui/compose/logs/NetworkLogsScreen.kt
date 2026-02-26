@@ -42,6 +42,11 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Block
+import androidx.compose.material.icons.outlined.CheckCircle
+import androidx.compose.material.icons.outlined.NetworkPing
+import androidx.compose.material.icons.outlined.Public
+import androidx.compose.material.icons.outlined.Shield
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.CheckCircle
@@ -49,8 +54,10 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.NetworkPing
 import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Shield
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ButtonGroupDefaults
@@ -163,7 +170,6 @@ fun NetworkLogsScreen(
         )
     val selectedTab = remember { mutableIntStateOf(0) }
 
-    var selectedConn by remember { mutableStateOf<ConnectionTracker?>(null) }
     var selectedDns by remember { mutableStateOf<DnsLog?>(null) }
     var onRefreshLogs by remember { mutableStateOf<(() -> Unit)?>(null) }
     var onClearLogs by remember { mutableStateOf<(() -> Unit)?>(null) }
@@ -210,8 +216,7 @@ fun NetworkLogsScreen(
                         onTopBarActionsChange = { refreshAction, clearAction ->
                             if (onRefreshLogs !== refreshAction) onRefreshLogs = refreshAction
                             if (onClearLogs !== clearAction) onClearLogs = clearAction
-                        },
-                        onShowConnTracker = { selectedConn = it }
+                        }
                     )
                 }
 
@@ -231,13 +236,6 @@ fun NetworkLogsScreen(
         }
     }
 
-    if (selectedConn != null) {
-        ConnTrackerDetailsSheet(
-            connection = selectedConn!!,
-            onDismiss = { selectedConn = null }
-        )
-    }
-
     if (selectedDns != null) {
         DnsLogDetailsSheet(
             log = selectedDns!!,
@@ -252,8 +250,7 @@ private fun ConnectionLogsContent(
     viewModel: ConnectionTrackerViewModel,
     repository: ConnectionTrackerRepository,
     persistentState: PersistentState,
-    onTopBarActionsChange: (refreshAction: (() -> Unit)?, clearAction: (() -> Unit)?) -> Unit,
-    onShowConnTracker: (ConnectionTracker) -> Unit
+    onTopBarActionsChange: (refreshAction: (() -> Unit)?, clearAction: (() -> Unit)?) -> Unit
 ) {
     val logsFlow = remember(viewModel) { viewModel.connectionTrackerList.asFlow() }
     val items = logsFlow.collectAsLazyPagingItems()
@@ -272,17 +269,20 @@ private fun ConnectionLogsContent(
         LogsFilterOption(
             value = ConnectionTrackerViewModel.TopLevelFilter.ALL,
             label = stringResource(R.string.lbl_all),
-            icon = Icons.Rounded.Public
+            selectedIcon = Icons.Rounded.Public,
+            unselectedIcon = Icons.Outlined.Public
         ),
         LogsFilterOption(
             value = ConnectionTrackerViewModel.TopLevelFilter.ALLOWED,
             label = stringResource(R.string.lbl_allowed),
-            icon = Icons.Rounded.CheckCircle
+            selectedIcon = Icons.Rounded.CheckCircle,
+            unselectedIcon = Icons.Outlined.CheckCircle
         ),
         LogsFilterOption(
             value = ConnectionTrackerViewModel.TopLevelFilter.BLOCKED,
             label = stringResource(R.string.lbl_blocked),
-            icon = Icons.Rounded.Block
+            selectedIcon = Icons.Rounded.Block,
+            unselectedIcon = Icons.Outlined.Block
         )
     )
     val refreshAction = remember(items) { { items.refresh() } }
@@ -322,9 +322,9 @@ private fun ConnectionLogsContent(
     val ruleFilters = when (parentFilter) {
         ConnectionTrackerViewModel.TopLevelFilter.BLOCKED -> FirewallRuleset.getBlockedRules()
         ConnectionTrackerViewModel.TopLevelFilter.ALLOWED -> FirewallRuleset.getAllowedRules()
-        ConnectionTrackerViewModel.TopLevelFilter.ALL -> emptyList()
+        ConnectionTrackerViewModel.TopLevelFilter.ALL -> FirewallRuleset.entries.toList()
     }
-    val hasRulesFilter = parentFilter != ConnectionTrackerViewModel.TopLevelFilter.ALL && ruleFilters.isNotEmpty()
+    val hasRulesFilter = ruleFilters.isNotEmpty()
 
     LaunchedEffect(showAppFilterDialog, parentFilter, childFilters, persistentState.logsEnabled) {
         if (!showAppFilterDialog || !persistentState.logsEnabled) return@LaunchedEffect
@@ -332,7 +332,8 @@ private fun ConnectionLogsContent(
         appFilterOptions =
             withContext(Dispatchers.IO) {
                 when (parentFilter) {
-                    ConnectionTrackerViewModel.TopLevelFilter.ALL -> repository.getAllLoggedAppsWithCount()
+                    ConnectionTrackerViewModel.TopLevelFilter.ALL ->
+                        repository.getAllLoggedAppsWithCount(childFilters)
                     ConnectionTrackerViewModel.TopLevelFilter.ALLOWED ->
                         repository.getAllowedLoggedAppsWithCount(childFilters)
                     ConnectionTrackerViewModel.TopLevelFilter.BLOCKED ->
@@ -363,20 +364,20 @@ private fun ConnectionLogsContent(
                     )
 
                     LogsCompactIconAction(
-                        icon = Icons.Rounded.Apps,
-                        contentDescription = stringResource(R.string.lbl_apps),
-                        selected = selectedAppFilter != null,
-                        enabled = true,
-                        onClick = { openAppFilterAction() }
-                    )
-
-                    LogsCompactIconAction(
                         icon = Icons.Rounded.FilterList,
                         contentDescription = stringResource(R.string.lbl_rules),
                         selected = childFilters.isNotEmpty(),
                         enabled = hasRulesFilter,
                         count = childFilters.size,
                         onClick = { showRulesDialog = true }
+                    )
+
+                    LogsCompactIconAction(
+                        icon = Icons.Rounded.Apps,
+                        contentDescription = stringResource(R.string.lbl_apps),
+                        selected = selectedAppFilter != null,
+                        enabled = true,
+                        onClick = { openAppFilterAction() }
                     )
                 }
             }
@@ -385,8 +386,12 @@ private fun ConnectionLogsContent(
                 items = items,
                 listState = listState,
                 modifier = Modifier.weight(1f)
-            ) { item, _, _ ->
-                ConnectionRow(item, onShowConnTracker)
+            ) { item, index, itemCount ->
+                ConnectionRow(
+                    ct = item,
+                    index = index,
+                    itemCount = itemCount
+                )
             }
         }
 
@@ -453,17 +458,20 @@ private fun DnsLogsContent(
         LogsFilterOption(
             value = DnsLogViewModel.DnsLogFilter.ALL,
             label = stringResource(R.string.lbl_all),
-            icon = Icons.Rounded.Public
+            selectedIcon = Icons.Rounded.Public,
+            unselectedIcon = Icons.Outlined.Public
         ),
         LogsFilterOption(
             value = DnsLogViewModel.DnsLogFilter.ALLOWED,
             label = stringResource(R.string.lbl_allowed),
-            icon = Icons.Rounded.CheckCircle
+            selectedIcon = Icons.Rounded.CheckCircle,
+            unselectedIcon = Icons.Outlined.CheckCircle
         ),
         LogsFilterOption(
             value = DnsLogViewModel.DnsLogFilter.BLOCKED,
             label = stringResource(R.string.lbl_blocked),
-            icon = Icons.Rounded.Block
+            selectedIcon = Icons.Rounded.Block,
+            unselectedIcon = Icons.Outlined.Block
         )
     )
     val refreshAction = remember(items) { { items.refresh() } }
@@ -698,21 +706,15 @@ private fun LogsInlineTabSwitch(
 ) {
     val options =
         listOf(
-            Triple(0, R.string.firewall_act_network_monitor_tab, R.drawable.ic_network),
-            Triple(1, R.string.dns_mode_info_title, R.drawable.ic_dns_firewall)
+            0 to R.string.firewall_act_network_monitor_tab,
+            1 to R.string.dns_mode_info_title
         )
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
     ) {
-        options.forEachIndexed { index, (value, labelRes, iconRes) ->
+        options.forEachIndexed { index, (value, labelRes) ->
             val selected = selectedTabIndex == value
-            val resolvedIconRes =
-                if (selected && iconRes == R.drawable.ic_dns_firewall) {
-                    R.drawable.ic_dns_firewall_filled
-                } else {
-                    iconRes
-                }
             ToggleButton(
                 checked = selected,
                 onCheckedChange = { checked ->
@@ -735,8 +737,13 @@ private fun LogsInlineTabSwitch(
                     .heightIn(min = 34.dp)
                     .semantics { role = Role.RadioButton }
             ) {
+                val tabIcon =
+                    when (value) {
+                        0 -> if (selected) Icons.Rounded.NetworkPing else Icons.Outlined.NetworkPing
+                        else -> if (selected) Icons.Rounded.Shield else Icons.Outlined.Shield
+                    }
                 Icon(
-                    painter = painterResource(id = resolvedIconRes),
+                    imageVector = tabIcon,
                     contentDescription = null,
                     modifier = Modifier.size(14.dp)
                 )
@@ -997,7 +1004,8 @@ private fun LogsAppFilterListItem(
 private data class LogsFilterOption<T>(
     val value: T,
     val label: String,
-    val icon: ImageVector
+    val selectedIcon: ImageVector,
+    val unselectedIcon: ImageVector = selectedIcon
 )
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -1038,7 +1046,7 @@ private fun <T> LogsPrimaryFilterRow(
             ) {
                 val showLabel = selected
                 Icon(
-                    imageVector = option.icon,
+                    imageVector = if (selected) option.selectedIcon else option.unselectedIcon,
                     contentDescription = if (showLabel) null else option.label,
                     modifier = Modifier.size(16.dp)
                 )
