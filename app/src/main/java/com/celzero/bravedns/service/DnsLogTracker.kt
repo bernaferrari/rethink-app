@@ -192,7 +192,7 @@ internal constructor(
                 } else {
                     // no ip address found
                     dnsLog.flag =
-                        context.resources.getString(R.string.unicode_question_sign) // white question mark
+                        context.getString(R.string.unicode_question_sign) // white question mark
                     // add the response if it is not empty, in case of HTTP SVCB records, the
                     // ip address is empty but the response is not
                     if (transaction.response.isNotEmpty()) {
@@ -207,7 +207,7 @@ internal constructor(
             } else {
                 // make sure we don't log too much data
                 dnsLog.response = transaction.response.take(RDATA_MAX_LENGTH)
-                dnsLog.flag = context.resources.getString(R.string.unicode_check_sign) // green check mark
+                dnsLog.flag = context.getString(R.string.unicode_check_sign) // green check mark
             }
         } else if (transaction.status == Transaction.Status.START) {
             if (transaction.response.isNotEmpty()) {
@@ -215,11 +215,11 @@ internal constructor(
             } else {
                 dnsLog.response = transaction.status.name
             }
-            dnsLog.flag = context.resources.getString(R.string.unicode_start_sign) // start sign
+            dnsLog.flag = context.getString(R.string.unicode_start_sign) // start sign
         } else {
             // error
             dnsLog.response = transaction.status.name
-            dnsLog.flag = context.resources.getString(R.string.unicode_warning_sign) // Warning sign
+            dnsLog.flag = context.getString(R.string.unicode_warning_sign) // Warning sign
         }
 
         if (persistentState.fetchFavIcon) {
@@ -232,7 +232,7 @@ internal constructor(
             val appCount = appNames.count()
             if (appCount >= 1) {
                 dnsLog.appName = if (appCount >= 2) {
-                    context.resources.getString(
+                    context.getString(
                         R.string.ctbs_app_other_apps,
                         appNames[0],
                         appCount.minus(1).toString()
@@ -243,11 +243,11 @@ internal constructor(
                 val pkgName = FirewallManager.getPackageNameByAppName(appNames[0])
                 dnsLog.packageName = pkgName ?: EMPTY_PACKAGE_NAME
             } else {
-                dnsLog.appName = context.resources.getString(R.string.network_log_app_name_unnamed, transaction.uid.toString())
+                dnsLog.appName = context.getString(R.string.network_log_app_name_unnamed, transaction.uid.toString())
                 dnsLog.packageName = EMPTY_PACKAGE_NAME
             }
         } else {
-            dnsLog.appName = context.resources.getString(R.string.network_log_app_name_unknown)
+            dnsLog.appName = context.getString(R.string.network_log_app_name_unknown)
             dnsLog.packageName = EMPTY_PACKAGE_NAME
         }
         return dnsLog
@@ -255,7 +255,7 @@ internal constructor(
 
     private fun getFlagIfPresent(hostAddress: String?): String {
         if (hostAddress == null) {
-            return context.resources.getString(R.string.unicode_warning_sign)
+            return context.getString(R.string.unicode_warning_sign)
         }
         return getFlag(hostAddress)
     }

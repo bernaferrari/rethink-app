@@ -67,11 +67,11 @@ internal fun DnsInfoDialog(
         onDismissRequest = onDismiss,
         title = model.title,
         message = model.message,
-        primaryText = context.resources.getString(model.confirmTextRes),
+        primaryText = context.getString(model.confirmTextRes),
         onPrimary = onDismiss,
         secondaryText =
             model.copyValue?.takeIf { it.isNotEmpty() }?.let {
-                context.resources.getString(model.copyTextRes)
+                context.getString(model.copyTextRes)
             },
         onSecondary = {
             val copyValue = model.copyValue
@@ -79,11 +79,11 @@ internal fun DnsInfoDialog(
             clipboardCopy(
                 context,
                 copyValue,
-                context.resources.getString(R.string.copy_clipboard_label)
+                context.getString(R.string.copy_clipboard_label)
             )
             Utilities.showToastUiCentered(
                 context,
-                context.resources.getString(model.copyToastRes),
+                context.getString(model.copyToastRes),
                 Toast.LENGTH_SHORT
             )
         }
@@ -99,10 +99,10 @@ internal fun DnsDeleteDialog(
     val context = LocalContext.current
     RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        title = context.resources.getString(model.titleRes),
-        message = context.resources.getString(model.messageRes),
-        confirmText = context.resources.getString(R.string.lbl_delete),
-        dismissText = context.resources.getString(R.string.lbl_cancel),
+        title = context.getString(model.titleRes),
+        message = context.getString(model.messageRes),
+        confirmText = context.getString(R.string.lbl_delete),
+        dismissText = context.getString(R.string.lbl_cancel),
         isConfirmDestructive = true,
         onConfirm = { onConfirm(model.id) },
         onDismiss = onDismiss
@@ -118,10 +118,10 @@ internal fun rememberDnsStatusExplanation(
     pollIntervalMs: Long = 1000L,
     requireTunnel: Boolean = true,
     selectedFallbackText: ((Context) -> String)? = {
-        it.resources.getString(R.string.rt_filter_parent_selected)
+        it.getString(R.string.rt_filter_parent_selected)
     },
     statusTextMapper: (Context, Int) -> String = { context, statusRes ->
-        context.resources.getString(statusRes).replaceFirstChar(Char::titlecase)
+        context.getString(statusRes).replaceFirstChar(Char::titlecase)
     }
 ): String {
     val context = LocalContext.current
@@ -160,7 +160,7 @@ internal fun resolveDnsDescriptionText(context: Context, message: String?): Stri
         if (message.contains("R.string.")) {
             val key = message.substringAfter("R.string.")
             val resId = context.resources.getIdentifier(key, "string", context.packageName)
-            if (resId == 0) message else context.resources.getString(resId)
+            if (resId == 0) message else context.getString(resId)
         } else {
             message
         }
@@ -181,7 +181,7 @@ internal fun launchDnsEndpointSelectionUpdate(
             withContext(Dispatchers.Main) {
                 Utilities.showToastUiCentered(
                     context,
-                    context.resources.getString(R.string.status_failing),
+                    context.getString(R.string.status_failing),
                     Toast.LENGTH_SHORT
                 )
             }
@@ -200,7 +200,7 @@ internal fun launchDnsEndpointDelete(
             withContext(Dispatchers.Main) {
                 Utilities.showToastUiCentered(
                     context,
-                    context.resources.getString(successRes),
+                    context.getString(successRes),
                     Toast.LENGTH_SHORT
                 )
             }
@@ -209,7 +209,7 @@ internal fun launchDnsEndpointDelete(
             withContext(Dispatchers.Main) {
                 Utilities.showToastUiCentered(
                     context,
-                    context.resources.getString(R.string.status_failing),
+                    context.getString(R.string.status_failing),
                     Toast.LENGTH_SHORT
                 )
             }

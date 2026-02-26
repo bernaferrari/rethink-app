@@ -56,14 +56,14 @@ fun RethinkEndpointRow(
             tag = TAG,
             statusTextMapper = { ctx, status ->
                 if (status != R.string.dns_connected) {
-                    ctx.resources.getString(status).replaceFirstChar(Char::titlecase)
+                    ctx.getString(status).replaceFirstChar(Char::titlecase)
                 } else if (endpoint.blocklistCount > 0) {
-                    ctx.resources.getString(
+                    ctx.getString(
                         R.string.dns_connected_rethink_plus,
                         endpoint.blocklistCount.toString()
                     )
                 } else {
-                    ctx.resources.getString(status)
+                    ctx.getString(status)
                 }
             }
         )
@@ -89,9 +89,9 @@ fun RethinkEndpointRow(
         val editEnabled = info.endpoint.isEditable(context)
         val positiveText =
             if (editEnabled) {
-                context.resources.getString(R.string.rt_edit_dialog_positive)
+                context.getString(R.string.rt_edit_dialog_positive)
             } else {
-                context.resources.getString(R.string.dns_info_positive)
+                context.getString(R.string.dns_info_positive)
             }
         RethinkMultiActionDialog(
             onDismissRequest = { dialogState = null },
@@ -104,16 +104,16 @@ fun RethinkEndpointRow(
                     openEditConfiguration(context, endpoint, onEditConfiguration)
                 }
             },
-            secondaryText = context.resources.getString(R.string.dns_info_neutral),
+            secondaryText = context.getString(R.string.dns_info_neutral),
             onSecondary = {
                 clipboardCopy(
                     context,
                     info.endpoint.url,
-                    context.resources.getString(R.string.copy_clipboard_label)
+                    context.getString(R.string.copy_clipboard_label)
                 )
                 Utilities.showToastUiCentered(
                     context,
-                    context.resources.getString(R.string.info_dialog_url_copy_toast_msg),
+                    context.getString(R.string.info_dialog_url_copy_toast_msg),
                     Toast.LENGTH_SHORT
                 )
             }
@@ -129,7 +129,7 @@ private fun openEditConfiguration(
     if (!VpnController.hasTunnel()) {
         Utilities.showToastUiCentered(
             context,
-            context.resources.getString(R.string.ssv_toast_start_rethink),
+            context.getString(R.string.ssv_toast_start_rethink),
             Toast.LENGTH_SHORT
         )
         return

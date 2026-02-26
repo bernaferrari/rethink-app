@@ -69,6 +69,8 @@ viewpager2 = "1.1.0"
 work = "2.11.1"
 zxing = "4.3.0"
 materialkolor = "5.0.0-alpha06"
+foundation = "1.10.3"
+animation = "1.10.3"
 
 [libraries]
 android-security-lint = { module = "com.android.security.lint:lint", version.ref = "lint" }
@@ -168,6 +170,8 @@ viewbindingpropertydelegate = { module = "com.github.kirich1409:viewbindingprope
 viewbindingpropertydelegate-noreflection = { module = "com.github.kirich1409:viewbindingpropertydelegate-noreflection", version.ref = "viewbindingpropertydelegate" }
 zxing-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxing" }
 materialkolor = { module = "com.materialkolor:material-kolor-android", version.ref = "materialkolor" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-compose-animation = { group = "androidx.compose.animation", name = "animation", version.ref = "animation" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

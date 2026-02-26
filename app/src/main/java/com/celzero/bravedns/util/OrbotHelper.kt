@@ -174,12 +174,12 @@ class OrbotHelper(
             // link.
             return Intent(
                 Intent.ACTION_VIEW,
-                context.resources.getString(R.string.orbot_download_link_website).toUri()
+                context.getString(R.string.orbot_download_link_website).toUri()
             )
         } else {
             return Intent(
                 Intent.ACTION_VIEW,
-                context.resources.getString(R.string.orbot_download_link_website).toUri()
+                context.getString(R.string.orbot_download_link_website).toUri()
             )
         }
     }
@@ -286,8 +286,8 @@ class OrbotHelper(
 
         var builder: NotificationCompat.Builder
         if (isAtleastO()) {
-            val name: CharSequence = context.resources.getString(R.string.notif_channel_proxy_failure)
-            val description = context.resources.getString(R.string.notif_channel_desc_proxy_failure)
+            val name: CharSequence = context.getString(R.string.notif_channel_proxy_failure)
+            val description = context.getString(R.string.notif_channel_desc_proxy_failure)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(NOTIF_CHANNEL_ID_PROXY_ALERTS, name, importance)
             channel.description = description
@@ -298,8 +298,8 @@ class OrbotHelper(
             builder = NotificationCompat.Builder(context, NOTIF_CHANNEL_ID_PROXY_ALERTS)
         }
 
-        val contentTitle = context.resources.getString(R.string.lbl_action_required)
-        val contentText = context.resources.getString(R.string.settings_orbot_notification_content)
+        val contentTitle = context.getString(R.string.lbl_action_required)
+        val contentText = context.getString(R.string.settings_orbot_notification_content)
         builder
             .setSmallIcon(R.drawable.ic_notification_icon)
             .setContentTitle(contentTitle)
@@ -312,7 +312,7 @@ class OrbotHelper(
         val notificationAction: NotificationCompat.Action =
             NotificationCompat.Action(
                 0,
-                context.resources.getString(R.string.settings_orbot_notification_action),
+                context.getString(R.string.settings_orbot_notification_action),
                 openIntent
             )
         builder.addAction(notificationAction)
@@ -529,7 +529,7 @@ class OrbotHelper(
     }
 
     private fun openOrbotAppInfo() {
-        val text = context.resources.getString(R.string.orbot_app_issue)
+        val text = context.getString(R.string.orbot_app_issue)
         Utilities.showToastUiCentered(context, text, Toast.LENGTH_SHORT)
         try {
             val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)

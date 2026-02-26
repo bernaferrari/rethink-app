@@ -47,10 +47,10 @@ fun DoTEndpointRow(endpoint: DoTEndpoint, appConfig: AppConfig) {
         if (endpoint.isSecure) {
             endpoint.name
         } else {
-            context.resources.getString(
+            context.getString(
                 R.string.ci_desc,
                 endpoint.name,
-                context.resources.getString(R.string.lbl_insecure)
+                context.getString(R.string.lbl_insecure)
             )
         }
 

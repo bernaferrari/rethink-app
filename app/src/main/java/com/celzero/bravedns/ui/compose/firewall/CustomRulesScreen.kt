@@ -16,30 +16,34 @@
 package com.celzero.bravedns.ui.compose.firewall
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.rounded.Apps
-import androidx.compose.material.icons.rounded.RadioButtonChecked
-import androidx.compose.material.icons.rounded.RadioButtonUnchecked
-import androidx.compose.material.icons.rounded.Search
+import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.FabPosition
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SegmentedButtonDefaults
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -49,11 +53,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import androidx.paging.LoadState
@@ -72,10 +80,11 @@ import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.RethinkSegmentedChoiceRow
+import com.celzero.bravedns.ui.compose.theme.RethinkSearchField
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkConnectedChoiceButtonRow
 import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 import com.celzero.bravedns.util.Constants.Companion.UNSPECIFIED_PORT
 import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
@@ -124,6 +133,8 @@ fun CustomRulesScreen(
     onBackClick: (() -> Unit)? = null
 ) {
     val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val navBarBottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
     var selectedTab by rememberSaveable(uid, initialTab) { mutableStateOf(initialTab) }
     var selectedMode by rememberSaveable(uid, initialMode) { mutableStateOf(initialMode) }
     var showAddDialog by remember { mutableStateOf(false) }
@@ -134,8 +145,6 @@ fun CustomRulesScreen(
     val isUniversalRules = uid == UID_EVERYBODY && effectiveMode == RulesMode.APP_SPECIFIC
     val showAddButton = effectiveMode == RulesMode.APP_SPECIFIC
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
     LaunchedEffect(effectiveMode) {
         if (effectiveMode != RulesMode.APP_SPECIFIC) {
             showAddDialog = false
@@ -143,9 +152,8 @@ fun CustomRulesScreen(
     }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            RethinkLargeTopBar(
+            RethinkTopBar(
                 title =
                     if (isUniversalRules) {
                         stringResource(R.string.univ_view_blocked_ip)
@@ -154,25 +162,24 @@ fun CustomRulesScreen(
                     } else {
                         stringResource(R.string.app_ip_domain_rules)
                     },
-                subtitle =
-                    if (isUniversalRules) {
-                        stringResource(R.string.custom_rules_desc)
-                    } else if (effectiveMode == RulesMode.ALL_RULES) {
-                        stringResource(R.string.app_ip_domain_rules_desc)
-                    } else {
-                        stringResource(R.string.app_ip_domain_rules_desc)
-                    },
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior
+                onBackClick = onBackClick
             )
         },
         floatingActionButton = {
             if (showAddButton) {
-                FloatingActionButton(onClick = { showAddDialog = true }) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = stringResource(R.string.lbl_add))
-                }
+                ExtendedFloatingActionButton(
+                    onClick = { showAddDialog = true },
+                    icon = {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = null)
+                    },
+                    text = {
+                        Text(text = stringResource(R.string.lbl_add))
+                    },
+                    modifier = Modifier.padding(bottom = navBarBottomInset + 6.dp)
+                )
             }
         },
+        floatingActionButtonPosition = FabPosition.Center,
         containerColor = MaterialTheme.colorScheme.background
     ) { padding ->
         when (selectedTab) {
@@ -407,6 +414,8 @@ private fun <T : Any> RulesContent(
     row: @Composable (item: T, position: CardPosition, onDelete: () -> Unit) -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val density = LocalDensity.current
+    val navBarBottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
 
     LaunchedEffect(uid, rulesMode) {
         setUid(if (rulesMode == RulesMode.APP_SPECIFIC) uid else UID_EVERYBODY)
@@ -422,90 +431,149 @@ private fun <T : Any> RulesContent(
     val isRefreshing = items.loadState.refresh is LoadState.Loading
     val isEmpty = !isRefreshing && items.itemCount == 0
 
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding =
-            PaddingValues(
-                start = Dimensions.screenPaddingHorizontal,
-                end = Dimensions.screenPaddingHorizontal,
-                top = Dimensions.spacingSm,
-                bottom = if (rulesMode == RulesMode.APP_SPECIFIC) 112.dp else Dimensions.spacing3xl
-            ),
-        verticalArrangement = Arrangement.spacedBy(0.dp)
+    Column(
+        modifier = modifier.fillMaxSize()
     ) {
-        item {
-            RuleTypeSelector(
-                selectedTab = selectedTab,
-                onTabSelected = onTabSelected
-            )
-        }
-
-        if (canSwitchScope) {
-            item { Spacer(modifier = Modifier.height(Dimensions.spacingSm)) }
-            item {
-                RuleScopeSelector(
-                    rulesMode = rulesMode,
-                    onRulesModeChange = onRulesModeChange
-                )
-            }
-        }
-
-        item { Spacer(modifier = Modifier.height(Dimensions.spacingSm)) }
-
-        item {
-            RulesSearchField(
-                query = query,
-                onQueryChange = onQueryChange,
-                hint = hint
-            )
-        }
-
-        item { Spacer(modifier = Modifier.height(Dimensions.spacingMd)) }
+        RulesControlDeck(
+            selectedTab = selectedTab,
+            onTabSelected = onTabSelected,
+            rulesMode = rulesMode,
+            canSwitchScope = canSwitchScope,
+            onRulesModeChange = onRulesModeChange,
+            query = query,
+            onQueryChange = onQueryChange,
+            hint = hint
+        )
 
         if (isRefreshing) {
-            item {
-                RulesInfoRow(text = stringResource(R.string.lbl_loading))
-            }
+            RulesInfoRow(
+                text = stringResource(R.string.lbl_loading),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = Dimensions.spacingSm)
+            )
         } else if (isEmpty) {
-            item {
-                RulesInfoRow(text = emptyText)
-            }
+            RulesEmptyState(
+                selectedTab = selectedTab,
+                text = emptyText,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(
+                        start = Dimensions.screenPaddingHorizontal,
+                        end = Dimensions.screenPaddingHorizontal,
+                        bottom = navBarBottomInset
+                    )
+            )
         } else {
-            items(items.itemCount) { index ->
-                val item = items[index] ?: return@items
-                val showHeader =
-                    rulesMode == RulesMode.ALL_RULES &&
-                        shouldShowGroupHeader(items, index, groupBy)
-                if (showHeader) {
-                    if (index > 0) {
-                        Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-                    }
-                    RulesAppHeader(uid = groupBy(item))
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-                val position =
-                    if (rulesMode == RulesMode.ALL_RULES) {
-                        groupedCardPosition(items, index, item, groupBy)
-                    } else {
-                        cardPositionFor(index, items.itemCount - 1)
-                    }
-
-                row(
-                    item,
-                    position,
-                    {
-                        scope.launch(Dispatchers.IO) {
-                            onDeleteRule(item)
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding =
+                    PaddingValues(
+                        start = Dimensions.screenPaddingHorizontal,
+                        end = Dimensions.screenPaddingHorizontal,
+                        top = Dimensions.spacingSm,
+                        bottom = if (rulesMode == RulesMode.APP_SPECIFIC) {
+                            112.dp + navBarBottomInset
+                        } else {
+                            Dimensions.spacing3xl + navBarBottomInset
                         }
-                        eventLogger.log(
-                            EventType.FW_RULE_MODIFIED,
-                            Severity.LOW,
-                            deleteEventMessage,
-                            EventSource.UI,
-                            false,
-                            deleteEventDetails(item)
-                        )
+                    ),
+                verticalArrangement = Arrangement.spacedBy(0.dp)
+            ) {
+                items(items.itemCount) { index ->
+                    val item = items[index] ?: return@items
+                    val showHeader =
+                        rulesMode == RulesMode.ALL_RULES &&
+                            shouldShowGroupHeader(items, index, groupBy)
+                    if (showHeader) {
+                        if (index > 0) {
+                            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+                        }
+                        RulesAppHeader(uid = groupBy(item))
+                        Spacer(modifier = Modifier.height(4.dp))
                     }
+                    val position =
+                        if (rulesMode == RulesMode.ALL_RULES) {
+                            groupedCardPosition(items, index, item, groupBy)
+                        } else {
+                            cardPositionFor(index, items.itemCount - 1)
+                        }
+
+                    row(
+                        item,
+                        position,
+                        {
+                            scope.launch(Dispatchers.IO) {
+                                onDeleteRule(item)
+                            }
+                            eventLogger.log(
+                                EventType.FW_RULE_MODIFIED,
+                                Severity.LOW,
+                                deleteEventMessage,
+                                EventSource.UI,
+                                false,
+                                deleteEventDetails(item)
+                            )
+                        }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RulesEmptyState(
+    selectedTab: RulesTab,
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    val iconRes =
+        when (selectedTab) {
+            RulesTab.IP -> R.drawable.ic_ip_address
+            RulesTab.DOMAIN -> R.drawable.ic_undelegated_domain
+        }
+    val accent =
+        when (selectedTab) {
+            RulesTab.IP -> MaterialTheme.colorScheme.primary
+            RulesTab.DOMAIN -> MaterialTheme.colorScheme.tertiary
+        }
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
+            color = MaterialTheme.colorScheme.surfaceContainerLow
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 20.dp, vertical = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(Dimensions.cornerRadiusPill),
+                    color = accent.copy(alpha = 0.14f)
+                ) {
+                    Icon(
+                        painter = painterResource(id = iconRes),
+                        contentDescription = null,
+                        tint = accent,
+                        modifier = Modifier
+                            .padding(10.dp)
+                            .size(20.dp)
+                    )
+                }
+                Text(
+                    text = text,
+                    modifier = Modifier.fillMaxWidth(),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    textAlign = TextAlign.Center
                 )
             }
         }
@@ -553,14 +621,27 @@ private fun RuleListItem(
 ) {
     RethinkListItem(
         headline = headline,
-        supporting = supporting,
+        supporting = null,
         leadingIconPainter = painterResource(id = iconRes),
         leadingIconTint = accent,
         leadingIconContainerColor = accent.copy(alpha = 0.14f),
         position = position,
         trailing = {
-            IconButton(onClick = onDelete) {
-                Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(R.string.lbl_delete))
+            Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
+                Surface(
+                    shape = RoundedCornerShape(Dimensions.cornerRadiusPill),
+                    color = accent.copy(alpha = 0.14f)
+                ) {
+                    Text(
+                        text = supporting,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = accent,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                    )
+                }
+                IconButton(onClick = onDelete) {
+                    Icon(imageVector = Icons.Filled.Delete, contentDescription = stringResource(R.string.lbl_delete))
+                }
             }
         }
     )
@@ -620,33 +701,84 @@ private fun <T : Any> groupedCardPosition(
 }
 
 @Composable
-private fun RuleTypeSelector(
+private fun RulesControlDeck(
     selectedTab: RulesTab,
-    onTabSelected: (RulesTab) -> Unit
+    onTabSelected: (RulesTab) -> Unit,
+    rulesMode: RulesMode,
+    canSwitchScope: Boolean,
+    onRulesModeChange: (RulesMode) -> Unit,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    hint: String
 ) {
-    val options = listOf(RulesTab.IP to R.string.lbl_ip_rules, RulesTab.DOMAIN to R.string.lbl_domain_rules)
-
-    RethinkSegmentedChoiceRow(
-        options = options,
-        selectedOption = options.first { it.first == selectedTab },
-        onOptionSelected = { (tab, _) -> onTabSelected(tab) },
-        modifier = Modifier.fillMaxWidth(),
-        fillEqually = true,
-        icon = { option, selected ->
-            SegmentedButtonDefaults.Icon(active = selected) {
-                Icon(
-                    imageVector =
-                        if (selected) {
-                            Icons.Rounded.RadioButtonChecked
-                        } else {
-                            Icons.Rounded.RadioButtonUnchecked
-                        },
-                    contentDescription = null
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimensions.screenPaddingHorizontal)
+            .padding(top = Dimensions.spacingXs),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+    ) {
+        if (canSwitchScope) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+            ) {
+                RuleTypeSelector(
+                    selectedTab = selectedTab,
+                    onTabSelected = onTabSelected,
+                    modifier = Modifier.weight(1f),
+                    compact = true
+                )
+                RuleScopeSelector(
+                    rulesMode = rulesMode,
+                    onRulesModeChange = onRulesModeChange,
+                    modifier = Modifier.weight(1f),
+                    compact = true
                 )
             }
-        },
-        label = { option, _ ->
-            Text(text = stringResource(option.second), maxLines = 1)
+        } else {
+            RuleTypeSelector(
+                selectedTab = selectedTab,
+                onTabSelected = onTabSelected
+            )
+        }
+
+        RulesSearchField(
+            query = query,
+            onQueryChange = onQueryChange,
+            hint = hint
+        )
+    }
+}
+
+@Composable
+private fun RuleTypeSelector(
+    selectedTab: RulesTab,
+    onTabSelected: (RulesTab) -> Unit,
+    modifier: Modifier = Modifier,
+    compact: Boolean = false
+) {
+    RethinkConnectedChoiceButtonRow(
+        options = listOf(RulesTab.IP, RulesTab.DOMAIN),
+        selectedOption = selectedTab,
+        onOptionSelected = { tab -> onTabSelected(tab) },
+        modifier = modifier.fillMaxWidth(),
+        buttonMinHeight = if (compact) 40.dp else 0.dp,
+        label = { option, selected ->
+            val labelRes =
+                when (option) {
+                    RulesTab.IP -> if (compact) R.string.lbl_ip else R.string.lbl_ip_rules
+                    RulesTab.DOMAIN -> if (compact) R.string.lbl_domain else R.string.lbl_domain_rules
+                }
+            Text(
+                text = stringResource(labelRes),
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+            )
         }
     )
 }
@@ -654,23 +786,32 @@ private fun RuleTypeSelector(
 @Composable
 private fun RuleScopeSelector(
     rulesMode: RulesMode,
-    onRulesModeChange: (RulesMode) -> Unit
+    onRulesModeChange: (RulesMode) -> Unit,
+    modifier: Modifier = Modifier,
+    compact: Boolean = false
 ) {
-    val universalLabel = stringResource(R.string.firewall_act_universal_tab)
-    val options =
-        listOf(
-            RulesMode.APP_SPECIFIC to universalLabel,
-            RulesMode.ALL_RULES to stringResource(R.string.lbl_app_wise)
-        )
-
-    RethinkSegmentedChoiceRow(
-        options = options,
-        selectedOption = options.first { it.first == rulesMode },
-        onOptionSelected = { (mode, _) -> onRulesModeChange(mode) },
-        modifier = Modifier.fillMaxWidth(),
-        fillEqually = true,
+    RethinkConnectedChoiceButtonRow(
+        options = listOf(RulesMode.APP_SPECIFIC, RulesMode.ALL_RULES),
+        selectedOption = rulesMode,
+        onOptionSelected = { mode -> onRulesModeChange(mode) },
+        modifier = modifier.fillMaxWidth(),
+        buttonMinHeight = if (compact) 40.dp else 0.dp,
         label = { option, _ ->
-            Text(text = option.second, maxLines = 1)
+            Text(
+                text =
+                    stringResource(
+                        when (option) {
+                            RulesMode.APP_SPECIFIC -> R.string.firewall_act_universal_tab
+                            RulesMode.ALL_RULES -> R.string.lbl_app_wise
+                        }
+                    ),
+                modifier = Modifier.fillMaxWidth(),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.labelLarge,
+                fontWeight = if (option == rulesMode) FontWeight.SemiBold else FontWeight.Medium
+            )
         }
     )
 }
@@ -681,28 +822,29 @@ private fun RulesSearchField(
     onQueryChange: (String) -> Unit,
     hint: String
 ) {
-    OutlinedTextField(
-        value = query,
-        onValueChange = onQueryChange,
+    RethinkSearchField(
+        query = query,
+        onQueryChange = onQueryChange,
         modifier = Modifier.fillMaxWidth(),
-        leadingIcon = {
-            Icon(
-                imageVector = Icons.Rounded.Search,
-                contentDescription = stringResource(R.string.lbl_search)
-            )
-        },
-        placeholder = { Text(text = stringResource(R.string.two_argument_colon, stringResource(R.string.lbl_search), hint)) },
-        singleLine = true
+        placeholder = stringResource(R.string.two_argument_colon, stringResource(R.string.lbl_search), hint),
+        onClearQuery = { onQueryChange("") },
+        clearQueryContentDescription = stringResource(R.string.cd_clear_search),
+        shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
+        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
     )
 }
 
 @Composable
-private fun RulesInfoRow(text: String) {
+private fun RulesInfoRow(
+    text: String,
+    modifier: Modifier = Modifier
+) {
     RethinkListGroup {
         RethinkListItem(
             headline = text,
             position = CardPosition.Single,
-            enabled = false
+            enabled = false,
+            modifier = modifier.padding(horizontal = Dimensions.screenPaddingHorizontal)
         )
     }
 }

@@ -463,8 +463,8 @@ class ConnectionMonitor(private val context: Context, private val networkListene
 
         var builder: NotificationCompat.Builder
         if (isAtleastO()) {
-            val name: CharSequence = context.resources.getString(R.string.notif_channel_firewall_alerts)
-            val description = context.resources.getString(R.string.notif_channel_desc_firewall_alerts)
+            val name: CharSequence = context.getString(R.string.notif_channel_firewall_alerts)
+            val description = context.getString(R.string.notif_channel_desc_firewall_alerts)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(NOTIF_CHANNEL_ID_WIREGUARD_ALERTS, name, importance)
             channel.description = description
@@ -474,9 +474,9 @@ class ConnectionMonitor(private val context: Context, private val networkListene
             builder = NotificationCompat.Builder(context, NOTIF_CHANNEL_ID_WIREGUARD_ALERTS)
         }
 
-        val contentTitle: String = context.resources.getString(R.string.lbl_action_required)
+        val contentTitle: String = context.getString(R.string.lbl_action_required)
         val contentText: String =
-            context.resources.getString(R.string.location_enable_explanation, context.resources.getString(R.string.lbl_ssids))
+            context.getString(R.string.location_enable_explanation, context.getString(R.string.lbl_ssids))
 
         builder
             .setSmallIcon(R.drawable.ic_notification_icon)

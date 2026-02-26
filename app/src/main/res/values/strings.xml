@@ -103,7 +103,7 @@
     <string name="lbl_fast" translatable="true">fast</string>
     <string name="lbl_slow" translatable="true">slow</string>
     <string name="lbl_very" translatable="true">very</string>
-    <string name="lbl_add" translatable="true">add</string>
+    <string name="lbl_add" translatable="true">Add</string>
     <string name="lbl_app_wise" translatable="true">Per App</string>
     <string name="lbl_sec" translatable="true">sec</string>
     <string name="lbl_min" translatable="true">min</string>
@@ -1629,6 +1629,7 @@
     <!-- Logs -->
     <string name="logs_search_network_hint" translatable="true">Search apps, IPs, domains</string>
     <string name="logs_search_dns_hint" translatable="true">Search domain names or IPs</string>
+    <string name="logs_search_count_placeholder" translatable="true">Search %1$d logs</string>
 
     <!-- Wireguard -->
     <string name="wireguard_fab_more_actions" translatable="true">More actions</string>
@@ -2189,6 +2190,8 @@
     <string name="log_detail_protocol" translatable="true">Protocol</string>
     <string name="log_detail_app_name" translatable="true">App Name</string>
     <string name="log_detail_response" translatable="true">Response</string>
+    <string name="response_ip_label" translatable="true">Response IP</string>
+    <string name="resolver_label" translatable="true">Resolver</string>
     <string name="time_window_one_hour_short" translatable="true">1h</string>
     <string name="time_window_twenty_four_hours_short" translatable="true">24h</string>
     <string name="time_window_seven_days_short" translatable="true">7d</string>

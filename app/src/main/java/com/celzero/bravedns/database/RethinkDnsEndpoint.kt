@@ -56,6 +56,6 @@ class RethinkDnsEndpoint(
     }
 
     fun isEditable(context: Context): Boolean {
-        return this.name == context.resources.getString(R.string.rdns_plus)
+        return this.name == context.getString(R.string.rdns_plus)
     }
 }

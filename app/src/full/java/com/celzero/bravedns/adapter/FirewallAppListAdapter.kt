@@ -391,7 +391,7 @@ fun FirewallAppRow(
         RethinkConfirmDialog(
             onDismissRequest = { dialogState = null },
             title =
-                context.resources.getString(
+                context.getString(
                     R.string.ctbs_block_other_apps,
                     state.appInfo.appName,
                     count.toString()
@@ -403,8 +403,8 @@ fun FirewallAppRow(
                     }
                 }
             },
-            confirmText = context.resources.getString(R.string.lbl_proceed),
-            dismissText = context.resources.getString(R.string.ctbs_dialog_negative_btn),
+            confirmText = context.getString(R.string.lbl_proceed),
+            dismissText = context.getString(R.string.ctbs_dialog_negative_btn),
             onConfirm = {
                 scope.launch(Dispatchers.IO) {
                     val updatedConnStatus =
@@ -455,10 +455,10 @@ private data class FirewallAppDialogState(
 
 private fun buildDataUsageText(context: Context, appInfo: AppInfo): String {
     val u = Utilities.humanReadableByteCount(appInfo.uploadBytes, true)
-    val uploadBytes = context.resources.getString(R.string.symbol_upload, u)
+    val uploadBytes = context.getString(R.string.symbol_upload, u)
     val d = Utilities.humanReadableByteCount(appInfo.downloadBytes, true)
-    val downloadBytes = context.resources.getString(R.string.symbol_download, d)
-    return context.resources.getString(R.string.two_argument, uploadBytes, downloadBytes)
+    val downloadBytes = context.getString(R.string.symbol_download, d)
+    return context.getString(R.string.two_argument, uploadBytes, downloadBytes)
 }
 
 private fun getFirewallText(
@@ -471,27 +471,27 @@ private fun getFirewallText(
             when (cStat) {
                 FirewallManager.ConnectionStatus.ALLOW -> ""
                 FirewallManager.ConnectionStatus.METERED ->
-                    context.resources.getString(R.string.lbl_blocked)
+                    context.getString(R.string.lbl_blocked)
                 FirewallManager.ConnectionStatus.UNMETERED ->
-                    context.resources.getString(R.string.lbl_blocked)
+                    context.getString(R.string.lbl_blocked)
                 FirewallManager.ConnectionStatus.BOTH ->
-                    context.resources.getString(R.string.lbl_blocked)
+                    context.getString(R.string.lbl_blocked)
             }
 
         FirewallManager.FirewallStatus.EXCLUDE ->
-            context.resources.getString(R.string.fapps_firewall_filter_excluded)
+            context.getString(R.string.fapps_firewall_filter_excluded)
 
         FirewallManager.FirewallStatus.ISOLATE ->
-            context.resources.getString(R.string.fapps_firewall_filter_isolate)
+            context.getString(R.string.fapps_firewall_filter_isolate)
 
         FirewallManager.FirewallStatus.BYPASS_UNIVERSAL ->
-            context.resources.getString(R.string.fapps_firewall_filter_bypass_universal)
+            context.getString(R.string.fapps_firewall_filter_bypass_universal)
 
         FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL ->
-            context.resources.getString(R.string.fapps_firewall_filter_bypass_universal)
+            context.getString(R.string.fapps_firewall_filter_bypass_universal)
 
         FirewallManager.FirewallStatus.UNTRACKED ->
-            context.resources.getString(R.string.network_log_app_name_unknown)
+            context.getString(R.string.network_log_app_name_unknown)
     }
 }
 

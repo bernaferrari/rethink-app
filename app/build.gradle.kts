@@ -263,6 +263,8 @@ fun firestackDependency(suffix: String = ":debug"): String {
 
 dependencies {
     implementation(libs.guava)
+    implementation(libs.androidx.compose.foundation)
+    implementation(libs.androidx.compose.animation)
     coreLibraryDesugaring(libs.desugar.jdk.libs)
 
     "fullImplementation"(libs.kotlin.stdlib.jdk8)

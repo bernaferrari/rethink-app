@@ -15,36 +15,58 @@
  */
 package com.celzero.bravedns.ui.compose.logs
 
+import android.graphics.drawable.Drawable
 import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Apps
+import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.FilterList
+import androidx.compose.material.icons.rounded.MoreVert
+import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalIconButton
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.ButtonGroupDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.Scaffold
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -56,13 +78,24 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.asFlow
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -74,18 +107,18 @@ import com.celzero.bravedns.database.ConnectionTracker
 import com.celzero.bravedns.database.ConnectionTrackerRepository
 import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.database.DnsLogRepository
+import com.celzero.bravedns.database.LogAppCount
 import com.celzero.bravedns.database.RethinkLogRepository
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallRuleset
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
-import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
+import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.celzero.bravedns.ui.compose.theme.RethinkSearchField
-import com.celzero.bravedns.ui.compose.theme.RethinkSegmentedChoiceRow
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.ConnectionTrackerViewModel
 import com.celzero.bravedns.viewmodel.DnsLogViewModel
@@ -95,10 +128,14 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 enum class LogTab { CONNECTION, DNS }
 
-private data class TabSpec(val tab: LogTab, val label: String)
+private data class LogsTabSpec(
+    val tab: LogTab,
+    val title: Int
+)
 
 @OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 @Composable
@@ -113,22 +150,48 @@ fun NetworkLogsScreen(
     eventLogger: EventLogger,
     onBackClick: (() -> Unit)? = null
 ) {
-    val tabs = listOf(
-        TabSpec(LogTab.CONNECTION, stringResource(R.string.firewall_act_network_monitor_tab)),
-        TabSpec(LogTab.DNS, stringResource(R.string.dns_mode_info_title))
-    )
+    val tabs =
+        listOf(
+            LogsTabSpec(
+                tab = LogTab.CONNECTION,
+                title = R.string.firewall_act_network_monitor_tab
+            ),
+            LogsTabSpec(
+                tab = LogTab.DNS,
+                title = R.string.dns_mode_info_title
+            )
+        )
     val selectedTab = remember { mutableIntStateOf(0) }
 
     var selectedConn by remember { mutableStateOf<ConnectionTracker?>(null) }
     var selectedDns by remember { mutableStateOf<DnsLog?>(null) }
+    var onRefreshLogs by remember { mutableStateOf<(() -> Unit)?>(null) }
+    var onClearLogs by remember { mutableStateOf<(() -> Unit)?>(null) }
 
+    LaunchedEffect(selectedTab.intValue) {
+        onRefreshLogs = null
+        onClearLogs = null
+    }
+
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
             RethinkLargeTopBar(
                 title = stringResource(R.string.lbl_logs),
-                subtitle = stringResource(R.string.logs_disabled_summary),
-                onBackClick = onBackClick
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior,
+                actions = {
+                    LogsInlineTabSwitch(
+                        selectedTabIndex = selectedTab.intValue,
+                        onTabSelected = { selectedTab.intValue = it }
+                    )
+                    LogsTopBarOverflowActions(
+                        onRefresh = onRefreshLogs,
+                        onDelete = onClearLogs
+                    )
+                }
             )
         }
     ) { padding ->
@@ -138,18 +201,16 @@ fun NetworkLogsScreen(
                     .fillMaxSize()
                     .padding(padding),
         ) {
-            LogsTabRow(
-                tabs = tabs,
-                selectedTab = selectedTab.intValue,
-                onTabSelected = { selectedTab.intValue = it }
-            )
-
             when (tabs[selectedTab.intValue].tab) {
                 LogTab.CONNECTION -> {
                     ConnectionLogsContent(
                         viewModel = connectionTrackerViewModel,
                         repository = connectionTrackerRepository,
                         persistentState = persistentState,
+                        onTopBarActionsChange = { refreshAction, clearAction ->
+                            if (onRefreshLogs !== refreshAction) onRefreshLogs = refreshAction
+                            if (onClearLogs !== clearAction) onClearLogs = clearAction
+                        },
                         onShowConnTracker = { selectedConn = it }
                     )
                 }
@@ -159,6 +220,10 @@ fun NetworkLogsScreen(
                         viewModel = dnsLogViewModel,
                         repository = dnsLogRepository,
                         persistentState = persistentState,
+                        onTopBarActionsChange = { refreshAction, clearAction ->
+                            if (onRefreshLogs !== refreshAction) onRefreshLogs = refreshAction
+                            if (onClearLogs !== clearAction) onClearLogs = clearAction
+                        },
                         onShowDnsLog = { selectedDns = it }
                     )
                 }
@@ -181,59 +246,67 @@ fun NetworkLogsScreen(
     }
 }
 
-@Composable
-private fun LogsTabRow(
-    tabs: List<TabSpec>,
-    selectedTab: Int,
-    onTabSelected: (Int) -> Unit
-) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Dimensions.screenPaddingHorizontal)
-                .padding(top = Dimensions.spacingSm, bottom = Dimensions.spacingXs)
-    ) {
-        RethinkSegmentedChoiceRow(
-            options = tabs.indices.toList(),
-            selectedOption = selectedTab,
-            onOptionSelected = onTabSelected,
-            modifier = Modifier.fillMaxWidth(),
-            fillEqually = true,
-            label = { index, isSelected ->
-                Text(
-                    text = tabs[index].label,
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
-                )
-            }
-        )
-    }
-}
-
 @OptIn(FlowPreview::class)
 @Composable
 private fun ConnectionLogsContent(
     viewModel: ConnectionTrackerViewModel,
     repository: ConnectionTrackerRepository,
     persistentState: PersistentState,
+    onTopBarActionsChange: (refreshAction: (() -> Unit)?, clearAction: (() -> Unit)?) -> Unit,
     onShowConnTracker: (ConnectionTracker) -> Unit
 ) {
-    val items = viewModel.connectionTrackerList.asFlow().collectAsLazyPagingItems()
+    val logsFlow = remember(viewModel) { viewModel.connectionTrackerList.asFlow() }
+    val items = logsFlow.collectAsLazyPagingItems()
 
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var query by remember { mutableStateOf("") }
+    var showRulesDialog by remember { mutableStateOf(false) }
+    var showAppFilterDialog by remember { mutableStateOf(false) }
+    var selectedAppFilter by remember { mutableStateOf<String?>(null) }
+    var appPickerQuery by remember { mutableStateOf("") }
+    var appFilterOptions by remember { mutableStateOf<List<LogAppCount>>(emptyList()) }
+    var appFilterOptionsLoading by remember { mutableStateOf(false) }
     var parentFilter by remember { mutableStateOf(ConnectionTrackerViewModel.TopLevelFilter.ALL) }
     var childFilters by remember { mutableStateOf(setOf<String>()) }
 
     val filterOptions = listOf(
-        ConnectionTrackerViewModel.TopLevelFilter.ALL to stringResource(R.string.lbl_all),
-        ConnectionTrackerViewModel.TopLevelFilter.ALLOWED to stringResource(R.string.lbl_allowed),
-        ConnectionTrackerViewModel.TopLevelFilter.BLOCKED to stringResource(R.string.lbl_blocked)
+        LogsFilterOption(
+            value = ConnectionTrackerViewModel.TopLevelFilter.ALL,
+            label = stringResource(R.string.lbl_all),
+            icon = Icons.Rounded.Public
+        ),
+        LogsFilterOption(
+            value = ConnectionTrackerViewModel.TopLevelFilter.ALLOWED,
+            label = stringResource(R.string.lbl_allowed),
+            icon = Icons.Rounded.CheckCircle
+        ),
+        LogsFilterOption(
+            value = ConnectionTrackerViewModel.TopLevelFilter.BLOCKED,
+            label = stringResource(R.string.lbl_blocked),
+            icon = Icons.Rounded.Block
+        )
     )
+    val refreshAction = remember(items) { { items.refresh() } }
+    val clearAction = remember { { showDeleteDialog = true } }
+    val openAppFilterAction = remember { { showAppFilterDialog = true } }
+
+    BackHandler(enabled = selectedAppFilter != null && !showDeleteDialog && !showRulesDialog && !showAppFilterDialog) {
+        selectedAppFilter = null
+    }
+
+    LaunchedEffect(refreshAction, clearAction, persistentState.logsEnabled, items.itemCount) {
+        onTopBarActionsChange(
+            refreshAction.takeIf { persistentState.logsEnabled },
+            clearAction.takeIf { persistentState.logsEnabled && items.itemCount > 0 }
+        )
+    }
 
     LaunchedEffect(Unit) {
-        snapshotFlow { Triple(query, parentFilter, childFilters) }
+        // Reset stale filters when re-entering the screen to avoid empty/hidden results.
+        viewModel.setFilter("", emptySet(), ConnectionTrackerViewModel.TopLevelFilter.ALL)
+    }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { Triple(selectedAppFilter.orEmpty(), parentFilter, childFilters) }
             .debounce(300)
             .distinctUntilChanged()
             .collect { (q, type, filters) ->
@@ -251,76 +324,100 @@ private fun ConnectionLogsContent(
         ConnectionTrackerViewModel.TopLevelFilter.ALLOWED -> FirewallRuleset.getAllowedRules()
         ConnectionTrackerViewModel.TopLevelFilter.ALL -> emptyList()
     }
+    val hasRulesFilter = parentFilter != ConnectionTrackerViewModel.TopLevelFilter.ALL && ruleFilters.isNotEmpty()
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        LogsFilterCard {
-            LogsControls(
-                query = query,
-                onQueryChange = { query = it },
-                onClearQuery = { query = "" },
-                onRefresh = { items.refresh() },
-                onDelete = { showDeleteDialog = true },
-                placeholder = stringResource(R.string.logs_search_network_hint)
-            )
+    LaunchedEffect(showAppFilterDialog, parentFilter, childFilters, persistentState.logsEnabled) {
+        if (!showAppFilterDialog || !persistentState.logsEnabled) return@LaunchedEffect
+        appFilterOptionsLoading = true
+        appFilterOptions =
+            withContext(Dispatchers.IO) {
+                when (parentFilter) {
+                    ConnectionTrackerViewModel.TopLevelFilter.ALL -> repository.getAllLoggedAppsWithCount()
+                    ConnectionTrackerViewModel.TopLevelFilter.ALLOWED ->
+                        repository.getAllowedLoggedAppsWithCount(childFilters)
+                    ConnectionTrackerViewModel.TopLevelFilter.BLOCKED ->
+                        repository.getBlockedLoggedAppsWithCount(childFilters)
+                }
+            }
+        appFilterOptionsLoading = false
+    }
 
-            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
+    val listState = rememberLazyListState()
 
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-            ) {
-                items(filterOptions) { (filter, label) ->
-                    RethinkFilterChip(
-                        label = label,
-                        selected = parentFilter == filter,
-                        onClick = {
-                            parentFilter = filter
+    Box(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            LogsControlsDeck {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    LogsPrimaryFilterRow(
+                        options = filterOptions,
+                        selectedValue = parentFilter,
+                        onValueSelected = { filterType ->
+                            parentFilter = filterType
                             childFilters = emptySet()
                         },
-                        textStyle = MaterialTheme.typography.labelMedium,
-                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    LogsCompactIconAction(
+                        icon = Icons.Rounded.Apps,
+                        contentDescription = stringResource(R.string.lbl_apps),
+                        selected = selectedAppFilter != null,
+                        enabled = true,
+                        onClick = { openAppFilterAction() }
+                    )
+
+                    LogsCompactIconAction(
+                        icon = Icons.Rounded.FilterList,
+                        contentDescription = stringResource(R.string.lbl_rules),
+                        selected = childFilters.isNotEmpty(),
+                        enabled = hasRulesFilter,
+                        count = childFilters.size,
+                        onClick = { showRulesDialog = true }
                     )
                 }
             }
 
-            if (ruleFilters.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
-                ) {
-                    items(ruleFilters) { rule ->
-                        val selected = childFilters.contains(rule.id)
-                        RethinkFilterChip(
-                            label = stringResource(rule.title),
-                            selected = selected,
-                            onClick = {
-                                childFilters =
-                                    if (selected) childFilters - rule.id
-                                    else childFilters + rule.id
-                            },
-                            textStyle = MaterialTheme.typography.labelSmall,
-                            leadingIcon = {
-                                Icon(
-                                    painter = painterResource(id = FirewallRuleset.getRulesIcon(rule.id)),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            },
-                            selectedContainerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                            selectedLabelColor = MaterialTheme.colorScheme.onTertiaryContainer
-                        )
-                    }
-                }
+            LogsPagedListContent(
+                items = items,
+                listState = listState,
+                modifier = Modifier.weight(1f)
+            ) { item, _, _ ->
+                ConnectionRow(item, onShowConnTracker)
             }
         }
 
-        LogsPagedListContent(
-            items = items,
-            modifier = Modifier.weight(1f)
-        ) { item ->
-            ConnectionRow(item, onShowConnTracker)
+        if (showRulesDialog && ruleFilters.isNotEmpty()) {
+            LogsRulesDialog(
+                rules = ruleFilters,
+                selectedRules = childFilters,
+                onToggleRule = { ruleId ->
+                    childFilters =
+                        if (childFilters.contains(ruleId)) childFilters - ruleId
+                        else childFilters + ruleId
+                },
+                onClear = { childFilters = emptySet() },
+                onDismiss = { showRulesDialog = false }
+            )
+        }
+
+        if (showAppFilterDialog) {
+            LogsAppFilterDialog(
+                options = appFilterOptions,
+                selectedApp = selectedAppFilter,
+                searchQuery = appPickerQuery,
+                isLoading = appFilterOptionsLoading,
+                onSearchQueryChange = { appPickerQuery = it },
+                onSelectApp = { selectedApp ->
+                    selectedAppFilter = selectedApp
+                    showAppFilterDialog = false
+                },
+                onClearSelection = { selectedAppFilter = null },
+                onDismiss = { showAppFilterDialog = false }
+            )
         }
     }
 
@@ -338,22 +435,58 @@ private fun DnsLogsContent(
     viewModel: DnsLogViewModel,
     repository: DnsLogRepository,
     persistentState: PersistentState,
+    onTopBarActionsChange: (refreshAction: (() -> Unit)?, clearAction: (() -> Unit)?) -> Unit,
     onShowDnsLog: (DnsLog) -> Unit
 ) {
-    val items = viewModel.dnsLogsList.asFlow().collectAsLazyPagingItems()
+    val logsFlow = remember(viewModel) { viewModel.dnsLogsList.asFlow() }
+    val items = logsFlow.collectAsLazyPagingItems()
 
     var showDeleteDialog by remember { mutableStateOf(false) }
-    var query by remember { mutableStateOf("") }
+    var showAppFilterDialog by remember { mutableStateOf(false) }
+    var selectedAppFilter by remember { mutableStateOf<String?>(null) }
+    var appPickerQuery by remember { mutableStateOf("") }
+    var appFilterOptions by remember { mutableStateOf<List<LogAppCount>>(emptyList()) }
+    var appFilterOptionsLoading by remember { mutableStateOf(false) }
     var filterType by remember { mutableStateOf(DnsLogViewModel.DnsLogFilter.ALL) }
 
     val filterOptions = listOf(
-        DnsLogViewModel.DnsLogFilter.ALL to stringResource(R.string.lbl_all),
-        DnsLogViewModel.DnsLogFilter.ALLOWED to stringResource(R.string.lbl_allowed),
-        DnsLogViewModel.DnsLogFilter.BLOCKED to stringResource(R.string.lbl_blocked)
+        LogsFilterOption(
+            value = DnsLogViewModel.DnsLogFilter.ALL,
+            label = stringResource(R.string.lbl_all),
+            icon = Icons.Rounded.Public
+        ),
+        LogsFilterOption(
+            value = DnsLogViewModel.DnsLogFilter.ALLOWED,
+            label = stringResource(R.string.lbl_allowed),
+            icon = Icons.Rounded.CheckCircle
+        ),
+        LogsFilterOption(
+            value = DnsLogViewModel.DnsLogFilter.BLOCKED,
+            label = stringResource(R.string.lbl_blocked),
+            icon = Icons.Rounded.Block
+        )
     )
+    val refreshAction = remember(items) { { items.refresh() } }
+    val clearAction = remember { { showDeleteDialog = true } }
+
+    BackHandler(enabled = selectedAppFilter != null && !showDeleteDialog && !showAppFilterDialog) {
+        selectedAppFilter = null
+    }
+
+    LaunchedEffect(refreshAction, clearAction, persistentState.logsEnabled, items.itemCount) {
+        onTopBarActionsChange(
+            refreshAction.takeIf { persistentState.logsEnabled },
+            clearAction.takeIf { persistentState.logsEnabled && items.itemCount > 0 }
+        )
+    }
 
     LaunchedEffect(Unit) {
-        snapshotFlow { Pair(query, filterType) }
+        // Reset stale filters when re-entering the screen to avoid empty/hidden results.
+        viewModel.setFilter("", DnsLogViewModel.DnsLogFilter.ALL)
+    }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { Pair(selectedAppFilter.orEmpty(), filterType) }
             .debounce(300)
             .distinctUntilChanged()
             .collect { (q, type) ->
@@ -366,47 +499,79 @@ private fun DnsLogsContent(
         return
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        LogsFilterCard {
-            LogsControls(
-                query = query,
-                onQueryChange = { query = it },
-                onClearQuery = { query = "" },
-                onRefresh = { items.refresh() },
-                onDelete = { showDeleteDialog = true },
-                placeholder = stringResource(R.string.logs_search_dns_hint)
-            )
-
-            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-
-            LazyRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-            ) {
-                items(filterOptions) { (filter, label) ->
-                    RethinkFilterChip(
-                        label = label,
-                        selected = filterType == filter,
-                        onClick = { filterType = filter },
-                        textStyle = MaterialTheme.typography.labelMedium,
-                        selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
+    LaunchedEffect(showAppFilterDialog, filterType, persistentState.logsEnabled) {
+        if (!showAppFilterDialog || !persistentState.logsEnabled) return@LaunchedEffect
+        appFilterOptionsLoading = true
+        appFilterOptions =
+            withContext(Dispatchers.IO) {
+                when (filterType) {
+                    DnsLogViewModel.DnsLogFilter.ALL -> repository.getAllLoggedAppsWithCount()
+                    DnsLogViewModel.DnsLogFilter.ALLOWED -> repository.getAllowedLoggedAppsWithCount()
+                    DnsLogViewModel.DnsLogFilter.BLOCKED -> repository.getBlockedLoggedAppsWithCount()
+                    else -> repository.getAllLoggedAppsWithCount()
                 }
+            }
+        appFilterOptionsLoading = false
+    }
+
+    val listState = rememberLazyListState()
+
+    Column(modifier = Modifier.fillMaxSize()) {
+        LogsControlsDeck {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                LogsPrimaryFilterRow(
+                    options = filterOptions,
+                    selectedValue = filterType,
+                    onValueSelected = { selectedFilter ->
+                        filterType = selectedFilter
+                    },
+                    modifier = Modifier.weight(1f)
+                )
+
+                LogsCompactIconAction(
+                    icon = Icons.Rounded.Apps,
+                    contentDescription = stringResource(R.string.lbl_apps),
+                    selected = selectedAppFilter != null,
+                    enabled = true,
+                    onClick = { showAppFilterDialog = true }
+                )
             }
         }
 
         LogsPagedListContent(
             items = items,
+            listState = listState,
             modifier = Modifier.weight(1f)
-        ) { item ->
+        ) { item, index, itemCount ->
             DnsLogRow(
                 log = item,
                 loadFavIcon = persistentState.fetchFavIcon,
                 isRethinkDns = false,
-                onShowBlocklist = onShowDnsLog
+                onShowBlocklist = onShowDnsLog,
+                index = index,
+                itemCount = itemCount,
             )
         }
+    }
+
+    if (showAppFilterDialog) {
+        LogsAppFilterDialog(
+            options = appFilterOptions,
+            selectedApp = selectedAppFilter,
+            searchQuery = appPickerQuery,
+            isLoading = appFilterOptionsLoading,
+            onSearchQueryChange = { appPickerQuery = it },
+            onSelectApp = { selectedApp ->
+                selectedAppFilter = selectedApp
+                showAppFilterDialog = false
+            },
+            onClearSelection = { selectedAppFilter = null },
+            onDismiss = { showAppFilterDialog = false }
+        )
     }
 
     LogsDeleteDialog(
@@ -418,66 +583,19 @@ private fun DnsLogsContent(
 }
 
 @Composable
-private fun LogsFilterCard(
-    content: @Composable ColumnScope.() -> Unit
+private fun LogsControlsDeck(
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
 ) {
-    Surface(
+    Column(
         modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Dimensions.screenPaddingHorizontal),
-        shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f))
+            modifier
+            .fillMaxWidth()
+            .padding(horizontal = Dimensions.screenPaddingHorizontal)
+            .padding(top = Dimensions.spacingXs),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = Dimensions.spacingSm, vertical = Dimensions.spacingSm),
-            content = content
-        )
-    }
-}
-
-@Composable
-private fun LogsControls(
-    query: String,
-    onQueryChange: (String) -> Unit,
-    onClearQuery: () -> Unit,
-    onRefresh: () -> Unit,
-    onDelete: () -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        RethinkSearchField(
-            query = query,
-            onQueryChange = onQueryChange,
-            modifier = Modifier.weight(1f),
-            placeholder = placeholder,
-            onClearQuery = onClearQuery,
-            clearQueryContentDescription = stringResource(R.string.cd_clear_search),
-            shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
-        )
-
-        FilledTonalIconButton(onClick = onRefresh) {
-            Icon(
-                imageVector = Icons.Rounded.Refresh,
-                contentDescription = stringResource(R.string.cd_refresh)
-            )
-        }
-
-        FilledTonalIconButton(onClick = onDelete) {
-            Icon(
-                imageVector = Icons.Rounded.Delete,
-                contentDescription = stringResource(R.string.lbl_delete),
-                tint = MaterialTheme.colorScheme.error
-            )
-        }
+        content()
     }
 }
 
@@ -487,44 +605,779 @@ private fun LogsDisabledState() {
         modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = stringResource(R.string.logs_disabled_summary),
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(Dimensions.spacing2xl)
+        Surface(
+            shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            modifier = Modifier
+                .padding(horizontal = Dimensions.screenPaddingHorizontal)
+                .padding(vertical = Dimensions.spacingXl)
+        ) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Dimensions.spacingLg, vertical = Dimensions.spacingMd),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_logs_accent),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+                Text(
+                    text = stringResource(R.string.logs_disabled_summary),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LogsTopBarOverflowActions(
+    onRefresh: (() -> Unit)?,
+    onDelete: (() -> Unit)?
+) {
+    val isRefreshEnabled = onRefresh != null
+    val isDeleteEnabled = onDelete != null
+    var expanded by remember { mutableStateOf(false) }
+
+    IconButton(
+        onClick = { expanded = true }
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.MoreVert,
+            contentDescription = stringResource(R.string.wireguard_fab_more_actions)
         )
     }
+
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = { expanded = false }
+    ) {
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.cd_refresh)) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Rounded.Refresh,
+                    contentDescription = null
+                )
+            },
+            enabled = isRefreshEnabled,
+            onClick = {
+                expanded = false
+                onRefresh?.invoke()
+            }
+        )
+        DropdownMenuItem(
+            text = { Text(stringResource(R.string.lbl_delete)) },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Rounded.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
+            },
+            enabled = isDeleteEnabled,
+            onClick = {
+                expanded = false
+                onDelete?.invoke()
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun LogsInlineTabSwitch(
+    selectedTabIndex: Int,
+    onTabSelected: (Int) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val options =
+        listOf(
+            Triple(0, R.string.firewall_act_network_monitor_tab, R.drawable.ic_network),
+            Triple(1, R.string.dns_mode_info_title, R.drawable.ic_dns_firewall)
+        )
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+    ) {
+        options.forEachIndexed { index, (value, labelRes, iconRes) ->
+            val selected = selectedTabIndex == value
+            val resolvedIconRes =
+                if (selected && iconRes == R.drawable.ic_dns_firewall) {
+                    R.drawable.ic_dns_firewall_filled
+                } else {
+                    iconRes
+                }
+            ToggleButton(
+                checked = selected,
+                onCheckedChange = { checked ->
+                    if (checked && !selected) onTabSelected(value)
+                },
+                shapes =
+                    when (index) {
+                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    },
+                colors = ToggleButtonDefaults.toggleButtonColors(
+                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.94f),
+                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.82f),
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                border = null,
+                modifier = Modifier
+                    .heightIn(min = 34.dp)
+                    .semantics { role = Role.RadioButton }
+            ) {
+                Icon(
+                    painter = painterResource(id = resolvedIconRes),
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.size(ToggleButtonDefaults.IconSpacing))
+                Text(
+                    text = stringResource(labelRes),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LogsCompactIconAction(
+    icon: ImageVector,
+    contentDescription: String,
+    selected: Boolean = false,
+    enabled: Boolean,
+    count: Int = 0,
+    onClick: () -> Unit
+) {
+    Box(modifier = Modifier.size(36.dp)) {
+        IconButton(
+            onClick = onClick,
+            enabled = enabled,
+            modifier = Modifier.matchParentSize()
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                modifier = Modifier.size(20.dp),
+                tint =
+                    if (!enabled) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.42f)
+                    else if (selected) MaterialTheme.colorScheme.primary
+                    else MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        if (selected) {
+            Surface(
+                shape = RoundedCornerShape(Dimensions.cornerRadiusPill),
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 5.dp, end = 5.dp)
+                    .size(6.dp)
+            ) {}
+        }
+        if (count > 0) {
+            Surface(
+                shape = RoundedCornerShape(Dimensions.cornerRadiusPill),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(top = 1.dp, end = 1.dp)
+            ) {
+                Text(
+                    text = count.toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.dp)
+                )
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun LogsAppFilterDialog(
+    options: List<LogAppCount>,
+    selectedApp: String?,
+    searchQuery: String,
+    isLoading: Boolean,
+    onSearchQueryChange: (String) -> Unit,
+    onSelectApp: (String?) -> Unit,
+    onClearSelection: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val filteredOptions =
+        remember(options, searchQuery) {
+            if (searchQuery.isBlank()) {
+                options
+            } else {
+                options.filter { it.appName.contains(searchQuery.trim(), ignoreCase = true) }
+            }
+        }
+    val totalCount = remember(options) { options.sumOf { it.count } }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 560.dp)
+                .padding(horizontal = Dimensions.spacingMd)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Dimensions.spacingSm, vertical = Dimensions.spacingSm),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                RethinkSearchField(
+                    query = searchQuery,
+                    onQueryChange = onSearchQueryChange,
+                    placeholder = stringResource(R.string.search_apps_count_placeholder, options.size),
+                    onClearQuery = { onSearchQueryChange("") },
+                    clearQueryContentDescription = stringResource(R.string.cd_clear_search),
+                    closeWhenEmptyContentDescription = stringResource(R.string.lbl_dismiss),
+                    onCloseWhenEmpty = onDismiss,
+                    shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    iconSize = 18.dp,
+                    trailingIconSize = 16.dp,
+                    trailingIconButtonSize = 30.dp
+                )
+                if (selectedApp != null) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = onClearSelection) {
+                            Text(
+                                text = stringResource(R.string.fapps_filter_clear_btn),
+                                color = MaterialTheme.colorScheme.error,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+                }
+
+                if (isLoading) {
+                    LogsLoadingState()
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .weight(1f, fill = false),
+                        verticalArrangement = Arrangement.spacedBy(2.dp)
+                    ) {
+                        item("all_apps") {
+                            LogsAppFilterListItem(
+                                app = null,
+                                selected = selectedApp == null,
+                                count = totalCount,
+                                onClick = { onSelectApp(null) }
+                            )
+                        }
+
+                        items(filteredOptions, key = { "${it.packageName}|${it.appName}" }) { app ->
+                            LogsAppFilterListItem(
+                                app = app,
+                                selected = selectedApp == app.appName,
+                                count = app.count,
+                                onClick = { onSelectApp(app.appName) }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LogsAppFilterListItem(
+    app: LogAppCount?,
+    selected: Boolean,
+    count: Int,
+    onClick: () -> Unit
+) {
+    val context = LocalContext.current
+    var appIcon by remember(app?.packageName, app?.appName) { mutableStateOf<Drawable?>(null) }
+
+    LaunchedEffect(app?.packageName, app?.appName) {
+        if (app == null) return@LaunchedEffect
+        appIcon =
+            withContext(Dispatchers.IO) {
+                if (app.packageName.isBlank()) {
+                    Utilities.getDefaultIcon(context)
+                } else {
+                    Utilities.getIcon(context, app.packageName, app.appName)
+                }
+            }
+    }
+
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
+        color =
+            if (selected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.34f)
+            else MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingSm),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            if (app == null) {
+                Icon(
+                    imageVector = Icons.Rounded.Public,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                    tint =
+                        if (selected) MaterialTheme.colorScheme.secondary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            } else {
+                val iconPainter = rememberDrawablePainter(appIcon ?: Utilities.getDefaultIcon(context))
+                iconPainter?.let { painter ->
+                    Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(RoundedCornerShape(7.dp))
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.size(Dimensions.spacingMd))
+
+            Text(
+                text = app?.appName ?: stringResource(R.string.lbl_all),
+                style = MaterialTheme.typography.bodyLarge,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                modifier = Modifier.weight(1f),
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            Surface(
+                shape = RoundedCornerShape(Dimensions.cornerRadiusPill),
+                color =
+                    if (selected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.84f)
+                    else MaterialTheme.colorScheme.surfaceContainerHigh
+            ) {
+                Text(
+                    text = count.toString(),
+                    style = MaterialTheme.typography.labelMedium,
+                    color =
+                        if (selected) MaterialTheme.colorScheme.onSecondaryContainer
+                        else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                )
+            }
+        }
+    }
+}
+
+private data class LogsFilterOption<T>(
+    val value: T,
+    val label: String,
+    val icon: ImageVector
+)
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun <T> LogsPrimaryFilterRow(
+    options: List<LogsFilterOption<T>>,
+    selectedValue: T,
+    onValueSelected: (T) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+    ) {
+        options.forEachIndexed { index, option ->
+            val selected = option.value == selectedValue
+            ToggleButton(
+                checked = selected,
+                onCheckedChange = { checked ->
+                    if (checked && !selected) onValueSelected(option.value)
+                },
+                shapes =
+                    when (index) {
+                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    },
+                colors = ToggleButtonDefaults.toggleButtonColors(
+                    checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.94f),
+                    checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.82f),
+                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                ),
+                border = null,
+                modifier = Modifier.semantics { role = Role.RadioButton }
+            ) {
+                val showLabel = selected
+                Icon(
+                    imageVector = option.icon,
+                    contentDescription = if (showLabel) null else option.label,
+                    modifier = Modifier.size(16.dp)
+                )
+                if (showLabel) {
+                    Spacer(modifier = Modifier.size(ToggleButtonDefaults.IconSpacing))
+                    Text(
+                        text = option.label,
+                        maxLines = 1,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LogsRulesDialog(
+    rules: List<FirewallRuleset>,
+    selectedRules: Set<String>,
+    onToggleRule: (String) -> Unit,
+    onClear: () -> Unit,
+    onDismiss: () -> Unit
+) {
+    val selectedCount = selectedRules.size
+
+    Dialog(onDismissRequest = onDismiss) {
+        Surface(
+            shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+            modifier = Modifier
+                .fillMaxWidth()
+                .heightIn(max = 560.dp)
+                .padding(horizontal = Dimensions.spacingMd)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = Dimensions.spacingSm,
+                        vertical = Dimensions.spacingSm
+                    ),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(Dimensions.cornerRadiusLg),
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.9f)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingSm),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.FilterList,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.size(Dimensions.spacingSm))
+                        Text(
+                            text = stringResource(R.string.lbl_rules),
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        Spacer(modifier = Modifier.size(Dimensions.spacingSm))
+                        if (selectedCount > 0) {
+                            Surface(
+                                shape = RoundedCornerShape(Dimensions.cornerRadiusPill),
+                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.9f)
+                            ) {
+                                Text(
+                                    text = selectedCount.toString(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    fontWeight = FontWeight.SemiBold,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.weight(1f))
+                        if (selectedCount > 0) {
+                            TextButton(onClick = onClear) {
+                                Text(
+                                    text = stringResource(R.string.fapps_filter_clear_btn),
+                                    color = MaterialTheme.colorScheme.error,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+                        IconButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Close,
+                                contentDescription = stringResource(R.string.lbl_dismiss),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                }
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f, fill = false),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    itemsIndexed(rules, key = { _, rule -> rule.id }) { _, rule ->
+                        LogsRuleListItem(
+                            title = stringResource(rule.title),
+                            description = htmlToAnnotatedString(stringResource(rule.desc)),
+                            iconRes = FirewallRuleset.getRulesIcon(rule.id),
+                            selected = selectedRules.contains(rule.id),
+                            onClick = { onToggleRule(rule.id) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun LogsRuleListItem(
+    title: String,
+    description: AnnotatedString,
+    iconRes: Int,
+    selected: Boolean,
+    onClick: () -> Unit
+) {
+    Surface(
+        onClick = onClick,
+        shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
+        color =
+            if (selected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.34f)
+            else MaterialTheme.colorScheme.surfaceContainerLow,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingSm),
+            verticalAlignment = Alignment.Top
+        ) {
+            Surface(
+                shape = RoundedCornerShape(Dimensions.iconContainerRadius),
+                color =
+                    if (selected) MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.55f)
+                    else MaterialTheme.colorScheme.surfaceContainerHigh
+            ) {
+                Icon(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(Dimensions.iconContainerSm)
+                        .padding(7.dp),
+                    tint =
+                        if (selected) MaterialTheme.colorScheme.secondary
+                        else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Spacer(modifier = Modifier.size(Dimensions.spacingMd))
+
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(20.dp)
+                    .padding(top = 2.dp),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                if (selected) {
+                    Icon(
+                        imageVector = Icons.Rounded.CheckCircle,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+        }
+    }
+}
+
+private fun htmlToAnnotatedString(input: String): AnnotatedString {
+    val sanitized = input.replace(Regex("(?i)</?u>"), "")
+    val tokenRegex = Regex("(?i)<br\\s*/?>|</?i>")
+    val builder = AnnotatedString.Builder()
+    var cursor = 0
+    var italicDepth = 0
+
+    tokenRegex.findAll(sanitized).forEach { match ->
+        if (match.range.first > cursor) {
+            builder.append(sanitized.substring(cursor, match.range.first))
+        }
+
+        when {
+            match.value.matches(Regex("(?i)<br\\s*/?>")) -> builder.append("\n")
+            match.value.equals("<i>", ignoreCase = true) -> {
+                builder.pushStyle(SpanStyle(fontStyle = FontStyle.Italic))
+                italicDepth++
+            }
+            match.value.equals("</i>", ignoreCase = true) && italicDepth > 0 -> {
+                builder.pop()
+                italicDepth--
+            }
+        }
+        cursor = match.range.last + 1
+    }
+
+    if (cursor < sanitized.length) {
+        builder.append(sanitized.substring(cursor))
+    }
+    while (italicDepth > 0) {
+        builder.pop()
+        italicDepth--
+    }
+    return builder.toAnnotatedString()
 }
 
 @Composable
 private fun <T : Any> LogsPagedListContent(
     items: LazyPagingItems<T>,
+    listState: LazyListState,
     modifier: Modifier = Modifier,
-    rowContent: @Composable (T) -> Unit
+    rowContent: @Composable (item: T, index: Int, itemCount: Int) -> Unit
 ) {
-    val isEmpty = items.itemCount == 0 && items.loadState.refresh is LoadState.NotLoading
+    val refreshState = items.loadState.refresh
+    val itemCount = items.itemCount
+    val isLoading = refreshState is LoadState.Loading && itemCount == 0
+    val isEmpty = refreshState is LoadState.NotLoading && itemCount == 0
+    val hasLoadError = refreshState is LoadState.Error && itemCount == 0
+    val density = LocalDensity.current
+    val navBarBottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
 
-    Box(
-        modifier = modifier.fillMaxWidth().padding(top = Dimensions.spacingSm)
+    LazyColumn(
+        state = listState,
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(
+            start = Dimensions.screenPaddingHorizontal,
+            end = Dimensions.screenPaddingHorizontal,
+            top = Dimensions.spacingXs,
+            bottom = Dimensions.screenPaddingHorizontal + navBarBottomInset
+        ),
+        verticalArrangement = Arrangement.spacedBy(2.dp)
     ) {
-        if (isEmpty) {
-            LogsEmptyState()
+        if (isLoading) {
+            item(key = "logs_loading") {
+                LogsLoadingState()
+            }
+        } else if (isEmpty) {
+            item(key = "logs_empty") {
+                LogsEmptyState()
+            }
+        } else if (hasLoadError) {
+            item(key = "logs_load_error") {
+                LogsLoadErrorState(onRetry = { items.retry() })
+            }
         } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(
-                    start = Dimensions.screenPaddingHorizontal,
-                    end = Dimensions.screenPaddingHorizontal,
-                    top = Dimensions.spacingSm,
-                    bottom = Dimensions.spacingLg
-                ),
-                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-            ) {
-                items(items.itemCount) { index ->
-                    val item = items[index] ?: return@items
-                    rowContent(item)
-                }
+            items(
+                count = itemCount
+            ) { index ->
+                val item = items[index] ?: return@items
+                rowContent(item, index, itemCount)
+            }
+        }
+    }
+}
+
+@Composable
+private fun LogsLoadingState() {
+    Surface(
+        shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = Dimensions.spacingSm)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimensions.spacingLg, vertical = Dimensions.spacingLg),
+            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+            Text(
+                text = stringResource(id = R.string.lbl_loading),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun LogsLoadErrorState(onRetry: () -> Unit) {
+    Surface(
+        shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = Dimensions.spacingSm)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = Dimensions.spacingLg, vertical = Dimensions.spacingMd),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = stringResource(id = R.string.error_loading_log_file),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.weight(1f)
+            )
+            TextButton(onClick = onRetry) {
+                Text(text = stringResource(id = R.string.cd_refresh))
             }
         }
     }
@@ -558,16 +1411,19 @@ private fun LogsDeleteDialog(
 
 @Composable
 private fun LogsEmptyState() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    Surface(
+        shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = Dimensions.spacingSm)
     ) {
         Text(
             text = stringResource(id = R.string.lbl_no_logs),
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             textAlign = TextAlign.Center,
-            modifier = Modifier.padding(Dimensions.spacingXl)
+            modifier = Modifier.padding(horizontal = Dimensions.spacingXl, vertical = Dimensions.spacingLg)
         )
     }
 }
@@ -598,6 +1454,8 @@ private fun ConnTrackerDetailsSheet(
     val status = if (connection.isBlocked) stringResource(R.string.lbl_blocked) else stringResource(R.string.lbl_allowed)
     LogDetailsSheet(
         title = connection.appName,
+        appPackageName = connection.packageName,
+        appDisplayName = connection.appName,
         details = listOf(
             LogDetailEntry(stringResource(R.string.log_detail_ip_address), connection.ipAddress),
             LogDetailEntry(stringResource(R.string.log_detail_port), connection.port.toString()),
@@ -618,6 +1476,8 @@ private fun DnsLogDetailsSheet(
     val response = log.responseIps.ifEmpty { stringResource(R.string.settings_app_list_default_app) }
     LogDetailsSheet(
         title = log.queryStr,
+        appPackageName = log.packageName,
+        appDisplayName = log.appName,
         details = listOf(
             LogDetailEntry(stringResource(R.string.log_detail_app_name), log.appName),
             LogDetailEntry(stringResource(R.string.log_detail_response), response),
@@ -638,9 +1498,24 @@ private data class LogDetailEntry(
 @Composable
 private fun LogDetailsSheet(
     title: String,
+    appPackageName: String,
+    appDisplayName: String,
     details: List<LogDetailEntry>,
     onDismiss: () -> Unit
 ) {
+    val context = LocalContext.current
+    var appIcon by remember(appPackageName, appDisplayName) { mutableStateOf<Drawable?>(null) }
+
+    LaunchedEffect(appPackageName, appDisplayName) {
+        appIcon = kotlinx.coroutines.withContext(Dispatchers.IO) {
+            if (appPackageName.isBlank()) {
+                Utilities.getDefaultIcon(context)
+            } else {
+                Utilities.getIcon(context, appPackageName, appDisplayName)
+            }
+        }
+    }
+
     RethinkModalBottomSheet(onDismissRequest = onDismiss, includeBottomSpacer = true) {
         RethinkBottomSheetCard(
             shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
@@ -651,11 +1526,28 @@ private fun LogDetailsSheet(
                     .fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
             ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                ) {
+                    val iconPainter =
+                        rememberDrawablePainter(appIcon ?: Utilities.getDefaultIcon(context))
+                    iconPainter?.let { painter ->
+                        Image(
+                            painter = painter,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(30.dp)
+                                .clip(RoundedCornerShape(9.dp))
+                        )
+                    }
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
                 details.forEach { entry ->
                     DetailRow(
                         label = entry.label,

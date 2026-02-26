@@ -44,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ConnectionTracker
@@ -86,7 +87,7 @@ fun RethinkLogRow(
     val flag = log.flag
     val ipAddress =
         if (log.ipAddress == DNS_IP_TEMPLATE_V4 || log.ipAddress == DNS_IP_TEMPLATE_V6) {
-            context.resources.getString(R.string.dns_mode_info_title)
+            stringResource(R.string.dns_mode_info_title)
         } else {
             log.ipAddress
         }
@@ -106,7 +107,7 @@ fun RethinkLogRow(
         val count = apps.count()
         appName =
             if (count > 1) {
-                context.resources.getString(
+                context.getString(
                     R.string.ctbs_app_other_apps,
                     log.appName,
                     (count - 1).toString()
@@ -210,7 +211,7 @@ fun RethinkLogRow(
 private fun protocolLabel(context: Context, port: Int, proto: Int): String {
     val resolvedPort = KnownPorts.resolvePort(port)
     return if (port == KnownPorts.HTTPS_PORT && proto == Protocol.UDP.protocolType) {
-        context.resources.getString(R.string.connection_http3)
+        context.getString(R.string.connection_http3)
     } else if (resolvedPort != KnownPorts.PORT_VAL_UNKNOWN) {
         resolvedPort.uppercase(Locale.ROOT)
     } else {
@@ -260,29 +261,29 @@ private fun summaryInfo(context: Context, log: RethinkLog): LogSummary {
     if (log.duration == 0 && log.downloadBytes == 0L && log.uploadBytes == 0L && log.message.isEmpty()) {
         var hasMinSummary = false
         if (VpnController.hasCid(log.connId, log.uid)) {
-            dataUsage = context.resources.getString(R.string.lbl_active)
-            duration = context.resources.getString(R.string.symbol_green_circle)
+            dataUsage = context.getString(R.string.lbl_active)
+            duration = context.getString(R.string.symbol_green_circle)
             hasMinSummary = true
         }
 
         if (connType.isMetered()) {
-            delay = context.resources.getString(R.string.symbol_currency)
+            delay = context.getString(R.string.symbol_currency)
             hasMinSummary = true
         }
 
         if (isRpnProxy(log.rpid)) {
             delay =
-                context.resources.getString(
+                context.getString(
                     R.string.ci_desc,
                     delay,
-                    context.resources.getString(R.string.symbol_sparkle)
+                    context.getString(R.string.symbol_sparkle)
                 )
         } else if (isConnectionProxied(log.blockedByRule, log.proxyDetails)) {
             delay =
-                context.resources.getString(
+                context.getString(
                     R.string.ci_desc,
                     delay,
-                    context.resources.getString(R.string.symbol_key)
+                    context.getString(R.string.symbol_key)
                 )
             hasMinSummary = true
         }
@@ -291,71 +292,71 @@ private fun summaryInfo(context: Context, log: RethinkLog): LogSummary {
     }
 
     showSummary = true
-    duration = context.resources.getString(R.string.single_argument, getDurationInHumanReadableFormat(context, log.duration))
+    duration = context.getString(R.string.single_argument, getDurationInHumanReadableFormat(context, log.duration))
     val download =
-        context.resources.getString(
+        context.getString(
             R.string.symbol_download,
             Utilities.humanReadableByteCount(log.downloadBytes, true)
         )
     val upload =
-        context.resources.getString(
+        context.getString(
             R.string.symbol_upload,
             Utilities.humanReadableByteCount(log.uploadBytes, true)
         )
-    dataUsage = context.resources.getString(R.string.two_argument, upload, download)
+    dataUsage = context.getString(R.string.two_argument, upload, download)
 
     if (connType.isMetered()) {
         delay =
-            context.resources.getString(
+            context.getString(
                 R.string.ci_desc,
                 delay,
-                context.resources.getString(R.string.symbol_currency)
+                context.getString(R.string.symbol_currency)
             )
     }
     if (isConnectionHeavier(log)) {
         delay =
-            context.resources.getString(
+            context.getString(
                 R.string.ci_desc,
                 delay,
-                context.resources.getString(R.string.symbol_heavy)
+                context.getString(R.string.symbol_heavy)
             )
     }
     if (isConnectionSlower(log)) {
         delay =
-            context.resources.getString(
+            context.getString(
                 R.string.ci_desc,
                 delay,
-                context.resources.getString(R.string.symbol_turtle)
+                context.getString(R.string.symbol_turtle)
             )
     }
     if (isRpnProxy(log.rpid)) {
         delay =
-            context.resources.getString(
+            context.getString(
                 R.string.ci_desc,
                 delay,
-                context.resources.getString(R.string.symbol_sparkle)
+                context.getString(R.string.symbol_sparkle)
             )
     } else if (containsRelayProxy(log.rpid)) {
         delay =
-            context.resources.getString(
+            context.getString(
                 R.string.ci_desc,
                 delay,
-                context.resources.getString(R.string.symbol_bunny)
+                context.getString(R.string.symbol_bunny)
             )
     } else if (isConnectionProxied(log.blockedByRule, log.proxyDetails)) {
         delay =
-            context.resources.getString(
+            context.getString(
                 R.string.ci_desc,
                 delay,
-                context.resources.getString(R.string.symbol_key)
+                context.getString(R.string.symbol_key)
             )
     }
     if (isRoundTripShorter(log.synack, log.isBlocked)) {
         delay =
-            context.resources.getString(
+            context.getString(
                 R.string.ci_desc,
                 delay,
-                context.resources.getString(R.string.symbol_rocket)
+                context.getString(R.string.symbol_rocket)
             )
     }
     showSummary = delay.isNotEmpty() || dataUsage.isNotEmpty()

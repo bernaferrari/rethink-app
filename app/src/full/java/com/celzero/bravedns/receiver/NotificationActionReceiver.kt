@@ -108,7 +108,7 @@ class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
         if (!VpnController.hasTunnel()) {
             Utilities.showToastUiCentered(
                 context,
-                context.resources.getString(R.string.hsf_pause_vpn_failure),
+                context.getString(R.string.hsf_pause_vpn_failure),
                 Toast.LENGTH_SHORT
             )
             return
@@ -125,7 +125,7 @@ class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
         if (appConfig.isProxyEnabled()) {
             Utilities.showToastUiCentered(
                 context,
-                context.resources.getString(R.string.settings_lock_down_proxy_desc),
+                context.getString(R.string.settings_lock_down_proxy_desc),
                 Toast.LENGTH_SHORT
             )
             return
@@ -146,9 +146,9 @@ class NotificationActionReceiver : BroadcastReceiver(), KoinComponent {
     ) {
         val text =
             if (connectionStatus == FirewallManager.ConnectionStatus.BOTH) {
-                context.resources.getString(R.string.new_app_notification_action_toast_deny)
+                context.getString(R.string.new_app_notification_action_toast_deny)
             } else {
-                context.resources.getString(R.string.new_app_notification_action_toast_allow)
+                context.getString(R.string.new_app_notification_action_toast_allow)
             }
 
         Utilities.showToastUiCentered(context, text, Toast.LENGTH_SHORT)

@@ -150,17 +150,17 @@ fun WgPeerRow(
 
     if (showDeleteDialog.value) {
         val deleteTitle =
-            context.resources.getString(
+            context.getString(
                 R.string.two_argument_space,
-                context.resources.getString(R.string.config_delete_dialog_title),
-                context.resources.getString(R.string.lbl_peer)
+                context.getString(R.string.config_delete_dialog_title),
+                context.getString(R.string.lbl_peer)
             )
         RethinkConfirmDialog(
             onDismissRequest = { showDeleteDialog.value = false },
             title = deleteTitle,
-            message = context.resources.getString(R.string.config_delete_dialog_desc),
+            message = context.getString(R.string.config_delete_dialog_desc),
             confirmText = deleteTitle,
-            dismissText = context.resources.getString(R.string.lbl_cancel),
+            dismissText = context.getString(R.string.lbl_cancel),
             isConfirmDestructive = true,
             onConfirm = {
                 showDeleteDialog.value = false

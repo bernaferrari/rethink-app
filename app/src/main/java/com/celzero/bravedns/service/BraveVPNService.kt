@@ -1295,7 +1295,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         var builder: NotificationCompat.Builder
         if (isAtleastO()) {
             val name: CharSequence = getString(R.string.notif_channel_firewall_alerts)
-            val description = this.resources.getString(R.string.notif_channel_desc_firewall_alerts)
+            val description = this.getString(R.string.notif_channel_desc_firewall_alerts)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(NOTIF_CHANNEL_ID_FIREWALL_ALERTS, name, importance)
             channel.description = description
@@ -1305,9 +1305,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             builder = NotificationCompat.Builder(this, NOTIF_CHANNEL_ID_FIREWALL_ALERTS)
         }
 
-        val contentTitle: String = this.resources.getString(R.string.lbl_action_required)
+        val contentTitle: String = this.getString(R.string.lbl_action_required)
         val contentText: String =
-            this.resources.getString(R.string.accessibility_notification_content)
+            this.getString(R.string.accessibility_notification_content)
 
         builder
             .setSmallIcon(R.drawable.ic_notification_icon)

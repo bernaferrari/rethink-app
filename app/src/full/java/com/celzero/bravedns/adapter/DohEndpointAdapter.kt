@@ -47,10 +47,10 @@ fun DoHEndpointRow(endpoint: DoHEndpoint, appConfig: AppConfig) {
         if (endpoint.isSecure) {
             endpoint.dohName
         } else {
-            context.resources.getString(
+            context.getString(
                 R.string.ci_desc,
                 endpoint.dohName,
-                context.resources.getString(R.string.lbl_insecure)
+                context.getString(R.string.lbl_insecure)
             )
         }
     DnsEndpointRow(

@@ -166,12 +166,12 @@ fun HopRow(
 
             if (chips.hasAny()) {
                 Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 6.dp)) {
-                    if (chips.ipv4) HopChip(text = context.resources.getString(R.string.settings_ip_text_ipv4))
-                    if (chips.ipv6) HopChip(text = context.resources.getString(R.string.settings_ip_text_ipv6))
-                    if (chips.splitTunnel) HopChip(text = context.resources.getString(R.string.lbl_split))
-                    if (chips.amnezia) HopChip(text = context.resources.getString(R.string.lbl_amnezia))
-                    if (chips.hopSrc) HopChip(text = context.resources.getString(R.string.lbl_hopping))
-                    if (chips.hopping) HopChip(text = context.resources.getString(R.string.cd_dns_crypt_relay_heading))
+                    if (chips.ipv4) HopChip(text = context.getString(R.string.settings_ip_text_ipv4))
+                    if (chips.ipv6) HopChip(text = context.getString(R.string.settings_ip_text_ipv6))
+                    if (chips.splitTunnel) HopChip(text = context.getString(R.string.lbl_split))
+                    if (chips.amnezia) HopChip(text = context.getString(R.string.lbl_amnezia))
+                    if (chips.hopSrc) HopChip(text = context.getString(R.string.lbl_hopping))
+                    if (chips.hopping) HopChip(text = context.getString(R.string.cd_dns_crypt_relay_heading))
                     if (chips.properties.isNotEmpty()) HopChip(text = chips.properties)
                 }
             }
@@ -210,20 +210,20 @@ private suspend fun computeStatusText(
     selectedId: Int
 ): String {
     val map = WireguardManager.getConfigFilesById(config.getId())
-    if (map == null) return context.resources.getString(R.string.config_invalid_desc)
+    if (map == null) return context.getString(R.string.config_invalid_desc)
     if (selectedId == config.getId()) {
         val srcConfig = WireguardManager.getConfigById(srcId)
-        if (srcConfig == null) return context.resources.getString(R.string.lbl_inactive)
+        if (srcConfig == null) return context.getString(R.string.lbl_inactive)
         val src = ID_WG_BASE + srcConfig.getId()
         val hop = ID_WG_BASE + config.getId()
         val statusPair = VpnController.hopStatus(src, hop)
         return if (statusPair.first != null) {
-            context.resources.getString(UIUtils.getProxyStatusStringRes(statusPair.first))
+            context.getString(UIUtils.getProxyStatusStringRes(statusPair.first))
         } else {
             statusPair.second
         }
     }
-    return if (map.isActive) context.resources.getString(R.string.lbl_active) else context.resources.getString(R.string.lbl_inactive)
+    return if (map.isActive) context.getString(R.string.lbl_active) else context.getString(R.string.lbl_inactive)
 }
 
 private suspend fun computeChips(context: Context, config: Config): HopChips {
@@ -241,9 +241,9 @@ private suspend fun computeChips(context: Context, config: Config): HopChips {
         val properties = buildString {
             val mapping = WireguardManager.getConfigFilesById(config.getId())
             if (mapping != null) {
-                if (mapping.isCatchAll) append(context.resources.getString(R.string.symbol_lightening))
-                if (mapping.useOnlyOnMetered) append(context.resources.getString(R.string.symbol_mobile))
-                if (mapping.ssidEnabled) append(context.resources.getString(R.string.symbol_id))
+                if (mapping.isCatchAll) append(context.getString(R.string.symbol_lightening))
+                if (mapping.useOnlyOnMetered) append(context.getString(R.string.symbol_mobile))
+                if (mapping.ssidEnabled) append(context.getString(R.string.symbol_id))
             }
         }
         val amnezia = config.getInterface()?.isAmnezia() == true
@@ -272,19 +272,19 @@ private suspend fun handleHop(
     val mapping = WireguardManager.getConfigFilesById(config.getId())
     if (srcConfig == null || mapping == null) {
         Logger.i(LOG_TAG_UI, "$TAG; source config($srcId) not found to hop")
-        uiCtx { Utilities.showToastUiCentered(context, context.resources.getString(R.string.config_invalid_desc), Toast.LENGTH_LONG) }
-        return false to context.resources.getString(R.string.config_invalid_desc)
+        uiCtx { Utilities.showToastUiCentered(context, context.getString(R.string.config_invalid_desc), Toast.LENGTH_LONG) }
+        return false to context.getString(R.string.config_invalid_desc)
     }
 
     if (mapping.useOnlyOnMetered || mapping.ssidEnabled) {
         uiCtx {
             Utilities.showToastUiCentered(
                 context,
-                context.resources.getString(R.string.hop_error_toast_msg_3),
+                context.getString(R.string.hop_error_toast_msg_3),
                 Toast.LENGTH_LONG
             )
         }
-        return false to context.resources.getString(R.string.hop_error_toast_msg_3)
+        return false to context.getString(R.string.hop_error_toast_msg_3)
     }
 
     Logger.d(LOG_TAG_UI, "$TAG; init, hop: ${srcConfig.getId()} -> ${config.getId()}, isChecked? $isChecked")
@@ -310,11 +310,11 @@ private suspend fun handleHop(
             uiCtx {
                 Utilities.showToastUiCentered(
                     context,
-                    hopTestRes.second ?: context.resources.getString(R.string.unknown_error),
+                    hopTestRes.second ?: context.getString(R.string.unknown_error),
                     Toast.LENGTH_LONG
                 )
             }
-            return false to (hopTestRes.second ?: context.resources.getString(R.string.unknown_error))
+            return false to (hopTestRes.second ?: context.getString(R.string.unknown_error))
         }
     }
 

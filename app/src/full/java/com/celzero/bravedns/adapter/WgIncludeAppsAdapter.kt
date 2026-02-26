@@ -78,15 +78,15 @@ fun IncludeDialogHost(
     if (state == null) return
     val (title, positiveTxt) =
         if (state.included) {
-            context.resources.getString(
+            context.getString(
                 R.string.wg_apps_dialog_title_include,
                 state.packageList.size.toString()
-            ) to context.resources.getString(R.string.lbl_include)
+            ) to context.getString(R.string.lbl_include)
         } else {
-            context.resources.getString(
+            context.getString(
                 R.string.wg_apps_dialog_title_exclude,
                 state.packageList.size.toString()
-            ) to context.resources.getString(R.string.lbl_remove)
+            ) to context.getString(R.string.lbl_remove)
         }
 
     RethinkConfirmDialog(
@@ -100,7 +100,7 @@ fun IncludeDialogHost(
             }
         },
         confirmText = positiveTxt,
-        dismissText = context.resources.getString(R.string.ctbs_dialog_negative_btn),
+        dismissText = context.getString(R.string.ctbs_dialog_negative_btn),
         onConfirm = {
             onConfirm(state.mapping, state.included)
             onDismiss()
@@ -139,9 +139,9 @@ fun IncludeAppRow(
                 mapping.proxyId.isEmpty() -> ""
                 mapping.proxyId != proxyId -> {
                     if (isProxyExcluded) {
-                        context.resources.getString(R.string.exclude_apps_from_proxy)
+                        context.getString(R.string.exclude_apps_from_proxy)
                     } else {
-                        context.resources.getString(
+                        context.getString(
                             R.string.wireguard_apps_proxy_map_desc,
                             mapping.proxyName
                         )

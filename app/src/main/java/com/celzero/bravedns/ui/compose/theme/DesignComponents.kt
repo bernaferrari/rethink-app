@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
+
 package com.celzero.bravedns.ui.compose.theme
 
 import androidx.compose.animation.core.Spring
@@ -47,6 +49,7 @@ import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
@@ -70,6 +73,8 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -100,6 +105,9 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -323,6 +331,58 @@ fun <T> RethinkSegmentedChoiceRow(
                     label(option, isSelected)
                 }
             )
+        }
+    }
+}
+
+@Composable
+fun <T> RethinkConnectedChoiceButtonRow(
+    options: List<T>,
+    selectedOption: T,
+    onOptionSelected: (T) -> Unit,
+    modifier: Modifier = Modifier,
+    buttonMinHeight: Dp = 0.dp,
+    icon: (@Composable (option: T, selected: Boolean) -> Unit)? = null,
+    label: @Composable (option: T, selected: Boolean) -> Unit
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween)
+    ) {
+        options.forEachIndexed { index, option ->
+            val isSelected = option == selectedOption
+            ToggleButton(
+                checked = isSelected,
+                onCheckedChange = { checked ->
+                    if (checked && !isSelected) {
+                        onOptionSelected(option)
+                    }
+                },
+                shapes =
+                    when (index) {
+                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                        options.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                    },
+                colors =
+                    ToggleButtonDefaults.toggleButtonColors(
+                        checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.82f),
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    ),
+                border = null,
+                modifier = Modifier
+                    .weight(1f)
+                    .heightIn(min = buttonMinHeight)
+                    .semantics { role = Role.RadioButton }
+            ) {
+                icon?.let {
+                    it(option, isSelected)
+                    Spacer(modifier = Modifier.size(ToggleButtonDefaults.IconSpacing))
+                }
+                label(option, isSelected)
+            }
         }
     }
 }

@@ -108,8 +108,8 @@ object BubbleHelper {
     fun createBubbleNotificationChannel(context: Context) {
         val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
-        val name = context.resources.getString(R.string.firewall_bubble_channel_name)
-        val description = context.resources.getString(R.string.firewall_bubble_channel_desc)
+        val name = context.getString(R.string.firewall_bubble_channel_name)
+        val description = context.getString(R.string.firewall_bubble_channel_desc)
 
         val existing = nm.getNotificationChannel(BUBBLE_CHANNEL_ID)
         if (existing != null) {
@@ -163,14 +163,14 @@ object BubbleHelper {
 
         // Use ShortcutInfoCompat for better compatibility
         val shortcut = ShortcutInfoCompat.Builder(context, BUBBLE_SHORTCUT_ID)
-            .setShortLabel(context.resources.getString(R.string.firewall_bubble_title))
-            .setLongLabel(context.resources.getString(R.string.firewall_bubble))
+            .setShortLabel(context.getString(R.string.firewall_bubble_title))
+            .setLongLabel(context.getString(R.string.firewall_bubble))
             .setIsConversation()
             .setIcon(IconCompat.createWithResource(context, R.drawable.ic_firewall_bubble))
             .setIntent(shortcutIntent)
             .setPerson(
                 androidx.core.app.Person.Builder()
-                    .setName(context.resources.getString(R.string.firewall_bubble_title))
+                    .setName(context.getString(R.string.firewall_bubble_title))
                     .setIcon(IconCompat.createWithResource(context, R.drawable.ic_firewall_bubble))
                     .build()
             )
@@ -240,21 +240,21 @@ object BubbleHelper {
 
         val messagingStyle = NotificationCompat.MessagingStyle(
             androidx.core.app.Person.Builder()
-                .setName(context.resources.getString(R.string.app_name))
+                .setName(context.getString(R.string.app_name))
                 .setIcon(IconCompat.createWithResource(context, R.drawable.ic_firewall_bubble))
                 .build()
-        ).setConversationTitle(context.resources.getString(R.string.firewall_bubble_title))
+        ).setConversationTitle(context.getString(R.string.firewall_bubble_title))
 
         messagingStyle.addMessage(
-            context.resources.getString(R.string.firewall_bubble_text),
+            context.getString(R.string.firewall_bubble_text),
             System.currentTimeMillis(),
-            androidx.core.app.Person.Builder().setName(context.resources.getString(R.string.app_name)).build()
+            androidx.core.app.Person.Builder().setName(context.getString(R.string.app_name)).build()
         )
 
         val builder = NotificationCompat.Builder(context, BUBBLE_CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_notification_icon)
-            .setContentTitle(context.resources.getString(R.string.firewall_bubble_title))
-            .setContentText(context.resources.getString(R.string.firewall_bubble_text))
+            .setContentTitle(context.getString(R.string.firewall_bubble_title))
+            .setContentText(context.getString(R.string.firewall_bubble_text))
             .setStyle(messagingStyle)
             .setShortcutId(BUBBLE_SHORTCUT_ID)
             .setCategory(NotificationCompat.CATEGORY_MESSAGE)
@@ -350,27 +350,27 @@ object BubbleHelper {
 
             val messagingStyle = NotificationCompat.MessagingStyle(
                 androidx.core.app.Person.Builder()
-                    .setName(context.resources.getString(R.string.app_name))
+                    .setName(context.getString(R.string.app_name))
                     .setIcon(IconCompat.createWithResource(context, R.drawable.ic_firewall_bubble))
                     .build()
-            ).setConversationTitle(context.resources.getString(R.string.firewall_bubble_title))
+            ).setConversationTitle(context.getString(R.string.firewall_bubble_title))
 
             // Keep message stable; do not show inflated counts.
             val message = if (blockedCount > 0) {
                 "Recently blocked: $blockedCount"
             } else {
-                context.resources.getString(R.string.firewall_bubble_text)
+                context.getString(R.string.firewall_bubble_text)
             }
 
             messagingStyle.addMessage(
                 message,
                 System.currentTimeMillis(),
-                androidx.core.app.Person.Builder().setName(context.resources.getString(R.string.app_name)).build()
+                androidx.core.app.Person.Builder().setName(context.getString(R.string.app_name)).build()
             )
 
             val notification = NotificationCompat.Builder(context, BUBBLE_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification_icon)
-                .setContentTitle(context.resources.getString(R.string.firewall_bubble_title))
+                .setContentTitle(context.getString(R.string.firewall_bubble_title))
                 .setContentText(message)
                 .setStyle(messagingStyle)
                 .setBubbleMetadata(bubbleData)
@@ -486,7 +486,7 @@ object BubbleHelper {
             Logger.w(LOG_TAG_FIREWALL, "Bubble ineligible: channel bubbles disabled")
             Logger.w(
                 LOG_TAG_FIREWALL,
-                "To enable: Settings → Notifications → ${context.resources.getString(R.string.firewall_bubble_channel_name)} → Allow bubbles"
+                "To enable: Settings → Notifications → ${context.getString(R.string.firewall_bubble_channel_name)} → Allow bubbles"
             )
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && globalAllowed == false) {

@@ -102,10 +102,10 @@ fun CloseConnsDialog(
     val context = LocalContext.current
     RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        title = context.resources.getString(R.string.close_conns_dialog_title),
-        message = context.resources.getString(R.string.close_conns_dialog_desc, conn.ipAddress),
-        confirmText = context.resources.getString(R.string.lbl_proceed),
-        dismissText = context.resources.getString(R.string.lbl_cancel),
+        title = context.getString(R.string.close_conns_dialog_title),
+        message = context.getString(R.string.close_conns_dialog_desc, conn.ipAddress),
+        confirmText = context.getString(R.string.lbl_proceed),
+        dismissText = context.getString(R.string.lbl_cancel),
         onConfirm = {
             VpnController.closeConnectionsByUidDomain(
                 conn.uid,
@@ -114,7 +114,7 @@ fun CloseConnsDialog(
             )
             showToastUiCentered(
                 context,
-                context.resources.getString(R.string.config_add_success_toast),
+                context.getString(R.string.config_add_success_toast),
                 Toast.LENGTH_LONG
             )
             onConfirm()

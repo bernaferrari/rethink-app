@@ -146,9 +146,9 @@ object UIUtils {
     fun formatToRelativeTime(context: Context, timestamp: Long): String {
         val now = System.currentTimeMillis()
         return if (DateUtils.isToday(timestamp)) {
-            context.resources.getString(R.string.relative_time_today)
+            context.getString(R.string.relative_time_today)
         } else if (isYesterday(Date(timestamp))) {
-            context.resources.getString(R.string.relative_time_yesterday)
+            context.getString(R.string.relative_time_yesterday)
         } else {
             val d =
                 DateUtils.getRelativeTimeSpanString(
@@ -184,7 +184,7 @@ object UIUtils {
         } catch (e: ActivityNotFoundException) {
             Utilities.showToastUiCentered(
                 context,
-                context.resources.getString(R.string.vpn_profile_error),
+                context.getString(R.string.vpn_profile_error),
                 Toast.LENGTH_SHORT
             )
             Logger.w(Logger.LOG_TAG_VPN, "Failure opening app info: ${e.message}", e)
@@ -198,7 +198,7 @@ object UIUtils {
         } catch (e: Exception) {
             Utilities.showToastUiCentered(
                 context,
-                context.resources.getString(R.string.intent_launch_error, url),
+                context.getString(R.string.intent_launch_error, url),
                 Toast.LENGTH_SHORT
             )
             Logger.w(LOG_TAG_UI, "activity not found ${e.message}", e)
@@ -212,7 +212,7 @@ object UIUtils {
             context.startActivity(intent)
             true
         } catch (e: ActivityNotFoundException) {
-            val msg = context.resources.getString(R.string.intent_launch_error, settings)
+            val msg = context.getString(R.string.intent_launch_error, settings)
             Utilities.showToastUiCentered(context, msg, Toast.LENGTH_SHORT)
             Logger.w(Logger.LOG_TAG_VPN, "err opening android setting: ${e.message}", e)
             false
@@ -229,7 +229,7 @@ object UIUtils {
         } catch (e: ActivityNotFoundException) {
             Utilities.showToastUiCentered(
                 context,
-                context.resources.getString(R.string.app_info_error),
+                context.getString(R.string.app_info_error),
                 Toast.LENGTH_SHORT
             )
             Logger.w(LOG_TAG_UI, "activity not found ${e.message}", e)
@@ -253,14 +253,14 @@ object UIUtils {
     fun sendEmailIntent(context: Context) {
         val intent =
             Intent(Intent.ACTION_SENDTO).apply {
-                data = context.resources.getString(R.string.about_mail_to_string).toUri()
-                putExtra(Intent.EXTRA_EMAIL, arrayOf(context.resources.getString(R.string.about_mail_to)))
-                putExtra(Intent.EXTRA_SUBJECT, context.resources.getString(R.string.about_mail_subject))
+                data = context.getString(R.string.about_mail_to_string).toUri()
+                putExtra(Intent.EXTRA_EMAIL, arrayOf(context.getString(R.string.about_mail_to)))
+                putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.about_mail_subject))
             }
         context.startActivity(
             Intent.createChooser(
                 intent,
-                context.resources.getString(R.string.about_mail_bugreport_share_title)
+                context.getString(R.string.about_mail_bugreport_share_title)
             )
         )
     }
@@ -275,7 +275,7 @@ object UIUtils {
             Logger.w(Logger.LOG_TAG_FIREWALL, "Failure calling app info: ${e.message}", e)
             Utilities.showToastUiCentered(
                 context,
-                context.resources.getString(R.string.ctbs_app_info_not_available_toast),
+                context.getString(R.string.ctbs_app_info_not_available_toast),
                 Toast.LENGTH_SHORT
             )
         }
@@ -602,16 +602,16 @@ object UIUtils {
         val result = StringBuilder()
 
         if (days > 0) {
-            result.append("$days ${context.resources.getString(R.string.lbl_day)} ")
+            result.append("$days ${context.getString(R.string.lbl_day)} ")
         }
         if (hours > 0) {
-            result.append("$hours ${context.resources.getString(R.string.lbl_hour)} ")
+            result.append("$hours ${context.getString(R.string.lbl_hour)} ")
         }
         if (minutes > 0) {
-            result.append("$minutes ${context.resources.getString(R.string.lbl_min)} ")
+            result.append("$minutes ${context.getString(R.string.lbl_min)} ")
         }
         if (seconds > 0 || (days == 0 && hours == 0 && minutes == 0)) {
-            result.append("$seconds ${context.resources.getString(R.string.lbl_sec)} ")
+            result.append("$seconds ${context.getString(R.string.lbl_sec)} ")
         }
 
         return result.toString().trim()

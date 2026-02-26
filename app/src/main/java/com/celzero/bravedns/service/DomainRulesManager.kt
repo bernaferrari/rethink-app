@@ -69,9 +69,9 @@ object DomainRulesManager : KoinComponent {
 
             fun getLabel(context: Context): Array<String> {
                 return arrayOf(
-                    context.resources.getString(R.string.ci_no_rule),
-                    context.resources.getString(R.string.ci_block),
-                    context.resources.getString(R.string.ci_trust_rule)
+                    context.getString(R.string.ci_no_rule),
+                    context.getString(R.string.ci_block),
+                    context.getString(R.string.ci_trust_rule)
                 )
             }
 

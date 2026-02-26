@@ -14,38 +14,48 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package com.celzero.bravedns.adapter
+@file:OptIn(ExperimentalMaterial3ExpressiveApi::class)
 
+package com.celzero.bravedns.adapter
 
 import android.content.Context
 import android.graphics.drawable.Drawable
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.draw.scale
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,10 +65,23 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.bumptech.glide.load.resource.drawable.DrawableTransitionOptions.withCrossFade
@@ -69,398 +92,736 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.glide.FavIconDownloader
 import com.celzero.bravedns.net.doh.Transaction
-import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.service.ProxyManager
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
+import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.getDefaultIcon
 import com.celzero.bravedns.util.Utilities.getIcon
-import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.celzero.firestack.backend.Backend
 import io.github.aakira.napier.Napier
+import kotlin.math.roundToInt
 
+private data class DnsRowPalette(
+    val status: Color,
+    val statusContainer: Color,
+    val statusLabel: String,
+    val surfaceCollapsed: Color,
+    val surfaceExpanded: Color,
+    val surfaceSubtle: Color,
+    val line: Color,
+    val primaryText: Color,
+    val secondaryText: Color,
+    val tagBg: Color,
+    val tagText: Color,
+)
+
+@Composable
+private fun dnsRowPalette(log: DnsLog): DnsRowPalette {
+    val scheme = MaterialTheme.colorScheme
+    val allowedGreen = Color(0xFF2FB36B)
+    val statusColor = when {
+        log.isBlocked -> scheme.error
+        determineMaybeBlocked(log) -> scheme.error.copy(alpha = 0.9f)
+        else -> allowedGreen
+    }
+
+    val statusContainer = when {
+        log.isBlocked -> scheme.errorContainer.copy(alpha = 0.55f)
+        determineMaybeBlocked(log) -> scheme.errorContainer.copy(alpha = 0.48f)
+        else -> allowedGreen.copy(alpha = 0.18f)
+    }
+
+    return DnsRowPalette(
+        status = statusColor,
+        statusContainer = statusContainer,
+        statusLabel =
+            if (log.isBlocked) {
+                stringResource(R.string.lbl_blocked)
+            } else {
+                stringResource(R.string.lbl_allowed)
+            },
+        surfaceCollapsed = scheme.surfaceContainerLow,
+        surfaceExpanded = scheme.surfaceContainer,
+        surfaceSubtle = scheme.surfaceContainerHighest.copy(alpha = 0.32f),
+        line = scheme.outlineVariant.copy(alpha = 0.45f),
+        primaryText = scheme.onSurface,
+        secondaryText = scheme.onSurfaceVariant,
+        tagBg = scheme.surfaceContainerHighest.copy(alpha = 0.6f),
+        tagText = scheme.onSurfaceVariant,
+    )
+}
 
 @Composable
 fun DnsLogRow(
     log: DnsLog,
     loadFavIcon: Boolean,
     isRethinkDns: Boolean,
-    onShowBlocklist: (DnsLog) -> Unit
+    onShowBlocklist: (DnsLog) -> Unit,
+    index: Int = 0,
+    itemCount: Int = 1,
 ) {
     val context = LocalContext.current
-    val indicatorColor = statusIndicatorColor(context, log)
-    val dnsTypeName = dnsTypeName(context, log, isRethinkDns)
-    val unicodeHint = unicodeHint(context, log, isRethinkDns)
-    val showSummary = unicodeHint.isNotEmpty() || log.typeName.isNotEmpty()
-    val responseIp = log.responseIps.split(",").firstOrNull().orEmpty()
-    val latencyText = context.resources.getString(R.string.dns_query_latency, log.latency.toString())
+    val palette = dnsRowPalette(log)
+    val defaultIcon = remember(context) { getDefaultIcon(context) }
+    val dnsType = dnsTypeName(context, log, isRethinkDns)
+    val hint = unicodeHint(context, log, isRethinkDns)
+    val appLabel = log.appName.ifEmpty {
+        stringResource(R.string.network_log_app_name_unknown)
+    }
 
-    var appIcon by remember(log.packageName, log.appName) { mutableStateOf<Drawable?>(null) }
-    var showFavIcon by remember(log.queryStr, loadFavIcon) { mutableStateOf(false) }
-    var favIconDrawable by remember(log.queryStr) { mutableStateOf<Drawable?>(null) }
+    var appIcon by remember(log.packageName) { mutableStateOf<Drawable?>(null) }
+    var favIcon by remember(log.queryStr) { mutableStateOf<Drawable?>(null) }
+    var showFav by remember(log.queryStr, loadFavIcon) { mutableStateOf(false) }
+    var expanded by remember { mutableStateOf(false) }
+    var showDetails by remember { mutableStateOf(false) }
 
-    LaunchedEffect(log.packageName, log.appName) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val rowScale by animateFloatAsState(
+        targetValue = if (isPressed) 0.988f else 1f,
+        animationSpec = spring(
+            stiffness = Spring.StiffnessMediumLow,
+            dampingRatio = Spring.DampingRatioNoBouncy
+        ),
+        label = "dnsRowScale"
+    )
+
+    val chevronAngle by animateFloatAsState(
+        targetValue = if (expanded) 90f else 0f,
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "dnsChevron"
+    )
+
+    val baseCardColor = if (expanded) palette.surfaceExpanded else palette.surfaceCollapsed
+    val pressedCardColor = lerp(baseCardColor, MaterialTheme.colorScheme.primaryContainer, 0.2f)
+    val cardColor by animateColorAsState(
+        targetValue = if (isPressed) pressedCardColor else baseCardColor,
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "dnsCardColor"
+    )
+
+    val shadowElevation by animateDpAsState(
+        targetValue =
+            when {
+                isPressed -> 3.dp
+                expanded -> 7.dp
+                else -> 1.dp
+            },
+        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+        label = "dnsCardShadow"
+    )
+
+    val stripeAlpha by animateFloatAsState(
+        targetValue = if (expanded) 1f else 0.9f,
+        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+        label = "dnsStripeAlpha"
+    )
+
+    val detailsProgress by animateFloatAsState(
+        targetValue = if (expanded) 1f else 0f,
+        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
+        label = "dnsDetailsProgress",
+        finishedListener = { value ->
+            if (value == 0f) showDetails = false
+        }
+    )
+
+    LaunchedEffect(log.packageName) {
         appIcon =
             if (log.packageName.isEmpty() || log.packageName == Constants.EMPTY_PACKAGE_NAME) {
-                getDefaultIcon(context)
+                defaultIcon
             } else {
                 getIcon(context, log.packageName)
             }
     }
 
     LaunchedEffect(log.queryStr, loadFavIcon, log.groundedQuery()) {
-        showFavIcon = false
-        favIconDrawable = null
-    }
-
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMedium),
-        label = "rowScale"
-    )
-
-    androidx.compose.material3.Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .scale(scale)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = null,
-                onClick = { onShowBlocklist(log) }
-            ),
-        shape = RoundedCornerShape(18.dp),
-        colors = androidx.compose.material3.CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
-        ),
-        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = androidx.compose.foundation.BorderStroke(
-            width = 1.dp,
-            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)
-        )
-    ) {
-        Column(
-            modifier = Modifier.padding(Dimensions.spacingMd),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
-            ) {
-                // Icon/Flag with tinted circular background
-                val iconBgColor = if (log.isBlocked) {
-                    MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-                } else {
-                    MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-                }
-
-                Box(
-                    modifier = Modifier
-                        .size(38.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(iconBgColor),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (showFavIcon && favIconDrawable != null) {
-                        val favPainter = rememberDrawablePainter(favIconDrawable)
-                        favPainter?.let { painter ->
-                            Image(
-                                painter = painter,
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    } else {
-                        Text(
-                            text = log.flag,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                    }
-                }
-
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Text(
-                            text = log.typeName.ifEmpty { "QUERY" },
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-
-                        // Status Badge
-                        val badgeColor =
-                            if (log.isBlocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
-                        val badgeContainerColor =
-                            if (log.isBlocked) MaterialTheme.colorScheme.errorContainer else MaterialTheme.colorScheme.primaryContainer
-
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = badgeContainerColor.copy(alpha = 0.8f)
-                        ) {
-                            Text(
-                                text = if (log.isBlocked) context.resources.getString(R.string.lbl_blocked) else context.resources.getString(
-                                    R.string.lbl_allowed
-                                ),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.SemiBold,
-                                color = badgeColor,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                            )
-                        }
-                    }
-
-                    Text(
-                        text = log.queryStr,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
-                    )
-
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-                    ) {
-                        val appPainter =
-                            rememberDrawablePainter(appIcon) ?: rememberDrawablePainter(getDefaultIcon(context))
-                        appPainter?.let { painter ->
-                            Image(
-                                painter = painter,
-                                contentDescription = null,
-                                modifier = Modifier.size(16.dp)
-                            )
-                        }
-                        Text(
-                            text = if (log.appName.isEmpty()) {
-                                context.resources.getString(R.string.network_log_app_name_unknown)
-                            } else {
-                                log.appName
-                            },
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-
-                Column(horizontalAlignment = Alignment.End) {
-                    Text(
-                        text = log.wallTime(),
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_keyboard_arrow_down),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            if (showSummary) {
-                HorizontalDivider(
-                    thickness = 0.5.dp,
-                    color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                )
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = responseIp,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
-                        Text(
-                            text = dnsTypeName,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = latencyText,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-
-                    Text(
-                        text = unicodeHint,
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                }
-            }
-        }
+        showFav = false
+        favIcon = null
     }
 
     LaunchedEffect(log.queryStr, loadFavIcon, log.groundedQuery()) {
         if (!loadFavIcon || log.groundedQuery()) return@LaunchedEffect
         displayFavIcon(
-            context,
-            log,
-            loadFavIcon,
-            onShowFlag = {
-                showFavIcon = false
-                favIconDrawable = null
+            context = context,
+            log = log,
+            loadFavIcon = true,
+            onShowFlag = { showFav = false; favIcon = null },
+            onShowFav = { d -> showFav = true; favIcon = d },
+        )
+    }
+
+    LaunchedEffect(expanded) {
+        if (expanded) showDetails = true
+    }
+
+    val cardShape = ListItemDefaults.segmentedShapes(index = index, count = itemCount)
+
+    Surface(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .scale(rowScale)
+                .clip(cardShape.shape)
+                .clickable(
+                    interactionSource = interactionSource,
+                    indication = null,
+                    onClick = { expanded = !expanded },
+                ),
+        shape = cardShape.shape,
+        color = cardColor,
+        tonalElevation = if (expanded) 2.dp else 0.dp,
+        shadowElevation = shadowElevation,
+        border =
+            if (expanded) {
+                BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f))
+            } else {
+                null
             },
-            onShowFav = { drawable ->
-                showFavIcon = true
-                favIconDrawable = drawable
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(IntrinsicSize.Min),
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Row(
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .padding(start = 26.dp, end = 12.dp, top = 12.dp, bottom = 11.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    AppIconSlot(
+                        showFav = showFav,
+                        favIcon = favIcon,
+                        appIcon = appIcon,
+                        fallbackIcon = defaultIcon,
+                        flag = log.flag,
+                        statusColor = palette.statusContainer,
+                    )
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(3.dp),
+                    ) {
+                        Text(
+                            text = log.queryStr,
+                            fontFamily = FontFamily.Monospace,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 13.sp,
+                            color = palette.primaryText,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            letterSpacing = (-0.2).sp,
+                        )
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = appLabel,
+                                fontSize = 11.sp,
+                                color = palette.secondaryText,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                            DnsTypeTag(type = dnsType, bg = palette.tagBg, textColor = palette.tagText)
+                        }
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.End,
+                        verticalArrangement = Arrangement.spacedBy(5.dp),
+                    ) {
+                        StatusLabel(text = palette.statusLabel, color = palette.status)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        ) {
+                            Text(
+                                text = log.wallTime(),
+                                fontSize = 10.sp,
+                                color = palette.secondaryText.copy(alpha = 0.92f),
+                            )
+                            ChevronIcon(angle = chevronAngle, tint = palette.secondaryText)
+                        }
+                    }
+                }
+
+                if (showDetails) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .accordionReveal(detailsProgress),
+                    ) {
+                        DetailPanel(
+                            log = log,
+                            dnsType = dnsType,
+                            hint = hint,
+                            statusColor = palette.status,
+                            context = context,
+                            panelColor = palette.surfaceSubtle,
+                            dividerColor = palette.line,
+                            textColor = palette.secondaryText,
+                            onShowBlocklist = onShowBlocklist,
+                        )
+                    }
+                }
             }
+
+            StatusStripe(
+                color = palette.status.copy(alpha = stripeAlpha),
+                modifier =
+                    Modifier
+                        .align(Alignment.TopStart)
+                        .fillMaxHeight()
+                        .zIndex(1f),
+            )
+        }
+    }
+}
+
+private fun Modifier.accordionReveal(progress: Float): Modifier {
+    val p = progress.coerceIn(0f, 1f)
+    return this
+        .graphicsLayer { alpha = p }
+        .clipToBounds()
+        .layout { measurable, constraints ->
+            val placeable = measurable.measure(constraints)
+            val h = (placeable.height * p).roundToInt()
+            layout(placeable.width, h) {
+                if (h > 0) placeable.place(0, 0)
+            }
+        }
+}
+
+@Composable
+private fun StatusStripe(color: Color, modifier: Modifier = Modifier) {
+    Box(
+        modifier =
+            modifier
+                .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
+                .width(5.dp)
+                .fillMaxHeight()
+                .clip(RoundedCornerShape(999.dp))
+                .background(
+                    brush =
+                        Brush.verticalGradient(
+                            colors =
+                                listOf(
+                                    color,
+                                    color.copy(alpha = 0.38f),
+                                ),
+                        ),
+                ),
+    )
+}
+
+@Composable
+private fun AppIconSlot(
+    showFav: Boolean,
+    favIcon: Drawable?,
+    appIcon: Drawable?,
+    fallbackIcon: Drawable?,
+    flag: String,
+    statusColor: Color,
+) {
+    val iconDrawable = if (showFav && favIcon != null) favIcon else appIcon ?: fallbackIcon
+
+    Box(modifier = Modifier.size(36.dp), contentAlignment = Alignment.Center) {
+        if (iconDrawable != null) {
+            Crossfade(targetState = iconDrawable, animationSpec = tween(durationMillis = 180), label = "dnsIcon") { drawable ->
+                rememberDrawablePainter(drawable)?.let { painter ->
+                    androidx.compose.foundation.Image(
+                        painter = painter,
+                        contentDescription = null,
+                        modifier =
+                            Modifier
+                                .size(34.dp)
+                                .clip(RoundedCornerShape(7.dp)),
+                    )
+                }
+            }
+        } else {
+            Box(
+                modifier =
+                    Modifier
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(statusColor),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = flag.ifEmpty { "?" },
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DnsTypeTag(type: String, bg: Color, textColor: Color) {
+    Box(
+        modifier =
+            Modifier
+                .clip(RoundedCornerShape(5.dp))
+                .background(bg)
+                .padding(horizontal = 6.dp, vertical = 0.dp),
+    ) {
+        Text(
+            text = type,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            color = textColor,
+            letterSpacing = 0.5.sp,
         )
     }
 }
 
 @Composable
-private fun statusIndicatorColor(context: Context, log: DnsLog): Color? {
-    return when {
-        log.isBlocked -> MaterialTheme.colorScheme.error
-        determineMaybeBlocked(log) ->
-            MaterialTheme.colorScheme.onSurfaceVariant
-
-        else -> null
+private fun StatusLabel(text: String, color: Color) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Box(
+            modifier =
+                Modifier
+                    .size(5.dp)
+                    .clip(CircleShape)
+                    .background(color),
+        )
+        Text(
+            text = text,
+            fontSize = 10.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = color,
+            letterSpacing = 0.2.sp,
+        )
     }
 }
 
-private fun determineMaybeBlocked(log: DnsLog): Boolean {
-    return log.upstreamBlock || log.blockLists.isNotEmpty()
+@Composable
+private fun ChevronIcon(angle: Float, tint: Color) {
+    Icon(
+        painter = painterResource(R.drawable.ic_right_arrow_small),
+        contentDescription = null,
+        tint = tint,
+        modifier =
+            Modifier
+                .size(10.dp)
+                .rotate(angle),
+    )
 }
+
+@Composable
+private fun DetailPanel(
+    log: DnsLog,
+    dnsType: String,
+    hint: String,
+    statusColor: Color,
+    context: Context,
+    panelColor: Color,
+    dividerColor: Color,
+    textColor: Color,
+    onShowBlocklist: (DnsLog) -> Unit,
+) {
+    Column(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .background(panelColor),
+        verticalArrangement = Arrangement.spacedBy(0.dp),
+    ) {
+        HorizontalDivider(
+            color = dividerColor,
+            thickness = 0.5.dp,
+        )
+
+        Column(
+            modifier = Modifier.padding(start = 26.dp, end = 14.dp, top = 10.dp, bottom = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(0.dp),
+        ) {
+            DetailLatencyRow(latency = log.latency)
+
+            Spacer(Modifier.height(8.dp))
+
+            DetailTextRow(
+                label = "Transport",
+                value = dnsType,
+                tint = textColor,
+            )
+
+            val unknownLabel = context.getString(R.string.network_log_app_name_unknown)
+            val countryName = UIUtils.getCountryNameFromFlag(log.flag).trim()
+            val normalizedCountryName = countryName.takeUnless { it.isBlank() || it == "--" }
+            val normalizedFlag = log.flag.trim().takeUnless { it.isBlank() || it == "--" }
+            val countryDisplay =
+                when {
+                    normalizedCountryName != null && normalizedFlag != null -> "$normalizedCountryName $normalizedFlag"
+                    normalizedCountryName != null -> normalizedCountryName
+                    normalizedFlag != null -> normalizedFlag
+                    else -> unknownLabel
+                }
+            DetailTextRow(
+                label = "Country",
+                value = countryDisplay,
+                tint = textColor,
+            )
+
+            if (log.responseIps.isNotBlank()) {
+                val ips = log.responseIps.split(",").map { it.trim() }.filter { it.isNotEmpty() }
+                DetailTextRow(
+                    label = context.getString(R.string.response_ip_label).ifEmpty { "IP" },
+                    value = ips.joinToString(" · "),
+                    mono = true,
+                    tint = MaterialTheme.colorScheme.secondary,
+                )
+            }
+
+            if (log.serverIP.isNotBlank()) {
+                DetailTextRow(
+                    label = context.getString(R.string.resolver_label).ifEmpty { "Resolver" },
+                    value = log.serverIP,
+                    mono = true,
+                    tint = textColor,
+                )
+            }
+
+            if (log.dnssecOk || log.dnssecValid) {
+                val dnssecOkay = log.dnssecOk && log.dnssecValid
+                DetailTextRow(
+                    label = "DNSSEC",
+                    value = if (dnssecOkay) "✓  Valid" else "⚠  Unverified",
+                    tint = if (dnssecOkay) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
+                )
+            }
+
+            if (hint.isNotEmpty()) {
+                DetailTextRow(label = "Flags", value = hint, tint = textColor)
+            }
+
+            if (log.blockLists.isNotEmpty()) {
+                Spacer(Modifier.height(4.dp))
+                BlocklistRow(log = log, statusColor = statusColor, onShowBlocklist = onShowBlocklist)
+            }
+        }
+    }
+}
+
+@Composable
+private fun DetailLatencyRow(latency: Long) {
+    val scheme = MaterialTheme.colorScheme
+    val successGreen = Color(0xFF2FB36B)
+    val (barColor, label) =
+        when {
+            latency in 1..10 -> successGreen to "${latency}ms · fast"
+            latency in 11..50 -> scheme.tertiary to "${latency}ms · ok"
+            latency > 50 -> scheme.error to "${latency}ms · slow"
+            else -> scheme.onSurfaceVariant to "${latency}ms"
+        }
+    val fraction = (latency.toFloat() / 100f).coerceIn(0.04f, 1f)
+
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(
+                text = "Latency",
+                fontSize = 10.sp,
+                color = scheme.onSurfaceVariant,
+                letterSpacing = 0.4.sp,
+            )
+            Text(
+                text = label,
+                fontSize = 10.sp,
+                fontWeight = FontWeight.Medium,
+                color = barColor,
+            )
+        }
+
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .clip(RoundedCornerShape(2.dp))
+                    .background(scheme.outlineVariant.copy(alpha = 0.35f)),
+        ) {
+            Box(
+                modifier =
+                    Modifier
+                        .fillMaxWidth(fraction)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(2.dp))
+                        .background(
+                            Brush.horizontalGradient(
+                                listOf(barColor.copy(alpha = 0.7f), barColor),
+                            ),
+                        ),
+            )
+        }
+    }
+}
+
+@Composable
+private fun DetailTextRow(
+    label: String,
+    value: String,
+    mono: Boolean = false,
+    tint: Color,
+) {
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .padding(vertical = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
+    ) {
+        Text(
+            text = label,
+            fontSize = 10.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            letterSpacing = 0.4.sp,
+            modifier = Modifier.widthIn(min = 64.dp),
+        )
+        Text(
+            text = value,
+            fontSize = 11.sp,
+            color = tint,
+            fontFamily = if (mono) FontFamily.Monospace else FontFamily.Default,
+            fontWeight = FontWeight.Medium,
+            textAlign = androidx.compose.ui.text.style.TextAlign.End,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+        )
+    }
+}
+
+@Composable
+private fun BlocklistRow(log: DnsLog, statusColor: Color, onShowBlocklist: (DnsLog) -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val count = log.blockLists.split(",").filter { it.isNotEmpty() }.size
+    Row(
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(9.dp))
+                .background(scheme.errorContainer.copy(alpha = 0.38f))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = ripple(color = scheme.error.copy(alpha = 0.16f)),
+                    onClick = { onShowBlocklist(log) },
+                )
+                .padding(horizontal = 10.dp, vertical = 7.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Box(
+                modifier =
+                    Modifier
+                        .size(5.dp)
+                        .clip(CircleShape)
+                        .background(statusColor),
+            )
+            Text(
+                text = "$count blocklist${if (count != 1) "s" else ""} matched",
+                fontSize = 11.sp,
+                color = scheme.error,
+                fontWeight = FontWeight.SemiBold,
+            )
+        }
+        Icon(
+            painter = painterResource(R.drawable.ic_right_arrow_small),
+            contentDescription = null,
+            tint = scheme.error.copy(alpha = 0.65f),
+            modifier = Modifier.size(10.dp),
+        )
+    }
+}
+
+private fun determineMaybeBlocked(log: DnsLog): Boolean =
+    log.upstreamBlock || log.blockLists.isNotEmpty()
 
 private fun unicodeHint(context: Context, log: DnsLog, isRethinkDns: Boolean): String {
     var hint = ""
-
     if (isRoundTripShorter(log.latency, log.isBlocked)) {
-        hint =
-            context.resources.getString(
-                R.string.ci_desc,
-                hint,
-                context.resources.getString(R.string.symbol_rocket)
-            )
+        hint = context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_rocket))
     }
     if (containsRelayProxy(log.relayIP)) {
-        hint =
-            context.resources.getString(
-                R.string.ci_desc,
-                hint,
-                context.resources.getString(R.string.symbol_bunny)
-            )
+        hint = context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_bunny))
     } else if (isConnectionProxied(log.proxyId)) {
-        hint =
-            context.resources.getString(
-                R.string.ci_desc,
-                hint,
-                context.resources.getString(R.string.symbol_key)
-            )
+        hint = context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_key))
     }
     if (isRethinkUsed(log, isRethinkDns)) {
-        hint =
-            context.resources.getString(
-                R.string.ci_desc,
-                hint,
-                getRethinkUnicode(context, log)
-            )
+        hint = context.getString(R.string.ci_desc, hint, getRethinkUnicode(context, log))
     } else if (isGoosOrSystemUsed(log)) {
-        hint =
-            context.resources.getString(
-                R.string.ci_desc,
-                hint,
-                context.resources.getString(R.string.symbol_duck)
-            )
+        hint = context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_duck))
     } else if (isDefaultResolverUsed(log)) {
-        hint =
-            context.resources.getString(
-                R.string.ci_desc,
-                hint,
-                context.resources.getString(R.string.symbol_diamond)
-            )
+        hint = context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_diamond))
     } else if (containsMultipleIPs(log)) {
-        hint =
-            context.resources.getString(
-                R.string.ci_desc,
-                hint,
-                context.resources.getString(R.string.symbol_heavy)
-            )
+        hint = context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_heavy))
     }
     if (dnssecIndicatorRequired(log)) {
-        hint =
-            if (dnssecOk(log)) {
-                context.resources.getString(
-                    R.string.ci_desc,
-                    hint,
-                    context.resources.getString(R.string.symbol_lock)
-                )
-            } else {
-                context.resources.getString(
-                    R.string.ci_desc,
-                    hint,
-                    context.resources.getString(R.string.symbol_unlock)
-                )
-            }
+        hint = if (dnssecOk(log)) {
+            context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_lock))
+        } else {
+            context.getString(R.string.ci_desc, hint, context.getString(R.string.symbol_unlock))
+        }
     }
     return hint
 }
 
-private fun dnsTypeName(context: Context, log: DnsLog, isRethinkDns: Boolean): String {
-    return when (Transaction.TransportType.fromOrdinal(log.dnsType)) {
-        Transaction.TransportType.DOH -> {
+private fun dnsTypeName(context: Context, log: DnsLog, isRethinkDns: Boolean): String =
+    when (Transaction.TransportType.fromOrdinal(log.dnsType)) {
+        Transaction.TransportType.DOH ->
             if (isRethinkDns && isRethinkUsed(log, isRethinkDns)) {
-                context.resources.getString(R.string.lbl_rdns)
+                context.getString(R.string.lbl_rdns)
             } else {
-                context.resources.getString(R.string.other_dns_list_tab1)
+                context.getString(R.string.other_dns_list_tab1)
             }
-        }
-
-        Transaction.TransportType.DNS_CRYPT -> context.resources.getString(R.string.lbl_dc_abbr)
-        Transaction.TransportType.DNS_PROXY -> context.resources.getString(R.string.lbl_dp)
-        Transaction.TransportType.DOT -> context.resources.getString(R.string.lbl_dot)
-        Transaction.TransportType.ODOH -> context.resources.getString(R.string.lbl_odoh)
+        Transaction.TransportType.DNS_CRYPT -> context.getString(R.string.lbl_dc_abbr)
+        Transaction.TransportType.DNS_PROXY -> context.getString(R.string.lbl_dp)
+        Transaction.TransportType.DOT -> context.getString(R.string.lbl_dot)
+        Transaction.TransportType.ODOH -> context.getString(R.string.lbl_odoh)
     }
-}
 
-private fun dnssecIndicatorRequired(log: DnsLog): Boolean {
-    if (log.status != Transaction.Status.COMPLETE.name) return false
-    return log.dnssecOk || log.dnssecValid
-}
+private fun dnssecIndicatorRequired(log: DnsLog) =
+    log.status == Transaction.Status.COMPLETE.name && (log.dnssecOk || log.dnssecValid)
 
-private fun dnssecOk(log: DnsLog): Boolean {
-    return log.dnssecOk && log.dnssecValid
-}
+private fun dnssecOk(log: DnsLog) = log.dnssecOk && log.dnssecValid
 
-private fun isRoundTripShorter(rtt: Long, blocked: Boolean): Boolean {
-    return rtt in 1..10 && !blocked
-}
+private fun isRoundTripShorter(rtt: Long, blocked: Boolean) = rtt in 1..10 && !blocked
 
-private fun containsRelayProxy(rpid: String): Boolean {
-    return rpid.isNotEmpty()
-}
+private fun containsRelayProxy(rpid: String) = rpid.isNotEmpty()
 
 private fun isConnectionProxied(proxy: String?): Boolean {
     if (proxy.isNullOrEmpty()) return false
     return ProxyManager.isNotLocalAndRpnProxy(proxy)
 }
 
-private fun containsMultipleIPs(log: DnsLog): Boolean {
-    return log.responseIps.split(",").size > 1
-}
+private fun containsMultipleIPs(log: DnsLog) = log.responseIps.split(",").size > 1
 
 private fun isRethinkUsed(log: DnsLog, isRethinkDns: Boolean): Boolean {
     if (log.status != Transaction.Status.COMPLETE.name) return false
-    return if (isRethinkDns) {
-        log.resolverId.contains(Backend.Preferred) || log.resolverId.contains(Backend.BlockFree)
-    } else {
-        false
-    }
+    return isRethinkDns &&
+        (log.resolverId.contains(Backend.Preferred) || log.resolverId.contains(Backend.BlockFree))
 }
 
 private fun isGoosOrSystemUsed(log: DnsLog): Boolean {
@@ -475,12 +836,12 @@ private fun isDefaultResolverUsed(log: DnsLog): Boolean {
 
 private fun getRethinkUnicode(context: Context, log: DnsLog): String {
     if (log.relayIP.endsWith(Backend.RPN) || log.relayIP == Backend.Auto) {
-        return context.resources.getString(R.string.symbol_sparkle)
+        return context.getString(R.string.symbol_sparkle)
     }
     return if (log.serverIP.contains(MAX_ENDPOINT)) {
-        context.resources.getString(R.string.symbol_max)
+        context.getString(R.string.symbol_max)
     } else {
-        context.resources.getString(R.string.symbol_sky)
+        context.getString(R.string.symbol_sky)
     }
 }
 
@@ -489,18 +850,16 @@ private fun displayFavIcon(
     log: DnsLog,
     loadFavIcon: Boolean,
     onShowFlag: () -> Unit,
-    onShowFav: (Drawable) -> Unit
+    onShowFav: (Drawable) -> Unit,
 ) {
     if (!loadFavIcon || log.groundedQuery()) {
         onShowFlag()
         return
     }
-
     if (FavIconDownloader.isUrlAvailableInFailedCache(log.queryStr.dropLast(1)) != null) {
         onShowFlag()
         return
     }
-
     displayNextDnsFavIcon(context, log, onShowFlag, onShowFav)
 }
 
@@ -508,12 +867,13 @@ private fun displayNextDnsFavIcon(
     context: Context,
     log: DnsLog,
     onShowFlag: () -> Unit,
-    onShowFav: (Drawable) -> Unit
+    onShowFav: (Drawable) -> Unit,
 ) {
     val trim = log.queryStr.dropLastWhile { it == '.' }
     val nextDnsUrl = FavIconDownloader.constructFavIcoUrlNextDns(trim)
     val duckduckGoUrl = FavIconDownloader.constructFavUrlDuckDuckGo(trim)
-    val duckduckgoDomainURL = FavIconDownloader.getDomainUrlFromFdqnDuckduckgo(trim)
+    val duckDomainUrl = FavIconDownloader.getDomainUrlFromFdqnDuckduckgo(trim)
+
     try {
         val factory = DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()
         Glide.with(context.applicationContext)
@@ -523,37 +883,23 @@ private fun displayNextDnsFavIcon(
             .transition(withCrossFade(factory))
             .into(
                 object : CustomTarget<Drawable>() {
-                    override fun onLoadFailed(errorDrawable: Drawable?) {
+                    override fun onLoadFailed(e: Drawable?) =
                         displayDuckduckgoFavIcon(
                             context,
                             duckduckGoUrl,
-                            duckduckgoDomainURL,
+                            duckDomainUrl,
                             onShowFlag,
-                            onShowFav
+                            onShowFav,
                         )
-                    }
 
-                    override fun onResourceReady(
-                        resource: Drawable,
-                        transition: Transition<in Drawable>?
-                    ) {
-                        onShowFav(resource)
-                    }
+                    override fun onResourceReady(r: Drawable, t: Transition<in Drawable>?) = onShowFav(r)
 
-                    override fun onLoadCleared(placeholder: Drawable?) {
-                        onShowFlag()
-                    }
-                }
+                    override fun onLoadCleared(p: Drawable?) = onShowFlag()
+                },
             )
     } catch (_: Exception) {
         Napier.d("err loading icon, load flag instead")
-        displayDuckduckgoFavIcon(
-            context,
-            duckduckGoUrl,
-            duckduckgoDomainURL,
-            onShowFlag,
-            onShowFav
-        )
+        displayDuckduckgoFavIcon(context, duckduckGoUrl, duckDomainUrl, onShowFlag, onShowFav)
     }
 }
 
@@ -562,7 +908,7 @@ private fun displayDuckduckgoFavIcon(
     url: String,
     subDomainURL: String,
     onShowFlag: () -> Unit,
-    onShowFav: (Drawable) -> Unit
+    onShowFav: (Drawable) -> Unit,
 ) {
     try {
         val factory = DrawableCrossFadeFactory.Builder().setCrossFadeEnabled(true).build()
@@ -571,28 +917,17 @@ private fun displayDuckduckgoFavIcon(
             .onlyRetrieveFromCache(true)
             .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
             .error(
-                Glide.with(context.applicationContext)
-                    .load(subDomainURL)
-                    .onlyRetrieveFromCache(true)
+                Glide.with(context.applicationContext).load(subDomainURL).onlyRetrieveFromCache(true),
             )
             .transition(withCrossFade(factory))
             .into(
                 object : CustomTarget<Drawable>() {
-                    override fun onLoadFailed(errorDrawable: Drawable?) {
-                        onShowFlag()
-                    }
+                    override fun onLoadFailed(e: Drawable?) = onShowFlag()
 
-                    override fun onResourceReady(
-                        resource: Drawable,
-                        transition: Transition<in Drawable>?
-                    ) {
-                        onShowFav(resource)
-                    }
+                    override fun onResourceReady(r: Drawable, t: Transition<in Drawable>?) = onShowFav(r)
 
-                    override fun onLoadCleared(placeholder: Drawable?) {
-                        onShowFlag()
-                    }
-                }
+                    override fun onLoadCleared(p: Drawable?) = onShowFlag()
+                },
             )
     } catch (_: Exception) {
         Napier.d("err loading icon, load flag instead")

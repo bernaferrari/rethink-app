@@ -450,15 +450,15 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
         }
 
         if (Utilities.isAtleastO()) {
-            val name: CharSequence = context.resources.getString(R.string.notif_channel_download)
-            val description = context.resources.getString(R.string.notif_channed_desc_download)
+            val name: CharSequence = context.getString(R.string.notif_channel_download)
+            val description = context.getString(R.string.notif_channed_desc_download)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(DOWNLOAD_NOTIFICATION_TAG, name, importance)
             channel.description = description
             getNotificationManager(context).createNotificationChannel(channel)
             builder = NotificationCompat.Builder(context, DOWNLOAD_NOTIFICATION_TAG)
-            val contentText = context.resources.getString(R.string.notif_download_content_text)
-            val contentTitle = context.resources.getString(R.string.notif_download_content_title)
+            val contentText = context.getString(R.string.notif_download_content_text)
+            val contentTitle = context.getString(R.string.notif_download_content_title)
 
             builder
                 .setSmallIcon(R.drawable.ic_notification_icon)
@@ -519,8 +519,8 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
 
     private fun notifyDownloadFailure(context: Context) {
         val builder = getBuilder(context)
-        val contentText = context.resources.getString(R.string.notif_download_failure_content)
-        val contentTitle = context.resources.getString(R.string.notif_download_content_title)
+        val contentText = context.getString(R.string.notif_download_failure_content)
+        val contentTitle = context.getString(R.string.notif_download_content_title)
 
         builder
             .setSmallIcon(R.drawable.ic_notification_icon)
@@ -535,8 +535,8 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
 
     private fun notifyDownloadSuccess(context: Context) {
         val builder = getBuilder(context)
-        val contentText = context.resources.getString(R.string.notif_download_success_content)
-        val contentTitle = context.resources.getString(R.string.notif_download_content_title)
+        val contentText = context.getString(R.string.notif_download_success_content)
+        val contentTitle = context.getString(R.string.notif_download_content_title)
 
         builder
             .setSmallIcon(R.drawable.ic_notification_icon)
@@ -551,8 +551,8 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
 
     private fun notifyDownloadCancelled(context: Context) {
         val builder = getBuilder(context)
-        val contentText = context.resources.getString(R.string.notif_download_cancel_content)
-        val contentTitle = context.resources.getString(R.string.notif_download_content_title)
+        val contentText = context.getString(R.string.notif_download_cancel_content)
+        val contentTitle = context.getString(R.string.notif_download_content_title)
 
         builder
             .setSmallIcon(R.drawable.ic_notification_icon)

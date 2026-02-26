@@ -118,7 +118,7 @@ fun OneWgConfigRow(
         mutableStateOf(config.isActive && VpnController.hasTunnel())
     }
     var statusText by remember(config.id) {
-        mutableStateOf(context.resources.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase))
+        mutableStateOf(context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase))
     }
     var appsText by remember(config.id) { mutableStateOf("") }
     var showAppsCount by remember(config.id) { mutableStateOf(false) }
@@ -198,7 +198,7 @@ fun OneWgConfigRow(
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
                             text =
-                                context.resources.getString(
+                                context.getString(
                                     R.string.single_argument_parenthesis,
                                     config.id.toString()
                                 ),
@@ -215,10 +215,10 @@ fun OneWgConfigRow(
                                 WgChip(text = stringResource(R.string.settings_ip_text_ipv4))
                             }
                             if (protocolChips.ipv6) {
-                                WgChip(text = context.resources.getString(R.string.settings_ip_text_ipv6))
+                                WgChip(text = context.getString(R.string.settings_ip_text_ipv6))
                             }
                             if (protocolChips.splitTunnel) {
-                                WgChip(text = context.resources.getString(R.string.lbl_split))
+                                WgChip(text = context.getString(R.string.lbl_split))
                             }
                         }
                     }
@@ -309,7 +309,7 @@ suspend fun computeOneWgStatusUi(
     if (config.isActive && !VpnController.hasTunnel()) {
         return OneWgUiState(
             isActive = false,
-            statusText = context.resources.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase),
+            statusText = context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase),
             appsText = "",
             showAppsCount = false,
             showActiveLayout = false,
@@ -323,7 +323,7 @@ suspend fun computeOneWgStatusUi(
     if (!config.isActive || !VpnController.hasTunnel()) {
         return OneWgUiState(
             isActive = false,
-            statusText = context.resources.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase),
+            statusText = context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase),
             appsText = "",
             showAppsCount = false,
             showActiveLayout = false,
@@ -340,7 +340,7 @@ suspend fun computeOneWgStatusUi(
     val dnsStatusId = VpnController.getDnsStatus(id)
     val statusText =
         if (dnsStatusId != null && isOneWgDnsError(dnsStatusId)) {
-            context.resources.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
+            context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
         } else {
             getOneWgStatusText(
                 context,
@@ -370,20 +370,20 @@ suspend fun computeOneWgStatusUi(
     val time = getOneWgUpTime(stats)
     val uptimeText =
         if (time.isNotEmpty()) {
-            val t = context.resources.getString(R.string.logs_card_duration, time)
-            context.resources.getString(
+            val t = context.getString(R.string.logs_card_duration, time)
+            context.getString(
                 R.string.two_argument_space,
-                context.resources.getString(R.string.lbl_active),
+                context.getString(R.string.lbl_active),
                 t
             )
         } else {
-            context.resources.getString(R.string.lbl_active)
+            context.getString(R.string.lbl_active)
         }
 
     return OneWgUiState(
         isActive = true,
         statusText = statusText,
-        appsText = context.resources.getString(R.string.one_wg_apps_added),
+        appsText = context.getString(R.string.one_wg_apps_added),
         showAppsCount = true,
         showActiveLayout = true,
         uptimeText = uptimeText,
@@ -440,9 +440,9 @@ private fun getOneWgStatusText(
     if (status == null) {
         val txt =
             if (errMsg != null) {
-                context.resources.getString(R.string.status_waiting) + " ($errMsg)"
+                context.getString(R.string.status_waiting) + " ($errMsg)"
             } else {
-                context.resources.getString(R.string.status_waiting)
+                context.getString(R.string.status_waiting)
             }
         return txt.replaceFirstChar(Char::titlecase)
     }
@@ -451,14 +451,14 @@ private fun getOneWgStatusText(
     val lastOk = stats?.lastOK ?: 0L
     val since = stats?.since ?: 0L
     if (now - since > WG_UPTIME_THRESHOLD && lastOk == 0L) {
-        return context.resources.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
+        return context.getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
     }
 
     val baseText =
-        context.resources.getString(UIUtils.getProxyStatusStringRes(status.id))
+        context.getString(UIUtils.getProxyStatusStringRes(status.id))
             .replaceFirstChar(Char::titlecase)
     return if (stats?.lastOK != 0L && handshakeTime != null) {
-        context.resources.getString(R.string.about_version_install_source, baseText, handshakeTime)
+        context.getString(R.string.about_version_install_source, baseText, handshakeTime)
     } else {
         baseText
     }
@@ -479,16 +479,16 @@ private fun getOneWgUpTime(stats: RouterStats?): CharSequence {
 private fun getOneWgRxTx(context: Context, stats: RouterStats?): String {
     if (stats == null) return ""
     val rx =
-        context.resources.getString(
+        context.getString(
             R.string.symbol_download,
             Utilities.humanReadableByteCount(stats.rx, true)
         )
     val tx =
-        context.resources.getString(
+        context.getString(
             R.string.symbol_upload,
             Utilities.humanReadableByteCount(stats.tx, true)
         )
-    return context.resources.getString(R.string.two_argument_space, tx, rx)
+    return context.getString(R.string.two_argument_space, tx, rx)
 }
 
 private fun getOneWgHandshakeTime(stats: RouterStats?): CharSequence {
@@ -509,7 +509,7 @@ suspend fun enableOneWgIfPossible(context: Context, config: WgConfigFiles, onDns
             Utilities.showToastUiCentered(
                 context,
                 ERR_CODE_VPN_NOT_ACTIVE +
-                    context.resources.getString(R.string.settings_socks5_vpn_disabled_error),
+                    context.getString(R.string.settings_socks5_vpn_disabled_error),
                 Toast.LENGTH_LONG
             )
         }
@@ -520,7 +520,7 @@ suspend fun enableOneWgIfPossible(context: Context, config: WgConfigFiles, onDns
         withContext(Dispatchers.Main) {
             Utilities.showToastUiCentered(
                 context,
-                ERR_CODE_VPN_NOT_FULL + context.resources.getString(R.string.wireguard_enabled_failure),
+                ERR_CODE_VPN_NOT_FULL + context.getString(R.string.wireguard_enabled_failure),
                 Toast.LENGTH_LONG
             )
         }
@@ -531,7 +531,7 @@ suspend fun enableOneWgIfPossible(context: Context, config: WgConfigFiles, onDns
         withContext(Dispatchers.Main) {
             Utilities.showToastUiCentered(
                 context,
-                ERR_CODE_OTHER_WG_ACTIVE + context.resources.getString(R.string.wireguard_enabled_failure),
+                ERR_CODE_OTHER_WG_ACTIVE + context.getString(R.string.wireguard_enabled_failure),
                 Toast.LENGTH_LONG
             )
         }
@@ -542,7 +542,7 @@ suspend fun enableOneWgIfPossible(context: Context, config: WgConfigFiles, onDns
         withContext(Dispatchers.Main) {
             Utilities.showToastUiCentered(
                 context,
-                ERR_CODE_WG_INVALID + context.resources.getString(R.string.wireguard_enabled_failure),
+                ERR_CODE_WG_INVALID + context.getString(R.string.wireguard_enabled_failure),
                 Toast.LENGTH_LONG
             )
         }
@@ -563,7 +563,7 @@ suspend fun disableOneWgIfPossible(context: Context, config: WgConfigFiles, onDn
             Utilities.showToastUiCentered(
                 context,
                 ERR_CODE_VPN_NOT_ACTIVE +
-                    context.resources.getString(R.string.settings_socks5_vpn_disabled_error),
+                    context.getString(R.string.settings_socks5_vpn_disabled_error),
                 Toast.LENGTH_LONG
             )
         }
@@ -582,7 +582,7 @@ private fun launchOneWgConfigDetail(context: Context, id: Int, onConfigDetailCli
     if (!VpnController.hasTunnel()) {
         Utilities.showToastUiCentered(
             context,
-            context.resources.getString(R.string.ssv_toast_start_rethink),
+            context.getString(R.string.ssv_toast_start_rethink),
             Toast.LENGTH_SHORT
         )
         return

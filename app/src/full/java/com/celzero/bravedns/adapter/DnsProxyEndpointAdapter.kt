@@ -47,7 +47,7 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
             withContext(Dispatchers.IO) {
                 FirewallManager.getAppInfoByPackage(endpoint.proxyAppName)?.appName
             }
-        val defaultName = context.resources.getString(R.string.cd_custom_dns_proxy_default_app)
+        val defaultName = context.getString(R.string.cd_custom_dns_proxy_default_app)
         val resolvedAppName =
             if (endpoint.proxyName != defaultName) {
                 appName ?: defaultName
@@ -78,14 +78,14 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
                         FirewallManager.getAppInfoByPackage(endpoint.getPackageName())?.appName
                     val message =
                         if (!app.isNullOrEmpty()) {
-                            context.resources.getString(
+                            context.getString(
                                 R.string.dns_proxy_dialog_message,
                                 app,
                                 endpoint.proxyIP,
                                 endpoint.proxyPort.toString()
                             )
                         } else {
-                            context.resources.getString(
+                            context.getString(
                                 R.string.dns_proxy_dialog_message_no_app,
                                 endpoint.proxyIP,
                                 endpoint.proxyPort.toString()
