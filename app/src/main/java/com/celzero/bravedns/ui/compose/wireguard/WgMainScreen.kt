@@ -23,12 +23,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -74,12 +71,14 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.asFlow
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -125,6 +124,9 @@ fun WgMainScreen(
     onConfigDetailClick: (Int, WgType) -> Unit
 ) {
     val context = LocalContext.current
+    val density = LocalDensity.current
+    val navBarBottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    val splitFabBottomPadding = navBarBottomInset + 12.dp
     val scope = rememberCoroutineScope()
     val wireguardDisclaimerText = stringResource(R.string.wireguard_disclaimer)
     val fallbackDnsLabel = stringResource(R.string.lbl_fallback)
@@ -244,12 +246,11 @@ fun WgMainScreen(
                 .padding(paddingValues)
         ) {
             if (showEmpty) {
-                EmptyState()
+                EmptyState(bottomInset = navBarBottomInset)
             } else {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .navigationBarsPadding()
                 ) {
                     WireguardOverviewCard(disclaimerText = disclaimerText)
                     WgConfigContent(
@@ -258,6 +259,7 @@ fun WgMainScreen(
                         eventLogger = eventLogger,
                         onDnsStatusChanged = { dnsRefreshTrigger++ },
                         onConfigDetailClick = onConfigDetailClick,
+                        bottomInset = navBarBottomInset,
                         modifier = Modifier.weight(1f),
                         onOneWgToggleClick = {
                             val activeConfigs = WireguardManager.getActiveConfigs()
@@ -285,7 +287,7 @@ fun WgMainScreen(
             WgSplitFab(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .padding(bottom = 16.dp),
+                    .padding(start = 16.dp, end = 16.dp, bottom = splitFabBottomPadding),
                 expanded = isFabMenuExpanded,
                 onExpandedChange = { isFabMenuExpanded = it },
                 onCreateClick = {
@@ -312,6 +314,7 @@ private fun WgConfigContent(
     eventLogger: EventLogger,
     onDnsStatusChanged: () -> Unit,
     onConfigDetailClick: (Int, WgType) -> Unit,
+    bottomInset: Dp,
     modifier: Modifier = Modifier,
     onOneWgToggleClick: () -> Unit,
     onGeneralToggleClick: () -> Unit
@@ -325,7 +328,7 @@ private fun WgConfigContent(
 
         Box(modifier = Modifier.fillMaxSize()) {
             val items = wgConfigViewModel.interfaces.asFlow().collectAsLazyPagingItems()
-            val padding = PaddingValues(bottom = 100.dp)
+            val padding = PaddingValues(bottom = 84.dp + bottomInset)
 
             if (selectedTab == WgTab.GENERAL) {
                 LazyColumn(
@@ -399,11 +402,11 @@ private fun DisableConfigsDialog(
 }
 
 @Composable
-private fun EmptyState() {
+private fun EmptyState(bottomInset: Dp) {
     Surface(
         modifier = Modifier
             .fillMaxSize()
-            .padding(24.dp),
+            .padding(start = 24.dp, top = 24.dp, end = 24.dp, bottom = 24.dp + bottomInset),
         shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
@@ -470,12 +473,12 @@ private fun WgSplitFab(
                 SplitButtonDefaults.LeadingButton(
                     onClick = onCreateClick,
                     modifier = Modifier
+                        .height(56.dp)
                         .semantics { contentDescription = createLabel }
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_add),
-                        modifier = Modifier.size(24.dp),
+                        modifier = Modifier.size(SplitButtonDefaults.LeadingIconSize),
                         contentDescription = null
                     )
                     Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
@@ -495,6 +498,7 @@ private fun WgSplitFab(
                             checked = expanded,
                             onCheckedChange = onExpandedChange,
                             modifier = Modifier
+                                .height(56.dp)
                                 .semantics {
                                     stateDescription = if (expanded) {
                                         expandedStateLabel
@@ -503,7 +507,6 @@ private fun WgSplitFab(
                                     }
                                     contentDescription = moreDescription
                                 }
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             val rotation by animateFloatAsState(
                                 targetValue = if (expanded) 180f else 0f,
@@ -512,7 +515,7 @@ private fun WgSplitFab(
                             Icon(
                                 imageVector = Icons.Filled.KeyboardArrowDown,
                                 modifier = Modifier
-                                    .size(24.dp)
+                                    .size(SplitButtonDefaults.TrailingIconSize)
                                     .graphicsLayer { rotationZ = rotation },
                                 contentDescription = null
                             )

@@ -17,39 +17,45 @@ package com.celzero.bravedns.ui.compose.database
 
 import android.database.Cursor
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material.icons.rounded.Storage
+import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.ListItem
-import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.ToggleButton
+import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -60,20 +66,28 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.AppDatabase
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkSearchField
+import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
 private data class DatabaseTablePreview(
     val table: String,
     val rowCount: Int,
@@ -90,6 +104,7 @@ fun DatabaseScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+
     var query by remember { mutableStateOf("") }
     var tables by remember { mutableStateOf<List<String>>(emptyList()) }
     var selectedTable by remember { mutableStateOf<String?>(null) }
@@ -103,11 +118,7 @@ fun DatabaseScreen(
 
     val filteredTables = remember(tables, query) {
         val q = query.trim()
-        if (q.isEmpty()) {
-            tables
-        } else {
-            tables.filter { it.contains(q, ignoreCase = true) }
-        }
+        if (q.isEmpty()) tables else tables.filter { it.contains(q, ignoreCase = true) }
     }
 
     fun loadDatabaseTables() {
@@ -124,6 +135,9 @@ fun DatabaseScreen(
             cursor.close()
             withContext(Dispatchers.Main) {
                 tables = tableList
+                if (selectedTable == null && tableList.isNotEmpty()) {
+                    selectedTable = tableList.first()
+                }
                 isLoading = false
             }
         }
@@ -150,6 +164,18 @@ fun DatabaseScreen(
         }
     }
 
+    fun copySelectionToClipboard() {
+        val table = selectedTable ?: return
+        loadingCopy = true
+        scope.launch(Dispatchers.IO) {
+            val fullDump = buildTableDump(appDatabase, table)
+            withContext(Dispatchers.Main) {
+                copyToClipboard(context, "db_dump", fullDump)
+                loadingCopy = false
+            }
+        }
+    }
+
     LaunchedEffect(Unit) {
         loadDatabaseTables()
     }
@@ -161,56 +187,31 @@ fun DatabaseScreen(
         }
     }
 
+    val navBarBottomPadding = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         containerColor = MaterialTheme.colorScheme.surface,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = stringResource(id = R.string.title_database_dump),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_arrow_back_24),
-                            contentDescription = stringResource(id = R.string.cd_navigate_back)
-                        )
-                    }
-                },
+            RethinkTopBar(
+                title = stringResource(id = R.string.title_database_dump),
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior,
                 actions = {
-                    if (selectedTable != null) {
-                        TextButton(
-                            onClick = {
-                                val table = selectedTable ?: return@TextButton
-                                loadingCopy = true
-                                scope.launch(Dispatchers.IO) {
-                                    val fullDump = buildTableDump(appDatabase, table)
-                                    withContext(Dispatchers.Main) {
-                                        copyToClipboard(context, "db_dump", fullDump)
-                                        loadingCopy = false
-                                    }
-                                }
-                            },
-                            enabled = preview != null && !loadingCopy
-                        ) {
-                            Text(
-                                text = if (loadingCopy) {
-                                    context.getString(R.string.database_inspector_copying)
-                                } else {
-                                    context.getString(R.string.database_inspector_copy_full)
-                                }
+                    IconButton(
+                        enabled = selectedTable != null && preview != null && !loadingCopy,
+                        onClick = { copySelectionToClipboard() }
+                    ) {
+                        if (loadingCopy) {
+                            CircularProgressIndicator(modifier = Modifier.size(18.dp), strokeWidth = 2.dp)
+                        } else {
+                            Icon(
+                                imageVector = Icons.Rounded.ContentCopy,
+                                contentDescription = stringResource(id = R.string.database_inspector_copy_full)
                             )
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                ),
-                scrollBehavior = scrollBehavior
+                }
             )
         }
     ) { paddingValues ->
@@ -218,27 +219,37 @@ fun DatabaseScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .padding(horizontal = Dimensions.screenPaddingHorizontal)
+                .padding(bottom = navBarBottomPadding),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
         ) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(text = stringResource(R.string.database_inspector_search_hint)) },
-                shape = RoundedCornerShape(16.dp),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
-                )
-            )
+            BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                val isWide = maxWidth >= 860.dp
+                DatabaseControlsDeck {
+                    RethinkSearchField(
+                        query = query,
+                        onQueryChange = { query = it },
+                        placeholder = stringResource(R.string.database_inspector_search_hint),
+                        modifier = Modifier.fillMaxWidth(),
+                        onClearQuery = { query = "" },
+                        shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                    )
+                    if (!isWide) {
+                        DatabaseInlineTableSelector(
+                            tables = filteredTables,
+                            selectedTable = selectedTable,
+                            onSelect = { selectedTable = it }
+                        )
+                    }
+                }
+            }
 
             if (isLoading) {
                 Box(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -249,39 +260,38 @@ fun DatabaseScreen(
                         .fillMaxWidth()
                         .weight(1f)
                 ) {
-                    val isWide = maxWidth >= 840.dp
+                    val isWide = maxWidth >= 860.dp
                     if (isWide) {
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
                             DatabaseTableListPane(
                                 tables = filteredTables,
                                 selectedTable = selectedTable,
-                                modifier = Modifier.widthIn(min = 280.dp, max = 360.dp),
+                                totalCount = tables.size,
+                                modifier = Modifier.widthIn(min = 300.dp, max = 380.dp),
                                 onSelect = { selectedTable = it }
                             )
                             DatabaseTableDetailPane(
                                 preview = preview,
                                 loadingPreview = loadingPreview,
+                                loadingCopy = loadingCopy,
                                 errorText = errorText,
+                                selectedTable = selectedTable,
                                 modifier = Modifier.weight(1f),
-                                onRefresh = { refreshSelection() }
+                                onRefresh = { refreshSelection() },
+                                onCopy = { copySelectionToClipboard() }
                             )
                         }
                     } else {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            DatabaseTableListPane(
-                                tables = filteredTables,
-                                selectedTable = selectedTable,
-                                modifier = Modifier.weight(0.42f),
-                                onSelect = { selectedTable = it }
-                            )
-                            DatabaseTableDetailPane(
-                                preview = preview,
-                                loadingPreview = loadingPreview,
-                                errorText = errorText,
-                                modifier = Modifier.weight(0.58f),
-                                onRefresh = { refreshSelection() }
-                            )
-                        }
+                        DatabaseTableDetailPane(
+                            preview = preview,
+                            loadingPreview = loadingPreview,
+                            loadingCopy = loadingCopy,
+                            errorText = errorText,
+                            selectedTable = selectedTable,
+                            modifier = Modifier.fillMaxSize(),
+                            onRefresh = { refreshSelection() },
+                            onCopy = { copySelectionToClipboard() }
+                        )
                     }
                 }
             }
@@ -290,15 +300,119 @@ fun DatabaseScreen(
 }
 
 @Composable
+private fun DatabaseInlineTableSelector(
+    tables: List<String>,
+    selectedTable: String?,
+    onSelect: (String) -> Unit
+) {
+    if (tables.isEmpty()) {
+        return
+    }
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .horizontalScroll(rememberScrollState())
+            .padding(vertical = Dimensions.spacingXs),
+        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+    ) {
+        tables.forEachIndexed { index, table ->
+            val isSelected = selectedTable == table
+            DatabaseTableToggle(
+                table = table,
+                index = index,
+                lastIndex = tables.lastIndex,
+                selected = isSelected,
+                onSelect = onSelect
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3ExpressiveApi::class)
+@Composable
+private fun DatabaseTableToggle(
+    table: String,
+    index: Int,
+    lastIndex: Int,
+    selected: Boolean,
+    onSelect: (String) -> Unit
+) {
+    ToggleButton(
+        checked = selected,
+        onCheckedChange = { checked ->
+            if (checked && !selected) onSelect(table)
+        },
+        shapes =
+            when (index) {
+                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+            },
+        colors = ToggleButtonDefaults.toggleButtonColors(
+            checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.94f),
+            checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh.copy(alpha = 0.82f),
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        border = null,
+        modifier = Modifier
+            .widthIn(max = 220.dp)
+            .semantics { role = Role.RadioButton }
+    ) {
+        Text(
+            text = table,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium
+        )
+    }
+}
+
+@Composable
+private fun DatabaseControlsDeck(
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
+    ) {
+        content()
+    }
+}
+
+@Composable
+private fun DatabaseMetaChip(
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(Dimensions.cornerRadiusPill),
+        color = MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = 0.7f)
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 7.dp)
+        )
+    }
+}
+
+@Composable
 private fun DatabaseTableListPane(
     tables: List<String>,
     selectedTable: String?,
+    totalCount: Int,
     modifier: Modifier = Modifier,
     onSelect: (String) -> Unit
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
     ) {
@@ -311,71 +425,53 @@ private fun DatabaseTableListPane(
                 )
             }
         } else {
-            Column(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                Text(
-                    text = stringResource(R.string.database_inspector_tables_title),
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
-                )
+            Column(modifier = Modifier.fillMaxSize()) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingSm),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Storage,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.database_inspector_tables_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                    DatabaseMetaChip(text = "${tables.size}/$totalCount")
+                }
+
+                HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f))
 
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                    contentPadding = PaddingValues(horizontal = Dimensions.spacingSm, vertical = Dimensions.spacingXs),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingGridTile)
                 ) {
-                    items(tables) { table ->
+                    itemsIndexed(tables) { index, table ->
                         val isSelected = selectedTable == table
-                        val index = tables.indexOf(table)
-                        val shape = when (index) {
-                            0 -> RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp, bottomStart = 4.dp, bottomEnd = 4.dp)
-                            tables.lastIndex -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = 16.dp, bottomEnd = 16.dp)
-                            else -> RoundedCornerShape(4.dp)
-                        }
-                        val containerColor = when {
-                            isSelected -> MaterialTheme.colorScheme.primaryContainer
-                            else -> MaterialTheme.colorScheme.surfaceContainerHigh
-                        }
-
-                        ListItem(
-                            headlineContent = {
-                                Text(
-                                    text = table,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Medium
-                                )
-                            },
-                            leadingContent = {
-                                Surface(
-                                    shape = RoundedCornerShape(10.dp),
-                                    color = if (isSelected) {
-                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-                                    } else {
-                                        MaterialTheme.colorScheme.surfaceContainerHighest
-                                    },
-                                    modifier = Modifier.size(36.dp)
-                                ) {
-                                    Box(
-                                        modifier = Modifier.fillMaxSize(),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(id = R.drawable.ic_backup),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(18.dp),
-                                            tint = if (isSelected) {
-                                                MaterialTheme.colorScheme.primary
-                                            } else {
-                                                MaterialTheme.colorScheme.onSurfaceVariant
-                                            }
-                                        )
-                                    }
-                                }
-                            },
-                            trailingContent = if (isSelected) {
+                        RethinkListItem(
+                            headline = table,
+                            leadingIconPainter = painterResource(id = R.drawable.ic_backup),
+                            leadingIconTint = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                            leadingIconContainerColor =
+                                if (isSelected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.6f)
+                                else MaterialTheme.colorScheme.surfaceContainerHighest,
+                            position = cardPositionFor(index = index, lastIndex = tables.lastIndex),
+                            highlighted = isSelected,
+                            showTrailingChevron = false,
+                            trailing = if (isSelected) {
                                 {
                                     Icon(
                                         painter = painterResource(id = R.drawable.ic_tick),
@@ -384,14 +480,10 @@ private fun DatabaseTableListPane(
                                         tint = MaterialTheme.colorScheme.primary
                                     )
                                 }
-                            } else null,
-                            colors = ListItemDefaults.colors(
-                                containerColor = containerColor
-                            ),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clip(shape)
-                                .clickable { onSelect(table) }
+                            } else {
+                                null
+                            },
+                            onClick = { onSelect(table) }
                         )
                     }
                 }
@@ -404,30 +496,26 @@ private fun DatabaseTableListPane(
 private fun DatabaseTableDetailPane(
     preview: DatabaseTablePreview?,
     loadingPreview: Boolean,
+    loadingCopy: Boolean,
     errorText: String?,
+    selectedTable: String?,
     modifier: Modifier = Modifier,
-    onRefresh: () -> Unit
+    onRefresh: () -> Unit,
+    onCopy: () -> Unit
 ) {
     Surface(
         modifier = modifier.fillMaxSize(),
-        shape = RoundedCornerShape(24.dp),
+        shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .padding(Dimensions.spacingMd),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
         ) {
             if (preview == null && !loadingPreview) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = stringResource(R.string.database_inspector_select_table),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
                 return@Column
             }
 
@@ -440,53 +528,56 @@ private fun DatabaseTableDetailPane(
                     Text(
                         text = preview.table,
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.SemiBold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f)
-                        ) {
-                            Text(
-                                text = stringResource(
-                                    R.string.database_inspector_rows,
-                                    preview.rowCount.toString()
-                                ),
-                                style = MaterialTheme.typography.labelMedium,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = onRefresh, enabled = !loadingPreview) {
+                            Icon(
+                                imageVector = Icons.Rounded.Refresh,
+                                contentDescription = stringResource(R.string.database_inspector_refresh)
                             )
                         }
-                        Surface(
-                            shape = RoundedCornerShape(12.dp),
-                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f)
+                        TextButton(
+                            onClick = onCopy,
+                            enabled = selectedTable != null && !loadingCopy
                         ) {
                             Text(
-                                text = stringResource(
-                                    R.string.database_inspector_columns,
-                                    preview.columnCount.toString()
-                                ),
-                                style = MaterialTheme.typography.labelMedium,
-                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
+                                text = if (loadingCopy) {
+                                    stringResource(R.string.database_inspector_copying)
+                                } else {
+                                    stringResource(R.string.database_inspector_copy_full)
+                                }
                             )
                         }
                     }
                 }
 
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(onClick = onRefresh, enabled = !loadingPreview) {
-                        Text(text = stringResource(R.string.database_inspector_refresh))
-                    }
+                Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
+                    DatabaseMetaChip(text = stringResource(R.string.database_inspector_rows, preview.rowCount.toString()))
+                    DatabaseMetaChip(text = stringResource(R.string.database_inspector_columns, preview.columnCount.toString()))
                 }
 
                 HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f))
             }
 
             if (!errorText.isNullOrBlank()) {
-                Text(
-                    text = errorText,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
+                Surface(
+                    shape = RoundedCornerShape(Dimensions.cornerRadiusMd),
+                    color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f)
+                ) {
+                    Text(
+                        text = errorText,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingSm)
+                    )
+                }
             }
 
             if (loadingPreview) {
@@ -500,14 +591,14 @@ private fun DatabaseTableDetailPane(
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(rememberScrollState())
-                            .padding(8.dp)
+                            .padding(Dimensions.spacingSm)
                     ) {
                         Text(
                             text = text,
                             style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace)
                         )
                         if (preview?.isTruncated == true) {
-                            androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(8.dp))
+                            androidx.compose.foundation.layout.Spacer(modifier = Modifier.size(Dimensions.spacingSm))
                             Text(
                                 text = stringResource(R.string.database_inspector_preview_truncated),
                                 style = MaterialTheme.typography.labelSmall,
