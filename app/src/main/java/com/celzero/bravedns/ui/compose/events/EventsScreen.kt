@@ -62,6 +62,7 @@ import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.EventCard
+import com.celzero.bravedns.adapter.EventCardPosition
 import com.celzero.bravedns.adapter.copyEventToClipboard
 import com.celzero.bravedns.database.Event
 import com.celzero.bravedns.database.EventDao
@@ -349,11 +350,17 @@ private fun EventsList(
             top = Dimensions.spacingSm,
             bottom = Dimensions.spacing3xl
         ),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         items(count = items.itemCount, key = { index -> items[index]?.id ?: index }) { index ->
             val item = items[index] ?: return@items
-            EventCard(event = item, onCopy = onCopy, query = query)
+            val position = when {
+                items.itemCount == 1 -> EventCardPosition.Single
+                index == 0 -> EventCardPosition.First
+                index == items.itemCount - 1 -> EventCardPosition.Last
+                else -> EventCardPosition.Middle
+            }
+            EventCard(event = item, onCopy = onCopy, query = query, position = position)
         }
     }
 }

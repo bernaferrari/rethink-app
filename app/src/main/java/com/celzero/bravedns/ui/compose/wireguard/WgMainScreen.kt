@@ -25,6 +25,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -242,7 +246,11 @@ fun WgMainScreen(
             if (showEmpty) {
                 EmptyState()
             } else {
-                Column(modifier = Modifier.fillMaxSize()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .navigationBarsPadding()
+                ) {
                     WireguardOverviewCard(disclaimerText = disclaimerText)
                     WgConfigContent(
                         selectedTab = selectedTab,
@@ -277,7 +285,6 @@ fun WgMainScreen(
             WgSplitFab(
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
-                    .navigationBarsPadding()
                     .padding(bottom = 16.dp),
                 expanded = isFabMenuExpanded,
                 onExpandedChange = { isFabMenuExpanded = it },
@@ -462,13 +469,13 @@ private fun WgSplitFab(
             leadingButton = {
                 SplitButtonDefaults.LeadingButton(
                     onClick = onCreateClick,
-                    modifier = Modifier.semantics {
-                        contentDescription = createLabel
-                    }
+                    modifier = Modifier
+                        .semantics { contentDescription = createLabel }
+                        .padding(horizontal = 8.dp, vertical = 4.dp)
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_add),
-                        modifier = Modifier.size(SplitButtonDefaults.LeadingIconSize),
+                        modifier = Modifier.size(24.dp),
                         contentDescription = null
                     )
                     Spacer(modifier = Modifier.size(ButtonDefaults.IconSpacing))
@@ -487,14 +494,16 @@ private fun WgSplitFab(
                         SplitButtonDefaults.TrailingButton(
                             checked = expanded,
                             onCheckedChange = onExpandedChange,
-                            modifier = Modifier.semantics {
-                                stateDescription = if (expanded) {
-                                    expandedStateLabel
-                                } else {
-                                    collapsedStateLabel
+                            modifier = Modifier
+                                .semantics {
+                                    stateDescription = if (expanded) {
+                                        expandedStateLabel
+                                    } else {
+                                        collapsedStateLabel
+                                    }
+                                    contentDescription = moreDescription
                                 }
-                                contentDescription = moreDescription
-                            }
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
                         ) {
                             val rotation by animateFloatAsState(
                                 targetValue = if (expanded) 180f else 0f,
@@ -503,7 +512,7 @@ private fun WgSplitFab(
                             Icon(
                                 imageVector = Icons.Filled.KeyboardArrowDown,
                                 modifier = Modifier
-                                    .size(SplitButtonDefaults.TrailingIconSize)
+                                    .size(24.dp)
                                     .graphicsLayer { rotationZ = rotation },
                                 contentDescription = null
                             )

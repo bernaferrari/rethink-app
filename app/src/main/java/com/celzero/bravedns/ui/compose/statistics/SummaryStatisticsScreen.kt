@@ -15,6 +15,11 @@
  */
 package com.celzero.bravedns.ui.compose.statistics
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -574,7 +579,21 @@ private fun SummaryStatSection(
                         }
                     )
 
-                    if (isExpanded && item.flag.isNotBlank()) {
+                    AnimatedVisibility(
+                        visible = isExpanded && item.flag.isNotBlank(),
+                        enter = expandVertically(
+                            animationSpec = spring(
+                                stiffness = Spring.StiffnessLow,
+                                dampingRatio = Spring.DampingRatioLowBouncy
+                            )
+                        ),
+                        exit = shrinkVertically(
+                            animationSpec = spring(
+                                stiffness = Spring.StiffnessLow,
+                                dampingRatio = Spring.DampingRatioLowBouncy
+                            )
+                        )
+                    ) {
                         CountryBreakdown(
                             flag = item.flag,
                             accentColor = accentColor,

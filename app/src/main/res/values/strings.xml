@@ -636,8 +636,8 @@
 
     <string name="settings_orbot_notification_action" translatable="true">Open Orbot</string>
 
-    <string name="settings_general_header" translatable="true">general</string>
-    <string name="settings_general_customize" translatable="true">customize</string>
+    <string name="settings_general_header" translatable="true">General</string>
+    <string name="settings_general_customize" translatable="true">Customize</string>
 
     <string name="settings_autostart_bootup_heading" translatable="true">Auto-start on power-up (experimental)</string>
     <string name="settings_autostart_bootup_desc" translatable="true">On device power-up, start Rethink if it was running before shut down.</string>

@@ -36,6 +36,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Error
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -74,13 +79,18 @@ fun copyEventToClipboard(context: Context, text: String) {
 }
 
 @Composable
-fun EventCard(event: Event, onCopy: (String) -> Unit, query: String = "") {
+fun EventCard(
+    event: Event,
+    onCopy: (String) -> Unit,
+    query: String = "",
+    position: EventCardPosition = EventCardPosition.Single
+) {
     val hasDetails = !event.details.isNullOrBlank()
     var expanded by remember(event.id) { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.987f else 1f,
+        targetValue = if (isPressed) 0.985f else 1f,
         animationSpec = tween(durationMillis = 120),
         label = "event_card_scale"
     )
@@ -95,10 +105,12 @@ fun EventCard(event: Event, onCopy: (String) -> Unit, query: String = "") {
         buildHighlightedText(event.details.orEmpty(), query, highlightColor)
     }
 
+    val shape = eventShapeFor(position)
+
     Surface(
-        shape = RoundedCornerShape(22.dp),
+        shape = shape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)),
+        tonalElevation = 0.dp,
         modifier = Modifier
             .fillMaxWidth()
             .scale(scale)
@@ -113,88 +125,184 @@ fun EventCard(event: Event, onCopy: (String) -> Unit, query: String = "") {
                 onLongClick = { onCopy(event.toClipboardText()) }
             )
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 14.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                EventBadge(
-                    text = event.severity.name,
-                    containerColor = accent.copy(alpha = 0.16f),
-                    contentColor = accent
-                )
-                EventBadge(
-                    text = event.source.toDisplayLabel(),
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.45f),
-                    contentColor = MaterialTheme.colorScheme.onSurface
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = timestampText,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                IconButton(
-                    onClick = { onCopy(event.toClipboardText()) },
-                    modifier = Modifier.size(28.dp)
-                ) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.ic_copy),
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-            }
-
-            Text(
-                text = highlightedMessage,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
+            EventSeverityIcon(
+                severity = event.severity,
+                accentColor = accent,
+                modifier = Modifier.size(40.dp)
             )
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                EventBadge(
-                    text = event.eventType.name.toDisplayLabel(),
-                    containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                    contentColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                if (event.userAction) {
-                    EventBadge(
-                        text = "User action",
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
-                        contentColor = MaterialTheme.colorScheme.primary
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = highlightedMessage,
+                        style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
                     )
+                    Text(
+                        text = timestampText,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    )
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp)
+                ) {
+                    CompactEventBadge(
+                        text = event.severity.name,
+                        containerColor = accent.copy(alpha = 0.14f),
+                        contentColor = accent
+                    )
+                    CompactEventBadge(
+                        text = event.source.toDisplayLabel(),
+                        containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    CompactEventBadge(
+                        text = event.eventType.name.toDisplayLabel(),
+                        containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                    )
+                    if (event.userAction) {
+                        CompactEventBadge(
+                            text = "User",
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f),
+                            contentColor = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+
+                AnimatedVisibility(visible = expanded && hasDetails) {
+                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                        HorizontalDivider(
+                            thickness = 1.dp,
+                            color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f),
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                        Text(
+                            text = highlightedDetails,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 8,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
                 }
             }
 
-            AnimatedVisibility(visible = expanded && hasDetails) {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    HorizontalDivider(
-                        thickness = 1.dp,
-                        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.3f)
-                    )
-                    Text(
-                        text = highlightedDetails,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 8,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                }
+            IconButton(
+                onClick = { onCopy(event.toClipboardText()) },
+                modifier = Modifier.size(32.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_copy),
+                    contentDescription = "Copy",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    modifier = Modifier.size(16.dp)
+                )
             }
         }
+    }
+}
+
+enum class EventCardPosition {
+    First,
+    Middle,
+    Last,
+    Single
+}
+
+private fun eventShapeFor(position: EventCardPosition): RoundedCornerShape {
+    return when (position) {
+        EventCardPosition.First ->
+            RoundedCornerShape(
+                topStart = 18.dp,
+                topEnd = 18.dp,
+                bottomStart = 10.dp,
+                bottomEnd = 10.dp
+            )
+        EventCardPosition.Middle -> RoundedCornerShape(10.dp)
+        EventCardPosition.Last ->
+            RoundedCornerShape(
+                topStart = 10.dp,
+                topEnd = 10.dp,
+                bottomStart = 18.dp,
+                bottomEnd = 18.dp
+            )
+        EventCardPosition.Single -> RoundedCornerShape(18.dp)
+    }
+}
+
+@Composable
+private fun EventSeverityIcon(
+    severity: Severity,
+    accentColor: Color,
+    modifier: Modifier = Modifier
+) {
+    val icon = when (severity) {
+        Severity.LOW -> Icons.Filled.CheckCircle
+        Severity.MEDIUM -> Icons.Filled.Info
+        Severity.HIGH -> Icons.Filled.Warning
+        Severity.CRITICAL -> Icons.Filled.Error
+    }
+
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        color = accentColor.copy(alpha = 0.12f),
+        modifier = modifier
+    ) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = severity.name,
+                tint = accentColor,
+                modifier = Modifier.size(22.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CompactEventBadge(
+    text: String,
+    containerColor: Color,
+    contentColor: Color
+) {
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = containerColor
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.Medium,
+            color = contentColor,
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+            maxLines = 1
+        )
     }
 }
 

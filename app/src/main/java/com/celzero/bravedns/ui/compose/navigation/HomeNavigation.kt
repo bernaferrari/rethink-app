@@ -117,6 +117,7 @@ import com.celzero.bravedns.ui.compose.logs.DomainConnectionsInputType
 import com.celzero.bravedns.ui.compose.logs.DomainConnectionsScreen
 import com.celzero.bravedns.ui.compose.statistics.DetailedStatisticsScreen
 import com.celzero.bravedns.ui.compose.statistics.SummaryStatisticsScreen
+import com.celzero.bravedns.ui.compose.database.DatabaseScreen
 import com.celzero.bravedns.database.EventDao
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
@@ -153,6 +154,7 @@ import com.celzero.bravedns.ui.compose.dns.ConfigureOtherDnsScreen
 import com.celzero.bravedns.ui.compose.dns.DnsScreenType
 import com.celzero.bravedns.ui.compose.firewall.UniversalFirewallSettingsScreen
 import com.celzero.bravedns.ui.compose.settings.CheckoutScreen
+import com.celzero.bravedns.database.AppDatabase
 import com.celzero.bravedns.viewmodel.DoHEndpointViewModel
 import com.celzero.bravedns.viewmodel.DoTEndpointViewModel
 import com.celzero.bravedns.viewmodel.DnsProxyEndpointViewModel
@@ -242,6 +244,7 @@ sealed interface HomeNavRequest {
     data class AppWiseDomainLogs(val uid: Int) : HomeNavRequest
     data object Checkout : HomeNavRequest
     data object WgMain : HomeNavRequest
+    data object Database : HomeNavRequest
 }
 
 @Composable
@@ -363,7 +366,8 @@ fun HomeScreenRoot(
     // WgMain callbacks
     onWgCreateClick: () -> Unit,
     onWgImportClick: () -> Unit,
-    onWgQrScanClick: () -> Unit
+    onWgQrScanClick: () -> Unit,
+    appDatabase: AppDatabase
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -538,6 +542,10 @@ fun HomeScreenRoot(
 
             HomeNavRequest.WgMain -> {
                 navController.navigate(HomeRoute.WgMain)
+            }
+
+            HomeNavRequest.Database -> {
+                navController.navigate(HomeRoute.Database)
             }
         }
         onHomeNavConsumed()
@@ -1178,6 +1186,12 @@ fun HomeScreenRoot(
                     onConfigDetailClick = { configId, wgType ->
                         navController.navigate(HomeRoute.WgConfigDetail(configId, wgType))
                     }
+                )
+            }
+            composable<HomeRoute.Database> {
+                DatabaseScreen(
+                    onBackClick = { navController.popBackStack() },
+                    appDatabase = appDatabase
                 )
             }
             }

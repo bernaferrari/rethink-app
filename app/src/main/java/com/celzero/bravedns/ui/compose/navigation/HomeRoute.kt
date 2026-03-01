@@ -134,6 +134,9 @@ sealed interface HomeRoute {
 
     @Serializable
     data object WgMain : HomeRoute
+
+    @Serializable
+    data object Database : HomeRoute
 }
 
 @Serializable

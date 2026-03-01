@@ -840,7 +840,7 @@ private fun AppListLetterHeader(letter: String) {
         modifier = Modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(start = 20.dp, top = 12.dp, bottom = 4.dp)
+            .padding(start = 20.dp, top = 20.dp, bottom = 4.dp)
     ) {
         Text(
             text = letter,
