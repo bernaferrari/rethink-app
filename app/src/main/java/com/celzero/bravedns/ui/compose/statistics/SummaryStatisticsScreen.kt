@@ -583,14 +583,14 @@ private fun SummaryStatSection(
                         visible = isExpanded && item.flag.isNotBlank(),
                         enter = expandVertically(
                             animationSpec = spring(
-                                stiffness = Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
+                                stiffness = Spring.StiffnessMediumLow,
+                                dampingRatio = Spring.DampingRatioNoBouncy
                             )
                         ),
                         exit = shrinkVertically(
                             animationSpec = spring(
-                                stiffness = Spring.StiffnessLow,
-                                dampingRatio = Spring.DampingRatioLowBouncy
+                                stiffness = Spring.StiffnessMediumLow,
+                                dampingRatio = Spring.DampingRatioNoBouncy
                             )
                         )
                     ) {
