@@ -16,6 +16,7 @@
 package com.celzero.bravedns.ui.compose.statistics
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.expandVertically
@@ -63,6 +64,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -421,11 +423,12 @@ private fun SummaryStatSection(
     val hasData = pagingItems.itemCount > 0
     val isEmpty = !hasData && !isLoading
     var showAllInlineCountries by remember(type) { mutableStateOf(false) }
+    val snapshotItems: List<AppConnection> = pagingItems.itemSnapshotList.items.filterNotNull()
     val visibleItems =
-        if (isCountrySection && showAllInlineCountries) {
-            (0 until pagingItems.itemCount).mapNotNull { index -> pagingItems[index] }
+        if (isCountrySection && !showAllInlineCountries) {
+            snapshotItems.take(5)
         } else {
-            pagingItems.itemSnapshotList.items.filterNotNull().take(5)
+            snapshotItems
         }
     var expandedCountryFlag by remember(type) { mutableStateOf<String?>(null) }
 
@@ -466,11 +469,18 @@ private fun SummaryStatSection(
                 )
             }
         } else {
-            RethinkListGroup {
+            RethinkListGroup(
+                modifier = Modifier.animateContentSize(
+                    animationSpec = spring<IntSize>(
+                        stiffness = Spring.StiffnessMediumLow,
+                        dampingRatio = Spring.DampingRatioNoBouncy
+                    )
+                )
+            ) {
+                val visibleLastIndex = visibleItems.lastIndex
                 visibleItems.forEachIndexed { index, item ->
                     val metricText = item.totalBytes?.takeIf { it > 0L }?.let { formatBytes(it) } ?: item.count.toString()
-                    val isCountryItem = type == SummaryStatisticsType.MOST_CONTACTED_COUNTRIES
-                    val countryName = if (isCountryItem) countryNameFromFlag(item.flag) else null
+                    val countryName = if (isCountrySection) countryNameFromFlag(item.flag) else null
                     val countryHeadline = when {
                         item.appOrDnsName?.isNotBlank() == true && item.flag.isNotBlank() ->
                             "${item.flag} ${item.appOrDnsName}"
@@ -478,7 +488,7 @@ private fun SummaryStatSection(
                         item.flag.isNotBlank() -> item.flag
                         else -> stringResource(id = R.string.network_log_app_name_unknown)
                     }
-                    val headline = if (isCountryItem) {
+                    val headline = if (isCountrySection) {
                         countryName ?: countryHeadline
                     } else {
                         item.appOrDnsName?.takeIf { it.isNotBlank() } ?: item.ipAddress
@@ -498,16 +508,16 @@ private fun SummaryStatSection(
                         }
                     val hasTrueAppIcon = appIconPainter != null
                     val fallbackPainter =
-                        if (isCountryItem && item.flag.isBlank()) {
+                        if (isCountrySection && item.flag.isBlank()) {
                             painterResource(id = R.drawable.ic_flag_placeholder)
-                        } else if (isCountryItem) {
+                        } else if (isCountrySection) {
                             null
                         } else {
                             painterResource(id = R.drawable.ic_app_info)
                         }
                     val customLeadingContent: (@Composable () -> Unit)? =
                         when {
-                            isCountryItem && item.flag.isNotBlank() -> {
+                            isCountrySection && item.flag.isNotBlank() -> {
                                 {
                                     Text(
                                         text = item.flag,
@@ -527,31 +537,30 @@ private fun SummaryStatSection(
                             }
                             else -> null
                         }
-                    val isExpanded = isCountryItem && expandedCountryFlag == item.flag
+                    val isExpanded = isCountrySection && expandedCountryFlag == item.flag
 
                     RethinkListItem(
                         headline = headline.ifBlank { "-" },
-                        supporting = if (isCountryItem) null else supporting,
+                        supporting = if (isCountrySection) null else supporting,
                         leadingContent = customLeadingContent,
                         leadingIconPainter = if (customLeadingContent == null) appIconPainter ?: fallbackPainter else null,
                         leadingIconTint = when {
                             hasTrueAppIcon -> Unspecified
-                            isCountryItem -> MaterialTheme.colorScheme.tertiary
+                            isCountrySection -> MaterialTheme.colorScheme.tertiary
                             else -> accentColor
                         },
-                        leadingIconContainerColor = if (isCountryItem) {
+                        leadingIconContainerColor = if (isCountrySection) {
                             MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.32f)
                         } else if (hasTrueAppIcon) {
                             MaterialTheme.colorScheme.surfaceContainerHighest
                         } else {
                             accentColor.copy(alpha = 0.14f)
                         },
-                        position = cardPositionFor(index = index, lastIndex = visibleItems.lastIndex),
+                        position = cardPositionFor(index = index, lastIndex = visibleLastIndex),
                         showTrailingChevron = false,
-                        onClick = if (isCountryItem) {
+                        onClick = if (isCountrySection) {
                             {
-                                expandedCountryFlag =
-                                    if (isExpanded) null else item.flag
+                                expandedCountryFlag = if (isExpanded) null else item.flag
                             }
                         } else {
                             null
@@ -564,7 +573,7 @@ private fun SummaryStatSection(
                                     fontWeight = FontWeight.SemiBold,
                                     color = accentColor
                                 )
-                                if (isCountryItem) {
+                                if (isCountrySection) {
                                     Spacer(modifier = Modifier.size(Dimensions.spacingXs))
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
