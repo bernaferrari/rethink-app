@@ -16,9 +16,9 @@
 package com.celzero.bravedns.ui.compose.statistics
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.BorderStroke
@@ -48,6 +48,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -423,14 +424,14 @@ private fun SummaryStatSection(
     val hasData = pagingItems.itemCount > 0
     val isEmpty = !hasData && !isLoading
     var showAllInlineCountries by remember(type) { mutableStateOf(false) }
+    val showAllVisibilityState = remember(type) { MutableTransitionState(false) }
     val snapshotItems: List<AppConnection> = pagingItems.itemSnapshotList.items.filterNotNull()
-    val visibleItems =
-        if (isCountrySection && !showAllInlineCountries) {
-            snapshotItems.take(5)
-        } else {
-            snapshotItems
-        }
+    val visibleItems = if (isCountrySection) snapshotItems.take(5) else snapshotItems
     var expandedCountryFlag by remember(type) { mutableStateOf<String?>(null) }
+
+    LaunchedEffect(showAllInlineCountries) {
+        showAllVisibilityState.targetState = showAllInlineCountries
+    }
 
     Column {
         SectionHeader(
@@ -469,16 +470,17 @@ private fun SummaryStatSection(
                 )
             }
         } else {
-            RethinkListGroup(
-                modifier = Modifier.animateContentSize(
-                    animationSpec = spring<IntSize>(
-                        stiffness = Spring.StiffnessMediumLow,
-                        dampingRatio = Spring.DampingRatioNoBouncy
-                    )
-                )
-            ) {
-                val visibleLastIndex = visibleItems.lastIndex
-                visibleItems.forEachIndexed { index, item ->
+            val sizeSpec = tween<IntSize>(durationMillis = 220, easing = FastOutSlowInEasing)
+            RethinkListGroup {
+                val baseItems = if (isCountrySection) snapshotItems.take(5) else visibleItems
+                val extraCountryItems = if (isCountrySection) snapshotItems.drop(5) else emptyList()
+                val isExtraBlockPresent =
+                    isCountrySection && extraCountryItems.isNotEmpty() &&
+                        (showAllVisibilityState.currentState || showAllVisibilityState.targetState)
+                val visibleLastIndex =
+                    if (isExtraBlockPresent) snapshotItems.lastIndex else baseItems.lastIndex
+
+                val renderRow: @Composable (index: Int, item: AppConnection) -> Unit = { index, item ->
                     val metricText = item.totalBytes?.takeIf { it > 0L }?.let { formatBytes(it) } ?: item.count.toString()
                     val countryName = if (isCountrySection) countryNameFromFlag(item.flag) else null
                     val countryHeadline = when {
@@ -591,16 +593,10 @@ private fun SummaryStatSection(
                     AnimatedVisibility(
                         visible = isExpanded && item.flag.isNotBlank(),
                         enter = expandVertically(
-                            animationSpec = spring(
-                                stiffness = Spring.StiffnessMediumLow,
-                                dampingRatio = Spring.DampingRatioNoBouncy
-                            )
+                            animationSpec = sizeSpec
                         ),
                         exit = shrinkVertically(
-                            animationSpec = spring(
-                                stiffness = Spring.StiffnessMediumLow,
-                                dampingRatio = Spring.DampingRatioNoBouncy
-                            )
+                            animationSpec = sizeSpec
                         )
                     ) {
                         CountryBreakdown(
@@ -609,6 +605,24 @@ private fun SummaryStatSection(
                             viewModel = viewModel,
                             refreshToken = refreshToken
                         )
+                    }
+                }
+
+                baseItems.forEachIndexed { index, item ->
+                    renderRow(index, item)
+                }
+
+                if (isCountrySection && extraCountryItems.isNotEmpty()) {
+                    AnimatedVisibility(
+                        visibleState = showAllVisibilityState,
+                        enter = expandVertically(animationSpec = sizeSpec),
+                        exit = shrinkVertically(animationSpec = sizeSpec)
+                    ) {
+                        Column {
+                            extraCountryItems.forEachIndexed { extraIndex, item ->
+                                renderRow(baseItems.size + extraIndex, item)
+                            }
+                        }
                     }
                 }
             }
@@ -627,7 +641,15 @@ private fun SummaryStatSection(
                     FilledTonalButton(
                         onClick = {
                             if (isCountrySection) {
-                                showAllInlineCountries = !showAllInlineCountries
+                                val nextShowAll = !showAllInlineCountries
+                                if (!nextShowAll && expandedCountryFlag != null) {
+                                    val isExpandedRowVisibleInCollapsed =
+                                        snapshotItems.take(5).any { it.flag == expandedCountryFlag }
+                                    if (!isExpandedRowVisibleInCollapsed) {
+                                        expandedCountryFlag = null
+                                    }
+                                }
+                                showAllInlineCountries = nextShowAll
                             } else {
                                 onSeeMoreClick(type)
                             }
