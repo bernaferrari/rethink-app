@@ -99,6 +99,7 @@ import com.celzero.bravedns.ui.compose.settings.ProxySettingsScreen
 import com.celzero.bravedns.ui.compose.proxy.TcpProxyMainScreen
 import com.celzero.bravedns.ui.compose.logs.NetworkLogsScreen
 import com.celzero.bravedns.ui.compose.settings.PingTestScreen
+import com.celzero.bravedns.ui.dialog.WgIncludeAppsScreen
 import com.celzero.bravedns.ui.compose.logs.AppWiseIpLogsScreen
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
 import com.celzero.bravedns.ui.compose.apps.AppListScreen
@@ -122,6 +123,7 @@ import com.celzero.bravedns.database.EventDao
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.viewmodel.AppConnectionsViewModel
 import com.celzero.bravedns.viewmodel.CustomDomainViewModel
 import com.celzero.bravedns.viewmodel.CustomIpViewModel
@@ -852,8 +854,18 @@ fun HomeScreenRoot(
                     mappingViewModel = proxyAppsMappingViewModel,
                     initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
                     onWireguardClick = { navController.navigate(HomeRoute.WgMain) },
+                    onOpenOrbotApps = { navController.navigate(HomeRoute.OrbotAppSelect) },
                     onNavigateToDns = { navController.navigate(HomeRoute.DnsDetail()) },
                     onBackClick = { navController.popBackStack() }
+                )
+            }
+
+            composable<HomeRoute.OrbotAppSelect> {
+                WgIncludeAppsScreen(
+                    viewModel = proxyAppsMappingViewModel,
+                    proxyId = ProxyManager.ID_ORBOT_BASE,
+                    proxyName = ProxyManager.ORBOT_PROXY_NAME,
+                    onDismiss = { navController.popBackStack() }
                 )
             }
 

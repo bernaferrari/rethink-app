@@ -63,6 +63,16 @@ class ProxyAppsMappingViewModel(private val mappingDAO: ProxyApplicationMappingD
             emptyList()
         )
 
+    // Unfiltered list for operations that must apply globally (for example, "Select all").
+    val allApps: StateFlow<List<ProxyApplicationMapping>> =
+        mappingDAO
+            .getWgAppMappingFlow()
+            .stateIn(
+                viewModelScope,
+                SharingStarted.WhileSubscribed(5000),
+                emptyList()
+            )
+
     fun setFilter(filter: String, type: TopLevelFilter, pid: String) {
         filterState.value =
             ProxyAppsFilterState(

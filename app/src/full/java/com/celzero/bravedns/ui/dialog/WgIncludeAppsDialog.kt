@@ -162,10 +162,12 @@ private fun WgIncludeAppsDialogScreen(
     var query by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf(TopLevelFilter.ALL_APPS) }
     val apps by viewModel.apps.collectAsState(initial = emptyList())
+    val allApps by viewModel.allApps.collectAsState(initial = emptyList())
     val listState = rememberLazyListState()
     var isDialogVisible by remember { mutableStateOf(true) }
     var isRefreshing by remember { mutableStateOf(false) }
     var showOverflowMenu by remember { mutableStateOf(false) }
+    var excludedUids by remember { mutableStateOf<Set<Int>>(emptySet()) }
     val density = LocalDensity.current
     val navBarBottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
     val showFastScroller = apps.size >= 8
@@ -196,11 +198,25 @@ private fun WgIncludeAppsDialogScreen(
     }
 
     fun selectAllApps() {
-        val appSnapshot = apps
+        val appSnapshot = allApps
+        val excludedSnapshot = excludedUids
         scope.launch(Dispatchers.IO) {
-            appSnapshot.forEach { mapping ->
-                if (!FirewallManager.isAppExcludedFromProxy(mapping.uid)) {
-                    ProxyManager.updateProxyIdForPackage(mapping.uid, mapping.packageName, proxyId, proxyName)
+            // Apply selection in one DB/cache update so the UI reflects quickly.
+            ProxyManager.setProxyIdForAllApps(proxyId, proxyName)
+
+            // Keep excluded apps out of proxy routing.
+            if (excludedSnapshot.isNotEmpty()) {
+                appSnapshot
+                    .asSequence()
+                    .filter { excludedSnapshot.contains(it.uid) }
+                    .forEach { mapping ->
+                        ProxyManager.setNoProxyForPackage(mapping.uid, mapping.packageName)
+                    }
+            } else {
+                appSnapshot.forEach { mapping ->
+                    if (FirewallManager.isAppExcludedFromProxy(mapping.uid)) {
+                        ProxyManager.setNoProxyForPackage(mapping.uid, mapping.packageName)
+                    }
                 }
             }
         }
@@ -218,6 +234,20 @@ private fun WgIncludeAppsDialogScreen(
 
     LaunchedEffect(query, selectedFilter) {
         viewModel.setFilter(query, selectedFilter, proxyId)
+    }
+
+    LaunchedEffect(allApps) {
+        val snapshot = allApps
+        excludedUids =
+            withContext(Dispatchers.IO) {
+                val excluded = mutableSetOf<Int>()
+                snapshot.forEach { mapping ->
+                    if (FirewallManager.isAppExcludedFromProxy(mapping.uid)) {
+                        excluded.add(mapping.uid)
+                    }
+                }
+                excluded
+            }
     }
 
     fun refreshApps() {
@@ -239,7 +269,9 @@ private fun WgIncludeAppsDialogScreen(
         }
     }
 
-    val allAppsSelected = apps.isNotEmpty() && apps.all { it.proxyId == proxyId }
+    val allAppsSelected = allApps.isNotEmpty() && allApps.all { mapping ->
+        excludedUids.contains(mapping.uid) || mapping.proxyId == proxyId
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

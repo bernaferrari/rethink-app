@@ -65,6 +65,9 @@ sealed interface HomeRoute {
     data class ProxySettings(val focusKey: String = "") : HomeRoute
 
     @Serializable
+    data object OrbotAppSelect : HomeRoute
+
+    @Serializable
     data object TcpProxyMain : HomeRoute
 
     @Serializable

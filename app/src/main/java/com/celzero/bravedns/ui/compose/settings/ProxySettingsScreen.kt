@@ -109,7 +109,6 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
-import com.celzero.bravedns.ui.dialog.WgIncludeAppsScreen
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
@@ -197,6 +196,7 @@ fun ProxySettingsScreen(
     mappingViewModel: ProxyAppsMappingViewModel? = null,
     initialFocusKey: String? = null,
     onWireguardClick: (() -> Unit)? = null,
+    onOpenOrbotApps: (() -> Unit)? = null,
     onNavigateToDns: (() -> Unit)? = null,
     onBackClick: (() -> Unit)? = null
 ) {
@@ -289,7 +289,6 @@ fun ProxySettingsScreen(
 
     var socks5DialogState by remember { mutableStateOf<Socks5DialogState?>(null) }
     var httpDialogState by remember { mutableStateOf<HttpDialogState?>(null) }
-    var showOrbotAppsDialog by remember { mutableStateOf(false) }
     val orbotAppCount =
         if (mappingViewModel != null) {
             mappingViewModel.getAppCountById(ProxyManager.ID_ORBOT_BASE)
@@ -574,16 +573,6 @@ fun ProxySettingsScreen(
         pendingFocusKey = ""
     }
 
-    if (showOrbotAppsDialog && mappingViewModel != null) {
-        WgIncludeAppsScreen(
-            viewModel = mappingViewModel,
-            proxyId = ProxyManager.ID_ORBOT_BASE,
-            proxyName = ProxyManager.ORBOT_PROXY_NAME,
-            onDismiss = { showOrbotAppsDialog = false }
-        )
-        return
-    }
-
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
@@ -791,8 +780,8 @@ fun ProxySettingsScreen(
                         }
                     },
                     onAppsClick =
-                        if (mappingViewModel != null) {
-                            { showOrbotAppsDialog = true }
+                        if (mappingViewModel != null && onOpenOrbotApps != null) {
+                            { onOpenOrbotApps() }
                         } else {
                             null
                         },
