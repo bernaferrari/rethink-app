@@ -16,53 +16,93 @@
 package com.celzero.bravedns.viewmodel
 
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
-import androidx.paging.cachedIn
-import androidx.paging.liveData
 import com.celzero.bravedns.database.ProxyApplicationMappingDAO
+import com.celzero.bravedns.database.ProxyApplicationMapping
 import com.celzero.bravedns.ui.dialog.TopLevelFilter
-import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
+import java.util.Locale
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.debounce
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.stateIn
 
+@OptIn(FlowPreview::class)
 class ProxyAppsMappingViewModel(private val mappingDAO: ProxyApplicationMappingDAO) : ViewModel() {
 
-    private var filteredList: MutableLiveData<String> = MutableLiveData()
-    private var filterType: TopLevelFilter = TopLevelFilter.ALL_APPS
-    private var proxyId: String = ""
+    private data class ProxyAppsFilterState(
+        val searchQuery: String,
+        val filterType: TopLevelFilter,
+        val proxyId: String
+    )
 
-    init {
-        filterType = TopLevelFilter.ALL_APPS
-        proxyId = ""
-        filteredList.postValue("%%")
-    }
+    private val filterState =
+        MutableStateFlow(
+            ProxyAppsFilterState(
+                searchQuery = "",
+                filterType = TopLevelFilter.ALL_APPS,
+                proxyId = ""
+            )
+        )
 
-    var apps =
-        filteredList.switchMap { searchTxt ->
-            Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
-                    when (filterType) {
-                        TopLevelFilter.ALL_APPS ->
-                            mappingDAO.getAllAppsMapping(searchTxt)
-                        TopLevelFilter.SELECTED_APPS ->
-                            mappingDAO.getSelectedAppsMapping(searchTxt, proxyId)
-                        TopLevelFilter.UNSELECTED_APPS ->
-                            mappingDAO.getUnSelectedAppsMapping(searchTxt, proxyId)
-                    }
-                }
-                .liveData
-                .cachedIn(viewModelScope)
-        }
+    val apps =
+        combine(
+            mappingDAO.getWgAppMappingFlow(),
+            filterState
+                .debounce(200)
+                .distinctUntilChanged()
+        ) { apps, state ->
+            filterAndSortApps(apps, state)
+        }.stateIn(
+            viewModelScope,
+            SharingStarted.WhileSubscribed(5000),
+            emptyList()
+        )
 
     fun setFilter(filter: String, type: TopLevelFilter, pid: String) {
-        filterType = type
-        this.proxyId = pid
-        filteredList.postValue("%$filter%")
+        filterState.value =
+            ProxyAppsFilterState(
+                searchQuery = filter.trim(),
+                filterType = type,
+                proxyId = pid
+            )
     }
 
     fun getAppCountById(configId: String): LiveData<Int> {
         return mappingDAO.getAppCountByIdLiveData(configId)
+    }
+
+    private fun filterAndSortApps(
+        apps: List<ProxyApplicationMapping>,
+        state: ProxyAppsFilterState
+    ): List<ProxyApplicationMapping> {
+        val query = state.searchQuery.lowercase(Locale.getDefault())
+        val hasQuery = query.isNotBlank()
+
+        return apps
+            .asSequence()
+            .filter { app ->
+                when (state.filterType) {
+                    TopLevelFilter.ALL_APPS -> true
+                    TopLevelFilter.SELECTED_APPS -> app.proxyId == state.proxyId
+                    TopLevelFilter.UNSELECTED_APPS -> app.proxyId != state.proxyId
+                }
+            }
+            .filter { app ->
+                if (!hasQuery) return@filter true
+                app.appName.contains(query, ignoreCase = true)
+            }
+            .sortedWith(
+                compareBy<ProxyApplicationMapping>(
+                    { it.appName.ifBlank { it.packageName }.lowercase(Locale.getDefault()) },
+                    { it.packageName.lowercase(Locale.getDefault()) },
+                    { it.uid }
+                )
+            )
+            .toList()
     }
 }

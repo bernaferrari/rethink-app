@@ -135,6 +135,29 @@ object ProxyManager : KoinComponent {
         }
     }
 
+    suspend fun updateProxyIdForPackage(
+        uid: Int,
+        packageName: String,
+        nonEmptyProxyId: String,
+        proxyName: String
+    ) {
+        if (!isValidProxyPrefix(nonEmptyProxyId)) {
+            Logger.e(LOG_TAG_PROXY, "cannot update $nonEmptyProxyId; setNoProxyForPackage instead?")
+            return
+        }
+
+        val m = pamSet.filter { it.uid == uid && it.packageName == packageName }.toSet()
+        if (m.isNotEmpty()) {
+            val n = m.map { ProxyAppMapTuple(it.uid, it.packageName, nonEmptyProxyId) }
+            pamSet.removeAll(m)
+            pamSet.addAll(n)
+        } else {
+            Logger.e(LOG_TAG_PROXY, "updateProxyIdForPackage: map not found for $uid/$packageName")
+        }
+        // update DB even if cache missed; cache can transiently lag behind database rows
+        db.updateProxyIdForPackage(uid, packageName, nonEmptyProxyId, proxyName)
+    }
+
     fun trackedApps(): MutableSet<FirewallManager.AppInfoTuple> {
         return pamSet.map { FirewallManager.AppInfoTuple(it.uid, it.packageName) }.toMutableSet()
     }
@@ -195,6 +218,20 @@ object ProxyManager : KoinComponent {
         } else {
             Logger.e(LOG_TAG_PROXY, "app config mapping is null for uid $uid on setNoProxyForApp")
         }
+    }
+
+    suspend fun setNoProxyForPackage(uid: Int, packageName: String) {
+        val noProxy = ""
+        val m = pamSet.filter { it.uid == uid && it.packageName == packageName }.toSet()
+        if (m.isNotEmpty()) {
+            val n = m.map { ProxyAppMapTuple(it.uid, it.packageName, noProxy) }
+            pamSet.removeAll(m)
+            pamSet.addAll(n)
+        } else {
+            Logger.e(LOG_TAG_PROXY, "app config mapping is null for $uid/$packageName on setNoProxyForPackage")
+        }
+        // update DB even if cache missed; cache can transiently lag behind database rows
+        db.updateProxyIdForPackage(uid, packageName, noProxy, noProxy)
     }
 
     suspend fun setNoProxyForAllApps() {

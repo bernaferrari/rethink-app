@@ -46,6 +46,7 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.util.ConcurrentModificationException
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -541,44 +542,41 @@ object FirewallManager : KoinComponent {
         return getAppInfos().map { it.appName }.sortedBy { it.lowercase() }
     }
 
-    suspend fun getAllAppNamesSortedByVpnPermission(context: Context): List<String> {
-        val appInfos = getAppInfos()
+    suspend fun getAllAppsSortedByVpnPermission(context: Context): List<AppInfo> {
+        val allApps =
+            runCatching { db.getAppInfo() }
+                .getOrElse { getAppInfos().toList() }
         val packageManager = context.packageManager
 
-        // separate apps with and without VPN permission
-        val appsWithVpnPermission = mutableListOf<String>()
-        val appsWithoutVpnPermission = mutableListOf<String>()
+        val appsWithVpnPermission = mutableListOf<AppInfo>()
+        val appsWithoutVpnPermission = mutableListOf<AppInfo>()
 
-        appInfos.forEach { appInfo ->
-            // skip the app itself
-            if (appInfo.packageName == RETHINK_PACKAGE) {
-                return@forEach
-            }
-            // skip apps which do not have internet permission
-            if (!appInfo.hasInternetPermission(packageManager)) {
-                return@forEach
-            }
-            // skip tombstoned apps
-            if (appInfo.tombstoneTs > 0L) {
-                return@forEach
-            }
+        allApps.forEach { appInfo ->
+            if (appInfo.packageName == RETHINK_PACKAGE) return@forEach
+            if (!appInfo.hasInternetPermission(packageManager)) return@forEach
+            if (appInfo.tombstoneTs > 0L) return@forEach
+
             val hasVpnPermission = try {
-                val packageInfo = packageManager.getPackageInfo(appInfo.packageName, PackageManager.GET_SERVICES)
+                val packageInfo =
+                    packageManager.getPackageInfo(appInfo.packageName, PackageManager.GET_SERVICES)
                 packageInfo.isVpnRelatedApp(packageManager)
             } catch (_: Exception) {
                 false
             }
 
             if (hasVpnPermission) {
-                appsWithVpnPermission.add(appInfo.appName)
+                appsWithVpnPermission.add(appInfo)
             } else {
-                appsWithoutVpnPermission.add(appInfo.appName)
+                appsWithoutVpnPermission.add(appInfo)
             }
         }
 
-        // sort each group alphabetically and combine with the list of apps
-        return appsWithVpnPermission.sortedBy { it.lowercase() } +
-               appsWithoutVpnPermission.sortedBy { it.lowercase() }
+        return appsWithVpnPermission.sortedBy { it.appName.lowercase() } +
+               appsWithoutVpnPermission.sortedBy { it.appName.lowercase() }
+    }
+
+    suspend fun getAllAppNamesSortedByVpnPermission(context: Context): List<String> {
+        return getAllAppsSortedByVpnPermission(context).map { it.appName }
     }
 
     private fun PackageInfo.isVpnRelatedApp(pm: PackageManager): Boolean {
@@ -847,10 +845,20 @@ object FirewallManager : KoinComponent {
     }
 
     private suspend fun getAppInfos(): Collection<AppInfo> {
-        mutex.withLock {
-            if (appInfos.isEmpty()) return emptyList()
-            return appInfos.values().toList()
-        }
+        val observerSnapshot = appInfosLiveData.value?.toList().orEmpty()
+        if (observerSnapshot.isNotEmpty()) return observerSnapshot
+
+        val cacheSnapshot =
+            mutex.withLock {
+                if (appInfos.isEmpty()) {
+                    emptyList()
+                } else {
+                    runCatching { appInfos.values().toList() }.getOrDefault(emptyList())
+                }
+            }
+        if (cacheSnapshot.isNotEmpty()) return cacheSnapshot
+
+        return runCatching { db.getAppInfo() }.getOrDefault(emptyList())
     }
 
     // labels for spinner / toggle ui
@@ -923,7 +931,8 @@ object FirewallManager : KoinComponent {
     fun stats(): String {
         // add count of apps in each firewall status
         val statusCount = HashMap<FirewallStatus, Int>()
-        appInfos.values().forEach {
+        val snapshot = appInfosLiveData.value?.toList().orEmpty()
+        snapshot.forEach {
             val status = FirewallStatus.getStatus(it.firewallStatus)
             statusCount[status] = (statusCount[status] ?: 0) + 1
         }
@@ -948,15 +957,38 @@ object FirewallManager : KoinComponent {
 
     data class AppInfoTuple(val uid: Int, val packageName: String)
 
-    private fun informObservers() {
-        // existing code expects this to broadcast appInfos snapshot.
-        // Use a snapshot to avoid exposing internal live collections.
-        appInfosLiveData.postValue(appInfos.values().toList())
+    private suspend fun informObservers() {
+        // Snapshot under lock to avoid iterating guava live views concurrently.
+        val snapshot =
+            mutex.withLock {
+                if (appInfos.isEmpty()) {
+                    emptyList()
+                } else {
+                    runCatching { appInfos.values().toList() }
+                        .getOrElse { appInfosLiveData.value?.toList().orEmpty() }
+                }
+            }
+        appInfosLiveData.postValue(snapshot)
     }
 
     fun isUnknownPackage(uid: Int): Boolean {
-        // Unknown uids are marked with a synthetic package prefix.
-        val pkgs = runCatching { appInfos.get(uid).map { it.packageName } }.getOrDefault(emptyList())
+        // Prefer observer snapshot to avoid touching mutable multimap without lock.
+        val snapshot = appInfosLiveData.value?.toList().orEmpty()
+        if (snapshot.isNotEmpty()) {
+            return snapshot
+                .asSequence()
+                .filter { it.uid == uid }
+                .map { it.packageName }
+                .any { it.startsWith(AppInfoRepository.NO_PACKAGE_PREFIX) }
+        }
+
+        // Fallback: tolerate races during early boot before observer snapshot is populated.
+        val pkgs =
+            runCatching { appInfos.get(uid).map { it.packageName } }
+                .recoverCatching {
+                    if (it is ConcurrentModificationException) emptyList() else throw it
+                }
+                .getOrDefault(emptyList())
         return pkgs.any { it.startsWith(AppInfoRepository.NO_PACKAGE_PREFIX) }
     }
 }

@@ -21,7 +21,6 @@ import android.content.ContextWrapper
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.Keep
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -63,7 +62,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -247,6 +245,7 @@ fun WgConfigEditorScreen(
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val density = LocalDensity.current
+    val editorFieldShape = RoundedCornerShape(Dimensions.cornerRadiusLg)
     val imeBottomInset = with(density) { WindowInsets.ime.getBottom(density).toDp() }
     val navBottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
     val actionBarBottomInset = when {
@@ -297,13 +296,7 @@ fun WgConfigEditorScreen(
             verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
         ) {
             item {
-                WgEditorOverviewCard(
-                    name = interfaceName
-                )
-            }
-
-            item {
-                EditorSectionCard(
+                EditorSection(
                     title = stringResource(R.string.lbl_configure)
                 ) {
                     OutlinedTextField(
@@ -311,6 +304,7 @@ fun WgConfigEditorScreen(
                         onValueChange = { interfaceName = it },
                         label = { Text(stringResource(R.string.cd_dns_crypt_dialog_name)) },
                         modifier = Modifier.fillMaxWidth(),
+                        shape = editorFieldShape,
                         singleLine = true
                     )
 
@@ -319,6 +313,7 @@ fun WgConfigEditorScreen(
                         onValueChange = { addresses = it },
                         label = { Text(stringResource(R.string.lbl_addresses)) },
                         modifier = Modifier.fillMaxWidth(),
+                        shape = editorFieldShape,
                         minLines = 2
                     )
 
@@ -327,13 +322,15 @@ fun WgConfigEditorScreen(
                         onValueChange = { dnsServers = it },
                         label = { Text(stringResource(R.string.lbl_dns_servers)) },
                         modifier = Modifier.fillMaxWidth(),
+                        shape = editorFieldShape,
                         minLines = 2
                     )
                 }
             }
+            item { EditorSectionDivider() }
 
             item {
-                EditorSectionCard(
+                EditorSection(
                     title = stringResource(R.string.setup_wireguard)
                 ) {
                     OutlinedTextField(
@@ -341,6 +338,7 @@ fun WgConfigEditorScreen(
                         onValueChange = { privateKey = it },
                         label = { Text(stringResource(R.string.lbl_private_key)) },
                         modifier = Modifier.fillMaxWidth(),
+                        shape = editorFieldShape,
                         singleLine = true,
                         textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
                         trailingIcon = {
@@ -362,6 +360,7 @@ fun WgConfigEditorScreen(
                             .clickable(enabled = publicKey.isNotEmpty()) {
                                 copyPublicKey()
                             },
+                        shape = editorFieldShape,
                         readOnly = true,
                         singleLine = true,
                         textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
@@ -376,9 +375,10 @@ fun WgConfigEditorScreen(
                     )
                 }
             }
+            item { EditorSectionDivider() }
 
             item {
-                EditorSectionCard(
+                EditorSection(
                     title = stringResource(R.string.lbl_network)
                 ) {
                     if (showListenPortState) {
@@ -387,6 +387,7 @@ fun WgConfigEditorScreen(
                             onValueChange = { listenPort = it },
                             label = { Text(stringResource(R.string.lbl_listen_port)) },
                             modifier = Modifier.fillMaxWidth(),
+                            shape = editorFieldShape,
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
@@ -397,6 +398,7 @@ fun WgConfigEditorScreen(
                         onValueChange = { mtu = it },
                         label = { Text(stringResource(R.string.lbl_mtu)) },
                         modifier = Modifier.fillMaxWidth(),
+                        shape = editorFieldShape,
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
@@ -404,8 +406,9 @@ fun WgConfigEditorScreen(
             }
 
             if (amzProps.isNotEmpty()) {
+                item { EditorSectionDivider() }
                 item {
-                    EditorSectionCard(
+                    EditorSection(
                         title = stringResource(R.string.lbl_advanced)
                     ) {
                         Text(
@@ -429,61 +432,28 @@ private tailrec fun Context.findActivity(): Activity? {
 }
 
 @Composable
-private fun WgEditorOverviewCard(name: String) {
-    Surface(
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
+private fun EditorSection(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.spacingXl),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-        ) {
-            Text(
-                text = stringResource(R.string.setup_wireguard),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = if (name.isBlank()) stringResource(R.string.lbl_wireguard) else name,
-                style = MaterialTheme.typography.headlineSmall,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleSmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        content()
     }
 }
 
 @Composable
-private fun EditorSectionCard(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit
-) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f)),
-        tonalElevation = 1.dp
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(Dimensions.cardPadding),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
-        ) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            content()
-        }
-    }
+private fun EditorSectionDivider() {
+    HorizontalDivider(
+        color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f)
+    )
 }
 
 @Composable

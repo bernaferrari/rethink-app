@@ -23,6 +23,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ProxyApplicationMappingDAO {
@@ -47,6 +48,9 @@ interface ProxyApplicationMappingDAO {
 
     @Query("select * from ProxyApplicationMapping")
     fun getWgAppMapping(): List<ProxyApplicationMapping>
+
+    @Query("select * from ProxyApplicationMapping order by lower(appName), lower(packageName), uid")
+    fun getWgAppMappingFlow(): Flow<List<ProxyApplicationMapping>>
 
     // query to get apps for pager adapter
     @Query(
@@ -80,6 +84,11 @@ interface ProxyApplicationMappingDAO {
         "update ProxyApplicationMapping set proxyId = :cfgId, proxyName = :cfgName where uid = :uid"
     )
     fun updateProxyIdForApp(uid: Int, cfgId: String, cfgName: String)
+
+    @Query(
+        "update ProxyApplicationMapping set proxyId = :cfgId, proxyName = :cfgName where uid = :uid and packageName = :packageName"
+    )
+    fun updateProxyIdForPackage(uid: Int, packageName: String, cfgId: String, cfgName: String)
 
     @Query("update ProxyApplicationMapping set proxyId = '', proxyName = '' where proxyId = :cfgId")
     fun removeAllAppsForProxy(cfgId: String)

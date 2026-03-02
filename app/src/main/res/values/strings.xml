@@ -22,6 +22,7 @@
     <string name="lbl_cancel" translatable="true">Cancel</string>
     <string name="lbl_apply" translatable="true">Apply</string>
     <string name="lbl_dismiss" translatable="true">Dismiss</string>
+    <string name="lbl_done" translatable="true">Done</string>
     <string name="lbl_all" translatable="true">All</string>
     <string name="lbl_allowed" translatable="true">Allowed</string>
     <string name="lbl_maybe_blocked" translatable="true">Maybe Blocked</string>
@@ -57,7 +58,8 @@
     <string name="lbl_mtu" translatable="true">MTU</string>
     <string name="lbl_auto" translatable="true">(auto)</string>
     <string name="lbl_include" translatable="true">Include</string>
-    <string name="lbl_select_all" translatable="true">select all</string>
+    <string name="lbl_select_all" translatable="true">Select All</string>
+    <string name="lbl_unselect_all" translatable="true">Unselect All</string>
     <string name="lbl_active" translatable="true">Active</string>
     <string name="lbl_inactive" translatable="true">Inactive</string>
     <string name="rpn_availability_title" translatable="true">RPN availability</string>
@@ -480,7 +482,7 @@
     <string name="search_universal_ips" translatable="true"><font size="12">Search IPs</font></string>
     <string name="search_custom_domains" translatable="true"><font size="12">Search domain names</font></string>
     <string name="search_rethinkplus_file_tag" translatable="true"><font size="12">Search blocklists</font></string>
-    <string name="search_proxy_add_apps" translatable="true">Search apps by name</string>
+    <string name="search_proxy_add_apps" translatable="true">Search apps</string>
     <string name="search_apps_count_placeholder" translatable="true">Search %1$d apps</string>
 
     <string name="app_mode_dns_low_battery" translatable="true">DNS (battery saver)</string>
@@ -504,6 +506,7 @@
     <string name="dns_log_clear_logs_message" translatable="true">This deletes on-device logs. This operation is not reversible. Do you want to proceed?</string>
     <string name="lbl_rethink" translatable="true">Rethink</string>
     <string name="lbl_loading" translatable="true">Loading...</string>
+    <string name="cd_more" translatable="true">More options</string>
     <string name="lbl_view" translatable="true">View</string>
     <string name="orbot_install_dialog_error" translatable="true">Unable to open Orbot install page.</string>
     <string name="settings_dns_proxy_invalid_port" translatable="true">Invalid port.</string>

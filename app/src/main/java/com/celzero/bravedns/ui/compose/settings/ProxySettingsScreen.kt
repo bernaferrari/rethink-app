@@ -17,31 +17,45 @@ package com.celzero.bravedns.ui.compose.settings
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
+import android.util.LruCache
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.rounded.Apps
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -66,10 +80,20 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInWindow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.core.net.toUri
 import androidx.lifecycle.asFlow
 import com.celzero.bravedns.R
@@ -85,22 +109,22 @@ import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
-import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
+import com.celzero.bravedns.ui.dialog.WgIncludeAppsScreen
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.RethinkActionListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkDropdownSelector
 import com.celzero.bravedns.ui.compose.theme.RethinkMultiActionDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkToggleListItem
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import androidx.compose.ui.res.painterResource
 import com.celzero.bravedns.util.OrbotHelper
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.RouterStats
@@ -129,8 +153,8 @@ private data class Socks5DialogState(
     val port: String,
     val username: String,
     val password: String,
-    val selectedApp: String,
-    val appNames: List<String>,
+    val selectedAppPackage: String,
+    val appOptions: List<ProxyDialogAppOption>,
     val udpBlocked: Boolean,
     val includeProxyApps: Boolean,
     val lockdown: Boolean,
@@ -139,12 +163,30 @@ private data class Socks5DialogState(
 
 private data class HttpDialogState(
     val host: String,
-    val selectedApp: String,
-    val appNames: List<String>,
+    val selectedAppPackage: String,
+    val appOptions: List<ProxyDialogAppOption>,
     val includeProxyApps: Boolean,
     val lockdown: Boolean,
     val error: String? = null
 )
+
+private data class ProxyDialogAppOption(
+    val packageName: String,
+    val label: String,
+    val iconLookupName: String = label
+)
+
+private object ProxyDialogAppIconCache {
+    private const val CACHE_SIZE = 192
+    private val cache = LruCache<String, Drawable>(CACHE_SIZE)
+
+    fun get(key: String): Drawable? = cache.get(key)
+
+    fun put(key: String, icon: Drawable?) {
+        if (key.isBlank() || icon == null) return
+        cache.put(key, icon)
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -194,7 +236,6 @@ fun ProxySettingsScreen(
     val defaultSocks5NoAppTemplate = stringResource(R.string.settings_socks_forwarding_desc_no_app)
     val defaultSocks5WithAppTemplate = stringResource(R.string.settings_socks_forwarding_desc)
     val httpProxyDescriptionTemplate = stringResource(R.string.settings_http_proxy_desc)
-    val orbotInstallDescription = stringResource(R.string.settings_orbot_install_desc)
     val orbotStatus2Description = stringResource(R.string.orbot_bs_status_2)
     val orbotStatus1Template = stringResource(R.string.orbot_bs_status_1)
     val orbotStatus3Template = stringResource(R.string.orbot_bs_status_3)
@@ -435,7 +476,6 @@ fun ProxySettingsScreen(
                     httpProxyDescriptionTemplate = httpProxyDescriptionTemplate,
                     defaultSocks5DescriptionNoApp = defaultSocks5NoAppTemplate,
                     defaultSocks5DescriptionWithApp = defaultSocks5WithAppTemplate,
-                    orbotInstallDescription = orbotInstallDescription,
                     orbotDisabledDescription = defaultOrbotDescription,
                     orbotStatus2Description = orbotStatus2Description,
                     orbotStatus1Template = orbotStatus1Template,
@@ -516,10 +556,10 @@ fun ProxySettingsScreen(
         val orbotOffsetDp =
             when (key) {
                 "proxy_orbot" -> 0
-                "proxy_orbot_apps" -> 96
+                "proxy_orbot_apps" -> 70
                 "proxy_orbot_open_app",
-                "proxy_orbot_notification" -> if (mappingViewModel != null) 178 else 96
-                "proxy_orbot_info" -> if (mappingViewModel != null) 262 else 178
+                "proxy_orbot_notification" -> 70
+                "proxy_orbot_info" -> if (mappingViewModel != null) 132 else 70
                 else -> null
             }
 
@@ -532,6 +572,16 @@ fun ProxySettingsScreen(
             }
         }
         pendingFocusKey = ""
+    }
+
+    if (showOrbotAppsDialog && mappingViewModel != null) {
+        WgIncludeAppsScreen(
+            viewModel = mappingViewModel,
+            proxyId = ProxyManager.ID_ORBOT_BASE,
+            proxyName = ProxyManager.ORBOT_PROXY_NAME,
+            onDismiss = { showOrbotAppsDialog = false }
+        )
+        return
     }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
@@ -714,67 +764,43 @@ fun ProxySettingsScreen(
             // Orbot
             item {
                 SectionHeader(title = stringResource(R.string.orbot))
-                RethinkListGroup {
-                    val isAdvancedVisible = canEnableProxy && !orbotConnecting
-                    RethinkToggleListItem(
-                        title = stringResource(R.string.orbot),
-                        description = if (orbotConnecting) stringResource(R.string.orbot_bs_status_trying_connect) else orbotDescription,
-                        iconRes = R.drawable.ic_orbot,
-                        checked = orbotEnabled,
-                        position = if (isAdvancedVisible) CardPosition.First else CardPosition.Single,
-                        highlighted = activeFocusKey == "proxy_orbot",
-                        onRowClick = {
-                            if (canEnableProxy && !orbotConnecting) {
-                                if (orbotEnabled) enableOrbotFlow() else enableOrbotFlow()
-                            }
+                val isOrbotInteractive = canEnableProxy && !orbotConnecting
+                OrbotSettingsPanel(
+                    title = stringResource(R.string.orbot),
+                    description =
+                        if (orbotConnecting) {
+                            stringResource(R.string.orbot_bs_status_trying_connect)
+                        } else {
+                            orbotDescription
                         },
-                        enabled = canEnableProxy && !orbotConnecting,
-                        onCheckedChange = { enabled ->
-                            if (enabled) {
-                                enableOrbotFlow()
-                            } else {
-                                stopOrbotForwarding(showDialog = true)
-                            }
+                    checked = orbotEnabled,
+                    connecting = orbotConnecting,
+                    enabled = isOrbotInteractive,
+                    appCount = if (mappingViewModel != null) orbotAppCount else null,
+                    highlightedKey = activeFocusKey,
+                    onMainClick = {
+                        if (isOrbotInteractive) {
+                            enableOrbotFlow()
                         }
-                    )
-
-                    if (isAdvancedVisible) {
+                    },
+                    onCheckedChange = { checked ->
+                        if (checked) {
+                            enableOrbotFlow()
+                        } else {
+                            stopOrbotForwarding(showDialog = true)
+                        }
+                    },
+                    onAppsClick =
                         if (mappingViewModel != null) {
-                            RethinkActionListItem(
-                                title = stringResource(R.string.add_remove_apps, orbotAppCount.toString()),
-                                icon = Icons.Rounded.Apps,
-                                position = CardPosition.Middle,
-                                highlighted = activeFocusKey == "proxy_orbot_apps",
-                                onClick = { showOrbotAppsDialog = true }
-                            )
-                        }
-                        RethinkActionListItem(
-                            title = stringResource(R.string.settings_orbot_notification_action),
-                            icon = Icons.AutoMirrored.Filled.ArrowForward,
-                            position = CardPosition.Middle,
-                            highlighted = activeFocusKey == "proxy_orbot_open_app",
-                            onClick = { orbotHelper.openOrbotApp() }
-                        )
-                        RethinkActionListItem(
-                            title = stringResource(R.string.lbl_info),
-                            icon = Icons.Rounded.Info,
-                            position = CardPosition.Last,
-                            highlighted = activeFocusKey == "proxy_orbot_info",
-                            onClick = { showOrbotInfoDialog = true }
-                        )
-                    }
-                }
+                            { showOrbotAppsDialog = true }
+                        } else {
+                            null
+                        },
+                    onOpenAppClick = { orbotHelper.openOrbotApp() },
+                    onInfoClick = { showOrbotInfoDialog = true }
+                )
             }
         }
-    }
-
-    if (showOrbotAppsDialog && mappingViewModel != null) {
-        WgIncludeAppsDialog(
-            viewModel = mappingViewModel,
-            proxyId = ProxyManager.ID_ORBOT_BASE,
-            proxyName = ProxyManager.ORBOT_PROXY_NAME,
-            onDismiss = { showOrbotAppsDialog = false }
-        )
     }
 
     if (showOrbotInfoDialog) {
@@ -945,13 +971,6 @@ fun ProxySettingsScreen(
                     }
 
                     withContext(Dispatchers.IO) {
-                        val appPackage =
-                            if (current.selectedApp == defaultAppLabel) {
-                                ""
-                            } else {
-                                FirewallManager.getPackageNameByAppName(current.selectedApp) ?: ""
-                            }
-
                         var endpoint = appConfig.getSocks5ProxyDetails()
                         if (endpoint == null) {
                             appConfig.addProxy(
@@ -966,7 +985,7 @@ fun ProxySettingsScreen(
                             it.proxyPort = current.port.toInt()
                             it.userName = current.username.ifBlank { null }
                             it.password = current.password.ifBlank { null }
-                            it.proxyAppName = appPackage
+                            it.proxyAppName = current.selectedAppPackage
                             it.isUDP = current.udpBlocked
                             appConfig.updateCustomSocks5Proxy(it)
                         }
@@ -976,7 +995,7 @@ fun ProxySettingsScreen(
                     }
 
                     logEvent(
-                        "Custom SOCKS5 updated: ${current.host}:${current.port}, app=${current.selectedApp}, udp=${current.udpBlocked}"
+                        "Custom SOCKS5 updated: ${current.host}:${current.port}, app=${current.selectedAppLabel()}, udp=${current.udpBlocked}"
                     )
                     socks5DialogState = null
                     reloadUi()
@@ -1013,13 +1032,6 @@ fun ProxySettingsScreen(
                     }
 
                     withContext(Dispatchers.IO) {
-                        val appPackage =
-                            if (current.selectedApp == defaultAppLabel) {
-                                ""
-                            } else {
-                                FirewallManager.getPackageNameByAppName(current.selectedApp) ?: ""
-                            }
-
                         var endpoint = appConfig.getHttpProxyDetails()
                         if (endpoint == null) {
                             appConfig.addProxy(
@@ -1034,7 +1046,7 @@ fun ProxySettingsScreen(
                             it.proxyPort = 0
                             it.userName = null
                             it.password = null
-                            it.proxyAppName = appPackage
+                            it.proxyAppName = current.selectedAppPackage
                             appConfig.updateCustomHttpProxy(it)
                         }
 
@@ -1046,12 +1058,302 @@ fun ProxySettingsScreen(
                         httpProxyToastSuccess,
                         Toast.LENGTH_SHORT
                     )
-                    logEvent("Custom HTTP updated: ${current.host}, app=${current.selectedApp}")
+                    logEvent(
+                        "Custom HTTP updated: ${current.host}, app=${current.selectedAppLabel()}"
+                    )
                     httpDialogState = null
                     reloadUi()
                 }
             }
         )
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun OrbotSettingsPanel(
+    title: String,
+    description: String,
+    checked: Boolean,
+    connecting: Boolean,
+    enabled: Boolean,
+    appCount: Int?,
+    highlightedKey: String?,
+    onMainClick: () -> Unit,
+    onCheckedChange: (Boolean) -> Unit,
+    onAppsClick: (() -> Unit)?,
+    onOpenAppClick: () -> Unit,
+    onInfoClick: () -> Unit
+) {
+    val mainHighlighted = highlightedKey == "proxy_orbot"
+    val cardColor =
+        if (mainHighlighted) {
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.32f)
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        }
+
+    val statusText: String
+    val statusColor: Color
+    val statusBackground: Color
+    if (connecting) {
+        statusText = stringResource(R.string.status_waiting)
+        statusColor = MaterialTheme.colorScheme.primary
+        statusBackground = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+    } else if (checked) {
+        statusText = stringResource(R.string.lbl_active)
+        statusColor = MaterialTheme.colorScheme.tertiary
+        statusBackground = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.14f)
+    } else {
+        statusText = stringResource(R.string.lbl_inactive)
+        statusColor = MaterialTheme.colorScheme.onSurfaceVariant
+        statusBackground = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.14f)
+    }
+
+    val iconTint = if (connecting || checked) statusColor else MaterialTheme.colorScheme.onSurfaceVariant
+    val showActions = enabled
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
+        color = cardColor,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f))
+    ) {
+        Column(
+            modifier =
+                Modifier.padding(
+                    horizontal = Dimensions.spacingMd,
+                    vertical = Dimensions.spacingSmMd
+                ),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+        ) {
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .clickable(enabled = enabled, onClick = onMainClick),
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSmMd),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = statusBackground,
+                    modifier = Modifier.size(34.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.ic_orbot),
+                            contentDescription = null,
+                            tint = iconTint,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(2.dp)
+                ) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Surface(
+                        shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
+                        color = statusBackground
+                    ) {
+                        Text(
+                            text = statusText,
+                            style = MaterialTheme.typography.labelSmall,
+                            fontWeight = FontWeight.SemiBold,
+                            color = statusColor,
+                            modifier =
+                                Modifier.padding(
+                                    horizontal = 8.dp,
+                                    vertical = 2.dp
+                                )
+                        )
+                    }
+                }
+
+                Switch(
+                    checked = checked,
+                    enabled = enabled,
+                    onCheckedChange = onCheckedChange
+                )
+            }
+
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 3,
+                overflow = TextOverflow.Ellipsis
+            )
+
+            if (showActions) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.34f))
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+                ) {
+                    if (appCount != null && onAppsClick != null) {
+                        OrbotAppsActionChip(
+                            appCount = appCount,
+                            highlighted = highlightedKey == "proxy_orbot_apps",
+                            onClick = onAppsClick
+                        )
+                    }
+                    OrbotActionChip(
+                        label = stringResource(R.string.settings_orbot_notification_action),
+                        icon = Icons.AutoMirrored.Filled.ArrowForward,
+                        highlighted =
+                            highlightedKey == "proxy_orbot_open_app" ||
+                                highlightedKey == "proxy_orbot_notification",
+                        onClick = onOpenAppClick
+                    )
+                    OrbotActionChip(
+                        label = stringResource(R.string.lbl_info),
+                        icon = Icons.Rounded.Info,
+                        highlighted = highlightedKey == "proxy_orbot_info",
+                        onClick = onInfoClick
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrbotAppsActionChip(
+    appCount: Int,
+    highlighted: Boolean,
+    onClick: () -> Unit
+) {
+    val containerColor =
+        if (highlighted) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surface
+        }
+    val contentColor =
+        if (highlighted) {
+            MaterialTheme.colorScheme.onPrimaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        }
+    val badgeColor =
+        if (highlighted) {
+            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f)
+        } else {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
+        }
+
+    Surface(
+        modifier =
+            Modifier
+                .heightIn(min = Dimensions.touchTargetSm)
+                .clickable(onClick = onClick),
+        shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
+        color = containerColor,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f))
+    ) {
+        Row(
+            modifier =
+                Modifier.padding(
+                    horizontal = Dimensions.spacingMd,
+                    vertical = Dimensions.spacingXs
+                ),
+            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = Icons.Rounded.Apps,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(16.dp)
+            )
+            Text(
+                text = stringResource(R.string.lbl_apps),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Medium,
+                color = contentColor
+            )
+            Surface(
+                shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
+                color = badgeColor
+            ) {
+                Text(
+                    text = appCount.toString(),
+                    style = MaterialTheme.typography.labelSmall,
+                    fontWeight = FontWeight.SemiBold,
+                    color = contentColor,
+                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 1.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun OrbotActionChip(
+    label: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    highlighted: Boolean,
+    onClick: () -> Unit
+) {
+    val containerColor =
+        if (highlighted) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surface
+        }
+    val contentColor =
+        if (highlighted) {
+            MaterialTheme.colorScheme.onPrimaryContainer
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        }
+
+    Surface(
+        modifier =
+            Modifier
+                .heightIn(min = Dimensions.touchTargetSm)
+                .clickable(onClick = onClick),
+        shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
+        color = containerColor,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f))
+    ) {
+        Row(
+            modifier =
+                Modifier.padding(
+                    horizontal = Dimensions.spacingMd,
+                    vertical = Dimensions.spacingXs
+                ),
+            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = contentColor,
+                modifier = Modifier.size(16.dp)
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Medium,
+                color = contentColor,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
     }
 }
 
@@ -1298,11 +1600,11 @@ private fun Socks5Dialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                RethinkDropdownSelector(
-                    selectedText = state.selectedApp,
-                    options = state.appNames,
-                    onOptionSelected = { appName ->
-                        onStateChange(state.copy(selectedApp = appName, error = null))
+                ProxyAppSelectorField(
+                    selectedPackageName = state.selectedAppPackage,
+                    options = state.appOptions,
+                    onOptionSelected = { packageName ->
+                        onStateChange(state.copy(selectedAppPackage = packageName, error = null))
                     }
                 )
 
@@ -1416,11 +1718,11 @@ private fun HttpDialog(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
-                RethinkDropdownSelector(
-                    selectedText = state.selectedApp,
-                    options = state.appNames,
-                    onOptionSelected = { appName ->
-                        onStateChange(state.copy(selectedApp = appName, error = null))
+                ProxyAppSelectorField(
+                    selectedPackageName = state.selectedAppPackage,
+                    options = state.appOptions,
+                    onOptionSelected = { packageName ->
+                        onStateChange(state.copy(selectedAppPackage = packageName, error = null))
                     }
                 )
 
@@ -1476,6 +1778,184 @@ private fun HttpDialog(
     )
 }
 
+private fun Socks5DialogState.selectedAppLabel(): String {
+    return selectedProxyAppLabel(selectedAppPackage, appOptions)
+}
+
+private fun HttpDialogState.selectedAppLabel(): String {
+    return selectedProxyAppLabel(selectedAppPackage, appOptions)
+}
+
+private fun selectedProxyAppLabel(selectedPackageName: String, options: List<ProxyDialogAppOption>): String {
+    return options.firstOrNull { it.packageName == selectedPackageName }?.label
+        ?: options.firstOrNull()?.label
+        ?: ""
+}
+
+@Composable
+private fun ProxyAppSelectorField(
+    selectedPackageName: String,
+    options: List<ProxyDialogAppOption>,
+    onOptionSelected: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true
+) {
+    var expanded by remember { mutableStateOf(false) }
+    var anchorSize by remember { mutableStateOf(IntSize.Zero) }
+    var anchorOffset by remember { mutableStateOf(IntOffset.Zero) }
+    val density = LocalDensity.current
+    val selectorShape = RoundedCornerShape(Dimensions.cornerRadiusMdLg)
+    val selectedOption =
+        options.firstOrNull { it.packageName == selectedPackageName } ?: options.firstOrNull()
+    val containerColor =
+        if (enabled) {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        }
+
+    Box(modifier = modifier.fillMaxWidth()) {
+        Surface(
+            shape = selectorShape,
+            color = containerColor,
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .onGloballyPositioned { coordinates ->
+                        anchorSize = coordinates.size
+                        val windowPos = coordinates.positionInWindow()
+                        anchorOffset = IntOffset(windowPos.x.roundToInt(), windowPos.y.roundToInt())
+                    }
+                    .clip(selectorShape)
+                    .clickable(enabled = enabled) { expanded = true }
+        ) {
+            Row(
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingSm),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
+            ) {
+                ProxyDialogAppIcon(option = selectedOption, size = 24.dp)
+                Text(
+                    text = selectedOption?.label.orEmpty(),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowDown,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+
+        if (expanded && enabled && anchorSize.width > 0) {
+            Popup(
+                alignment = Alignment.TopStart,
+                offset = IntOffset(anchorOffset.x, anchorOffset.y + anchorSize.height),
+                onDismissRequest = { expanded = false },
+                properties = PopupProperties(focusable = true, clippingEnabled = true)
+            ) {
+                Surface(
+                    shape = selectorShape,
+                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
+                    shadowElevation = 8.dp,
+                    tonalElevation = 6.dp,
+                    modifier =
+                        Modifier
+                            .width(with(density) { anchorSize.width.toDp() })
+                            .heightIn(max = 360.dp)
+                            .clip(selectorShape)
+                ) {
+                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
+                        items(items = options) { option ->
+                            DropdownMenuItem(
+                                leadingIcon = { ProxyDialogAppIcon(option = option, size = 20.dp) },
+                                text = {
+                                    Text(
+                                        text = option.label,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                },
+                                onClick = {
+                                    expanded = false
+                                    onOptionSelected(option.packageName)
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProxyDialogAppIcon(
+    option: ProxyDialogAppOption?,
+    size: androidx.compose.ui.unit.Dp
+) {
+    if (option == null || option.packageName.isBlank()) {
+        ProxyDialogIconPlaceholder(size = size)
+        return
+    }
+
+    val context = LocalContext.current
+    val cacheKey = option.packageName.ifBlank { option.iconLookupName }
+    var iconDrawable by
+        remember(cacheKey) {
+            mutableStateOf(
+                if (cacheKey.isBlank()) {
+                    null
+                } else {
+                    ProxyDialogAppIconCache.get(cacheKey)
+                }
+            )
+        }
+
+    LaunchedEffect(cacheKey, option.packageName, option.iconLookupName) {
+        if (iconDrawable != null || option.packageName.isBlank()) return@LaunchedEffect
+        val icon =
+            withContext(Dispatchers.IO) {
+                getIcon(context, option.packageName, option.iconLookupName)
+            }
+        iconDrawable = icon
+        ProxyDialogAppIconCache.put(cacheKey, icon)
+    }
+
+    val painter = rememberDrawablePainter(iconDrawable)
+    if (painter != null) {
+        Image(
+            painter = painter,
+            contentDescription = null,
+            modifier =
+                Modifier
+                    .size(size)
+                    .clip(RoundedCornerShape(8.dp))
+        )
+    } else {
+        ProxyDialogIconPlaceholder(size = size)
+    }
+}
+
+@Composable
+private fun ProxyDialogIconPlaceholder(size: androidx.compose.ui.unit.Dp) {
+    Surface(
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.72f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f)),
+        modifier = Modifier.size(size)
+    ) {}
+}
+
 private suspend fun buildProxyScreenState(
     context: android.content.Context,
     appConfig: AppConfig,
@@ -1484,7 +1964,6 @@ private suspend fun buildProxyScreenState(
     httpProxyDescriptionTemplate: String,
     defaultSocks5DescriptionNoApp: String,
     defaultSocks5DescriptionWithApp: String,
-    orbotInstallDescription: String,
     orbotDisabledDescription: String,
     orbotStatus2Description: String,
     orbotStatus1Template: String,
@@ -1533,7 +2012,6 @@ private suspend fun buildProxyScreenState(
         formatOrbotDescription(
             context,
             appConfig,
-            orbotInstallDescription,
             orbotDisabledDescription,
             orbotStatus2Description,
             orbotStatus1Template,
@@ -1593,7 +2071,6 @@ private suspend fun formatSocks5Description(
 private suspend fun formatOrbotDescription(
     context: android.content.Context,
     appConfig: AppConfig,
-    orbotInstallDescription: String,
     orbotDisabledDescription: String,
     orbotStatus2Description: String,
     orbotStatus1Template: String,
@@ -1603,7 +2080,7 @@ private suspend fun formatOrbotDescription(
 ): String {
     val isInstalled = FirewallManager.isOrbotInstalled()
     if (!isInstalled) {
-        return orbotInstallDescription
+        return orbotDisabledDescription
     }
 
     if (!appConfig.isOrbotProxyEnabled()) {
@@ -1753,17 +2230,13 @@ private suspend fun buildSocks5DialogState(
     defaultApp: String
 ): Socks5DialogState {
     val endpoint = runCatching { appConfig.getSocks5ProxyDetails() }.getOrNull()
-    val selectedApp =
-        if (endpoint?.proxyAppName.isNullOrBlank()) {
-            defaultApp
+    val appOptions = buildProxyDialogAppOptions(context, defaultApp)
+    val selectedPackage = endpoint?.proxyAppName.orEmpty()
+    val normalizedSelectedPackage =
+        if (appOptions.any { it.packageName == selectedPackage }) {
+            selectedPackage
         } else {
-            FirewallManager.getAppInfoByPackage(endpoint.proxyAppName)?.appName ?: defaultApp
-        }
-
-    val appNames =
-        buildList {
-            add(defaultApp)
-            addAll(FirewallManager.getAllAppNamesSortedByVpnPermission(context))
+            ""
         }
 
     return Socks5DialogState(
@@ -1776,8 +2249,8 @@ private suspend fun buildSocks5DialogState(
             },
         username = endpoint?.userName.orEmpty(),
         password = endpoint?.password.orEmpty(),
-        selectedApp = selectedApp,
-        appNames = appNames,
+        selectedAppPackage = normalizedSelectedPackage,
+        appOptions = appOptions,
         udpBlocked = persistentState.getUdpBlocked(),
         includeProxyApps = !persistentState.excludeAppsInProxy,
         lockdown = VpnController.isVpnLockdown()
@@ -1791,25 +2264,52 @@ private suspend fun buildHttpDialogState(
     defaultApp: String
 ): HttpDialogState {
     val endpoint = runCatching { appConfig.getHttpProxyDetails() }.getOrNull()
-    val selectedApp =
-        if (endpoint?.proxyAppName.isNullOrBlank()) {
-            defaultApp
+    val appOptions = buildProxyDialogAppOptions(context, defaultApp)
+
+    val selectedPackage = endpoint?.proxyAppName.orEmpty()
+    val normalizedSelectedPackage =
+        if (appOptions.any { it.packageName == selectedPackage }) {
+            selectedPackage
         } else {
-            FirewallManager.getAppInfoByPackage(endpoint.proxyAppName)?.appName ?: defaultApp
-        }
-    val appNames =
-        buildList {
-            add(defaultApp)
-            addAll(FirewallManager.getAllAppNamesSortedByVpnPermission(context))
+            ""
         }
 
     return HttpDialogState(
         host = endpoint?.proxyIP ?: "http://127.0.0.1:8118",
-        selectedApp = selectedApp,
-        appNames = appNames,
+        selectedAppPackage = normalizedSelectedPackage,
+        appOptions = appOptions,
         includeProxyApps = !persistentState.excludeAppsInProxy,
         lockdown = VpnController.isVpnLockdown()
     )
+}
+
+private suspend fun buildProxyDialogAppOptions(
+    context: android.content.Context,
+    defaultApp: String
+): List<ProxyDialogAppOption> {
+    val sortedApps = FirewallManager.getAllAppsSortedByVpnPermission(context)
+    val duplicateCountByName = sortedApps.groupingBy { it.appName }.eachCount()
+
+    return buildList {
+        add(ProxyDialogAppOption(packageName = "", label = defaultApp))
+        sortedApps.forEach { appInfo ->
+            val appName = appInfo.appName
+            val packageName = appInfo.packageName.orEmpty()
+            val label =
+                if (duplicateCountByName[appName] ?: 0 > 1 && packageName.isNotBlank()) {
+                    "$appName ($packageName)"
+                } else {
+                    appName
+                }
+            add(
+                ProxyDialogAppOption(
+                    packageName = packageName,
+                    label = label,
+                    iconLookupName = appName
+                )
+            )
+        }
+    }
 }
 
 private fun validateSocks5Input(
