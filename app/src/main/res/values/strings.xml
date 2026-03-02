@@ -120,7 +120,7 @@
     <string name="lbl_optional" translatable="true">(optional)</string>
     <string name="lbl_persistent_keepalive" translatable="true">Persistent keepalive</string>
     <string name="lbl_allowed_ips" translatable="true">Allowed IPs</string>
-    <string name="lbl_save" translatable="true">save</string>
+    <string name="lbl_save" translatable="true">Save</string>
     <string name="lbl_dot" translatable="false">DoT</string>
     <string name="lbl_odoh" translatable="false">ODoH</string>
     <string name="lbl_cache" translatable="true">Cache</string>

@@ -15,6 +15,10 @@
  */
 package com.celzero.bravedns.ui.compose.wireguard
 
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.annotation.Keep
 import androidx.compose.foundation.BorderStroke
@@ -24,11 +28,12 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.lazy.LazyColumn
@@ -47,6 +52,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -55,11 +61,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.PersistentState
@@ -113,6 +121,7 @@ fun WgConfigEditorScreen(
     onSaveSuccess: () -> Unit
 ) {
     val context = LocalContext.current
+    val activity = context.findActivity()
     val scope = rememberCoroutineScope()
     val publicKeyCopyToast = stringResource(R.string.public_key_copy_toast_msg)
     val configAddSuccessToast = stringResource(R.string.config_add_success_toast)
@@ -237,9 +246,29 @@ fun WgConfigEditorScreen(
     }
 
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val density = LocalDensity.current
+    val imeBottomInset = with(density) { WindowInsets.ime.getBottom(density).toDp() }
+    val navBottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
+    val actionBarBottomInset = when {
+        imeBottomInset > 0.dp -> imeBottomInset
+        navBottomInset > 0.dp -> navBottomInset
+        else -> 48.dp
+    }
+    DisposableEffect(activity) {
+        val window = activity?.window
+        val previousSoftInputMode = window?.attributes?.softInputMode
+        window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_ADJUST_RESIZE)
+
+        onDispose {
+            if (previousSoftInputMode != null) {
+                window.setSoftInputMode(previousSoftInputMode)
+            }
+        }
+    }
 
     Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+        modifier = Modifier
+            .nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             RethinkLargeTopBar(
                 title = stringResource(R.string.lbl_configure),
@@ -249,6 +278,7 @@ fun WgConfigEditorScreen(
         },
         bottomBar = {
             EditorActionsBar(
+                bottomInset = actionBarBottomInset,
                 onCancelClick = onBackClick,
                 onSaveClick = { saveConfig() }
             )
@@ -257,7 +287,6 @@ fun WgConfigEditorScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .imePadding()
                 .padding(padding),
             contentPadding = PaddingValues(
                 start = Dimensions.screenPaddingHorizontal,
@@ -391,6 +420,14 @@ fun WgConfigEditorScreen(
     }
 }
 
+private tailrec fun Context.findActivity(): Activity? {
+    return when (this) {
+        is Activity -> this
+        is ContextWrapper -> baseContext.findActivity()
+        else -> null
+    }
+}
+
 @Composable
 private fun WgEditorOverviewCard(name: String) {
     Surface(
@@ -451,14 +488,15 @@ private fun EditorSectionCard(
 
 @Composable
 private fun EditorActionsBar(
+    bottomInset: Dp,
     onCancelClick: () -> Unit,
     onSaveClick: () -> Unit
 ) {
+    val actionBottomPadding = Dimensions.spacingSm + bottomInset
+
     Surface(
         modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .imePadding(),
+            .fillMaxWidth(),
         color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 2.dp,
         shadowElevation = 8.dp
@@ -472,7 +510,7 @@ private fun EditorActionsBar(
                         start = Dimensions.screenPaddingHorizontal,
                         end = Dimensions.screenPaddingHorizontal,
                         top = Dimensions.spacingSm,
-                        bottom = Dimensions.spacingSm
+                        bottom = actionBottomPadding
                     ),
                 horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
             ) {

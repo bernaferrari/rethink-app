@@ -21,17 +21,24 @@ import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.util.LruCache
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutLinearInEasing
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.updateTransition
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -58,6 +65,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -186,26 +194,8 @@ fun FirewallAppRow(
         } else {
             MaterialTheme.colorScheme.onSurfaceVariant
         }
-    val wifiContainerColor by animateColorAsState(
-        targetValue =
-            if (wifiBlocked) {
-                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.45f)
-            } else {
-                Color.Transparent
-            },
-        animationSpec = tween(durationMillis = 200),
-        label = "wifiContainerColor"
-    )
-    val mobileContainerColor by animateColorAsState(
-        targetValue =
-            if (mobileBlocked) {
-                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.45f)
-            } else {
-                Color.Transparent
-            },
-        animationSpec = tween(durationMillis = 200),
-        label = "mobileContainerColor"
-    )
+    val wifiCircleMotion = rememberBlockCircleMotion(blocked = wifiBlocked, labelPrefix = "wifi")
+    val mobileCircleMotion = rememberBlockCircleMotion(blocked = mobileBlocked, labelPrefix = "mobile")
 
     val shape = rowShapeFor(rowPosition)
 
@@ -318,10 +308,22 @@ fun FirewallAppRow(
             }
 
             if (wifiIcon != null) {
-                Surface(
-                    shape = CircleShape,
-                    color = wifiContainerColor
+                Box(
+                    modifier = Modifier.size(34.dp),
+                    contentAlignment = Alignment.Center
                 ) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    alpha = wifiCircleMotion.alpha
+                                    scaleX = wifiCircleMotion.scale
+                                    scaleY = wifiCircleMotion.scale
+                                }
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.errorContainer)
+                    )
                     IconButton(
                         onClick = {
                             handleWifiToggle(
@@ -342,7 +344,7 @@ fun FirewallAppRow(
                                 }
                             )
                         },
-                        modifier = Modifier.size(34.dp)
+                        modifier = Modifier.fillMaxSize().clip(CircleShape)
                     ) {
                         DiagonalWipeIcon(
                             blocked = wifiBlocked,
@@ -358,10 +360,22 @@ fun FirewallAppRow(
             }
 
             if (mobileIcon != null) {
-                Surface(
-                    shape = CircleShape,
-                    color = mobileContainerColor
+                Box(
+                    modifier = Modifier.size(34.dp),
+                    contentAlignment = Alignment.Center
                 ) {
+                    Box(
+                        modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .graphicsLayer {
+                                    alpha = mobileCircleMotion.alpha
+                                    scaleX = mobileCircleMotion.scale
+                                    scaleY = mobileCircleMotion.scale
+                                }
+                                .clip(CircleShape)
+                                .background(MaterialTheme.colorScheme.errorContainer)
+                    )
                     IconButton(
                         onClick = {
                             handleMobileToggle(
@@ -382,7 +396,7 @@ fun FirewallAppRow(
                                 }
                             )
                         },
-                        modifier = Modifier.size(34.dp)
+                        modifier = Modifier.fillMaxSize().clip(CircleShape)
                     ) {
                         DiagonalWipeIcon(
                             blocked = mobileBlocked,
@@ -465,6 +479,47 @@ private data class FirewallAppDialogState(
     val appInfo: AppInfo,
     val isWifi: Boolean
 )
+
+private data class BlockCircleMotion(
+    val alpha: Float,
+    val scale: Float
+)
+
+@Composable
+private fun rememberBlockCircleMotion(blocked: Boolean, labelPrefix: String): BlockCircleMotion {
+    val transition = updateTransition(targetState = blocked, label = "${labelPrefix}BlockCircle")
+
+    val alpha by transition.animateFloat(
+        transitionSpec = {
+            if (false isTransitioningTo true) {
+                tween(durationMillis = 240, easing = FastOutSlowInEasing)
+            } else {
+                tween(durationMillis = 170, easing = FastOutLinearInEasing)
+            }
+        },
+        label = "${labelPrefix}BlockCircleAlpha"
+    ) { isBlocked ->
+        if (isBlocked) 0.44f else 0f
+    }
+
+    val scale by transition.animateFloat(
+        transitionSpec = {
+            if (false isTransitioningTo true) {
+                spring(
+                    dampingRatio = 0.80f,
+                    stiffness = 620f
+                )
+            } else {
+                tween(durationMillis = 190, easing = FastOutLinearInEasing)
+            }
+        },
+        label = "${labelPrefix}BlockCircleScale"
+    ) { isBlocked ->
+        if (isBlocked) 1f else 0.72f
+    }
+
+    return BlockCircleMotion(alpha = alpha, scale = scale)
+}
 
 private fun buildDataUsageText(context: Context, appInfo: AppInfo): String {
     val u = Utilities.humanReadableByteCount(appInfo.uploadBytes, true)
