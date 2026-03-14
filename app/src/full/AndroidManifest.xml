@@ -116,6 +116,12 @@
             android:name=".ui.activity.CheckoutActivity"
             android:finishOnTaskLaunch="true" />
         <activity
+            android:name=".ui.activity.PurchaseHistoryActivity"
+            android:finishOnTaskLaunch="true" />
+        <activity
+            android:name=".ui.activity.CustomerSupportActivity"
+            android:finishOnTaskLaunch="true" />
+        <activity
             android:name=".ui.activity.TcpProxyMainActivity"
             android:finishOnTaskLaunch="true" />
         <activity
@@ -159,10 +165,10 @@
         <activity
             android:name=".ui.activity.DomainConnectionsActivity"
             android:finishOnTaskLaunch="true" />
-        <!--<activity
+        <activity
             android:name=".ui.activity.PingTestActivity"
             android:finishOnTaskLaunch="true" />
-        <activity android:name=".ui.activity.RpnCountriesActivity"
+        <!--<activity android:name=".ui.activity.RpnCountriesActivity"
             android:finishOnTaskLaunch="true" />
         <activity android:name=".ui.activity.RpnAvailabilityCheckActivity"
             android:finishOnTaskLaunch="true" />-->
