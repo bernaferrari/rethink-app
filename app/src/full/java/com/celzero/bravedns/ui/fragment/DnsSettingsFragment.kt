@@ -57,7 +57,6 @@ import com.celzero.bravedns.util.UIUtils.setBadgeDotVisible
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastR
 import com.celzero.bravedns.util.Utilities.isPlayStoreFlavour
-import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.firestack.backend.Backend
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
@@ -222,13 +221,6 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
     }
 
     private fun showSplitDnsUi() {
-        if (persistentState.enableDnsAlg) {
-            b.dvBypassDnsBlockRl.visibility = View.VISIBLE
-            b.dvBypassDnsBlockSwitch.isChecked = persistentState.bypassBlockInDns
-        } else {
-            b.dvBypassDnsBlockRl.visibility = View.GONE
-        }
-
         if (isAtleastR()) {
             // show split dns by default only if the device is running on Android 12 or above
             b.dcSplitDnsRl.visibility = View.VISIBLE
@@ -584,24 +576,6 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
             )
         }
 
-        b.dvBypassDnsBlockSwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (!persistentState.enableDnsAlg) return@setOnCheckedChangeListener
-
-            persistentState.bypassBlockInDns = isChecked
-            if (isChecked) {
-                // Enable experimental-dependent settings when experimental features are enabled
-                requireContext().let { persistentState.enableStabilityDependentSettings(it) }
-            }
-            logEvent(
-                "bypass dns block? $isChecked",
-                "User changed bypass dns block setting to $isChecked"
-            )
-        }
-
-        b.dvBypassDnsBlockRl.setOnClickListener {
-            b.dvBypassDnsBlockSwitch.isChecked = !b.dvBypassDnsBlockSwitch.isChecked
-        }
-
         b.dcSplitDnsSwitch.setOnCheckedChangeListener { _, isChecked ->
             persistentState.splitDns = isChecked
             if (isChecked) {
@@ -684,7 +658,7 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
                     return@forEach
                 }
                 val transport = VpnController.getPlusTransportById(it)
-                val address = transport?.addr?.tos() ?: ""
+                val address = transport?.addr ?: ""
                 if (address.isNotEmpty()) dnsList.add(address)
             }
 
