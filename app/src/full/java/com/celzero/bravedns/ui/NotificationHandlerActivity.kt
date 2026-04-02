@@ -28,17 +28,23 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.net.toUri
 import androidx.core.view.WindowInsetsControllerCompat
 import com.celzero.bravedns.R
+import com.celzero.bravedns.iab.InAppBillingHandler
+import com.celzero.bravedns.iab.PurchaseConflictNotifier
+import com.celzero.bravedns.iab.ServerApiError
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.activity.AppInfoActivity
 import com.celzero.bravedns.ui.activity.AppInfoActivity.Companion.INTENT_UID
 import com.celzero.bravedns.ui.activity.AppListActivity
 import com.celzero.bravedns.ui.activity.AppLockActivity
+import com.celzero.bravedns.ui.activity.FragmentHostActivity
 import com.celzero.bravedns.ui.activity.MiscSettingsActivity.BioMetricType
 import com.celzero.bravedns.ui.activity.PauseActivity
 import com.celzero.bravedns.ui.activity.WgMainActivity
+import com.celzero.bravedns.ui.fragment.ManagePurchaseFragment
 import com.celzero.bravedns.util.Constants
-import com.celzero.bravedns.util.Themes
+import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME
+import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
@@ -63,6 +69,7 @@ class NotificationHandlerActivity: AppCompatActivity() {
         HOME_SCREEN_ACTIVITY,
         PAUSE_ACTIVITY,
         WIREGUARD_ACTIVITY,
+        PURCHASE_CONFLICT,
         NONE
     }
 
@@ -121,6 +128,8 @@ class NotificationHandlerActivity: AppCompatActivity() {
                 TrampolineType.NEW_APP_INSTALL_DIALOG
             } else if (isWireGuardIntent(intent)) {
                 TrampolineType.WIREGUARD_ACTIVITY
+            } else if (isPurchaseConflictIntent(intent)) {
+                TrampolineType.PURCHASE_CONFLICT
             } else {
                 TrampolineType.NONE
             }
@@ -146,9 +155,65 @@ class NotificationHandlerActivity: AppCompatActivity() {
             TrampolineType.WIREGUARD_ACTIVITY -> {
                 launchWireGuardActivityAndFinish()
             }
+            TrampolineType.PURCHASE_CONFLICT -> {
+                launchPurchaseConflictAndFinish(intent)
+            }
             TrampolineType.NONE -> {
                 launchHomeScreenAndFinish()
             }
+        }
+    }
+
+    /**
+     * Rebuilds the [ServerApiError.Conflict409] from the notification intent extras,
+     * re-posts it to [InAppBillingHandler.serverApiErrorLiveData], cancels the notification,
+     * then opens [ManagePurchaseFragment] via [FragmentHostActivity].
+     *
+     * [ManagePurchaseFragment.setupServerErrorObserver] observes the LiveData and will
+     * immediately show [PurchaseConflictBottomSheet] — the same path used when the app is
+     * already in the foreground.
+     */
+    private fun launchPurchaseConflictAndFinish(intent: Intent) {
+        try {
+            val operationName = intent.getStringExtra(PurchaseConflictNotifier.EXTRA_OPERATION)
+                ?: ServerApiError.Operation.CANCEL.name
+            val operation = try {
+                ServerApiError.Operation.valueOf(operationName)
+            } catch (_: IllegalArgumentException) {
+                ServerApiError.Operation.CANCEL
+            }
+
+            val error = ServerApiError.Conflict409(
+                endpoint      = intent.getStringExtra(PurchaseConflictNotifier.EXTRA_ENDPOINT)
+                                    ?: operation.endpoint,
+                operation     = operation,
+                serverMessage = intent.getStringExtra(PurchaseConflictNotifier.EXTRA_SERVER_MSG),
+                accountId     = intent.getStringExtra(PurchaseConflictNotifier.EXTRA_ACCOUNT_ID) ?: "",
+                deviceId      = intent.getStringExtra(PurchaseConflictNotifier.EXTRA_DEVICE_ID) ?: "",
+                purchaseToken = intent.getStringExtra(PurchaseConflictNotifier.EXTRA_PURCHASE_TOKEN) ?: "",
+                sku           = intent.getStringExtra(PurchaseConflictNotifier.EXTRA_SKU) ?: ""
+            )
+
+            // Re-post to LiveData on main thread — ManageSubscriptionFragment's observer
+            // picks this up and shows PurchaseConflictBottomSheet automatically.
+            InAppBillingHandler.serverApiErrorLiveData.value = error
+
+            // Dismiss the notification — user has tapped it and we are handling it.
+            PurchaseConflictNotifier.cancel(this)
+
+            Logger.i(LOG_TAG_UI, "launchPurchaseConflictAndFinish: re-posted conflict409, op=$operation")
+
+            val hostIntent = FragmentHostActivity.createIntent(
+                context       = this,
+                fragmentClass = ManagePurchaseFragment::class.java
+            ).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+            startActivity(hostIntent)
+            finish()
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_UI, "launchPurchaseConflictAndFinish: error: ${e.message}", e)
+            launchHomeScreenAndFinish()
         }
     }
 
@@ -260,8 +325,14 @@ class NotificationHandlerActivity: AppCompatActivity() {
 
     private fun isWireGuardIntent(intent: Intent): Boolean {
         if (intent.extras == null) return false
-
         val what = intent.extras?.getString(Constants.NOTIF_WG_PERMISSION_NAME)
         return Constants.NOTIF_WG_PERMISSION_VALUE == what
+    }
+
+    /* checks if it's a purchase-conflict (HTTP 409) intent sent from notification */
+    private fun isPurchaseConflictIntent(intent: Intent): Boolean {
+        if (intent.extras == null) return false
+        val what = intent.extras?.getString(NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME)
+        return NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE == what
     }
 }
