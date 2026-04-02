@@ -39,7 +39,7 @@ class PurchaseProcessingBottomSheet : BottomSheetDialogFragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NORMAL, R.style.BottomSheetDialogTheme)
-        isCancelable = false
+        isCancelable = true
     }
 
     override fun onCreateView(
