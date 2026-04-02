@@ -267,7 +267,7 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
             val retrofit =
                 getBlocklistBaseBuilder(persistentState.routeRethinkInRethink).build().create(IBlocklistDownload::class.java)
             Logger.i(LOG_TAG_DOWNLOAD, "Downloading file: $fileName, url: $url")
-            val response = retrofit.downloadLocalBlocklistFile(url, persistentState.appVersion, "")
+            val response = retrofit.downloadLocalBlocklistFile(fileName, persistentState.appVersion, "")
             if (response?.isSuccessful == true) {
                 return downloadFile(context, response.body(), fileName)
             } else {
