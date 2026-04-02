@@ -66,7 +66,6 @@ import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.openAndroidAppInfo
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
-import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
 import com.celzero.bravedns.wireguard.Config
@@ -449,7 +448,7 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         if (wgType.isOneWg()) {
             b.dnsServersLabel.visibility = View.VISIBLE
             b.dnsServersText.visibility = View.VISIBLE
-            var dns = wgInterface?.dnsServers?.joinToString { it.hostAddress?.toString() ?: "" }
+            var dns = wgInterface?.dnsServers?.joinToString { it.hostAddress ?: "" }
             val searchDomains = wgInterface?.dnsSearchDomains?.joinToString { it }
             dns =
                 if (!searchDomains.isNullOrEmpty()) {
@@ -461,7 +460,7 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         } else {
             b.publicKeyLabel.visibility = View.VISIBLE
             b.publicKeyText.visibility = View.VISIBLE
-            b.publicKeyText.text = wgInterface?.getKeyPair()?.getPublicKey()?.base64().tos()
+            b.publicKeyText.text = wgInterface?.getKeyPair()?.getPublicKey()?.base64()
             b.dnsServersLabel.visibility = View.GONE
             b.dnsServersText.visibility = View.GONE
         }
@@ -741,7 +740,7 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
 
     private fun openAppsDialog(proxyName: String) {
         val proxyId = ID_WG_BASE + configId
-        val appsAdapter = WgIncludeAppsAdapter(this, this, proxyId, proxyName)
+        val appsAdapter = WgIncludeAppsAdapter(this, proxyId, proxyName)
         mappingViewModel.apps.observe(this) { appsAdapter.submitData(lifecycle, it) }
         var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
         if (Themes.isFrostTheme(themeId)) {
