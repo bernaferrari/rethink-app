@@ -256,6 +256,18 @@ class WgIncludeAppsDialog(
         io { refreshDatabase.refresh(RefreshDatabase.ACTION_REFRESH_INTERACTIVE) }
     }
 
+    private fun refreshPagingAdapter() {
+        // Changing the filter causes the ViewModel to emit new PagingData; the host
+        // observer (collectLatest / submitData) picks it up automatically.
+        // Do NOT call notifyDataSetChanged() on a PagingDataAdapter — it manages all
+        // its own notifications via DiffUtil, and an external notify corrupts internal
+        // position tracking, causing IndexOutOfBoundsException in RecyclerView layout.
+        viewModel.setFilter(searchText, filterType, proxyId)
+        // If the filter params are unchanged, call refresh() to invalidate the current
+        // PagingSource so the adapter still reloads fresh data from the database.
+        (adapter as? com.celzero.bravedns.adapter.WgIncludeAppsAdapter)?.refresh()
+    }
+
     private fun clearSearch() {
         viewModel.setFilter("", TopLevelFilter.ALL_APPS, proxyId)
     }
@@ -284,12 +296,15 @@ class WgIncludeAppsDialog(
                 }
                 // re-apply current filter to force Paging source reload and UI refresh
                 withContext(Dispatchers.Main) {
-                    viewModel.setFilter(searchText, filterType, proxyId)
+                    // Update checkbox state to match the action taken
+                    b.wgIncludeAppSelectAllCheckbox.isChecked = toAdd
+                    refreshPagingAdapter()
                 }
             }
         }
 
         builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ ->
+            // Revert checkbox state on cancel
             b.wgIncludeAppSelectAllCheckbox.isChecked = !toAdd
         }
 
@@ -307,7 +322,7 @@ class WgIncludeAppsDialog(
                 ProxyManager.setProxyIdForUnselectedApps(proxyId, proxyName)
                 // refresh paging / adapter after bulk add
                 withContext(Dispatchers.Main) {
-                    viewModel.setFilter(searchText, filterType, proxyId)
+                    refreshPagingAdapter()
                 }
             }
         }

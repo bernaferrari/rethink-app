@@ -22,7 +22,6 @@ import android.content.DialogInterface
 import android.content.pm.PackageManager
 import android.graphics.drawable.Drawable
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Toast
@@ -40,7 +39,6 @@ import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.ProxyManager.addProxyToApp
 import com.celzero.bravedns.service.ProxyManager.removeProxyFromApp
-import com.celzero.bravedns.service.ProxyManager.updateProxyIdForApp
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.getDefaultIcon
 import com.celzero.bravedns.util.Utilities.getIcon
@@ -52,7 +50,6 @@ import kotlinx.coroutines.withContext
 
 class WgIncludeAppsAdapter(
     private val context: Context,
-    private val lifecycleOwner: LifecycleOwner,
     private val proxyId: String,
     private val proxyName: String
 ) :
@@ -81,12 +78,7 @@ class WgIncludeAppsAdapter(
                     oldConnection: ProxyApplicationMapping,
                     newConnection: ProxyApplicationMapping
                 ): Boolean {
-                    return (oldConnection.uid == newConnection.uid &&
-                            oldConnection.packageName == newConnection.packageName &&
-                            oldConnection.appName == newConnection.appName &&
-                            oldConnection.proxyId == newConnection.proxyId &&
-                            oldConnection.proxyName == newConnection.proxyName &&
-                            oldConnection.isActive == newConnection.isActive)
+                    return oldConnection == newConnection
                 }
             }
     }
@@ -116,18 +108,17 @@ class WgIncludeAppsAdapter(
             val itemUid = mapping.uid
             val itemPackageName = mapping.packageName
             val itemAppName = mapping.appName
-            val itemProxyId = mapping.proxyId
-            val itemProxyName = mapping.proxyName
+            val itemProxyId = proxyId
 
             io {
                 // all proxies assigned to this uid and package
                 val proxyIdsForApp =
                     ProxyManager.getProxyIdsForApp(mapping.uid, mapping.packageName)
-                val isIncludedInCurrent = proxyIdsForApp.contains(proxyId)
+                val isIncludedInCurrent = proxyIdsForApp.contains(itemProxyId)
                 val isProxyExcluded = FirewallManager.isAppExcludedFromProxy(itemUid)
                 val hasInternetPerm = mapping.hasInternetPermission(packageManager)
                 val iconDrawable = getIcon(context, itemPackageName, itemAppName)
-
+                Logger.d(LOG_TAG_PROXY, "INCLUDE: $isIncludedInCurrent, $isProxyExcluded, $proxyName, $proxyId, $proxyIdsForApp, $isIncludedInCurrent")
                 uiCtx {
                     // Update UI synchronously on the main thread
                     // enable/disable UI based on exclusion
@@ -166,33 +157,38 @@ class WgIncludeAppsAdapter(
                     }
 
                     b.wgIncludeAppListApkLabelTv.text = itemAppName
+                    b.wgIncludeAppListApkLabelTv.alpha = if (hasInternetPerm) 1.0f else 0.4f
 
                     // checkbox state purely based on membership in this proxyId
                     b.wgIncludeAppListCheckbox.isChecked = isIncludedInCurrent && !isProxyExcluded
                     setCardBackground(isIncludedInCurrent && !isProxyExcluded)
 
                     // description text logic: show only other proxies (exclude current proxyId)
-                    setupClickListeners(mapping, isIncludedInCurrent && !isProxyExcluded)
+                    setupClickListeners(mapping, isProxyExcluded)
+                    displayIcon(iconDrawable)
                 }
             }
         }
 
-        private fun setupClickListeners(mapping: ProxyApplicationMapping, isIncluded: Boolean) {
+        private fun setupClickListeners(mapping: ProxyApplicationMapping, isProxyExcluded: Boolean) {
             b.wgIncludeCard.setOnClickListener {
+                val isIncluded = !b.wgIncludeAppListCheckbox.isChecked
+                b.wgIncludeAppListCheckbox.isChecked = isIncluded
                 Logger.i(
                     LOG_TAG_PROXY,
                     "wgIncludeAppListContainer- ${mapping.appName}, $isIncluded"
                 )
-                updateInterfaceDetails(mapping, !isIncluded)
+                updateInterfaceDetails(mapping, isIncluded && !isProxyExcluded)
             }
 
             b.wgIncludeAppListCheckbox.setOnCheckedChangeListener(null)
             b.wgIncludeAppListCheckbox.setOnClickListener {
+                val isIncluded = b.wgIncludeAppListCheckbox.isChecked
                 Logger.i(
                     LOG_TAG_PROXY,
-                    "wgIncludeAppListCheckbox - ${mapping.appName}, $isIncluded"
+                    "wgIncludeAppListCheckbox- ${mapping.appName}, $isIncluded"
                 )
-                updateInterfaceDetails(mapping, !isIncluded)
+                updateInterfaceDetails(mapping, isIncluded && !isProxyExcluded)
             }
         }
 
@@ -246,8 +242,12 @@ class WgIncludeAppsAdapter(
                     Logger.i(LOG_TAG_PROXY, "Included app: ${mapping.uid}, $proxyId, $proxyName")
                 } else {
                     removeProxyFromApp(mapping.uid, mapping.packageName, proxyId)
-                    uiCtx { b.wgIncludeAppListCheckbox.isChecked = false }
                     Logger.i(LOG_TAG_PROXY, "Removed app: ${mapping.uid}, $proxyId, $proxyName")
+                }
+                // Refresh the adapter to reload data from the database
+                uiCtx {
+                    // Force a refresh to get updated data from database
+                    this@WgIncludeAppsAdapter.refresh()
                 }
             }
         }
@@ -303,6 +303,10 @@ class WgIncludeAppsAdapter(
                                 }
                             }
                         }
+                        // Refresh the adapter to reload data from the database
+                        uiCtx {
+                            this@WgIncludeAppsAdapter.refresh()
+                        }
                     }
                 }
                 .setNeutralButton(context.getString(R.string.ctbs_dialog_negative_btn)) { _: DialogInterface,
@@ -319,9 +323,6 @@ class WgIncludeAppsAdapter(
         withContext(Dispatchers.Main) { f() }
     }
 
-    private fun ui(f: () -> Unit) {
-        (context as LifecycleOwner).lifecycleScope.launch { withContext(Dispatchers.Main) { f() } }
-    }
 
     private fun io(f: suspend () -> Unit) {
         (context as LifecycleOwner).lifecycleScope.launch { withContext(Dispatchers.IO) { f() } }
