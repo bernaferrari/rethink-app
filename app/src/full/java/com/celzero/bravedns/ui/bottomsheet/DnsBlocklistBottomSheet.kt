@@ -161,7 +161,7 @@ class DnsBlocklistBottomSheet : BottomSheetDialogFragment() {
             b.dnsBlockedTarget.visibility = View.VISIBLE
         }
         if (Logger.LoggerLevel.fromId(persistentState.goLoggerLevel.toInt())
-                .isLessThan(Logger.LoggerLevel.DEBUG)
+                ?.isLessThan(Logger.LoggerLevel.DEBUG) == true
         ) {
             b.dnsMessage.text = "${log?.msg}; ${log?.proxyId}; ${log?.relayIP}"
         } else {
