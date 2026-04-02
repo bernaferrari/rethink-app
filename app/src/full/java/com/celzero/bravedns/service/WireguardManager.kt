@@ -26,6 +26,7 @@ import com.celzero.bravedns.data.SsidItem
 import com.celzero.bravedns.database.WgConfigFiles
 import com.celzero.bravedns.database.WgConfigFilesImmutable
 import com.celzero.bravedns.database.WgConfigFilesRepository
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.EncryptionException
 import com.celzero.bravedns.service.ProxyManager.ID_NONE
 import com.celzero.bravedns.service.ProxyManager.ID_WG_BASE
@@ -42,6 +43,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.File
+import java.io.FileNotFoundException
 import java.util.concurrent.CopyOnWriteArraySet
 
 object WireguardManager : KoinComponent {
@@ -62,6 +64,11 @@ object WireguardManager : KoinComponent {
 
     // contains parsed wg configs
     private var configs: CopyOnWriteArraySet<Config> = CopyOnWriteArraySet()
+
+    // Set to true once load() has completed its first run. Used by the UI to distinguish
+    // "no active configs" from "configs not loaded yet" so the proxy card never shows
+    // "Inactive" during the async initialization window at app launch.
+    @Volatile private var loadComplete: Boolean = false
 
     // retrieve last added config id
     private var lastAddedConfigId = 0
@@ -101,9 +108,24 @@ object WireguardManager : KoinComponent {
             val config = try {
                 EncryptedFileManager.readWireguardConfig(applicationContext, path)
             } catch (e: EncryptionException) {
-                // Critical encryption failure - config is unreadable
-                Logger.e(LOG_TAG_PROXY, "Critical encryption failure for wg config: $path, deleting config", e)
-                return@forEach
+                when (e) {
+                    is EncryptionException.IOError -> {
+                        // Missing or unreadable file; keep db entry but mark inactive to avoid crash/loop.
+                        Logger.w(LOG_TAG_PROXY, "wg config missing/unreadable: $path (${e.message})")
+                        if (it.isActive) {
+                            val inactive = it.copy(isActive = false, oneWireGuard = false)
+                            mappings.remove(it)
+                            mappings.add(inactive)
+                            db.disableConfig(it.id)
+                            VpnController.removeWireGuardProxy(it.id)
+                        }
+                        return@forEach
+                    }
+                    else -> {
+                        Logger.e(LOG_TAG_PROXY, "Critical encryption failure for wg config: $path, deleting config", e)
+                        return@forEach
+                    }
+                }
             }
             if (config == null) {
                 Logger.e(LOG_TAG_PROXY, "err loading wg config: $path, invalid config")
@@ -126,8 +148,16 @@ object WireguardManager : KoinComponent {
                 configs.add(c)
             }
         }
+        loadComplete = true
         return configs.size
     }
+
+    /**
+     * Returns true once the initial [load] has finished. The UI uses this to distinguish
+     * "WireGuard configs are genuinely empty" from "configs haven't been loaded from DB yet"
+     * so the proxy card never flashes "Inactive" during the async initialisation window.
+     */
+    fun isLoaded(): Boolean = loadComplete
 
     // remove this post v055o,  sometimes the db update does not delete the entry, so adding this
     // as precaution.
@@ -148,6 +178,7 @@ object WireguardManager : KoinComponent {
     private fun clearLoadedConfigs() {
         configs.clear()
         mappings.clear()
+        loadComplete = false
     }
 
     fun getConfigById(id: Int): Config? {
@@ -548,7 +579,7 @@ object WireguardManager : KoinComponent {
                 LOG_TAG_PROXY,
                 "no proxy ids found for $uid, $ip, $port, $domain; returning $default"
             )
-            return listOf(default)
+            return if (default.isEmpty()) emptyList() else listOf(default)
         }
 
         // add the default proxy to the end, will not be true for lockdown but lockdown is handled
@@ -1123,7 +1154,8 @@ object WireguardManager : KoinComponent {
             sb.append("   id: ${it.id}, name: ${it.name}\n")
             sb.append("   addr: ${routerStats?.addrs}").append("\n")
             sb.append("   mtu: ${stats?.mtu}\n")
-            sb.append("   status: ${stats?.status}\n")
+            sb.append("   status: ${routerStats?.status}\n")
+            sb.append("   status-reason: ${routerStats?.statusReason}\n")
             sb.append("   ip4: ${stats?.ip4}\n")
             sb.append("   ip6: ${stats?.ip6}\n")
             sb.append("   rx: ${routerStats?.rx}\n")
@@ -1132,6 +1164,8 @@ object WireguardManager : KoinComponent {
             sb.append("   lastTx: ${getRelativeTimeSpan(routerStats?.lastTx)}\n")
             sb.append("   lastGoodRx: ${getRelativeTimeSpan(routerStats?.lastGoodRx)}\n")
             sb.append("   lastGoodTx: ${getRelativeTimeSpan(routerStats?.lastGoodTx)}\n")
+            sb.append("   lastRxErr: ${routerStats?.lastRxErr}\n")
+            sb.append("   lastTxErr: ${routerStats?.lastTxErr}\n")
             sb.append("   lastOk: ${getRelativeTimeSpan(routerStats?.lastOK)}\n")
             sb.append("   since: ${getRelativeTimeSpan(routerStats?.since)}\n")
             sb.append("   errRx: ${routerStats?.errRx}\n")
