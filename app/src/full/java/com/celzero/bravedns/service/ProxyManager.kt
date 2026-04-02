@@ -177,7 +177,9 @@ object ProxyManager : KoinComponent {
         if (toRemove.isEmpty()) return
         pamSet.removeAll(toRemove)
         // delete only the rows for this proxy from DB
-        db.removeAllAppsForProxy(proxyId)
+        toRemove.forEach {
+            db.deleteMapping(it.uid, it.packageName, it.proxyId)
+        }
         Logger.i(LOG_TAG_PROXY, "removed proxy $proxyId from all apps")
     }
 
@@ -227,10 +229,6 @@ object ProxyManager : KoinComponent {
 
             updateApp(newInfo.uid, it.packageName)
         }
-    }
-
-    suspend fun addApp(appInfo: AppInfo?) {
-        addNewApp(appInfo)
     }
 
     suspend fun updateApp(uid: Int, packageName: String) {
