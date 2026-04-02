@@ -16,6 +16,7 @@
 package com.celzero.bravedns
 
 import android.content.ContentResolver
+import com.celzero.bravedns.iab.BillingModule
 import com.celzero.bravedns.data.DataModule
 import com.celzero.bravedns.database.DatabaseModule
 import com.celzero.bravedns.download.AppDownloadManager
@@ -70,5 +71,6 @@ val AppModules: List<Module> by lazy {
         add(workerModule)
         add(orbotHelperModule)
         add(appDownloadManagerModule)
+        add(BillingModule.billingModules)
     }
 }
