@@ -50,4 +50,5 @@
         android:text="@string/skip"
         android:textColor="?attr/svgStrokeColor" />
 
+
 </RelativeLayout>
