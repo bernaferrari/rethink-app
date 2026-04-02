@@ -170,7 +170,7 @@ class BubbleActivity : AppCompatActivity(R.layout.activity_bubble) {
 
                 allowedAppsPager.collect { pagingData ->
                     if (!isFinishing && !isDestroyed) {
-                        allowedAdapter.submitData(pagingData)
+                        allowedAdapter.submitData(lifecycle, pagingData)
                     }
                 }
             } catch (_: CancellationException) {
@@ -214,7 +214,7 @@ class BubbleActivity : AppCompatActivity(R.layout.activity_bubble) {
 
                 blockedAppsPager.collect { pagingData ->
                     if (!isFinishing && !isDestroyed) {
-                        blockedAdapter.submitData(pagingData)
+                        blockedAdapter.submitData(lifecycle, pagingData)
                     }
                 }
 
