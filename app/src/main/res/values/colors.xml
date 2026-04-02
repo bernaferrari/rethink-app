@@ -48,9 +48,16 @@
     <color name="navBarColor">#2d2c2c</color>
 
     <color name="accentGood">#18ffff</color>
+    <color name="colorGolden">#C9A000</color>
+    <color name="colorGoldenLight">#A67C00</color>
+    <color name="colorGoldenBlack">#C9A000</color>
+    <color name="colorGoldenBlackPlus">#C9A000</color>
+    <color name="colorGoldenLightPlus">#A67C00</color>
+    <color name="colorGoldenBlackFrost">#C9A000</color>
     <color name="accentBad">#ff4081</color>
 
     <color name="background">#393939</color>
+    <color name="accentWarning">#ffd149</color>
     <color name="divider">#444444</color>
     <color name="border">#77959595</color>
     <color name="homeScreenBtnBackground">#A0444444</color>
@@ -102,9 +109,9 @@
     <color name="defaultToggleBtnBg">#393939</color>
 
     <!-- VPN header gradient - default dark theme -->
-    <color name="vpnHeaderGradientStart">#006f67</color>
-    <color name="vpnHeaderGradientCenter">#18ffff</color>
-    <color name="vpnHeaderGradientEnd">#80CBC4</color>
+    <color name="vpnHeaderGradientStart">#33006f67</color>
+    <color name="vpnHeaderGradientCenter">#3318ffff</color>
+    <color name="vpnHeaderGradientEnd">#3380CBC4</color>
 
     <!-- theme light -->
     <color name="colorPrimaryLight">#ececec</color>
@@ -116,6 +123,7 @@
 
     <color name="accentGoodLight">#005cb2</color>
     <color name="accentBadLight">#ff1744</color>
+    <color name="accentWarningLight">#895601</color>
 
     <color name="backgroundLight">#fafafa</color>
     <color name="dividerLight">#eeeeee</color>
@@ -176,9 +184,9 @@
     <color name="defaultToggleBtnBgLight">#fafafa</color>
 
     <!-- VPN header gradient - light theme -->
-    <color name="vpnHeaderGradientStartLight">#0277BD</color>
-    <color name="vpnHeaderGradientCenterLight">#039BE5</color>
-    <color name="vpnHeaderGradientEndLight">#29B6F6</color>
+    <color name="vpnHeaderGradientStartLight">#990277BD</color>
+    <color name="vpnHeaderGradientCenterLight">#99039BE5</color>
+    <color name="vpnHeaderGradientEndLight">#9929B6F6</color>
 
     <!-- theme dark -->
     <color name="colorPrimaryBlack">#383838</color>
@@ -190,6 +198,7 @@
 
     <color name="accentGoodBlack">#4fc3f7</color>
     <color name="accentBadBlack">#ff4081</color>
+    <color name="accentWarningBlack">#CCffd149</color>
 
     <color name="chipBackgroundColorBlack">#4fc3f7</color>
     <color name="backgroundBlack">#121212</color>
@@ -243,9 +252,9 @@
     <color name="defaultToggleBtnBgBlack">#121212</color>
 
     <!-- VPN header gradient - true black theme -->
-    <color name="vpnHeaderGradientStartBlack">#004D40</color>
-    <color name="vpnHeaderGradientCenterBlack">#00897B</color>
-    <color name="vpnHeaderGradientEndBlack">#4fc3f7</color>
+    <color name="vpnHeaderGradientStartBlack">#33004D40</color>
+    <color name="vpnHeaderGradientCenterBlack">#3300897B</color>
+    <color name="vpnHeaderGradientEndBlack">#334fc3f7</color>
 
     <!-- light theme plus -->
     <color name="colorPrimaryLightPlus">#d2fff5</color>
@@ -257,6 +266,7 @@
 
     <color name="accentGoodLightPlus">#21a095</color>
     <color name="accentBadLightPlus">#ff4b5c</color>
+    <color name="accentWarningLightPlus">#c67100</color>
 
     <color name="backgroundLightPlus">#f0fbfa</color>
     <color name="dividerLightPlus">#d0e5e3</color>
@@ -318,9 +328,9 @@
     <color name="defaultToggleBtnBgLightPlus">#e6f4f2</color>
 
     <!-- VPN header gradient - light theme plus -->
-    <color name="vpnHeaderGradientStartLightPlus">#00796B</color>
-    <color name="vpnHeaderGradientCenterLightPlus">#21a095</color>
-    <color name="vpnHeaderGradientEndLightPlus">#4DB6AC</color>
+    <color name="vpnHeaderGradientStartLightPlus">#9900796B</color>
+    <color name="vpnHeaderGradientCenterLightPlus">#9921a095</color>
+    <color name="vpnHeaderGradientEndLightPlus">#994DB6AC</color>
 
     <!-- dark theme plus -->
     <color name="colorPrimaryBlackPlus">#2D404E</color>
@@ -332,6 +342,7 @@
 
     <color name="accentGoodBlackPlus">#00A859</color>
     <color name="accentBadBlackPlus">#FF5A5E</color>
+    <color name="accentWarningBlackPlus">#FFB84A</color>
 
     <color name="chipBackgroundColorBlackPlus">#00A859</color>
     <color name="backgroundBlackPlus">#0E1B21</color>
@@ -388,9 +399,9 @@
     <color name="defaultToggleBtnBgBlackPlus">#0E1B21</color>
 
     <!-- VPN header gradient - black theme plus -->
-    <color name="vpnHeaderGradientStartBlackPlus">#004D40</color>
-    <color name="vpnHeaderGradientCenterBlackPlus">#00695C</color>
-    <color name="vpnHeaderGradientEndBlackPlus">#00A859</color>
+    <color name="vpnHeaderGradientStartBlackPlus">#33004D40</color>
+    <color name="vpnHeaderGradientCenterBlackPlus">#3300695C</color>
+    <color name="vpnHeaderGradientEndBlackPlus">#3300A859</color>
 
     <!-- theme dark frost -->
     <color name="colorPrimaryBG">#383838</color>
@@ -402,6 +413,7 @@
 
     <color name="accentGoodBG">#4fc3f7</color>
     <color name="accentBadBG">#ff4081</color>
+    <color name="accentWarningBG">#CCffd149</color>
 
     <color name="chipBackgroundColorBG">#4fc3f7</color>
     <color name="backgroundBG">#80FFFFFF</color>
@@ -460,5 +472,31 @@
     <color name="severity_medium">#FFC107</color>     <!-- Yellow/Amber -->
     <color name="severity_high">#FF9800</color>       <!-- Orange -->
     <color name="severity_critical">#F44336</color>   <!-- Red -->
+
+    <!-- Subscription Status Colors -->
+
+    <!-- Guided Tour: overlay scrim (semi-transparent dark/light) -->
+    <!-- Dark themes: near-black with 82% opacity -->
+    <color name="tourOverlayDark">#D1000000</color>
+    <!-- Light themes: dark-grey with 72% opacity so cards stay readable -->
+    <color name="tourOverlayLight">#B8212121</color>
+    <!-- True-black theme: full black with 84% opacity -->
+    <color name="tourOverlayBlack">#D7000000</color>
+
+    <!-- Guided Tour: tooltip card background, reuses existing surface colours -->
+    <!-- (resolved per-theme via ?attr/tourTooltipBackground, pointing to colourSurface) -->
+
+    <!-- Guided Tour: spotlight ring stroke — accent cyan for dark / accent blue for light -->
+    <color name="tourStrokeDark">#FF18ffff</color>
+    <color name="tourStrokeLight">#FF1e88e5</color>
+    <color name="tourStrokeBlack">#FF18ffff</color>
+
+    <!-- Guided Tour: action button background (reuses buttonBackground per theme) -->
+
+    <!-- Guided Tour: action button text — white for dark button bg, black for light button bg.
+         These override the per-theme primaryText values that would be invisible in some themes
+         (e.g. Black theme button bg #4fc3f7 is light, so white text would be near-invisible). -->
+    <color name="tourBtnTextLight">#FFFFFF</color>
+    <color name="tourBtnTextDark">#000000</color>
 
 </resources>
