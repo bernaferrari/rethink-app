@@ -23,7 +23,6 @@ import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
 import com.celzero.bravedns.databinding.ListItemServerWgPeersBinding
 import com.celzero.bravedns.util.UIUtils
-import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.wireguard.Peer
 
 /**
@@ -67,7 +66,7 @@ class ServerWgPeersAdapter(
             val isExpanded = expandedPositions.contains(position)
 
             // Always show public key
-            b.publicKeyText.text = wgPeer.getPublicKey().base64().tos()
+            b.publicKeyText.text = wgPeer.getPublicKey().base64()
 
             // Toggle expanded/collapsed state
             if (isExpanded) {
