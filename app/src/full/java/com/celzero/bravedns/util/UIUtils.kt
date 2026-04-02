@@ -32,6 +32,8 @@ import android.text.Spanned
 import android.text.format.DateUtils
 import android.util.TypedValue
 import android.view.View
+import android.view.ViewGroup
+import android.view.ViewOutlineProvider
 import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -42,6 +44,7 @@ import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import com.celzero.bravedns.R
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.glide.FavIconDownloader
 import com.celzero.bravedns.net.doh.Transaction
@@ -769,12 +772,11 @@ object SnackbarHelper {
     /**
      * Show a themed, deduped Snackbar.
      *
-     * @param view        Any view inside the fragment/activity hierarchy.  The helper
-     *                    will walk up to find the best anchor (CoordinatorLayout or
-     *                    the decor view) so positioning is always correct regardless
-     *                    of `fitsSystemWindows` on the fragment root.
+     * @param view        Any view inside the fragment/activity hierarchy. The helper walks up to
+     *                    find the best anchor ([CoordinatorLayout] or the decor view) and also
+     *                    looks for a [BottomNavigationView] to position above it automatically.
      * @param message     The message to display.
-     * @param duration    [Snackbar.LENGTH_LONG] by default.  Pass [Snackbar.LENGTH_INDEFINITE]
+     * @param duration    [Snackbar.LENGTH_LONG] by default. Pass [Snackbar.LENGTH_INDEFINITE]
      *                    for actionable errors the user must explicitly dismiss.
      * @param actionLabel Optional label for the action button.
      * @param action      Optional callback when the action button is tapped.
@@ -805,6 +807,11 @@ object SnackbarHelper {
 
         val snackbar = Snackbar.make(bestAnchorFor(view), message, duration)
 
+        // Anchor above BottomNavigationView so the snackbar is never hidden behind it.
+        findBottomNavView(view)?.let { navView ->
+            snackbar.anchorView = navView
+        }
+
         // Style the container view.
         val snackView = snackbar.view
         styleContainer(snackView, view.context)
@@ -815,8 +822,8 @@ object SnackbarHelper {
         )
         msgTv?.let {
             it.setTextColor(resolveThemeColor(view.context, R.attr.primaryTextColor))
-            it.textSize = 13f               // compact — matches app's default_font_text_view
-            it.maxLines = 2
+            it.textSize = 14f
+            it.maxLines = 3
         }
 
         // Action button.
@@ -831,7 +838,10 @@ object SnackbarHelper {
             val actionTv = snackView.findViewById<TextView>(
                 com.google.android.material.R.id.snackbar_action
             )
-            actionTv?.textSize = 13f
+            actionTv?.let {
+                it.textSize = 14f
+                it.isAllCaps = false
+            }
         }
 
         snackbar.addCallback(object : Snackbar.Callback() {
@@ -854,9 +864,9 @@ object SnackbarHelper {
     }
 
     /**
-     * Walk the view hierarchy to find the nearest [CoordinatorLayout] ancestor.
-     * If none is found, fall back to the activity's decor view so the Snackbar is
-     * never clipped by `fitsSystemWindows` insets on the fragment root.
+     * Walk the view hierarchy upward to find the nearest [CoordinatorLayout] ancestor.
+     * Falls back to the root decor view so the Snackbar is never clipped by
+     * `fitsSystemWindows` insets on the fragment root.
      */
     private fun bestAnchorFor(view: View): View {
         var v: View? = view
@@ -864,33 +874,61 @@ object SnackbarHelper {
             if (v is CoordinatorLayout) return v
             v = v.parent as? View
         }
-        // No CoordinatorLayout in tree — use the activity decor view which has no inset offset.
         return view.rootView ?: view
     }
 
     /**
-     * Apply the themed background, elevation, and horizontal margins to the Snackbar container.
+     * Walk the full view tree (from the root downward) to find a [BottomNavigationView].
+     * Returns `null` if none is found (e.g., in standalone activities without a nav bar).
+     */
+    private fun findBottomNavView(view: View): BottomNavigationView? {
+        // Walk up to the root first, then search the entire tree from there.
+        val root = view.rootView as? ViewGroup ?: return null
+        return searchForBottomNav(root)
+    }
+
+    private fun searchForBottomNav(group: ViewGroup): BottomNavigationView? {
+        for (i in 0 until group.childCount) {
+            val child = group.getChildAt(i)
+            if (child is BottomNavigationView) return child
+            if (child is ViewGroup) {
+                val found = searchForBottomNav(child)
+                if (found != null) return found
+            }
+        }
+        return null
+    }
+
+    /**
+     * Apply the themed background, elevation, and margins to the Snackbar container.
      *
-     * Horizontal margins via `FrameLayout.LayoutParams` shrink the bar away from screen edges
-     * so it looks like a floating card rather than a full-bleed banner.
      */
     private fun styleContainer(snackView: View, context: Context) {
-        // Rounded, theme-aware background.
-        snackView.background = ContextCompat.getDrawable(context, R.drawable.bg_snackbar)
-        // Card-level elevation (6dp).
-        snackView.elevation = context.resources.getDimension(R.dimen.snackbar_elevation)
+        // First child is always the SnackbarContentLayout.
+        val contentView: View = (snackView as? ViewGroup)?.getChildAt(0) ?: snackView
 
-        // Apply horizontal margins so the bar doesn't span the full screen width.
+        // Outer container → transparent so the nav-bar insets area is see-through.
+        snackView.background = null
+
+        // Content view → themed card background + shadow.
+        contentView.background = ContextCompat.getDrawable(context, R.drawable.snackbar_background)
+        // Elevation on the content view so the shadow follows the rounded-rect outline.
+        contentView.elevation = context.resources.getDimension(R.dimen.snackbar_elevation)
+        // GradientDrawable provides the rounded-rect outline via BACKGROUND provider.
+        contentView.outlineProvider = ViewOutlineProvider.BACKGROUND
+
+        // Outer layout margins: float the bar away from screen edges and off the nav bar.
+        val hMargin = context.resources.getDimensionPixelSize(R.dimen.snackbar_horizontal_margin)
+        val bMargin = context.resources.getDimensionPixelSize(R.dimen.snackbar_bottom_margin)
+
         val lp = snackView.layoutParams
         when (lp) {
             is CoordinatorLayout.LayoutParams -> {
-                val margin = context.resources.getDimensionPixelSize(R.dimen.snackbar_horizontal_margin)
-                lp.setMargins(margin, lp.topMargin, margin, lp.bottomMargin)
+                lp.setMargins(hMargin, lp.topMargin, hMargin, bMargin)
                 snackView.layoutParams = lp
             }
             is FrameLayout.LayoutParams -> {
-                val margin = context.resources.getDimensionPixelSize(R.dimen.snackbar_horizontal_margin)
-                lp.setMargins(margin, lp.topMargin, margin, lp.bottomMargin)
+                lp.setMargins(hMargin, lp.topMargin, hMargin, bMargin)
                 snackView.layoutParams = lp
             }
         }
@@ -898,8 +936,8 @@ object SnackbarHelper {
 
     /**
      * Resolve a theme attribute to a concrete color int.
-     * Falls back to white (#FFFFFF) if the attribute is not found so we never
-     * return transparent or zero which would make text invisible.
+     * Falls back to white (#FFFFFF) if the attribute is not found so text is
+     * always visible even if the theme is misconfigured.
      */
     private fun resolveThemeColor(context: Context, attrRes: Int): Int {
         val tv = TypedValue()
