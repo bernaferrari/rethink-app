@@ -52,6 +52,7 @@ import com.celzero.bravedns.database.AppInfoRepository.Companion.NO_PACKAGE_PREF
 import com.celzero.bravedns.net.doh.CountryMap
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.DnsLogTracker
+import com.celzero.bravedns.util.Constants.Companion.BUILD_TYPE_ALPHA
 import com.celzero.bravedns.util.Constants.Companion.FLAVOR_FDROID
 import com.celzero.bravedns.util.Constants.Companion.FLAVOR_HEADLESS
 import com.celzero.bravedns.util.Constants.Companion.FLAVOR_PLAY
@@ -62,9 +63,6 @@ import com.celzero.bravedns.util.Constants.Companion.MISSING_UID
 import com.celzero.bravedns.util.Constants.Companion.REMOTE_BLOCKLIST_DOWNLOAD_FOLDER_NAME
 import com.celzero.bravedns.util.Constants.Companion.UNSPECIFIED_IP_IPV4
 import com.celzero.bravedns.util.Constants.Companion.UNSPECIFIED_IP_IPV6
-import com.celzero.firestack.backend.Backend
-import com.celzero.firestack.backend.Gobyte
-import com.celzero.firestack.backend.Gostr
 import com.google.common.net.InternetDomainName
 import com.google.gson.JsonParser
 import inet.ipaddr.HostName
@@ -584,6 +582,11 @@ object Utilities {
         return BuildConfig.FLAVOR_releaseType == FLAVOR_HEADLESS
     }
 
+    /** Returns true when the app is built with the "alpha" build type. */
+    fun isAlphaBuild(): Boolean {
+        return BuildConfig.BUILD_TYPE == BUILD_TYPE_ALPHA
+    }
+
     fun getApplicationInfo(ctx: Context, packageName: String): ApplicationInfo? {
         return try {
             if (isAtleastT()) {
@@ -895,6 +898,7 @@ object Utilities {
         // get the os version from system properties
         val osVersion = System.getProperty("os.version") ?: return false
 
+        val f: java.nio.file.Files? = null
         // extract the version part without any additional details after a '-'
         val currentVersion =
             osVersion.split("-").firstOrNull() ?: return false // use only the part before '-' if present
@@ -935,65 +939,6 @@ object Utilities {
             Logger.e(LOG_TAG_VPN, "err writing to file ${file.path}, ${e.message}", e)
             false
         }
-    }
-
-
-    /**
-     * Converts a nullable [String] to a [Gostr] object for use with the Backend engine.
-     *
-     * If the input is `null` or empty, logs a warning and returns an empty [Gostr].
-     * This ensures the Backend always receives a valid (non-null) object.
-     *
-     * @return a [Gostr] containing the string value, or an empty [Gostr] if the input is `null` or empty.
-     */
-    fun String?.togs(): Gostr? {
-        if (this.isNullOrEmpty()) {
-            return Backend.strOf("")
-        }
-        return Backend.strOf(this)
-    }
-
-    /**
-     * Converts a nullable [Gostr] to a [String].
-     *
-     * If the [Gostr] is `null`, logs a warning and returns an empty string.
-     *
-     * @return the string content of the [Gostr], or an empty string if `null`.
-     */
-    fun Gostr?.tos(): String? {
-        if (this == null) {
-            return null
-        }
-        return this.s
-    }
-
-    /**
-     * Converts a nullable [ByteArray] to a [Gobyte] object for the Backend engine.
-     *
-     * If the input is `null`, logs a warning and returns an empty [Gobyte].
-     *
-     * @return a [Gobyte] containing the bytes, or an empty [Gobyte] if the input is `null`.
-     */
-    fun ByteArray?.togb(): Gobyte? {
-        if (this == null) {
-            return Backend.bytesOf(byteArrayOf())
-        }
-        return Backend.bytesOf(this)
-    }
-
-    /**
-     * Converts a nullable [Gobyte] to a [ByteArray].
-     *
-     * If the [Gobyte] is `null`, logs a warning and returns an empty [ByteArray].
-     *
-     * @return the byte content of the [Gobyte], or an empty [ByteArray] if `null`.
-     */
-    fun Gobyte?.tob(): ByteArray? {
-        if (this == null) {
-            return null
-        }
-
-        return this.v()
     }
 
 }
