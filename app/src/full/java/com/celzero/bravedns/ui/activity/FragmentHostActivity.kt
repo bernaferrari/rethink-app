@@ -22,6 +22,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import com.celzero.bravedns.R
@@ -83,6 +84,8 @@ class FragmentHostActivity : AppCompatActivity(R.layout.activity_fragment_host) 
             return
         }
 
+        handleOnBackPressed()
+
         if (savedInstanceState == null) {
             // Only create fragment on first launch, not on recreation
             val arguments = intent.getBundleExtra(EXTRA_FRAGMENT_ARGUMENTS)
@@ -108,6 +111,23 @@ class FragmentHostActivity : AppCompatActivity(R.layout.activity_fragment_host) 
             // Fragment will be automatically restored by FragmentManager
             Logger.i(LOG_TAG_UI, "Restoring fragment: $fragmentClassName from savedInstanceState")
         }
+    }
+
+    private fun handleOnBackPressed() {
+        onBackPressedDispatcher.addCallback(
+            this,
+            object : OnBackPressedCallback(true) {
+                override fun handleOnBackPressed() {
+                    if (supportFragmentManager.backStackEntryCount > 0) {
+                        // Pop the top fragment from the back stack (nested navigation).
+                        supportFragmentManager.popBackStack()
+                    } else {
+                        // Nothing left to pop — finish and return to the calling Activity.
+                        finish()
+                    }
+                }
+            }
+        )
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
