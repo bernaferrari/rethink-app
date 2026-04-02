@@ -57,7 +57,7 @@ object Logger : KoinComponent {
     const val LOG_PROVIDER = "BlocklistProvider"
     const val LOG_TAG_PROXY = "ProxyLogs"
     const val LOG_QR_CODE = "QrCodeFromFileScanner"
-    const val LOG_GO_LOGGER = "GoLog"
+    const val LOG_GO_LOGGER = "GoLogV2"
     const val LOG_TAG_APP_OPS = "AppOpsService"
     const val LOG_IAB = "InAppBilling"
     const val LOG_FIREBASE = "FirebaseErrorReporting"
@@ -77,7 +77,7 @@ object Logger : KoinComponent {
         NONE(8);
 
         companion object {
-            fun fromId(id: Int): LoggerLevel {
+            fun fromId(id: Int): LoggerLevel? {
                 return when (id.toLong()) {
                     VERY_VERBOSE.id -> VERY_VERBOSE
                     VERBOSE.id -> VERBOSE
@@ -88,8 +88,63 @@ object Logger : KoinComponent {
                     STACKTRACE.id -> STACKTRACE
                     USR.id -> USR
                     NONE.id -> NONE
-                    else -> NONE
+                    else -> null
                 }
+            }
+
+            /**
+             * Maps the single-character log-level prefix written by the Go runtime
+             * to a [LoggerLevel].  The Go side encodes the level as a single ASCII
+             * character rather than a numeric id:
+             *
+             *   'Y' → VERY_VERBOSE
+             *   'V' → VERBOSE
+             *   'D' → DEBUG
+             *   'I' → INFO
+             *   'W' → WARN
+             *   'E' → ERROR
+             *   'F' → STACKTRACE  (Fatal/stacktrace)
+             *   'U' → USR
+             *   ' ' → NONE
+             *
+             * Returns `null` for any unrecognised character so callers can fall back
+             * to the previous known level.
+             */
+            fun fromChar(c: Char): LoggerLevel? {
+                return when (c) {
+                    'Y' -> VERY_VERBOSE
+                    'V' -> VERBOSE
+                    'D' -> DEBUG
+                    'I' -> INFO
+                    'W' -> WARN
+                    'E' -> ERROR
+                    'F' -> STACKTRACE
+                    'U' -> USR
+                    // NONE won't be sent from Go, commenting it from usage
+                    // using NONE will result in switching the log levels as it has ' ' as the char
+                    // below is the e.g., from stacktrace logs
+                    /*  ns.forwarder.deliverPackets [11] ns: tun: forwarder: deliverPackets rand10pc [gobind@v20260304225152-87c7a25]
+                        go log: unknown level char 'n' using ERROR
+                         (#0) -- ideally the space here switching levels to NONE but its actually STACKTRACE
+                        <===>
+                        go log: unknown level char '<' using NONE*/
+                    // ' ' -> NONE
+                    else -> null
+                }
+            }
+        }
+
+        fun toLoggerLevel(): LoggerLevel {
+            return when (this) {
+                VERY_VERBOSE -> VERY_VERBOSE
+                VERBOSE -> VERBOSE
+                DEBUG -> DEBUG
+                INFO -> INFO
+                WARN -> WARN
+                ERROR -> ERROR
+                STACKTRACE -> STACKTRACE
+                USR -> USR
+                NONE -> NONE
             }
         }
 

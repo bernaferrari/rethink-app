@@ -211,8 +211,8 @@ class MiscSettingsActivity : AppCompatActivity(R.layout.activity_misc_settings) 
         b.settingsActivityEnableLogsSwitch.isChecked = persistentState.logsEnabled
         // set log level name in the  description
         b.genSettingsGoLogDesc.text =
-            Logger.LoggerLevel.fromId(persistentState.goLoggerLevel.toInt()).name.lowercase()
-                .replaceFirstChar(Char::titlecase).replace("_", " ")
+            Logger.LoggerLevel.fromId(persistentState.goLoggerLevel.toInt())?.name?.lowercase()
+                ?.replaceFirstChar(Char::titlecase)?.replace("_", " ")
 
 
         // for app locale (default system/user selected locale)
@@ -773,9 +773,9 @@ class MiscSettingsActivity : AppCompatActivity(R.layout.activity_misc_settings) 
             GoVpnAdapter.setLogLevel(persistentState.goLoggerLevel.toInt())
             updateConfigLevel(persistentState.goLoggerLevel)
             val logLevel = if (persistentState.goLoggerLevel.toInt() == GO_LOG_LEVEL_EXTREME) GO_LOG_LEVEL_EXTREME_DISPLAY else persistentState.goLoggerLevel.toInt()
-            b.genSettingsGoLogDesc.text = Logger.LoggerLevel.fromId(logLevel).name.lowercase()
-                    .replaceFirstChar(Char::titlecase).replace("_", " ")
-            logEvent("Go log level set to ${Logger.LoggerLevel.fromId(logLevel).name}")
+            b.genSettingsGoLogDesc.text = Logger.LoggerLevel.fromId(logLevel)?.name?.lowercase()
+                    ?.replaceFirstChar(Char::titlecase)?.replace("_", " ")
+            logEvent("Go log level set to ${Logger.LoggerLevel.fromId(logLevel)?.name}")
         }
         alertBuilder.create().show()
     }
