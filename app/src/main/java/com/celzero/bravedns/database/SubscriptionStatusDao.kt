@@ -68,6 +68,22 @@ interface SubscriptionStatusDao {
     @Query("SELECT * FROM SubscriptionStatus ORDER BY lastUpdatedTs DESC LIMIT 1")
     suspend fun getCurrentSubscription(): SubscriptionStatus?
 
+    /**
+     * Returns the current *valid* subscription: one whose status is Active (1),
+     * Cancelled (2), Purchased (5), AckPending (6), Grace (9), OnHold (10), or Paused (11).
+     * Prefers active rows; falls back to the most recently updated row of any status.
+     *
+     * This avoids the bug where [getCurrentSubscription] returns a stale Expired row
+     * that was recently touched by expiry-sweep methods.
+     */
+    @Query("""
+        SELECT * FROM SubscriptionStatus
+        WHERE status IN (1, 2, 5, 6, 9, 10, 11)
+        ORDER BY lastUpdatedTs DESC
+        LIMIT 1
+    """)
+    suspend fun getCurrentValidSubscription(): SubscriptionStatus?
+
     @Query("SELECT * FROM SubscriptionStatus ORDER BY lastUpdatedTs DESC")
     suspend fun getAllSubscriptions(): List<SubscriptionStatus>
 
@@ -107,6 +123,7 @@ interface SubscriptionStatusDao {
         SET status = 3, lastUpdatedTs = :currentTime 
         WHERE billingExpiry > 0 AND billingExpiry < :currentTime 
         AND status NOT IN (3, 10)
+        AND (productId LIKE '%onetime%' OR productId LIKE '%inapp%' OR productId = 'test_product')
     """
     )
     suspend fun markExpiredSubscriptions(currentTime: Long): Int

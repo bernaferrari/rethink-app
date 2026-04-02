@@ -43,7 +43,9 @@ data class CountryConfig(
     val load: Int = 0,              // Server load (0..100, lower is better)
     val link: Int = 0,              // Link metric (latency ms)
     val count: Int = 0,             // Number of endpoints available
+    val premium: Boolean = false,   // Whether server is premium
     var isActive: Boolean = true,   // Whether server is currently active
+    var isEnabled: Boolean = false,  // Whether server is chosen by user
 
     // Country-level configuration flags
     var catchAll: Boolean = false,  // Use this country for all connections
@@ -74,6 +76,8 @@ data class CountryConfig(
         parcel.readByte() != 0.toByte(),
         parcel.readByte() != 0.toByte(),
         parcel.readByte() != 0.toByte(),
+        parcel.readByte() != 0.toByte(),
+        parcel.readByte() != 0.toByte(),
         parcel.readInt(),
         parcel.readString() ?: "",
         parcel.readLong()
@@ -89,7 +93,9 @@ data class CountryConfig(
         parcel.writeInt(load)
         parcel.writeInt(link)
         parcel.writeInt(count)
+        parcel.writeByte(if (premium) 1 else 0)
         parcel.writeByte(if (isActive) 1 else 0)
+        parcel.writeByte(if (isEnabled) 1 else 0)
         parcel.writeByte(if (catchAll) 1 else 0)
         parcel.writeByte(if (lockdown) 1 else 0)
         parcel.writeByte(if (mobileOnly) 1 else 0)

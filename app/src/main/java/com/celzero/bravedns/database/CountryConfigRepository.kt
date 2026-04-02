@@ -38,78 +38,6 @@ class CountryConfigRepository(private val countryConfigDAO: CountryConfigDAO) {
         return countryConfigDAO.getAllConfigs()
     }
 
-    fun getAllConfigsFlow(): Flow<List<CountryConfig>> {
-        return countryConfigDAO.getAllConfigsFlow()
-    }
-
-    suspend fun getEnabledConfigs(): List<CountryConfig> {
-        return countryConfigDAO.getEnabledConfigs()
-    }
-
-    fun getEnabledConfigsFlow(): Flow<List<CountryConfig>> {
-        return countryConfigDAO.getEnabledConfigsFlow()
-    }
-
-    suspend fun getConfigsByPriority(): List<CountryConfig> {
-        return countryConfigDAO.getConfigsByPriority()
-    }
-
-    fun getConfigsByPriorityFlow(): Flow<List<CountryConfig>> {
-        return countryConfigDAO.getConfigsByPriorityFlow()
-    }
-
-    // Property-specific queries
-
-    suspend fun getCatchAllConfigs(): List<CountryConfig> {
-        return countryConfigDAO.getCatchAllConfigs()
-    }
-
-    fun getCatchAllConfigsFlow(): Flow<List<CountryConfig>> {
-        return countryConfigDAO.getCatchAllConfigsFlow()
-    }
-
-    suspend fun getLockdownConfigs(): List<CountryConfig> {
-        return countryConfigDAO.getLockdownConfigs()
-    }
-
-    fun getLockdownConfigsFlow(): Flow<List<CountryConfig>> {
-        return countryConfigDAO.getLockdownConfigsFlow()
-    }
-
-    suspend fun getMobileOnlyConfigs(): List<CountryConfig> {
-        return countryConfigDAO.getMobileOnlyConfigs()
-    }
-
-    fun getMobileOnlyConfigsFlow(): Flow<List<CountryConfig>> {
-        return countryConfigDAO.getMobileOnlyConfigsFlow()
-    }
-
-    suspend fun getSsidBasedConfigs(): List<CountryConfig> {
-        return countryConfigDAO.getSsidBasedConfigs()
-    }
-
-    fun getSsidBasedConfigsFlow(): Flow<List<CountryConfig>> {
-        return countryConfigDAO.getSsidBasedConfigsFlow()
-    }
-
-    suspend fun getCatchAllCountryCodes(): List<String> {
-        return countryConfigDAO.getCatchAllCountryCodes()
-    }
-
-    suspend fun getLockdownCountryCodes(): List<String> {
-        return countryConfigDAO.getLockdownCountryCodes()
-    }
-
-    suspend fun getMobileOnlyCountryCodes(): List<String> {
-        return countryConfigDAO.getMobileOnlyCountryCodes()
-    }
-
-    suspend fun getSsidBasedCountryCodes(): List<String> {
-        return countryConfigDAO.getSsidBasedCountryCodes()
-    }
-
-    // WRITE operations
-
     @Transaction
     suspend fun insert(config: CountryConfig) {
         countryConfigDAO.insert(config)
@@ -138,43 +66,9 @@ class CountryConfigRepository(private val countryConfigDAO: CountryConfigDAO) {
         countryConfigDAO.deleteAll()
     }
 
-    // Property updates
-
-    suspend fun updateCatchAll(cc: String, value: Boolean) {
-        countryConfigDAO.updateCatchAll(cc, value)
-    }
-
-    suspend fun updateLockdown(cc: String, value: Boolean) {
-        countryConfigDAO.updateLockdown(cc, value)
-    }
-
-    suspend fun updateMobileOnly(cc: String, value: Boolean) {
-        countryConfigDAO.updateMobileOnly(cc, value)
-    }
-
     suspend fun updateSsidBased(cc: String, value: Boolean) {
         countryConfigDAO.updateSsidBased(cc, value)
     }
-
-    suspend fun updateEnabled(cc: String, value: Boolean) {
-        countryConfigDAO.updateEnabled(cc, value)
-    }
-
-    suspend fun updatePriority(cc: String, priority: Int) {
-        countryConfigDAO.updatePriority(cc, priority)
-    }
-
-    // Batch operations
-
-    suspend fun clearAllCatchAll() {
-        countryConfigDAO.clearAllCatchAll()
-    }
-
-    suspend fun clearAllLockdown() {
-        countryConfigDAO.clearAllLockdown()
-    }
-
-    // Utility methods
 
     suspend fun exists(cc: String): Boolean {
         return countryConfigDAO.exists(cc)
@@ -188,71 +82,8 @@ class CountryConfigRepository(private val countryConfigDAO: CountryConfigDAO) {
         return countryConfigDAO.getCount()
     }
 
-    suspend fun getEnabledCount(): Int {
-        return countryConfigDAO.getEnabledCount()
-    }
-
-    suspend fun getCatchAllCount(): Int {
-        return countryConfigDAO.getCatchAllCount()
-    }
-
-    suspend fun getLockdownCount(): Int {
-        return countryConfigDAO.getLockdownCount()
-    }
-
-    // ===== Server-specific operations (merged from RpnWinServerRepository) =====
-
-    suspend fun getServerById(serverId: String): CountryConfig? {
-        return countryConfigDAO.getAllConfigs().firstOrNull { it.id == serverId }
-    }
-
-    suspend fun getServersByCountryCode(cc: String): List<CountryConfig> {
-        return countryConfigDAO.getAllConfigs().filter { it.cc == cc }
-    }
-
-    suspend fun getActiveServers(): List<CountryConfig> {
-        return countryConfigDAO.getEnabledConfigs()
-    }
-
-    suspend fun getServerCount(): Int {
-        return countryConfigDAO.getCount()
-    }
-
-    suspend fun upsertServer(server: CountryConfig) {
-        countryConfigDAO.insert(server)
-        Logger.d(LOG_TAG_PROXY, "$TAG.upsertServer: ${server.id}")
-    }
-
-    suspend fun upsertServers(servers: List<CountryConfig>) {
-        countryConfigDAO.insertAll(servers)
-        Logger.d(LOG_TAG_PROXY, "$TAG.upsertServers: inserted/updated ${servers.size} servers")
-    }
-
-    suspend fun deleteServer(serverId: String) {
-        countryConfigDAO.getAllConfigs().firstOrNull { it.id == serverId }?.let {
-            countryConfigDAO.delete(it)
-            Logger.d(LOG_TAG_PROXY, "$TAG.deleteServer: $serverId")
-        }
-    }
-
-    suspend fun deleteServers(serverIds: List<String>) {
-        val all = countryConfigDAO.getAllConfigs()
-        val toDelete = all.filter { serverIds.contains(it.id) }
-        toDelete.forEach { countryConfigDAO.delete(it) }
-        Logger.d(LOG_TAG_PROXY, "$TAG.deleteServers: deleted ${toDelete.size} servers")
-    }
-
-    suspend fun deleteAllServers() {
-        countryConfigDAO.deleteAll()
-        Logger.d(LOG_TAG_PROXY, "$TAG.deleteAllServers: all servers deleted")
-    }
-
-    suspend fun updateServerMetrics(serverId: String, load: Int, link: Int) {
-        val all = countryConfigDAO.getAllConfigs()
-        val curr = all.firstOrNull { it.id == serverId } ?: return
-        val updated = curr.copy(load = load, link = link, lastModified = System.currentTimeMillis())
-        countryConfigDAO.insert(updated)
-        Logger.v(LOG_TAG_PROXY, "$TAG.updateServerMetrics: $serverId, load=$load, link=$link")
+    suspend fun getById(id: String): CountryConfig? {
+        return countryConfigDAO.getById(id)
     }
 
     suspend fun syncServers(newServers: List<CountryConfig>): Int {
@@ -261,24 +92,40 @@ class CountryConfigRepository(private val countryConfigDAO: CountryConfigDAO) {
             val existingServers = countryConfigDAO.getAllConfigs()
             val existingIds = existingServers.map { it.id }.toSet()
             val newIds = newServers.map { it.id }.toSet()
-            val idsToRemove = existingIds - newIds
+
+            // AUTO server ID (protected from deletion)
+            val autoServerId = "AUTO"
+
+            // Filter out AUTO server from deletion candidates
+            val idsToRemove = existingIds.filter { it !in newIds && it != autoServerId }
             if (idsToRemove.isNotEmpty()) {
                 val toDelete = existingServers.filter { idsToRemove.contains(it.id) }
-                toDelete.forEach { countryConfigDAO.delete(it) }
-                Logger.i(LOG_TAG_PROXY, "$TAG.syncServers: removing ${idsToRemove.size} obsolete servers")
+                toDelete.forEach {
+                    countryConfigDAO.delete(it)
+                }
+                Logger.i(LOG_TAG_PROXY, "$TAG.syncServers: removing ${idsToRemove.size} obsolete servers (AUTO protected)")
             }
-            countryConfigDAO.insertAll(newServers)
-            val addedCount = (newIds - existingIds).size
-            val updatedCount = newIds.intersect(existingIds).size
-            Logger.i(LOG_TAG_PROXY, "$TAG.syncServers: completed - added=$addedCount, updated=$updatedCount, removed=${idsToRemove.size}")
+            val idsToAdd = newIds.filter { it !in existingIds }
+            if (idsToAdd.isNotEmpty()) {
+                val toAdd = newServers.filter { idsToAdd.contains(it.id) }
+                countryConfigDAO.insertAll(toAdd)
+                Logger.i(LOG_TAG_PROXY, "$TAG.syncServers: adding ${idsToAdd.size} new servers")
+            }
+            val idsToUpdate = existingIds.intersect(newIds)
+            if (idsToUpdate.isNotEmpty()) {
+                val toUpdate = newServers.filter { idsToUpdate.contains(it.id) }
+                toUpdate.forEach {
+                    countryConfigDAO.updateServer(it.id, it.name, it.address, it.city, it.key, it.load, it.link, it.count, it.isActive)
+                    Logger.i(LOG_TAG_PROXY, "$TAG.syncServers: updating server ${it.id}")
+                }
+            }
+            Logger.i(LOG_TAG_PROXY, "$TAG.syncServers: completed - added=${idsToAdd.size}, updated=${idsToUpdate.size}, removed=${idsToRemove.size}")
             return newServers.size
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$TAG.syncServers: error syncing servers: ${e.message}", e)
             throw e
         }
     }
-
-    // ===== SSID-related operations =====
 
     suspend fun updateSsids(cc: String, ssids: String) {
         countryConfigDAO.updateSsids(cc, ssids)

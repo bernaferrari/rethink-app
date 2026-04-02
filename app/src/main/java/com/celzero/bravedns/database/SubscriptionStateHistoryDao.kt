@@ -15,9 +15,12 @@
  */
 package com.celzero.bravedns.database
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import com.celzero.bravedns.database.RichHistoryEntry
+import kotlinx.coroutines.flow.Flow
 
 /**
  * DAO for state transition history
@@ -33,6 +36,41 @@ interface SubscriptionStateHistoryDao {
 
     @Query("SELECT * FROM SubscriptionStateHistory ORDER BY timestamp DESC LIMIT :limit")
     suspend fun getRecentHistory(limit: Int = 100): List<SubscriptionStateHistory>
+
+    /** All history entries ordered newest-first, as a PagingSource for the history screen. */
+    @Query("SELECT * FROM SubscriptionStateHistory ORDER BY timestamp DESC")
+    fun getAllHistoryPaged(): PagingSource<Int, SubscriptionStateHistory>
+
+    /** All history as a Flow so the history screen can react to new inserts live. */
+    @Query("SELECT * FROM SubscriptionStateHistory ORDER BY timestamp DESC")
+    fun observeAllHistory(): Flow<List<SubscriptionStateHistory>>
+
+    /**
+     * Rich join query – returns every history row enriched with the matching
+     * SubscriptionStatus columns (productId, productTitle, purchaseToken, planId).
+     * Rows whose subscriptionId has no matching SubscriptionStatus are still
+     * returned with empty strings for the product columns (LEFT JOIN).
+     */
+    @Query("""
+        SELECT
+            h.id          AS id,
+            h.subscriptionId AS subscriptionId,
+            h.fromState   AS fromState,
+            h.toState     AS toState,
+            h.timestamp   AS timestamp,
+            h.reason      AS reason,
+            COALESCE(s.productId,    '') AS productId,
+            COALESCE(s.productTitle, '') AS productTitle,
+            COALESCE(s.purchaseToken,'') AS purchaseToken,
+            COALESCE(s.planId,       '') AS planId,
+            COALESCE(s.purchaseTime, 0)  AS purchaseTime,
+            COALESCE(s.billingExpiry, 0) AS billingExpiry,
+            COALESCE(s.accountId,    '') AS accountId
+        FROM SubscriptionStateHistory h
+        LEFT JOIN SubscriptionStatus s ON h.subscriptionId = s.id
+        ORDER BY h.timestamp DESC
+    """)
+    fun observeRichHistory(): Flow<List<RichHistoryEntry>>
 
     @Query("DELETE FROM SubscriptionStateHistory WHERE timestamp < :cutoffTime")
     suspend fun deleteOldHistory(cutoffTime: Long): Int

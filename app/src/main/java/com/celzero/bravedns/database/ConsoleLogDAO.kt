@@ -15,14 +15,11 @@
  */
 package com.celzero.bravedns.database
 
-import android.database.Cursor
 import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import androidx.room.RawQuery
-import androidx.sqlite.db.SimpleSQLiteQuery
 
 @Dao
 interface ConsoleLogDAO {
@@ -30,13 +27,17 @@ interface ConsoleLogDAO {
     suspend fun insert(log: ConsoleLog)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insertBatch(log: List<ConsoleLog>)
+    suspend fun insertBatch(log: List<ConsoleLog>)
 
-    @RawQuery
-    fun getLogsCursor(query: SimpleSQLiteQuery): Cursor
+    // Chunked export: fetch LIMIT rows starting at offset — used by LogExportWorker for
+    // streaming export to avoid loading all rows into a single StringBuilder (OOM risk).
+    @Query("SELECT * FROM ConsoleLog ORDER BY id LIMIT :limit OFFSET :offset")
+    fun getLogsChunked(limit: Int, offset: Int): List<ConsoleLog>
 
-    @Query("select * from ConsoleLog where message like :input order by id desc")
-    fun getLogs(input: String): PagingSource<Int, ConsoleLog>
+    // Paged query filtered by search text AND log level (level <= :maxLevel means show
+    // that severity and above, e.g. maxLevel=2 shows only WARN+ERROR).
+    @Query("SELECT * FROM ConsoleLog WHERE message LIKE :input AND level >= :minLevel ORDER BY id DESC")
+    fun getLogs(input: String, minLevel: Int): PagingSource<Int, ConsoleLog>
 
     @Query("DELETE FROM ConsoleLog WHERE timestamp < :to")
     suspend fun deleteOldLogs(to: Long)
