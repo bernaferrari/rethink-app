@@ -413,7 +413,6 @@ class OrbotBottomSheet : BottomSheetDialogFragment() {
         val appsAdapter =
             WgIncludeAppsAdapter(
                 requireContext(),
-                this,
                 ProxyManager.ID_ORBOT_BASE,
                 ProxyManager.ORBOT_PROXY_NAME
             )
