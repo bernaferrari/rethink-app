@@ -32,7 +32,6 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.paging.PagingData
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.work.WorkInfo
@@ -80,6 +79,9 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
         private const val FILE_EXTENSION = ".zip"
         private const val QUERY_TEXT_DELAY: Long = 1000
     }
+
+    // Guard against rapid double-taps on share buttons while a job is in-flight
+    private var isShareInProgress = false
 
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
@@ -181,34 +183,21 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
     }
 
     private fun observeLog() {
+        // Use the Lifecycle-aware overload: submitData(lifecycle, pagingData).
+        // The plain suspend overload submitData(pagingData) called from a bare
+        // lifecycleScope.launch{} does NOT cancel the previous PagingData collection
+        // before starting the next one. This leaves the RecyclerView's GapWorker
+        // prefetching from a cancelled/invalid PagingSource snapshot while the new
+        // PagingData has already updated the adapter's item count — causing the
+        // "Inconsistency detected. Invalid item position" crash.
         viewModel.logs.observe(this) { pagingData ->
-            lifecycleScope.launch {
-                try {
-                    recyclerAdapter?.submitData(pagingData)
-                } catch (e: Exception) {
-                    Logger.e(LOG_TAG_UI, "err submitting data: ${e.message}")
-                    // Optionally recreate adapter if needed
-                    if (e is IndexOutOfBoundsException) {
-                        recreateAdapter()
-                    }
-                }
-            }
+            recyclerAdapter?.submitData(lifecycle, pagingData)
         }
     }
-
-    private fun recreateAdapter() {
-        try {
-            recyclerAdapter = ConsoleLogAdapter(this)
-            b.consoleLogList.adapter = recyclerAdapter
-            Logger.i(LOG_TAG_UI, "adapter recreated due to consistency error")
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "err; recreate adapter: ${e.message}")
-        }
-    }
-
     private fun setupClickListener() {
 
         b.consoleLogShare.setOnClickListener {
+            if (isShareInProgress) return@setOnClickListener
             val filePath = makeConsoleLogFile()
             if (filePath == null) {
                 showFileCreationErrorToast()
@@ -218,6 +207,7 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
         }
 
         b.fabShareLog.setOnClickListener {
+            if (isShareInProgress) return@setOnClickListener
             val filePath = makeConsoleLogFile()
             if (filePath == null) {
                 showFileCreationErrorToast()
@@ -227,9 +217,6 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
         }
 
         b.consoleLogDelete.setOnClickListener {
-            lifecycleScope.launch {
-                recyclerAdapter?.submitData(PagingData.empty())
-            }
             io {
                 Logger.i(LOG_TAG_BUG_REPORT, "deleting all console logs")
                 consoleLogRepository.deleteAllLogs()
@@ -292,7 +279,8 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
     }
 
     private fun handleShareLogs(filePath: String) {
-        if (WorkScheduler.isWorkRunning(this, WorkScheduler.CONSOLE_LOG_SAVE_JOB_TAG)) return
+        if (isShareInProgress) return
+        isShareInProgress = true
 
         workScheduler.scheduleConsoleLogSaveJob(filePath)
         showLogGenerationProgressUi()
@@ -307,6 +295,7 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
                 "WorkManager state: ${workInfo.state} for ${WorkScheduler.CONSOLE_LOG_SAVE_JOB_TAG}"
             )
             if (WorkInfo.State.SUCCEEDED == workInfo.state) {
+                isShareInProgress = false
                 onSuccess()
                 shareZipFileViaEmail(filePath)
                 workManager.pruneWork()
@@ -314,6 +303,7 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
                 WorkInfo.State.CANCELLED == workInfo.state ||
                 WorkInfo.State.FAILED == workInfo.state
             ) {
+                isShareInProgress = false
                 onFailure()
                 workManager.pruneWork()
                 workManager.cancelAllWorkByTag(WorkScheduler.CONSOLE_LOG_SAVE_JOB_TAG)
@@ -409,9 +399,6 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
         withContext(Dispatchers.Main) { f() }
     }
 
-    private fun ui(f: () -> Unit) {
-        lifecycleScope.launch(Dispatchers.Main) { f() }
-    }
 
     val searchQuery = MutableStateFlow("")
     @OptIn(FlowPreview::class)
