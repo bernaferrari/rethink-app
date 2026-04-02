@@ -40,4 +40,5 @@
         android:textColor="?attr/primaryTextColor"
         android:textSize="16sp" />
 
+
 </RelativeLayout>
