@@ -305,6 +305,7 @@ class EventsActivity : AppCompatActivity(R.layout.activity_events), SearchView.O
             EventSource.SERVICE -> "Service"
             EventSource.WORKER -> "Worker"
             EventSource.MANAGER -> "Manager"
+            EventSource.PROXY -> "Proxy"
         }
         chip.isCheckedIconVisible = true
         chip.tag = source
