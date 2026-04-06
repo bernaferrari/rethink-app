@@ -1100,7 +1100,7 @@
     <string name="hop_failure_toast" translatable="true">Relay-Fehler: %1$s -&gt; %2$s</string>
     <string name="wg_mobile_only_hop_err" translatable="true">Mobile-only-Modus wird für Relays nicht unterstützt</string>
     <string name="hop_error_toast_msg_3" translatable="true">Deaktiviere den Mobile-only-oder-SSID-Modus, um Relays zu nutzen</string>
-    <string name="lbl_fallback" translatable="true">Fallback</string>
+    <string name="lbl_fallback" translatable="true">Ausweichlösung</string>
     <string name="dc_filtering_heading" translatable="true">Filterung</string>
     <string name="cd_treat_dns_rules_firewall_desc" translatable="true">DNS-Blockierung wird während der Auflösung umgangen; die Entscheidung wird zum Zeitpunkt der Verbindung getroffen.</string>
     <string name="univ_firewall_rule_11" translatable="true">Alle lokalen Host-Verbindungen blockieren</string>
