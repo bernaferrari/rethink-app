@@ -36,7 +36,7 @@
     <string name="lbl_proceed" translatable="true">진행</string>
     <string name="notification_action_dns_firewall_mode" translatable="true">DNS + 방화벽</string>
     <string name="lbl_hour" translatable="true">시간</string>
-    <string name="lbl_persistent_keepalive" translatable="true">지속적 킵얼라이브</string>
+    <string name="lbl_persistent_keepalive" translatable="true">지속적인 유지</string>
     <string name="status_protected_with_http_private_dns" translatable="true">HTTP 프록시 및 개인 DNS로 보호됨</string>
     <string name="dns_mode_notification_title" translatable="true">보호됐습니다! 빠르고 안전한 DNS에 연결되었습니다.</string>
     <string name="bsct_app_info" translatable="true">앱 정보</string>
@@ -56,7 +56,7 @@
     <string name="slide_1_desc" translatable="true">Rethink는 Mozilla Builders MVP 프로그램과 FOSS United 재단의 지원을 받는 오픈 소스 소프트웨어입니다.</string>
     <string name="lbl_http_socks5" translatable="true">HTTPS 및 SOCKS5</string>
     <string name="status_protected_with_proxy_private_dns" translatable="true">프록시 및 개인 DNS로 보호됨</string>
-    <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">탭해서 보호 설정 변경</string>
+    <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">보호 설정을 변경하려면 탭하세요</string>
     <string name="firewall_mode_info_explanation_new" translatable="true">모든 앱과 IP 주소에 대한 네트워크 활동을 모니터링하고 방화벽을 설정합니다.</string>
     <string name="block" translatable="true">차단</string>
     <string name="lbl_generated" translatable="true">(생성됨)</string>
@@ -143,7 +143,7 @@
     <string name="lbl_stopped" translatable="true">중지됨</string>
     <string name="lbl_private" translatable="true">비공개</string>
     <string name="lbl_anonymous" translatable="true">익명</string>
-    <string name="failed_using_default" translatable="true">실패함: 폴백 DNS 사용 중</string>
+    <string name="failed_using_default" translatable="true">실패함: fallback DNS 사용 중</string>
     <string name="always_on_dialog" translatable="true">\"VPN 항상 켜기\"가 이 기기에서 활성화 돼있습니다. Rethink를 시작하려면, 설정 앱으로 가서 \"VPN 항상 켜기\"를 꺼주세요.</string>
     <string name="always_on_dialog_stop_heading" translatable="true">VPN 항상 켜기</string>
     <string name="always_on_dialog_positive" translatable="true">중지</string>
