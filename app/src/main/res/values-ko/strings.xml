@@ -118,9 +118,7 @@
     <string name="rdns_plus" translatable="true">RDNS Plus</string>
     <string name="lbl_create" translatable="true">만들기</string>
     <string name="status_protected_with_socks5_private_dns" translatable="true">SOCKS5 및 개인 DNS로 보호됨</string>
-    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Rethink 접근성 서비스가 중지되었거나 충돌이 발생했습니다.
-\n<i><b>설정으로 이동하여 Rethink를 강제 종료</b></i>한 후 다시 시작하면 <i>사용하지 않는 앱을 차단하는 기능</i>을 사용할 수 있습니다.
-\nRethink는 접근성 서비스를 사용하여 사용 중인 앱(포그라운드)과 사용하지 않는 앱(백그라운드)을 구분하고 있습니다.</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Rethink 접근성 서비스가 중단되었거나 오류가 발생했습니다. <i><b>설정으로 이동하여 Rethink를 강제 종료</b></i>한 뒤 다시 실행해야 <i>사용하지 않는 앱 차단</i> 기능을 사용할 수 있습니다.\n\nRethink는 어떤 앱이 사용 중(포그라운드)인지 또는 사용 중이 아닌지(백그라운드)를 파악하기 위해 접근성 서비스를 사용합니다.</string>
     <string name="lbl_logs" translatable="true">로그</string>
     <string name="dns_explanation_firewall_connected" translatable="true">방화벽에 연결됨</string>
     <string name="status_protected_with_wg_private_dns" translatable="true">WireGuard 및 개인 DNS로 보호됨</string>
