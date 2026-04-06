@@ -1,1 +1,1 @@
-Rethink: DNS + Frewall + VPN
+Rethink: DNS + Firewall + VPN
