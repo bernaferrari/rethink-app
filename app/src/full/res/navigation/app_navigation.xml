@@ -17,7 +17,9 @@
         android:label="RethinkPlusFragment">
         <action
             android:id="@+id/action_switch_to_rethinkPlusDashboardFragment"
-            app:destination="@id/rethinkPlusDashboardFragment" />
+            app:destination="@id/rethinkPlusDashboardFragment"
+            app:popUpTo="@id/rethinkPlus"
+            app:popUpToInclusive="true" />
     </fragment>
     <fragment
         android:id="@+id/summaryStatisticsFragment"
