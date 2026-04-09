@@ -36,7 +36,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.android.billingclient.api.BillingClient
 import com.celzero.bravedns.R
-import com.celzero.bravedns.databinding.FragmentManageSubscriptionBinding
+import com.celzero.bravedns.databinding.FragmentManagePurchaseBinding
 import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.iab.InAppBillingHandler.REVOKE_WINDOW_ONE_TIME_2YRS_DAYS
 import com.celzero.bravedns.iab.InAppBillingHandler.REVOKE_WINDOW_ONE_TIME_5YRS_DAYS
@@ -48,6 +48,7 @@ import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.subscription.SubscriptionStateMachineV2
 import com.celzero.bravedns.ui.activity.FragmentHostActivity
 import com.celzero.bravedns.ui.bottomsheet.PurchaseConflictBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.DeviceAuthErrorBottomSheet
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.openUrl
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
@@ -62,8 +63,8 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_subscription) {
-    private val b by viewBinding(FragmentManageSubscriptionBinding::bind)
+class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
+    private val b by viewBinding(FragmentManagePurchaseBinding::bind)
 
     /**
      * The ViewModel owns the cancel/revoke coroutine.
@@ -695,15 +696,22 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_subscription) {
             error ?: return@observe
             InAppBillingHandler.serverApiErrorLiveData.value = null
             when (error) {
-                is ServerApiError.Conflict409  -> showConflictBottomSheet(error)
-                is ServerApiError.GenericError -> showToastUiCentered(requireContext(), error.message, Toast.LENGTH_LONG)
-                is ServerApiError.NetworkError -> showToastUiCentered(
+                is ServerApiError.Conflict409    -> showConflictBottomSheet(error)
+                is ServerApiError.Unauthorized401 -> showDeviceAuthErrorBottomSheet(error)
+                is ServerApiError.GenericError   -> showToastUiCentered(requireContext(), error.message, Toast.LENGTH_LONG)
+                is ServerApiError.NetworkError   -> showToastUiCentered(
                     requireContext(),
                     error.message ?: getString(R.string.subscription_action_failed),
                     Toast.LENGTH_LONG)
                 is ServerApiError.None -> { /* no-op */ }
             }
         }
+    }
+
+    private fun showDeviceAuthErrorBottomSheet(error: ServerApiError.Unauthorized401) {
+        if (!isAdded || isStateSaved) return
+        val sheet = DeviceAuthErrorBottomSheet.newInstance(error)
+        sheet.show(childFragmentManager, "deviceAuthError401")
     }
 
     private fun showConflictBottomSheet(error: ServerApiError.Conflict409) {

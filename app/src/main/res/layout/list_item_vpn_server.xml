@@ -6,47 +6,180 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="?attr/selectableItemBackground"
+    android:minHeight="64dp"
     android:paddingStart="16dp"
+    android:paddingTop="2dp"
     android:paddingEnd="12dp"
-    android:paddingTop="12dp"
-    android:paddingBottom="12dp"
-    android:minHeight="64dp">
+    android:paddingBottom="2dp">
 
-    <!-- Flag -->
+    <LinearLayout
+        android:id="@+id/stats_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="48dp"
+        android:layout_marginBottom="4dp"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintBaseline_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/country_info_layout">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_server_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                android:textColor="?attr/accentGood"
+                android:textSize="11sp"
+                tools:text="Active" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_status_sep"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                android:text="@string/lbl_separator_dot"
+                android:textColor="?attr/primaryLightColorText"
+                android:textSize="11sp"
+                android:visibility="gone" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_apps_count"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textColor="?attr/primaryLightColorText"
+                android:textSize="11sp"
+                android:visibility="gone"
+                tools:text="3 apps" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_rx_tx"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textColor="?attr/primaryLightColorText"
+                android:textSize="11sp"
+                android:visibility="gone"
+                tools:text="↑ 1.2 MB  ↓ 4.5 MB" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_uptime_sep"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                android:text="@string/lbl_separator_dot"
+                android:textColor="?attr/primaryLightColorText"
+                android:textSize="11sp"
+                android:visibility="gone" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tv_uptime"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:textColor="?attr/primaryLightColorText"
+                android:textSize="11sp"
+                android:visibility="gone"
+                tools:text="2 min ago" />
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/refresh_layout"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="4dp"
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:orientation="vertical"
+        android:visibility="visible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/stats_layout">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="1">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/reconnect_txt"
+                android:layout_width="0dp"
+                android:layout_weight="0.5"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:layout_gravity="center"
+                android:layout_margin="5dp"
+                android:padding="8dp"
+                android:gravity="center"
+                android:background="@drawable/rectangle_border_background"
+                android:textSize="12sp"
+                android:text="Reconnect" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/refresh_txt"
+                android:layout_width="0dp"
+                android:layout_weight="0.5"
+                android:layout_height="wrap_content"
+                android:maxLines="1"
+                android:layout_margin="5dp"
+                android:padding="8dp"
+                android:layout_gravity="center"
+                android:background="@drawable/rectangle_border_background"
+                android:gravity="center"
+                android:textSize="12sp"
+                android:visibility="visible"
+                android:text="Refresh" />
+        </LinearLayout>
+
+    </LinearLayout>
+
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/tv_flag"
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:gravity="center"
         android:textSize="26sp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/stats_layout"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:text="🇺🇸" />
 
-    <!-- Premium badge overlay (small, minimal) -->
-    <androidx.appcompat.widget.AppCompatImageView
-        android:id="@+id/premium_badge_mini"
-        android:layout_width="12dp"
-        android:layout_height="12dp"
-        android:src="@drawable/ic_rethink_plus_sparkle"
-        android:tint="?attr/accentGood"
-        android:visibility="gone"
-        app:layout_constraintBottom_toBottomOf="@id/tv_flag"
-        app:layout_constraintEnd_toEndOf="@id/tv_flag"
-        tools:visibility="visible" />
-
-    <!-- Country name and location (compact, single line preferred) -->
     <LinearLayout
         android:id="@+id/country_info_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="12dp"
         android:orientation="vertical"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/latency_badge"
+        app:layout_constraintBottom_toTopOf="@id/stats_layout"
+        app:layout_constraintEnd_toStartOf="@id/info_icon"
         app:layout_constraintStart_toEndOf="@id/tv_flag"
         app:layout_constraintTop_toTopOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/tv_country_name"
@@ -58,6 +191,23 @@
             android:textColor="?attr/primaryTextColor"
             android:textSize="15sp"
             tools:text="United States" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/latency_badge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_marginEnd="8dp"
+            android:fontFamily="sans-serif-medium"
+            android:textSize="11sp"
+            android:alpha="0.6"
+            app:layout_constraintBottom_toTopOf="@id/stats_layout"
+            app:layout_constraintEnd_toStartOf="@id/info_icon"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="1.0 Gbps · 20%"
+            tools:textColor="?attr/chipTextPositive" />
+
+    </LinearLayout>
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/tv_server_location"
@@ -72,56 +222,27 @@
 
     </LinearLayout>
 
-    <!-- Latency Badge (compact) -->
-    <androidx.appcompat.widget.AppCompatTextView
-        android:id="@+id/latency_badge"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="8dp"
-        android:fontFamily="sans-serif-medium"
-        android:textSize="13sp"
-        android:textStyle="bold"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/checkbox_select"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:text="45ms"
-        tools:textColor="?attr/chipTextPositive" />
-
-    <!-- Checkbox for selection (compact) -->
-    <androidx.appcompat.widget.AppCompatCheckBox
-        android:id="@+id/checkbox_select"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_marginEnd="4dp"
-        android:buttonTint="?attr/accentGood"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/info_icon"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!-- Info/details icon -->
     <androidx.appcompat.widget.AppCompatImageView
         android:id="@+id/info_icon"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:src="@drawable/ic_expand_more_24"
-        android:tint="?attr/primaryLightColorText"
-        android:padding="6dp"
-        android:rotation="270"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:padding="12dp"
+        android:src="@drawable/ic_delete"
+        android:tint="?attr/primaryLightColorText"
+        android:contentDescription="@string/lbl_remove"
+        app:layout_constraintBottom_toTopOf="@id/stats_layout"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- Bottom divider (subtle) -->
     <View
         android:layout_width="0dp"
         android:layout_height="0.5dp"
         android:layout_marginStart="48dp"
-        android:background="?attr/divider"
         android:alpha="0.15"
+        android:background="?attr/divider"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
-

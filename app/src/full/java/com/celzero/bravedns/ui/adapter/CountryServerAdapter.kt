@@ -17,13 +17,19 @@ package com.celzero.bravedns.ui.adapter
 
 import Logger
 import Logger.LOG_TAG_UI
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CountryConfig
+import com.celzero.bravedns.databinding.ItemServerGroupBinding
 import com.celzero.bravedns.databinding.ListItemCountryCardBinding
+import com.celzero.bravedns.util.UIUtils.fetchColor
+import java.util.Locale
 
 /**
  * Adapter showing servers grouped by country using list_item_country_card.
@@ -35,20 +41,59 @@ class CountryServerAdapter(
 ) : RecyclerView.Adapter<CountryServerAdapter.CountryViewHolder>() {
 
     interface CitySelectionListener {
-        fun onCitySelected(server: CountryConfig, isSelected: Boolean)
+        fun onCitySelected(server: CountryConfig, isEnabled: Boolean)
+        /**
+         * Called when a server item is tapped while the proxy is stopped.
+         * The host should open the settings sheet so the user can restart the proxy.
+         */
+        fun onProxyStoppedItemTapped()
     }
 
-    data class CityItem(val server: CountryConfig)
+    /**
+     * Represents a merged group of servers sharing the same key.
+     * Multiple servers with same key are grouped and shown as one selectable item.
+     */
+    data class ServerGroup(
+        val key: String, // Common server key
+        val servers: List<CountryConfig>, // All servers with this key
+        val city: String, // Primary city name
+        val avgLoad: Int, // Average load across servers
+        val avgLink: Int, // Average link speed across servers (in Mbps)
+        val isEnabled: Boolean // Selection state
+    ) {
+        val serverCount: Int get() = servers.size
+    }
 
     data class CountryItem(
         val countryCode: String,
         val countryName: String,
         val flagEmoji: String,
-        val cities: List<CityItem>
+        val serverGroups: List<ServerGroup>  // Changed from cities to serverGroups
     )
 
     // track which countries are expanded by country code
     private val expandedCountries = mutableSetOf<String>()
+
+    /**
+     * True when the RPN proxy has been deliberately stopped.
+     * Propagated to every [ServerGroupAdapter] instance so server items
+     * block selection and redirect taps to the settings sheet.
+     *
+     * Using a plain private backing field (not `var isXxx: Boolean`) to avoid the
+     * JVM declaration clash between the auto-generated `setProxyStopped` property
+     * setter and the explicit [setProxyStopped] method.
+     */
+    private var proxyStopped = false
+
+    /**
+     * Switches all country rows (and their expanded server groups) to/from stopped mode.
+     * Skips rebind if the flag did not change.
+     */
+    fun setProxyStopped(stopped: Boolean) {
+        if (proxyStopped == stopped) return
+        proxyStopped = stopped
+        notifyItemRangeChanged(0, itemCount)
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CountryViewHolder {
         val binding = ListItemCountryCardBinding.inflate(
@@ -61,44 +106,56 @@ class CountryServerAdapter(
 
     override fun onBindViewHolder(holder: CountryViewHolder, position: Int) {
         val country = countries[position]
-        Logger.v(LOG_TAG_UI, "CountryServerAdapter.bind: ${country.countryName} with ${country.cities.size} cities")
+        Logger.v(LOG_TAG_UI, "CountryServerAdapter.bind: ${country.countryName} with ${country.serverGroups.size} server groups")
         holder.bind(country, expandedCountries.contains(country.countryCode))
     }
 
     override fun getItemCount(): Int = countries.size
 
     fun updateCountries(newCountries: List<CountryItem>) {
+        val old = countries
+        val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+            override fun getOldListSize() = old.size
+            override fun getNewListSize() = newCountries.size
+            override fun areItemsTheSame(o: Int, n: Int) = old[o].countryCode == newCountries[n].countryCode
+            override fun areContentsTheSame(o: Int, n: Int) = old[o] == newCountries[n]
+        })
         countries = newCountries
-        // retain expansion where possible
         val newCodes = newCountries.map { it.countryCode }.toSet()
         expandedCountries.retainAll(newCodes)
-        notifyDataSetChanged()
+        diff.dispatchUpdatesTo(this)
     }
 
     inner class CountryViewHolder(
         private val binding: ListItemCountryCardBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 
-        private var cityAdapter: CityServerAdapter? = null
+        private var serverGroupAdapter: ServerGroupAdapter? = null
 
         fun bind(item: CountryItem, isExpanded: Boolean) {
             binding.apply {
                 tvCountryFlag.text = item.flagEmoji
                 tvCountryName.text = item.countryName
+
+                // Count total servers across all groups
+                val totalServers = item.serverGroups.sumOf { it.serverCount }
                 tvServerCount.text =
                     itemView.context.resources.getQuantityString(
-                        com.celzero.bravedns.R.plurals.server_count,
-                        item.cities.size,
-                        item.cities.size
+                        R.plurals.server_count,
+                        totalServers,
+                        totalServers
                     )
 
-                if (cityAdapter == null) {
-                    cityAdapter = CityServerAdapter(listener)
+                if (serverGroupAdapter == null) {
+                    serverGroupAdapter = ServerGroupAdapter(listener)
                     rvServers.layoutManager = LinearLayoutManager(itemView.context)
-                    rvServers.adapter = cityAdapter
+                    rvServers.adapter = serverGroupAdapter
                     rvServers.isNestedScrollingEnabled = false
                 }
-                cityAdapter?.submitList(item.cities)
+                // Always keep the inner adapter in sync with the outer stopped state
+                // before submitting new data so all bound items reflect the correct mode.
+                serverGroupAdapter?.setProxyStopped(this@CountryServerAdapter.proxyStopped)
+                serverGroupAdapter?.submitList(item.serverGroups)
 
                 // expand / collapse state
                 rvServers.visibility = if (isExpanded) View.VISIBLE else View.GONE
@@ -122,64 +179,201 @@ class CountryServerAdapter(
     }
 
     /**
-     * Child adapter for city rows under each country card.
+     * Adapter for server groups (merged by key) under each country card.
      */
-    private class CityServerAdapter(
+    private class ServerGroupAdapter(
         private val listener: CitySelectionListener
-    ) : RecyclerView.Adapter<CityServerAdapter.CityViewHolder>() {
+    ) : RecyclerView.Adapter<ServerGroupAdapter.ServerGroupViewHolder>() {
 
-        private val items = mutableListOf<CityItem>()
+        private val items = mutableListOf<ServerGroup>()
 
-        fun submitList(newItems: List<CityItem>) {
-            items.clear()
-            items.addAll(newItems)
-            notifyDataSetChanged()
+        /**
+         * True when the RPN proxy is stopped — taps are redirected to
+         * [CitySelectionListener.onProxyStoppedItemTapped] instead of selecting.
+         *
+         * Plain private field (no `is` prefix) to avoid the JVM setter name clash.
+         */
+        private var proxyStopped: Boolean = false
+
+        fun setProxyStopped(stopped: Boolean) {
+            if (proxyStopped == stopped) return
+            proxyStopped = stopped
+            notifyItemRangeChanged(0, items.size)
         }
 
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CityViewHolder {
-            val binding = com.celzero.bravedns.databinding.ItemServerBinding.inflate(
+        fun submitList(newItems: List<ServerGroup>) {
+            val old = items.toList()
+            val diff = DiffUtil.calculateDiff(object : DiffUtil.Callback() {
+                override fun getOldListSize() = old.size
+                override fun getNewListSize() = newItems.size
+                override fun areItemsTheSame(o: Int, n: Int) = old[o].key == newItems[n].key
+                override fun areContentsTheSame(o: Int, n: Int) = old[o] == newItems[n]
+            })
+            items.clear()
+            items.addAll(newItems)
+            diff.dispatchUpdatesTo(this)
+        }
+
+        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ServerGroupViewHolder {
+            val binding = ItemServerGroupBinding.inflate(
                 LayoutInflater.from(parent.context),
                 parent,
                 false
             )
-            return CityViewHolder(binding)
+            return ServerGroupViewHolder(binding)
         }
 
-        override fun onBindViewHolder(holder: CityViewHolder, position: Int) {
-            holder.bind(items[position].server)
+        override fun onBindViewHolder(holder: ServerGroupViewHolder, position: Int) {
+            holder.bind(items[position])
         }
 
         override fun getItemCount(): Int = items.size
 
-        inner class CityViewHolder(
-            private val binding: com.celzero.bravedns.databinding.ItemServerBinding
+        inner class ServerGroupViewHolder(
+            private val binding: ItemServerGroupBinding
         ) : RecyclerView.ViewHolder(binding.root) {
 
-            fun bind(server: CountryConfig) {
+            fun bind(group: ServerGroup) {
                 binding.apply {
-                    // Display city name
-                    tvCityName.text = server.serverLocation
+                    tvCityName.text = group.city
 
-                    // Display server metrics (latency and load)
-                    tvServerMetric.text = buildString {
-                        if (server.link > 0) {
-                            append("${server.link}ms")
+                    if (group.serverCount > 1) {
+                        tvServerCount.visibility = View.VISIBLE
+                        tvServerCount.text = itemView.context.resources.getQuantityString(
+                            com.celzero.bravedns.R.plurals.server_count,
+                            group.serverCount,
+                            group.serverCount
+                        )
+                    } else {
+                        tvServerCount.visibility = View.GONE
+                    }
+
+                    if (group.avgLink > 0) {
+                        chipLinkSpeed.visibility = View.VISIBLE
+                        val (speedStr, speedLabel, speedAttr) = speedInfo(group.avgLink)
+                        chipLinkSpeed.text = "$speedStr · $speedLabel"
+                        chipLinkSpeed.chipBackgroundColor =
+                            ColorStateList.valueOf(fetchColor(itemView.context, speedAttr))
+                    } else {
+                        chipLinkSpeed.visibility = View.GONE
+                    }
+
+                    if (group.avgLoad > 0) {
+                        tvLoad.visibility = View.VISIBLE
+                        val (loadStr, loadAttr) = loadInfo(group.avgLoad)
+                        tvLoad.text = loadStr
+                        tvLoad.setTextColor(fetchColor(itemView.context, loadAttr))
+                    } else {
+                        tvLoad.visibility = View.GONE
+                    }
+
+                    checkboxServer.isChecked = group.isEnabled
+
+                    if (proxyStopped) {
+                        // Visually indicate the server cannot be selected right now.
+                        checkboxServer.isEnabled = false
+                        checkboxServer.alpha = 0.4f
+                        // Any tap opens the settings sheet so the user can restart the proxy.
+                        root.setOnClickListener { listener.onProxyStoppedItemTapped() }
+                    } else {
+                        checkboxServer.isEnabled = true
+                        checkboxServer.alpha = 1f
+                        root.setOnClickListener {
+                            listener.onCitySelected(group.servers.first(), !group.isEnabled)
                         }
-                        if (server.load > 0) {
-                            if (isNotEmpty()) append(" • ")
-                            append("${server.load}%")
-                        }
-                    }.ifEmpty { "—" }
-
-                    // Selection state
-                    checkboxServer.isChecked = server.isActive
-
-                    // Click handling
-                    root.setOnClickListener {
-                        val newState = !server.isActive
-                        listener.onCitySelected(server, newState)
                     }
                 }
+            }
+
+            /**
+             * Returns (formattedSpeed, tierLabel, chipBackgroundAttr) for [linkMbps].
+             *
+             * Tier thresholds (matching common datacenter NIC grades):
+             *   ≥ 10 000 Mbps (10 Gbps) → Very Fast   (rare premium tier)
+             *   ≥  1 000 Mbps  (1 Gbps) → Fast        (standard datacenter)
+             *   ≥    100 Mbps           → Good         (solid broadband)
+             *   ≥     10 Mbps           → Moderate     (acceptable)
+             *   >      0 Mbps           → Slow         (constrained)
+             */
+            private fun speedInfo(linkMbps: Int): Triple<String, String, Int> {
+                val ctx = itemView.context
+                val formatted: String
+                val label: String
+                val attr: Int
+
+                when {
+                    linkMbps >= 10_000 -> {
+                        val gbps = linkMbps / 1_000.0
+                        formatted = String.format(Locale.US, "%.0f Gbps", gbps)
+                        label     = ctx.getString(R.string.server_speed_very_fast)
+                        attr      = R.attr.chipTextPositive
+                    }
+                    linkMbps >= 1_000 -> {
+                        val gbps = linkMbps / 1_000.0
+                        formatted = if (gbps == gbps.toLong().toDouble())
+                            String.format(Locale.US, "%.0f Gbps", gbps)
+                        else
+                            String.format(Locale.US, "%.1f Gbps", gbps)
+                        label     = ctx.getString(R.string.server_speed_fast)
+                        attr      = R.attr.accentGood
+                    }
+                    linkMbps >= 100 -> {
+                        formatted = "$linkMbps Mbps"
+                        label     = ctx.getString(R.string.server_speed_good)
+                        attr      = R.attr.chipTextNeutral
+                    }
+                    linkMbps >= 10 -> {
+                        formatted = "$linkMbps Mbps"
+                        label     = ctx.getString(R.string.server_speed_moderate)
+                        attr      = R.attr.chipTextNeutral
+                    }
+                    else -> {
+                        formatted = "$linkMbps Mbps"
+                        label     = ctx.getString(R.string.server_speed_slow)
+                        attr      = R.attr.chipTextNegative
+                    }
+                }
+                return Triple(formatted, label, attr)
+            }
+
+            /**
+             * Returns (displayText, textColorAttr) for [loadPercent].
+             *
+             * Tier thresholds:
+             *   ≤ 20 → Light      (plenty of headroom)
+             *   ≤ 40 → Normal     (healthy utilisation)
+             *   ≤ 60 → Busy       (noticeable but acceptable)
+             *   ≤ 80 → Very Busy  (performance may degrade)
+             *   > 80 → Overloaded (avoid if possible)
+             */
+            private fun loadInfo(loadPercent: Int): Pair<String, Int> {
+                val ctx = itemView.context
+                val label: String
+                val attr: Int
+
+                when {
+                    loadPercent <= 20 -> {
+                        label = "$loadPercent% · ${ctx.getString(R.string.server_load_light)}"
+                        attr  = R.attr.chipTextPositive
+                    }
+                    loadPercent <= 40 -> {
+                        label = "$loadPercent% · ${ctx.getString(R.string.server_load_normal)}"
+                        attr  = R.attr.accentGood
+                    }
+                    loadPercent <= 60 -> {
+                        label = "$loadPercent% · ${ctx.getString(R.string.server_load_busy)}"
+                        attr  = R.attr.chipTextNeutral
+                    }
+                    loadPercent <= 80 -> {
+                        label = "$loadPercent% · ${ctx.getString(R.string.server_load_very_busy)}"
+                        attr  = R.attr.chipTextNegative
+                    }
+                    else -> {
+                        label = "$loadPercent% · ${ctx.getString(R.string.server_load_overloaded)}"
+                        attr  = R.attr.chipTextNegative
+                    }
+                }
+                return Pair(label, attr)
             }
         }
     }

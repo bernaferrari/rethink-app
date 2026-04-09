@@ -6,11 +6,10 @@
     android:layout_height="match_parent"
     android:background="?attr/background">
 
-    <!-- App Bar with Gradient Overlay -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
-        android:layout_height="280dp"
+        android:layout_height="200dp"
         android:background="@android:color/transparent"
         android:elevation="0dp"
         android:fitsSystemWindows="true"
@@ -21,18 +20,11 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:fitsSystemWindows="true"
-            app:contentScrim="?attr/colorSurface"
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
-            app:title="@string/lbl_server_config"
-            app:titleEnabled="true"
-            app:collapsedTitleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
-            app:expandedTitleTextAppearance="@style/TextAppearance.Material3.HeadlineMedium"
-            app:expandedTitleMarginStart="20dp"
-            app:expandedTitleMarginBottom="24dp"
             app:scrimAnimationDuration="300"
-            app:scrimVisibleHeightTrigger="120dp">
+            app:scrimVisibleHeightTrigger="100dp"
+            app:titleEnabled="false">
 
-            <!-- Theme-aware gradient behind hero header -->
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
@@ -44,81 +36,97 @@
                     android:id="@+id/header_gradient_bg"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
-                    android:background="@drawable/bg_premium_header_gradient" />
+                    android:background="@drawable/bg_vpn_header_gradient" />
 
-                <!-- Hero Header Content -->
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:paddingStart="20dp"
+                    android:paddingTop="20dp"
                     android:paddingEnd="20dp"
-                    android:paddingTop="72dp"
-                    android:paddingBottom="24dp">
+                    android:paddingBottom="20dp">
 
-                    <!-- Config Name with Premium Typography -->
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/bg_world_map"
+                        android:layout_width="0dp"
+                        android:layout_height="150dp"
+                        android:alpha="0.15"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_world_map"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tv_hero_flag"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="40dp"
+                        android:textSize="36sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="parent"
+                        tools:text="🇩🇪" />
+
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/config_name_text"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
                         android:ellipsize="end"
-                        android:letterSpacing="0.02"
-                        android:maxLines="2"
-                        android:textSize="26sp"
+                        android:maxLines="1"
                         android:textColor="?attr/primaryTextColor"
+                        android:textSize="24sp"
                         android:textStyle="bold"
                         app:layout_constraintEnd_toStartOf="@id/config_id_text"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        tools:text="Premium Server" />
+                        app:layout_constraintStart_toEndOf="@id/tv_hero_flag"
+                        app:layout_constraintTop_toTopOf="@id/tv_hero_flag"
+                        tools:text="Germany" />
 
-                    <!-- ID Badge -->
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tv_hero_city"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_marginTop="2dp"
+                        android:ellipsize="end"
+                        android:maxLines="1"
+                        android:textColor="?attr/primaryLightColorText"
+                        android:textSize="14sp"
+                        app:layout_constraintEnd_toStartOf="@id/config_id_text"
+                        app:layout_constraintStart_toEndOf="@id/tv_hero_flag"
+                        app:layout_constraintTop_toBottomOf="@id/config_name_text"
+                        tools:text="Frankfurt" />
+
                     <com.google.android.material.chip.Chip
                         android:id="@+id/config_id_text"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginStart="12dp"
+                        android:layout_marginStart="8dp"
                         android:textSize="11sp"
+                        app:chipBackgroundColor="?attr/chipBgColorNeutral"
                         app:chipCornerRadius="12dp"
                         app:chipMinHeight="28dp"
                         app:chipStrokeWidth="0dp"
-                        app:chipBackgroundColor="?attr/chipBgColorNeutral"
+                        app:layout_constraintBottom_toBottomOf="@id/tv_hero_flag"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="parent"
-                        tools:text="#123" />
-
-                    <!-- Status -->
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/status_text"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="10dp"
-                        android:textColor="?attr/accentGood"
-                        android:textSize="13sp"
-                        android:textStyle="bold"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/config_name_text"
-                        tools:text="Active" />
+                        app:layout_constraintTop_toTopOf="@id/tv_hero_flag"
+                        tools:text="DE-FRA-01" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
-
             </FrameLayout>
 
-            <!-- Toolbar -->
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
+                android:background="@android:color/transparent"
                 android:elevation="0dp"
                 app:layout_collapseMode="pin"
-                app:navigationIcon="@drawable/ic_arrow_back_24"
                 app:title="" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
-
-
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Main Content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -133,18 +141,19 @@
             android:clipChildren="false"
             android:clipToPadding="false"
             android:orientation="vertical"
-            android:padding="16dp"
-            android:paddingBottom="32dp">
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:paddingBottom="60dp">
 
-            <!-- Connection Details Card -->
             <com.google.android.material.card.MaterialCardView
-                android:id="@+id/connection_details_card"
+                android:id="@+id/stats_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="3dp"
-                app:strokeWidth="0dp">
+                app:cardCornerRadius="18dp"
+                app:cardElevation="4dp"
+                app:strokeColor="?attr/divider"
+                app:strokeWidth="1dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -152,128 +161,447 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <!-- Section Title -->
-                    <com.google.android.material.textview.MaterialTextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
-                        android:letterSpacing="0.02"
-                        android:text="@string/lbl_peers"
-                        android:textSize="16sp"
-                        android:textColor="?attr/primaryTextColor"
-                        android:textStyle="bold" />
-
-                    <!-- Listen Port & MTU Row -->
-                    <LinearLayout
+                    <com.facebook.shimmer.ShimmerFrameLayout
+                        android:id="@+id/shimmer_stats"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="16dp"
                         android:visibility="gone"
-                        android:baselineAligned="false"
-                        android:orientation="horizontal">
+                        app:shimmer_auto_start="false">
 
-                        <!-- Listen Port -->
                         <LinearLayout
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:layout_weight="1"
                             android:orientation="vertical">
 
-                            <com.google.android.material.textview.MaterialTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginBottom="8dp"
-                                android:text="@string/lbl_listen_port"
-                                android:textColor="?attr/primaryLightColorText"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-
-                            <Spinner
-                                android:id="@+id/listen_port_spinner"
-                                android:layout_width="match_parent"
-                                android:layout_height="48dp"
-                                android:background="?attr/chipBgColorNeutral"
-                                android:paddingStart="12dp"
-                                android:paddingEnd="12dp" />
-
+                            <View
+                                android:layout_width="160dp"
+                                android:layout_height="12dp"
+                                android:layout_marginBottom="14dp"
+                                android:background="@drawable/shimmer_placeholder" />
                         </LinearLayout>
+                    </com.facebook.shimmer.ShimmerFrameLayout>
 
-                        <!-- MTU -->
-                        <LinearLayout
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="1"
-                            android:orientation="vertical">
-
-                            <com.google.android.material.textview.MaterialTextView
-                                android:id="@+id/mtu_label"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginBottom="8dp"
-                                android:text="@string/lbl_mtu"
-                                android:textColor="?attr/primaryLightColorText"
-                                android:textSize="12sp"
-                                android:textStyle="bold" />
-
-                            <com.google.android.material.textview.MaterialTextView
-                                android:id="@+id/mtu_text"
-                                android:layout_width="match_parent"
-                                android:layout_height="48dp"
-                                android:background="?attr/chipBgColorNeutral"
-                                android:gravity="center_vertical"
-                                android:paddingStart="12dp"
-                                android:paddingEnd="12dp"
-                                android:textColor="?attr/primaryTextColor"
-                                android:textSize="15sp"
-                                android:visibility="gone"
-                                tools:text="1420"
-                                tools:visibility="visible" />
-
-                        </LinearLayout>
-
-                    </LinearLayout>
-
-                    <!-- Public Key (Hidden by default) -->
                     <LinearLayout
-                        android:id="@+id/public_key_container"
+                        android:id="@+id/stats_content"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:visibility="gone"
+                        android:visibility="visible"
                         tools:visibility="visible">
 
-                        <com.google.android.material.textview.MaterialTextView
-                            android:id="@+id/public_key_label"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="8dp"
-                            android:text="@string/lbl_public_key"
-                            android:textColor="?attr/primaryLightColorText"
-                            android:textSize="12sp"
-                            android:textStyle="bold" />
-
-                        <com.google.android.material.textview.MaterialTextView
-                            android:id="@+id/public_key_text"
+                        <LinearLayout
+                            android:id="@+id/row_status"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:background="?attr/chipBgColorNeutral"
-                            android:ellipsize="middle"
-                            android:fontFamily="monospace"
-                            android:padding="12dp"
-                            android:singleLine="true"
-                            android:textColor="?attr/primaryTextColor"
-                            android:textSize="12sp"
-                            tools:text="abcd1234efgh5678..." />
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/label_status"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/lbl_status"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="13sp" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/value_status"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="?attr/accentGood"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                tools:text="Active" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="0.5dp"
+                            android:alpha="0.08"
+                            android:background="?attr/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/row_who"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/label_who"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginBottom="6dp"
+                                android:text="Identity"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="13sp" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/value_who"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="2"
+                                android:clickable="true"
+                                android:ellipsize="marquee"
+                                android:focusable="true"
+                                android:marqueeRepeatLimit="marquee_forever"
+                                android:maxLines="2"
+                                android:textColor="?attr/primaryTextColor"
+                                android:textSize="13sp" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="0.5dp"
+                            android:alpha="0.08"
+                            android:background="?attr/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/row_ipv4"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/label_ipv4"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="6dp"
+                                android:text="@string/lbl_client_ipv4"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="13sp" />
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <com.facebook.shimmer.ShimmerFrameLayout
+                                    android:id="@+id/shimmer_ipv4"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:visibility="visible"
+                                    app:shimmer_auto_start="true"
+                                    app:shimmer_duration="1000">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical">
+
+                                        <View
+                                            android:layout_width="110dp"
+                                            android:layout_height="13dp"
+                                            android:layout_marginBottom="8dp"
+                                            android:background="@drawable/shimmer_placeholder" />
+
+                                        <View
+                                            android:layout_width="220dp"
+                                            android:layout_height="11dp"
+                                            android:layout_marginBottom="6dp"
+                                            android:background="@drawable/shimmer_placeholder" />
+
+                                        <View
+                                            android:layout_width="160dp"
+                                            android:layout_height="11dp"
+                                            android:background="@drawable/shimmer_placeholder" />
+                                    </LinearLayout>
+                                </com.facebook.shimmer.ShimmerFrameLayout>
+
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:id="@+id/value_ipv4"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:lineSpacingExtra="3dp"
+                                    android:textColor="?attr/primaryTextColor"
+                                    android:textSize="13sp"
+                                    android:visibility="gone"
+                                    tools:text="10.0.0.1" />
+                            </FrameLayout>
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="0.5dp"
+                            android:alpha="0.08"
+                            android:background="?attr/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/row_ipv6"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:paddingTop="10dp"
+                            android:paddingBottom="10dp">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/label_ipv6"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginBottom="6dp"
+                                android:text="@string/lbl_client_ipv6"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="13sp" />
+
+                            <FrameLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content">
+
+                                <com.facebook.shimmer.ShimmerFrameLayout
+                                    android:id="@+id/shimmer_ipv6"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:visibility="visible"
+                                    app:shimmer_auto_start="true"
+                                    app:shimmer_duration="1000">
+
+                                    <LinearLayout
+                                        android:layout_width="match_parent"
+                                        android:layout_height="wrap_content"
+                                        android:orientation="vertical">
+
+                                        <View
+                                            android:layout_width="180dp"
+                                            android:layout_height="13dp"
+                                            android:layout_marginBottom="8dp"
+                                            android:background="@drawable/shimmer_placeholder" />
+
+                                        <View
+                                            android:layout_width="220dp"
+                                            android:layout_height="11dp"
+                                            android:layout_marginBottom="6dp"
+                                            android:background="@drawable/shimmer_placeholder" />
+
+                                        <View
+                                            android:layout_width="140dp"
+                                            android:layout_height="11dp"
+                                            android:background="@drawable/shimmer_placeholder" />
+                                    </LinearLayout>
+                                </com.facebook.shimmer.ShimmerFrameLayout>
+
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:id="@+id/value_ipv6"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:lineSpacingExtra="3dp"
+                                    android:textColor="?attr/primaryTextColor"
+                                    android:textSize="13sp"
+                                    android:visibility="gone" />
+                            </FrameLayout>
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="0.5dp"
+                            android:alpha="0.08"
+                            android:background="?attr/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/row_rx"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/label_rx"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/server_download_label"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="13sp" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/value_rx"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="?attr/primaryTextColor"
+                                android:textSize="13sp"
+                                tools:text="4.5 MB" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="0.5dp"
+                            android:alpha="0.08"
+                            android:background="?attr/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/row_tx"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/label_tx"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/server_upload_label"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="13sp" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/value_tx"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="?attr/primaryTextColor"
+                                android:textSize="13sp"
+                                tools:text="1.2 MB" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="0.5dp"
+                            android:alpha="0.08"
+                            android:background="?attr/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/row_last_ok"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/label_last_ok"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/lbl_last_handshake"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="13sp" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/value_last_ok"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="?attr/primaryTextColor"
+                                android:textSize="13sp"
+                                tools:text="2 min ago" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="0.5dp"
+                            android:alpha="0.08"
+                            android:background="?attr/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/row_since"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/label_since"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/lbl_active_since"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="13sp" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/value_since"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="?attr/primaryTextColor"
+                                android:textSize="13sp"
+                                tools:text="42 min ago" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="0.5dp"
+                            android:alpha="0.08"
+                            android:background="?attr/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/row_load"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/label_load"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/lbl_load_speed"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="13sp" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/value_load"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="?attr/primaryTextColor"
+                                android:textSize="13sp"
+                                tools:text="35% · 1 Gbps" />
+                        </LinearLayout>
+
+                        <View
+                            android:id="@+id/divider_errors"
+                            android:layout_width="match_parent"
+                            android:layout_height="0.5dp"
+                            android:alpha="0.08"
+                            android:background="?attr/divider"
+                            android:visibility="gone" />
+
+                        <LinearLayout
+                            android:id="@+id/row_errors"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp"
+                            android:visibility="gone">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/label_errors"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/lbl_errors"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="13sp" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/value_errors"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="?attr/chipTextNegative"
+                                android:textSize="13sp"
+                                android:textStyle="bold"
+                                tools:text="Rx: 3  Tx: 0" />
+                        </LinearLayout>
 
                     </LinearLayout>
-
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Quick Actions Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/actions_card"
                 android:layout_width="match_parent"
@@ -299,13 +627,12 @@
                         android:textColor="?attr/primaryTextColor"
                         android:textStyle="bold" />
 
-                    <!-- Premium Horizontal Actions -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:gravity="center"
-                        android:weightSum="3"
-                        android:orientation="horizontal">
+                        android:orientation="horizontal"
+                        android:weightSum="3">
 
                         <LinearLayout
                             android:id="@+id/applications_btn"
@@ -319,8 +646,8 @@
                             android:minHeight="64dp"
                             android:orientation="vertical"
                             android:paddingStart="12dp"
-                            android:paddingEnd="12dp"
                             android:paddingTop="10dp"
+                            android:paddingEnd="12dp"
                             android:paddingBottom="10dp">
 
                             <androidx.appcompat.widget.AppCompatImageView
@@ -353,8 +680,8 @@
                             android:minHeight="64dp"
                             android:orientation="vertical"
                             android:paddingStart="12dp"
-                            android:paddingEnd="12dp"
                             android:paddingTop="10dp"
+                            android:paddingEnd="12dp"
                             android:paddingBottom="10dp">
 
                             <androidx.appcompat.widget.AppCompatImageView
@@ -385,8 +712,8 @@
                             android:minHeight="64dp"
                             android:orientation="vertical"
                             android:paddingStart="12dp"
-                            android:paddingEnd="12dp"
                             android:paddingTop="10dp"
+                            android:paddingEnd="12dp"
                             android:paddingBottom="10dp">
 
                             <androidx.appcompat.widget.AppCompatImageView
@@ -399,19 +726,16 @@
                             <com.google.android.material.textview.MaterialTextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Logs"
+                                android:text="@string/lbl_logs"
                                 android:textAllCaps="false"
                                 android:textColor="?attr/secondaryTextColor"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
                     </LinearLayout>
-
                 </LinearLayout>
-
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Configuration Settings Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/other_settings_card"
                 android:layout_width="match_parent"
@@ -432,12 +756,11 @@
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
                         android:letterSpacing="0.02"
-                        android:text="@string/settings_title"
+                        android:text="@string/title_settings"
                         android:textAppearance="?attr/textAppearanceSubtitle1"
                         android:textColor="?attr/primaryTextColor"
                         android:textStyle="bold" />
 
-                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
@@ -446,7 +769,6 @@
                         android:alpha="0.08"
                         android:background="?attr/divider" />
 
-                    <!-- Catch All Mode -->
                     <RelativeLayout
                         android:id="@+id/catch_all_rl"
                         android:layout_width="match_parent"
@@ -463,7 +785,6 @@
                             android:layout_centerVertical="true"
                             android:layout_toStartOf="@id/catch_all_check"
                             android:orientation="vertical"
-                            android:paddingStart="0dp"
                             android:paddingEnd="16dp">
 
                             <com.google.android.material.textview.MaterialTextView
@@ -498,7 +819,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Advanced Settings Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/mobile_ssid_settings_card"
                 android:layout_width="match_parent"
@@ -524,7 +844,6 @@
                         android:textColor="?attr/primaryTextColor"
                         android:textStyle="bold" />
 
-                    <!-- Mobile Data Only -->
                     <RelativeLayout
                         android:id="@+id/use_mobile_rl"
                         android:layout_width="match_parent"
@@ -541,7 +860,6 @@
                             android:layout_centerVertical="true"
                             android:layout_toStartOf="@id/use_mobile_check"
                             android:orientation="vertical"
-                            android:paddingStart="0dp"
                             android:paddingEnd="16dp">
 
                             <com.google.android.material.textview.MaterialTextView
@@ -572,7 +890,6 @@
 
                     </RelativeLayout>
 
-                    <!-- Divider -->
                     <View
                         android:layout_width="match_parent"
                         android:layout_height="1dp"
@@ -581,7 +898,6 @@
                         android:alpha="0.08"
                         android:background="?attr/divider" />
 
-                    <!-- SSID Filter -->
                     <RelativeLayout
                         android:id="@+id/ssid_filter_rl"
                         android:layout_width="match_parent"
@@ -598,7 +914,6 @@
                             android:layout_centerVertical="true"
                             android:layout_toStartOf="@id/ssid_check"
                             android:orientation="vertical"
-                            android:paddingStart="0dp"
                             android:paddingEnd="16dp">
 
                             <com.google.android.material.textview.MaterialTextView

@@ -15,87 +15,101 @@
  */
 package com.celzero.bravedns.ui.activity
 
+import Logger
 import Logger.LOG_TAG_UI
+import android.content.ClipData
+import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.Typeface
 import android.os.Bundle
+import android.text.SpannableStringBuilder
+import android.text.Spanned
+import android.text.format.DateUtils
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
+import android.text.style.StyleSpan
+import android.text.style.TypefaceSpan
 import android.view.View
-import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
-import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
-import com.celzero.bravedns.adapter.ServerWgPeersAdapter
 import com.celzero.bravedns.adapter.WgIncludeAppsAdapter
-import com.celzero.bravedns.databinding.ActivityServerWgDetailBinding
+import com.celzero.bravedns.data.SsidItem
 import com.celzero.bravedns.database.CountryConfig
-import com.celzero.bravedns.service.CountryConfigManager
+import com.celzero.bravedns.databinding.ActivityServerWgDetailBinding
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.service.ProxyManager
-import com.celzero.bravedns.service.ProxyManager.ID_RPN_WIN
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
+import com.celzero.bravedns.ui.activity.NetworkLogsActivity.Companion.RULES_SEARCH_ID_RPN
+import com.celzero.bravedns.ui.activity.ServerWgConfigDetailActivity.Companion.STATS_POLL_MS
+import com.celzero.bravedns.ui.dialog.CountrySsidDialog
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
+import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
+import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.SsidPermissionManager
 import com.celzero.bravedns.util.Themes
+import com.celzero.bravedns.util.UIUtils
+import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
-import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.ProxyAppsMappingViewModel
-import com.celzero.firestack.backend.Proxy
+import com.celzero.firestack.backend.Backend
+import com.celzero.firestack.backend.IPMetadata
+import com.celzero.firestack.backend.RouterStats
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import kotlin.getValue
+import java.util.Locale
 import kotlin.math.abs
 
 /**
- * Activity for viewing and editing server-provided WireGuard configurations
- * Allows editing MTU, listen port (from dropdown), and peer persistent keepalive
- * No delete or full edit capabilities
+ * Detail screen for a server-provided WireGuard / WIN proxy.
+ *
+ * Hero banner: flag emoji + country name + city + server-key chip.
+ *
+ * Stats card: shown immediately with a shimmer skeleton; once the first
+ * live-poll completes the shimmer is replaced by a table of real values
+ * (status, IPv4/6, endpoint, Rx/Tx, last-handshake, active-since,
+ * load/speed, and error counts when non-zero).  The poll runs every
+ * [STATS_POLL_MS] milliseconds while the activity is resumed, and is
+ * canceled on pause so it does not drain battery in the background.
  */
 class ServerWgConfigDetailActivity : AppCompatActivity(R.layout.activity_server_wg_detail) {
     private val b by viewBinding(ActivityServerWgDetailBinding::bind)
     private val persistentState by inject<PersistentState>()
     private val mappingViewModel: ProxyAppsMappingViewModel by viewModel()
 
-    private var serverWgPeersAdapter: ServerWgPeersAdapter? = null
-    private var layoutManager: LinearLayoutManager? = null
-
     private var configId: Int = WireguardManager.INVALID_CONF_ID
-    private var countryCode: String = ""
-    private var proxy: Proxy? = null
+    private var configKey: String = ""
     private var countryConfig: CountryConfig? = null
 
-    // Available listen ports
-    private val availableListenPorts = listOf(80, 443, 8080, 9110)
+    /** Coroutine that polls VpnController every [STATS_POLL_MS] ms. */
+    private var statsJob: Job? = null
 
-    // SSID permission callback for country configs
-    private val ssidPermissionCallback = object : com.celzero.bravedns.util.SsidPermissionManager.PermissionCallback {
+    // SSID permission callback
+    private val ssidPermissionCallback = object : SsidPermissionManager.PermissionCallback {
         override fun onPermissionsGranted() {
-            Logger.vv(LOG_TAG_UI, "ssid-callback permissions granted for country: $countryCode")
-            lifecycleScope.launch {
-                refreshSsidSection()
-            }
+            lifecycleScope.launch { refreshSsidSection() }
         }
-
         override fun onPermissionsDenied() {
-            Logger.vv(LOG_TAG_UI, "ssid-callback permissions denied for country: $countryCode")
             lifecycleScope.launch {
-                // Reset the switch since permissions are required
                 b.ssidCheck.isChecked = false
                 refreshSsidSection()
             }
         }
-
         override fun onPermissionsRationale() {
-            Logger.vv(LOG_TAG_UI, "ssid-callback permissions rationale for country: $countryCode")
             showSsidPermissionExplanationDialog()
         }
     }
@@ -103,13 +117,15 @@ class ServerWgConfigDetailActivity : AppCompatActivity(R.layout.activity_server_
     companion object {
         const val INTENT_EXTRA_SERVER_ID = "SERVER_WG_CONFIG_ID"
         const val INTENT_EXTRA_FROM_SERVER_SELECTION = "FROM_SERVER_SELECTION"
-        const val INTENT_EXTRA_COUNTRY_CODE = "COUNTRY_CODE"
+        const val INTENT_EXTRA_CONFIG_KEY = "CONFIG_KEY"
+
+        /** Polling interval for live stats. */
+        private const val STATS_POLL_MS = 2_000L
     }
 
-    private fun Context.isDarkThemeOn(): Boolean {
-        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+    private fun Context.isDarkThemeOn(): Boolean =
+        resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
                 Configuration.UI_MODE_NIGHT_YES
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         theme.applyStyle(Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme), true)
@@ -118,109 +134,443 @@ class ServerWgConfigDetailActivity : AppCompatActivity(R.layout.activity_server_
         handleFrostEffectIfNeeded(persistentState.theme)
 
         if (isAtleastQ()) {
-            val controller = WindowInsetsControllerCompat(window, window.decorView)
-            controller.isAppearanceLightNavigationBars = false
+            WindowInsetsControllerCompat(window, window.decorView)
+                .isAppearanceLightNavigationBars = false
             window.isNavigationBarContrastEnforced = false
         }
 
         configId = intent.getIntExtra(INTENT_EXTRA_SERVER_ID, WireguardManager.INVALID_CONF_ID)
-        countryCode = intent.getStringExtra(INTENT_EXTRA_COUNTRY_CODE) ?: ""
+        configKey = intent.getStringExtra(INTENT_EXTRA_CONFIG_KEY) ?: ""
 
-        // Setup toolbar
-        setSupportActionBar(b.toolbar)
-        supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.setDisplayShowHomeEnabled(true)
-
-        // Set toolbar title
-        b.collapsingToolbar.title = getString(R.string.lbl_server_config)
-
-        // Handle back button
-        b.toolbar.setNavigationOnClickListener {
-            onBackPressedDispatcher.onBackPressed()
-        }
-
-        // Setup smooth collapsing animation for hero content
         setupCollapsingAnimation()
     }
 
     override fun onResume() {
         super.onResume()
         init()
-        setupClickListeners()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Stop polling to conserve battery when screen is not visible.
+        cancelStatsJob()
     }
 
     private fun init() {
-        // For now, show a message that server configs are loaded from dummy data
-        // In production, this would load actual server-provided WireGuard configs
-        Utilities.showToastUiCentered(
-            this,
-            "Server configuration view (using dummy data for demo)",
-            Toast.LENGTH_LONG
-        )
-
-        // Load config if ID is valid
         io {
-            proxy = VpnController.getWinByKey(countryCode)
-            val appCount = ProxyManager.getAppsCountForProxy(proxy?.id().tos() ?: "")
+            val proxy = if (configKey.isBlank() || configKey.contains(AUTO_SERVER_ID, ignoreCase = true))
+                VpnController.getWinByKey("")
+            else
+                VpnController.getWinByKey(configKey)
+
             uiCtx {
-                if (countryCode.isEmpty() || proxy == null) {
+                if (configKey.isBlank() || proxy == null) {
                     showInvalidConfigDialog()
                     return@uiCtx
                 }
-                b.appsLabel.text = "Apps($appCount)"
-                prefillConfig(proxy)
-                setupListenPortSpinner()
+                populateHeroBanner()
+                observeAppCount(configKey)
+                loadConfigSettings(configKey)
             }
         }
     }
 
-    private fun showInvalidConfigDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(getString(R.string.lbl_wireguard))
-        builder.setMessage(getString(R.string.config_invalid_desc))
-        builder.setCancelable(false)
-        builder.setPositiveButton(getString(R.string.fapps_info_dialog_positive_btn)) { _, _ ->
-            finish()
+    /**
+     * Populates flag emoji, country name, city subtitle and key chip in
+     * the hero banner. Stats polling starts immediately; client IPs are
+     * resolved separately in a background coroutine so VpnController
+     * stats appear without delay.
+     */
+    private fun populateHeroBanner() {
+        // Key chip — available synchronously from the intent.
+        b.configIdText.text = configKey.ifBlank { "-" }
+
+        // Placeholder while we fetch from DB.
+        b.configNameText.text = ""
+        b.tvHeroCity.text     = ""
+        b.tvHeroFlag.text     = "\uD83C\uDF10" // globe
+
+        // Show inline shimmer for client IPs (stats table is already visible).
+        showClientIpShimmer()
+
+        io {
+            val config = RpnProxyManager.getCountryConfigByKey(configKey)
+
+            uiCtx {
+                // Cache for use in the stats table and SSID.
+                countryConfig = config
+
+                // SSID section needs countryConfig.
+                setupSsidSection(configKey)
+                // Banner.
+                if (config != null) {
+                    b.tvHeroFlag.text = config.flagEmoji
+                    b.configNameText.text = config.countryName
+                    val city = config.city.ifBlank { config.serverLocation }
+                    b.tvHeroCity.text = city.ifBlank { config.cc }
+                } else {
+                    b.tvHeroFlag.text = "\uD83C\uDF10"
+                    b.configNameText.text = configKey.ifBlank { getString(R.string.lbl_server_config) }
+                    b.tvHeroCity.text     = ""
+                }
+
+                startStatsPolling(configKey)
+            }
+
+            resolveClientIps(configKey)
         }
-        val dialog = builder.create()
-        dialog.show()
     }
 
-    private fun prefillConfig(proxy: Proxy?) {
-        if (proxy == null) return
-
-        b.configNameText.visibility = View.VISIBLE
-        b.configNameText.text = proxy.addr.tos()
-        b.configIdText.text =
-            getString(R.string.single_argument_parenthesis, proxy.id().toString())
-
-        b.statusText.text = getString(R.string.lbl_server_config_readonly)
-
-        val router = proxy.router()
-
-        // Pre-fill MTU (read-only)
-        b.mtuText.text = router.mtu().toString()
-        b.mtuText.visibility = View.VISIBLE
-
-        // Load switch states
-        loadConfigSettings()
-
-        // setPeersAdapter()
+    /**
+     * Resolves client tunnel IPs (and all [IPMetadata]) on IO and applies them on the main thread.
+     * Runs independently of stats polling so the table renders fast.
+     */
+    private suspend fun resolveClientIps(id: String) {
+        var ip4Meta: IPMetadata? = null
+        var ip6Meta: IPMetadata? = null
+        try {
+            // GoVpnAdapter handles AUTO and empty-string ids centrally; pass id as-is
+            val client = VpnController.getRpnClientInfoById(id)
+            ip4Meta = client?.iP4()
+            ip6Meta = client?.iP6()
+            Logger.v(LOG_TAG_UI, "client ips resolved for $id: ip4=${ip4Meta?.getIP()} ip6=${ip6Meta?.getIP()}")
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_UI, "failed to resolve client ips: ${e.message}")
+        }
+        uiCtx { applyClientIps(ip4Meta, ip6Meta) }
     }
 
-    private fun loadConfigSettings() {
-        val cc = countryCode
-        if (cc.isEmpty()) {
-            // Hide settings cards if no country code
+    /** Show inline shimmer placeholders for client IPv4/IPv6 value cells. */
+    private fun showClientIpShimmer() {
+        b.shimmerIpv4.visibility = View.VISIBLE
+        b.shimmerIpv4.startShimmer()
+        b.valueIpv4.visibility   = View.GONE
+
+        b.shimmerIpv6.visibility = View.VISIBLE
+        b.shimmerIpv6.startShimmer()
+        b.valueIpv6.visibility   = View.GONE
+    }
+
+    /**
+     * Replaces the inline shimmer with rich IP + metadata text.
+     * ASN / location / providerUrl are embedded inside
+     */
+    private fun applyClientIps(ip4: IPMetadata?, ip6: IPMetadata?) {
+        val na = getString(R.string.lbl_not_available_short)
+
+        // IPv4
+        b.shimmerIpv4.stopShimmer()
+        b.shimmerIpv4.visibility = View.GONE
+        b.valueIpv4.visibility   = View.VISIBLE
+        b.valueIpv4.text = ip4
+            ?.takeIf { it.ip?.isNotBlank() == true }
+            ?.let { buildIpDetailSpan(it) }
+            ?: na
+
+        // ipv6, hide the entire row if unavailable
+        b.shimmerIpv6.stopShimmer()
+        b.shimmerIpv6.visibility = View.GONE
+        val ip6Addr = ip6?.ip?.takeIf { it.isNotBlank() }
+        if (ip6Addr != null && ip6 != null) {
+            b.rowIpv6.visibility   = View.VISIBLE
+            b.valueIpv6.visibility = View.VISIBLE
+            b.valueIpv6.text       = buildIpDetailSpan(ip6)
+        } else {
+            b.rowIpv6.visibility = View.GONE
+        }
+    }
+
+    /**
+     * Builds a premium multi-line [SpannableStringBuilder] for a single [IPMetadata].
+     *
+     * ```
+     * 10.0.0.1                                              ← monospace bold, 1.07×
+     * ASN  AS13335 · Cloudflare Inc · net.cloudflare.com   ← only when any present
+     * LOC  Frankfurt · 50.1109°, 8.6821°                   ← only when any present
+     * via  cloudflare.com                                   ← only when present
+     * ```
+     *
+     * Label tokens ("ASN", "LOC", "via") are 80 % size, bold, muted.
+     * Lines whose value is entirely blank/zero are never appended.
+     */
+    private fun buildIpDetailSpan(meta: IPMetadata): SpannableStringBuilder {
+        val sb = SpannableStringBuilder()
+        val labelColor = fetchColor(this, R.attr.primaryLightColorText)
+
+        fun styleLabel(start: Int, end: Int) {
+            sb.setSpan(ForegroundColorSpan(labelColor), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            sb.setSpan(RelativeSizeSpan(0.80f), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            sb.setSpan(StyleSpan(Typeface.BOLD), start, end, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+
+        fun appendLine(label: String, value: String) {
+            if (value.isBlank()) return
+            sb.append("\n")
+            val ls = sb.length
+            sb.append(label)
+            styleLabel(ls, sb.length)
+            sb.append("  $value")
+        }
+
+        // ip
+        val ipStart = 0
+        sb.append(meta.ip ?: "")
+        val ipEnd = sb.length
+        sb.setSpan(StyleSpan(Typeface.BOLD),  ipStart, ipEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        sb.setSpan(TypefaceSpan("monospace"), ipStart, ipEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+        sb.setSpan(RelativeSizeSpan(1.07f),   ipStart, ipEnd, Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+
+        // asn
+        val asnParts = buildList {
+            val asn = meta.asn ?: ""
+            val org = meta.asnOrg ?: ""
+            val dom = meta.asnDom ?: ""
+            if (asn.isNotBlank()) add("AS$asn")
+            if (org.isNotBlank()) add(org)
+            if (dom.isNotBlank()) add(dom)
+        }
+        if (asnParts.isNotEmpty()) appendLine("ASN", asnParts.joinToString("  ·  "))
+
+        // loc
+        val locParts = buildList {
+            val city = meta.city ?: ""
+            val lat  = meta.lat
+            val lon  = meta.lon
+            if (city.isNotBlank()) add(city)
+            if (lat != 0.0 || lon != 0.0) add(String.format(Locale.US, "%.4f°, %.4f°", lat, lon))
+        }
+        if (locParts.isNotEmpty()) appendLine("LOC", locParts.joinToString("  ·  "))
+
+        // provider url
+        val providerUrl = meta.providerURL ?: ""
+        if (providerUrl.isNotBlank()) {
+            val display = providerUrl
+                .removePrefix("https://")
+                .removePrefix("http://")
+                .trimEnd('/')
+            appendLine("VIA", display)
+        }
+
+        return sb
+    }
+
+
+    private fun cancelStatsJob() {
+        if (statsJob?.isActive == true) statsJob?.cancel()
+        statsJob = null
+    }
+
+    /**
+     * Launches a coroutine that fetches and applies live stats every
+     * [STATS_POLL_MS] ms. Client IPs are resolved separately by
+     * [resolveClientIps]: this method only handles VpnController stats.
+     */
+    private fun startStatsPolling(id: String) {
+        cancelStatsJob()
+        statsJob = lifecycleScope.launch(Dispatchers.IO) {
+            while (true) {
+                try {
+                    fetchAndApplyStats(id)
+                } catch (e: Exception) {
+                    Logger.w(LOG_TAG_UI, "stats poll error: ${e.message}")
+                }
+                delay(STATS_POLL_MS)
+            }
+        }
+    }
+
+    private suspend fun fetchAndApplyStats(id: String) {
+        // For AUTO use the live win proxy ID from the tunnel so the stats lookup targets the
+        // real proxy entry rather than a hardcoded wildcard.  Fall back to the wildcard only
+        val pid = if (id.contains(AUTO_SERVER_ID, ignoreCase = true)) {
+            VpnController.getWinProxyId() ?: (Backend.RpnWin + "**")
+        } else {
+            Backend.RpnWin + id
+        }
+        val statusPair = VpnController.getProxyStatusById(pid)
+        val stats = VpnController.getProxyStats(pid)
+        val who = VpnController.getWin()?.who()
+        val config = countryConfig
+        // Use the time when this server key was selected by the user, not the VPN uptime.
+        val selectedSinceTs = RpnProxyManager.getSelectedSinceTs(id)
+
+        uiCtx {
+            applyStats(statusPair, stats, config, who, selectedSinceTs)
+        }
+    }
+
+    /**
+     * Populates every row of the stats table from live data (except client
+     * IPs which are populated by [applyClientIps]).  Runs on the main thread.
+     *
+     * @param selectedSinceTs epoch-ms when this server key was selected by the user
+     *   (supplied by [RpnProxyManager.getSelectedSinceTs]); shown as the "active since" value.
+     */
+    private fun applyStats(
+        statusPair: Pair<Long?, String>,
+        stats: RouterStats?,
+        config: CountryConfig?,
+        who: String?,
+        selectedSinceTs: Long
+    ) {
+        val ps = UIUtils.ProxyStatus.entries.find { it.id == statusPair.first }
+        val statusText  = buildStatusText(ps, stats, statusPair.second)
+        val statusColor = buildStatusColor(ps, stats)
+        b.valueStatus.text = statusText
+        b.valueStatus.setTextColor(fetchColor(this, statusColor))
+
+        if (who.isNullOrEmpty()) {
+            b.rowWho.visibility = View.GONE
+        } else {
+            b.rowWho.visibility = View.VISIBLE
+            b.valueWho.text = who
+        }
+
+        val rx = stats?.rx ?: 0L
+        val tx = stats?.tx ?: 0L
+        b.valueRx.text = Utilities.humanReadableByteCount(rx, true)
+        b.valueTx.text = Utilities.humanReadableByteCount(tx, true)
+
+        val lastOK = stats?.lastOK ?: 0L
+        b.valueLastOk.text = if (lastOK > 0L)
+            DateUtils.getRelativeTimeSpanString(
+                lastOK, System.currentTimeMillis(),
+                DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE
+            )
+        else getString(R.string.lbl_never)
+
+        // Show when the user selected this server, not the VPN tunnel's uptime.
+        b.valueSince.text = if (selectedSinceTs > 0L)
+            DateUtils.getRelativeTimeSpanString(
+                selectedSinceTs, System.currentTimeMillis(),
+                DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE
+            )
+        else getString(R.string.lbl_never)
+
+        val loadPct  = config?.load ?: 0
+        val linkMbps = config?.link ?: 0
+        b.valueLoad.text = buildLoadSpeedText(loadPct, linkMbps)
+
+        // only shown when proxy is in a failing state.
+        val isFailing = isFailing(ps, stats)
+        if (isFailing && (rx == 0L && tx == 0L && selectedSinceTs > 0L)) {
+            b.rowErrors.visibility = View.VISIBLE
+            b.dividerErrors.visibility = View.VISIBLE
+            b.valueErrors.text = getString(R.string.status_failing)
+        } else {
+            b.rowErrors.visibility = View.GONE
+            b.dividerErrors.visibility = View.GONE
+        }
+    }
+
+
+    private fun buildStatusText(
+        status  : UIUtils.ProxyStatus?,
+        stats   : RouterStats?,
+        errMsg  : String?
+    ): String {
+        if (status == null) {
+            return if (!errMsg.isNullOrEmpty())
+                "${getString(R.string.status_waiting).replaceFirstChar(Char::titlecase)} ($errMsg)"
+            else
+                getString(R.string.status_waiting).replaceFirstChar(Char::titlecase)
+        }
+        if (status == UIUtils.ProxyStatus.TPU) {
+            return getString(UIUtils.getProxyStatusStringRes(status.id))
+                .replaceFirstChar(Char::titlecase)
+        }
+        if (isFailing(status, stats)) {
+            return getString(R.string.status_failing).replaceFirstChar(Char::titlecase)
+        }
+        val base = getString(UIUtils.getProxyStatusStringRes(status.id))
+            .replaceFirstChar(Char::titlecase)
+        val lastOK = stats?.lastOK ?: 0L
+        return if (lastOK > 0L) {
+            val ago = DateUtils.getRelativeTimeSpanString(
+                lastOK, System.currentTimeMillis(),
+                DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE
+            )
+            "$base · $ago"
+        } else base
+    }
+
+    private fun buildStatusColor(status: UIUtils.ProxyStatus?, stats: RouterStats?): Int {
+        return when {
+            isFailing(status, stats) -> R.attr.chipTextNegative
+            status == UIUtils.ProxyStatus.TOK -> R.attr.accentGood
+            status == UIUtils.ProxyStatus.TUP ||
+            status == UIUtils.ProxyStatus.TZZ ||
+            status == UIUtils.ProxyStatus.TNT -> R.attr.chipTextNeutral
+            status == null -> R.attr.primaryLightColorText
+            else -> R.attr.chipTextNegative
+        }
+    }
+
+    private fun isFailing(status: UIUtils.ProxyStatus?, stats: RouterStats?): Boolean {
+        val now = System.currentTimeMillis()
+        val lastOK = stats?.lastOK ?: 0L
+        val since  = stats?.since  ?: 0L
+        return now - since > WireguardManager.WG_UPTIME_THRESHOLD && lastOK == 0L
+                && status != null && status != UIUtils.ProxyStatus.TPU
+    }
+
+    /**
+     * Returns a human-readable combined load + speed string, e.g.
+     * "35% · Normal  ·  1 Gbps · Fast"
+     * If either piece is missing only the available one is shown.
+     */
+    private fun buildLoadSpeedText(loadPct: Int, linkMbps: Int): String {
+        val parts = mutableListOf<String>()
+        if (loadPct > 0) {
+            val tier = when {
+                loadPct <= 20 -> getString(R.string.server_load_light)
+                loadPct <= 40 -> getString(R.string.server_load_normal)
+                loadPct <= 60 -> getString(R.string.server_load_busy)
+                loadPct <= 80 -> getString(R.string.server_load_very_busy)
+                else -> getString(R.string.server_load_overloaded)
+            }
+            parts += "$loadPct% · $tier"
+        }
+        if (linkMbps > 0) {
+            val formatted = when {
+                linkMbps >= 10_000 -> String.format(Locale.US, "%.0f Gbps", linkMbps / 1_000.0)
+                linkMbps >=  1_000 -> {
+                    val g = linkMbps / 1_000.0
+                    if (g == g.toLong().toDouble())
+                        String.format(Locale.US, "%.0f Gbps", g)
+                    else
+                        String.format(Locale.US, "%.1f Gbps", g)
+                }
+                else -> "$linkMbps Mbps"
+            }
+            val tier = when {
+                linkMbps >= 10_000 -> getString(R.string.server_speed_very_fast)
+                linkMbps >= 1_000 -> getString(R.string.server_speed_fast)
+                linkMbps >= 100 -> getString(R.string.server_speed_good)
+                linkMbps >= 10 -> getString(R.string.server_speed_moderate)
+                else -> getString(R.string.server_speed_slow)
+            }
+            parts += "$formatted · $tier"
+        }
+        return parts.joinToString("   ").ifBlank { "-" }
+    }
+
+    private fun observeAppCount(proxyId: String) {
+        if (proxyId.isBlank()) return
+        mappingViewModel.getAppCountById(proxyId).observe(this) { count ->
+            b.appsLabel.text = "Apps(${count ?: 0})"
+        }
+    }
+
+    private fun loadConfigSettings(key: String) {
+        if (key.isBlank()) {
             b.otherSettingsCard.visibility = View.GONE
             b.mobileSsidSettingsCard.visibility = View.GONE
             return
         }
-
-        // Load from CountryConfigManager
-        lifecycleScope.launch(Dispatchers.IO) {
-            val config = CountryConfigManager.getConfig(cc)
-            withContext(Dispatchers.Main) {
+        io {
+            val config = RpnProxyManager.getCountryConfigByKey(key)
+            uiCtx {
                 if (config != null) {
                     b.catchAllCheck.isChecked = config.catchAll
                     b.useMobileCheck.isChecked = config.mobileOnly
@@ -228,88 +578,42 @@ class ServerWgConfigDetailActivity : AppCompatActivity(R.layout.activity_server_
                     b.otherSettingsCard.visibility = View.VISIBLE
                     b.mobileSsidSettingsCard.visibility = View.VISIBLE
                 } else {
-                    // Create default config if it doesn't exist
-                    // should not happen normally
-                    CountryConfigManager.upsertConfig(
-                        CountryConfig(
-                            id = cc,                 // or "WIN-$cc" if you prefer
-                            cc = cc,
-                            name = cc,               // you can replace with a nicer label later
-                            address = "",
-                            city = "",
-                            key = cc,                // can be adjusted once you have a proper key
-                            load = 0,
-                            link = 0,
-                            count = 0,
-                            isActive = true,
-                            catchAll = false,
-                            lockdown = false,
-                            mobileOnly = false,
-                            ssidBased = false,
-                            priority = 0,
-                            lastModified = System.currentTimeMillis()
-                        )
-                    )
-                    b.otherSettingsCard.visibility = View.VISIBLE
-                    b.mobileSsidSettingsCard.visibility = View.VISIBLE
+                    showInvalidConfigDialog()
                 }
+                setupClickListeners(key)
             }
         }
     }
 
-    private fun setupListenPortSpinner() {
-        val adapter = ArrayAdapter(
-            this,
-            android.R.layout.simple_spinner_item,
-            availableListenPorts.map { it.toString() }
-        )
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        b.listenPortSpinner.adapter = adapter
+    private fun setupClickListeners(key: String) {
+        b.applicationsBtn.setOnClickListener { openAppsDialog() }
+        b.hopBtn.setOnClickListener         { openHopDialog() }
+        b.logsBtn.setOnClickListener        { openLogsDialog(key) }
 
-        // Set current listen port if present
-        /*if (wgInterface?.listenPort?.isPresent == true) {
-            val currentPort = wgInterface?.listenPort?.get()
-            val position = availableListenPorts.indexOf(currentPort)
-            if (position >= 0) {
-                b.listenPortSpinner.setSelection(position)
-            }
-        }*/
-
-        // Make read-only for server configs
-        b.listenPortSpinner.isEnabled = false
-    }
-
-    private fun setupClickListeners() {
-        // Applications button
-        b.applicationsBtn.setOnClickListener {
-            openAppsDialog()
+        b.valueWho.setOnClickListener {
+            val text = b.valueWho.text?.toString().orEmpty()
+            if (text.isBlank()) return@setOnClickListener
+            val clipboard = getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+            clipboard.setPrimaryClip(ClipData.newPlainText("who", text))
+            Utilities.showToastUiCentered(
+                this,
+                getString(R.string.copied_clipboard),
+                Toast.LENGTH_SHORT
+            )
         }
 
-        // Hop button
-        b.hopBtn.setOnClickListener {
-            openHopDialog()
-        }
-
-        // Logs button
-        b.logsBtn.setOnClickListener {
-            openLogsDialog()
-        }
-
-        val cc = countryCode
-        if (cc == null) {
-            // If no country code, hide the settings cards
-            b.otherSettingsCard.visibility = View.GONE
+        if (configKey.isBlank()) {
+            b.otherSettingsCard.visibility     = View.GONE
             b.mobileSsidSettingsCard.visibility = View.GONE
             return
         }
 
-        // Catch all mode toggle - uses CountryConfigManager
         b.catchAllCheck.setOnCheckedChangeListener { _, isChecked ->
-            lifecycleScope.launch(Dispatchers.IO) {
-                CountryConfigManager.updateCatchAll(cc, isChecked)
-                withContext(Dispatchers.Main) {
+            io {
+                RpnProxyManager.setCatchAllForWinServer(configKey, isChecked)
+                uiCtx {
                     Utilities.showToastUiCentered(
-                        this@ServerWgConfigDetailActivity,
+                        this,
                         if (isChecked) "Catch all mode enabled" else "Catch all mode disabled",
                         Toast.LENGTH_SHORT
                     )
@@ -317,13 +621,12 @@ class ServerWgConfigDetailActivity : AppCompatActivity(R.layout.activity_server_
             }
         }
 
-        // Mobile data only toggle - uses CountryConfigManager
         b.useMobileCheck.setOnCheckedChangeListener { _, isChecked ->
-            lifecycleScope.launch(Dispatchers.IO) {
-                CountryConfigManager.updateMobileOnly(cc, isChecked)
-                withContext(Dispatchers.Main) {
+            io {
+                RpnProxyManager.setMobileOnlyForWinServer(configKey, isChecked)
+                uiCtx {
                     Utilities.showToastUiCentered(
-                        this@ServerWgConfigDetailActivity,
+                        this,
                         if (isChecked) "Mobile data only enabled" else "Mobile data only disabled",
                         Toast.LENGTH_SHORT
                     )
@@ -331,259 +634,183 @@ class ServerWgConfigDetailActivity : AppCompatActivity(R.layout.activity_server_
             }
         }
 
-        // Setup SSID section with premium dialog and permission handling
-        setupSsidSection(cc)
-
-        // Layout click listeners for better UX
-        b.catchAllRl.setOnClickListener { b.catchAllCheck.performClick() }
-        b.useMobileRl.setOnClickListener { b.useMobileCheck.performClick() }
-        b.ssidFilterRl.setOnClickListener { b.ssidCheck.performClick() }
-    }
-
-    /*private fun setPeersAdapter() {
-        layoutManager = LinearLayoutManager(this)
-        b.peersList.layoutManager = layoutManager
-        serverWgPeersAdapter = ServerWgPeersAdapter(this, peers) { position, isExpanded ->
-            // Handle peer expansion if needed
-        }
-        b.peersList.adapter = serverWgPeersAdapter
-    }*/
-
-    private fun openHopDialog() {
-        Utilities.showToastUiCentered(
-            this,
-            "Configure Hops - Coming Soon",
-            Toast.LENGTH_SHORT
-        )
-        // TODO: Implement WgHopActivity navigation
-        // Similar to WgConfigDetailActivity implementation
-    }
-
-    private fun openLogsDialog() {
-        Utilities.showToastUiCentered(
-            this,
-            "View Logs - Coming Soon",
-            Toast.LENGTH_SHORT
-        )
-        // TODO: Implement WgLogActivity navigation
-        // Similar to WgConfigDetailActivity implementation
-    }
-
-    private fun openAppsDialog() {
-        if (countryCode.isEmpty() || proxy == null) {
-            Logger.e(LOG_TAG_UI, "win-openAppsDialog: countryCode is null")
-            return
-        }
-
-        val proxyId = proxy?.id().tos() ?: (ID_RPN_WIN + countryCode)
-        val proxyName = countryCode
-        val appsAdapter = WgIncludeAppsAdapter(this, this, proxyId, proxyName)
-        mappingViewModel.apps.observe(this) { appsAdapter.submitData(lifecycle, it) }
-        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-        if (Themes.isFrostTheme(themeId)) {
-            themeId = R.style.App_Dialog_NoDim
-        }
-        val includeAppsDialog =
-            WgIncludeAppsDialog(this, appsAdapter, mappingViewModel, themeId, proxyId, proxyName)
-        includeAppsDialog.setCanceledOnTouchOutside(false)
-        includeAppsDialog.show()
-    }
-
-    private fun setupCollapsingAnimation() {
-        b.appBar.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
-            val totalScrollRange = appBarLayout.totalScrollRange
-            val percentage = abs(verticalOffset).toFloat() / totalScrollRange.toFloat()
-
-            // Fade out hero content as toolbar collapses
-            b.configNameText.alpha = 1f - percentage
-            b.statusText.alpha = 1f - percentage
-            b.configIdText.alpha = 1f - percentage
-
-            // Scale down hero content slightly for premium effect
-            val scale = 1f - (percentage * 0.1f) // Scale from 1.0 to 0.9
-            b.configNameText.scaleX = scale
-            b.configNameText.scaleY = scale
-        }
-    }
-
-    // ===== SSID Section Implementation =====
-
-    private fun setupSsidSection(cc: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
-            countryConfig = com.celzero.bravedns.rpnproxy.RpnProxyManager.getCountryConfig(cc)
-            withContext(Dispatchers.Main) {
-                setupSsidSectionUI(countryConfig)
-            }
-        }
-    }
-
-    private fun setupSsidSectionUI(config: CountryConfig?) {
-        val sw = b.ssidCheck
-
-        if (config == null) {
-            sw.isEnabled = false
-            Logger.w(LOG_TAG_UI, "setupSsidSection: config is null for $countryCode")
-            return
-        }
-
-        // Check if device supports required features
-        if (!com.celzero.bravedns.util.SsidPermissionManager.isDeviceSupported(this)) {
-            sw.isEnabled = false
-            b.ssidFilterRl.visibility = View.GONE
-            Logger.w(LOG_TAG_UI, "setupSsidSection: device not supported for SSID feature")
-            return
-        }
-
-        // Always keep the switch enabled
-        sw.isEnabled = true
-        b.ssidFilterRl.visibility = View.VISIBLE
-
-        // Check permissions and location services
-        val hasPermissions = com.celzero.bravedns.util.SsidPermissionManager.hasRequiredPermissions(this)
-        val isLocationEnabled = com.celzero.bravedns.util.SsidPermissionManager.isLocationEnabled(this)
-
-        val enabled = config.ssidBased
-        val ssidItems = com.celzero.bravedns.data.SsidItem.parseStorageList(config.ssids)
-        sw.isChecked = enabled
-
-        Logger.d(LOG_TAG_UI, "SSID for $countryCode - permissions: $hasPermissions, location: $isLocationEnabled, ssidBased: $enabled, items: ${ssidItems.size}")
-
-        sw.setOnCheckedChangeListener { _, isChecked ->
-            // Check current permissions and location status dynamically
-            val currentHasPermissions = com.celzero.bravedns.util.SsidPermissionManager.hasRequiredPermissions(this)
-            val currentLocationEnabled = com.celzero.bravedns.util.SsidPermissionManager.isLocationEnabled(this)
-
-            // Check permissions before enabling SSID feature
-            if (isChecked && !currentHasPermissions) {
-                com.celzero.bravedns.util.SsidPermissionManager.checkAndRequestPermissions(this, ssidPermissionCallback)
-                Logger.d(LOG_TAG_UI, "SSID permissions not granted, requesting...")
-                return@setOnCheckedChangeListener
-            }
-
-            // Check if location services are enabled
-            if (isChecked && !currentLocationEnabled) {
-                showLocationEnableDialog()
-                Logger.d(LOG_TAG_UI, "Location services not enabled, prompting user...")
-                return@setOnCheckedChangeListener
-            }
-
-            // If we reach here, either we're disabling or we have all required permissions
-            lifecycleScope.launch(Dispatchers.IO) {
-                com.celzero.bravedns.rpnproxy.RpnProxyManager.updateSsidBased(countryCode, isChecked)
-                withContext(Dispatchers.Main) {
-                    if (isChecked) {
-                        openSsidDialog()
-                    }
-                }
-            }
-
-            Logger.i(LOG_TAG_UI, "SSID feature ${if (isChecked) "enabled" else "disabled"} for country: $countryCode")
-        }
-    }
-
-    private fun refreshSsidSection() {
-        lifecycleScope.launch(Dispatchers.IO) {
-            countryConfig = com.celzero.bravedns.rpnproxy.RpnProxyManager.getCountryConfig(countryCode)
-            withContext(Dispatchers.Main) {
-                setupSsidSectionUI(countryConfig)
-            }
-        }
-    }
-
-    private fun openSsidDialog() {
-        if (countryCode.isEmpty() || countryConfig == null) {
-            Logger.e(LOG_TAG_UI, "openSsidDialog: countryCode or config is null")
-            return
-        }
-
-        val currentSsids = countryConfig?.ssids ?: ""
-        val countryName = countryConfig?.countryName ?: countryCode
-
-        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
-        if (Themes.isFrostTheme(themeId)) {
-            themeId = R.style.App_Dialog_NoDim
-        }
-
-        val ssidDialog = com.celzero.bravedns.ui.dialog.CountrySsidDialog(
-            this,
-            themeId,
-            countryCode,
-            countryName,
-            currentSsids
-        ) { newSsids ->
-            // Save callback - update the SSID configuration
-            lifecycleScope.launch(Dispatchers.IO) {
-                com.celzero.bravedns.rpnproxy.RpnProxyManager.updateSsids(countryCode, newSsids)
-                withContext(Dispatchers.Main) {
-                    refreshSsidSection()
+        b.ssidCheck.setOnCheckedChangeListener { _, isChecked ->
+            io {
+                RpnProxyManager.setSsidEnabledForWinServer(configKey, isChecked)
+                uiCtx {
                     Utilities.showToastUiCentered(
-                        this@ServerWgConfigDetailActivity,
-                        "SSID settings saved for $countryName",
+                        this,
+                        if (isChecked) "SSID based enabled" else "SSID based disabled",
                         Toast.LENGTH_SHORT
                     )
                 }
             }
         }
 
-        ssidDialog.setCanceledOnTouchOutside(false)
-        ssidDialog.show()
-        ssidDialog.setOnDismissListener {
-            // Refresh SSID section after dialog dismisses
-            refreshSsidSection()
+        b.catchAllRl.setOnClickListener  { b.catchAllCheck.performClick() }
+        b.useMobileRl.setOnClickListener { b.useMobileCheck.performClick() }
+        b.ssidFilterRl.setOnClickListener{ b.ssidCheck.performClick() }
+    }
+
+
+    private fun showInvalidConfigDialog() {
+        MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+            .setTitle(getString(R.string.lbl_wireguard))
+            .setMessage(getString(R.string.config_invalid_desc))
+            .setCancelable(false)
+            .setPositiveButton(getString(R.string.fapps_info_dialog_positive_btn)) { _, _ -> finish() }
+            .create().show()
+    }
+
+    private fun openHopDialog() {
+        Utilities.showToastUiCentered(this, "Configure Hops - Coming Soon", Toast.LENGTH_SHORT)
+    }
+
+    private fun openLogsDialog(proxyId: String) {
+        val intent = Intent(this, NetworkLogsActivity::class.java)
+        val query = RULES_SEARCH_ID_RPN + proxyId
+        intent.putExtra(Constants.SEARCH_QUERY, query)
+        startActivity(intent)
+    }
+
+    private fun openAppsDialog() {
+        if (configKey.isBlank()) {
+            Logger.e(LOG_TAG_UI, "openAppsDialog: configKey blank or proxy null")
+            return
         }
+        val proxyId   = configKey
+        val proxyName = configKey
+        val adapter   = WgIncludeAppsAdapter(this, proxyId, proxyName)
+        mappingViewModel.apps.observe(this) { adapter.submitData(lifecycle, it) }
+        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
+        if (Themes.isFrostTheme(themeId)) themeId = R.style.App_Dialog_NoDim
+        val dlg = WgIncludeAppsDialog(this, adapter, mappingViewModel, themeId, proxyId, proxyName)
+        dlg.setCanceledOnTouchOutside(false)
+        dlg.show()
+    }
+
+    private fun setupCollapsingAnimation() {
+        b.appBar.addOnOffsetChangedListener { appBarLayout, verticalOffset ->
+            val pct = abs(verticalOffset).toFloat() / appBarLayout.totalScrollRange.toFloat()
+            b.tvHeroFlag.alpha = 1f - pct
+            b.configNameText.alpha = 1f - pct
+            b.tvHeroCity.alpha = 1f - pct
+            b.configIdText.alpha = 1f - pct
+            val scale = 1f - pct * 0.08f
+            b.configNameText.scaleX = scale
+            b.configNameText.scaleY = scale
+        }
+    }
+
+    private fun setupSsidSection(cc: String) {
+        lifecycleScope.launch(Dispatchers.IO) {
+            countryConfig = RpnProxyManager.getCountryConfigByKey(cc)
+            withContext(Dispatchers.Main) { setupSsidSectionUI(countryConfig) }
+        }
+    }
+
+    private fun setupSsidSectionUI(config: CountryConfig?) {
+        val sw = b.ssidCheck
+        if (config == null) { sw.isEnabled = false; return }
+        if (!SsidPermissionManager.isDeviceSupported(this)) {
+            sw.isEnabled = false
+            b.ssidFilterRl.visibility = View.GONE
+            return
+        }
+        sw.isEnabled = true
+        b.ssidFilterRl.visibility = View.VISIBLE
+        val ssidItems = SsidItem.parseStorageList(config.ssids)
+        sw.isChecked = config.ssidBased
+        sw.setOnCheckedChangeListener { _, isChecked ->
+            if (isChecked && !SsidPermissionManager.hasRequiredPermissions(this)) {
+                SsidPermissionManager.checkAndRequestPermissions(this, ssidPermissionCallback)
+                return@setOnCheckedChangeListener
+            }
+            if (isChecked && !SsidPermissionManager.isLocationEnabled(this)) {
+                showLocationEnableDialog(); return@setOnCheckedChangeListener
+            }
+            lifecycleScope.launch(Dispatchers.IO) {
+                RpnProxyManager.updateSsidBased(configKey, isChecked)
+                withContext(Dispatchers.Main) { if (isChecked) openSsidDialog() }
+            }
+        }
+    }
+
+    private fun refreshSsidSection() {
+        lifecycleScope.launch(Dispatchers.IO) {
+            countryConfig = RpnProxyManager.getCountryConfigByKey(configKey)
+            withContext(Dispatchers.Main) { setupSsidSectionUI(countryConfig) }
+        }
+    }
+
+    private fun openSsidDialog() {
+        if (configKey.isBlank() || countryConfig == null) return
+        var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
+        if (Themes.isFrostTheme(themeId)) themeId = R.style.App_Dialog_NoDim
+        val dlg = CountrySsidDialog(
+            this, themeId, configKey,
+            countryConfig?.countryName ?: configKey,
+            countryConfig?.ssids ?: ""
+        ) { newSsids ->
+            lifecycleScope.launch(Dispatchers.IO) {
+                RpnProxyManager.updateSsids(configKey, newSsids)
+                withContext(Dispatchers.Main) {
+                    refreshSsidSection()
+                    Utilities.showToastUiCentered(
+                        this@ServerWgConfigDetailActivity,
+                        "SSID settings saved",
+                        Toast.LENGTH_SHORT
+                    )
+                }
+            }
+        }
+        dlg.setCanceledOnTouchOutside(false)
+        dlg.setOnDismissListener { refreshSsidSection() }
+        dlg.show()
     }
 
     private fun showLocationEnableDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(getString(R.string.ssid_location_error))
-        builder.setMessage(getString(R.string.location_enable_explanation, getString(R.string.lbl_ssids)))
-        builder.setCancelable(true)
-        builder.setPositiveButton(getString(R.string.ssid_location_error_action)) { dialog, _ ->
-            com.celzero.bravedns.util.SsidPermissionManager.requestLocationEnable(this)
-            dialog.dismiss()
-            Logger.vv(LOG_TAG_UI, "Prompted user to enable location services for country: $countryCode")
-        }
-        builder.setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
-            // Reset the SSID switch since location is required
-            b.ssidCheck.isChecked = false
-            lifecycleScope.launch(Dispatchers.IO) {
-                com.celzero.bravedns.rpnproxy.RpnProxyManager.updateSsidBased(countryCode, false)
+        MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+            .setTitle(getString(R.string.ssid_location_error))
+            .setMessage(getString(R.string.location_enable_explanation, getString(R.string.lbl_ssids)))
+            .setCancelable(true)
+            .setPositiveButton(getString(R.string.ssid_location_error_action)) { dlg, _ ->
+                SsidPermissionManager.requestLocationEnable(this); dlg.dismiss()
             }
-        }
-        builder.create().show()
+            .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
+                b.ssidCheck.isChecked = false
+                lifecycleScope.launch(Dispatchers.IO) {
+                    RpnProxyManager.updateSsidBased(configKey, false)
+                }
+            }
+            .create().show()
     }
 
     private fun showSsidPermissionExplanationDialog() {
-        val builder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
-        builder.setTitle(getString(R.string.ssid_permission_error_action))
-        builder.setMessage(getString(R.string.ssid_permission_explanation, getString(R.string.lbl_ssids)))
-        builder.setCancelable(true)
-        builder.setPositiveButton(getString(R.string.ssid_permission_error_action)) { dialog, _ ->
-            com.celzero.bravedns.util.SsidPermissionManager.requestSsidPermissions(this)
-            dialog.dismiss()
-            Logger.vv(LOG_TAG_UI, "Showing SSID permission rationale dialog for country: $countryCode")
-        }
-        builder.setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
-            // Reset the SSID switch since permissions are required
-            b.ssidCheck.isChecked = false
-            lifecycleScope.launch(Dispatchers.IO) {
-                com.celzero.bravedns.rpnproxy.RpnProxyManager.updateSsidBased(countryCode, false)
+        MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+            .setTitle(getString(R.string.ssid_permission_error_action))
+            .setMessage(getString(R.string.ssid_permission_explanation, getString(R.string.lbl_ssids)))
+            .setCancelable(true)
+            .setPositiveButton(getString(R.string.ssid_permission_error_action)) { dlg, _ ->
+                SsidPermissionManager.requestSsidPermissions(this); dlg.dismiss()
             }
-        }
-        builder.create().show()
+            .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
+                b.ssidCheck.isChecked = false
+                lifecycleScope.launch(Dispatchers.IO) {
+                    RpnProxyManager.updateSsidBased(configKey, false)
+                }
+            }
+            .create().show()
     }
 
     override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
+        requestCode : Int,
+        permissions : Array<out String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        com.celzero.bravedns.util.SsidPermissionManager.handlePermissionResult(
-            requestCode,
-            permissions,
-            grantResults,
-            ssidPermissionCallback
+        SsidPermissionManager.handlePermissionResult(
+            requestCode, permissions, grantResults, ssidPermissionCallback
         )
     }
 

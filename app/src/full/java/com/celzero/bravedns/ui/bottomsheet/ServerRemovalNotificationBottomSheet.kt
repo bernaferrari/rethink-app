@@ -19,16 +19,23 @@ import Logger
 import Logger.LOG_TAG_UI
 import android.animation.Animator
 import android.animation.ObjectAnimator
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
+import androidx.core.view.WindowInsetsControllerCompat
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CountryConfig
 import com.celzero.bravedns.databinding.BottomsheetServerRemovalNotificationBinding
 import com.celzero.bravedns.databinding.ItemRemovedServerBinding
+import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.util.Themes.Companion.getBottomsheetCurrentTheme
+import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import org.koin.android.ext.android.inject
+import kotlin.getValue
 
 /**
  * Premium bottom sheet notification for informing users about removed server locations
@@ -42,6 +49,7 @@ class ServerRemovalNotificationBottomSheet : BottomSheetDialogFragment() {
 
     private var _binding: BottomsheetServerRemovalNotificationBinding? = null
     private val binding get() = _binding!!
+    private val persistentState by inject<PersistentState>()
 
     private var removedServers: List<CountryConfig> = emptyList()
     private var onDismissCallback: (() -> Unit)? = null
@@ -58,6 +66,14 @@ class ServerRemovalNotificationBottomSheet : BottomSheetDialogFragment() {
             }
         }
     }
+
+    private fun isDarkThemeOn(): Boolean {
+        return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+                Configuration.UI_MODE_NIGHT_YES
+    }
+
+    override fun getTheme(): Int =
+        getBottomsheetCurrentTheme(isDarkThemeOn(), persistentState.theme)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -76,6 +92,14 @@ class ServerRemovalNotificationBottomSheet : BottomSheetDialogFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        dialog?.window?.let { window ->
+            if (isAtleastQ()) {
+                val controller = WindowInsetsControllerCompat(window, window.decorView)
+                controller.isAppearanceLightNavigationBars = false
+                window.isNavigationBarContrastEnforced = false
+            }
+        }
 
         // Extract removed servers from arguments
         @Suppress("UNCHECKED_CAST", "DEPRECATION")

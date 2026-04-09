@@ -1,0 +1,256 @@
+/*
+ * Copyright 2025 RethinkDNS and its authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.celzero.bravedns.ui.activity
+
+import Logger
+import Logger.LOG_TAG_UI
+import android.content.Context
+import android.content.res.Configuration
+import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.WindowInsetsControllerCompat
+import androidx.core.view.isVisible
+import androidx.paging.LoadState
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import by.kirich1409.viewbindingdelegate.viewBinding
+import com.celzero.bravedns.R
+import com.celzero.bravedns.adapter.PurchaseHistoryAdapter
+import com.celzero.bravedns.databinding.ActivityPurchaseHistoryBinding
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.util.Themes
+import com.celzero.bravedns.util.Utilities.isAtleastQ
+import com.celzero.bravedns.util.handleFrostEffectIfNeeded
+import com.celzero.bravedns.viewmodel.PurchaseHistoryViewModel
+import com.facebook.shimmer.Shimmer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.lifecycle.lifecycleScope
+import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
+
+/**
+ * Displays the full purchase / subscription state-change history stored in
+ * the SubscriptionStateHistory table, loaded in pages of 30 rows at a time
+ * (using Paging 3) to avoid an ANR on devices with thousands of records.
+ *
+ * Each row represents one state transition (e.g. Initial → Active,
+ * Active → Cancelled, …) enriched with product details from SubscriptionStatus.
+ * Noise-only transitions (Initial↔Initial, Unknown→Active, etc.) are filtered
+ * out directly in SQL via [PurchaseHistoryViewModel.historyList].
+ */
+class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_history) {
+
+    private val b by viewBinding(ActivityPurchaseHistoryBinding::bind)
+    private val viewModel: PurchaseHistoryViewModel by viewModel()
+    private lateinit var adapter: PurchaseHistoryAdapter
+    private val persistentState by inject<PersistentState>()
+
+    /** True after the first non-loading page arrives; prevents re-animation on config change. */
+    private var listFirstShown = false
+
+    companion object {
+        private const val TAG = "PurchaseHistoryAct"
+        private const val KEY_LIST_SHOWN = "list_first_shown"
+    }
+
+    private fun Context.isDarkThemeOn(): Boolean =
+        resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
+            Configuration.UI_MODE_NIGHT_YES
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        theme.applyStyle(Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme), true)
+        super.onCreate(savedInstanceState)
+
+        handleFrostEffectIfNeeded(persistentState.theme)
+
+        if (isAtleastQ()) {
+            val controller = WindowInsetsControllerCompat(window, window.decorView)
+            controller.isAppearanceLightNavigationBars = false
+            window.isNavigationBarContrastEnforced = false
+        }
+
+        listFirstShown = savedInstanceState?.getBoolean(KEY_LIST_SHOWN, false) ?: false
+
+        setupToolbar()
+        setupRecyclerView()
+        startShimmer()
+        observeHistory()
+        observeTotalCount()
+        loadHeroSubtitleAsync()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putBoolean(KEY_LIST_SHOWN, listFirstShown)
+    }
+
+    private fun setupToolbar() {
+        b.collapsingToolbar.title = getString(R.string.payment_history_title)
+        setSupportActionBar(b.toolbar)
+        supportActionBar?.setDisplayHomeAsUpEnabled(false)
+        b.toolbar.setNavigationOnClickListener { onBackPressedDispatcher.onBackPressed() }
+        // Populated asynchronously in loadHeroSubtitleAsync() to avoid touching
+        // RpnProxyManager (via Koin SYNCHRONIZED lazy) on the main thread.
+        b.tvHeroSubtitle.text = ""
+    }
+
+    private fun setupRecyclerView() {
+        adapter = PurchaseHistoryAdapter(this)
+        adapter.stateRestorationPolicy =
+            RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
+
+        b.rvHistory.apply {
+            layoutManager = LinearLayoutManager(this@PurchaseHistoryActivity)
+            adapter = this@PurchaseHistoryActivity.adapter
+            setHasFixedSize(false)
+            isNestedScrollingEnabled = false
+        }
+
+        // Once the first batch of items has been bound, allow state restoration on
+        // config changes (matches DnsLogFragment's pattern).
+        b.rvHistory.post {
+            try {
+                if (adapter.itemCount > 0) {
+                    adapter.stateRestorationPolicy =
+                        RecyclerView.Adapter.StateRestorationPolicy.ALLOW
+                }
+            } catch (_: Exception) {
+                Logger.e(LOG_TAG_UI, "$TAG: err setting recycler restoration policy")
+            }
+        }
+    }
+
+    /**
+     * Feeds pages of [RichHistoryEntry] into the adapter.
+     * [PagingDataAdapter.submitData] is lifecycle-aware: it automatically cancels
+     * the previous collection when a new [PagingData] arrives (e.g. after invalidation).
+     */
+    private fun observeHistory() {
+        viewModel.historyList.observe(this) { pagingData ->
+            adapter.submitData(lifecycle, pagingData)
+        }
+
+        adapter.addLoadStateListener { loadState ->
+            val refreshState = loadState.source.refresh
+            when {
+                refreshState is LoadState.Loading -> {
+                    // First-time or refresh load — show shimmer, hide content
+                    b.shimmer.isVisible = true
+                    b.emptyState.isVisible = false
+                    b.errorState.isVisible = false
+                    b.rvHistory.isVisible = false
+                    startShimmer()
+                }
+                refreshState is LoadState.Error -> {
+                    stopShimmer()
+                    b.shimmer.isVisible = false
+                    b.emptyState.isVisible = false
+                    b.errorState.isVisible = true
+                    b.rvHistory.isVisible = false
+                    b.tvEntryCount.text = "—"
+                    val msg = refreshState.error.localizedMessage ?: "Unknown error"
+                    b.tvErrorMessage.text = msg
+                    Logger.e(LOG_TAG_UI, "$TAG error loading history: $msg")
+                    // Paging3 retry re-runs the failed load without recreating the Activity.
+                    b.btnRetry.setOnClickListener { adapter.retry() }
+                }
+                refreshState is LoadState.NotLoading -> {
+                    stopShimmer()
+                    b.shimmer.isVisible = false
+                    b.errorState.isVisible = false
+
+                    val isEmpty =
+                        loadState.append.endOfPaginationReached && adapter.itemCount == 0
+                    b.emptyState.isVisible = isEmpty
+                    b.rvHistory.isVisible = !isEmpty
+
+                    if (!isEmpty && !listFirstShown) {
+                        listFirstShown = true
+                        adapter.stateRestorationPolicy =
+                            RecyclerView.Adapter.StateRestorationPolicy.ALLOW
+                        b.rvHistory.alpha = 0f
+                        b.rvHistory.animate().alpha(1f).setDuration(300).start()
+                    }
+                }
+            }
+        }
+    }
+
+    /** Populates the entry-count badge once the total is known. */
+    private fun observeTotalCount() {
+        viewModel.totalCount.observe(this) { count ->
+            b.tvEntryCount.text = count.toString()
+        }
+    }
+
+    /**
+     * Reads subscription data off the main thread and updates the hero subtitle.
+     * See class-level kdoc for why this must NOT be called on the main thread.
+     */
+    private fun loadHeroSubtitleAsync() {
+        lifecycleScope.launch(Dispatchers.Default) {
+            val subtitle = buildHeroSubtitle()
+            withContext(Dispatchers.Main.immediate) {
+                b.tvHeroSubtitle.text = subtitle
+            }
+        }
+    }
+
+    private fun buildHeroSubtitle(): String {
+        val sub = RpnProxyManager.getSubscriptionData()?.subscriptionStatus ?: return ""
+        val planName = resolvePlanName(
+            sub.productTitle.ifBlank { sub.planId.ifBlank { sub.productId } }
+        )
+        val accountId = sub.accountId.take(12).ifBlank { return planName }
+        return if (planName.isNotEmpty()) "$planName  \u00B7  ID: $accountId" else "ID: $accountId"
+    }
+
+    private fun resolvePlanName(raw: String): String = when {
+        raw.contains("standard", ignoreCase = true) -> "RPN Standard"
+        raw.contains("plus",     ignoreCase = true) -> "RPN One-Time"
+        raw.isNotBlank()                            -> raw
+        else                                        -> ""
+    }
+
+    private fun startShimmer() {
+        if (b.shimmer.isShimmerStarted) return
+        val shimmer = Shimmer.AlphaHighlightBuilder()
+            .setDuration(1500)
+            .setBaseAlpha(0.85f)
+            .setDropoff(1f)
+            .setHighlightAlpha(0.35f)
+            .build()
+        b.shimmer.setShimmer(shimmer)
+        b.shimmer.startShimmer()
+    }
+
+    private fun stopShimmer() {
+        if (b.shimmer.isShimmerStarted) b.shimmer.stopShimmer()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        stopShimmer()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (b.shimmer.isVisible) startShimmer()
+    }
+}
