@@ -41,6 +41,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.lifecycle.lifecycleScope
+import com.celzero.bravedns.iab.InAppBillingHandler
+import com.celzero.bravedns.subscription.SubscriptionStateMachineV2
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -205,27 +207,31 @@ class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_his
      */
     private fun loadHeroSubtitleAsync() {
         lifecycleScope.launch(Dispatchers.Default) {
-            val subtitle = buildHeroSubtitle()
+            val deviceId = InAppBillingHandler.getObfuscatedDeviceId()
+            val subtitle = buildHeroSubtitle(deviceId)
             withContext(Dispatchers.Main.immediate) {
                 b.tvHeroSubtitle.text = subtitle
             }
         }
     }
 
-    private fun buildHeroSubtitle(): String {
-        val sub = RpnProxyManager.getSubscriptionData()?.subscriptionStatus ?: return ""
-        val planName = resolvePlanName(
-            sub.productTitle.ifBlank { sub.planId.ifBlank { sub.productId } }
-        )
-        val accountId = sub.accountId.take(12).ifBlank { return planName }
-        return if (planName.isNotEmpty()) "$planName  \u00B7  ID: $accountId" else "ID: $accountId"
+    private fun buildHeroSubtitle(deviceId: String): String {
+        val sub = RpnProxyManager.getSubscriptionData() ?: return ""
+        val planName = resolvePlanName(sub)
+        val accountId = sub.subscriptionStatus.accountId.take(12).ifBlank { return planName }
+        val deviceId = deviceId.take(4).ifBlank { return planName }
+        val id = "$accountId • $deviceId"
+        return if (planName.isNotEmpty()) "$planName \u00B7 $id" else id
     }
 
-    private fun resolvePlanName(raw: String): String = when {
-        raw.contains("standard", ignoreCase = true) -> "RPN Standard"
-        raw.contains("plus",     ignoreCase = true) -> "RPN One-Time"
-        raw.isNotBlank()                            -> raw
-        else                                        -> ""
+    private fun resolvePlanName(subscriptionData: SubscriptionStateMachineV2.SubscriptionData): String {
+        val planId = subscriptionData.purchaseDetail?.planId ?: ""
+        return when (planId) {
+            InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> "One-Time 2 years"
+            InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> "One-Time 5 years"
+            InAppBillingHandler.SUBS_PRODUCT_YEARLY -> "Subscription Yearly"
+            else -> "Subscription Monthly"
+        }
     }
 
     private fun startShimmer() {

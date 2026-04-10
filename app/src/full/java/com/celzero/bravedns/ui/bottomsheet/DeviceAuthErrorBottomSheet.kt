@@ -30,14 +30,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 
 /**
  * Bottom sheet shown when a `/g/device` or `/customer` API call returns HTTP 401.
- *
- * Surfaces a premium "Device Authorization Failed" error screen that shows:
- * - The full account ID (selectable, for copy-paste)
- * - The first 8 characters of the device ID
- * - An "Email Customer Support" button pre-addressed to hello@celzero.com
- *
- * Created via [newInstance] from a [ServerApiError.Unauthorized401]; all data is
- * carried in the fragment arguments so the sheet survives configuration changes.
  */
 class DeviceAuthErrorBottomSheet : BottomSheetDialogFragment() {
 
@@ -55,8 +47,6 @@ class DeviceAuthErrorBottomSheet : BottomSheetDialogFragment() {
         private const val EMAIL_SUBJECT    = "Device Authorization Issue — Rethink DNS"
 
         /**
-         * Create a new instance from a [ServerApiError.Unauthorized401].
-         *
          * All data is passed via [Bundle] args so the fragment survives
          * configuration changes without holding a live reference to the error object.
          */
@@ -89,8 +79,8 @@ class DeviceAuthErrorBottomSheet : BottomSheetDialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val args          = requireArguments()
-        val accountId     = args.getString(ARG_ACCOUNT_ID, "")
+        val args = requireArguments()
+        val accountId = args.getString(ARG_ACCOUNT_ID, "")
         val deviceIdPrefix = args.getString(ARG_DEVICE_ID_PREFIX, "")
 
         populateDetails(accountId, deviceIdPrefix)

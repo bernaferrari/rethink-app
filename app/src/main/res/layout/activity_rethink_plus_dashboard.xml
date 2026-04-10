@@ -52,7 +52,7 @@
                 android:textSize="13sp"
                 app:layout_collapseMode="parallax"
                 app:layout_collapseParallaxMultiplier="0.6"
-                tools:text="RPN Standard  ·  ID: 74b4c00217" />
+                tools:text="RPN Standard · 74b4c00217" />
 
             <androidx.appcompat.widget.Toolbar
                 android:id="@+id/toolbar"

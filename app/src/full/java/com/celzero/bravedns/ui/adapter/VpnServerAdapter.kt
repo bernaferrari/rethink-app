@@ -37,7 +37,7 @@ import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
-import com.celzero.bravedns.ui.activity.ServerWgConfigDetailActivity
+import com.celzero.bravedns.ui.activity.RpnConfigDetailActivity
 import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
@@ -288,7 +288,7 @@ class VpnServerAdapter(
                 // WIN tunnel for this server is still being set up (getWinByKey returned null).
                 // Show a "Connecting…" indicator with a gentle pulse.
                 // The stats loop is still started so it can take over naturally once the
-                // tunnel is ready — the first successful applyStats() will stop the pulse.
+                // tunnel is ready: the first successful applyStats() will stop the pulse.
                 showTunnelLoadingStatus()
                 b.infoIcon.setOnClickListener { listener.onServerGroupRemoved(group) }
                 b.serverCard.setOnClickListener { openServerDetail(group.getBestServer()) }
@@ -513,7 +513,7 @@ class VpnServerAdapter(
             if (rxtx.isNotEmpty()) b.tvRxTx.text = rxtx
 
             // Uptime
-            val uptime = getUpTime(stats)
+            val uptime = getUpTime(config.key)
             b.tvUptimeSep.visibility = if (uptime.isNotEmpty()) View.VISIBLE else View.GONE
             b.tvUptime.visibility = if (uptime.isNotEmpty()) View.VISIBLE else View.GONE
             if (uptime.isNotEmpty()) b.tvUptime.text = uptime
@@ -571,12 +571,14 @@ class VpnServerAdapter(
             return ctx.getString(R.string.two_argument_space, tx, rx)
         }
 
-        private fun getUpTime(stats: RouterStats?): CharSequence {
-            if (stats == null || stats.since <= 0L) return ""
-            return DateUtils.getRelativeTimeSpanString(
-                stats.since, System.currentTimeMillis(),
-                DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE
-            )
+        private fun getUpTime(id: String): CharSequence {
+            val selectedSinceTs = RpnProxyManager.getSelectedSinceTs(id)
+            return if (selectedSinceTs > 0L)
+                DateUtils.getRelativeTimeSpanString(
+                    selectedSinceTs, System.currentTimeMillis(),
+                    DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE
+                )
+            else context.getString(R.string.lbl_never)
         }
 
         /**
@@ -666,10 +668,10 @@ class VpnServerAdapter(
         }
 
         private fun openServerDetail(server: CountryConfig) {
-            val intent = Intent(ctx, ServerWgConfigDetailActivity::class.java)
-            intent.putExtra(ServerWgConfigDetailActivity.INTENT_EXTRA_SERVER_ID, server.id.hashCode())
-            intent.putExtra(ServerWgConfigDetailActivity.INTENT_EXTRA_FROM_SERVER_SELECTION, true)
-            intent.putExtra(ServerWgConfigDetailActivity.INTENT_EXTRA_CONFIG_KEY, server.key)
+            val intent = Intent(ctx, RpnConfigDetailActivity::class.java)
+            intent.putExtra(RpnConfigDetailActivity.INTENT_EXTRA_SERVER_ID, server.id.hashCode())
+            intent.putExtra(RpnConfigDetailActivity.INTENT_EXTRA_FROM_SERVER_SELECTION, true)
+            intent.putExtra(RpnConfigDetailActivity.INTENT_EXTRA_CONFIG_KEY, server.key)
             ctx.startActivity(intent)
         }
     }

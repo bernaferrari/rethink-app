@@ -257,7 +257,7 @@
                             android:paddingEnd="16dp"
                             android:paddingBottom="6dp"
                             android:text="@string/lbl_active"
-                            android:textColor="?attr/primaryTextColor"
+                            android:textColor="?attr/homeScreenHeaderTextColor"
                             android:textSize="13sp"
                             android:textStyle="bold" />
 

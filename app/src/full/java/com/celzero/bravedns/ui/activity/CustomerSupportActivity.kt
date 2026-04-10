@@ -102,11 +102,13 @@ class CustomerSupportActivity : AppCompatActivity(R.layout.activity_customer_sup
     }
 
     /** Called after subscription data is loaded to fill the hero subtitle. */
-    private fun updateHeroSubtitle(sub: SubscriptionStatus?) {
+    private fun updateHeroSubtitle(sub: SubscriptionStatus?, deviceId: String) {
         if (sub == null || sub.purchaseToken.isEmpty()) return
         val planName = resolvePlanName(sub.planId)
         val accountId = sub.accountId.take(12).ifBlank { return }
-        b.tvHeroSubtitle.text = if (planName.isNotEmpty()) "$planName  \u00B7  ID: $accountId" else "ID: $accountId"
+        val deviceId = deviceId.take(4).ifBlank { return }
+        val id = "$accountId • $deviceId"
+        b.tvHeroSubtitle.text = if (planName.isNotEmpty()) "$planName \u00B7 $id" else id
     }
 
     private fun resolvePlanName(planId: String): String {
@@ -130,9 +132,10 @@ class CustomerSupportActivity : AppCompatActivity(R.layout.activity_customer_sup
                 Logger.e(LOG_TAG_UI, "$TAG loadSubscriptionSummary error: ${e.message}", e)
                 null
             }
+            val deviceId = InAppBillingHandler.getObfuscatedDeviceId()
             withContext(Dispatchers.Main) {
                 populateSubscriptionCard(sub)
-                updateHeroSubtitle(sub)
+                updateHeroSubtitle(sub, deviceId)
             }
         }
     }

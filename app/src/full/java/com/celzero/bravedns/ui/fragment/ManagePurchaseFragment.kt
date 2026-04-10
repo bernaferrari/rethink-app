@@ -211,16 +211,27 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
         blockBackCallback.isEnabled = false
     }
 
-    private fun setupToolbar(subscriptionData: SubscriptionStateMachineV2.SubscriptionData) {
+    private fun setupToolbar(subscriptionData: SubscriptionStateMachineV2.SubscriptionData, deviceId: String) {
         b.collapsingToolbar.title = getString(R.string.manage_purchase_title)
-        b.tvHeroSubtitle.text = buildHeroSubtitle(subscriptionData)
+        b.tvHeroSubtitle.text = buildHeroSubtitle(subscriptionData, deviceId)
     }
 
-    private fun buildHeroSubtitle(subscriptionData: SubscriptionStateMachineV2.SubscriptionData): String {
+    private fun buildHeroSubtitle(subscriptionData: SubscriptionStateMachineV2.SubscriptionData, realDeviceId: String): String {
         val sub = subscriptionData.subscriptionStatus
         val planName = resolvePlanName(subscriptionData)
         val accountId = sub.accountId.take(12).ifBlank { return planName }
-        return if (planName.isNotEmpty()) "$planName  \u00B7  ID: $accountId" else "ID: $accountId"
+        // Hero subtitle: "RPN Standard · 74b4c00217 · 1234"
+        // Use the real device ID fetched from SecureIdentityStore (never sub.deviceId directly).
+        val deviceId = realDeviceId.take(4)
+        val id = "$accountId • $deviceId"
+        b.tvHeroSubtitle.text = when {
+            planName.isNotEmpty() && accountId.isNotEmpty() ->
+                getString(R.string.hero_plan_and_account, planName, id)
+            planName.isNotEmpty() -> planName
+            accountId.isNotEmpty() -> id
+            else -> getString(R.string.rethink_plus_title)
+        }
+        return if (planName.isNotEmpty()) "$planName  \u00B7  $id" else id
     }
 
     private fun resolvePlanName(subscriptionData: SubscriptionStateMachineV2.SubscriptionData): String {
@@ -257,8 +268,13 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
                 return
             }
 
-            setupToolbar(subscriptionData)
-            showSubscriptionState(subscriptionData)
+            io {
+                val deviceId = InAppBillingHandler.getObfuscatedDeviceId()
+                uiCtx {
+                    setupToolbar(subscriptionData, deviceId)
+                    showSubscriptionState(subscriptionData, deviceId)
+                }
+            }
             updateStatusBadge(subscriptionState)
             updatePlanDetails(subscriptionData)
             updatePrice(subscriptionData)
@@ -294,13 +310,13 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
     /**
      * Shows normal subscription content cards (used when subscription exists).
      */
-    private fun showSubscriptionState(subscriptionData: SubscriptionStateMachineV2.SubscriptionData) {
+    private fun showSubscriptionState(subscriptionData: SubscriptionStateMachineV2.SubscriptionData, deviceId: String) {
         b.noSubscriptionContainer.isVisible = false
         b.subscriptionDetailsCard.isVisible = true
         b.featuresCard.isVisible = true
         b.actionButtonsContainer.isVisible = true
         // Restore hero subtitle with actual plan/account info
-        b.tvHeroSubtitle.text = buildHeroSubtitle(subscriptionData)
+        b.tvHeroSubtitle.text = buildHeroSubtitle(subscriptionData, deviceId)
     }
 
     private fun updateDatesAndToken(
@@ -739,4 +755,6 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
     private fun AppCompatTextView.underline() {
         paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
     }
+    private suspend fun uiCtx(f: suspend () -> Unit) = withContext(Dispatchers.Main) { f() }
+    private fun io(f: suspend () -> Unit) = lifecycleScope.launch(Dispatchers.IO) { f() }
 }

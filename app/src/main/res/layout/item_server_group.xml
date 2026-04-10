@@ -81,7 +81,7 @@
             app:ensureMinTouchTargetSize="false"
             tools:visibility="visible"
             tools:text="1.2 Gbps" />
-        
+
         <androidx.appcompat.widget.AppCompatCheckBox
             android:id="@+id/checkbox_server"
             android:layout_width="28dp"
