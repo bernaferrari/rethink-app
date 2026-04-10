@@ -121,11 +121,23 @@ abstract class StateMachine<S : State, E : Event, D : Any>(
                         // Update data if provided
                         newData?.let { _data.value = it }
 
-                        // Execute action
-                        transition.action(event, _data.value)
-
-                        // Transition to new state
+                        // Transition state BEFORE running the action so that:
+                        // 1. If the action writes to DB, the in-memory state already
+                        //    matches the DB state — no desync window.
+                        // 2. If the action reads the current state (e.g. for logging),
+                        //    it sees the new state, which is correct.
+                        // If the action throws, we revert to the previous state below.
                         _currentState.value = transition.toState
+
+                        // Execute action (may write to DB, call RPN, etc.)
+                        try {
+                            transition.action(event, _data.value)
+                        } catch (actionError: Exception) {
+                            // Action failed — revert the optimistic state transition
+                            // so that in-memory state does NOT advance past the failed action.
+                            _currentState.value = currentState
+                            throw actionError
+                        }
 
                         // Record successful transition
                         recordTransition(
@@ -229,14 +241,16 @@ abstract class StateMachine<S : State, E : Event, D : Any>(
      */
     suspend fun updateData(newData: D) {
         _data.value = newData
-        Logger.i(LOG_IAB, "$tag: Data updated to: $newData")
+        Logger.i(LOG_IAB, "$tag: new data updated")
     }
 
     /**
-     * Directly transition to a new state without processing events
-     * This is useful for initialization from database where we know the exact target state
+     * Directly transition to a new state without processing events or running actions.
+     * Used exclusively during cold-start DB restoration so no DB writes, history inserts,
+     * or RPN side effects are triggered.  Play reconcile (which runs seconds after app
+     * start) is the authoritative correction path.
      */
-    /*suspend fun directTransitionTo(newState: S) {
+    suspend fun directTransitionTo(newState: S) {
         val currentState = _currentState.value
 
         if (currentState != newState) {
@@ -262,7 +276,7 @@ abstract class StateMachine<S : State, E : Event, D : Any>(
         } else {
             Logger.d(LOG_IAB, "$tag: Already in state ${newState.name}, no transition needed")
         }
-    }*/
+    }
 
     /**
      * Check if a transition is valid for the current state

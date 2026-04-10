@@ -97,6 +97,8 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
 
     override fun onResume() {
         super.onResume()
+        io { handleProxyDnsUi() }
+        io { handlePreventDnsLeaksUi() }
         // update selected dns values
         updateSelectedDns()
         // update local blocklist ui
@@ -120,8 +122,6 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
         initAnimation()
         // display fav icon in dns logs
         b.dcFaviconSwitch.isChecked = persistentState.fetchFavIcon
-        // prevent dns leaks
-        b.dcPreventDnsLeaksSwitch.isChecked = persistentState.preventDnsLeaks
         // enable per-app domain rules (dns alg)
         b.dcAlgSwitch.isChecked = persistentState.enableDnsAlg
         // periodically check for blocklist update
@@ -130,14 +130,80 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
         b.dcDownloaderSwitch.isChecked = persistentState.useCustomDownloadManager
         // enable dns caching in tunnel
         b.dcEnableCacheSwitch.isChecked = persistentState.enableDnsCache
-        // proxy dns
-        b.dcProxyDnsSwitch.isChecked = !persistentState.proxyDns
         // use system dns for undelegated domains
         b.dcUndelegatedDomainsSwitch.isChecked = persistentState.useSystemDnsForUndelegatedDomains
         b.connectedStatusTitle.text = getConnectedDnsType()
         b.dcUseFallbackToBypassSwitch.isChecked = persistentState.useFallbackDnsToBypass
         showSplitDnsUi()
         updateAllowedRecordTypesUi()
+    }
+
+    private suspend fun handleProxyDnsUi() {
+        // proxy dns
+        uiCtx { b.dcProxyDnsSwitch.isChecked = !persistentState.proxyDns }
+
+        // if dns proxy enabled with any app, disable never proxy dns
+        if (!appConfig.isDnsProxyActive()) {
+            return
+        }
+
+        val prxyDtls = appConfig.getSelectedDnsProxyDetails()
+        uiCtx {
+            if (prxyDtls?.proxyAppName.isNullOrEmpty()) {
+                b.dcProxyDnsSwitch.isEnabled = true
+                b.dcProxyDnsSwitch.isClickable = true
+
+                b.dcProxyDnsRl.isClickable = true
+                b.dcProxyDnsRl.isEnabled = true
+
+                b.dcProxyDnsRl.alpha = 1f
+            } else {
+                // disable proxy dns
+                b.dcProxyDnsSwitch.isEnabled = false
+                b.dcProxyDnsSwitch.isClickable = false
+
+                b.dcProxyDnsRl.isEnabled = false
+                b.dcProxyDnsRl.isClickable = false
+
+                b.dcProxyDnsRl.alpha = 0.5f
+            }
+        }
+    }
+
+    private suspend fun handlePreventDnsLeaksUi() {
+        // prevent dns leaks
+        uiCtx { b.dcPreventDnsLeaksSwitch.isChecked = persistentState.preventDnsLeaks }
+
+        // if dns proxy enabled with any app and loopback proxy frwdr is true, then disable
+        // prevent dns leaks
+        if (!appConfig.isDnsProxyActive()) {
+            return
+        }
+
+        val prxyDtls = appConfig.getSelectedDnsProxyDetails()
+        uiCtx {
+            if (prxyDtls?.proxyAppName.isNullOrEmpty()) {
+                b.dcPreventDnsLeaksSwitch.isEnabled = true
+                b.dcPreventDnsLeaksSwitch.isClickable = true
+
+                b.dcPreventDnsLeaksRl.isClickable = true
+                b.dcPreventDnsLeaksRl.isEnabled = true
+
+                b.dcPreventDnsLeaksRl.alpha = 1f
+            } else {
+                if (persistentState.excludeAppsInProxy) return@uiCtx
+
+                // disable prevent dns leaks
+                b.dcPreventDnsLeaksSwitch.isEnabled = false
+                b.dcPreventDnsLeaksSwitch.isClickable = false
+
+                b.dcPreventDnsLeaksRl.isEnabled = false
+                b.dcPreventDnsLeaksRl.isClickable = false
+
+                b.dcPreventDnsLeaksRl.alpha = 0.5f
+            }
+        }
+
     }
 
     private fun updateLocalBlocklistUi() {
