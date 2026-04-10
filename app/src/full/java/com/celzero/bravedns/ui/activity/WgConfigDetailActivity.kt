@@ -210,6 +210,13 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         b.editBtn.text = getString(R.string.rt_edit_dialog_positive).uppercase()
         b.deleteBtn.text = getString(R.string.lbl_delete).uppercase()
 
+        b.lockdownTitleTv.text =
+            getString(
+                R.string.two_argument_space,
+                getString(R.string.firewall_rule_global_lockdown),
+                getString(R.string.symbol_lockdown)
+            )
+
         b.catchAllTitleTv.text =
             getString(
                 R.string.two_argument_space,
@@ -240,6 +247,7 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         )
         if (wgType.isDefault()) {
             b.wgHeaderTv.text = getString(R.string.lbl_advanced).replaceFirstChar(Char::titlecase)
+            b.lockdownRl.visibility = View.VISIBLE
             b.catchAllRl.visibility = View.VISIBLE
             b.oneWgInfoTv.visibility = View.GONE
             b.hopBtn.visibility = View.VISIBLE
@@ -248,6 +256,7 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         } else if (wgType.isOneWg()) {
             b.wgHeaderTv.text =
                 getString(R.string.rt_list_simple_btn_txt).replaceFirstChar(Char::titlecase)
+            b.lockdownRl.visibility = View.GONE
             b.catchAllRl.visibility = View.GONE
             b.hopBtn.visibility = View.GONE
             b.hopBtnX.visibility = View.GONE
@@ -277,6 +286,7 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
                 b.applicationsBtn.isEnabled = false
                 b.applicationsBtn.text = getString(R.string.routing_remaining_apps)
             }
+            b.lockdownCheck.isChecked = mapping.isLockdown
             b.useMobileCheck.isChecked = mapping.useOnlyOnMetered
         }
 
@@ -550,6 +560,13 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
             )
         }
 
+        b.lockdownRl.setOnClickListener {
+            b.lockdownCheck.isChecked = !b.lockdownCheck.isChecked
+            updateLockdown(b.lockdownCheck.isChecked)
+        }
+
+        b.lockdownCheck.setOnClickListener { updateLockdown(b.lockdownCheck.isChecked) }
+
         b.catchAllRl.setOnClickListener {
             b.catchAllCheck.isChecked = !b.catchAllCheck.isChecked
             updateCatchAll(b.catchAllCheck.isChecked)
@@ -590,7 +607,7 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
                 return@setOnClickListener
             }
 
-            if (mapping.isActive || mapping.isCatchAll) {
+            if (mapping.isActive || mapping.isLockdown || mapping.isCatchAll) {
                 io {
                     val sid = ID_WG_BASE + configId
                     val isVia = WgHopManager.isAlreadyHop(sid)
@@ -656,6 +673,10 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
             "WireGuard Use on Mobile Networks",
             "User ${if (enabled) "enabled" else "disabled"} use on mobile networks for WireGuard config with id $configId"
         )
+    }
+
+    private fun updateLockdown(enabled: Boolean) {
+        io { WireguardManager.updateLockdownConfig(configId, enabled) }
     }
 
     private fun updateCatchAll(enabled: Boolean) {

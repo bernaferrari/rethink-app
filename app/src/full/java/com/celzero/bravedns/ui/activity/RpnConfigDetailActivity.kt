@@ -41,13 +41,13 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.adapter.WgIncludeAppsAdapter
 import com.celzero.bravedns.data.SsidItem
 import com.celzero.bravedns.database.CountryConfig
-import com.celzero.bravedns.databinding.ActivityServerWgDetailBinding
+import com.celzero.bravedns.databinding.ActivityRpnConfigDetailBinding
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.ui.activity.NetworkLogsActivity.Companion.RULES_SEARCH_ID_RPN
-import com.celzero.bravedns.ui.activity.ServerWgConfigDetailActivity.Companion.STATS_POLL_MS
+import com.celzero.bravedns.ui.activity.RpnConfigDetailActivity.Companion.STATS_POLL_MS
 import com.celzero.bravedns.ui.dialog.CountrySsidDialog
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
@@ -86,8 +86,8 @@ import kotlin.math.abs
  * [STATS_POLL_MS] milliseconds while the activity is resumed, and is
  * canceled on pause so it does not drain battery in the background.
  */
-class ServerWgConfigDetailActivity : AppCompatActivity(R.layout.activity_server_wg_detail) {
-    private val b by viewBinding(ActivityServerWgDetailBinding::bind)
+class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_detail) {
+    private val b by viewBinding(ActivityRpnConfigDetailBinding::bind)
     private val persistentState by inject<PersistentState>()
     private val mappingViewModel: ProxyAppsMappingViewModel by viewModel()
 
@@ -572,6 +572,7 @@ class ServerWgConfigDetailActivity : AppCompatActivity(R.layout.activity_server_
             val config = RpnProxyManager.getCountryConfigByKey(key)
             uiCtx {
                 if (config != null) {
+                    b.lockdownCheck.isChecked = config.lockdown
                     b.catchAllCheck.isChecked = config.catchAll
                     b.useMobileCheck.isChecked = config.mobileOnly
                     b.ssidCheck.isChecked = config.ssidBased
@@ -615,6 +616,19 @@ class ServerWgConfigDetailActivity : AppCompatActivity(R.layout.activity_server_
                     Utilities.showToastUiCentered(
                         this,
                         if (isChecked) "Catch all mode enabled" else "Catch all mode disabled",
+                        Toast.LENGTH_SHORT
+                    )
+                }
+            }
+        }
+
+        b.lockdownCheck.setOnCheckedChangeListener { _, isChecked ->
+            io {
+                RpnProxyManager.setLockdownForWinServer(configKey, isChecked)
+                uiCtx {
+                    Utilities.showToastUiCentered(
+                        this,
+                        if (isChecked) "Lockdown mode enabled" else "Lockdown mode disabled",
                         Toast.LENGTH_SHORT
                     )
                 }
@@ -757,7 +771,7 @@ class ServerWgConfigDetailActivity : AppCompatActivity(R.layout.activity_server_
                 withContext(Dispatchers.Main) {
                     refreshSsidSection()
                     Utilities.showToastUiCentered(
-                        this@ServerWgConfigDetailActivity,
+                        this@RpnConfigDetailActivity,
                         "SSID settings saved",
                         Toast.LENGTH_SHORT
                     )

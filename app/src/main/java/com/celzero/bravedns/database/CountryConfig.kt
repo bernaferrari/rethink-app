@@ -49,7 +49,7 @@ data class CountryConfig(
 
     // Country-level configuration flags
     var catchAll: Boolean = false,  // Use this country for all connections
-    var lockdown: Boolean = false,  // Force connection through this country only
+    var lockdown: Boolean = false,  // Force connection through this country only or block
     var mobileOnly: Boolean = false,// Use only on mobile data
     var ssidBased: Boolean = false, // SSID-based connection enabled (use with ssids field)
 
@@ -122,36 +122,9 @@ data class CountryConfig(
         }
     }
 
-
-    // ---- RpnWinServer-style helpers ----
-
     val countryName: String by lazy { countryDisplayName(cc) }
     val flagEmoji: String by lazy { flagEmojiFor(cc) }
     val serverLocation: String by lazy { city.ifBlank { name } }
-
-    fun getBadgeText(): String {
-        return if (link > 0) "${link}ms" else "${load}%"
-    }
-
-    enum class ServerQuality { EXCELLENT, GOOD, FAIR, POOR }
-
-    fun getQualityLevel(): ServerQuality {
-        return if (link > 0) {
-            when {
-                link < 50 -> ServerQuality.EXCELLENT
-                link < 100 -> ServerQuality.GOOD
-                link < 200 -> ServerQuality.FAIR
-                else -> ServerQuality.POOR
-            }
-        } else {
-            when {
-                load < 30 -> ServerQuality.EXCELLENT
-                load < 60 -> ServerQuality.GOOD
-                load < 80 -> ServerQuality.FAIR
-                else -> ServerQuality.POOR
-            }
-        }
-    }
 
     private fun flagEmojiFor(cc: String): String {
         if (cc.length != 2) return "\uD83C\uDF10" // globe fallback
@@ -162,47 +135,6 @@ data class CountryConfig(
     }
 
     private fun countryDisplayName(cc: String): String {
-        return try { Locale("", cc).displayCountry.ifBlank { cc } } catch (t: Throwable) { cc }
-    }
-
-    // ---- CountryConfig-style helpers ----
-
-    /**
-     * Check if this country can be used for the current connection
-     */
-    fun canBeUsed(
-        isMobileData: Boolean,
-        currentSsid: String?,
-        preferredCcs: List<String>
-    ): Boolean {
-        if (!isActive) return false
-
-        // If catchAll is enabled, always use
-        if (catchAll) return true
-
-        // If lockdown, must explicitly match
-        if (lockdown) return preferredCcs.contains(cc)
-
-        // Check mobile-only restriction
-        if (mobileOnly && !isMobileData) return false
-
-        // Check SSID-based routing (would need SSID mapping - future enhancement)
-        if (ssidBased && currentSsid == null) return false
-
-        return true
-    }
-
-    /**
-     * Check if any exclusion rule applies
-     */
-    fun hasExclusionRules(): Boolean {
-        return lockdown || mobileOnly || ssidBased
-    }
-
-    /**
-     * Check if this is a priority country
-     */
-    fun isPriority(): Boolean {
-        return catchAll || lockdown || priority > 0
+        return try { Locale("", cc).displayCountry.ifBlank { cc } } catch (_: Throwable) { cc }
     }
 }

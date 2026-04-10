@@ -661,7 +661,6 @@
                                 android:id="@+id/apps_label"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Apps(0)"
                                 android:textAllCaps="false"
                                 android:textColor="?attr/secondaryTextColor"
                                 android:textSize="12sp" />
@@ -768,6 +767,52 @@
                         android:layout_marginBottom="8dp"
                         android:alpha="0.08"
                         android:background="?attr/divider" />
+
+                    <RelativeLayout
+                        android:id="@+id/lockdown_rl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:minHeight="64dp"
+                        android:paddingTop="12dp"
+                        android:paddingBottom="12dp">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:layout_toStartOf="@id/lockdown_check"
+                            android:orientation="vertical"
+                            android:paddingEnd="16dp">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/firewall_rule_global_lockdown"
+                                android:textColor="?attr/primaryTextColor"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="@string/lockdown_wg_dialog_desc"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="13sp" />
+
+                        </LinearLayout>
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/lockdown_check"
+                            style="@style/CustomWidget.MaterialComponents.CompoundButton.Switch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true" />
+
+                    </RelativeLayout>
 
                     <RelativeLayout
                         android:id="@+id/catch_all_rl"
