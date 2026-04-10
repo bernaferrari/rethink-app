@@ -108,18 +108,17 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
         if (!isAdded) return
 
         val fmt = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
-
         // Resolve friendly plan name
         val rawPlan = sub?.let {
-            it.productTitle.ifBlank { it.planId.ifBlank { it.productId } }
+            it.planId.ifBlank { it.productTitle.ifBlank { it.productId } }
         } ?: ""
         val planName = resolvePlanName(rawPlan)
 
-        // Hero subtitle: "RPN Standard  ·  ID: 74b4c00217"
+        // Hero subtitle: "RPN Standard · 74b4c00217"
         val accountId = sub?.accountId?.take(12) ?: ""
         // Use the real device ID fetched from SecureIdentityStore (never sub.deviceId directly).
         val deviceId = realDeviceId.take(4)
-        val id = "$accountId •  $deviceId"
+        val id = "$accountId • $deviceId"
         b.tvHeroSubtitle.text = when {
             planName.isNotEmpty() && accountId.isNotEmpty() ->
                 getString(R.string.hero_plan_and_account, planName, id)
@@ -195,16 +194,13 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
     }
 
     /** Maps a raw product title/id to a friendly display name. */
-    private fun resolvePlanName(raw: String): String = when {
-        raw.contains("standard", ignoreCase = true) -> getString(R.string.plan_rpn_standard)
-        raw.contains("plus",     ignoreCase = true) -> getString(R.string.plan_rpn_one_time)
-        raw.isNotBlank() -> raw
-        else -> ""
-    }
-
-    private fun resolveAttrColor(attrRes: Int): Int {
-        val ta = requireContext().obtainStyledAttributes(intArrayOf(attrRes))
-        return try { ta.getColor(0, 0) } finally { ta.recycle() }
+    private fun resolvePlanName(raw: String): String {
+        return when (raw) {
+            InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> "One-Time 2 years"
+            InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> "One-Time 5 years"
+            InAppBillingHandler.SUBS_PRODUCT_YEARLY -> "Subscription Yearly"
+            else -> raw
+        }
     }
 
     /** Returns true if the given productId/planId belongs to a one-time INAPP purchase. */
