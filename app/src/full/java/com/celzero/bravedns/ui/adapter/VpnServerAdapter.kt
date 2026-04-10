@@ -669,7 +669,6 @@ class VpnServerAdapter(
 
         private fun openServerDetail(server: CountryConfig) {
             val intent = Intent(ctx, RpnConfigDetailActivity::class.java)
-            intent.putExtra(RpnConfigDetailActivity.INTENT_EXTRA_SERVER_ID, server.id.hashCode())
             intent.putExtra(RpnConfigDetailActivity.INTENT_EXTRA_FROM_SERVER_SELECTION, true)
             intent.putExtra(RpnConfigDetailActivity.INTENT_EXTRA_CONFIG_KEY, server.key)
             ctx.startActivity(intent)

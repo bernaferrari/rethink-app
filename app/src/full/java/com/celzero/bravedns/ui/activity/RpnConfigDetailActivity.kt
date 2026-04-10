@@ -91,7 +91,6 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
     private val persistentState by inject<PersistentState>()
     private val mappingViewModel: ProxyAppsMappingViewModel by viewModel()
 
-    private var configId: Int = WireguardManager.INVALID_CONF_ID
     private var configKey: String = ""
     private var countryConfig: CountryConfig? = null
 
@@ -139,7 +138,6 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
             window.isNavigationBarContrastEnforced = false
         }
 
-        configId = intent.getIntExtra(INTENT_EXTRA_SERVER_ID, WireguardManager.INVALID_CONF_ID)
         configKey = intent.getStringExtra(INTENT_EXTRA_CONFIG_KEY) ?: ""
 
         setupCollapsingAnimation()
