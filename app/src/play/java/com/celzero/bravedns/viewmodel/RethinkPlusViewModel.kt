@@ -27,7 +27,7 @@ import com.celzero.bravedns.iab.ProductDetail
 import com.celzero.bravedns.rpnproxy.PipKeyManager
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.subscription.SubscriptionStateMachineV2
+import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

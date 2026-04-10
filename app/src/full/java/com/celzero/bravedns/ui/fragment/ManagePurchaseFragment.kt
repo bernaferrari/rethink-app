@@ -45,7 +45,7 @@ import com.celzero.bravedns.iab.InAppBillingHandler.REVOKE_WINDOW_SUBS_YEARLY_DA
 import com.celzero.bravedns.iab.PurchaseConflictNotifier
 import com.celzero.bravedns.iab.ServerApiError
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
-import com.celzero.bravedns.subscription.SubscriptionStateMachineV2
+import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import com.celzero.bravedns.ui.activity.FragmentHostActivity
 import com.celzero.bravedns.ui.bottomsheet.PurchaseConflictBottomSheet
 import com.celzero.bravedns.ui.bottomsheet.DeviceAuthErrorBottomSheet

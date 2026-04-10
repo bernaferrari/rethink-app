@@ -42,7 +42,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.iab.InAppBillingHandler
-import com.celzero.bravedns.subscription.SubscriptionStateMachineV2
+import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 

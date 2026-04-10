@@ -41,8 +41,7 @@ import com.celzero.bravedns.iab.BillingListener
 import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.iab.ProductDetail
 import com.celzero.bravedns.iab.PurchaseDetail
-import com.celzero.bravedns.subscription.SubscriptionStateMachineV2
-import com.celzero.bravedns.ui.activity.CustomerSupportActivity
+import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import com.celzero.bravedns.ui.activity.FragmentHostActivity
 import com.celzero.bravedns.ui.bottomsheet.PurchaseProcessingBottomSheet
 import com.celzero.bravedns.ui.dialog.SubscriptionAnimDialog

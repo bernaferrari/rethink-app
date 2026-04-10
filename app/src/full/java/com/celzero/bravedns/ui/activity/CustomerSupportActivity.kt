@@ -40,7 +40,6 @@ import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.scheduler.BugReportZipper
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.subscription.SubscriptionStateMachineV2
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
