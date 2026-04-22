@@ -123,13 +123,13 @@ interface IBillingServerApi {
 
     /*
       * Consume an expired one-time (INAPP) purchase server-side.
-      * URL shape: /g/consume?cid=xxx&sku=xxx&purchaseToken=xxx[&test]
+      * URL shape: /g/con?cid=xxx&sku=xxx&purchaseToken=xxx[&test]
       * `test` is a bare string param omitted for production entitlements.
       * Called only when: purchase exists locally + productType == INAPP + server entitlement == expired.
       * response: {"message":"consumed","purchaseId":"..."}
       *           {"error":"already consumed",...}
      */
-    @POST("/g/consume")
+    @POST("/g/con")
     suspend fun consumePurchase(
         @Query("cid") accountId: String,
         @Query("did") deviceId: String,
