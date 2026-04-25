@@ -23,9 +23,11 @@ import com.celzero.bravedns.download.AppDownloadManager
 import com.celzero.bravedns.scheduler.ScheduleManager
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.AppUpdater
+import com.celzero.bravedns.service.InAppMessageProvider
+import com.celzero.bravedns.service.NoOpInAppMessageProvider
 import com.celzero.bravedns.service.ServiceModule
-import com.celzero.bravedns.subscription.StateMachineDatabaseSyncService
-import com.celzero.bravedns.subscription.SubscriptionStateMachineV2
+import com.celzero.bravedns.rpnproxy.StateMachineDatabaseSyncService
+import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.OrbotHelper
 import com.celzero.bravedns.viewmodel.ViewModelModule
@@ -37,6 +39,8 @@ private val rootModule = module { single<ContentResolver> { androidContext().con
 private val updaterModule = module {
     single { NonStoreAppUpdater(Constants.RETHINK_APP_UPDATE_CHECK, get()) }
     single<AppUpdater> { get<NonStoreAppUpdater>() }
+    // Default no-op provider; the play flavor overrides this with PlayInAppMessageProvider.
+    single<InAppMessageProvider> { NoOpInAppMessageProvider() }
 }
 
 private val updaterModules = listOf(updaterModule)
