@@ -91,29 +91,22 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
     private val _retryConnectionEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
     val retryConnectionEvent: SharedFlow<Unit> = _retryConnectionEvent.asSharedFlow()
 
-    // Watchdog job — cancels Loading if billing never responds.
+    // Watchdog job: cancels Loading if billing never responds.
     private var loadingWatchdogJob: Job? = null
     private val persistentState: PersistentState by inject()
 
 
-    /**
-     * Guards against re-entrant [initializeBilling] calls.
-     *
-     * The problem: on retry the call chain is:
-     *   retry() → initializeBilling() [sets Loading, starts watchdog]
-     *           → emits retryConnectionEvent
-     *           → Fragment calls reconnectBilling() → InAppBillingHandler.initiate()
-     *           → initiate() fires onConnectionResult callback
-     *           → ViewModel.onBillingConnected(false) [cancels watchdog, sets Error]
-     *
-     * BUT if initiate() / startConnection() also triggers a 2nd or 3rd call to
-     * initializeBilling() (e.g. via observeSubscriptionState → state change), the
-     * 2nd call overwrites Error with Loading and starts a new watchdog — causing
-     * indefinite loading.
-     *
-     * The guard ensures only one initializeBilling() flight is active at a time.
-     */
     @Volatile private var isBillingInitializing = false
+
+    @Volatile private var billingInitCalled = false
+
+    /**
+     * When true, the user entered this screen to **extend** an existing active one-time purchase
+     * (e.g. the expiry banner button in ManagePurchaseFragment). In this mode:
+     * - The "already subscribed" guard is bypassed so the user can buy again.
+     * - The ONE_TIME tab is pre-selected.
+     */
+    @Volatile var extendMode: Boolean = false
 
     enum class ProductTypeFilter {
         SUBSCRIPTION,
@@ -130,13 +123,8 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
     private fun observeSubscriptionState() {
         viewModelScope.launch {
             InAppBillingHandler.getSubscriptionStateFlow().collect { state ->
-                if (persistentState.rpnTestWithDefPurchase) {
-                    handleSubscriptionStateChange(SubscriptionStateMachineV2.SubscriptionState.Active)
-                    Logger.d(LOG_IAB, "$TAG: Subscription state changed to ${SubscriptionStateMachineV2.SubscriptionState.Active.name}")
-                } else {
-                    handleSubscriptionStateChange(state)
-                    Logger.d(LOG_IAB, "$TAG: Subscription state changed to ${state.name}")
-                }
+                handleSubscriptionStateChange(state)
+                Logger.d(LOG_IAB, "$TAG: Subscription state changed to ${state.name}")
             }
         }
     }
@@ -152,14 +140,6 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
 
     /**
      * Initialize billing and query products.
-     *
-     * BUG FIX: previously called queryProductDetailsWithTimeout() unconditionally even when the
-     * billing client wasn't connected yet → queries fired against a disconnected client → async
-     * callbacks never came back → billingListener.productResult never fired → UI stuck in Loading.
-     *
-     * Fix: only proceed to query products when the billing client is already ready (re-init after
-     * a connection was previously established). If it is not ready, the query is triggered from
-     * onBillingConnected() after the connection completes.
      */
     fun initializeBilling() {
         // Re-entrant guard: if a billing init flight is already in progress, ignore.
@@ -170,14 +150,16 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
             return
         }
         isBillingInitializing = true
+        billingInitCalled = true
 
         viewModelScope.launch {
             _uiState.value = SubscriptionUiState.Loading
             startLoadingWatchdog()
 
             try {
-                // Check if already subscribed
-                if (InAppBillingHandler.hasValidSubscription()) {
+                // Check if already subscribed, skipped in extend mode so the user can
+                // purchase an additional one-time plan while their current one is active.
+                if (!extendMode && InAppBillingHandler.hasValidSubscription()) {
                     cancelLoadingWatchdog()
                     isBillingInitializing = false
                     _uiState.value = SubscriptionUiState.AlreadySubscribed(
@@ -189,10 +171,6 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
                 // Check availability
                 val avd = checkAvailability()
 
-                // A concurrent onBillingConnected callback may have already resolved the state
-                // (e.g. failed connection) while checkAvailability() was running on IO.
-                // Detect this by checking whether the UI is still Loading — if not, bail out
-                // to avoid overwriting the already-resolved Error state.
                 if (_uiState.value !is SubscriptionUiState.Loading) {
                     Logger.d(LOG_IAB, "$TAG: state resolved while checkAvailability was running, bailing out")
                     isBillingInitializing = false
@@ -211,21 +189,21 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
                 }
 
                 // If billing client is already connected, query products immediately.
-                // Otherwise stay in Loading — onBillingConnected() will drive the rest.
+                // Otherwise, stay in Loading, onBillingConnected() will drive the rest.
                 if (InAppBillingHandler.isBillingClientSetup()) {
                     Logger.d(LOG_IAB, "$TAG: Billing already ready, querying products")
                     // isBillingInitializing cleared by onProductsFetched / watchdog
                     InAppBillingHandler.queryProductDetailsWithTimeout()
                 } else {
                     Logger.d(LOG_IAB, "$TAG: Billing not ready, waiting for connection callback")
-                    // Maintain Loading state — onBillingConnected() will drive the rest.
+                    // Maintain Loading state, onBillingConnected() will drive the rest.
                     // Guard against race: connection may complete between initiate() and here.
                     delay(500)
                     if (_uiState.value is SubscriptionUiState.Loading && InAppBillingHandler.isBillingClientSetup()) {
                         Logger.d(LOG_IAB, "$TAG: Billing became ready during wait, querying products now")
                         InAppBillingHandler.queryProductDetailsWithTimeout()
                     }
-                    // else: still not ready — onBillingConnected / watchdog will handle it
+                    // else: still not ready, onBillingConnected / watchdog will handle it
                 }
 
             } catch (e: Exception) {
@@ -248,7 +226,7 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
             delay(LOADING_TIMEOUT_MS)
             // If we are still in Loading after the timeout, surface an error so the user can retry.
             if (_uiState.value is SubscriptionUiState.Loading) {
-                Logger.w(LOG_IAB, "$TAG: Loading watchdog fired — billing took too long to respond")
+                Logger.w(LOG_IAB, "$TAG: Loading watchdog fired, billing took too long to respond")
                 isBillingInitializing = false
                 _uiState.value = SubscriptionUiState.Error(
                     title = "Connection Timeout",
@@ -280,14 +258,17 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
             return
         }
 
-        // Filter by current selection
+        // Filter by current selection; in extend mode always force ONE_TIME
+        if (extendMode) {
+            _selectedProductType.value = ProductTypeFilter.ONE_TIME
+        }
         filterProductsByType(_selectedProductType.value)
 
         // If user already has a valid subscription, navigate to dashboard instead
-        // of showing the purchase UI.  Never silently return — that leaves the UI
-        // stuck in Loading shimmer.
+        // of showing the purchase UI.
+        // In extend mode this check is intentionally skipped.
         val currentState = InAppBillingHandler.getSubscriptionState()
-        if (!currentState.canMakePurchase) {
+        if (!extendMode && !currentState.canMakePurchase) {
             Logger.i(LOG_IAB, "$TAG: Cannot make purchase in state: ${currentState.name}, " +
                     "hasValid=${currentState.hasValidSubscription}")
             if (currentState.hasValidSubscription) {
@@ -296,7 +277,6 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
                 )
             } else {
                 // Subscription is in a non-purchasable, non-valid state (e.g. Uninitialized).
-                // Still show products so the UI is not stuck — the state may settle shortly.
                 _uiState.value = SubscriptionUiState.Ready(
                     _filteredProducts.value, false, PipKeyManager.getAvailabilityData()
                 )
@@ -356,21 +336,19 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
     }
 
     // Tracks whether the user explicitly started a purchase flow in THIS screen session.
-    // Used to distinguish cold-start DB restoration (Active → AlreadySubscribed)
-    // from a real new purchase (Active → Success with confetti).
     @Volatile
     private var purchaseFlowActive = false
+
+
+    fun markPurchaseFlowActive() {
+        purchaseFlowActive = true
+        _uiState.value = SubscriptionUiState.Processing("Initializing purchase...")
+        Logger.d(LOG_IAB, "$TAG: purchaseFlowActive set manually (extend mode)")
+    }
 
     /**
      * Handle subscription state machine changes.
      *
-     * ### Key invariants
-     * - [Active] after a real purchase flow (purchaseFlowActive=true) → [Success] (confetti).
-     * - [Active] from cold-start DB restoration → [AlreadySubscribed] (navigate to dashboard).
-     * - [PurchaseInitiated] / [PurchasePending] set purchaseFlowActive=true.
-     * - [UserCancelled] / [Error] clear purchaseFlowActive.
-     * - [Cancelled/Revoked/Expired] with no products loaded triggers a product fetch so the
-     *   user can re-subscribe immediately.
      */
     private fun handleSubscriptionStateChange(state: SubscriptionStateMachineV2.SubscriptionState) {
         Logger.d(LOG_IAB, "$TAG: handleSubscriptionStateChange: ${state.name}, purchaseFlowActive=$purchaseFlowActive")
@@ -383,19 +361,11 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
 
             is SubscriptionStateMachineV2.SubscriptionState.PurchasePending -> {
                 // Only start polling if the user actually initiated a purchase in this session.
-                // PurchasePending can also be entered on cold-start when the DB has a stale
-                // ACK_PENDING row from a previous session — in that case purchaseFlowActive is
-                // false and we must NOT start the polling loop (which would spin 50+ times until
-                // the 30 s timeout instead of immediately showing the payment screen).
                 if (purchaseFlowActive) {
                     _uiState.value = SubscriptionUiState.PendingPurchase
                     startPendingPurchasePolling()
                 } else {
-                    // Cold-start: stale PurchasePending row in DB with no real purchase in flight.
-                    // Trigger a single Play query — handlePurchase will either find the purchase
-                    // (and drive Active) or hit the threshold and call purchaseFailed → Error,
-                    // which will show the payment screen via the Error handler below.
-                    Logger.d(LOG_IAB, "$TAG: PurchasePending without active flow — querying Play once to reconcile")
+                    Logger.d(LOG_IAB, "$TAG: PurchasePending without active flow, querying Play once to reconcile")
                     viewModelScope.launch(Dispatchers.IO) {
                         InAppBillingHandler.fetchPurchases(listOf(ProductType.SUBS, ProductType.INAPP))
                     }
@@ -411,11 +381,8 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
                         RpnProxyManager.getRpnProductId() ?: ""
                     )
                 } else {
-                    // Cold-start DB restoration or billing reconnect — already subscribed.
-                    // Only navigate if the UI is currently in Loading (i.e. we just opened
-                    // the fragment and discovered an active subscription).
                     val current = _uiState.value
-                    if (current is SubscriptionUiState.Loading) {
+                    if (billingInitCalled && !extendMode && current is SubscriptionUiState.Loading) {
                         _uiState.value = SubscriptionUiState.AlreadySubscribed(
                             RpnProxyManager.getRpnProductId() ?: ""
                         )
@@ -429,7 +396,7 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
                 purchaseFlowActive = false
                 stopPendingPurchasePolling()
                 if (wasInFlow) {
-                    // Real purchase flow failed — show an actionable error.
+                    // Real purchase flow failed, show an actionable error.
                     _uiState.value = SubscriptionUiState.Error(
                         title = "Subscription Error",
                         message = "An error occurred while processing your payment",
@@ -439,7 +406,7 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
                     // handlePurchase drove PurchasePending → Error because Play returned
                     // no purchases (stale DB row, no real purchase). Show the payment
                     // screen so the user can buy instead of seeing a cryptic error.
-                    Logger.d(LOG_IAB, "$TAG: Error state without active flow — showing payment screen")
+                    Logger.d(LOG_IAB, "$TAG: Error state without active flow, showing payment screen")
                     val products = _filteredProducts.value.ifEmpty { allProducts }
                     if (products.isNotEmpty()) {
                         _uiState.value = SubscriptionUiState.Ready(
@@ -448,7 +415,7 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
                             availabilityData = PipKeyManager.getAvailabilityData()
                         )
                     } else {
-                        // Products not fetched yet — trigger fetch; setProducts() will update UI
+                        // Products not fetched yet trigger fetch; setProducts() will update UI
                         viewModelScope.launch(Dispatchers.IO) {
                             if (InAppBillingHandler.isBillingClientSetup()) {
                                 InAppBillingHandler.queryProductDetailsWithTimeout()
@@ -476,7 +443,7 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
                     )
                 } else {
                     // Products not loaded yet - trigger load; UI will update via onProductsFetched
-                    Logger.d(LOG_IAB, "$TAG: $state but no products loaded — triggering fetch")
+                    Logger.d(LOG_IAB, "$TAG: $state but no products loaded, triggering fetch")
                     viewModelScope.launch(Dispatchers.IO) {
                         if (InAppBillingHandler.isBillingClientSetup()) {
                             InAppBillingHandler.queryProductDetailsWithTimeout()
@@ -487,7 +454,7 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
 
             is SubscriptionStateMachineV2.SubscriptionState.Initial,
             is SubscriptionStateMachineV2.SubscriptionState.Uninitialized -> {
-                // Transient init states — ignore to avoid premature navigation.
+                // Transient init states, ignore to avoid premature navigation.
                 // The state machine always passes through these during startup.
                 Logger.d(LOG_IAB, "$TAG: Ignoring transient init state ${state.name}")
             }
@@ -505,7 +472,6 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
         if (pollingJob != null) return
 
         pollingStartTime = System.currentTimeMillis()
-        var counter = 0
 
         pollingJob = viewModelScope.launch(Dispatchers.IO) {
             while (isActive) {
@@ -526,25 +492,6 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
 
                 Logger.d(LOG_IAB, "$TAG: Polling pending purchase, elapsed: $elapsedTime ms")
                 InAppBillingHandler.fetchPurchases(listOf(ProductType.SUBS, ProductType.INAPP))
-
-                // Query entitlement from server once after three attempts of fetchPurchases.
-                if (counter == 3) {
-                    val accountId = InAppBillingHandler.getObfuscatedAccountId()
-                    val deviceId = InAppBillingHandler.getObfuscatedDeviceId()
-                    val purchaseToken = InAppBillingHandler.getLatestPurchaseToken()
-                    val productType = ""
-                    Logger.d(
-                        LOG_IAB,
-                        "$TAG: Querying entitlement from server; with purchaseToken: $purchaseToken"
-                    )
-                    if (purchaseToken == null) {
-                        Logger.e(LOG_IAB, "$TAG: Purchase token is null, cannot query entitlement")
-                    } else {
-                        // this will initiate (if not done) the acknowledgement from server side
-                        InAppBillingHandler.acknowledgePurchaseFromServer(accountId, deviceId, purchaseToken, productType)
-                    }
-                }
-                counter++
                 delay(POLLING_INTERVAL_MS)
             }
         }
@@ -585,7 +532,9 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
 
             viewModelScope.launch(Dispatchers.IO) {
                 // Re-check subscription state first; if already active, skip product query.
-                if (InAppBillingHandler.hasValidSubscription()) {
+                // Skip this check in extend mode, the user is here to buy additional time
+                // while their existing subscription is still active.
+                if (!extendMode && InAppBillingHandler.hasValidSubscription()) {
                     cancelLoadingWatchdog()
                     isBillingInitializing = false
                     withContext(Dispatchers.Main) {
@@ -640,9 +589,9 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
      * Retry initialization after an error.
      *
      * 1. Reset the re-entrant guard so [initializeBilling] is not blocked.
-     * 2. Call [initializeBilling] — sets Loading + watchdog.
+     * 2. Call [initializeBilling]: sets Loading + watchdog.
      * 3. If billing client is not ready, emit [retryConnectionEvent] so the Fragment
-     *    calls [InAppBillingHandler.initiate] with a live context — the ViewModel cannot
+     *    calls [InAppBillingHandler.initiate] with a live context, the ViewModel cannot
      *    do this itself because [InAppBillingHandler.initiate] needs an Android Context.
      */
     fun retry() {
@@ -651,7 +600,7 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
         initializeBilling()
         // If billing client is NOT ready, signal the Fragment to reconnect.
         if (!InAppBillingHandler.isBillingClientSetup()) {
-            Logger.d(LOG_IAB, "$TAG: retry — billing client not ready, requesting reconnect from Fragment")
+            Logger.d(LOG_IAB, "$TAG: retry, billing client not ready, requesting reconnect from Fragment")
             _retryConnectionEvent.tryEmit(Unit)
         }
     }

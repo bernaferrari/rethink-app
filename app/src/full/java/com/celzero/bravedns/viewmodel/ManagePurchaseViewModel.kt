@@ -19,7 +19,6 @@ import Logger
 import Logger.LOG_TAG_UI
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.android.billingclient.api.BillingClient
 import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +27,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
-class ManageSubscriptionViewModel : ViewModel() {
+class ManagePurchaseViewModel : ViewModel() {
 
     companion object {
         private const val TAG = "ManSubVM"
@@ -72,7 +71,7 @@ class ManageSubscriptionViewModel : ViewModel() {
     /**
      * Launches the cancel/revoke pipeline inside [viewModelScope].
      *
-     * [viewModelScope] is scoped to the ViewModel, not the fragment — so even if the
+     * [viewModelScope] is scoped to the ViewModel, not the fragment,so even if the
      * fragment is destroyed mid-flight (back press, rotation) the coroutine keeps
      * running until the server call and local state update finish.  Only when the
      * entire activity is finished (and the ViewModel is cleared) will the coroutine
@@ -132,7 +131,7 @@ class ManageSubscriptionViewModel : ViewModel() {
                 emit(OperationState.InProgress(isCancel, Step.REFRESHING))
                 try {
                     InAppBillingHandler.fetchPurchases(
-                        listOf(BillingClient.ProductType.SUBS, BillingClient.ProductType.INAPP)
+                        listOf(InAppBillingHandler.PRODUCT_TYPE_SUBS, InAppBillingHandler.PRODUCT_TYPE_INAPP)
                     )
                 } catch (e: Exception) {
                     // Non-fatal: server call already succeeded; Play will reconcile on next launch.
@@ -165,13 +164,13 @@ class ManageSubscriptionViewModel : ViewModel() {
         productId: String
     ): Pair<Boolean, String> {
         return if (isCancel) {
-            if (productType == BillingClient.ProductType.INAPP) {
+            if (productType == InAppBillingHandler.PRODUCT_TYPE_INAPP) {
                 InAppBillingHandler.cancelOneTimePurchase(accountId, deviceId, purchaseToken, productId)
             } else {
                 InAppBillingHandler.cancelPlaySubscription(accountId, deviceId, purchaseToken, productId)
             }
         } else {
-            if (productType == BillingClient.ProductType.INAPP) {
+            if (productType == InAppBillingHandler.PRODUCT_TYPE_INAPP) {
                 InAppBillingHandler.revokeOneTimePurchase(accountId, deviceId, purchaseToken, productId)
             } else {
                 InAppBillingHandler.revokeSubscription(accountId, deviceId, purchaseToken, productId)

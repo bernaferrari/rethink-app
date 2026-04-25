@@ -16,44 +16,42 @@
 package com.celzero.bravedns.viewmodel
 
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.liveData
+import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.liveData
-import com.celzero.bravedns.database.RichHistoryEntry
+import com.celzero.bravedns.database.SubscriptionStateHistory
 import com.celzero.bravedns.database.SubscriptionStateHistoryDao
 import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
 
 class PurchaseHistoryViewModel(private val historyDao: SubscriptionStateHistoryDao) : ViewModel() {
+
+    private val trigger: MutableLiveData<Unit> = MutableLiveData(Unit)
 
     private val pagingConfig = PagingConfig(
         enablePlaceholders = true,
         prefetchDistance = 3,
         initialLoadSize = LIVEDATA_PAGE_SIZE * 2,
         maxSize = LIVEDATA_PAGE_SIZE * 3,
-        pageSize = LIVEDATA_PAGE_SIZE,
+        // Double the page size vs the old config (matches DnsLogViewModel).
+        pageSize = LIVEDATA_PAGE_SIZE * 2,
+        // Trigger a fresh load from the new position when the user jumps >5 pages.
+        jumpThreshold = 5,
     )
 
-    /**
-     * Paged list of meaningful purchase history entries.
-     * Noise transitions (Initial↔Initial, Unknown→Active, etc.) are already
-     * excluded in the SQL query inside [SubscriptionStateHistoryDao.observeRichHistoryPaged],
-     * so the adapter never receives them.
-     */
-    val historyList: LiveData<PagingData<RichHistoryEntry>> =
-        Pager(pagingConfig) { historyDao.observeRichHistoryPaged() }
-            .liveData
-            .cachedIn(viewModelScope)
+    val historyList: LiveData<PagingData<SubscriptionStateHistory>> =
+        trigger.switchMap {
+            Pager(pagingConfig) { historyDao.observeHistoryPaged() }
+                .liveData
+                .cachedIn(viewModelScope)
+        }
 
-    /**
-     * Total count of meaningful history entries for the badge in the toolbar.
-     * Emitted once on first observation; stale after new inserts but acceptable
-     * for a badge that is only populated during Activity startup.
-     */
     val totalCount: LiveData<Int> = liveData {
         emit(historyDao.getMeaningfulCount())
     }
