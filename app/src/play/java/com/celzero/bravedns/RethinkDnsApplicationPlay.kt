@@ -21,6 +21,8 @@ import com.celzero.bravedns.scheduler.EnhancedBugReport
 import com.celzero.bravedns.scheduler.ScheduleManager
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.AppUpdater
+import com.celzero.bravedns.service.InAppMessageProvider
+import com.celzero.bravedns.service.PlayInAppMessageProvider
 import com.celzero.bravedns.util.FirebaseErrorReporting
 import com.celzero.bravedns.util.GlobalExceptionHandler
 import com.celzero.bravedns.util.GoReportingHandler
@@ -54,6 +56,8 @@ class RethinkDnsApplicationPlay : Application() {
                         // New Koin override strategy allow to override any definition by default.
                         // don't need to specify override = true anymore in module.
                         single<AppUpdater> { StoreAppUpdater(androidContext()) }
+                        // Play Billing in-app messaging
+                        single<InAppMessageProvider> { PlayInAppMessageProvider() }
                     }
                 )
             )
