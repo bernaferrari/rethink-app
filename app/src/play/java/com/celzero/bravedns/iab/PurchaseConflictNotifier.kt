@@ -47,11 +47,11 @@ import com.celzero.bravedns.util.Utilities
  * Tapping the notification launches [NotificationHandlerActivity] which trampolines to
  * [ManageSubscriptionFragment].  That fragment's [setupServerErrorObserver] re-posts the
  * [ServerApiError.Conflict409] from [InAppBillingHandler.serverApiErrorLiveData] so the
- * [PurchaseConflictBottomSheet] opens automatically — **the same UI path** used when the
+ * [PurchaseConflictBottomSheet] opens automatically, **the same UI path** used when the
  * fragment is already on screen.
  *
  * ### Channel
- * Reuses [NOTIF_CHANNEL_ID_FIREWALL_ALERTS] ("Firewall_Alerts") — the existing high-priority
+ * Reuses [NOTIF_CHANNEL_ID_FIREWALL_ALERTS] ("Firewall_Alerts"): the existing high-priority
  * channel already created and registered by [BraveVPNService] / [RefreshDatabase].
  * No new channel is needed.
  *
@@ -66,7 +66,7 @@ object PurchaseConflictNotifier {
     /**
      * Post (or update) the 409 conflict notification.
      *
-     * Safe to call from any thread / coroutine context — [NotificationManager.notify] is
+     * Safe to call from any thread / coroutine context, [NotificationManager.notify] is
      * thread-safe.
      *
      * @param context Application context.
@@ -82,7 +82,7 @@ object PurchaseConflictNotifier {
                 return
             }
 
-            // Build the tap intent — routes through NotificationHandlerActivity so the
+            // Build the tap intent, routes through NotificationHandlerActivity so the
             // trampoline logic (pause state, app-lock, etc.) is respected.
             val tapIntent = Intent(context, NotificationHandlerActivity::class.java).apply {
                 putExtra(NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME, NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE)
@@ -103,7 +103,7 @@ object PurchaseConflictNotifier {
                 mutable = false
             )
 
-            // Ensure the channel exists (idempotent — safe to call on every notification)
+            // Ensure the channel exists (idempotent: safe to call on every notification)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 val channelName = context.getString(R.string.notif_channel_firewall_alerts)
                 val channelDesc = context.getString(R.string.notif_channel_desc_firewall_alerts)
@@ -153,7 +153,7 @@ object PurchaseConflictNotifier {
         }
     }
 
-    // Intent extra keys — mirrors PurchaseConflictBottomSheet.Companion ARG_* keys
+    // Intent extra keys: mirrors PurchaseConflictBottomSheet.Companion ARG_* keys
     // so the trampoline can rebuild the Conflict409 without re-querying the server.
     const val EXTRA_ENDPOINT       = "conflict_endpoint"
     const val EXTRA_OPERATION      = "conflict_operation"

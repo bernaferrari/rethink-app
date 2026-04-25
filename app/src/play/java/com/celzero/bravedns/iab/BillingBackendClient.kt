@@ -41,58 +41,51 @@ import java.net.UnknownHostException
 import java.time.Instant
 
 /**
- * Typed result for [BillingBackendClient.fetchAndStoreCustomerFromServer].
+ * Typed result for [BillingBackendClient.createOrRegisterCid].
  *
- * @param accountId   Server-assigned account ID, blank on error.
- * @param deviceId    Server-assigned device ID, blank on error.
- * @param errorCode   0 = success; non-zero = HTTP error code (401, 409, …).
+ * @param accountId Server-assigned or confirmed account ID; blank on error.
+ * @param errorCode 0 = success; non-zero = HTTP error code (401, 409, …).
  */
-data class CustomerFetchResult(
+data class CidResult(
     val accountId: String,
-    val deviceId: String,
     val errorCode: Int = 0
 ) {
-    val isSuccess: Boolean get() = errorCode == 0 && accountId.isNotBlank() && deviceId.isNotBlank()
+    val isSuccess: Boolean get() = errorCode == 0 && accountId.isNotBlank()
 
     companion object {
-        val EMPTY = CustomerFetchResult("", "", 0)
-        fun error(code: Int) = CustomerFetchResult("", "", code)
+        val EMPTY = CidResult("", 0)
+        fun error(code: Int) = CidResult("", code)
     }
 }
 
 /**
- * Typed result for [BillingBackendClient.registerDevice].
+ * Typed result for [BillingBackendClient.createOrRegisterDid].
  *
- * Callers pattern-match on this to decide whether to surface a UI error.
+ * @param deviceId Server-assigned or confirmed device ID; blank on error.
+ * @param errorCode 0 = success; non-zero = HTTP error code (401, 409, …).
  */
-sealed class RegisterDeviceResult {
-    /** HTTP 2xx — device registered successfully. */
-    object Success : RegisterDeviceResult()
+data class DidResult(
+    val deviceId: String,
+    val errorCode: Int = 0
+) {
+    val isSuccess: Boolean get() = errorCode == 0 && deviceId.isNotBlank()
 
-    /**
-     * HTTP 401 — the server refused to authorize this device.
-     * Carry the IDs that were used so the caller can show them in the error UI.
-     */
-    data class Unauthorized(val accountId: String, val deviceId: String) : RegisterDeviceResult()
-
-    /** HTTP 409 — device already registered (conflict). */
-    object Conflict : RegisterDeviceResult()
-
-    /** Any other non-2xx response or network exception. */
-    data class Failure(val httpCode: Int, val message: String? = null) : RegisterDeviceResult()
-
-    val isSuccess: Boolean get() = this is Success
+    companion object {
+        val EMPTY = DidResult("", 0)
+        fun error(code: Int) = DidResult("", code)
+    }
 }
 
 /**
  * Pure data/service layer for all Rethink backend (non-Play) billing API calls.
  *
- * This class owns every HTTP interaction with the `/customer`, `/g/device`,
+ * This class owns every HTTP interaction with the `/d/acc`, `/d/reg`,
  * `/g/ack`, `/g/stop`, `/g/refund`, and `/g/consume` endpoints.
  *
  * ### Responsibilities
  * - Build and dispatch all [IBillingServerApi] requests.
  * - Read accountId / deviceId from [SecureIdentityStore] (encrypted file).
+ * - Send CID as `x-rethink-app-cid` header and DID as `x-rethink-app-did` header on every request.
  * - Construct meta JSON objects for registration calls.
  * - Resolve the `test` query-param via [RpnProxyManager].
  * - Parse and surface [RpnPurchaseAckServerResponse].
@@ -103,8 +96,8 @@ sealed class RegisterDeviceResult {
  * - No state-machine transitions (callers handle those).
  *
  * ### Flavors
- * Used only by `play` and `website` source sets.  `fdroid` does not depend on
- * this class.
+ * Shared by `play` and `website` source sets via the `billing` source set.
+ * `fdroid` uses a separate stub in the `fdroid` source set.
  */
 class BillingBackendClient(
     private val identityStore: SecureIdentityStore
@@ -119,21 +112,20 @@ class BillingBackendClient(
          * Back-off delays (ms) applied **between** consecutive acknowledgePurchase attempts.
          *
          * Attempt schedule:
-         *   1st — immediate
-         *   2nd — after 300 ms
-         *   3rd — after 1 200 ms
-         *   4th — after 5 000 ms  → fail if still unsuccessful
+         *   1st: immediate
+         *   2nd: after 3000 ms
+         *   3rd: after 9000 ms
          */
-        private val ACK_RETRY_DELAYS = longArrayOf(300L, 1_200L, 5_000L)
+        private val ACK_RETRY_DELAYS = longArrayOf(3_000L, 9_000L)
     }
 
     /**
-     * Returns a server-driven **account** identifier.
+     * Returns a server-driven **account** identifier (CID).
      *
      * Resolution order:
-     * 1. In-memory cache — fastest path, no I/O.
-     * 2. [SecureIdentityStore] (AES-256-GCM encrypted file) — survived process restart.
-     * 3. `POST /customer` API call — server assigns / confirms IDs; persisted on success.
+     * 1. [SecureIdentityStore] (AES-256-GCM encrypted file)
+     * 2. [refreshIdentity] - calls `POST /d/acc` and `POST /d/reg` to obtain and persist
+     *    both CID and DID atomically; the CID is returned on success.
      *
      * Returns an empty string if all sources fail. Callers must treat a blank return
      * as "IDs not yet available" and abort or retry rather than proceeding with empty IDs.
@@ -145,45 +137,55 @@ class BillingBackendClient(
             Logger.v(LOG_IAB, "$TAG $mname: loaded from SecureIdentityStore (len=${storedAcc.length})")
             return storedAcc
         }
-        val result = fetchAndStoreCustomerFromServer("", "")
-        if (result.accountId.isNotBlank()) {
-            Logger.i(LOG_IAB, "$TAG $mname: received from server (len=${result.accountId.length})")
-            return result.accountId
+        val (cid, _) = refreshIdentity()
+        if (cid.isNotBlank()) {
+            Logger.i(LOG_IAB, "$TAG $mname: received from server (len=${cid.length})")
+            return cid
         }
-        Logger.w(LOG_IAB, "$TAG $mname: /acc unavailable; returning blank")
+        Logger.w(LOG_IAB, "$TAG $mname: cid unavailable; returning blank")
         return ""
     }
 
     /**
-     * Returns a server-driven **device** identifier.
+     * Returns a server-driven **device** identifier (DID).
      *
-     * Same resolution order as [getAccountId]:
-     * cache → encrypted file → `/customer`.
+     * Resolution order:
+     * 1. CID reconciliation: if [recvCid] is provided and differs from the stored CID,
+     *    a fresh DID is obtained via [createOrRegisterDid] and both IDs are persisted.
+     * 2. [SecureIdentityStore]: returned directly when no reconciliation is needed.
+     * 3. [refreshIdentity]: obtains and persists both CID and DID from the server.
      *
-     * reconciles in case recvCid is different from stored cid
      * Returns an empty string if all sources fail. Callers must treat a blank return
      * as "IDs not yet available" and abort or retry rather than proceeding with empty IDs.
      */
     suspend fun getDeviceId(recvCid: String = ""): String {
         val mname = this::getDeviceId.name
         val (storedCid, storedDid) = identityStore.get()
+
         if (recvCid.isNotEmpty() && storedCid != recvCid) {
-            val result = fetchAndStoreCustomerFromServer(recvCid, "")
-            if (result.deviceId.isNotBlank()) {
-                Logger.i(LOG_IAB, "$TAG $mname: received from server (len=${result.deviceId.length})")
-                return result.deviceId
+            Logger.i(LOG_IAB, "$TAG $mname: recvCid differs from storedCid; re-registering device under new cid")
+            val didResult = createOrRegisterDid(recvCid, "")
+            if (didResult.isSuccess) {
+                identityStore.save(recvCid, didResult.deviceId)
+                Logger.i(LOG_IAB, "$TAG $mname: re-registered device (didLen=${didResult.deviceId.length})")
+                return didResult.deviceId
             }
+            Logger.w(LOG_IAB, "$TAG $mname: re-registration failed (code=${didResult.errorCode}); falling through to store")
         }
+
         if (!storedDid.isNullOrBlank()) {
             Logger.v(LOG_IAB, "$TAG $mname: loaded from SecureIdentityStore (len=${storedDid.length})")
             return storedDid
         }
-        val result = fetchAndStoreCustomerFromServer(storedCid ?: "", "")
-        if (result.deviceId.isNotBlank()) {
-            Logger.i(LOG_IAB, "$TAG $mname: received from server (len=${result.deviceId.length})")
-            return result.deviceId
+
+        // No usable DID in store, perform a full identity refresh so both CID and DID
+        // are resolved and persisted atomically.
+        val (_, did) = refreshIdentity()
+        if (did.isNotBlank()) {
+            Logger.i(LOG_IAB, "$TAG $mname: received from server (len=${did.length})")
+            return did
         }
-        Logger.w(LOG_IAB, "$TAG $mname: /acc unavailable; returning blank")
+        Logger.w(LOG_IAB, "$TAG $mname: did unavailable; returning blank")
         return ""
     }
 
@@ -191,107 +193,252 @@ class BillingBackendClient(
      * Returns the current (accountId, deviceId) pair.
      *
      * Resolution order:
-     * 1. [SecureIdentityStore] (encrypted file) — primary source.
-     * 2. `POST /customer` API — obtains fresh IDs; persists to [SecureIdentityStore].
+     * 1. [SecureIdentityStore] (encrypted file)- primary source; returned directly when
+     *    both IDs are present.
+     * 2. [refreshIdentity] - obtains fresh CID via `POST /d/acc` and fresh DID via
+     *    `POST /d/reg`; persists both atomically on success.
      *
      * Returns `Pair("", "")` when both sources fail. Callers must check for blank IDs
      * and abort rather than proceeding with an empty identity.
      */
     suspend fun resolveIdentity(): Pair<String, String> {
         val mname = this::resolveIdentity.name
-        // 1. Encrypted file
+        // Encrypted file
         val (storedAcc, storedDev) = identityStore.get()
         if (!storedAcc.isNullOrBlank() && !storedDev.isNullOrBlank()) {
-            Logger.d(LOG_IAB, "$TAG $mname: /acc loaded from SecureIdentityStore")
+            Logger.d(LOG_IAB, "$TAG $mname: loaded from SecureIdentityStore")
             return Pair(storedAcc, storedDev)
         }
-        // 2. Server /customer call
-        val result = fetchAndStoreCustomerFromServer(storedAcc ?: "", storedDev ?: "")
-        if (result.accountId.isNotBlank() && result.deviceId.isNotBlank()) {
-            Logger.i(LOG_IAB, "$TAG $mname: obtained from /acc and persisted")
-            return Pair(result.accountId, result.deviceId)
+        // fetches CID then DID in two separate calls and persists both.
+        val identity = refreshIdentity()
+        if (identity.first.isNotBlank() && identity.second.isNotBlank()) {
+            Logger.i(LOG_IAB, "$TAG $mname: obtained from server and persisted")
+            return identity
         }
-        Logger.w(LOG_IAB, "$TAG $mname: /acc unavailable; returning blank pair")
+        Logger.w(LOG_IAB, "$TAG $mname: identity unavailable; returning blank pair")
         return Pair("", "")
     }
 
     /**
-     * Calls `POST /d/acc?cid=<accountId>&did=<deviceId>` with the meta JSON as body.
+     * Fetches or registers a **CID** (account ID) from the server via `POST /d/acc`.
      *
-     * [existingAccountId] and [existingDeviceId] are sent as query parameters so the
-     * server can look up an existing account.  Pass empty strings for new users —
-     * the server will assign fresh IDs.
+     * The server creates a new account when [existingCid] is blank, or confirms /
+     * corrects an existing one when it is non-blank.  The returned ID is **not**
+     * persisted by this method; the caller (or [refreshIdentity]) is responsible
+     * for saving it together with the DID.
      *
-     * On success: persists both IDs to [SecureIdentityStore] and updates in-memory caches.
-     * Idempotent: passing existing IDs lets the server confirm or correct them.
-     * Retry-safe: [SecureIdentityStore] is only written on full success.
-     *
-     * ### Error codes surfaced in [CustomerFetchResult.errorCode]
-     * - 0   → success (IDs are valid and non-blank)
-     * - 401 → server refused to authorize this device / account
+     * ### Error codes in [CidResult.errorCode]
+     * - 0   → success ([CidResult.isSuccess] == true, [CidResult.accountId] is non-blank)
+     * - 401 → server refused to authorize this account
      * - 409 → conflict; account already exists in an incompatible state
-     * - other non-zero → generic server / network error
+     * - -1  → transient / network error ([CidResult.EMPTY])
+     * - other non-zero → HTTP error from server
+     *
+     * @param existingCid Previously known account ID, or blank for new registrations.
      */
-    suspend fun fetchAndStoreCustomerFromServer(
-        existingAccountId: String = "",
-        existingDeviceId: String = ""
-    ): CustomerFetchResult = withContext(Dispatchers.IO) {
-        val mname = "fetchAndStoreCustomerFromServer"
-        var response: Response<JsonObject?>? = null
+    suspend fun createOrRegisterCid(existingCid: String = ""): CidResult = withContext(Dispatchers.IO) {
+        val mname = "createOrRegisterCid"
         try {
             val meta = buildCustomerMeta()
-            Logger.v(LOG_IAB, "$TAG $mname: /acc, existing=${existingAccountId.length}, dev=${existingDeviceId.length}, meta=$meta")
-            response = if (persistentState.appTestMode) {
-                buildTestApi().registerCustomer(existingAccountId, existingDeviceId, test = "", meta)
+            // Pass null when blank so Retrofit omits the header entirely, letting the server
+            // assign a fresh CID.  A non-blank value asks the server to confirm/correct it.
+            val cidHeader = existingCid.takeIf { it.isNotBlank() }
+            Logger.v(LOG_IAB, "$TAG $mname: calling /d/acc, cidHeader=${if (cidHeader != null) "present(len=${cidHeader.length})" else "absent"}")
+            val response = if (persistentState.appTestMode) {
+                buildTestApi().registerCustomer(cidHeader, "", test = "", meta)
             } else {
-                buildProductionApi().registerCustomer(existingAccountId, existingDeviceId, meta)
+                buildProductionApi().registerCustomer(cidHeader, "", meta)
             }
-
             return@withContext when {
                 response == null -> {
-                    Logger.e(LOG_IAB, "$TAG $mname: /acc returned null response")
-                    CustomerFetchResult.EMPTY
+                    Logger.e(LOG_IAB, "$TAG $mname: null response")
+                    CidResult.EMPTY
                 }
                 response.isSuccessful -> {
-                    val json = response.body()
-                    val serverAcc = json?.get("cid")?.asString?.trim() ?: ""
-                    val serverDev = json?.get("did")?.asString?.trim()  ?: ""
-                    if (serverAcc.isBlank() || serverDev.isBlank()) {
-                        Logger.w(LOG_IAB, "$TAG $mname: server returned blank id(s), ${response.body()}, err=${response.message()}")
-                        return@withContext CustomerFetchResult.EMPTY
+                    val cid = response.body()?.get("cid")?.asString?.trim() ?: ""
+                    if (cid.isBlank()) {
+                        Logger.w(LOG_IAB, "$TAG $mname: server returned blank cid, body=${response.body()}, msg=${response.message()}")
+                        CidResult.EMPTY
+                    } else {
+                        Logger.i(LOG_IAB, "$TAG $mname: received cid (len=${cid.length})")
+                        CidResult(cid)
                     }
-                    identityStore.save(serverAcc, serverDev)
-                    Logger.i(LOG_IAB, "$TAG $mname: /acc success (accLen=${serverAcc.length}, devLen=${serverDev.length})")
-                    CustomerFetchResult(serverAcc, serverDev, 0)
                 }
                 response.code() == 401 -> {
-                    Logger.e(LOG_IAB, "$TAG $mname: 401 unauthorized, err=${response.message()}, ${response.errorBody()?.string()}")
-                    CustomerFetchResult.error(401)
+                    Logger.e(LOG_IAB, "$TAG $mname: 401 unauthorized, err=${response.errorBody()?.string()}")
+                    CidResult.error(401)
                 }
                 response.code() == 409 -> {
-                    Logger.w(LOG_IAB, "$TAG $mname: 409 conflict (registration failure), err=${response.message()}, ${response.errorBody()?.string()}")
-                    CustomerFetchResult.error(409)
+                    Logger.w(LOG_IAB, "$TAG $mname: 409 conflict, err=${response.errorBody()?.string()}")
+                    CidResult.error(409)
                 }
                 else -> {
-                    Logger.e(LOG_IAB, "$TAG $mname: failed code=${response.code()}, err=${response.message()}, ${response.errorBody()?.string()}")
-                    CustomerFetchResult.error(response.code())
+                    Logger.e(LOG_IAB, "$TAG $mname: failed code=${response.code()}, err=${response.errorBody()?.string()}")
+                    CidResult.error(response.code())
                 }
             }
-        } catch (e: UnknownHostException) { // see if any reconnect attempt need to be done for some of the exceptions
+        } catch (e: UnknownHostException) {
             Logger.w(LOG_IAB, "$TAG $mname: no internet; ${e.message}")
-            return@withContext CustomerFetchResult.EMPTY
+            CidResult.EMPTY
         } catch (e: ConnectException) {
             Logger.w(LOG_IAB, "$TAG $mname: connection failed; ${e.message}")
-            return@withContext CustomerFetchResult.EMPTY
+            CidResult.EMPTY
         } catch (e: SocketTimeoutException) {
             Logger.w(LOG_IAB, "$TAG $mname: timeout; ${e.message}")
-            return@withContext CustomerFetchResult.EMPTY
+            CidResult.EMPTY
         } catch (e: Exception) {
             Logger.e(LOG_IAB, "$TAG $mname: unexpected error; ${e.message}", e)
-            return@withContext CustomerFetchResult.EMPTY
+            CidResult.EMPTY
         }
     }
 
+    /**
+     * Fetches or registers a **DID** (device ID) for the given [accountId] via `POST /d/reg`.
+     *
+     * The server creates a new device entry when [existingDeviceId] is blank, or confirms /
+     * corrects an existing one when it is non-blank.  The returned ID is **not** persisted
+     * by this method; the caller (or [refreshIdentity]) is responsible for saving it
+     * together with the CID.
+     *
+     * [accountId] is required, a device cannot exist without an account.
+     *
+     * ### Error codes in [DidResult.errorCode]
+     * - 0   → success ([DidResult.isSuccess] == true, [DidResult.deviceId] is non-blank)
+     * - 401 → server refused to authorize this device
+     * - 409 → conflict; device already registered in an incompatible state
+     * - -1  → blank [accountId] guard or transient / network error ([DidResult.EMPTY])
+     * - other non-zero → HTTP error from server
+     *
+     * @param accountId      The account (CID) this device belongs to.  Must be non-blank.
+     * @param existingDeviceId Previously known device ID, or blank for new device registrations.
+     */
+    suspend fun createOrRegisterDid(
+        accountId: String,
+        existingDeviceId: String = ""
+    ): DidResult = withContext(Dispatchers.IO) {
+        val mname = "createOrRegisterDid"
+        if (accountId.isBlank()) {
+            Logger.e(LOG_IAB, "$TAG $mname: blank accountId; cannot register device without account")
+            return@withContext DidResult.error(-1)
+        }
+        try {
+            val meta = buildCustomerMeta()
+            // Pass null for did when blank so Retrofit omits the header, letting the server
+            // assign a fresh DID.  accountId is always required and sent as a non-null header.
+            val didHeader = existingDeviceId.takeIf { it.isNotBlank() }
+            Logger.v(LOG_IAB, "$TAG $mname: calling /d/reg, cidLen=${accountId.length}, didHeader=${if (didHeader != null) "present(len=${didHeader.length})" else "absent"}")
+            val response = if (persistentState.appTestMode) {
+                buildTestApi().registerDevice(accountId, didHeader, test = "", meta = meta)
+            } else {
+                buildProductionApi().registerDevice(accountId, didHeader, meta = meta)
+            }
+            return@withContext when {
+                response == null -> {
+                    Logger.e(LOG_IAB, "$TAG $mname: null response")
+                    DidResult.EMPTY
+                }
+                response.isSuccessful -> {
+                    val did = response.body()?.get("did")?.asString?.trim() ?: ""
+                    if (did.isBlank()) {
+                        Logger.w(LOG_IAB, "$TAG $mname: server returned blank did, body=${response.body()}, msg=${response.message()}")
+                        DidResult.EMPTY
+                    } else {
+                        Logger.i(LOG_IAB, "$TAG $mname: received did (len=${did.length})")
+                        DidResult(did)
+                    }
+                }
+                response.code() == 401 -> {
+                    Logger.e(LOG_IAB, "$TAG $mname: 401 unauthorized, err=${response.errorBody()?.string()}")
+                    DidResult.error(401)
+                }
+                response.code() == 409 -> {
+                    Logger.w(LOG_IAB, "$TAG $mname: 409 conflict, err=${response.errorBody()?.string()}")
+                    DidResult.error(409)
+                }
+                else -> {
+                    Logger.e(LOG_IAB, "$TAG $mname: failed code=${response.code()}, err=${response.errorBody()?.string()}")
+                    DidResult.error(response.code())
+                }
+            }
+        } catch (e: UnknownHostException) {
+            Logger.w(LOG_IAB, "$TAG $mname: no internet; ${e.message}")
+            DidResult.EMPTY
+        } catch (e: ConnectException) {
+            Logger.w(LOG_IAB, "$TAG $mname: connection failed; ${e.message}")
+            DidResult.EMPTY
+        } catch (e: SocketTimeoutException) {
+            Logger.w(LOG_IAB, "$TAG $mname: timeout; ${e.message}")
+            DidResult.EMPTY
+        } catch (e: Exception) {
+            Logger.e(LOG_IAB, "$TAG $mname: unexpected error; ${e.message}", e)
+            DidResult.EMPTY
+        }
+    }
+
+    /**
+     * Ensures both CID and DID are present and up-to-date (heartbeat / identity sync).
+     *
+     * This is the **single entry point** for any code that needs a fully-resolved identity
+     * pair.  Call it when the store is known to be empty or stale, or periodically to
+     * confirm the server still recognises both IDs.
+     *
+     * ### Resolution logic
+     * **CID**
+     * 1. Read from [SecureIdentityStore]: reused if non-blank.
+     * 2. Call [createOrRegisterCid] (`POST /d/acc`): assigned by the server.
+     *
+     * **DID**
+     * 1. Read from [SecureIdentityStore], reused *only* when the stored CID matches
+     *    the resolved CID (avoids a stale DID being used under a new CID).
+     * 2. Call [createOrRegisterDid] (`POST /d/reg`), assigned by the server.
+     *
+     * **Persistence** both IDs are written atomically to [SecureIdentityStore] via
+     * [SecureIdentityStore.save] only when at least one of them changed or was missing.
+     *
+     * @return The resolved `(accountId, deviceId)` pair, or `Pair("", "")` when either
+     *         ID cannot be obtained.  Callers must treat blank IDs as "identity not ready".
+     */
+    suspend fun refreshIdentity(): Pair<String, String> {
+        val mname = "refreshIdentity"
+        val (storedCid, storedDid) = identityStore.get()
+
+        var cid = storedCid ?: ""
+        var cidWasAbsent = false
+        if (cid.isBlank()) {
+            val cidResult = createOrRegisterCid()
+            if (!cidResult.isSuccess) {
+                Logger.w(LOG_IAB, "$TAG $mname: failed to resolve cid (code=${cidResult.errorCode})")
+                return Pair("", "")
+            }
+            cid = cidResult.accountId
+            cidWasAbsent = true
+            Logger.i(LOG_IAB, "$TAG $mname: new cid obtained from server (len=${cid.length})")
+        } else {
+            Logger.d(LOG_IAB, "$TAG $mname: cid loaded from store (len=${cid.length})")
+        }
+
+        // Reuse the stored DID only when the CID hasn't changed, a new CID means
+        // the old DID belongs to a different account and must not be re-used.
+        var did = if (!cidWasAbsent && !storedDid.isNullOrBlank()) storedDid else ""
+        if (did.isBlank()) {
+            val didResult = createOrRegisterDid(cid, storedDid ?: "")
+            if (!didResult.isSuccess) {
+                Logger.w(LOG_IAB, "$TAG $mname: failed to resolve did (code=${didResult.errorCode})")
+                return Pair("", "")
+            }
+            did = didResult.deviceId
+            Logger.i(LOG_IAB, "$TAG $mname: new did obtained from server (len=${did.length})")
+        } else {
+            Logger.d(LOG_IAB, "$TAG $mname: did loaded from store (len=${did.length})")
+        }
+
+        if (storedCid != cid || storedDid != did) {
+            identityStore.save(cid, did)
+            Logger.i(LOG_IAB, "$TAG $mname: identity persisted (cidLen=${cid.length}, didLen=${did.length})")
+        }
+
+        return Pair(cid, did)
+    }
 
     /**
      * Calls `POST /g/device` to register [accountId] + [deviceId] with the server.
@@ -325,7 +472,7 @@ class BillingBackendClient(
                 }
                 response.isSuccessful -> {
                     Logger.i(LOG_IAB, "$TAG $mname: success " +
-                        "(accLen=${accountId.length}, devLen=${deviceId.length})")
+                        "(accLen=${accountId.length}, devLen=${deviceId.length}, res=${response.message()}, body=${response.body()})")
                     persistentState.deviceRegistrationTimestamp = System.currentTimeMillis()
                     RegisterDeviceResult.Success
                 }
@@ -350,7 +497,7 @@ class BillingBackendClient(
 
     /**
      * Convenience overload that uses the device registration meta format
-     * (deviceName + appVersion) — mirrors the format previously in
+     * (deviceName + appVersion) mirrors the format previously in
      * [InAppBillingHandler] before server-call extraction.
      */
     suspend fun registerDeviceWithDeviceMeta(
@@ -364,8 +511,8 @@ class BillingBackendClient(
      * Retries on transient failures (network errors, 5xx responses) using a fixed
      * back-off schedule before giving up:
      *
-     * Hard failures — 409 Conflict, 4xx client errors, or a successfully parsed
-     * server response (Ok or Err) — are returned immediately without retrying.
+     * Hard failures: 409 Conflict, 4xx client errors, or a successfully parsed
+     * server response (Ok or Err): are returned immediately without retrying.
      *
      * @return Pair(success, developerPayload or error message).
      */
@@ -401,10 +548,10 @@ class BillingBackendClient(
      * - **Retry**: [UnknownHostException], [ConnectException], [SocketTimeoutException],
      *   any other [Exception] (defensive catch-all), or an HTTP 5xx response.
      * - **No retry** (return immediately):
-     *   - HTTP 409 — conflict; must be handled by the caller.
-     *   - HTTP 4xx — permanent client error; retrying will not help.
-     *   - [RpnPurchaseAckServerResponse.Ok] — success.
-     *   - [RpnPurchaseAckServerResponse.Err] — server-side business error (e.g. invalid token);
+     *   - HTTP 409: conflict; must be handled by the caller.
+     *   - HTTP 4xx: permanent client error; retrying will not help.
+     *   - [RpnPurchaseAckServerResponse.Ok]: success.
+     *   - [RpnPurchaseAckServerResponse.Err]: server-side business error (e.g. invalid token);
      *     retrying will not change the outcome.
      *
      * @param caller   Name of the calling method, used only in log messages.
@@ -414,7 +561,7 @@ class BillingBackendClient(
         caller: String,
         attempt: suspend (ApiHandle) -> Response<JsonObject?>?
     ): Pair<Boolean, String> {
-        // Resolve the test/production split once — stable across all retries.
+        // Resolve the test/production split once, stable across all retries.
         val handle = resolveApi()
 
         // Back-off delays in ms.  The first attempt is immediate (no leading delay).
@@ -559,9 +706,10 @@ class BillingBackendClient(
     ): Pair<Boolean, String> = withContext(Dispatchers.IO) {
         val mname = "cancelPurchase"
         try {
+            Logger.d(LOG_IAB, "$TAG $mname: accLen=${accountId}, dev=${deviceId}, sku=$sku, $purchaseToken")
             val response = when (val handle = resolveApi()) {
                 is ApiHandle.Production -> handle.api.cancelPurchase(accountId, deviceId, sku, purchaseToken)
-                is ApiHandle.Test       -> handle.api.cancelSubscription(accountId, deviceId, sku, purchaseToken, test = "")
+                is ApiHandle.Test -> handle.api.cancelSubscription(accountId, deviceId, sku, purchaseToken, test = "")
             } ?: return@withContext Pair(false, "No response")
             when {
                 response.code() == 409 -> Pair(false, "Conflict: 409")
@@ -570,7 +718,7 @@ class BillingBackendClient(
                     Pair(true, "Cancelled")
                 }
                 else -> {
-                    Logger.e(LOG_IAB, "$TAG $mname: error code=${response.code()}")
+                    Logger.e(LOG_IAB, "$TAG $mname: error code=${response.code()}, msg=${response.message()}, err=${response.errorBody()?.string()}")
                     Pair(false, "Server error: ${response.code()}")
                 }
             }
@@ -659,7 +807,7 @@ class BillingBackendClient(
                     false
                 }
                 httpCode in 400..499 -> {
-                    Logger.e(LOG_IAB, "$TAG $mname: permanent client error $httpCode sku=$sku")
+                    Logger.e(LOG_IAB, "$TAG $mname: permanent client error $httpCode sku=$sku body=$bodyStr")
                     false
                 }
                 else -> {
@@ -685,21 +833,18 @@ class BillingBackendClient(
     }
 
     /**
-     * Builds the meta JSON body for `POST /customer`.
+     * Builds the meta JSON body for `POST /d/acc` and `POST /d/reg`.
      *
-     * The accountId and deviceId are passed as query params by [fetchAndStoreCustomerFromServer].
-     * This body carries supplementary correlation data only:
+     * CID and DID are sent as HTTP headers (`x-rethink-app-cid` / `x-rethink-app-did`)
+     * by [createOrRegisterCid] and [createOrRegisterDid]; this body carries supplementary
+     * device correlation data only:
      *
      * ```json
      * {
-     *   "deviceId":   "<local pip device token, or null>",
+     *   "model":      "Manufacturer Model",
      *   "appVersion": <int>
      * }
      * ```
-     *
-     * `deviceId` here is the **locally-generated pip device token** (not the server-issued
-     * one) so the server can correlate a newly-assigned server ID with any pre-existing
-     * pip token. It is sent as JSON `null` when no local token has been generated yet.
      */
     fun buildCustomerMeta(): JsonObject {
         return JsonObject().apply {
@@ -733,7 +878,7 @@ class BillingBackendClient(
      * - [ApiHandle.Production] when the entitlement is production (null value) or when
      *   the lookup throws (fail-safe: always prefer production on error).
      *
-     * The Retrofit instances are created fresh per-call — Retrofit interface creation
+     * The Retrofit instances are created fresh per-call, Retrofit interface creation
      * is lightweight (no network I/O) and this avoids threading concerns around caching
      * a potentially stale test/production split.
      */
@@ -775,8 +920,8 @@ class BillingBackendClient(
      * Builds a Retrofit instance backed by [IBillingServerApiTest] (test).
      *
      * Used when [RpnProxyManager.getIsTestEntitlement] returns a non-null string.
-     * All endpoints on this interface require the `test` param — the compiler
-     * enforces it so it can never be accidentally omitted.
+     * All endpoints on this interface require the `test` parameter to be passed.
+     * enforce it so it can never be accidentally omitted.
      */
     private fun buildTestApi(): IBillingServerApiTest {
         return RetrofitManager
@@ -801,3 +946,4 @@ class BillingBackendClient(
         }
     }
 }
+

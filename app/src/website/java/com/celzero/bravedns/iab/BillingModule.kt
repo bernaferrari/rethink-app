@@ -19,18 +19,20 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 
 /**
- * website flavor stub for [BillingModule].
+ * Koin module that wires [BillingBackendClient] for the **play** (and website) flavor.
  *
- * The website flavor currently uses a stub [SubscriptionCheckWorker] and does not
- * exercise the Play-billing server API paths. This empty module satisfies the
- * reference in [com.celzero.bravedns.ServiceModuleProvider] (full source set)
- * without registering any unnecessary bindings.
+ * [BillingBackendClient] depends on [SecureIdentityStore] which is registered in
+ * [ServiceModule] (main). Both are singletons so they
+ * share a single instance across [InAppBillingHandler] and [SubscriptionCheckWorker].
  *
- * When the website flavor adopts full server-billing integration this stub should
- * be replaced with the real [BillingServerRepository] registration (same as play).
+ * This module is added to [AppModules] via [ServiceModuleProvider]
+ * in the `full` source set, which is shared by `play`, `website`, and `fdroid` builds.
+ * The `fdroid` flavor does not use [BillingBackendClient] but including it in the
+ * DI graph is harmless because it is only injected by play/website code paths.
  */
 object BillingModule {
-    /** Empty module — website billing uses a separate Stripe flow. */
-    val billingModules: Module = module { /* no-op for website */ }
+    val billingModules: Module = module {
+        single { BillingBackendClient(get()) }
+    }
 }
 

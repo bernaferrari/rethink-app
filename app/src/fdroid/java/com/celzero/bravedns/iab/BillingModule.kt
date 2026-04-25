@@ -21,13 +21,12 @@ import org.koin.dsl.module
 /**
  * fdroid flavor stub for [BillingModule].
  *
- * The fdroid flavor does not use Google Play Billing or the Rethink billing server APIs,
- * so this module provides an empty (no-op) Koin module. It satisfies the reference in
- * [com.celzero.bravedns.ServiceModuleProvider] (full source set) without pulling in
- * any billing dependencies.
+ * Registers a no-op [BillingBackendClient] stub so that `main` source-set services
+ * The fdroid flavor does not have billing module as of now v055v
  */
 object BillingModule {
-    /** Empty module — fdroid has no billing server interactions. */
-    val billingModules: Module = module { /* no-op for fdroid */ }
+    val billingModules: Module = module {
+        single { BillingBackendClient(get()) }
+    }
 }
 
