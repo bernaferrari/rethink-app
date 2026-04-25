@@ -486,16 +486,11 @@
     <!-- Guided Tour: tooltip card background, reuses existing surface colours -->
     <!-- (resolved per-theme via ?attr/tourTooltipBackground, pointing to colourSurface) -->
 
-    <!-- Guided Tour: spotlight ring stroke — accent cyan for dark / accent blue for light -->
     <color name="tourStrokeDark">#FF18ffff</color>
     <color name="tourStrokeLight">#FF1e88e5</color>
     <color name="tourStrokeBlack">#FF18ffff</color>
 
     <!-- Guided Tour: action button background (reuses buttonBackground per theme) -->
-
-    <!-- Guided Tour: action button text — white for dark button bg, black for light button bg.
-         These override the per-theme primaryText values that would be invisible in some themes
-         (e.g. Black theme button bg #4fc3f7 is light, so white text would be near-invisible). -->
     <color name="tourBtnTextLight">#FFFFFF</color>
     <color name="tourBtnTextDark">#000000</color>
 
