@@ -208,7 +208,7 @@ object EncryptedFileManager : KoinComponent {
      * If keyset corruption is detected ([AEADBadTagException]), the corrupted keyset
      * and file are cleared so that subsequent *write* operations can succeed with a
      * fresh keyset. The read itself still throws [EncryptionException.DecryptionFailed]
-     * because the old data is unrecoverable — callers must regenerate from authoritative
+     * because the old data is unrecoverable, callers must regenerate from authoritative
      * sources (backend, Play billing, etc.).
      *
      * @throws EncryptionException.KeyInvalidated if encryption key was invalidated
@@ -237,7 +237,7 @@ object EncryptedFileManager : KoinComponent {
             }
         } catch (e: Exception) {
             // If keyset is corrupted, clear the corrupted state so writes can recover.
-            // The data itself is permanently lost — callers must regenerate it.
+            // The data itself is permanently lost, callers must regenerate it.
             if (isKeysetCorruption(e)) {
                 Logger.w(LOG_TAG, "Keyset corruption detected during read of ${file.absolutePath}, " +
                         "clearing corrupted state for future writes", e)
@@ -336,7 +336,7 @@ object EncryptedFileManager : KoinComponent {
             // Check if this is a recoverable keyset-corruption error.
             // AEADBadTagException happens inside EncryptedFile.Builder.build() when
             // the Tink keyset in SharedPreferences can't be decrypted by the current
-            // Android Keystore key — the keyset is permanently unreadable.
+            // Android Keystore key, the keyset is permanently unreadable.
             if (isKeysetCorruption(e)) {
                 Logger.w(LOG_TAG, "Keyset corruption detected for ${file.absolutePath}, " +
                         "clearing corrupted state and retrying write", e)
@@ -353,7 +353,7 @@ object EncryptedFileManager : KoinComponent {
     }
 
     /**
-     * Core write logic — creates MasterKey + EncryptedFile, deletes old file, writes data.
+     * Core write logic: creates MasterKey + EncryptedFile, deletes old file, writes data.
      */
     private fun writeInternal(ctx: Context, data: ByteArray, file: File): Boolean {
         val masterKey =
@@ -398,7 +398,7 @@ object EncryptedFileManager : KoinComponent {
         while (current != null) {
             if (current is AEADBadTagException) return true
             // android.security.KeyStoreException with VERIFICATION_FAILED
-            // (API 33+ class — check by name to avoid minSdk compilation error)
+            // (API 33+ class: check by name to avoid minSdk compilation error)
             if (current.javaClass.name == "android.security.KeyStoreException") return true
             // GeneralSecurityException wrapping AEADBadTagException
             if (current is GeneralSecurityException && current.cause is AEADBadTagException) return true
