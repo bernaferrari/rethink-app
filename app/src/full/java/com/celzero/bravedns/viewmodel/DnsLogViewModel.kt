@@ -37,7 +37,9 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
     private var filterType = DnsLogFragment.DnsLogFilter.ALL
     private val pagingConfig: PagingConfig
     private var isWireGuardLogs = false
+    private var isRpnLogs = false
     private var wgDnsId: String = ""
+    private var rpnDnsId: String = ""
 
     init {
         filteredList.value = ""
@@ -58,6 +60,8 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
         if (isWireGuardLogs) {
             // WireGuard DNS logs are not handled currently
             return getWgDnsLogs(wgDnsId)
+        } else if (isRpnLogs) {
+            return getRpnDnsLogs(rpnDnsId)
         }
         return when (filterType) {
             DnsLogFragment.DnsLogFilter.ALL -> {
@@ -96,6 +100,14 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
         }
         .liveData
         .cachedIn(viewModelScope)
+    }
+
+    private fun getRpnDnsLogs(rpnId: String): LiveData<PagingData<DnsLog>> {
+        return Pager(pagingConfig) {
+            dnsLogDAO.getDnsLogsForRpn(rpnId)
+        }
+            .liveData
+            .cachedIn(viewModelScope)
     }
 
     private fun getAllowedDnsLogs(filter: String): LiveData<PagingData<DnsLog>> {
@@ -157,6 +169,12 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
     fun setIsWireGuardLogs(isWgLogs: Boolean, wgId: String) {
         isWireGuardLogs = isWgLogs
         wgDnsId = "%$wgId%"
+        filteredList.value = filteredList.value
+    }
+
+    fun setIsRpnLogs(isRLogs: Boolean, rpnId: String) {
+        isRpnLogs = isRLogs
+        rpnDnsId = "%$rpnId%"
         filteredList.value = filteredList.value
     }
 }
