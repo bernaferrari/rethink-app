@@ -36,12 +36,12 @@ import com.google.android.material.card.MaterialCardView
  * 1. Call [start] after the host Fragment's views are laid out.
  * 2. The controller attaches a [SpotlightOverlayView] + tooltip card to the DecorView.
  * 3. It walks through the [steps] list on Next/Skip; on the last step it fires [onComplete].
- * 4. When [onComplete] fires, the overlay is already removed — no manual cleanup needed.
+ * 4. When [onComplete] fires, the overlay is already removed, no manual cleanup needed.
  *
  * ## Thread safety
  * Must be constructed and used entirely on the main thread.
  *
- * @param activity   Host activity — used only to attach/detach views.
+ * @param activity   Host activity, used only to attach/detach views.
  * @param steps      Ordered list of [TourStep]s produced by [GuidedTourManager.homeScreenSteps].
  * @param onComplete Invoked once when the user completes or skips the entire tour.
  */
@@ -103,9 +103,9 @@ class TourOverlayController(
     private val premiumBadge: View           = tooltipView.findViewById(R.id.tour_premium_badge)
     private val tooltipCard: MaterialCardView = tooltipView as MaterialCardView
 
-    /** Default card stroke colour — cached once so we can restore it on non-premium steps. */
+    /** Default card stroke color, cached once so we can restore it on non-premium steps. */
     private val defaultStrokeColor: Int by lazy { tooltipCard.strokeColorStateList?.defaultColor ?: 0 }
-    /** Golden colour resolved from the current theme — used for the premium step card border. */
+    /** Golden color resolved from the current theme, used for the premium step card border. */
     private val goldenColor: Int by lazy { activity.resolveAttrColor(R.attr.colorGolden, 0xFFC9A000.toInt()) }
 
     /** Attaches the overlay to the DecorView and shows the first step. */

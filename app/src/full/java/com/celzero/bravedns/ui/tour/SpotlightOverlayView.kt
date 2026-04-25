@@ -88,18 +88,14 @@ class SpotlightOverlayView @JvmOverloads constructor(
         style  = Paint.Style.STROKE
         color  = strokeColor
         strokeWidth = dp(1.5f)
-        alpha  = 140 // ~55% opacity — subtle, not distracting
+        alpha  = 140 // ~55% opacity
     }
 
     /** Corner radius for ROUNDED_RECT spotlight, in pixels. */
     private val cornerRadius = dp(16f)
 
-    /** Padding around the target rect — gives the spotlight a little breathing room. */
+    /** Padding around the target rect, gives the spotlight a little breathing room. */
     private val spotlightPad = dp(8f)
-
-    // -----------------------------------------------------------------------
-    // Animation state — current spotlight rect (animated)
-    // -----------------------------------------------------------------------
 
     private val currentRect  = RectF()  // currently drawn spotlight
     private val targetRect   = RectF()  // destination rect
@@ -121,7 +117,7 @@ class SpotlightOverlayView @JvmOverloads constructor(
      * If this is the very first call (no current position), the overlay fades in while
      * the spotlight expands from the centre of [destRect].
      *
-     * Duration: 220 ms — fast enough to feel responsive, long enough to be smooth.
+     * Duration: 220 ms, fast enough to feel responsive, long enough to be smooth.
      */
     fun animateTo(destRect: Rect, destShape: SpotlightShape = SpotlightShape.ROUNDED_RECT) {
         shape = destShape
@@ -131,7 +127,7 @@ class SpotlightOverlayView @JvmOverloads constructor(
         animator?.cancel()
 
         if (currentRect.isEmpty) {
-            // First appearance — start from the centre point of the destination
+            // First appearance: start from the centre point of the destination
             currentRect.set(destRectF.centerX(), destRectF.centerY(),
                             destRectF.centerX(), destRectF.centerY())
             // Also fade in the overlay
@@ -166,7 +162,7 @@ class SpotlightOverlayView @JvmOverloads constructor(
 
     /**
      * Fade out the overlay and call [onEnd] when the animation completes.
-     * The view is NOT removed automatically — the caller must detach it.
+     * The view is NOT removed automatically, the caller must detach it.
      */
     fun dismiss(onEnd: () -> Unit = {}) {
         animator?.cancel()

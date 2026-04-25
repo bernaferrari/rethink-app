@@ -32,10 +32,6 @@ import com.celzero.bravedns.service.PersistentState
  */
 object GuidedTourManager {
 
-    // -----------------------------------------------------------------------
-    // Tour definition — Home-screen flow (5 steps)
-    // -----------------------------------------------------------------------
-
     private val HOME_STEPS_RAW = listOf(
         TourStep(
             targetViewId   = R.id.fhs_dns_on_off_btn,
@@ -84,7 +80,7 @@ object GuidedTourManager {
 
     /**
      * Returns the indexed, size-annotated steps for the Home-screen flow.
-     * Call this once per [TourOverlayController] session — not on every step advance.
+     * Call this once per [TourOverlayController] session, not on every step advance.
      */
     fun homeScreenSteps(): List<TourStep> {
         val total = HOME_STEPS_RAW.size
@@ -100,7 +96,7 @@ object GuidedTourManager {
      *  a) It has never been completed ([guidedTourCompleted] == false), OR
      *  b) A newer version of the tour exists ([guidedTourVersion] < [GUIDED_TOUR_CURRENT_VERSION]).
      *
-     * This runs on the calling thread — it is a simple SharedPreferences read, O(1).
+     * This runs on the calling thread, it is a simple SharedPreferences read, O(1).
      */
     fun shouldShowTour(state: PersistentState): Boolean {
         if (!state.guidedTourCompleted) return true
@@ -118,7 +114,7 @@ object GuidedTourManager {
 
     /**
      * Resets the tour so it will be shown again on next launch.
-     * For use in debug/test mode only — wire this to a hidden settings toggle.
+     * For use in debug/test mode only, wire this to a hidden settings toggle.
      */
     fun resetForDebug(state: PersistentState) {
         state.guidedTourCompleted = false

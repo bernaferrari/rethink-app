@@ -128,7 +128,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- Skip link — secondary action, low visual weight -->
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/tour_skip_btn"
                 android:layout_width="0dp"
@@ -151,7 +150,6 @@
                 android:orientation="horizontal"
                 android:layout_marginEnd="12dp" />
 
-            <!-- Next / Got it — primary action -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/tour_next_btn"
                 style="@style/Widget.MaterialComponents.Button"

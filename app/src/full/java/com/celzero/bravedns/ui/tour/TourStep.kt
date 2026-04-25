@@ -61,9 +61,9 @@ enum class TooltipSide {
 
 /** Shape of the cutout drawn by [SpotlightOverlayView] around the target. */
 enum class SpotlightShape {
-    /** Rounded rectangle — best for cards and buttons. */
+    /** Rounded rectangle: best for cards and buttons. */
     ROUNDED_RECT,
-    /** Full circle — best for FABs or small icon buttons. */
+    /** Full circle: best for FABs or small icon buttons. */
     CIRCLE,
 }
 
