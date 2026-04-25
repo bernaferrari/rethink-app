@@ -72,7 +72,6 @@ object KernelProc {
             val lines = tidDirs.joinToString(separator = "\n") { tidDir ->
                 val tid = tidDir.name
 
-                // Read Name: and State: in one pass — stop as soon as both are found.
                 var name: String? = null
                 var state: String? = null
                 runCatching {
@@ -226,7 +225,7 @@ object KernelProc {
         val execMax: Long,
         /** Worst-case single scheduling slice (ns). */
         val sliceMax: Long,
-        /** Wakeups that were synchronous (caller and callee on the same CPU — best latency). */
+        /** Wakeups that were synchronous (caller and callee on the same CPU best latency). */
         val wakeupSync: Long,
         /** Wakeups handled by the local runqueue (low-latency). */
         val wakeupLocal: Long,
@@ -249,9 +248,9 @@ object KernelProc {
         /** CFS load weight. Default = 1024 for normal priority. */
         val loadWeight: Long,
 
-        /** Involuntary context switches — preempted while runnable. High = CPU contention. */
+        /** Involuntary context switches preempted while runnable. High = CPU contention. */
         val nrInvoluntarySwitches: Long,
-        /** Voluntary context switches — task yielded (I/O, sleep, etc.). */
+        /** Voluntary context switches task yielded (I/O, sleep, etc.). */
         val nrVoluntarySwitches: Long,
 
         /** Total ns the task was actually on-CPU (from schedstat). */
@@ -283,13 +282,13 @@ object KernelProc {
         val migratesOften: Boolean get() =
             nrWakeups > 0 && (nrMigrations.toDouble() / nrWakeups) > 0.20
 
-        /** True if wait_max is notably high — likely causes perceptible latency spikes. */
+        /** True if wait_max is notably high likely causes perceptible latency spikes. */
         val hasLatencySpike: Boolean get() = waitMax > 50_000_000L  // > 50 ms
 
-        /** True if involuntary switches are high — CPU contention / preemption pressure. */
+        /** True if involuntary switches are high CPU contention / preemption pressure. */
         val hasPreemptionPressure: Boolean get() = nrInvoluntarySwitches > 500
 
-        /** True if util_avg is high — task is consuming significant CPU share. */
+        /** True if util_avg is high task is consuming significant CPU share. */
         val isHighUtilization: Boolean get() = utilAvg > 768  // > 75 % of 1024
     }
 
