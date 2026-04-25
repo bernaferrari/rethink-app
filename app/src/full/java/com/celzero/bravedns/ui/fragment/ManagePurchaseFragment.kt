@@ -17,7 +17,9 @@ package com.celzero.bravedns.ui.fragment
 
 import Logger
 import Logger.LOG_TAG_UI
+import android.content.Intent
 import android.graphics.Paint
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -27,6 +29,7 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.doOnAttach
+import androidx.core.view.doOnNextLayout
 import androidx.core.view.isVisible
 import androidx.core.view.updatePadding
 import androidx.fragment.app.Fragment
@@ -34,7 +37,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.android.billingclient.api.BillingClient
 import com.celzero.bravedns.R
 import com.celzero.bravedns.databinding.FragmentManagePurchaseBinding
 import com.celzero.bravedns.iab.InAppBillingHandler
@@ -43,17 +45,20 @@ import com.celzero.bravedns.iab.InAppBillingHandler.REVOKE_WINDOW_ONE_TIME_5YRS_
 import com.celzero.bravedns.iab.InAppBillingHandler.REVOKE_WINDOW_SUBS_MONTHLY_DAYS
 import com.celzero.bravedns.iab.InAppBillingHandler.REVOKE_WINDOW_SUBS_YEARLY_DAYS
 import com.celzero.bravedns.iab.PurchaseConflictNotifier
+import com.celzero.bravedns.iab.DeviceNotRegisteredNotifier
 import com.celzero.bravedns.iab.ServerApiError
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import com.celzero.bravedns.ui.activity.FragmentHostActivity
 import com.celzero.bravedns.ui.bottomsheet.PurchaseConflictBottomSheet
 import com.celzero.bravedns.ui.bottomsheet.DeviceAuthErrorBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.DeviceNotRegisteredBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.ResubscribeBottomSheet
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.openUrl
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
-import com.celzero.bravedns.viewmodel.ManageSubscriptionViewModel
-import com.celzero.bravedns.viewmodel.ManageSubscriptionViewModel.OperationState
+import com.celzero.bravedns.viewmodel.ManagePurchaseViewModel
+import com.celzero.bravedns.viewmodel.ManagePurchaseViewModel.OperationState
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -62,6 +67,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import androidx.core.net.toUri
 
 class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
     private val b by viewBinding(FragmentManagePurchaseBinding::bind)
@@ -69,10 +75,9 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
     /**
      * The ViewModel owns the cancel/revoke coroutine.
      */
-    private val viewModel: ManageSubscriptionViewModel by viewModel()
+    private val viewModel: ManagePurchaseViewModel by viewModel()
 
     /**
-     * Registered with [requireActivity().onBackPressedDispatcher].
      * Enabled only while an operation is in progress so the user cannot navigate away
      * mid-cancel/revoke and leave local state out of sync with the server.
      */
@@ -87,6 +92,7 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
         private const val ONE_DAY_MS = 24 * 60 * 60 * 1000L
         /** Show "expiring soon" banner when fewer than this many days remain for an INAPP purchase. */
         private const val EXPIRING_SOON_THRESHOLD_DAYS = 30L
+        private const val SUPPORT_EMAIL = "hello@celzero.com"
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -99,22 +105,19 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
         observeOperationState()
     }
 
-    /**
-     * CoordinatorLayout (fitsSystemWindows=true) consumes the bottom inset for itself and
-     * dispatches bottom=0 to children. getRootWindowInsets() bypasses this and reads the
-     * real navigation-bar height directly from the window root.
-     */
     private fun applyNavigationBarInset() {
         b.nestedScroll.doOnAttach { view ->
             val navBarHeight = ViewCompat.getRootWindowInsets(view)
                 ?.getInsets(WindowInsetsCompat.Type.navigationBars())
                 ?.bottom ?: 0
-            view.updatePadding(bottom = navBarHeight)
+            view.doOnNextLayout {
+                view.updatePadding(top = 0, bottom = navBarHeight)
+            }
         }
     }
 
     /**
-     * Collects [ManageSubscriptionViewModel.operationState] and drives the progress UI.
+     * Collects [ManagePurchaseViewModel.operationState] and drives the progress UI.
      */
     private fun observeOperationState() {
         viewLifecycleOwner.lifecycleScope.launch {
@@ -147,16 +150,6 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
 
     /**
      * Shows the step-progress overlay and updates it to reflect [state].
-     *
-     * Step rendering rules:
-     * - Steps before the current one → filled tick icon tinted [accentGood], bold text.
-     * - The current step             → filled tick icon tinted [accentGood] with a pulse
-     *   animation on the row, bold text.
-     * - Steps after the current one  → dim tick icon, normal weight text.
-     *
-     * The overlay's [android:clickable]="true" already consumes all touch events on the
-     * scrim, so the content behind it is non-interactive.
-     * [blockBackCallback] is enabled so hardware/gesture back is also blocked.
      */
     private fun showProgressOverlay(state: OperationState.InProgress) {
         b.loadingOverlay.isVisible = true
@@ -218,36 +211,37 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
 
     private fun buildHeroSubtitle(subscriptionData: SubscriptionStateMachineV2.SubscriptionData, realDeviceId: String): String {
         val sub = subscriptionData.subscriptionStatus
-        val planName = resolvePlanName(subscriptionData)
-        val accountId = sub.accountId.take(12).ifBlank { return planName }
+        // Purchase token (show first 12 chars)
+        var token = sub.purchaseToken
+        token = if (token.length > 12) token.take(12) + "…" else token.ifBlank { "" }
+        val accountId = sub.accountId.take(12).ifBlank { return token }
         // Hero subtitle: "RPN Standard · 74b4c00217 · 1234"
         // Use the real device ID fetched from SecureIdentityStore (never sub.deviceId directly).
         val deviceId = realDeviceId.take(4)
         val id = "$accountId • $deviceId"
         b.tvHeroSubtitle.text = when {
-            planName.isNotEmpty() && accountId.isNotEmpty() ->
-                getString(R.string.hero_plan_and_account, planName, id)
-            planName.isNotEmpty() -> planName
+            token.isNotEmpty() && accountId.isNotEmpty() ->
+                getString(R.string.hero_plan_and_account, token, id)
+            token.isNotEmpty() -> token
             accountId.isNotEmpty() -> id
             else -> getString(R.string.rethink_plus_title)
         }
-        return if (planName.isNotEmpty()) "$planName  \u00B7  $id" else id
+        return if (token.isNotEmpty()) "$token \u00B7 $id" else id
     }
 
     private fun resolvePlanName(subscriptionData: SubscriptionStateMachineV2.SubscriptionData): String {
-        val planId = subscriptionData.purchaseDetail?.planId ?: ""
-        return when (planId) {
-            InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> "One-Time 2 years"
-            InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> "One-Time 5 years"
-            InAppBillingHandler.SUBS_PRODUCT_YEARLY -> "Subscription Yearly"
-            else -> "Subscription Monthly"
+        val productId = subscriptionData.purchaseDetail?.productId ?: ""
+        return when (productId) {
+            InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> getString(R.string.plan_2yr)
+            InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> getString(R.string.plan_5yr)
+            InAppBillingHandler.SUBS_PRODUCT_YEARLY -> getString(R.string.billing_yearly)
+            InAppBillingHandler.SUBS_PRODUCT_MONTHLY -> getString(R.string.monthly_plan)
+            else -> subscriptionData.purchaseDetail?.productTitle?.ifEmpty { productId } ?: productId
         }
     }
 
     override fun onResume() {
         super.onResume()
-        // Re-render the main view only when there is no operation in progress.
-        // If the user rotated mid-operation the observer (not onResume) handles re-rendering.
         if (viewModel.operationState.value is OperationState.Idle) {
             initView()
         }
@@ -277,10 +271,9 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
             }
             updateStatusBadge(subscriptionState)
             updatePlanDetails(subscriptionData)
-            updatePrice(subscriptionData)
             updateFeaturesList(subscriptionData)
             updateBillingCycle(subscriptionData)
-            updateDatesAndToken(subscriptionData, subscriptionState)
+            updateDates(subscriptionData, subscriptionState)
             updateExpiringBanner(subscriptionData, subscriptionState)
             showCancelOrRevokeButton()
         } catch (e: Exception) {
@@ -319,7 +312,7 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
         b.tvHeroSubtitle.text = buildHeroSubtitle(subscriptionData, deviceId)
     }
 
-    private fun updateDatesAndToken(
+    private fun updateDates(
         subscriptionData: SubscriptionStateMachineV2.SubscriptionData?,
         state: SubscriptionStateMachineV2.SubscriptionState
     ) {
@@ -331,14 +324,6 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
             fmt.format(Date(sub.purchaseTime))
         else "-"
 
-        // Expiry row visibility rules (mirrors RethinkPlusDashboardFragment):
-        //  - INAPP (one-time): always show — fixed access window the user must track.
-        //  - SUBS Expired: show when the subscription lapsed.
-        //  - SUBS Cancelled: show end-of-billing-period ("Access Until") so the user
-        //    knows exactly when their access will be cut off.
-        //  - Revoked: hide — billingExpiry was clamped to revocation time; showing
-        //    it as "Expires" is misleading and the Revoked status badge is sufficient.
-        //  - Active / Grace / OnHold / Paused: hide — auto-renews, no useful expiry date.
         val isInApp = sub != null && isInAppProduct(sub.productId, sub.planId)
         val isRevoked = state is SubscriptionStateMachineV2.SubscriptionState.Revoked
         val hasKnownExpiry = !isRevoked &&
@@ -353,7 +338,7 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
 
         if (hasKnownExpiry) {
             b.tvExpiryDate.text = fmt.format(Date(sub.billingExpiry))
-            // For a cancelled subscription the user still has access until billingExpiry,
+            // For a canceled subscription the user still has access until billingExpiry,
             // so label the field "Access Until" instead of the generic "Expires" to make
             // the distinction clear.
             b.labelExpiryDate.text = if (state is SubscriptionStateMachineV2.SubscriptionState.Cancelled) {
@@ -362,16 +347,12 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
                 getString(R.string.dashboard_expiry_label)
             }
         }
-
-        // Purchase token (show first 24 chars)
-        val token = sub?.purchaseToken ?: ""
-        b.tvPurchaseToken.text = if (token.length > 24) token.take(24) + "…" else token.ifBlank { "—" }
     }
 
     /**
      * Shows a renewal banner when an INAPP purchase is expiring within 30 days.
      *
-     * The banner is shown only for one-time (INAPP) purchases — subscriptions auto-renew
+     * The banner is shown only for one-time (INAPP) purchases, subscriptions auto-renew
      * so they never need a manual renewal prompt. The threshold is 30 days to give users
      * enough time to repurchase before losing access.
      */
@@ -389,20 +370,31 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
                 return
             }
 
-            val remainingDays = InAppBillingHandler.getRemainingDaysForInApp() ?: run {
-                b.expiringBannerCard.isVisible = false
-                return
+            val billingExpiry = sub.billingExpiry
+            if (billingExpiry > 0L && billingExpiry != Long.MAX_VALUE) {
+                val days = (billingExpiry - System.currentTimeMillis()) / ONE_DAY_MS
+                if (days in 0..EXPIRING_SOON_THRESHOLD_DAYS) {
+                    b.expiringBannerCard.isVisible = true
+                    b.tvExpiringBanner.text = getString(R.string.inapp_expiry_soon, days.coerceAtLeast(0L))
+                    b.btnExtendAccess.setOnClickListener { navigateToOneTimePurchase() }
+                }
             }
 
-            val isExpiringSoon = remainingDays in 0..EXPIRING_SOON_THRESHOLD_DAYS
-            b.expiringBannerCard.isVisible = isExpiringSoon
-
-            if (isExpiringSoon) {
-                b.tvExpiringBanner.text = getString(R.string.inapp_expiry_soon, remainingDays.coerceAtLeast(0L))
-                Logger.i(LOG_TAG_UI, "$TAG expiring banner shown: remainingDays=$remainingDays")
+            io {
+                val remainingDays = InAppBillingHandler.getRemainingDaysForInAppSuspend()
+                uiCtx {
+                    if (remainingDays == null) return@uiCtx
+                    val isExpiringSoon = remainingDays in 0..EXPIRING_SOON_THRESHOLD_DAYS
+                    b.expiringBannerCard.isVisible = isExpiringSoon || true
+                    if (isExpiringSoon || true) {
+                        val days = remainingDays.coerceAtLeast(0L)
+                        b.tvExpiringBanner.text = getString(R.string.inapp_expiry_soon, days)
+                        b.btnExtendAccess.setOnClickListener { navigateToOneTimePurchase() }
+                        Logger.i(LOG_TAG_UI, "$TAG expiring banner shown: remainingDays=$remainingDays")
+                    }
+                }
             }
         } catch (e: Exception) {
-            // Banner is non-critical; never crash the view for it.
             Logger.w(LOG_TAG_UI, "$TAG updateExpiringBanner error (non-fatal): ${e.message}")
         }
     }
@@ -423,8 +415,6 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
                     themeColor(R.attr.accentBad),
                     getString(R.string.status_expired_description))
                 // Revoked: access removed immediately (refund / policy violation).
-                // Must be explicit — showing "Inactive" gives no context to the user
-                // and may leave them confused about why they lost access.
                 state.state().isRevoked   -> Triple(
                     getString(R.string.status_revoked),
                     themeColor(R.attr.accentBad),
@@ -461,20 +451,22 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
 
     private fun updatePlanDetails(subscriptionData: SubscriptionStateMachineV2.SubscriptionData?) {
         try {
-            b.tvPlan.text = subscriptionData?.purchaseDetail?.planTitle ?: getString(R.string.monthly_plan)
+            if (subscriptionData == null) {
+                b.divider1.visibility = View.GONE
+                b.labelCurrentPlan.visibility = View.GONE
+                b.tvPlan.visibility = View.GONE
+                return
+            }
+
+            b.divider1.visibility = View.VISIBLE
+            b.labelCurrentPlan.visibility = View.VISIBLE
+            b.tvPlan.visibility = View.VISIBLE
+            b.tvPlan.text = resolvePlanName(subscriptionData)
         } catch (e: Exception) {
             Logger.e(LOG_TAG_UI, "$TAG error updating plan details: ${e.message}", e)
-            b.tvPlan.text = getString(R.string.monthly_plan)
-        }
-    }
-
-    private fun updatePrice(subscriptionData: SubscriptionStateMachineV2.SubscriptionData?) {
-        try {
-            val planTitle = subscriptionData?.purchaseDetail?.planTitle
-            b.tvPrice.text = if (!planTitle.isNullOrEmpty()) planTitle else getString(R.string.price_placeholder)
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "$TAG error updating price: ${e.message}", e)
-            b.tvPrice.text = getString(R.string.price_placeholder)
+            b.divider1.visibility = View.GONE
+            b.labelCurrentPlan.visibility = View.GONE
+            b.tvPlan.visibility = View.GONE
         }
     }
 
@@ -504,7 +496,7 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
                 else -> ""
             }
             if (txt.isEmpty()) {
-                b.divider3.visibility = View.GONE
+                b.divider2.visibility = View.GONE
                 b.tvBillingCycle.visibility = View.GONE
                 b.labelBillingCycle.visibility = View.GONE
             } else {
@@ -513,7 +505,7 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
 
         } catch (e: Exception) {
             Logger.e(LOG_TAG_UI, "$TAG error updating billing cycle: ${e.message}", e)
-            b.divider3.visibility = View.GONE
+            b.divider2.visibility = View.GONE
             b.tvBillingCycle.visibility = View.GONE
             b.labelBillingCycle.visibility = View.GONE
         }
@@ -527,28 +519,78 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
         b.btnRevoke.setOnClickListener { showDialogConfirmCancelOrRevoke(isCancel = false) }
         b.btnCancel.setOnClickListener { showDialogConfirmCancelOrRevoke(isCancel = true) }
         b.btnRenew.setOnClickListener  { navigateToRethinkPlus() }
+        b.btnResubscribe.setOnClickListener { showResubscribeBottomSheet() }
         b.btnExplorePlans.setOnClickListener   { navigateToRethinkPlus() }
         b.btnRestorePurchase.setOnClickListener { restorePurchase() }
+        b.btnConsumePurchase.setOnClickListener { io { RpnProxyManager.consumePurchaseIfTest() } }
+        b.contactSupportCard.setOnClickListener { openSupportEmail() }
+    }
+
+    /**
+     * Opens the device's email client pre-filled with the support address and a
+     * generic subscription-support subject / body.  Falls back to a mailto URI
+     * when no email app is installed.
+     */
+    private fun openSupportEmail() {
+        try {
+            val subject = getString(R.string.contact_support_email_subject)
+            val body    = getString(R.string.contact_support_email_body)
+            val intent  = Intent(Intent.ACTION_SENDTO).apply {
+                data = "mailto:".toUri()
+                putExtra(Intent.EXTRA_EMAIL,   arrayOf(SUPPORT_EMAIL))
+                putExtra(Intent.EXTRA_SUBJECT, subject)
+                putExtra(Intent.EXTRA_TEXT,    body)
+            }
+            if (intent.resolveActivity(requireContext().packageManager) != null) {
+                startActivity(intent)
+            } else {
+                startActivity(Intent(Intent.ACTION_VIEW,
+                    "mailto:$SUPPORT_EMAIL?subject=${Uri.encode(subject)}".toUri()))
+            }
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_UI, "$TAG: failed to open support email: ${e.message}", e)
+            showToastUiCentered(requireContext(),
+                getString(R.string.subscription_action_failed), Toast.LENGTH_SHORT)
+        }
     }
 
     private fun showCancelOrRevokeButton() {
         try {
+            io {
+                val isTestEntitlement = RpnProxyManager.getIsTestEntitlement()
+                uiCtx {
+                    if (isTestEntitlement) {
+                        b.btnConsumePurchase.visibility = View.VISIBLE
+                    } else {
+                        b.btnConsumePurchase.visibility = View.GONE
+                    }
+                }
+            }
             val state = RpnProxyManager.getSubscriptionState()
             val subscriptionData = RpnProxyManager.getSubscriptionData()
 
             // Reset all buttons first
-            b.btnCancel.visibility     = View.GONE
-            b.btnRevoke.visibility     = View.GONE
-            b.btnRenew.visibility      = View.GONE
-            b.cancelNoteCard.visibility = View.GONE
+            b.btnCancel.visibility       = View.GONE
+            b.btnRevoke.visibility       = View.GONE
+            b.btnRenew.visibility        = View.GONE
+            b.btnResubscribe.visibility  = View.GONE
+            b.cancelNoteCard.visibility  = View.GONE
 
             val planId = subscriptionData?.purchaseDetail?.planId ?: ""
             val isInApp = isInAppProduct(subscriptionData?.purchaseDetail?.productId ?: "", planId)
 
             if (!state.state().isActive) {
-                // Subscription is not active - show renew button
-                if (state.state().isExpired || state.state().isCancelled || !state.hasValidSubscription) {
-                    b.btnRenew.visibility = View.VISIBLE
+                when {
+                    // Canceled SUBS: subscription still valid but auto-renewal is off.
+                    // Show a targeted "Resubscribe" button to re-enable the same plan without
+                    // presenting all purchase options.
+                    state.state().isCancelled && !isInApp -> {
+                        b.btnResubscribe.visibility = View.VISIBLE
+                    }
+                    // Expired or no valid subscription: let the user pick any plan.
+                    state.state().isExpired || !state.hasValidSubscription -> {
+                        b.btnRenew.visibility = View.VISIBLE
+                    }
                 }
                 return
             }
@@ -637,7 +679,9 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
                 .replace("$1", productId)
                 .replace("$2", requireContext().packageName)
             openUrl(requireContext(), link)
-            InAppBillingHandler.fetchPurchases(listOf(BillingClient.ProductType.SUBS, BillingClient.ProductType.INAPP))
+            InAppBillingHandler.fetchPurchases(
+                    listOf(InAppBillingHandler.PRODUCT_TYPE_SUBS, InAppBillingHandler.PRODUCT_TYPE_INAPP)
+                )
         } catch (e: Exception) {
             Logger.e(LOG_TAG_UI, "$TAG error managing play store subs: ${e.message}", e)
             showToastUiCentered(requireContext(), getString(R.string.error_loading_manage_subscription), Toast.LENGTH_SHORT)
@@ -658,6 +702,57 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
         }
     }
 
+    /**
+     * Navigates to [RethinkPlusFragment] in **extend mode**: ONE_TIME tab is pre-selected and the
+     * "already subscribed" guard is bypassed so the user can purchase an additional one-time plan
+     * while their current one-time access is still active but expiring soon.
+     */
+    private fun navigateToOneTimePurchase() {
+        try {
+            val intent = FragmentHostActivity.createIntent(
+                context = requireContext(),
+                fragmentClass = RethinkPlusFragment::class.java,
+                args = Bundle().apply {
+                    putString("ARG_KEY", "Launch_Rethink_Plus_Extend")
+                    putBoolean("arg_extend_mode", true)
+                }
+            )
+            startActivity(intent)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_UI, "$TAG error navigating to one-time purchase: ${e.message}", e)
+            showToastUiCentered(requireContext(), getString(R.string.error_loading_manage_subscription), Toast.LENGTH_SHORT)
+        }
+    }
+
+    /**
+     * Shows a targeted [ResubscribeBottomSheet] for the user's current plan.
+     *
+     * Called when the subscription is in the **Canceled** state (auto-renewal disabled but
+     * still active). The sheet re-uses the existing [productId]/[planId] so the user is not
+     * presented with all purchase options, they simply re-enable the same plan.
+     */
+    private fun showResubscribeBottomSheet() {
+        if (!isAdded || isStateSaved) return
+        if (childFragmentManager.findFragmentByTag("resubscribe") != null) return
+        try {
+            val subscriptionData = RpnProxyManager.getSubscriptionData()
+            val purchaseDetail = subscriptionData?.purchaseDetail
+            if (purchaseDetail == null) {
+                showToastUiCentered(requireContext(), getString(R.string.purchase_detail_unavailable), Toast.LENGTH_SHORT)
+                return
+            }
+            val sheet = ResubscribeBottomSheet.newInstance(
+                productId = purchaseDetail.productId,
+                planId = purchaseDetail.planId,
+                planDisplayName = resolvePlanName(subscriptionData)
+            )
+            sheet.show(childFragmentManager, "resubscribe")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_UI, "$TAG error showing resubscribe bottom sheet: ${e.message}", e)
+            showToastUiCentered(requireContext(), getString(R.string.error_loading_manage_subscription), Toast.LENGTH_SHORT)
+        }
+    }
+
     private fun restorePurchase() {
         viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
             try {
@@ -673,7 +768,7 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
                 }
 
                 InAppBillingHandler.fetchPurchases(
-                    listOf(BillingClient.ProductType.SUBS, BillingClient.ProductType.INAPP)
+                    listOf(InAppBillingHandler.PRODUCT_TYPE_SUBS, InAppBillingHandler.PRODUCT_TYPE_INAPP)
                 )
                 kotlinx.coroutines.delay(2_500L)
 
@@ -712,16 +807,24 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
             error ?: return@observe
             InAppBillingHandler.serverApiErrorLiveData.value = null
             when (error) {
-                is ServerApiError.Conflict409    -> showConflictBottomSheet(error)
+                is ServerApiError.Conflict409 -> showConflictBottomSheet(error)
                 is ServerApiError.Unauthorized401 -> showDeviceAuthErrorBottomSheet(error)
-                is ServerApiError.GenericError   -> showToastUiCentered(requireContext(), error.message, Toast.LENGTH_LONG)
-                is ServerApiError.NetworkError   -> showToastUiCentered(
+                is ServerApiError.DeviceNotRegistered -> showDeviceNotRegisteredBottomSheet(error)
+                is ServerApiError.GenericError -> showToastUiCentered(requireContext(), error.message, Toast.LENGTH_LONG)
+                is ServerApiError.NetworkError -> showToastUiCentered(
                     requireContext(),
                     error.message ?: getString(R.string.subscription_action_failed),
                     Toast.LENGTH_LONG)
                 is ServerApiError.None -> { /* no-op */ }
             }
         }
+    }
+
+    private fun showDeviceNotRegisteredBottomSheet(error: ServerApiError.DeviceNotRegistered) {
+        if (!isAdded || isStateSaved) return
+        DeviceNotRegisteredNotifier.cancel(requireContext())
+        val sheet = DeviceNotRegisteredBottomSheet.newInstance(error)
+        sheet.show(childFragmentManager, "deviceNotRegistered")
     }
 
     private fun showDeviceAuthErrorBottomSheet(error: ServerApiError.Unauthorized401) {

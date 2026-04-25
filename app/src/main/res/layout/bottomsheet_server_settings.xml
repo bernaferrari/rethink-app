@@ -114,7 +114,8 @@
                             android:layout_height="18dp"
                             android:layout_marginEnd="10dp"
                             android:src="@drawable/ic_filter"
-                            android:tint="?attr/colorGolden" />
+                            android:alpha="0.7"
+                            android:tint="?attr/svgStrokeColor" />
 
                         <androidx.appcompat.widget.AppCompatTextView
                             android:layout_width="0dp"
@@ -181,7 +182,6 @@
                         android:alpha="0.12"
                         android:background="?attr/primaryTextColor" />
 
-                    <!-- DNS mode radio group -->
                     <RadioGroup
                         android:id="@+id/dns_radio_group"
                         android:layout_width="match_parent"
@@ -192,8 +192,9 @@
                         android:paddingEnd="8dp"
                         android:paddingBottom="8dp">
 
-                        <RadioButton
+                        <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rb_dns_default"
+                            style="@style/CustomWidget.MaterialComponents.CompoundButton.Switch"
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
                             android:paddingStart="16dp"
@@ -202,18 +203,20 @@
                             android:textColor="?attr/primaryTextColor"
                             android:textSize="15sp" />
 
-                        <RadioButton
-                            android:id="@+id/rb_dns_antiad"
+                        <com.google.android.material.radiobutton.MaterialRadioButton
+                            android:id="@+id/rb_dns_anti_ad"
+                            style="@style/CustomWidget.MaterialComponents.CompoundButton.Switch"
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
                             android:paddingStart="16dp"
                             android:paddingEnd="16dp"
-                            android:text="@string/server_settings_dns_antiad"
+                            android:text="@string/server_settings_dns_privacy"
                             android:textColor="?attr/primaryTextColor"
                             android:textSize="15sp" />
 
-                        <RadioButton
+                        <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rb_dns_parental"
+                            style="@style/CustomWidget.MaterialComponents.CompoundButton.Switch"
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
                             android:paddingStart="16dp"
@@ -222,8 +225,9 @@
                             android:textColor="?attr/primaryTextColor"
                             android:textSize="15sp" />
 
-                        <RadioButton
+                        <com.google.android.material.radiobutton.MaterialRadioButton
                             android:id="@+id/rb_dns_security"
+                            style="@style/CustomWidget.MaterialComponents.CompoundButton.Switch"
                             android:layout_width="match_parent"
                             android:layout_height="48dp"
                             android:paddingStart="16dp"
@@ -269,7 +273,8 @@
                             android:layout_height="18dp"
                             android:layout_marginEnd="10dp"
                             android:src="@drawable/ic_configure"
-                            android:tint="?attr/colorGolden" />
+                            android:alpha="0.7"
+                            android:tint="?attr/svgStrokeColor" />
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -465,7 +470,7 @@
                         android:paddingStart="16dp"
                         android:paddingTop="12dp"
                         android:paddingEnd="16dp"
-                        android:paddingBottom="12dp">
+                        android:paddingBottom="16dp">
 
                         <LinearLayout
                             android:layout_width="0dp"
@@ -529,6 +534,7 @@
                         android:layout_marginStart="12dp"
                         android:layout_marginEnd="12dp"
                         android:alpha="0.08"
+                        android:visibility="gone"
                         android:background="?attr/primaryTextColor" />
 
                     <RelativeLayout
@@ -539,6 +545,7 @@
                         android:paddingStart="16dp"
                         android:paddingTop="12dp"
                         android:paddingEnd="16dp"
+                        android:visibility="gone"
                         android:paddingBottom="16dp">
 
                         <LinearLayout
@@ -584,25 +591,80 @@
 
             </com.google.android.material.card.MaterialCardView>
 
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginTop="4dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="8dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="2dp"
+                app:strokeWidth="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_margin="10dp"
+                    android:padding="10dp"
+                    android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    style="@style/TextAppearance.AppCompat.Subhead"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="20dp"
+                    android:gravity="center_vertical"
+                    android:lineSpacingExtra="5dp"
+                    android:text="@string/about_bravedns_whoarewe"
+                    android:textSize="@dimen/large_font_text_view" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/btn_reset_rpn"
+                    style="@style/TextAppearance.AppCompat.Subhead"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="25dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="25dp"
+                    android:layout_marginBottom="10dp"
+                    android:background="@drawable/rectangle_border_background"
+                    android:clickable="true"
+                    android:drawablePadding="-15dp"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:paddingStart="15dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="15dp"
+                    android:paddingBottom="10dp"
+                    android:text="@string/rpn_restore_confirm_title"
+                    android:textColor="?attr/primaryTextColor"
+                    android:textSize="@dimen/large_font_text_view"/>
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_done"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginStart="24dp"
+                android:layout_marginTop="8dp"
+                android:layout_marginEnd="24dp"
+                android:text="@string/lbl_done"
+                android:textAllCaps="false"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                app:backgroundTint="?attr/accentGood"
+                app:cornerRadius="16dp"
+                app:elevation="0dp"
+                app:iconGravity="textStart" />
+
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/btn_done"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="16dp"
-        android:text="@string/lbl_done"
-        android:textAllCaps="false"
-        android:textSize="15sp"
-        android:textStyle="bold"
-        app:backgroundTint="?attr/accentGood"
-        app:cornerRadius="16dp"
-        app:elevation="0dp"
-        app:iconGravity="textStart" />
 
 </LinearLayout>
 

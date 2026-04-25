@@ -119,28 +119,44 @@ class GooglePlaySubsAdapter(
             val planTitle = pricing.planTitle
 
             var currentPrice = ""
+            var currentPriceMicros = 0L
             var discountedPrice = ""
+            var discountedPriceMicros = 0L
+            var currencyCode = ""
             var freeTrialDays = 0
             var isYearly = false
 
             prod.pricingDetails.forEach { phase ->
                 when {
                     phase.freeTrialPeriod > 0 -> freeTrialDays = phase.freeTrialPeriod
-                    phase.recurringMode == InAppBillingHandler.RecurringMode.DISCOUNTED -> discountedPrice = phase.price
+                    phase.recurringMode == InAppBillingHandler.RecurringMode.DISCOUNTED -> {
+                        discountedPrice = phase.price
+                        discountedPriceMicros = phase.priceAmountMicros
+                        currencyCode = phase.currencyCode
+                    }
                     phase.recurringMode == InAppBillingHandler.RecurringMode.ORIGINAL -> {
                         currentPrice = phase.price
+                        currentPriceMicros = phase.priceAmountMicros
                         isYearly = phase.billingPeriod.contains("Y")
+                        currencyCode = phase.currencyCode
                     }
                 }
             }
 
             val displayPrice = discountedPrice.ifEmpty { currentPrice }
+            val displayPriceMicros = if (discountedPriceMicros > 0) discountedPriceMicros else currentPriceMicros
             val isSelected = selectedPos == pos
+            val isInApp = prod.productType == ProductType.INAPP
 
-            // Plan Duration
-            binding.planDuration.text = planTitle
+            // Plan Duration label
+            val durationMonths = getInAppDurationMonths(prod.productId)
+            binding.planDuration.text = if (isInApp && durationMonths > 0) {
+                formatDurationLabel(durationMonths, planTitle)
+            } else {
+                planTitle
+            }
 
-            // Price
+            // Main price
             binding.price.text = displayPrice
 
             // Original Price (struck through, below price)
@@ -152,7 +168,20 @@ class GooglePlaySubsAdapter(
                 binding.originalPrice.visibility = View.GONE
             }
 
-            // Billing Info - merge trial days if present
+            // Per-month breakdown for INAPP (e.g. "2-year plan = ₹141/mo")
+            if (isInApp && durationMonths > 0 && displayPriceMicros > 0) {
+                val perMonthMicros = displayPriceMicros / durationMonths
+                val perMonthFormatted = formatMicrosAsCurrency(perMonthMicros, currencyCode, displayPrice)
+                if (perMonthFormatted != null) {
+                    binding.pricePerMonth.visibility = View.VISIBLE
+                    binding.pricePerMonth.text = context.getString(R.string.price_per_month_format, perMonthFormatted)
+                } else {
+                    binding.pricePerMonth.visibility = View.GONE
+                }
+            } else {
+                binding.pricePerMonth.visibility = View.GONE
+            }
+
             val billingText = getBillingText(prod.productType, pricing.billingPeriod)
             if (freeTrialDays > 0) {
                 binding.billingInfo.text = context.getString(R.string.trial_days_format, freeTrialDays)
@@ -160,7 +189,6 @@ class GooglePlaySubsAdapter(
                 binding.billingInfo.text = billingText
             }
 
-            // Savings pill - compact percentage next to plan title
             if (discountedPrice.isNotEmpty()) {
                 val pct = calculateSavings(currentPrice, discountedPrice)
                 if (pct > 0) {
@@ -186,6 +214,46 @@ class GooglePlaySubsAdapter(
                 if (prev >= 0 && prev < pds.size) notifyItemChanged(prev)
                 notifyItemChanged(pos)
                 animateSelection()
+            }
+        }
+
+        /** Returns the total duration in months for known INAPP product IDs, or 0 if unknown. */
+        private fun getInAppDurationMonths(productId: String): Int = when (productId) {
+            InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> 24
+            InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> 60
+            InAppBillingHandler.ONE_TIME_PRODUCT_ID   -> 24 // legacy default 2yr
+            else -> 0
+        }
+
+        /** Formats a duration in months to a human-readable label like "2 Years" or appends to planTitle. */
+        private fun formatDurationLabel(months: Int, planTitle: String): String {
+            return when {
+                months >= 12 && months % 12 == 0 -> {
+                    val yrs = months / 12
+                    context.resources.getQuantityString(R.plurals.duration_years, yrs, yrs)
+                }
+                else -> planTitle
+            }
+        }
+
+        /**
+         * Attempts to format [micros] as a currency string using the same symbol/format
+         * as [sampleFormatted] (the already-formatted full price from Play).
+         * Strips digits/decimal from [sampleFormatted] and replaces with the per-month amount.
+         */
+        private fun formatMicrosAsCurrency(micros: Long, currencyCode: String, sampleFormatted: String): String? {
+            return try {
+                val amount = micros / 1_000_000.0
+                // Extract currency prefix/suffix from sample (e.g. "₹" or "US$")
+                val numericPart = sampleFormatted.replace(Regex("[0-9,. ]+"), "").trim()
+                val formatted = if (amount >= 100) {
+                    String.format("%.0f", amount)
+                } else {
+                    String.format("%.2f", amount).trimEnd('0').trimEnd('.')
+                }
+                if (numericPart.isNotEmpty()) "$numericPart$formatted" else "$currencyCode $formatted"
+            } catch (_: Exception) {
+                null
             }
         }
 

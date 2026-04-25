@@ -69,7 +69,7 @@ class PurchaseConflictBottomSheet : BottomSheetDialogFragment() {
          *
          * All data is passed via [Bundle] args so the fragment survives
          * configuration changes without holding a live reference to the error object.
-         * Note: deviceId is intentionally excluded — it is fetched fresh from
+         * Note: deviceId is intentionally excluded, it is fetched fresh from
          * [SecureIdentityStore] via [InAppBillingHandler.getObfuscatedDeviceId] at
          * refund time so it is never written to saved instance state.
          */
@@ -168,7 +168,7 @@ class PurchaseConflictBottomSheet : BottomSheetDialogFragment() {
 
     private fun initiateRefund(accountId: String, purchaseToken: String, sku: String) {
         if (accountId.isBlank() || purchaseToken.isBlank()) {
-            Logger.w(LOG_IAB, "$TAG: cannot refund — missing accountId or purchaseToken")
+            Logger.w(LOG_IAB, "$TAG: cannot refund, missing accountId or purchaseToken")
             showToastUiCentered(
                 requireContext(),
                 getString(R.string.subscription_action_failed),
@@ -180,10 +180,9 @@ class PurchaseConflictBottomSheet : BottomSheetDialogFragment() {
         setRefundInFlight(true)
 
         lifecycleScope.launch(Dispatchers.IO) {
-            // Fetch the real device ID fresh from SecureIdentityStore — never stored in the bundle.
             val deviceId = runCatching { InAppBillingHandler.getObfuscatedDeviceId() }.getOrDefault("")
             if (deviceId.isBlank()) {
-                Logger.e(LOG_IAB, "$TAG: refund aborted — deviceId unavailable from SecureIdentityStore")
+                Logger.e(LOG_IAB, "$TAG: refund aborted, deviceId unavailable from SecureIdentityStore")
                 withContext(Dispatchers.Main) {
                     setRefundInFlight(false)
                     showToastUiCentered(

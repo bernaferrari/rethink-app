@@ -103,14 +103,15 @@
                         android:layout_height="wrap_content"
                         android:layout_marginStart="8dp"
                         android:textSize="11sp"
+                        app:chipIcon="@drawable/ic_refresh_white"
                         app:chipBackgroundColor="?attr/chipBgColorNeutral"
                         app:chipCornerRadius="12dp"
                         app:chipMinHeight="28dp"
                         app:chipStrokeWidth="0dp"
+                        android:text="Refresh"
                         app:layout_constraintBottom_toBottomOf="@id/tv_hero_flag"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="@id/tv_hero_flag"
-                        tools:text="DE-FRA-01" />
+                        app:layout_constraintTop_toTopOf="@id/tv_hero_flag" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </FrameLayout>
@@ -548,7 +549,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="@string/lbl_load_speed"
+                                android:text="@string/lbl_health_bandwidth"
                                 android:textColor="?attr/primaryLightColorText"
                                 android:textSize="13sp" />
 
@@ -654,15 +655,19 @@
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:layout_marginBottom="4dp"
+                                android:alpha="0.5"
                                 android:src="@drawable/ic_app_info_accent"
                                 app:tint="?attr/primaryTextColor" />
 
                             <com.google.android.material.textview.MaterialTextView
                                 android:id="@+id/apps_label"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:gravity="center"
+                                android:maxLines="1"
                                 android:textAllCaps="false"
-                                android:textColor="?attr/secondaryTextColor"
+                                android:textColor="?attr/primaryTextColor"
                                 android:textSize="12sp" />
                         </LinearLayout>
 
@@ -684,19 +689,38 @@
                             android:paddingBottom="10dp">
 
                             <androidx.appcompat.widget.AppCompatImageView
+                                android:id="@+id/hop_icon"
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:layout_marginBottom="4dp"
+                                android:alpha="0.5"
                                 android:src="@drawable/ic_network_tunnel"
                                 app:tint="?attr/primaryTextColor" />
 
-                            <com.google.android.material.textview.MaterialTextView
+                            <FrameLayout
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Relay"
-                                android:textAllCaps="false"
-                                android:textColor="?attr/secondaryTextColor"
-                                android:textSize="12sp" />
+                                android:layout_height="wrap_content">
+
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:id="@+id/hop_label"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:maxLines="1"
+                                    android:paddingEnd="9dp"
+                                    android:text="Relay"
+                                    android:textAllCaps="false"
+                                    android:textColor="?attr/primaryTextColor"
+                                    android:textSize="12sp" />
+
+                                <View
+                                    android:id="@+id/hop_badge"
+                                    android:layout_width="7dp"
+                                    android:layout_height="7dp"
+                                    android:layout_gravity="top|end"
+                                    android:background="@drawable/dot_accent"
+                                    android:visibility="gone" />
+                            </FrameLayout>
+
                         </LinearLayout>
 
                         <LinearLayout

@@ -122,7 +122,7 @@ class FragmentHostActivity : AppCompatActivity(R.layout.activity_fragment_host) 
                         // Pop the top fragment from the back stack (nested navigation).
                         supportFragmentManager.popBackStack()
                     } else {
-                        // Nothing left to pop — finish and return to the calling Activity.
+                        // Nothing left to pop, finish and return to the calling Activity.
                         finish()
                     }
                 }

@@ -20,6 +20,7 @@
             android:id="@+id/collapsingToolbar"
             android:layout_width="match_parent"
             android:layout_height="180dp"
+            android:fitsSystemWindows="true"
             app:collapsedTitleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
             app:contentScrim="@drawable/bg_vpn_header_gradient"
             app:expandedTitleMarginBottom="48dp"
@@ -31,7 +32,7 @@
             <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:alpha="0.07"
+                android:alpha="0.08"
                 android:scaleType="centerCrop"
                 android:src="@drawable/ic_world_map"
                 app:layout_collapseMode="parallax" />
@@ -67,6 +68,7 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/nested_scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
@@ -105,7 +107,6 @@
                 android:layout_marginTop="12dp"
                 android:layout_marginEnd="16dp"
                 android:visibility="gone"
-                app:cardBackgroundColor="?attr/accentWarning"
                 app:cardCornerRadius="12dp"
                 app:cardElevation="0dp">
 
@@ -115,7 +116,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="center"
                     android:padding="14dp"
-                    android:textColor="?attr/primaryTextColor"
+                    android:textColor="?attr/accentWarning"
                     android:textSize="13sp"
                     android:textStyle="bold"
                     tools:text="⚠ Your access expires in 14 days. Tap to renew." />
@@ -450,6 +451,71 @@
 
                         <androidx.appcompat.widget.AppCompatImageView
                             android:id="@+id/payment_history_img"
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true"
+                            android:src="@drawable/ic_right_arrow_white"
+                            android:tint="?attr/primaryLightColorText" />
+                    </RelativeLayout>
+
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="1dp"
+                        android:layout_marginStart="70dp"
+                        android:background="?attr/divider" />
+
+                    <RelativeLayout
+                        android:id="@+id/server_order_history_rl"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:paddingStart="16dp"
+                        android:paddingTop="16dp"
+                        android:paddingEnd="16dp"
+                        android:paddingBottom="16dp">
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/server_order_history_icon"
+                            android:layout_width="40dp"
+                            android:layout_height="40dp"
+                            android:layout_centerVertical="true"
+                            android:background="@drawable/ic_circle"
+                            android:backgroundTint="?attr/chipBgColorNeutral"
+                            android:padding="8dp"
+                            android:src="@drawable/ic_rethink_plus"
+                            android:tint="?attr/primaryTextColor" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_centerVertical="true"
+                            android:layout_marginStart="14dp"
+                            android:layout_marginEnd="8dp"
+                            android:layout_toStartOf="@id/server_order_history_img"
+                            android:layout_toEndOf="@id/server_order_history_icon"
+                            android:orientation="vertical">
+
+                            <androidx.appcompat.widget.AppCompatTextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="sans-serif-medium"
+                                android:text="@string/server_order_title"
+                                android:textColor="?attr/primaryTextColor"
+                                android:textSize="15sp"
+                                android:textStyle="bold" />
+
+                            <androidx.appcompat.widget.AppCompatTextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
+                                android:text="@string/server_order_desc"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/server_order_history_img"
                             android:layout_width="20dp"
                             android:layout_height="20dp"
                             android:layout_alignParentEnd="true"

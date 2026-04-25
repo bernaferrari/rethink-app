@@ -20,13 +20,14 @@
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/collapsing_toolbar"
             android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_height="180dp"
+            android:fitsSystemWindows="true"
             app:layout_scrollFlags="scroll|exitUntilCollapsed|snap"
             app:contentScrim="@drawable/bg_vpn_header_gradient"
             app:expandedTitleTextAppearance="@style/TextAppearance.Material3.HeadlineMedium"
             app:collapsedTitleTextAppearance="@style/TextAppearance.Material3.TitleLarge"
             app:expandedTitleMarginStart="24dp"
-            app:expandedTitleMarginBottom="40dp"
+            app:expandedTitleMarginBottom="48dp"
             app:titleEnabled="true">
 
             <androidx.appcompat.widget.AppCompatImageView
@@ -52,7 +53,7 @@
                 android:layout_gravity="bottom"
                 android:layout_marginStart="24dp"
                 android:layout_marginEnd="24dp"
-                android:layout_marginBottom="20dp"
+                android:layout_marginBottom="18dp"
                 android:textSize="13sp"
                 android:textColor="?attr/primaryTextColor"
                 android:alpha="0.7"
@@ -60,7 +61,7 @@
                 android:maxLines="1"
                 android:fontFamily="sans-serif"
                 app:layout_collapseMode="parallax"
-                app:layout_collapseParallaxMultiplier="0.8"
+                app:layout_collapseParallaxMultiplier="0.6"
                 tools:text="RPN Standard  ·  ID: 74b4c00217" />
 
         </com.google.android.material.appbar.CollapsingToolbarLayout>
@@ -84,142 +85,6 @@
             android:paddingTop="16dp"
             android:paddingEnd="16dp"
             android:paddingBottom="80dp">
-
-
-            <androidx.appcompat.widget.AppCompatTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/support_section_subscription"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:fontFamily="sans-serif-medium"
-                android:textColor="?attr/accentGood"
-                android:letterSpacing="0.08"
-                android:layout_marginStart="4dp"
-                android:layout_marginBottom="8dp" />
-
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/card_subscription"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp"
-                app:strokeWidth="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="20dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="10dp">
-
-                        <androidx.appcompat.widget.AppCompatTextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/lbl_status"
-                            android:textSize="13sp"
-                            android:textColor="?attr/primaryLightColorText" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chip_sub_status"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="12sp"
-                            android:textStyle="bold"
-                            app:chipMinHeight="28dp"
-                            app:chipCornerRadius="14dp"
-                            style="@style/Widget.MaterialComponents.Chip.Filter" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="10dp">
-
-                        <androidx.appcompat.widget.AppCompatTextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/support_sub_plan_label"
-                            android:textSize="13sp"
-                            android:textColor="?attr/primaryLightColorText" />
-
-                        <androidx.appcompat.widget.AppCompatTextView
-                            android:id="@+id/tv_sub_plan"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="13sp"
-                            android:textStyle="bold"
-                            android:fontFamily="sans-serif-medium"
-                            android:textColor="?attr/primaryTextColor" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical"
-                        android:layout_marginBottom="10dp">
-
-                        <androidx.appcompat.widget.AppCompatTextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/support_sub_purchase_date_label"
-                            android:textSize="13sp"
-                            android:textColor="?attr/primaryLightColorText" />
-
-                        <androidx.appcompat.widget.AppCompatTextView
-                            android:id="@+id/tv_sub_purchase_date"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="13sp"
-                            android:textColor="?attr/primaryTextColor" />
-
-                    </LinearLayout>
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <androidx.appcompat.widget.AppCompatTextView
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="@string/support_sub_token_label"
-                            android:textSize="13sp"
-                            android:textColor="?attr/primaryLightColorText" />
-
-                        <androidx.appcompat.widget.AppCompatTextView
-                            android:id="@+id/tv_sub_token"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:textSize="11sp"
-                            android:textColor="?attr/primaryLightColorText"
-                            android:fontFamily="monospace"
-                            android:maxLines="1"
-                            android:ellipsize="end"
-                            android:maxWidth="160dp" />
-
-                    </LinearLayout>
-
-                </LinearLayout>
-
-            </com.google.android.material.card.MaterialCardView>
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:layout_width="wrap_content"

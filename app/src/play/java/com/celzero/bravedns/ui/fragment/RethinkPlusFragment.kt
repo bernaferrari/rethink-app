@@ -78,10 +78,24 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
     companion object {
         private const val TAG = "R+Ui"
         private const val PROCESSING_TIMEOUT_MS = 60_000L
+
+        /**
+         * When this argument is `true` the fragment opens in *extend mode*:
+         * - The ONE_TIME tab is pre-selected.
+         * - The "already subscribed" guard is bypassed so users with an active one-time
+         *   purchase can buy an additional access window before their current one expires.
+         */
+        const val ARG_EXTEND_MODE = "arg_extend_mode"
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // Read extend mode argument before any other setup so the ViewModel and UI are
+        // configured correctly from the start.
+        val extendMode = arguments?.getBoolean(ARG_EXTEND_MODE, false) ?: false
+        if (extendMode) {
+            viewModel.extendMode = true
+        }
         setupUI()
         setupObservers()
         setupClickListeners()
@@ -95,6 +109,8 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
             shouldRecheckOnResume = false
             viewModel.initializeBilling()
         }
+        // Show any pending Play Billing in-app messages (e.g. payment recovery overlay).
+        InAppBillingHandler.enableInAppMessaging(requireActivity())
     }
 
     override fun onPause() {
@@ -115,6 +131,14 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
         setupRecyclerView()
         setupTermsAndPolicy()
         setupProductTypeToggle()
+        adjustCtaBottomMargin()
+
+        if (viewModel.extendMode) {
+            // In extend mode: hide the tab toggle and the page title,show only one-time products.
+            b.productTypeToggle.isVisible = false
+            // Show the extend-mode banner so the user knows they are adding more access time.
+            b.extendModeBanner.isVisible = true
+        }
     }
 
     private fun applyButtonTheme() {
@@ -162,12 +186,29 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
         }
     }
 
-    private fun setupProductTypeToggle() {
-        updateToggleState(RethinkPlusViewModel.ProductTypeFilter.SUBSCRIPTION)
+    private fun adjustCtaBottomMargin() {
+        if (activity is FragmentHostActivity) {
+            val lp = b.ctaInnerContainer.layoutParams as? android.view.ViewGroup.MarginLayoutParams
+            lp?.bottomMargin = 0
+            b.ctaInnerContainer.layoutParams = lp
+        }
+    }
 
-        b.btnSubscription.setOnClickListener {
-            animateButtonPress(b.btnSubscription)
-            viewModel.selectProductType(RethinkPlusViewModel.ProductTypeFilter.SUBSCRIPTION)
+    private fun setupProductTypeToggle() {
+        // In extend mode pre-select ONE_TIME and hide the SUBS tab so the
+        // user focuses on one-time purchase options only.
+        val initialType = if (viewModel.extendMode) {
+            RethinkPlusViewModel.ProductTypeFilter.ONE_TIME
+        } else {
+            RethinkPlusViewModel.ProductTypeFilter.SUBSCRIPTION
+        }
+        updateToggleState(initialType)
+
+        if (!viewModel.extendMode) {
+            b.btnSubscription.setOnClickListener {
+                animateButtonPress(b.btnSubscription)
+                viewModel.selectProductType(RethinkPlusViewModel.ProductTypeFilter.SUBSCRIPTION)
+            }
         }
 
         b.btnOneTime.setOnClickListener {
@@ -273,7 +314,7 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
         viewLifecycleOwner.lifecycleScope.launch {
             viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.retryConnectionEvent.collect {
-                    Logger.d(Logger.LOG_IAB, "$TAG: retryConnectionEvent — re-initiating billing")
+                    Logger.d(Logger.LOG_IAB, "$TAG: retryConnectionEvent, re-initiating billing")
                     reconnectBilling()
                 }
             }
@@ -338,14 +379,14 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
     private fun handleUiState(state: SubscriptionUiState) {
         Logger.d(Logger.LOG_IAB, "$TAG: Handling UI state: ${state::class.simpleName}")
         when (state) {
-            is SubscriptionUiState.Loading        -> showLoading()
-            is SubscriptionUiState.Ready          -> showReady(state.products, state.isResubscribe, state.availabilityData)
-            is SubscriptionUiState.Processing     -> showProcessing(state.message)
+            is SubscriptionUiState.Loading -> showLoading()
+            is SubscriptionUiState.Ready -> showReady(state.products, state.isResubscribe, state.availabilityData)
+            is SubscriptionUiState.Processing -> showProcessing(state.message)
             is SubscriptionUiState.PendingPurchase -> showPendingPurchase()
-            is SubscriptionUiState.Success        -> showSuccess(state.productId)
-            is SubscriptionUiState.Error          -> showError(state.title, state.message, state.isRetryable)
+            is SubscriptionUiState.Success -> showSuccess(state.productId)
+            is SubscriptionUiState.Error -> showError(state.title, state.message, state.isRetryable)
             is SubscriptionUiState.AlreadySubscribed -> navigateToDashboard(state.productId)
-            is SubscriptionUiState.Available      -> showConnectionInfo(state)
+            is SubscriptionUiState.Available -> showConnectionInfo(state)
         }
     }
 
@@ -367,7 +408,7 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
         b.scrollView.isVisible = true
         b.ctaContainer.isVisible = true
 
-        Logger.i(LOG_TAG_UI, "$TAG: Ready — ${products.size} products, resubscribe=$isResubscribe")
+        Logger.i(LOG_TAG_UI, "$TAG: Ready: ${products.size} products, resubscribe=$isResubscribe")
 
         availabilityData?.let { showConnectionInfo(it) }
 
@@ -488,28 +529,18 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
         }
     }
 
-    /**
-     * Called once from [onViewCreated].
-     * Re-registers the listener on every fragment (re)creation so callbacks always reach
-     * this instance — never a stale one.
-     */
     private fun initializeBilling() {
+        viewModel.initializeBilling()
         if (!InAppBillingHandler.isBillingClientSetup()) {
             InAppBillingHandler.initiate(requireContext().applicationContext, this)
-            viewModel.initializeBilling()
         } else {
             InAppBillingHandler.registerListener(this)
             viewModel.onBillingConnected(true, "already connected")
         }
     }
 
-    /**
-     * Called when [RethinkPlusViewModel.retryConnectionEvent] fires — i.e. the user tapped Retry
-     * but the billing client was not connected.  We force a fresh [InAppBillingHandler.initiate]
-     * here because the ViewModel has no live Context to do it itself.
-     */
     private fun reconnectBilling() {
-        Logger.d(Logger.LOG_IAB, "$TAG: reconnectBilling — calling initiate()")
+        Logger.d(Logger.LOG_IAB, "$TAG: reconnectBilling, calling initiate()")
         InAppBillingHandler.initiate(requireContext().applicationContext, this)
     }
 
@@ -532,8 +563,13 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
             when (viewModel.selectedProductType.value) {
                 RethinkPlusViewModel.ProductTypeFilter.SUBSCRIPTION ->
                     InAppBillingHandler.purchaseSubs(requireActivity(), productId, planId)
-                RethinkPlusViewModel.ProductTypeFilter.ONE_TIME ->
-                    InAppBillingHandler.purchaseOneTime(requireActivity(), productId, planId)
+                RethinkPlusViewModel.ProductTypeFilter.ONE_TIME -> {
+                    // In extend mode the state machine stays in Active (no PurchaseInitiated
+                    // transition from Active), so purchaseFlowActive would never be set by the
+                    // state change observer. Set it manually so the Active callback shows Success.
+                    if (viewModel.extendMode) viewModel.markPurchaseFlowActive()
+                    InAppBillingHandler.purchaseOneTime(requireActivity(), productId, planId, forceExtend = viewModel.extendMode)
+                }
             }
         }
     }
@@ -566,7 +602,7 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
         processingTimeoutJob = viewLifecycleOwner.lifecycleScope.launch {
             delay(PROCESSING_TIMEOUT_MS)
             if (isAdded && processingBottomSheet?.isAdded == true) {
-                Logger.w(Logger.LOG_IAB, "$TAG: processing timeout — dismissing sheet")
+                Logger.w(Logger.LOG_IAB, "$TAG: processing timeout, dismissing sheet")
                 purchaseInFlight = false
                 dismissProcessingBottomSheet()
                 shouldRecheckOnResume = true

@@ -52,10 +52,7 @@ import kotlinx.coroutines.withContext
 import java.util.Locale
 
 /**
- * Adapter for the list of currently-selected (active) VPN servers shown in
- * ServerSelectionFragment.  Mirrors WgConfigAdapter's live-stats pattern:
- * every 1.5 s it calls VpnController for proxy status, RouterStats and app-count
- * and updates the stats row in the item layout.
+ * Adapter for the list of currently-selected (active) VPN servers shown in ServerSelectionFragment
  */
 class VpnServerAdapter(
     private val context: Context,
@@ -68,23 +65,12 @@ class VpnServerAdapter(
     /**
      * True when the RPN proxy has been deliberately stopped.
      * When set, every server item shows a "Stopped" status row and all taps
-     * (detail, remove, reconnect, refresh) are redirected to [ServerSelectionListener.onProxyStoppedItemTapped]
-     * so the user is guided to the settings sheet to restart.
-     *
-     * Using a plain private backing field (not `var isXxx: Boolean`) to avoid the
-     * JVM declaration clash between the auto-generated `setProxyStopped` property
-     * setter and the explicit [setProxyStopped] method.
      */
     private var proxyStopped = false
 
     /**
      * Keys of selected servers whose WIN tunnel is not yet available
      * (VpnController.getWinByKey returned null immediately after startProxy).
-     *
-     * While a key is in this set the corresponding adapter item shows a pulsing
-     * "Connecting…" status row instead of live stats.  ServerSelectionFragment
-     * drives these entries via [setLoadingTunnelKeys] / [clearLoadingTunnelKey]
-     * from a short-lived polling job that runs for up to 10 s.
      */
     private val loadingTunnelKeys = mutableSetOf<String>()
 
@@ -113,7 +99,7 @@ class VpnServerAdapter(
     /**
      * Switches all currently-bound items to/from stopped mode.
      * Skips rebind if the flag did not change.
-     * Clears [loadingTunnelKeys] when entering stopped mode — the stopped status
+     * Clears [loadingTunnelKeys] when entering stopped mode, the stopped status
      * row takes precedence over the per-item tunnel-setup indicator.
      */
     fun setProxyStopped(stopped: Boolean) {
@@ -208,20 +194,8 @@ class VpnServerAdapter(
         private val ctx: Context = b.root.context
         private var statsJob: Job? = null
 
-        /**
-         * Guards against repeated taps on the Refresh / Reconnect buttons while an IO
-         * operation is already in-flight for this item.  Both flags are reset every time
-         * [bind] is called so a recycled ViewHolder starts clean.
-         */
-        private var refreshInFlight   = false
-        private var reconnectInFlight = false
 
         fun bind(group: ServerGroup) {
-            // Reset per-item in-flight flags
-            refreshInFlight   = false
-            reconnectInFlight = false
-            // Restore button alpha/enabled in case a previous bind left them dimmed.
-            setRefreshReconnectEnabled(true)
 
             if (group.key.equals(AUTO_SERVER_ID, ignoreCase = true)) {
                 b.infoIcon.visibility = View.GONE
@@ -282,26 +256,18 @@ class VpnServerAdapter(
                 val stoppedClick = View.OnClickListener { listener.onProxyStoppedItemTapped() }
                 b.serverCard.setOnClickListener(stoppedClick)
                 b.infoIcon.setOnClickListener(stoppedClick)
-                b.refreshTxt.setOnClickListener(stoppedClick)
-                b.reconnectTxt.setOnClickListener(stoppedClick)
             } else if (loadingTunnelKeys.contains(group.key)) {
                 // WIN tunnel for this server is still being set up (getWinByKey returned null).
                 // Show a "Connecting…" indicator with a gentle pulse.
-                // The stats loop is still started so it can take over naturally once the
-                // tunnel is ready: the first successful applyStats() will stop the pulse.
                 showTunnelLoadingStatus()
                 b.infoIcon.setOnClickListener { listener.onServerGroupRemoved(group) }
                 b.serverCard.setOnClickListener { openServerDetail(group.getBestServer()) }
-                b.refreshTxt.setOnClickListener { refreshRpn(group.key) }
-                b.reconnectTxt.setOnClickListener { reconnectRpn(group) }
                 if (VpnController.hasTunnel()) {
                     statsJob = pollStatsLoop(group)
                 }
             } else {
                 b.infoIcon.setOnClickListener { listener.onServerGroupRemoved(group) }
                 b.serverCard.setOnClickListener { openServerDetail(group.getBestServer()) }
-                b.refreshTxt.setOnClickListener { refreshRpn(group.key) }
-                b.reconnectTxt.setOnClickListener { reconnectRpn(group) }
 
                 if (VpnController.hasTunnel()) {
                     statsJob = pollStatsLoop(group)
@@ -362,83 +328,15 @@ class VpnServerAdapter(
                 }.start()
         }
 
-        /**
-         * Dims both action buttons (alpha → 0.40) and disables touches while [enabled]=false.
-         * Restores them fully when [enabled]=true.  Animates the alpha change for polish.
-         */
-        private fun setRefreshReconnectEnabled(enabled: Boolean) {
-            val targetAlpha = if (enabled) 1f else 0.40f
-            b.refreshTxt.isEnabled   = enabled
-            b.refreshTxt.isClickable = enabled
-            b.reconnectTxt.isEnabled   = enabled
-            b.reconnectTxt.isClickable = enabled
-            b.refreshTxt.animate().alpha(targetAlpha).setDuration(160).start()
-            b.reconnectTxt.animate().alpha(targetAlpha).setDuration(160).start()
-        }
-
-        /**
-         * Refreshes all RPN proxies.  Guards against concurrent taps: the button pair is
-         * disabled immediately and re-enabled once the IO operation completes.
-         */
-        private fun refreshRpn(id: String) {
-            if (refreshInFlight || reconnectInFlight) return
-            refreshInFlight = true
-            setRefreshReconnectEnabled(false)
-            io {
-                // GoVpnAdapter handles AUTO and empty-string ids centrally
-                val refreshed = VpnController.refreshRpnProxy(id)
-                uiCtx {
-                    refreshInFlight = false
-                    setRefreshReconnectEnabled(true)
-                    if (refreshed) {
-                        Utilities.showToastUiCentered(context, "Refreshed", Toast.LENGTH_SHORT)
-                    } else {
-                        Utilities.showToastUiCentered(context, "Failed to refresh", Toast.LENGTH_SHORT)
-                    }
-                }
-            }
-        }
-
-        /**
-         * Reconnects (forks) the RPN proxy for this server group.  Guards against
-         * concurrent taps the same way as [refreshRpn].
-         */
-        private fun reconnectRpn(group: ServerGroup) {
-            if (reconnectInFlight || refreshInFlight) return
-            reconnectInFlight = true
-            setRefreshReconnectEnabled(false)
-            io {
-                // GoVpnAdapter handles AUTO and empty-string ids centrally
-                val reconnect = VpnController.reconnectRpnProxy(group.key)
-                uiCtx {
-                    reconnectInFlight = false
-                    setRefreshReconnectEnabled(true)
-                    if (reconnect) {
-                        Utilities.showToastUiCentered(context, "Reconnected", Toast.LENGTH_SHORT)
-                    } else {
-                        Utilities.showToastUiCentered(context, "Failed to reconnect", Toast.LENGTH_SHORT)
-                    }
-                }
-            }
-        }
-
         fun cancelStatsJob() {
             if (statsJob?.isActive == true) statsJob?.cancel()
             statsJob = null
-            // Also clear in-flight flags — the ViewHolder is being detached, so any
-            // pending IO completion will arrive into a recycled/detached state.
-            // bind() will reset them again when the holder is reused.
-            refreshInFlight   = false
-            reconnectInFlight = false
         }
 
         private fun pollStatsLoop(group: ServerGroup): Job? {
             val lco = lifecycleOwner ?: return null
             // repeatOnLifecycle(STARTED) automatically suspends the inner block whenever
-            // the lifecycle drops below STARTED (e.g. the user opens another activity) and
-            // re-launches it once the lifecycle returns to STARTED.  This means the job is
-            // never permanently canceled due to a background transition, no explicit
-            // restart is required when the user navigates back.
+            // the lifecycle drops below STARTED
             return lco.lifecycleScope.launch {
                 lco.lifecycle.repeatOnLifecycle(Lifecycle.State.STARTED) {
                     while (true) {
@@ -673,13 +571,5 @@ class VpnServerAdapter(
             intent.putExtra(RpnConfigDetailActivity.INTENT_EXTRA_CONFIG_KEY, server.key)
             ctx.startActivity(intent)
         }
-    }
-
-    private fun io(f: suspend () -> Unit) {
-        (context as LifecycleOwner).lifecycleScope.launch(Dispatchers.IO) { f() }
-    }
-
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
     }
 }

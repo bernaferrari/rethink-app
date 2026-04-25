@@ -8,9 +8,9 @@
     android:background="?attr/selectableItemBackground"
     android:minHeight="64dp"
     android:paddingStart="16dp"
-    android:paddingTop="2dp"
+    android:paddingTop="8dp"
     android:paddingEnd="12dp"
-    android:paddingBottom="2dp">
+    android:paddingBottom="8dp">
 
     <LinearLayout
         android:id="@+id/stats_layout"
@@ -102,58 +102,6 @@
 
     </LinearLayout>
 
-    <LinearLayout
-        android:id="@+id/refresh_layout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="4dp"
-        android:layout_marginTop="10dp"
-        android:gravity="center_vertical"
-        android:orientation="vertical"
-        android:visibility="visible"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/stats_layout">
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:weightSum="1">
-
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/reconnect_txt"
-                android:layout_width="0dp"
-                android:layout_weight="0.5"
-                android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:layout_gravity="center"
-                android:layout_margin="5dp"
-                android:padding="8dp"
-                android:gravity="center"
-                android:background="@drawable/rectangle_border_background"
-                android:textSize="12sp"
-                android:text="Reconnect" />
-
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/refresh_txt"
-                android:layout_width="0dp"
-                android:layout_weight="0.5"
-                android:layout_height="wrap_content"
-                android:maxLines="1"
-                android:layout_margin="5dp"
-                android:padding="8dp"
-                android:layout_gravity="center"
-                android:background="@drawable/rectangle_border_background"
-                android:gravity="center"
-                android:textSize="12sp"
-                android:visibility="visible"
-                android:text="Refresh" />
-        </LinearLayout>
-
-    </LinearLayout>
-
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/tv_flag"
         android:layout_width="36dp"
@@ -228,7 +176,7 @@
         android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
         android:padding="12dp"
-        android:src="@drawable/ic_delete"
+        android:src="@drawable/ic_cross"
         android:tint="?attr/primaryLightColorText"
         android:contentDescription="@string/lbl_remove"
         app:layout_constraintBottom_toTopOf="@id/stats_layout"

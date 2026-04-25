@@ -188,7 +188,7 @@ class CountryServerAdapter(
         private val items = mutableListOf<ServerGroup>()
 
         /**
-         * True when the RPN proxy is stopped — taps are redirected to
+         * True when the RPN proxy is stopped, taps are redirected to
          * [CitySelectionListener.onProxyStoppedItemTapped] instead of selecting.
          *
          * Plain private field (no `is` prefix) to avoid the JVM setter name clash.

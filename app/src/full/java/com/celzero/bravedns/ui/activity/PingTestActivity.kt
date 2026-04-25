@@ -24,6 +24,9 @@ import android.os.Bundle
 import android.view.View
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.OvershootInterpolator
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
@@ -31,15 +34,14 @@ import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.databinding.ActivityPingTestBinding
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.util.SnackbarHelper
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.firestack.backend.Backend
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -107,6 +109,19 @@ class PingTestActivity : AppCompatActivity(R.layout.activity_ping_test) {
 
         b.cancelButton.setOnClickListener {
             finish()
+        }
+
+        b.reachTestButton.setOnClickListener {
+            performReachabilityTest()
+        }
+
+        b.reachInput.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                performReachabilityTest()
+                true
+            } else {
+                false
+            }
         }
     }
 
@@ -285,6 +300,80 @@ class PingTestActivity : AppCompatActivity(R.layout.activity_ping_test) {
         } catch (e: Exception) {
             Logger.e(Logger.LOG_IAB, "$TAG err during ping test: ${e.message}", e)
             showFailureState()
+        }
+    }
+
+    private fun performReachabilityTest() {
+        // Gate: RPN must be enabled
+        if (!RpnProxyManager.isRpnEnabled()) {
+            Toast.makeText(this, getString(R.string.ping_reach_rpn_disabled), Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val input = b.reachInput.text?.toString()?.trim().orEmpty()
+        if (input.isEmpty()) {
+            b.reachInputLayout.error = getString(R.string.ping_reach_empty_input)
+            return
+        }
+        b.reachInputLayout.error = null
+
+        // Hide keyboard and explicitly clear focus so TextInputLayout settles into
+        // its clean resting state before (and consistently after) the test.
+        b.reachInput.clearFocus()
+        val imm = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(b.reachInput.windowToken, 0)
+
+        b.reachInputLayout.isEnabled = false
+        b.reachTestButton.isEnabled = false
+        b.reachTestButton.text = getString(R.string.ping_reach_checking)
+        b.reachResultContainer.visibility = View.GONE
+
+        io {
+            val proxyId = VpnController.getWinProxyId()
+            if (proxyId.isNullOrEmpty()) {
+                uiCtx { showReachabilityResult(input, success = false, noProxy = true) }
+                return@io
+            }
+            val reachable = VpnController.isProxyReachable(proxyId, input)
+            Logger.d(Logger.LOG_IAB, "$TAG reachability($input) via $proxyId: $reachable")
+            uiCtx { showReachabilityResult(input, success = reachable, noProxy = false) }
+        }
+    }
+
+    private fun showReachabilityResult(target: String, success: Boolean, noProxy: Boolean) {
+        // Restore input to fully interactive state first, before any visual updates.
+        b.reachInputLayout.isEnabled = true
+        b.reachInput.isEnabled = true
+        b.reachInput.isFocusable = true
+        b.reachInput.isFocusableInTouchMode = true
+        b.reachTestButton.isEnabled = true
+        b.reachTestButton.text = getString(R.string.ping_reach_button)
+
+        b.reachResultContainer.visibility = View.VISIBLE
+        b.reachResultContainer.alpha = 0f
+        b.reachResultContainer.animate().alpha(1f).setDuration(300).start()
+
+        when {
+            noProxy -> {
+                b.reachResultIcon.setImageResource(R.drawable.ic_cross_accent)
+                b.reachResultIcon.setColorFilter(UIUtils.fetchColor(this, R.attr.accentBad))
+                b.reachResultText.text = getString(R.string.ping_reach_no_proxy)
+                b.reachResultText.setTextColor(UIUtils.fetchColor(this, R.attr.accentBad))
+            }
+            success -> {
+                b.reachResultIcon.setImageResource(R.drawable.ic_tick)
+                b.reachResultIcon.setColorFilter(UIUtils.fetchColor(this, R.attr.accentGood))
+                b.reachResultText.text = getString(R.string.two_argument,
+                    getString(R.string.ping_reach_reachable) + ":", target)
+                b.reachResultText.setTextColor(UIUtils.fetchColor(this, R.attr.accentGood))
+            }
+            else -> {
+                b.reachResultIcon.setImageResource(R.drawable.ic_cross_accent)
+                b.reachResultIcon.setColorFilter(UIUtils.fetchColor(this, R.attr.accentBad))
+                b.reachResultText.text = getString(R.string.two_argument,
+                    getString(R.string.ping_reach_unreachable) + ":", target)
+                b.reachResultText.setTextColor(UIUtils.fetchColor(this, R.attr.accentBad))
+            }
         }
     }
 

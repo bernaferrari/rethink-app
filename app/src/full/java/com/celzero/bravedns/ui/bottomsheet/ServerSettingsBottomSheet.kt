@@ -36,18 +36,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.koin.android.ext.android.inject
 
 /**
- * Premium bottom sheet combining DNS filter settings (previously in dialog_dns_mode) and
- * the new Configuration Handling section.
- *
- * Layout sections
- * ───────────────
- * 1. DNS Filter – mirrors the former showDnsDialog() content exactly.
- * 2. Configuration Handling – master AUTO/MANUAL toggle, plus three child settings
- *    (always change identity, connection port, permanent configuration) that are
- *    enabled only when the user selects MANUAL mode.
- *
- * All state is persisted to [PersistentState]; no data is held in-memory across
- * fragment recreations.
+ * bottom sheet combining DNS filter settings and new Configuration Handling section.
  */
 class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
 
@@ -81,11 +70,8 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     }
 
     /**
-     * Callback interface for settings changes that require tunnel IO.
-     *
-     * Callbacks are delivered on the **main thread**. The receiving fragment is
-     * responsible for dispatching tunnel work onto a background dispatcher so the
-     * operation survives bottom-sheet dismissal.
+     * The receiving fragment is responsible for dispatching tunnel work onto a
+     * background dispatcher so the operation survives bottom-sheet dismissal.
      */
     interface OnSettingsChangedListener {
         /** Fired immediately each time the user picks a new DNS filter mode. */
@@ -97,6 +83,7 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
          * [PersistentState] directly.
          */
         fun onConfigChanged()
+        fun onReset()
     }
 
     private var listener: OnSettingsChangedListener? = null
@@ -114,10 +101,10 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
 
     /** Returns true if any of the four config values differ from their opening snapshot. */
     private fun hasConfigChanged(): Boolean =
-        persistentState.rpnConfigHandlingManual  != snapshotConfigManual         ||
-        persistentState.rpnAlwaysChangeIdentity  != snapshotAlwaysChangeIdentity ||
-        persistentState.rpnPort                  != snapshotPort                 ||
-        persistentState.rpnUsePermanentConfig    != snapshotPermanentConfig
+        persistentState.rpnConfigHandlingManual != snapshotConfigManual ||
+        persistentState.rpnAlwaysChangeIdentity != snapshotAlwaysChangeIdentity ||
+        persistentState.rpnPort != snapshotPort ||
+        persistentState.rpnUsePermanentConfig != snapshotPermanentConfig
 
     private fun isDarkThemeOn(): Boolean =
         resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
@@ -155,15 +142,16 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
         }
 
         // Snapshot config values before any UI interaction so hasConfigChanged() is accurate.
-        snapshotConfigManual          = persistentState.rpnConfigHandlingManual
+        snapshotConfigManual = persistentState.rpnConfigHandlingManual
         snapshotAlwaysChangeIdentity  = persistentState.rpnAlwaysChangeIdentity
-        snapshotPort                  = persistentState.rpnPort
-        snapshotPermanentConfig       = persistentState.rpnUsePermanentConfig
+        snapshotPort = persistentState.rpnPort
+        snapshotPermanentConfig = persistentState.rpnUsePermanentConfig
 
         setupDnsSection()
         setupConfigHandlingSection()
 
         binding.btnDone.setOnClickListener { dismiss() }
+        binding.btnResetRpn.setOnClickListener { showResetConfirmationDialog() }
 
         Logger.i(LOG_TAG_UI, "$TAG: view created, proxyStopped=$isProxyStopped")
     }
@@ -185,14 +173,14 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     }
 
     /**
-     * Sets up the DNS filter section — mirrors the former inline DNS dialog that lived
+     * Sets up the DNS filter section - mirrors the former inline DNS dialog that lived
      * in ServerSelectionFragment, now unified into this settings sheet.
      */
     private fun setupDnsSection() {
         val currentMode = RpnProxyManager.DnsMode.fromUrl(persistentState.rpnDnsUrl)
         val radioId = when (currentMode) {
-            RpnProxyManager.DnsMode.DEFAULT  -> R.id.rb_dns_default
-            RpnProxyManager.DnsMode.ANTI_AD  -> R.id.rb_dns_antiad
+            RpnProxyManager.DnsMode.DEFAULT -> R.id.rb_dns_default
+            RpnProxyManager.DnsMode.ANTI_AD -> R.id.rb_dns_anti_ad
             RpnProxyManager.DnsMode.PARENTAL -> R.id.rb_dns_parental
             RpnProxyManager.DnsMode.SECURITY -> R.id.rb_dns_security
         }
@@ -221,10 +209,10 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
             if (!persistentState.splitDns || isProxyStopped) return@setOnCheckedChangeListener
             val newMode = when (checkedId) {
                 R.id.rb_dns_default  -> RpnProxyManager.DnsMode.DEFAULT
-                R.id.rb_dns_antiad   -> RpnProxyManager.DnsMode.ANTI_AD
+                R.id.rb_dns_anti_ad -> RpnProxyManager.DnsMode.ANTI_AD
                 R.id.rb_dns_parental -> RpnProxyManager.DnsMode.PARENTAL
                 R.id.rb_dns_security -> RpnProxyManager.DnsMode.SECURITY
-                else                 -> return@setOnCheckedChangeListener
+                else -> return@setOnCheckedChangeListener
             }
             if (newMode == currentMode) return@setOnCheckedChangeListener
             persistentState.rpnDnsUrl = newMode.url
@@ -243,12 +231,12 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     private fun setupConfigHandlingSection() {
         val isManual = persistentState.rpnConfigHandlingManual
 
-        // Initialise toggle without firing the listener
+        // Initialize toggle without firing the listener
         val initialChecked = if (isManual) R.id.btn_config_manual else R.id.btn_config_auto
         binding.configModeToggle.check(initialChecked)
         applyManualModeUi(isManual, animate = false)
 
-        // Initialise child toggle states from persisted values
+        // Initialize child toggle states from persisted values
         binding.identitySwitch.isChecked = persistentState.rpnAlwaysChangeIdentity
         updatePortValueLabel(persistentState.rpnPort)
         binding.permanentConfigSwitch.isChecked = persistentState.rpnUsePermanentConfig
@@ -273,7 +261,7 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
             Logger.i(LOG_TAG_UI, "$TAG: alwaysChangeIdentity → $isChecked")
         }
 
-        // Port row (click to open selection dialog)
+        // Port row (opens selection dialog)
         binding.portRow.setOnClickListener {
             if (!persistentState.rpnConfigHandlingManual) return@setOnClickListener
             showPortSelectionDialog()
@@ -301,11 +289,6 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
 
     /**
      * Enables or disables the three manual-only settings rows.
-     *
-     * Visual treatment for disabled rows:
-     * - alpha 0.35 (dimmed but readable)
-     * - switches and click listeners disabled
-     * - port row not clickable
      *
      * The [animate] flag controls whether the transition is instant or eased.
      */
@@ -390,7 +373,21 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
             port.toString()
         }
     }
+
+    /**
+     * Shows a confirmation dialog before executing the RPN reset.
+     */
+    private fun showResetConfirmationDialog() {
+        if (!isAdded) return
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle(getString(R.string.rpn_restore_confirm_title))
+            .setMessage(getString(R.string.rpn_restore_confirm_message))
+            .setPositiveButton(getString(R.string.rpn_restore_confirm_action)) { dialog, _ ->
+                dialog.dismiss()
+                dismiss() // dismiss the bottom sheet first
+                listener?.onReset() // then trigger reset in the parent fragment
+            }
+            .setNegativeButton(getString(R.string.lbl_cancel), null)
+            .show()
+    }
 }
-
-
-

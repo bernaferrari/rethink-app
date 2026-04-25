@@ -42,7 +42,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.iab.InAppBillingHandler
-import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
@@ -50,11 +49,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
  * Displays the full purchase / subscription state-change history stored in
  * the SubscriptionStateHistory table, loaded in pages of 30 rows at a time
  * (using Paging 3) to avoid an ANR on devices with thousands of records.
- *
- * Each row represents one state transition (e.g. Initial → Active,
- * Active → Cancelled, …) enriched with product details from SubscriptionStatus.
- * Noise-only transitions (Initial↔Initial, Unknown→Active, etc.) are filtered
- * out directly in SQL via [PurchaseHistoryViewModel.historyList].
  */
 class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_history) {
 
@@ -94,7 +88,19 @@ class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_his
         startShimmer()
         observeHistory()
         observeTotalCount()
-        loadHeroSubtitleAsync()
+        loadHeroSubtitle()
+        applyScrollPadding()
+    }
+
+    private fun applyScrollPadding() {
+        b.contentContainer.post {
+            b.contentContainer.setPadding(
+                b.contentContainer.paddingLeft,
+                0,
+                b.contentContainer.paddingRight,
+                b.contentContainer.paddingBottom
+            )
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -107,8 +113,6 @@ class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_his
         setSupportActionBar(b.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(false)
         b.toolbar.setNavigationOnClickListener { onBackPressedDispatcher.onBackPressed() }
-        // Populated asynchronously in loadHeroSubtitleAsync() to avoid touching
-        // RpnProxyManager (via Koin SYNCHRONIZED lazy) on the main thread.
         b.tvHeroSubtitle.text = ""
     }
 
@@ -118,10 +122,11 @@ class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_his
             RecyclerView.Adapter.StateRestorationPolicy.PREVENT_WHEN_EMPTY
 
         b.rvHistory.apply {
-            layoutManager = LinearLayoutManager(this@PurchaseHistoryActivity)
+            val lm = LinearLayoutManager(this@PurchaseHistoryActivity)
+            lm.isItemPrefetchEnabled = true
+            layoutManager = lm
             adapter = this@PurchaseHistoryActivity.adapter
-            setHasFixedSize(false)
-            isNestedScrollingEnabled = false
+            setHasFixedSize(true)
         }
 
         // Once the first batch of items has been bound, allow state restoration on
@@ -139,9 +144,10 @@ class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_his
     }
 
     /**
-     * Feeds pages of [RichHistoryEntry] into the adapter.
-     * [PagingDataAdapter.submitData] is lifecycle-aware: it automatically cancels
-     * the previous collection when a new [PagingData] arrives (e.g. after invalidation).
+     * Feeds pages of [com.celzero.bravedns.database.SubscriptionStateHistory] into the
+     * adapter (no JOIN, no product-name / token fields).
+     * PagingDataAdapter.submitData is lifecycle-aware: it automatically cancels
+     * the previous collection when a new PagingData arrives (e.g. after invalidation).
      */
     private fun observeHistory() {
         viewModel.historyList.observe(this) { pagingData ->
@@ -152,7 +158,7 @@ class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_his
             val refreshState = loadState.source.refresh
             when {
                 refreshState is LoadState.Loading -> {
-                    // First-time or refresh load — show shimmer, hide content
+                    // First-time or refresh load: show shimmer, hide content
                     b.shimmer.isVisible = true
                     b.emptyState.isVisible = false
                     b.errorState.isVisible = false
@@ -165,11 +171,10 @@ class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_his
                     b.emptyState.isVisible = false
                     b.errorState.isVisible = true
                     b.rvHistory.isVisible = false
-                    b.tvEntryCount.text = "—"
+                    b.tvEntryCount.text = getString(R.string.symbol_hyphen)
                     val msg = refreshState.error.localizedMessage ?: "Unknown error"
                     b.tvErrorMessage.text = msg
                     Logger.e(LOG_TAG_UI, "$TAG error loading history: $msg")
-                    // Paging3 retry re-runs the failed load without recreating the Activity.
                     b.btnRetry.setOnClickListener { adapter.retry() }
                 }
                 refreshState is LoadState.NotLoading -> {
@@ -201,15 +206,11 @@ class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_his
         }
     }
 
-    /**
-     * Reads subscription data off the main thread and updates the hero subtitle.
-     * See class-level kdoc for why this must NOT be called on the main thread.
-     */
-    private fun loadHeroSubtitleAsync() {
-        lifecycleScope.launch(Dispatchers.Default) {
+    private fun loadHeroSubtitle() {
+        io {
             val deviceId = InAppBillingHandler.getObfuscatedDeviceId()
             val subtitle = buildHeroSubtitle(deviceId)
-            withContext(Dispatchers.Main.immediate) {
+            uiCtx {
                 b.tvHeroSubtitle.text = subtitle
             }
         }
@@ -217,21 +218,13 @@ class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_his
 
     private fun buildHeroSubtitle(deviceId: String): String {
         val sub = RpnProxyManager.getSubscriptionData() ?: return ""
-        val planName = resolvePlanName(sub)
-        val accountId = sub.subscriptionStatus.accountId.take(12).ifBlank { return planName }
-        val deviceId = deviceId.take(4).ifBlank { return planName }
+        // Purchase token (show first 12 chars)
+        var token = sub.subscriptionStatus.purchaseToken ?: ""
+        token = token.length.let { if (it > 12) token.take(12) + "…" else token.ifBlank { "" } }
+        val accountId = sub.subscriptionStatus.accountId.take(12).ifBlank { return token }
+        val deviceId = deviceId.take(4).ifBlank { return token }
         val id = "$accountId • $deviceId"
-        return if (planName.isNotEmpty()) "$planName \u00B7 $id" else id
-    }
-
-    private fun resolvePlanName(subscriptionData: SubscriptionStateMachineV2.SubscriptionData): String {
-        val planId = subscriptionData.purchaseDetail?.planId ?: ""
-        return when (planId) {
-            InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> "One-Time 2 years"
-            InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> "One-Time 5 years"
-            InAppBillingHandler.SUBS_PRODUCT_YEARLY -> "Subscription Yearly"
-            else -> "Subscription Monthly"
-        }
+        return if (token.isNotEmpty()) "$token \u00B7 $id" else id
     }
 
     private fun startShimmer() {
@@ -258,5 +251,13 @@ class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_his
     override fun onResume() {
         super.onResume()
         if (b.shimmer.isVisible) startShimmer()
+    }
+
+    private suspend fun uiCtx(f: suspend () -> Unit) {
+        withContext(Dispatchers.Main) { f() }
+    }
+
+    private fun io(f: suspend () -> Unit) {
+        lifecycleScope.launch(Dispatchers.IO) { f() }
     }
 }

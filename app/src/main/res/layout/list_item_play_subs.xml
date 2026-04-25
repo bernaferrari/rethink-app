@@ -102,6 +102,18 @@
                 android:ellipsize="end"
                 tools:text="Cancel anytime" />
 
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/price_per_month"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="?attr/accentGood"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:text="₹141 / mo" />
+
         </LinearLayout>
     </LinearLayout>
 

@@ -27,9 +27,10 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.databinding.BottomsheetDeviceAuthErrorBinding
 import com.celzero.bravedns.iab.ServerApiError
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
+import androidx.core.net.toUri
 
 /**
- * Bottom sheet shown when a `/g/device` or `/customer` API call returns HTTP 401.
+ * Bottom sheet shown when a `/g/acc` or `/reg` API call returns HTTP 401.
  */
 class DeviceAuthErrorBottomSheet : BottomSheetDialogFragment() {
 
@@ -39,12 +40,12 @@ class DeviceAuthErrorBottomSheet : BottomSheetDialogFragment() {
     companion object {
         private const val TAG = "DeviceAuthErrorBS"
 
-        private const val ARG_ACCOUNT_ID       = "account_id"
+        private const val ARG_ACCOUNT_ID = "account_id"
         private const val ARG_DEVICE_ID_PREFIX = "device_id_prefix"
-        private const val ARG_OPERATION        = "operation"
+        private const val ARG_OPERATION = "operation"
 
-        private const val SUPPORT_EMAIL    = "hello@celzero.com"
-        private const val EMAIL_SUBJECT    = "Device Authorization Issue — Rethink DNS"
+        private const val SUPPORT_EMAIL = "hello@celzero.com"
+        private const val EMAIL_SUBJECT = "Device Authorization Issue - RPN"
 
         /**
          * All data is passed via [Bundle] args so the fragment survives
@@ -53,9 +54,9 @@ class DeviceAuthErrorBottomSheet : BottomSheetDialogFragment() {
         fun newInstance(error: ServerApiError.Unauthorized401): DeviceAuthErrorBottomSheet {
             return DeviceAuthErrorBottomSheet().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_ACCOUNT_ID,       error.accountId)
+                    putString(ARG_ACCOUNT_ID, error.accountId)
                     putString(ARG_DEVICE_ID_PREFIX, error.deviceIdPrefix)
-                    putString(ARG_OPERATION,        error.operation.name)
+                    putString(ARG_OPERATION, error.operation.name)
                 }
             }
         }
@@ -93,9 +94,9 @@ class DeviceAuthErrorBottomSheet : BottomSheetDialogFragment() {
     }
 
     private fun populateDetails(accountId: String, deviceIdPrefix: String) {
-        // Show full account ID; fall back to a placeholder if blank so the
-        // layout never appears empty.
-        binding.tvAccountId.text = accountId.ifBlank {
+        // Show masked account ID (first 12 + last 4 chars); fall back to a placeholder
+        // if blank so the layout never appears empty.
+        binding.tvAccountId.text = maskCid(accountId).ifBlank {
             getString(R.string.device_auth_error_id_unavailable)
         }
 
@@ -105,6 +106,17 @@ class DeviceAuthErrorBottomSheet : BottomSheetDialogFragment() {
         } else {
             getString(R.string.device_auth_error_id_unavailable)
         }
+    }
+
+    /**
+     * Masks a CID/accountId to show only the first 12 and last 4 characters,
+     * separated by "…".
+     *
+     * Example: "abcdefghijklmnopqrstuvwx" → "abcdefghijkl…uvwx"
+     */
+    private fun maskCid(id: String): String {
+        if (id.length <= 16) return id
+        return "${id.take(12)}…${id.takeLast(4)}"
     }
 
     private fun setupButtons(accountId: String, deviceIdPrefix: String) {
@@ -135,7 +147,7 @@ class DeviceAuthErrorBottomSheet : BottomSheetDialogFragment() {
             }
 
             val intent = Intent(Intent.ACTION_SENDTO).apply {
-                data = Uri.parse("mailto:")
+                data = "mailto:".toUri()
                 putExtra(Intent.EXTRA_EMAIL,   arrayOf(SUPPORT_EMAIL))
                 putExtra(Intent.EXTRA_SUBJECT, EMAIL_SUBJECT)
                 putExtra(Intent.EXTRA_TEXT,    body)
@@ -147,7 +159,7 @@ class DeviceAuthErrorBottomSheet : BottomSheetDialogFragment() {
                 // Fallback: open mail URI directly so Android can prompt the user
                 // to choose or install an email app.
                 val fallback = Intent(Intent.ACTION_VIEW,
-                    Uri.parse("mailto:$SUPPORT_EMAIL?subject=${Uri.encode(EMAIL_SUBJECT)}"))
+                    "mailto:$SUPPORT_EMAIL?subject=${Uri.encode(EMAIL_SUBJECT)}".toUri())
                 startActivity(fallback)
             }
         } catch (e: Exception) {

@@ -29,6 +29,7 @@ import androidx.core.net.toUri
 import androidx.core.view.WindowInsetsControllerCompat
 import com.celzero.bravedns.R
 import com.celzero.bravedns.iab.InAppBillingHandler
+import com.celzero.bravedns.iab.DeviceNotRegisteredNotifier
 import com.celzero.bravedns.iab.PurchaseConflictNotifier
 import com.celzero.bravedns.iab.ServerApiError
 import com.celzero.bravedns.service.PersistentState
@@ -45,6 +46,8 @@ import com.celzero.bravedns.ui.fragment.ManagePurchaseFragment
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE
+import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_NAME
+import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_VALUE
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
@@ -70,6 +73,7 @@ class NotificationHandlerActivity: AppCompatActivity() {
         PAUSE_ACTIVITY,
         WIREGUARD_ACTIVITY,
         PURCHASE_CONFLICT,
+        RPN_DEVICE_NOT_REGISTERED,
         NONE
     }
 
@@ -130,6 +134,8 @@ class NotificationHandlerActivity: AppCompatActivity() {
                 TrampolineType.WIREGUARD_ACTIVITY
             } else if (isPurchaseConflictIntent(intent)) {
                 TrampolineType.PURCHASE_CONFLICT
+            } else if (isDeviceNotRegisteredIntent(intent)) {
+                TrampolineType.RPN_DEVICE_NOT_REGISTERED
             } else {
                 TrampolineType.NONE
             }
@@ -158,6 +164,9 @@ class NotificationHandlerActivity: AppCompatActivity() {
             TrampolineType.PURCHASE_CONFLICT -> {
                 launchPurchaseConflictAndFinish(intent)
             }
+            TrampolineType.RPN_DEVICE_NOT_REGISTERED -> {
+                launchDeviceNotRegisteredAndFinish(intent)
+            }
             TrampolineType.NONE -> {
                 launchHomeScreenAndFinish()
             }
@@ -170,7 +179,7 @@ class NotificationHandlerActivity: AppCompatActivity() {
      * then opens [ManagePurchaseFragment] via [FragmentHostActivity].
      *
      * [ManagePurchaseFragment.setupServerErrorObserver] observes the LiveData and will
-     * immediately show [PurchaseConflictBottomSheet] — the same path used when the app is
+     * immediately show [PurchaseConflictBottomSheet] the same path used when the app is
      * already in the foreground.
      */
     private fun launchPurchaseConflictAndFinish(intent: Intent) {
@@ -189,16 +198,12 @@ class NotificationHandlerActivity: AppCompatActivity() {
                 operation     = operation,
                 serverMessage = intent.getStringExtra(PurchaseConflictNotifier.EXTRA_SERVER_MSG),
                 accountId     = intent.getStringExtra(PurchaseConflictNotifier.EXTRA_ACCOUNT_ID) ?: "",
-                deviceId      = intent.getStringExtra(PurchaseConflictNotifier.EXTRA_DEVICE_ID) ?: "",
                 purchaseToken = intent.getStringExtra(PurchaseConflictNotifier.EXTRA_PURCHASE_TOKEN) ?: "",
                 sku           = intent.getStringExtra(PurchaseConflictNotifier.EXTRA_SKU) ?: ""
             )
 
-            // Re-post to LiveData on main thread — ManageSubscriptionFragment's observer
-            // picks this up and shows PurchaseConflictBottomSheet automatically.
             InAppBillingHandler.serverApiErrorLiveData.value = error
 
-            // Dismiss the notification — user has tapped it and we are handling it.
             PurchaseConflictNotifier.cancel(this)
 
             Logger.i(LOG_TAG_UI, "launchPurchaseConflictAndFinish: re-posted conflict409, op=$operation")
@@ -213,6 +218,44 @@ class NotificationHandlerActivity: AppCompatActivity() {
             finish()
         } catch (e: Exception) {
             Logger.e(LOG_TAG_UI, "launchPurchaseConflictAndFinish: error: ${e.message}", e)
+            launchHomeScreenAndFinish()
+        }
+    }
+
+    /**
+     * Rebuilds [ServerApiError.DeviceNotRegistered] from the notification intent extras,
+     * re-posts it to [InAppBillingHandler.serverApiErrorLiveData], cancels the notification,
+     * then opens [ManagePurchaseFragment] via [FragmentHostActivity].
+     *
+     * [ManagePurchaseFragment.setupServerErrorObserver] will immediately show
+     * [DeviceNotRegisteredBottomSheet] the same path used when the fragment is on screen.
+     */
+    private fun launchDeviceNotRegisteredAndFinish(intent: Intent) {
+        try {
+            val error = ServerApiError.DeviceNotRegistered(
+                entitlementCid = intent.getStringExtra(DeviceNotRegisteredNotifier.EXTRA_ENTITLEMENT_CID) ?: "",
+                storedCid      = intent.getStringExtra(DeviceNotRegisteredNotifier.EXTRA_STORED_CID)       ?: "",
+                deviceIdPrefix = intent.getStringExtra(DeviceNotRegisteredNotifier.EXTRA_DEVICE_ID_PREFIX) ?: ""
+            )
+
+            // Re-post to LiveData on main thread so ManagePurchaseFragment's observer
+            // picks it up and shows DeviceNotRegisteredBottomSheet automatically.
+            InAppBillingHandler.serverApiErrorLiveData.value = error
+
+            DeviceNotRegisteredNotifier.cancel(this)
+
+            Logger.i(LOG_TAG_UI, "launchDeviceNotRegisteredAndFinish: re-posted DeviceNotRegistered error")
+
+            val hostIntent = FragmentHostActivity.createIntent(
+                context       = this,
+                fragmentClass = ManagePurchaseFragment::class.java
+            ).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+            startActivity(hostIntent)
+            finish()
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_UI, "launchDeviceNotRegisteredAndFinish: error: ${e.message}", e)
             launchHomeScreenAndFinish()
         }
     }
@@ -334,5 +377,12 @@ class NotificationHandlerActivity: AppCompatActivity() {
         if (intent.extras == null) return false
         val what = intent.extras?.getString(NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME)
         return NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE == what
+    }
+
+    /* checks if it's a device-not-registered intent sent from notification */
+    private fun isDeviceNotRegisteredIntent(intent: Intent): Boolean {
+        if (intent.extras == null) return false
+        val what = intent.extras?.getString(NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_NAME)
+        return NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_VALUE == what
     }
 }

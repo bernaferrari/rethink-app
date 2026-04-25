@@ -17,13 +17,21 @@ package com.celzero.bravedns.ui.activity
 
 import Logger
 import Logger.LOG_TAG_UI
+import android.animation.ValueAnimator
 import android.content.ClipData
+import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
+import android.graphics.Canvas
 import android.graphics.Typeface
+import android.graphics.drawable.Drawable
+import android.graphics.drawable.DrawableWrapper
+import androidx.core.graphics.withRotation
 import android.os.Bundle
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.LinearInterpolator
 import android.text.SpannableStringBuilder
 import android.text.Spanned
 import android.text.format.DateUtils
@@ -79,12 +87,8 @@ import kotlin.math.abs
  *
  * Hero banner: flag emoji + country name + city + server-key chip.
  *
- * Stats card: shown immediately with a shimmer skeleton; once the first
- * live-poll completes the shimmer is replaced by a table of real values
- * (status, IPv4/6, endpoint, Rx/Tx, last-handshake, active-since,
- * load/speed, and error counts when non-zero).  The poll runs every
- * [STATS_POLL_MS] milliseconds while the activity is resumed, and is
- * canceled on pause so it does not drain battery in the background.
+ * Stats card: The poll runs every [STATS_POLL_MS] milliseconds while the activity
+ * is resumed, and is canceled on pause so it does not drain battery in the background.
  */
 class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_detail) {
     private val b by viewBinding(ActivityRpnConfigDetailBinding::bind)
@@ -96,6 +100,8 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
 
     /** Coroutine that polls VpnController every [STATS_POLL_MS] ms. */
     private var statsJob: Job? = null
+    /** Looping spin animator for the refresh chip icon. */
+    private var chipAnimator: ValueAnimator? = null
 
     // SSID permission callback
     private val ssidPermissionCallback = object : SsidPermissionManager.PermissionCallback {
@@ -114,7 +120,6 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
     }
 
     companion object {
-        const val INTENT_EXTRA_SERVER_ID = "SERVER_WG_CONFIG_ID"
         const val INTENT_EXTRA_FROM_SERVER_SELECTION = "FROM_SERVER_SELECTION"
         const val INTENT_EXTRA_CONFIG_KEY = "CONFIG_KEY"
 
@@ -152,6 +157,8 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
         super.onPause()
         // Stop polling to conserve battery when screen is not visible.
         cancelStatsJob()
+        chipAnimator?.cancel()
+        chipAnimator = null
     }
 
     private fun init() {
@@ -180,9 +187,6 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
      * stats appear without delay.
      */
     private fun populateHeroBanner() {
-        // Key chip — available synchronously from the intent.
-        b.configIdText.text = configKey.ifBlank { "-" }
-
         // Placeholder while we fetch from DB.
         b.configNameText.text = ""
         b.tvHeroCity.text     = ""
@@ -226,15 +230,38 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
     private suspend fun resolveClientIps(id: String) {
         var ip4Meta: IPMetadata? = null
         var ip6Meta: IPMetadata? = null
+        var sinceTs = 0L
         try {
-            // GoVpnAdapter handles AUTO and empty-string ids centrally; pass id as-is
+            val pid = if (id.contains(AUTO_SERVER_ID, ignoreCase = true)) {
+                VpnController.getWinProxyId() ?: (Backend.RpnWin + "**")
+            } else {
+                Backend.RpnWin + id
+            }
+            sinceTs = VpnController.getProxyStats(pid)?.since ?: 0L
+            val cachedSince = RpnProxyManager.getCachedSinceTs(id)
+            val cached      = RpnProxyManager.getCachedIpMeta(id)
+
+            // Cache hit: tunnel has not reconnected and we already have metadata.
+            if (sinceTs > 0L && sinceTs == cachedSince && cached != null) {
+                if (DEBUG) Logger.d(LOG_TAG_UI, "resolveClientIps[$id]: cache hit, since=$sinceTs")
+                uiCtx { applyClientIps(cached.first, cached.second) }
+                return
+            }
+
+            if (DEBUG) Logger.d(
+                LOG_TAG_UI,
+                "resolveClientIps[$id]: live fetch, sinceTs=$sinceTs cachedSince=$cachedSince"
+            )
+            // GoVpnAdapter handles AUTO and empty-string ids centrally; pass id as-is.
             val client = VpnController.getRpnClientInfoById(id)
             ip4Meta = client?.iP4()
             ip6Meta = client?.iP6()
-            Logger.v(LOG_TAG_UI, "client ips resolved for $id: ip4=${ip4Meta?.getIP()} ip6=${ip6Meta?.getIP()}")
+            Logger.v(LOG_TAG_UI, "client ips resolved for $id: ip4=${ip4Meta?.ip} ip6=${ip6Meta?.ip}, sinceTs=$sinceTs")
         } catch (e: Exception) {
             Logger.w(LOG_TAG_UI, "failed to resolve client ips: ${e.message}")
         }
+        // Persist to Manager cache; preserves selectedAt for this server key.
+        RpnProxyManager.updateIpMeta(id, sinceTs, ip4Meta, ip6Meta)
         uiCtx { applyClientIps(ip4Meta, ip6Meta) }
     }
 
@@ -392,6 +419,15 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
         // Use the time when this server key was selected by the user, not the VPN uptime.
         val selectedSinceTs = RpnProxyManager.getSelectedSinceTs(id)
 
+        // Re-fetch client IPs when the tunnel has reconnected (stats.since changed).
+        // stats.since is epoch-ms; a change means a new tunnel session started and the
+        // assigned client IPs may have rotated.
+        val currentSince = stats?.since ?: 0L
+        if (currentSince > 0L && currentSince != RpnProxyManager.getCachedSinceTs(id)) {
+            Logger.d(LOG_TAG_UI, "since changed to $currentSince for $id; re-fetching client IPs")
+            resolveClientIps(id)
+        }
+
         uiCtx {
             applyStats(statusPair, stats, config, who, selectedSinceTs)
         }
@@ -482,14 +518,7 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
         }
         val base = getString(UIUtils.getProxyStatusStringRes(status.id))
             .replaceFirstChar(Char::titlecase)
-        val lastOK = stats?.lastOK ?: 0L
-        return if (lastOK > 0L) {
-            val ago = DateUtils.getRelativeTimeSpanString(
-                lastOK, System.currentTimeMillis(),
-                DateUtils.MINUTE_IN_MILLIS, DateUtils.FORMAT_ABBREV_RELATIVE
-            )
-            "$base · $ago"
-        } else base
+        return base
     }
 
     private fun buildStatusColor(status: UIUtils.ProxyStatus?, stats: RouterStats?): Int {
@@ -556,7 +585,13 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
     private fun observeAppCount(proxyId: String) {
         if (proxyId.isBlank()) return
         mappingViewModel.getAppCountById(proxyId).observe(this) { count ->
-            b.appsLabel.text = "Apps(${count ?: 0})"
+            // Don't override the "All apps" state when catch-all is active
+            if (b.catchAllCheck.isChecked) return@observe
+            val c = count ?: 0
+            b.appsLabel.text = "Apps ($c)"
+            b.appsLabel.setTextColor(
+                fetchColor(this, if (c > 0) R.attr.accentGood else R.attr.accentBad)
+            )
         }
     }
 
@@ -576,6 +611,13 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
                     b.ssidCheck.isChecked = config.ssidBased
                     b.otherSettingsCard.visibility = View.VISIBLE
                     b.mobileSsidSettingsCard.visibility = View.VISIBLE
+                    // Update apps section immediately based on catchAll state
+                    if (config.catchAll) {
+                        b.applicationsBtn.isEnabled = false
+                        b.applicationsBtn.alpha = 0.5f
+                        b.appsLabel.setTextColor(fetchColor(this, R.attr.primaryTextColor))
+                        b.appsLabel.text = "All apps"
+                    }
                 } else {
                     showInvalidConfigDialog()
                 }
@@ -589,6 +631,9 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
         b.hopBtn.setOnClickListener         { openHopDialog() }
         b.logsBtn.setOnClickListener        { openLogsDialog(key) }
 
+        b.configIdText.setOnClickListener {
+            initiateReconnect(key)
+        }
         b.valueWho.setOnClickListener {
             val text = b.valueWho.text?.toString().orEmpty()
             if (text.isBlank()) return@setOnClickListener
@@ -611,6 +656,15 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
             io {
                 RpnProxyManager.setCatchAllForWinServer(configKey, isChecked)
                 uiCtx {
+                    // Update apps section immediately to reflect the new catch-all state
+                    b.applicationsBtn.isEnabled = !isChecked
+                    b.applicationsBtn.alpha = if (isChecked) 0.5f else 1.0f
+                    if (isChecked) {
+                        b.appsLabel.setTextColor(fetchColor(this, R.attr.primaryTextColor))
+                        b.appsLabel.text = "All apps"
+                    } else {
+                        observeAppCount(configKey)
+                    }
                     Utilities.showToastUiCentered(
                         this,
                         if (isChecked) "Catch all mode enabled" else "Catch all mode disabled",
@@ -664,6 +718,84 @@ class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_d
         b.ssidFilterRl.setOnClickListener{ b.ssidCheck.performClick() }
     }
 
+    private fun initiateReconnect(key: String) {
+        setRefreshReconnectEnabled(false)
+        io {
+            // GoVpnAdapter handles AUTO and empty-string ids centrally
+            val reconnect = if (key.contains(AUTO_SERVER_ID, ignoreCase = true)) {
+                VpnController.reconnectRpnProxy("")
+            } else {
+                VpnController.reconnectRpnProxy(key)
+            }
+            uiCtx {
+                setRefreshReconnectEnabled(true)
+                if (reconnect) {
+                    Utilities.showToastUiCentered(this, getString(R.string.dc_refresh_toast), Toast.LENGTH_SHORT)
+                } else {
+                    Utilities.showToastUiCentered(this, "Failed to reconnect", Toast.LENGTH_SHORT)
+                }
+            }
+        }
+    }
+
+    private fun setRefreshReconnectEnabled(enabled: Boolean) {
+        val targetAlpha = if (enabled) 1f else 0.40f
+        b.configIdText.isEnabled = enabled
+        b.configIdText.isClickable = enabled
+        b.configIdText.animate().alpha(targetAlpha).setDuration(160).start()
+        if (enabled) stopChipIconAnimation() else startChipIconAnimation()
+    }
+
+    /** Starts a continuous clockwise spin on the chip's icon only. */
+    private fun startChipIconAnimation() {
+        chipAnimator?.cancel()
+        val raw = b.configIdText.chipIcon
+        val spinning: RotatingDrawable = raw as? RotatingDrawable ?: RotatingDrawable(raw ?: return).also { b.configIdText.chipIcon = it }
+        spinning.rotation = 0f
+        chipAnimator = ValueAnimator.ofFloat(0f, 360f).apply {
+            duration = 700L
+            repeatCount = ValueAnimator.INFINITE
+            repeatMode = ValueAnimator.RESTART
+            interpolator = LinearInterpolator()
+            addUpdateListener { spinning.rotation = it.animatedValue as Float }
+            start()
+        }
+    }
+
+    /**
+     * Stops the spin and eases the chip icon back to 0° so it doesn't
+     * snap abruptly when the reconnect operation completes.
+     */
+    private fun stopChipIconAnimation() {
+        chipAnimator?.cancel()
+        chipAnimator = null
+        val icon = b.configIdText.chipIcon as? RotatingDrawable ?: return
+        ValueAnimator.ofFloat(icon.rotation, 0f).apply {
+            duration = 200L
+            interpolator = AccelerateDecelerateInterpolator()
+            addUpdateListener { icon.rotation = it.animatedValue as Float }
+            start()
+        }
+    }
+
+    /**
+     * A [DrawableWrapper] that applies a canvas rotation around its own centre
+     * during [draw], leaving the host view's background and tint untouched.
+     */
+    private class RotatingDrawable(drawable: Drawable) : DrawableWrapper(drawable.mutate()) {
+        var rotation: Float = 0f
+            set(value) {
+                field = value
+                invalidateSelf()
+            }
+
+        override fun draw(canvas: Canvas) {
+            val b = bounds
+            canvas.withRotation(rotation, b.exactCenterX(), b.exactCenterY()) {
+                super@RotatingDrawable.draw(this)
+            }
+        }
+    }
 
     private fun showInvalidConfigDialog() {
         MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)

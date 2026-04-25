@@ -24,23 +24,30 @@ import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.celzero.bravedns.R
-import com.celzero.bravedns.database.RichHistoryEntry
+import com.celzero.bravedns.database.SubscriptionStateHistory
 import com.celzero.bravedns.database.SubscriptionStatus
 import com.celzero.bravedns.databinding.ListItemPurchaseHistoryBinding
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
+/**
+ * Paging adapter for [SubscriptionStateHistory] rows.
+ */
 class PurchaseHistoryAdapter(private val context: Context) :
-    PagingDataAdapter<RichHistoryEntry, PurchaseHistoryAdapter.HistoryViewHolder>(DIFF_CALLBACK) {
+    PagingDataAdapter<SubscriptionStateHistory, PurchaseHistoryAdapter.HistoryViewHolder>(DIFF_CALLBACK) {
 
     companion object {
-        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<RichHistoryEntry>() {
-            override fun areItemsTheSame(old: RichHistoryEntry, new: RichHistoryEntry) =
-                old.id == new.id
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<SubscriptionStateHistory>() {
+            override fun areItemsTheSame(
+                old: SubscriptionStateHistory,
+                new: SubscriptionStateHistory,
+            ) = old.id == new.id
 
-            override fun areContentsTheSame(old: RichHistoryEntry, new: RichHistoryEntry) =
-                old == new
+            override fun areContentsTheSame(
+                old: SubscriptionStateHistory,
+                new: SubscriptionStateHistory,
+            ) = old == new
         }
 
         private val DATE_FORMAT = SimpleDateFormat("MMM dd, yyyy  hh:mm a", Locale.getDefault())
@@ -62,17 +69,11 @@ class PurchaseHistoryAdapter(private val context: Context) :
     inner class HistoryViewHolder(private val b: ListItemPurchaseHistoryBinding) :
         RecyclerView.ViewHolder(b.root) {
 
-        fun bind(entry: RichHistoryEntry) {
+        fun bind(entry: SubscriptionStateHistory) {
             b.tvTimestamp.text = DATE_FORMAT.format(Date(entry.timestamp))
 
-            val productDisplay = buildString {
-                append(entry.displayProductName)
-                if (entry.planId.isNotBlank()) {
-                    append(" · ")
-                    append(entry.planId)
-                }
-            }
-            b.tvProductName.text = productDisplay.ifBlank { context.getString(R.string.payment_history_unknown_product) }
+            // product name and plan-id are not available without the join; hide the view.
+            b.tvProductName.visibility = View.GONE
 
             val stateLabel = context.getString(stateStringRes(entry.toState))
             b.tvStateBadge.text = stateLabel
@@ -92,7 +93,7 @@ class PurchaseHistoryAdapter(private val context: Context) :
                 b.tvReason.visibility = View.GONE
             } else {
                 b.tvReason.visibility = View.VISIBLE
-                // Trim very long error strings
+                // trim very long error strings
                 b.tvReason.text = if (reason.length > 120) reason.take(120) + "…" else reason
             }
 
@@ -100,23 +101,28 @@ class PurchaseHistoryAdapter(private val context: Context) :
             b.ivStatusIcon.setImageResource(iconRes)
             b.ivStatusIcon.imageTintList = ContextCompat.getColorStateList(context, iconTint)
 
-            if (entry.purchaseToken.isNotBlank()) {
-                b.tvPurchaseToken.visibility = View.VISIBLE
-                val shortToken = entry.purchaseToken.take(12) + "…"
-                b.tvPurchaseToken.text =
-                    context.getString(R.string.payment_history_token_fmt, shortToken)
-            } else {
-                b.tvPurchaseToken.visibility = View.GONE
-            }
+            // purchase token is not available without the JOIN; always hide.
+            b.tvPurchaseToken.visibility = View.GONE
 
             b.divider.visibility =
                 if (bindingAdapterPosition == itemCount - 1) View.GONE else View.VISIBLE
         }
 
-        private fun stateBadgeColors(entry: RichHistoryEntry): Pair<Int, Int> = when {
-            entry.isSuccess -> Pair(R.color.chipBackgroundColor, R.color.colorGreen_900)
-            entry.isFailure -> Pair(R.color.chipBgNegative, R.color.colorRed_A400)
-            entry.isPending -> Pair(R.color.chipBgNeutral, R.color.primaryText)
+        private fun isSuccess(entry: SubscriptionStateHistory) =
+            entry.toState == SubscriptionStatus.SubscriptionState.STATE_ACTIVE.id ||
+                entry.toState == SubscriptionStatus.SubscriptionState.STATE_PURCHASED.id
+
+        private fun isFailure(entry: SubscriptionStateHistory) =
+            entry.toState == SubscriptionStatus.SubscriptionState.STATE_PURCHASE_FAILED.id ||
+                entry.toState == SubscriptionStatus.SubscriptionState.STATE_REVOKED.id
+
+        private fun isPending(entry: SubscriptionStateHistory) =
+            entry.toState == SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING.id
+
+        private fun stateBadgeColors(entry: SubscriptionStateHistory): Pair<Int, Int> = when {
+            isSuccess(entry) -> Pair(R.color.chipBackgroundColor, R.color.colorGreen_900)
+            isFailure(entry) -> Pair(R.color.chipBgNegative, R.color.colorRed_A400)
+            isPending(entry) -> Pair(R.color.chipBgNeutral, R.color.primaryText)
             entry.toState == SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id ->
                 Pair(R.color.chipTextNegative, R.color.colorAmber_900)
             entry.toState == SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id ->
@@ -124,10 +130,10 @@ class PurchaseHistoryAdapter(private val context: Context) :
             else -> Pair(R.color.chipTextNeutral, R.color.colorPrimary)
         }
 
-        private fun stateIconAndTint(entry: RichHistoryEntry): Pair<Int, Int> = when {
-            entry.isSuccess -> Pair(R.drawable.ic_check_circle, R.color.accentGood)
-            entry.isFailure -> Pair(R.drawable.ic_stop, R.color.accentBad)
-            entry.isPending -> Pair(R.drawable.ic_refresh, R.color.primaryText)
+        private fun stateIconAndTint(entry: SubscriptionStateHistory): Pair<Int, Int> = when {
+            isSuccess(entry) -> Pair(R.drawable.ic_check_circle, R.color.accentGood)
+            isFailure(entry) -> Pair(R.drawable.ic_stop, R.color.accentBad)
+            isPending(entry) -> Pair(R.drawable.ic_refresh, R.color.primaryText)
             entry.toState == SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id ->
                 Pair(R.drawable.ic_circle, R.color.accentBad)
             entry.toState == SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id ->
@@ -138,16 +144,16 @@ class PurchaseHistoryAdapter(private val context: Context) :
 
     private fun stateStringRes(stateId: Int): Int {
         return when (SubscriptionStatus.SubscriptionState.fromId(stateId)) {
-            SubscriptionStatus.SubscriptionState.STATE_ACTIVE   -> R.string.lbl_active
+            SubscriptionStatus.SubscriptionState.STATE_ACTIVE -> R.string.lbl_active
             SubscriptionStatus.SubscriptionState.STATE_CANCELLED -> R.string.status_cancelled
-            SubscriptionStatus.SubscriptionState.STATE_EXPIRED  -> R.string.status_expired
-            SubscriptionStatus.SubscriptionState.STATE_REVOKED  -> R.string.payment_history_state_revoked
+            SubscriptionStatus.SubscriptionState.STATE_EXPIRED -> R.string.status_expired
+            SubscriptionStatus.SubscriptionState.STATE_REVOKED -> R.string.payment_history_state_revoked
             SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING -> R.string.payment_history_state_pending
             SubscriptionStatus.SubscriptionState.STATE_PURCHASED -> R.string.payment_history_state_purchased
             SubscriptionStatus.SubscriptionState.STATE_PURCHASE_FAILED -> R.string.ping_status_failed
-            SubscriptionStatus.SubscriptionState.STATE_GRACE    -> R.string.status_grace_period
-            SubscriptionStatus.SubscriptionState.STATE_ON_HOLD  -> R.string.server_selection_sub_on_hold
-            SubscriptionStatus.SubscriptionState.STATE_PAUSED   -> R.string.payment_history_state_paused
+            SubscriptionStatus.SubscriptionState.STATE_GRACE -> R.string.status_grace_period
+            SubscriptionStatus.SubscriptionState.STATE_ON_HOLD -> R.string.server_selection_sub_on_hold
+            SubscriptionStatus.SubscriptionState.STATE_PAUSED -> R.string.payment_history_state_paused
             else -> R.string.payment_history_state_unknown
         }
     }

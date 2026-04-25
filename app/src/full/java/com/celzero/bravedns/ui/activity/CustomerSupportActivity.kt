@@ -38,6 +38,7 @@ import com.celzero.bravedns.database.SubscriptionStatusDao
 import com.celzero.bravedns.databinding.ActivityCustomerSupportBinding
 import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import com.celzero.bravedns.scheduler.BugReportZipper
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.util.Themes
@@ -51,9 +52,10 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.text.ifEmpty
 
 /**
- * CustomerSupportActivity — lets users submit a support request via email.
+ * CustomerSupportActivity: lets users submit a support request via email.
  */
 class CustomerSupportActivity : AppCompatActivity(R.layout.activity_customer_support) {
 
@@ -92,6 +94,18 @@ class CustomerSupportActivity : AppCompatActivity(R.layout.activity_customer_sup
         setupToolbar()
         loadSubscriptionSummary()
         setupSendButton()
+        applyScrollPadding()
+    }
+
+    private fun applyScrollPadding() {
+        b.nestedScroll.post {
+            b.nestedScroll.setPadding(
+                b.nestedScroll.paddingLeft,
+                0,
+                b.nestedScroll.paddingRight,
+                b.nestedScroll.paddingBottom
+            )
+        }
     }
 
     private fun setupToolbar() {
@@ -103,19 +117,26 @@ class CustomerSupportActivity : AppCompatActivity(R.layout.activity_customer_sup
     /** Called after subscription data is loaded to fill the hero subtitle. */
     private fun updateHeroSubtitle(sub: SubscriptionStatus?, deviceId: String) {
         if (sub == null || sub.purchaseToken.isEmpty()) return
-        val planName = resolvePlanName(sub.planId)
+
+        // Purchase token (show first 12 chars)
+        var token = sub.purchaseToken ?: ""
+        token = token.length.let { if (it > 12) token.take(12) + "…" else token.ifBlank { "" } }
         val accountId = sub.accountId.take(12).ifBlank { return }
         val deviceId = deviceId.take(4).ifBlank { return }
         val id = "$accountId • $deviceId"
-        b.tvHeroSubtitle.text = if (planName.isNotEmpty()) "$planName \u00B7 $id" else id
+        b.tvHeroSubtitle.text = if (token.isNotEmpty()) "$token \u00B7 $id" else id
     }
 
-    private fun resolvePlanName(planId: String): String {
-        return when (planId) {
-            InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> "One-Time 2 years"
-            InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> "One-Time 5 years"
-            InAppBillingHandler.SUBS_PRODUCT_YEARLY -> "Subscription Yearly"
-            else -> "Subscription Monthly"
+    private fun resolvePlanName(subscriptionData: SubscriptionStateMachineV2.SubscriptionData?): String {
+        if (subscriptionData == null) return ""
+
+        val productId = subscriptionData.purchaseDetail?.productId ?: ""
+        return when (productId) {
+            InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> getString(R.string.plan_2yr)
+            InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> getString(R.string.plan_5yr)
+            InAppBillingHandler.SUBS_PRODUCT_YEARLY -> getString(R.string.billing_yearly)
+            InAppBillingHandler.SUBS_PRODUCT_MONTHLY -> getString(R.string.monthly_plan)
+            else -> subscriptionData.purchaseDetail?.productTitle?.ifEmpty { productId } ?: productId
         }
     }
 
@@ -133,65 +154,9 @@ class CustomerSupportActivity : AppCompatActivity(R.layout.activity_customer_sup
             }
             val deviceId = InAppBillingHandler.getObfuscatedDeviceId()
             withContext(Dispatchers.Main) {
-                populateSubscriptionCard(sub)
                 updateHeroSubtitle(sub, deviceId)
             }
         }
-    }
-
-    private fun populateSubscriptionCard(sub: SubscriptionStatus?) {
-        if (sub == null || sub.purchaseToken.isEmpty()) {
-            b.chipSubStatus.text = getString(R.string.support_sub_no_subscription)
-            b.chipSubStatus.chipBackgroundColor =
-                android.content.res.ColorStateList.valueOf(android.graphics.Color.TRANSPARENT)
-            b.tvSubPlan.text = "-"
-            b.tvSubPurchaseDate.text = "-"
-            b.tvSubToken.text = "-"
-            return
-        }
-
-        // Status chip
-        val stateLabel = SubscriptionStatus.SubscriptionState.fromId(sub.status).name
-            .replace("STATE_", "")
-            .replace("_", " ")
-        b.chipSubStatus.text = stateLabel
-
-        val chipColor = when (SubscriptionStatus.SubscriptionState.fromId(sub.status)) {
-            SubscriptionStatus.SubscriptionState.STATE_ACTIVE ->
-                resolveAttrColor(R.attr.accentGood)
-            SubscriptionStatus.SubscriptionState.STATE_CANCELLED,
-            SubscriptionStatus.SubscriptionState.STATE_GRACE ->
-                resolveAttrColor(R.attr.colorGolden)
-            SubscriptionStatus.SubscriptionState.STATE_EXPIRED,
-            SubscriptionStatus.SubscriptionState.STATE_REVOKED,
-            SubscriptionStatus.SubscriptionState.STATE_PURCHASE_FAILED ->
-                resolveAttrColor(R.attr.accentBad)
-            else -> resolveAttrColor(R.attr.primaryLightColorText)
-        }
-        b.chipSubStatus.chipBackgroundColor =
-            android.content.res.ColorStateList.valueOf(chipColor)
-        b.chipSubStatus.setTextColor(android.graphics.Color.WHITE)
-
-        // Plan
-        val plan = sub.productTitle.ifBlank { sub.planId.ifBlank { sub.productId } }
-        b.tvSubPlan.text = plan.ifBlank { "-" }
-
-        // Purchase date
-        b.tvSubPurchaseDate.text = if (sub.purchaseTime > 0L)
-            SimpleDateFormat("MMM d, yyyy", Locale.getDefault()).format(Date(sub.purchaseTime))
-        else "-"
-
-        // Token: show at most first 12 chars, then "…": accountId is never shown in the UI
-        b.tvSubToken.text = if (sub.purchaseToken.length > 12)
-            sub.purchaseToken.take(12) + "…"
-        else
-            sub.purchaseToken
-    }
-
-    /** Resolve a theme attribute to its concrete color for the current theme. */
-    private fun resolveAttrColor(attrRes: Int): Int {
-        val ta = obtainStyledAttributes(intArrayOf(attrRes))
-        return try { ta.getColor(0, 0) } finally { ta.recycle() }
     }
 
     private fun setupSendButton() {
@@ -277,11 +242,6 @@ class CustomerSupportActivity : AppCompatActivity(R.layout.activity_customer_sup
         }
     }
 
-    /**
-     * Builds the FULL diagnostic dump written to the attached .txt file.
-     * The attachment is the ONLY place where subscription/stats data lives —
-     * none of it appears in the email body.
-     */
     private fun buildDiagnosticText(
         description: String,
         category: String?,
@@ -289,7 +249,7 @@ class CustomerSupportActivity : AppCompatActivity(R.layout.activity_customer_sup
         history: List<com.celzero.bravedns.database.SubscriptionStateHistory>,
         rpnStats: String
     ): String {
-        // Use plain ASCII separators only — Unicode box-drawing characters (===, ---, arrows)
+        // Use plain ASCII separators only: Unicode box-drawing characters (===, ---, arrows)
         // get mangled by email clients and devices that mis-detect encoding.
         val heavy = "===========================================================\n"
         val light = "-----------------------------------------------------------\n"
@@ -390,7 +350,7 @@ class CustomerSupportActivity : AppCompatActivity(R.layout.activity_customer_sup
         }
 
         sb.append(
-            description.ifEmpty { "(No description provided — please see the attached diagnostic file for details.)" }
+            description.ifEmpty { "(No description provided, please see the attached diagnostic file for details.)" }
         )
 
         sb.append("\n\n")
@@ -462,7 +422,7 @@ class CustomerSupportActivity : AppCompatActivity(R.layout.activity_customer_sup
                 for (i in 1 until uris.size) clipData.addItem(ClipData.Item(uris[i]))
                 intent.clipData = clipData
             } else {
-                // No attachments — fall back to ACTION_SEND (single-part)
+                // No attachments, fall back to ACTION_SEND (single-part)
                 intent.action = Intent.ACTION_SEND
             }
 
@@ -493,8 +453,8 @@ class CustomerSupportActivity : AppCompatActivity(R.layout.activity_customer_sup
      *
      * Examples:
      *   "37e3d67bc99b89eb4ac600f7ffdb4019" → "37e3d67bc99b***"
-     *   "short123"                          → "short123"  (≤12 chars shown as-is)
-     *   ""                                  → "—"
+     *   "short123" → "short123"  (≤12 chars shown as-is)
+     *   "" → "-"
      */
     private fun redactId(id: String): String {
         if (id.isEmpty()) return "N/A"
