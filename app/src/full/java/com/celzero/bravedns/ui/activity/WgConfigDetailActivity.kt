@@ -59,6 +59,7 @@ import com.celzero.bravedns.ui.dialog.WgHopDialog
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import com.celzero.bravedns.ui.dialog.WgSsidDialog
 import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.SnackbarHelper
 import com.celzero.bravedns.util.SsidPermissionManager
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
@@ -202,11 +203,6 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
             return
         }
 
-        b.hopBtn.text = getString(
-            R.string.two_argument_space,
-            getString(R.string.hop_add_remove_title),
-            getString(R.string.lbl_experimental)
-        )
         b.editBtn.text = getString(R.string.rt_edit_dialog_positive).uppercase()
         b.deleteBtn.text = getString(R.string.lbl_delete).uppercase()
 
@@ -250,7 +246,6 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
             b.lockdownRl.visibility = View.VISIBLE
             b.catchAllRl.visibility = View.VISIBLE
             b.oneWgInfoTv.visibility = View.GONE
-            b.hopBtn.visibility = View.VISIBLE
             b.hopBtnX.visibility = View.VISIBLE
             b.mobileSsidSettingsCard.visibility = View.VISIBLE
         } else if (wgType.isOneWg()) {
@@ -258,13 +253,11 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
                 getString(R.string.rt_list_simple_btn_txt).replaceFirstChar(Char::titlecase)
             b.lockdownRl.visibility = View.GONE
             b.catchAllRl.visibility = View.GONE
-            b.hopBtn.visibility = View.GONE
             b.hopBtnX.visibility = View.GONE
             b.oneWgInfoTv.visibility = View.VISIBLE
-            b.applicationsBtn.isEnabled = false
             b.applicationsBtnX.isEnabled = false
+            b.applicationsBtnX.alpha = 0.5f
             b.mobileSsidSettingsCard.visibility = View.GONE
-            b.applicationsBtn.text = getString(R.string.one_wg_apps_added)
             b.appsLabel.text = "All apps"
         } else {
             // invalid wireguard type, finish the activity
@@ -283,8 +276,9 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
             // if catch all is enabled, disable the add apps button and lockdown
             b.catchAllCheck.isChecked = mapping.isCatchAll
             if (mapping.isCatchAll) {
-                b.applicationsBtn.isEnabled = false
-                b.applicationsBtn.text = getString(R.string.routing_remaining_apps)
+                b.applicationsBtnX.isEnabled = false
+                b.applicationsBtnX.alpha = 0.5f
+                b.appsLabel.text = "All apps"
             }
             b.lockdownCheck.isChecked = mapping.isLockdown
             b.useMobileCheck.isChecked = mapping.useOnlyOnMetered
@@ -293,12 +287,14 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         if (shouldObserveAppsCount()) {
             handleAppsCount()
         } else {
-            b.applicationsBtn.isEnabled = false
+            b.applicationsBtnX.isEnabled = false
+            b.applicationsBtnX.alpha = 0.5f
             // texts are updated based on the catch all and one-wg
         }
         setupSsidSection(mapping)
         io { updateStatusUi(config.getId()) }
         prefillConfig(config)
+        refreshHopStatus()
     }
 
     private suspend fun updateStatusUi(id: Int) {
@@ -508,14 +504,16 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
 
     private fun handleAppsCount() {
         val id = ID_WG_BASE + configId
-        b.applicationsBtn.isEnabled = true
+        b.applicationsBtnX.isEnabled = true
+        b.applicationsBtnX.alpha = 1.0f
         mappingViewModel.getAppCountById(id).observe(this) {
+            // Don't override the "All apps" state when catch-all or one-wg is active
+            if (b.catchAllCheck.isChecked || wgType.isOneWg()) return@observe
             if (it == 0) {
-                b.applicationsBtn.setTextColor(fetchColor(this, R.attr.accentBad))
+                b.appsLabel.setTextColor(fetchColor(this, R.attr.accentBad))
             } else {
-                b.applicationsBtn.setTextColor(fetchColor(this, R.attr.accentGood))
+                b.appsLabel.setTextColor(fetchColor(this, R.attr.accentGood))
             }
-            b.applicationsBtn.text = getString(R.string.add_remove_apps, it.toString())
             b.appsLabel.text = "Apps ($it)"
         }
     }
@@ -530,7 +528,7 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
 
         b.addPeerFab.setOnClickListener { openAddPeerDialog() }
 
-        b.applicationsBtn.setOnClickListener {
+        b.applicationsBtnX.setOnClickListener {
             val proxyName = WireguardManager.getConfigName(configId)
             openAppsDialog(proxyName)
         }
@@ -592,15 +590,17 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
             updateUseOnMobileNetwork(b.useMobileCheck.isChecked)
             if (b.useMobileCheck.isChecked) {
                 // Enable experimental-dependent settings when experimental features are enabled
-                persistentState.enableStabilityDependentSettings(this)
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                }
             }
         }
 
-        b.logsBtn.setOnClickListener {
+        b.logsBtnX.setOnClickListener {
             startActivity(ID_WG_BASE + configId)
         }
 
-        b.hopBtn.setOnClickListener {
+        b.hopBtnX.setOnClickListener {
             val mapping = WireguardManager.getConfigFilesById(configId)
             if (mapping == null) {
                 showInvalidConfigDialog()
@@ -749,9 +749,10 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
                 "User ${if (enabled) "enabled" else "disabled"} catch all apps for WireGuard config with id $configId"
             )
             uiCtx {
-                b.applicationsBtn.isEnabled = !enabled
+                b.applicationsBtnX.isEnabled = !enabled
+                b.applicationsBtnX.alpha = if (enabled) 0.5f else 1.0f
                 if (enabled) {
-                    b.applicationsBtn.text = getString(R.string.routing_remaining_apps)
+                    b.appsLabel.text = "All apps"
                 } else {
                     handleAppsCount()
                 }
@@ -773,6 +774,31 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         includeAppsDialog.show()
     }
 
+    private fun refreshHopStatus() {
+        io {
+            val hopIdStr = WgHopManager.getHop(configId)
+            val hopName: String? = if (hopIdStr.isNotEmpty()) {
+                val id = convertStringIdToId(hopIdStr)
+                WireguardManager.getConfigById(id)?.getName()
+            } else {
+                null
+            }
+            uiCtx { updateHopStatusLabel(hopName) }
+        }
+    }
+
+    private fun updateHopStatusLabel(hopName: String?) {
+        if (hopName != null) {
+            b.hopBadge.visibility = View.VISIBLE
+            b.hopLabel.setTextColor(fetchColor(this, R.attr.accentGood))
+            b.hopIcon.alpha = 1.0f
+        } else {
+            b.hopBadge.visibility = View.GONE
+            b.hopLabel.setTextColor(fetchColor(this, R.attr.primaryTextColor))
+            b.hopIcon.alpha = 0.5f
+        }
+    }
+
     private fun openHopDialog(hopables: List<Config>, selectedId: Int) {
         val curr = WireguardManager.getConfigById(configId)
         if (curr == null) {
@@ -789,6 +815,7 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
         }
         val hopDialog = WgHopDialog(this, themeId, configId, hopables, selectedId)
         hopDialog.setCanceledOnTouchOutside(false)
+        hopDialog.setOnDismissListener { refreshHopStatus() }
         hopDialog.show()
     }
 
@@ -957,7 +984,9 @@ class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
 
             if (isChecked && currentHasPermissions && currentLocationEnabled) {
                 // Enable experimental-dependent settings when experimental features are enabled
-                persistentState.enableStabilityDependentSettings(this)
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                }
 
                 // Enabling with proper permissions, load and display SSIDs
                 io {
