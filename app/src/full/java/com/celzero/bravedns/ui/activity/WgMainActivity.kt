@@ -260,12 +260,6 @@ class WgMainActivity :
         b.setTextColor(UIUtils.fetchColor(this, R.attr.primaryTextColor))
     }
 
-    override fun onResume() {
-        super.onResume()
-        oneWgConfigAdapter?.notifyDataSetChanged()
-        wgConfigAdapter?.notifyDataSetChanged()
-    }
-
     private fun Context.isDarkThemeOn(): Boolean {
         return resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK ==
             Configuration.UI_MODE_NIGHT_YES
