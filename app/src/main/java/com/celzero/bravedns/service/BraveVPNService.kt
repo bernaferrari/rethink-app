@@ -4033,7 +4033,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
 
     private fun <T> go2kt(co: CoFactory<T>, f: suspend() -> T): T = runBlocking {
         // runBlocking blocks the current thread until all coroutines within it are complete
-        // an call a suspending function from a non-suspending context and obtain the result.
+        // a call a suspending function from a non-suspending context and obtain the result.
         return@runBlocking co.tryDispatch(f)
     }
 
