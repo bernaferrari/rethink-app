@@ -31,6 +31,7 @@ import androidx.lifecycle.lifecycleScope
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.databinding.BottomSheetHomeScreenBinding
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.activity.ProxySettingsActivity
@@ -42,6 +43,7 @@ import com.celzero.bravedns.util.UIUtils.htmlToSpannedText
 import com.celzero.bravedns.util.UIUtils.openVpnProfile
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
+import com.celzero.firestack.backend.Rpn
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -178,6 +180,8 @@ class HomeScreenSettingBottomSheet : BottomSheetDialogFragment() {
         b.bsHomeScreenVpnLockdownDesc.setOnClickListener {
             if (VpnController.isVpnLockdown()) {
                 openVpnProfile(requireContext())
+            } else if (RpnProxyManager.isRpnActive()) {
+                openProxySettings(SCREEN_PROXY)
             } else if (appConfig.isProxyEnabled()) {
                 // show proxy settings
                 if (appConfig.isWireGuardEnabled()) {
