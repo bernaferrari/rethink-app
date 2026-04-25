@@ -54,6 +54,7 @@ import com.celzero.bravedns.util.NewSettingsManager
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.setBadgeDotVisible
+import com.celzero.bravedns.util.SnackbarHelper
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastR
 import com.celzero.bravedns.util.Utilities.isPlayStoreFlavour
@@ -517,7 +518,9 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
             persistentState.enableDnsAlg = enabled
             if (enabled) {
                 // Enable experimental-dependent settings when experimental features are enabled
-                requireContext().let { persistentState.enableStabilityDependentSettings(it) }
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                }
             }
             updateSpiltDns()
             logEvent(
@@ -537,7 +540,9 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
             persistentState.fetchFavIcon = enabled
             if (enabled) {
                 // Enable experimental-dependent settings when experimental features are enabled
-                requireContext().let { persistentState.enableStabilityDependentSettings(it) }
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                }
             }
             logEvent("fav icon? $enabled", "User changed fav icon setting to $enabled")
         }
@@ -646,7 +651,9 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
             persistentState.splitDns = isChecked
             if (isChecked) {
                 // Enable experimental-dependent settings when experimental features are enabled
-                requireContext().let { persistentState.enableStabilityDependentSettings(it) }
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                }
             }
             updateConnectedStatus(persistentState.connectedDnsName)
             logEvent(
