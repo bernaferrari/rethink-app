@@ -39,7 +39,6 @@ class LogExportWorker(context: Context, workerParams: WorkerParameters) :
     private val consoleLogDao by inject<ConsoleLogDAO>()
 
     companion object {
-        // Number of rows fetched per chunk — keeps heap pressure low
         private const val CHUNK_SIZE = 5_000
     }
 

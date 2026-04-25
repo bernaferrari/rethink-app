@@ -29,8 +29,6 @@ interface ConsoleLogDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBatch(log: List<ConsoleLog>)
 
-    // Chunked export: fetch LIMIT rows starting at offset — used by LogExportWorker for
-    // streaming export to avoid loading all rows into a single StringBuilder (OOM risk).
     @Query("SELECT * FROM ConsoleLog ORDER BY id LIMIT :limit OFFSET :offset")
     fun getLogsChunked(limit: Int, offset: Int): List<ConsoleLog>
 

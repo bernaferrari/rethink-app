@@ -64,7 +64,7 @@ object EnhancedBugReport : KoinComponent {
      *
      * A file is added here the moment it is created (before any reader touches it) and removed
      * only after the reader has fully closed the file.  reportTombstonesToFirebaseOnStartup
-     * skips every file present in this set, regardless of when it was created — eliminating
+     * skips every file present in this set, regardless of when it was created, eliminating
      * the race condition that a timestamp-based guard cannot handle.
      */
     private val activeSessionFileNames = CopyOnWriteArraySet<String>()
@@ -279,7 +279,7 @@ object EnhancedBugReport : KoinComponent {
      * the `.txt` suffix to isolate the numeric string.
      *
      * Returns 0 if the name does not match any known prefix or the numeric part cannot be parsed.
-     * Callers treat 0 as "unknown — assume unreported" so the file gets sent rather than skipped.
+     * Callers treat 0 as "unknown assume unreported" so the file gets sent rather than skipped.
      */
     private fun extractTimestampFromName(name: String): Long {
         if (name.isEmpty()) return 0L
@@ -304,12 +304,11 @@ object EnhancedBugReport : KoinComponent {
     private fun sendFileToFirebase(file: File): Boolean {
         return try {
             val content = readTruncatedContent(file)
-            // The file type is encoded in the prefix — extract it for a cleaner title.
             val type = when {
                 file.name.startsWith(PREFIX_GO_CRASH) -> "GoCrash"
-                file.name.startsWith(PREFIX_GO_LOG)   -> "GoLog"
-                file.name.startsWith(PREFIX_KOTLIN)   -> "KotlinCrash"
-                else                                  -> "CrashLog"
+                file.name.startsWith(PREFIX_GO_LOG) -> "GoLog"
+                file.name.startsWith(PREFIX_KOTLIN) -> "KotlinCrash"
+                else -> "CrashLog"
             }
             Logger.d(LOG_TAG_BUG_REPORT, "err-rpting: sending $type ${file.name} (${content.length} chars)")
             if (content.length == 13 || content.length == 15) { // "writeLine("Init GoLog->")"
@@ -394,7 +393,7 @@ object EnhancedBugReport : KoinComponent {
                 file
             } else {
                 Log.e(LOG_TAG_BUG_REPORT, "file already exists: ${file.name}")
-                file  // return it anyway — caller will write to it
+                file
             }
         } catch (e: Exception) {
             Log.e(LOG_TAG_BUG_REPORT, "failed to create ${file.name}: ${e.message}")

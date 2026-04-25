@@ -42,7 +42,7 @@ internal object FdHelper {
      *
      * Steps:
      *   1. Write [fd] into a blank [FileDescriptor] via the private `descriptor` field.
-     *      We never close this wrapper — Go owns the underlying fd number.
+     *      We never close this wrapper, Go owns the underlying fd number.
      *   2. Call [Os.dup] to get a new fd number pointing at the same kernel object.
      *   3. Attempt to clear O_NONBLOCK on the dup so callers can use blocking [Os.read].
      *   4. Wrap the dup's fd number in [ParcelFileDescriptor.adoptFd] so we have a closeable
@@ -243,7 +243,7 @@ internal object FdHelper {
      *
      * This object implements `libcore.io.Os` and exposes `fcntlInt`.  The field is not
      * cached here because this is a private helper only called from [fcntlGetInt] and
-     * [fcntlSetInt] which are themselves only called from [makeBlocking] — i.e., at most
+     * [fcntlSetInt] which are themselves only called from [makeBlocking] i.e., at most
      * twice per reader startup, never on the hot read path.
      */
     private fun libcoreOsInstance(): Any {
@@ -255,18 +255,6 @@ internal object FdHelper {
 
     /**
      * Lazily resolved, cached [Field] for the private `FileDescriptor.descriptor` int.
-     *
-     * FRAGILE — this is not part of the public Android SDK.  It has been present and
-     * stable since API 1, but Google has warned it could change.  If it does:
-     *   - Both readers will fail to start (they call [duplicate] which calls [setFdInt]).
-     *   - The failure is caught and logged — no crash, just no log capture.
-     *   - The fix is to update this one field lookup in this one file.
-     *
-     * Cached as a `lazy` so the reflection cost is paid exactly once across the lifetime
-     * of the process, not once per call to [setFdInt]/[getFdInt].
-     *
-     * Thread-safety: `lazy` default mode is [LazyThreadSafetyMode.SYNCHRONIZED], so
-     * concurrent first-time access from two readers starting simultaneously is safe.
      */
     private val descriptorField: Field by lazy {
         try {
@@ -277,7 +265,7 @@ internal object FdHelper {
             // This should never happen on any shipping Android version.
             // Log clearly so it's obvious what broke if a future SDK removes it.
             Logger.e(LOG_TAG_BUG_REPORT,
-                "FdHelper: FileDescriptor.descriptor field not found — Android SDK changed! " +
+                "FdHelper: FileDescriptor.descriptor field not found, Android SDK changed! " +
                 "Go log/crash capture will not work.", e)
             throw e  // re-throw: the lazy delegate will remember the exception and re-throw
                      // on every future access, giving clear errors rather than silent failures.

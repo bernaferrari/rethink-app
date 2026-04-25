@@ -15,6 +15,8 @@
  */
 package com.celzero.bravedns.util
 
+import com.celzero.bravedns.util.Utilities.isFdroidFlavour
+
 object CrashReporter {
     // safe cutoff
     private const val MAX_MESSAGE_LENGTH = 1500
@@ -27,6 +29,7 @@ object CrashReporter {
      * Report a Go-level crash string to Firebase.
      */
     fun recordGoCrash(message: String) {
+        if (isFdroidFlavour()) return
         val msg = message.split(LOG_SPLITTER)
         val safeType = msg.getOrNull(0) ?: "No type"
         val safeMessage = msg.getOrNull(1)?.take(MAX_MESSAGE_LENGTH) ?: "No message"

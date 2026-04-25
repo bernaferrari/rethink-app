@@ -18,25 +18,16 @@ package com.celzero.bravedns.service
 import Logger
 import Logger.LOG_TAG_BUG_REPORT
 import android.content.Context
-import android.os.ParcelFileDescriptor
-import android.system.ErrnoException
 import android.system.Os
-import android.system.OsConstants
-import android.system.StructPollfd
 import com.celzero.bravedns.scheduler.EnhancedBugReport
 import com.celzero.bravedns.service.GoCrashFileDescriptorReader.Companion.MAX_LINE_BYTES
-import com.celzero.bravedns.util.Daemons
+import com.celzero.bravedns.util.FileObserverManager
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import java.io.BufferedReader
-import java.io.BufferedWriter
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileDescriptor
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.OutputStreamWriter
-import java.io.IOException
-import java.io.InputStreamReader
-import java.io.InterruptedIOException
 import kotlin.system.exitProcess
 
 /**
@@ -53,20 +44,20 @@ import kotlin.system.exitProcess
  *
  * Single-coroutine design: all I/O runs on one [Dispatchers.IO] coroutine so no
  * locks or synchronization are needed.  The coroutine is fire-and-forget; there is
- * no need to track the [Job] — Go's write-end close triggers EOF which terminates
+ * no need to track the [Job], Go's write-end close triggers EOF which terminates
  * the read loop naturally.
  *
  */
 class GoCrashFileDescriptorReader(private val context: Context?) {
 
-    private val executor = Daemons.makeThread("goCrashFd")
-    private var writer: BufferedWriter? = null
+    /*private val executor = Daemons.makeThread("goCrashFd")
+    private var writer: BufferedWriter? = null*/
 
     /**
      * Duplicates [fd], creates the output crash file, and starts the background
      * read loop.  Returns [true] if setup succeeded, [false] on any early error.
      */
-    fun start(fd: Long): Boolean {
+    /*fun start(fd: Long): Boolean {
         if (fd <= 0L) {
             Logger.w(LOG_TAG_BUG_REPORT, "go crash fd invalid: $fd")
             return false
@@ -98,20 +89,56 @@ class GoCrashFileDescriptorReader(private val context: Context?) {
             readLoop1(pfd)
 
             // 4
-            /*drainCrashFd(pfd.fileDescriptor) { chunk ->
+            *//*drainCrashFd(pfd.fileDescriptor) { chunk ->
                 writeChunk(chunk.toByteArray(), chunk.length)
-            }*/
+            }*//*
         }
 
         return true
-    }
+    }*/
 
     fun start2(): File? {
         // create a file and send the file descriptor to the service
-        return createCrashFile2()
+        // create an os.file observer for the file
+        val file = createCrashFile2()
+        if (file == null) {
+            Logger.e(LOG_TAG_BUG_REPORT, "$TAG createCrashFile2 returned null")
+            return null
+        }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            observeFile(file)
+        }
+
+        return file
     }
 
-    private fun readLoop1(pfd: ParcelFileDescriptor) {
+    private suspend fun observeFile(file: File) {
+        val parent = file.parentFile
+        if (parent == null) {
+            Logger.e(LOG_TAG_BUG_REPORT, "$TAG createCrashFile2 returned null")
+            return
+        }
+
+        val observer = FileObserverManager(
+            path = parent.absolutePath,
+            fileName = file.name
+        ) {
+            Logger.e(LOG_TAG_BUG_REPORT, "$TAG Crash file written → exiting process")
+            CoroutineScope(Dispatchers.Default).launch {
+                delay(5000)
+
+                Logger.e(LOG_TAG_BUG_REPORT, "$TAG Killing process now")
+                android.os.Process.killProcess(android.os.Process.myPid())
+                exitProcess(1)
+            }
+        }
+
+        observer.start()
+        Logger.d(LOG_TAG_BUG_REPORT, "$TAG Crash file observer started, ${file.absolutePath}")
+    }
+
+    /*private fun readLoop1(pfd: ParcelFileDescriptor) {
         Logger.d(LOG_TAG_BUG_REPORT, "$TAG readLoop: started")
         val reader = BufferedReader(InputStreamReader(FileInputStream(pfd.fileDescriptor)))
         try {
@@ -131,9 +158,9 @@ class GoCrashFileDescriptorReader(private val context: Context?) {
             try { pfd.close() } catch (_: Exception) {}
             Logger.d(LOG_TAG_BUG_REPORT, "$TAG readLoop: cleaned up")
         }
-    }
+    }*/
 
-    private fun writeLine(line: String) {
+    /*private fun writeLine(line: String) {
         try {
             val w = writer ?: run {
                 Logger.e(LOG_TAG_BUG_REPORT, "$TAG writeLine: writer is null, line dropped")
@@ -249,7 +276,6 @@ class GoCrashFileDescriptorReader(private val context: Context?) {
                 } catch (e: InterruptedIOException) {
                     Logger.e(LOG_TAG_BUG_REPORT,"GoCrashFd: fd closed, retrying...")
 
-                    // 🔑 Wait before retry — FD may be reused later
                     Thread.sleep(50)
 
                 } catch (e: Exception) {
@@ -280,7 +306,7 @@ class GoCrashFileDescriptorReader(private val context: Context?) {
         try { writer?.flush() } catch (_: Exception) {}
         try { writer?.close() } catch (_: Exception) {}
         writer = null
-    }
+    }*/
 
 
     /**
@@ -294,11 +320,11 @@ class GoCrashFileDescriptorReader(private val context: Context?) {
      * buffer will never grow large.  We still cap individual lines at
      * [MAX_LINE_BYTES] as a safety net against unexpected output.
      */
-    private fun readLoop(pfd: ParcelFileDescriptor, outFile: File) {
+    /*private fun readLoop(pfd: ParcelFileDescriptor, outFile: File) {
         val readBuf = ByteArray(READ_BUF_SIZE)
 
         try {
-            FileOutputStream(outFile, /* append= */ false).use { fos ->
+            FileOutputStream(outFile, *//* append= *//* false).use { fos ->
                 var m = 0
                 while (true) {
                     val n = try {
@@ -329,13 +355,13 @@ class GoCrashFileDescriptorReader(private val context: Context?) {
             }
 
             // Delete the file if nothing was written (Go did not crash this session).
-            /*if (readBuf.isEmpty()) {
+            *//*if (readBuf.isEmpty()) {
                 outFile.delete()
                 Logger.d(LOG_TAG_BUG_REPORT, "go crash: deleted empty file ${outFile.name}")
             } else {
                 // Rotate old files only when we actually wrote something.
                 performRotation(outFile)
-            }*/
+            }*//*
         } catch (e: Exception) {
             Logger.e(LOG_TAG_BUG_REPORT, "go crash read loop error: ${e.message}", e)
             // delete the file if it is empty
@@ -348,7 +374,7 @@ class GoCrashFileDescriptorReader(private val context: Context?) {
                 Logger.e(LOG_TAG_BUG_REPORT, "go crash: pfd close error")
             }
         }
-    }
+    }*/
 
     private fun createCrashFile2(): File? {
         if (context == null) {
@@ -361,6 +387,7 @@ class GoCrashFileDescriptorReader(private val context: Context?) {
             return null
         }
 
+        Logger.d(LOG_TAG_BUG_REPORT, "$TAG createCrashFileFd: new file ${file.absolutePath}")
         return file
     }
 
@@ -369,7 +396,7 @@ class GoCrashFileDescriptorReader(private val context: Context?) {
      * three tombstone types (golog_, gocrash_, kotlin_) share the same folder, naming scheme,
      * and rotation logic.
      */
-    private fun createCrashFile(): File? {
+    /*private fun createCrashFile(): File? {
         if (context == null) {
             Logger.e(LOG_TAG_BUG_REPORT, "$TAG createCrashFile: missing app context")
             return null
@@ -381,7 +408,7 @@ class GoCrashFileDescriptorReader(private val context: Context?) {
         }
         return try {
             writer = BufferedWriter(
-                OutputStreamWriter(FileOutputStream(file, /* append= */ true), Charsets.UTF_8)
+                OutputStreamWriter(FileOutputStream(file, *//* append= *//* true), Charsets.UTF_8)
                 )
             Logger.d(LOG_TAG_BUG_REPORT, "$TAG createCrashFile: ${file.absolutePath}")
             file
@@ -389,13 +416,13 @@ class GoCrashFileDescriptorReader(private val context: Context?) {
             Logger.e(LOG_TAG_BUG_REPORT, "$TAG createCrashFile: failed to open writer: ${e.message}", e)
             null
         }
-    }
+    }*/
 
     /**
      * Delegates rotation to [EnhancedBugReport.enforceMaxFiles] which counts ALL tombstone
      * file types together and enforces the shared 20-file cap.
      */
-    private fun performRotation(current: File) {
+    /*private fun performRotation(current: File) {
         if (context == null) {
             Logger.e(LOG_TAG_BUG_REPORT, "go-crash, context is null, rotation failed")
             return
@@ -405,29 +432,29 @@ class GoCrashFileDescriptorReader(private val context: Context?) {
             return
         }
         EnhancedBugReport.enforceMaxFiles(context, justWritten = current)
-    }
+    }*/
 
     /**
      * Delegates to [FdHelper.duplicate] which owns all reflection on private Android internals
      * ([FileDescriptor.descriptor], libcore.io.Libcore.os / android.system.Os fcntlInt).
      * This class is free of reflection entirely.
      */
-    private fun duplicateFd(fd: Long): ParcelFileDescriptor? =
-        FdHelper.duplicate(fd, "GoCrashFd")
+    /*private fun duplicateFd(fd: Long): ParcelFileDescriptor? =
+        FdHelper.duplicate(fd, "GoCrashFd")*/
 
     companion object {
-        private const val READ_BUF_SIZE = 64 * 1024
+        //private const val READ_BUF_SIZE = 64 * 1024
         private const val MAX_LINE_BYTES = 4 * 1024
-        private const val IDLE_TIMEOUT_MS = 3000
+        //private const val IDLE_TIMEOUT_MS = 3000
         private const val TAG = "GoCrashFd"
         /**
          * EWOULDBLOCK == EAGAIN on Linux/Android (both == 11) but OsConstants may
          * not expose EWOULDBLOCK on all API levels.
          */
-        private val EWOULDBLOCK: Int = try {
+        /*private val EWOULDBLOCK: Int = try {
             OsConstants::class.java.getField("EWOULDBLOCK").getInt(null)
         } catch (_: Throwable) {
             OsConstants.EAGAIN
-        }
+        }*/
     }
 }

@@ -183,13 +183,6 @@ class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), and
     }
 
     private fun observeLog() {
-        // Use the Lifecycle-aware overload: submitData(lifecycle, pagingData).
-        // The plain suspend overload submitData(pagingData) called from a bare
-        // lifecycleScope.launch{} does NOT cancel the previous PagingData collection
-        // before starting the next one. This leaves the RecyclerView's GapWorker
-        // prefetching from a cancelled/invalid PagingSource snapshot while the new
-        // PagingData has already updated the adapter's item count — causing the
-        // "Inconsistency detected. Invalid item position" crash.
         viewModel.logs.observe(this) { pagingData ->
             recyclerAdapter?.submitData(lifecycle, pagingData)
         }

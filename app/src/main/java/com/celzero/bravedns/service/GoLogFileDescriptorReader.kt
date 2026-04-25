@@ -154,7 +154,7 @@ class GoLogFileDescriptorReader(
             // consider all the notifications from go as failure and stop the service
             VpnController.stop("goNotif", ctx, userInitiated = false)
         } else {
-            Logger.goLog(payload, level)
+            Logger.goLog2(payload, level)
         }
     }
 
@@ -186,7 +186,7 @@ class GoLogFileDescriptorReader(
 
     /**
      * Appends [line] to the session file.
-     * [writer] is always non-null here — [createCrashFile] ran before [readLoop] in the
+     * [writer] is always non-null here [createCrashFile] ran before [readLoop] in the
      * same coroutine.  The null-guard is a last-resort safety net only.
      */
     private fun writeLine(line: String) {

@@ -10,7 +10,6 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.ParcelFileDescriptor
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.celzero.bravedns.R
@@ -18,18 +17,19 @@ import com.celzero.bravedns.scheduler.EnhancedBugReport
 import com.celzero.bravedns.service.BraveVPNService.Companion.NW_ENGINE_NOTIFICATION_ID
 import com.celzero.bravedns.service.GoCrashFileDescriptorReader
 import com.celzero.bravedns.service.GoLogFileDescriptorReader
+import com.celzero.bravedns.service.GoMemLogConsumer
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.activity.AppLockActivity
 import com.celzero.bravedns.util.UIUtils.getAccentColor
 import com.celzero.bravedns.util.Utilities.isFdroidFlavour
+import com.celzero.firestack.backend.LogConsumer
 import com.celzero.firestack.intra.Console
 import com.celzero.firestack.intra.Intra
 import kotlinx.coroutines.CoroutineScope
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.File
-import java.lang.ref.WeakReference
 
 class GoReportingHandler private constructor(private val scope: CoroutineScope, private val ctx: Context): Console, KoinComponent {
     private val persistentState by inject<PersistentState>()
@@ -109,6 +109,18 @@ class GoReportingHandler private constructor(private val scope: CoroutineScope, 
         val started = goLogFdReader.start(ctx, p0)
         if (!started) Logger.w(LOG_GO_LOGGER, "failed to start go log fd reader for fd=$p0")
         return started
+    }
+
+    override fun logMemFD(
+        p0: Long,
+        p1: Long,
+        p2: Long
+    ): LogConsumer {
+        Logger.i(LOG_TAG_BUG_REPORT, "$TAG logMemFD: fd=$p0, start=$p1, end=$p2")
+        // Return a GoMemLogConsumer that will drain the shared-memory buffer Go points us at.
+        // Go will call drain(fd, start, end) on the returned consumer each time new data
+        // is available, and onClose() when the writer is done.
+        return GoMemLogConsumer(ctx, scope)
     }
 
     private fun showNwEngineNotification(msg: String) {
