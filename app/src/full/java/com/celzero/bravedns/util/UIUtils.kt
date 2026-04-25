@@ -44,13 +44,14 @@ import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.core.text.HtmlCompat
 import com.celzero.bravedns.R
-import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.glide.FavIconDownloader
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.DnsLogTracker
+import com.celzero.bravedns.service.PersistentState
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.NetStat
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.radiobutton.MaterialRadioButton
 import com.google.android.material.snackbar.Snackbar
 import java.util.Calendar
@@ -861,6 +862,33 @@ object SnackbarHelper {
     fun dismiss() {
         current?.dismiss()
         current = null
+    }
+
+    /**
+     * Show the stability-program enrollment Snackbar with a **Disable** action.
+     *
+     * Automatically anchors above the BottomNavigationView when one is present in the
+     * view hierarchy (e.g. fragments hosted by HomeScreenActivity).
+     *
+     * @param view           Any view inside the activity/fragment hierarchy.
+     * @param persistentState The PersistentState instance used to disable the program.
+     */
+    fun showStabilityProgram(view: View, persistentState: PersistentState) {
+        val context = view.context
+        val message = context.getString(R.string.stability_program_snackbar_msg)
+        val actionLabel = context.getString(R.string.stability_program_snackbar_disable)
+        show(
+            view = view,
+            message = message,
+            duration = Snackbar.LENGTH_INDEFINITE,
+            actionLabel = actionLabel,
+            action = {
+                persistentState.firebaseErrorReportingEnabled = false
+                FirebaseErrorReporting.setEnabled(false)
+                Logger.i(LOG_TAG_UI, "Stability program disabled by user via snackbar")
+            },
+            forceShow = true
+        )
     }
 
     /**
