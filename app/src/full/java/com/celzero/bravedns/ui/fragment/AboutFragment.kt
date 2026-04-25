@@ -16,6 +16,7 @@
 package com.celzero.bravedns.ui.fragment
 
 import Logger
+import Logger.LOG_IAB
 import Logger.LOG_TAG_UI
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
@@ -170,6 +171,7 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
 
         b.fhsTitleRethink.setOnClickListener(this)
         b.aboutSponsor.setOnClickListener(this)
+        b.aboutManageRpn.setOnClickListener(this)
         b.aboutWebsite.setOnClickListener(this)
         b.aboutTwitter.setOnClickListener(this)
         b.aboutGithub.setOnClickListener(this)
@@ -284,13 +286,15 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
     }
 
     private fun updateSponsorInfo() {
-        if (RpnProxyManager.isRpnEnabled()) {
-            b.aboutSponsor.text = "Manage RPN"
+        if (RpnProxyManager.isRpnActive()) {
+            b.aboutSponsor.visibility = View.GONE
+            b.aboutManageRpn.visibility = View.VISIBLE
+            b.sponsorInfoUsage.visibility = View.GONE
         } else {
-            b.aboutSponsor.text = getString(R.string.about_sponsor_link_text)
+            b.aboutSponsor.visibility = View.VISIBLE
+            b.aboutManageRpn.visibility = View.GONE
+            b.sponsorInfoUsage.text = getSponsorInfo()
         }
-
-        b.sponsorInfoUsage.text = getSponsorInfo()
     }
 
     private fun openRpnDashboardScreen() {
@@ -298,7 +302,7 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         startActivity(
             FragmentHostActivity.createIntent(
                 context = requireContext(),
-                fragmentClass = RethinkPlusDashboardFragment::class.java,
+                fragmentClass = ManagePurchaseFragment::class.java,
                 args = args
             )
         )
@@ -374,11 +378,10 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
                 openUrl(requireContext(), getString(R.string.about_website_link))
             }
             b.aboutSponsor -> {
-                if (RpnProxyManager.isRpnActive()) {
-                    openRpnDashboardScreen()
-                } else {
-                    openUrl(requireContext(), RETHINKDNS_SPONSOR_LINK)
-                }
+                openUrl(requireContext(), RETHINKDNS_SPONSOR_LINK)
+            }
+            b.aboutManageRpn -> {
+                openRpnDashboardScreen()
             }
             b.mozillaImg -> {
                 // no-link, no action
@@ -638,13 +641,13 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         }
 
         fun fmtNs(ns: Long): String = when {
-            ns <= 0             -> "—"
-            ns < 1_000L         -> "$ns ns"
-            ns < 1_000_000L     -> "${"%.1f".format(ns / 1_000.0)} µs"
+            ns <= 0 -> "-"
+            ns < 1_000L -> "$ns ns"
+            ns < 1_000_000L -> "${"%.1f".format(ns / 1_000.0)} µs"
             ns < 1_000_000_000L -> "${"%.2f".format(ns / 1_000_000.0)} ms"
-            else                -> "${"%.3f".format(ns / 1_000_000_000.0)} s"
+            else -> "${"%.3f".format(ns / 1_000_000_000.0)} s"
         }
-        fun fmtNum(v: Long): String = if (v <= 0) "—" else "%,d".format(v)
+        fun fmtNum(v: Long): String = if (v <= 0) "-" else "%,d".format(v)
 
         val threadsSpan = android.text.SpannableStringBuilder()
 
