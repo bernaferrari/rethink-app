@@ -19,7 +19,6 @@ import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import com.celzero.bravedns.database.RichHistoryEntry
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -46,11 +45,22 @@ interface SubscriptionStateHistoryDao {
     fun observeAllHistory(): Flow<List<SubscriptionStateHistory>>
 
     /**
-     * Rich join query – returns every history row enriched with the matching
-     * SubscriptionStatus columns (productId, productTitle, purchaseToken, planId).
-     * Rows whose subscriptionId has no matching SubscriptionStatus are still
-     * returned with empty strings for the product columns (LEFT JOIN).
+     *
+     * Applies the noise-filter rules defined at the top of this file:
+     *  - same-state rows excluded
+     *  - fromState = STATE_UNKNOWN(4) or negative (-1 sentinel) excluded
+     *  - toState   = STATE_UNKNOWN(4) or STATE_INITIAL(0) excluded
+     * Initial(0) → Active(1) is intentionally shown (fromState=0 is still a valid source).
      */
+    @Query("""
+        SELECT * FROM SubscriptionStateHistory
+        WHERE fromState != toState
+          AND fromState NOT IN (-1, 4)
+          AND toState   NOT IN (0, 4)
+        ORDER BY timestamp DESC
+    """)
+    fun observeHistoryPaged(): PagingSource<Int, SubscriptionStateHistory>
+
     @Query("""
         SELECT
             h.id          AS id,
@@ -71,6 +81,39 @@ interface SubscriptionStateHistoryDao {
         ORDER BY h.timestamp DESC
     """)
     fun observeRichHistory(): Flow<List<RichHistoryEntry>>
+
+    @Query("""
+        SELECT
+            h.id          AS id,
+            h.subscriptionId AS subscriptionId,
+            h.fromState   AS fromState,
+            h.toState     AS toState,
+            h.timestamp   AS timestamp,
+            h.reason      AS reason,
+            COALESCE(s.productId,    '') AS productId,
+            COALESCE(s.productTitle, '') AS productTitle,
+            COALESCE(s.purchaseToken,'') AS purchaseToken,
+            COALESCE(s.planId,       '') AS planId,
+            COALESCE(s.purchaseTime, 0)  AS purchaseTime,
+            COALESCE(s.billingExpiry, 0) AS billingExpiry,
+            COALESCE(s.accountId,    '') AS accountId
+        FROM SubscriptionStateHistory h
+        LEFT JOIN SubscriptionStatus s ON h.subscriptionId = s.id
+        WHERE h.fromState != h.toState
+          AND h.fromState NOT IN (-1, 4)
+          AND h.toState   NOT IN (0, 4)
+        ORDER BY h.timestamp DESC
+    """)
+    fun observeRichHistoryPaged(): PagingSource<Int, RichHistoryEntry>
+
+    /** Total count of meaningful (non-noise) history entries shown to the user. */
+    @Query("""
+        SELECT COUNT(*) FROM SubscriptionStateHistory
+        WHERE fromState != toState
+          AND fromState NOT IN (-1, 4)
+          AND toState   NOT IN (0, 4)
+    """)
+    suspend fun getMeaningfulCount(): Int
 
     @Query("DELETE FROM SubscriptionStateHistory WHERE timestamp < :cutoffTime")
     suspend fun deleteOldHistory(cutoffTime: Long): Int

@@ -135,8 +135,4 @@ class CountryConfigRepository(private val countryConfigDAO: CountryConfigDAO) {
     suspend fun getSsidEnabledConfigs(): List<CountryConfig> {
         return countryConfigDAO.getSsidEnabledConfigs()
     }
-
-    fun getSsidEnabledConfigsFlow(): Flow<List<CountryConfig>> {
-        return countryConfigDAO.getSsidEnabledConfigsFlow()
-    }
 }
