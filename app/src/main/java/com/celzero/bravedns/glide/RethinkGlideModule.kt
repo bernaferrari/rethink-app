@@ -88,11 +88,11 @@ class RethinkGlideModule : AppGlideModule() {
         //   replace() only replaces an *existing* registration. kotlin.Unit is not a built-in
         //   Glide type so replace() silently does nothing, leaving Unit completely unregistered.
         //   Glide then throws NoModelLoaderAvailableException at ResourceCacheGenerator when it
-        //   tries to build cache keys — before buildLoadData() is ever called.
+        //   tries to build cache keys, before buildLoadData() is ever called.
         //
         //   prepend() inserts at the front of the loader chain unconditionally, so the
         //   NoOpUnitLoader is found first and returns a stable LoadData (backed by a no-op
-        //   DataFetcher that calls onLoadFailed) — Glide treats that as a clean cache miss and
+        //   DataFetcher that calls onLoadFailed) Glide treats that as a clean cache miss and
         //   falls through to the placeholder / error drawable without crashing.
         registry.prepend(Unit::class.java, InputStream::class.java, NoOpUnitLoaderFactory())
     }
@@ -127,8 +127,7 @@ class RethinkGlideModule : AppGlideModule() {
 
     private object NoOpFetcher : DataFetcher<InputStream> {
         override fun loadData(priority: Priority, callback: DataFetcher.DataCallback<in InputStream>) {
-            // Immediately report no data — Glide will use its placeholder / error drawable.
-            callback.onLoadFailed(Exception("Unit model — no image to load"))
+            callback.onLoadFailed(Exception("Unit model, no image to load"))
         }
         override fun cleanup() = Unit
         override fun cancel()  = Unit
