@@ -13,22 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.celzero.bravedns.subscription
+package com.celzero.bravedns.rpnproxy
 
 import Logger.LOG_IAB
 import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingResult
 import com.android.billingclient.api.Purchase
 import com.celzero.bravedns.database.SubscriptionStatus
 import com.celzero.bravedns.database.SubscriptionStatusRepository
+import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.iab.InAppBillingHandler.ONE_TIME_PRODUCT_2YRS
 import com.celzero.bravedns.iab.InAppBillingHandler.ONE_TIME_PRODUCT_5YRS
+import com.celzero.bravedns.iab.InAppBillingHandler.ONE_TIME_PRODUCT_ID
+import com.celzero.bravedns.iab.InAppBillingHandler.ONE_TIME_TEST_PRODUCT_ID
 import com.celzero.bravedns.iab.InAppBillingHandler.REVOKE_WINDOW_ONE_TIME_2YRS_DAYS
 import com.celzero.bravedns.iab.InAppBillingHandler.REVOKE_WINDOW_ONE_TIME_5YRS_DAYS
 import com.celzero.bravedns.iab.InAppBillingHandler.REVOKE_WINDOW_SUBS_MONTHLY_DAYS
 import com.celzero.bravedns.iab.InAppBillingHandler.STD_PRODUCT_ID
 import com.celzero.bravedns.iab.PurchaseDetail
-import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Utilities
 import kotlinx.coroutines.CoroutineScope
@@ -45,22 +46,9 @@ import org.koin.core.component.inject
  * Subscription State Machine V2.
  *
  * 1. **Google Play is the single source of truth.** Every field in [SubscriptionStatus]
- *    must reflect what Play returned.  The local DB is only used to restore the in-memory
+ *    must reflect what Play returned. The local DB is only used to restore the in-memory
  *    state between app launches; it is always reconciled against Play on connect.
  * 2. **Expiry comes exclusively from Play** via [InAppBillingHandler.calculateExpiryTime].
- *    The `ws` block in `developerPayload` is only used for `sessionToken`.
- * 3. **No `Unknown` state.** [Purchase.PurchaseState.UNSPECIFIED_STATE] is treated as
- *    [PurchasePending] (awaiting Play confirmation) so the machine is never stuck.
- * 4. **DB writes are serialized via [stateLock].** [handlePaymentSuccessful] is the
- *    primary writer for *live* purchases; status-only updates (cancel, expire, revoke,
- *    restore) go through their own handlers, all of which are called inside
- *    [processEventSafely] (and therefore under [stateLock]) to prevent races.
- *    [saveStateTransition] records history only — it never overwrites the subscription
- *    row independently.
- * 5. **No duplicate history rows.** Transitions where fromState == toState are skipped
- *    unless they carry a payload change (e.g. renewal updates expiry).
- * 6. **[stateLock] is never held while calling [processEventSafely].** All lock-needing
- *    reads are done in Phase 1; events are fired in Phase 2 without the lock.
  */
 class SubscriptionStateMachineV2 : KoinComponent {
 
@@ -69,9 +57,9 @@ class SubscriptionStateMachineV2 : KoinComponent {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     // Lock ordering (must always be acquired in this order to prevent deadlocks)
-    // 1. InAppBillingHandler.connectionMutex(outermost — protects billing API calls)
+    // 1. InAppBillingHandler.connectionMutex(outermost protects billing API calls)
     // 2. stateLock(protects state machine transitions)
-    // 3. SubscriptionStatusRepository.mutex(innermost — protects DB writes)
+    // 3. SubscriptionStatusRepository.mutex(innermost protects DB writes)
     // Never acquire a higher-numbered lock while holding a lower-numbered one.
     // fixme: see if these locks can be removed/made into single transaction
     private val stateLock = Mutex()
@@ -178,12 +166,12 @@ class SubscriptionStateMachineV2 : KoinComponent {
                 )
                 addTransition(
                     fromState = SubscriptionState.Initial,
-                    event = SubscriptionEvent.BillingError("", BillingResult.newBuilder().build()),
+                    event = SubscriptionEvent.BillingError("", -1),
                     toState = SubscriptionState.Error,
                     guard = { event, _ -> event is SubscriptionEvent.BillingError },
                     action = { event, _ ->
                         val e = event as SubscriptionEvent.BillingError
-                        handleBillingError(e.error, e.billingResult)
+                        handleBillingError(e.error, e.billingResultCode)
                     }
                 )
                 addTransition(
@@ -223,17 +211,17 @@ class SubscriptionStateMachineV2 : KoinComponent {
                     guard = { event, _ -> event is SubscriptionEvent.PurchaseFailed },
                     action = { event, _ ->
                         val e = event as SubscriptionEvent.PurchaseFailed
-                        handlePurchaseFailed(e.error, e.billingResult)
+                        handlePurchaseFailed(e.error, e.billingResultCode)
                     }
                 )
                 addTransition(
                     fromState = SubscriptionState.PurchaseInitiated,
-                    event = SubscriptionEvent.BillingError("", BillingResult.newBuilder().build()),
+                    event = SubscriptionEvent.BillingError("", -1),
                     toState = SubscriptionState.Error,
                     guard = { event, _ -> event is SubscriptionEvent.BillingError },
                     action = { event, _ ->
                         val e = event as SubscriptionEvent.BillingError
-                        handleBillingError(e.error, e.billingResult)
+                        handleBillingError(e.error, e.billingResultCode)
                     }
                 )
                 addTransition(
@@ -268,12 +256,12 @@ class SubscriptionStateMachineV2 : KoinComponent {
                 )
                 addTransition(
                     fromState = SubscriptionState.PurchasePending,
-                    event = SubscriptionEvent.BillingError("", BillingResult.newBuilder().build()),
+                    event = SubscriptionEvent.BillingError("", -1),
                     toState = SubscriptionState.Error,
                     guard = { event, _ -> event is SubscriptionEvent.BillingError },
                     action = { event, _ ->
                         val e = event as SubscriptionEvent.BillingError
-                        handleBillingError(e.error, e.billingResult)
+                        handleBillingError(e.error, e.billingResultCode)
                     }
                 )
                 addTransition(
@@ -283,7 +271,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
                     guard = { event, _ -> event is SubscriptionEvent.PurchaseFailed },
                     action = { event, _ ->
                         val e = event as SubscriptionEvent.PurchaseFailed
-                        handlePurchaseFailed(e.error, e.billingResult)
+                        handlePurchaseFailed(e.error, e.billingResultCode)
                     }
                 )
                 addTransition(
@@ -442,7 +430,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
                     event = SubscriptionEvent.UserCancelled,
                     toState = SubscriptionState.Cancelled,
                     action = { _, _ ->
-                        Logger.d(LOG_IAB, "$TAG: already Cancelled — idempotent re-fire ignored")
+                        Logger.d(LOG_IAB, "$TAG: already Cancelled, re-fire ignored")
                     }
                 )
                 addTransition(
@@ -477,7 +465,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
                     event = SubscriptionEvent.SubscriptionExpired,
                     toState = SubscriptionState.Expired,
                     action = { _, _ ->
-                        Logger.d(LOG_IAB, "$TAG: already Expired — idempotent re-fire ignored")
+                        Logger.d(LOG_IAB, "$TAG: already Expired, re-fire ignored")
                     }
                 )
                 addTransition(
@@ -517,7 +505,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
                     event = SubscriptionEvent.SubscriptionRevoked,
                     toState = SubscriptionState.Revoked,
                     action = { _, _ ->
-                        Logger.d(LOG_IAB, "$TAG: already Revoked — idempotent re-fire ignored")
+                        Logger.d(LOG_IAB, "$TAG: already Revoked, re-fire ignored")
                     }
                 )
                 addTransition(
@@ -625,14 +613,14 @@ class SubscriptionStateMachineV2 : KoinComponent {
         object Initialize : SubscriptionEvent()
         object PurchaseInitiated : SubscriptionEvent()
         data class PurchaseCompleted(val purchaseDetail: PurchaseDetail) : SubscriptionEvent()
-        data class PurchaseFailed(val error: String, val billingResult: BillingResult? = null) : SubscriptionEvent()
+        data class PurchaseFailed(val error: String, val billingResultCode: Int? = null) : SubscriptionEvent()
         data class PaymentSuccessful(val purchaseDetail: PurchaseDetail) : SubscriptionEvent()
         object UserCancelled : SubscriptionEvent()
         object SubscriptionExpired : SubscriptionEvent()
         object SubscriptionRevoked : SubscriptionEvent()
         data class SubscriptionRestored(val purchaseDetail: PurchaseDetail) : SubscriptionEvent()
         object SystemCheck : SubscriptionEvent()
-        data class BillingError(val error: String, val billingResult: BillingResult) : SubscriptionEvent()
+        data class BillingError(val error: String, val billingResultCode: Int = -1) : SubscriptionEvent()
         data class DatabaseError(val error: String) : SubscriptionEvent()
         object ErrorRecovered : SubscriptionEvent()
     }
@@ -673,8 +661,8 @@ class SubscriptionStateMachineV2 : KoinComponent {
         processEventSafely(SubscriptionEvent.PaymentSuccessful(purchaseDetail))
     }
 
-    suspend fun purchaseFailed(error: String, billingResult: BillingResult? = null) {
-        processEventSafely(SubscriptionEvent.PurchaseFailed(error, billingResult))
+    suspend fun purchaseFailed(error: String, billingResultCode: Int? = null) {
+        processEventSafely(SubscriptionEvent.PurchaseFailed(error, billingResultCode))
     }
 
     suspend fun userCancelled() {
@@ -725,12 +713,12 @@ class SubscriptionStateMachineV2 : KoinComponent {
         if (purchases.isEmpty()) {
             if (queriedProductType == BillingClient.ProductType.SUBS) {
                 // Play has no subscription for this account. Any active/cancelled SUBS row
-                // in the local DB is stale — the subscription has been revoked, refunded, or
+                // in the local DB is stale the subscription has been revoked, refunded, or
                 // fully lapsed without the app receiving a renewal callback.
-                Logger.i(LOG_IAB, "$TAG: reconcile: Play returned empty SUBS snapshot — expiring active SUBS in DB")
+                Logger.i(LOG_IAB, "$TAG: reconcile: Play returned empty SUBS snapshot, expiring active SUBS in DB")
                 expireStaleSubsFromDb()
             } else {
-                Logger.i(LOG_IAB, "$TAG: reconcile: Play returned empty INAPP snapshot — no action (INAPP expiry is clock-based)")
+                Logger.i(LOG_IAB, "$TAG: reconcile: Play returned empty INAPP snapshot, no action (INAPP expiry is clock-based)")
             }
             return
         }
@@ -780,14 +768,23 @@ class SubscriptionStateMachineV2 : KoinComponent {
                     // spurious history entries on the Expired→Active transition check.
                     // The dedup inside handlePaymentSuccessful is the safety net; this guard
                     // is a fast-path skip that prevents even entering that path.
-                    if (currentMachineState == SubscriptionState.Active &&
+                    val dbStatusIsCancelled = currentData?.subscriptionStatus?.status ==
+                            SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id
+                    val isResubscription = dbStatusIsCancelled && detail.isAutoRenewing
+                    if (!isResubscription &&
+                        currentMachineState == SubscriptionState.Active &&
                         targetState          == SubscriptionState.Active &&
                         currentData?.subscriptionStatus?.purchaseToken == detail.purchaseToken &&
                         currentData.subscriptionStatus.billingExpiry   == (if (playExpiry == Long.MAX_VALUE) currentData.subscriptionStatus.billingExpiry else playExpiry)
                     ) {
-                        Logger.d(LOG_IAB, "$TAG: reconcile skip — already Active, token+expiry unchanged")
+                        Logger.d(LOG_IAB, "$TAG: reconcile skip: already Active, token+expiry unchanged")
                         return@mapNotNull null
                     }
+                    if (isResubscription) {
+                        Logger.i(LOG_IAB, "$TAG: reconcile: resubscription detected, DB is CANCELLED but Play isAutoRenewing=true for token=${detail.purchaseToken.take(8)}, proceeding with PaymentSuccessful")
+                    }
+
+                    InAppBillingHandler.reconcileCidDidFromPurchase(purchase.accountIdentifiers?.obfuscatedAccountId ?: "")
 
                     val isPlayCancelled = targetState == SubscriptionState.Cancelled
 
@@ -807,7 +804,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
                         SubscriptionState.Revoked  -> SubscriptionEvent.SubscriptionRevoked
 
                         else -> {
-                            Logger.w(LOG_IAB, "$TAG: reconcile: unmapped state ${targetState.name} for token ${detail.purchaseToken.take(8)} — skipping")
+                            Logger.w(LOG_IAB, "$TAG: reconcile: unmapped state ${targetState.name} for token ${detail.purchaseToken.take(8)}, skipping")
                             null
                         }
                     } ?: return@mapNotNull null
@@ -816,7 +813,6 @@ class SubscriptionStateMachineV2 : KoinComponent {
                 }
         }
 
-        // Phase 2 – fire events outside the lock (never re-enter stateLock here).
         actions.forEach { action ->
             try {
                 processEventSafely(action.event)
@@ -850,7 +846,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
      * where [Purchase.isAutoRenewing] = false (cancelled but not yet expired).
      *
      * Updates only the `status` column in the DB row that was already written by
-     * [handlePaymentSuccessful] — no second full upsert.  Records history only if
+     * [handlePaymentSuccessful] no second full upsert.  Records history only if
      * the status actually changed.
      */
     private suspend fun updateCancelledStatusInDb(detail: PurchaseDetail) {
@@ -915,7 +911,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
 
             val staleRows = subscriptionDb.getSubscriptionsByStates(activeStatuses)
 
-            // Filter to SUBS only — skip INAPP (productId contains "onetime"/"inapp"/"test_product")
+            // Filter to SUBS only, skip INAPP (productId contains "onetime"/"inapp"/"test_product")
             val subsRows = staleRows.filter { sub ->
                 !sub.productId.contains("onetime", ignoreCase = true) &&
                 !sub.productId.contains("inapp",   ignoreCase = true) &&
@@ -939,7 +935,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
             }
             if (recentlyActive.isNotEmpty()) {
                 Logger.w(LOG_IAB, "$TAG: expireStaleSubsFromDb: ${recentlyActive.size} SUBS row(s) " +
-                    "were updated within the last ${RECENTLY_ACTIVE_GUARD_MS / 3600_000}h — " +
+                    "were updated within the last ${RECENTLY_ACTIVE_GUARD_MS / 3600_000}h " +
                     "skipping expiry to guard against transient Play empty responses. " +
                     "Rows: ${recentlyActive.map { "id=${it.id},token=${it.purchaseToken.take(8)},age=${(now - it.lastUpdatedTs) / 60_000}min" }}")
                 return
@@ -1079,7 +1075,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
      * 3. If [playTokens] is empty → Play returned no INAPP purchases at all, expire all
      *    active INAPP rows.
      *
-     * SUBS rows are intentionally skipped — they are handled by [expireStaleSubsFromDb].
+     * SUBS rows are intentionally skipped, they are handled by [expireStaleSubsFromDb].
      *
      * @param playTokens The set of purchaseTokens returned by the current Play INAPP query.
      *                   Pass an empty set when Play returned an empty INAPP list.
@@ -1136,11 +1132,6 @@ class SubscriptionStateMachineV2 : KoinComponent {
                     val prevStatus = sub.status
                     sub.status        = SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id
                     sub.lastUpdatedTs = now
-                    // For refunded / absent INAPP purchases the access window hasn't
-                    // naturally ended yet (billingExpiry is still in the future) — clamp
-                    // to now so isExpired() is consistent and the UI never shows a future
-                    // date as "Expires:" for a purchase that is already gone from Play.
-                    // For locallyExpired the date is already in the past; no change needed.
                     if ((absentFromPlay || noPlayRecord) && sub.billingExpiry > now) {
                         sub.billingExpiry = now
                         sub.accountExpiry = now
@@ -1173,6 +1164,39 @@ class SubscriptionStateMachineV2 : KoinComponent {
         }
     }
 
+    /**
+     * Returns all active INAPP (one-time) [SubscriptionStatus] rows from the database.
+     *
+     * Uses the same active-state set and product-ID filter as [expireStaleInAppFromDb] so the
+     * caller always works on exactly the same rows that would otherwise be expired.
+     *
+     * Returns an empty list on any active in-app subscriptions
+     */
+    suspend fun getActiveInAppPurchase(): List<SubscriptionStatus> {
+        return try {
+            val activeStatuses = listOf(
+                SubscriptionStatus.SubscriptionState.STATE_ACTIVE.id,
+                SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id,
+                SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING.id,
+                SubscriptionStatus.SubscriptionState.STATE_PURCHASED.id
+            )
+            val rows = subscriptionDb.getSubscriptionsByStates(activeStatuses)
+            val inAppRows = rows.filter { sub ->
+                sub.productId.contains("onetime", ignoreCase = true) ||
+                sub.productId.contains("inapp", ignoreCase = true) ||
+                sub.productId == ONE_TIME_TEST_PRODUCT_ID ||
+                sub.productId == ONE_TIME_PRODUCT_2YRS ||
+                sub.productId == ONE_TIME_PRODUCT_5YRS ||
+                sub.productId == ONE_TIME_PRODUCT_ID
+            }
+            // Deduplicate by purchase token (safety guard for multiple INAPP rows)
+            inAppRows.distinctBy { it.purchaseToken }
+        } catch (e: Exception) {
+            Logger.e(LOG_IAB, "$TAG: getActiveInAppPurchase: ${e.message}", e)
+            emptyList()
+        }
+    }
+
     fun getCurrentState(): SubscriptionState = stateMachine.getCurrentState()
     fun getSubscriptionData(): SubscriptionData? = stateMachine.getCurrentData()
     fun canMakePurchase(): Boolean = stateMachine.getCurrentState().canMakePurchase
@@ -1181,14 +1205,49 @@ class SubscriptionStateMachineV2 : KoinComponent {
     fun getStatistics(): StateMachineStatistics = stateMachine.getStatistics()
 
     /**
+     * Returns the effective billing expiry for the user's active INAPP (one-time) purchase(s).
+     *
+     * When two INAPP purchases are active simultaneously (e.g. a user extended access before
+     * expiry), this returns the MAXIMUM billingExpiry across all active INAPP rows so the UI
+     * always shows the latest "Expires" date and remaining-days calculation is correct.
+     *
+     * Returns null when no active INAPP rows exist.
+     */
+    suspend fun getEffectiveInAppExpiryMs(): Long? {
+        return try {
+            val activeStatuses = listOf(
+                SubscriptionStatus.SubscriptionState.STATE_ACTIVE.id,
+                SubscriptionStatus.SubscriptionState.STATE_PURCHASED.id,
+                SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING.id
+            )
+            val rows = subscriptionDb.getSubscriptionsByStates(activeStatuses)
+            val inAppRows = rows.filter { sub ->
+                sub.productId.contains("onetime", ignoreCase = true) ||
+                sub.productId.contains("inapp",   ignoreCase = true) ||
+                sub.productId == ONE_TIME_TEST_PRODUCT_ID             ||
+                sub.productId == ONE_TIME_PRODUCT_2YRS                ||
+                sub.productId == ONE_TIME_PRODUCT_5YRS                ||
+                sub.productId == ONE_TIME_PRODUCT_ID
+            }
+            val maxExpiry = inAppRows
+                .filter { it.billingExpiry > 0L && it.billingExpiry != Long.MAX_VALUE }
+                .maxOfOrNull { it.billingExpiry }
+            maxExpiry
+        } catch (e: Exception) {
+            Logger.e(LOG_IAB, "$TAG: getEffectiveInAppExpiryMs: ${e.message}", e)
+            // Fall back to state machine data
+            stateMachine.getCurrentData()?.subscriptionStatus?.billingExpiry
+                ?.takeIf { it > 0L && it != Long.MAX_VALUE }
+        }
+    }
+
+    /**
      * Returns true when [purchaseToken] is NOT yet present in the local database.
      *
      * Used by [InAppBillingHandler] to decide whether to call [registerDevice]:
      * - true  → brand-new purchase → call registerDevice once
      * - false → already persisted → skip (was registered in a prior session)
      *
-     * Safe to call from any thread; delegates to a suspend DB read on the caller's
-     * coroutine context.
      */
     suspend fun isNewPurchase(purchaseToken: String): Boolean {
         return try {
@@ -1218,7 +1277,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
                 stateMachine.updateData(subscriptionData)
                 // Only record ACK_PENDING history for a genuinely new pending purchase.
                 // Skip if already ACTIVE (reconcile re-fire for an acknowledged purchase).
-                // Skip if already ACK_PENDING (cold-start: DB had a stale pending row —
+                // Skip if already ACK_PENDING (cold-start: DB had a stale pending row
                 //   handleSystemCheckAndDatabaseRestoration fires PurchaseCompleted to
                 //   restore the in-memory state, but the DB is already correct and writing
                 //   again would create a spurious duplicate "ACK_PENDING → ACK_PENDING"
@@ -1251,7 +1310,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
         return SubscriptionStatus().also { s ->
             s.id = subscriptionId.toInt()
             s.accountId = purchaseDetail.accountId
-            // Store the indicator — never the raw device ID — so the DB never holds a
+            // Store the indicator never the raw device ID so the DB never holds a
             // sensitive plain-text credential.  The real value lives in SecureIdentityStore.
             s.deviceId = if (purchaseDetail.deviceId.isNotBlank()) SubscriptionStatus.DEVICE_ID_INDICATOR else ""
             s.purchaseToken = purchaseDetail.purchaseToken
@@ -1365,7 +1424,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
 
     /**
      * Convert a raw Play [Purchase] to a [PurchaseDetail].
-     * [playExpiry] is the sole source of expiry — from [InAppBillingHandler.calculateExpiryTime].
+     * [playExpiry] is the sole source of expiry from [InAppBillingHandler.calculateExpiryTime].
      */
     private fun Purchase.toPurchaseDetail(
         enrichedProductTitle: String = "",
@@ -1413,10 +1472,10 @@ class SubscriptionStateMachineV2 : KoinComponent {
         )
     }
 
-    private suspend fun handlePurchaseFailed(error: String, billingResult: BillingResult?) {
+    private suspend fun handlePurchaseFailed(error: String, billingResultCode: Int?) {
         try {
             Logger.e(LOG_IAB, "$TAG: handlePurchaseFailed: $error")
-            dbSyncService.savePurchaseFailureHistory(error, billingResult)
+            dbSyncService.savePurchaseFailureHistory(error, billingResultCode)
         } catch (e: Exception) {
             Logger.e(LOG_IAB, "$TAG: handlePurchaseFailed error: ${e.message}", e)
         }
@@ -1461,28 +1520,25 @@ class SubscriptionStateMachineV2 : KoinComponent {
                 return
             }
 
-            // Guard: do not overwrite a locally-set CANCELLED or REVOKED status during
-            // the window when Play has not yet reflected the server-driven cancellation
-            // or revocation.  This prevents a concurrent Play reconcile (which may still
-            // see isAutoRenewing=true / purchaseState=PURCHASED) from flipping the DB
-            // back to ACTIVE and recording a spurious history entry.
-            //
             // After LOCAL_CANCEL_REVOKE_GUARD_MS, Play is expected to have propagated:
-            //   CANCELLED → Play returns isAutoRenewing=false → updateCancelledStatusInDb
-            //   REVOKED   → Play removes the token → expireOrphanedSubsFromDb / expireStaleSubsFromDb
+            //  CANCELLED → Play returns isAutoRenewing=false → updateCancelledStatusInDb
+            //  REVOKED → Play removes the token → expireOrphanedSubsFromDb / expireStaleSubsFromDb
             if (existing != null &&
                 existing.purchaseToken == purchaseDetail.purchaseToken &&
                 (existing.status == SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id ||
                  existing.status == SubscriptionStatus.SubscriptionState.STATE_REVOKED.id) &&
-                (System.currentTimeMillis() - existing.lastUpdatedTs) < LOCAL_CANCEL_REVOKE_GUARD_MS
+                (System.currentTimeMillis() - existing.lastUpdatedTs) < LOCAL_CANCEL_REVOKE_GUARD_MS &&
+                !purchaseDetail.isAutoRenewing // bypass guard on genuine resubscription (auto-renewal re-enabled)
             ) {
                 Logger.i(LOG_IAB, "$TAG: handlePaymentSuccessful: preserving local " +
                     "${SubscriptionStatus.SubscriptionState.fromId(existing.status).name} status " +
-                    "for token=${purchaseDetail.purchaseToken.take(8)} — Play propagation pending " +
+                    "for token=${purchaseDetail.purchaseToken.take(8)}, Play propagation pending " +
                     "(guard=${LOCAL_CANCEL_REVOKE_GUARD_MS / 60_000}min)")
                 stateMachine.updateData(SubscriptionData(existing, purchaseDetail))
                 return
             }
+
+            val preExistingStatus = existing?.status
 
             val isPlanChange = existing != null &&
                     existing.purchaseToken.isNotEmpty() &&
@@ -1491,8 +1547,21 @@ class SubscriptionStateMachineV2 : KoinComponent {
 
             val prevProductId = existing?.productId ?: ""
 
-            if (isPlanChange) {
-                // existing is guaranteed non-null when isPlanChange is true
+            // For INAPP-to-INAPP transitions (e.g. buying a second one-time plan while the first
+            // is still active), preserve the old row so both access windows coexist in the DB.
+            // The new purchase becomes the primary (latest lastUpdatedTs) and will be returned by
+            // getCurrentValidSubscription(). The old INAPP row is expired naturally by
+            // expireStaleInAppFromDb() once its billingExpiry passes.
+            val isInApp = purchaseDetail.productType == BillingClient.ProductType.INAPP ||
+                    purchaseDetail.productId.contains("onetime", ignoreCase = true) ||
+                    purchaseDetail.productId.contains("inapp", ignoreCase = true)
+            val existingIsInApp = existing?.productId?.let {
+                it.contains("onetime", ignoreCase = true) || it.contains("inapp", ignoreCase = true)
+            } ?: false
+            val isInAppExtension = isPlanChange && isInApp && existingIsInApp
+
+            if (isPlanChange && !isInAppExtension) {
+                // SUBS plan change or SUBS→INAPP: expire the old row.
                 val prev = existing
                 Logger.i(LOG_IAB, "$TAG: plan change: ${prev.productId}/${prev.purchaseToken.take(8)} → ${purchaseDetail.productId}/${purchaseDetail.purchaseToken.take(8)}")
                 prev.status  = SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id
@@ -1504,12 +1573,17 @@ class SubscriptionStateMachineV2 : KoinComponent {
                     toStatusId = SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id,
                     reason = "Superseded by new purchase: token=${purchaseDetail.purchaseToken.take(8)}, product=${purchaseDetail.productId}"
                 )
+            } else if (isInAppExtension) {
+                // INAPP extension: log but keep the old row active.
+                Logger.i(LOG_IAB, "$TAG: INAPP extension, keeping old row active: " +
+                    "${existing.productId}/${existing.purchaseToken.take(8)}, " +
+                    "new: ${purchaseDetail.productId}/${purchaseDetail.purchaseToken.take(8)}")
             }
 
             val rowToSave: SubscriptionStatus = existingByToken?.also { s -> syncAllFields(s, purchaseDetail, billingExpiry, sessionToken) }
                 ?: SubscriptionStatus().also { s ->
                     syncAllFields(s, purchaseDetail, billingExpiry, sessionToken)
-                    if (isPlanChange) {
+                    if (isPlanChange && !isInAppExtension) {
                         s.previousProductId = existing.productId
                         s.previousPurchaseToken = existing.purchaseToken
                         s.replacedAt = System.currentTimeMillis()
@@ -1530,16 +1604,30 @@ class SubscriptionStateMachineV2 : KoinComponent {
             // Record history for:
             //  - any status change       (prevStatusId != newStatusId)
             //  - plan changes            (isPlanChange)
-            //  - renewals: Active→Active with a new billingExpiry — the most common
+            //  - renewals: Active→Active with a new billingExpiry the most common
             //    meaningful same-state event. Without this, every subscription renewal
             //    was silently dropped from the history log.
-            val prevStatusId  = existing?.status ?: SubscriptionStatus.SubscriptionState.STATE_INITIAL.id
+            //
+            // Special case: when Play reports autoRenewing=false for a SUBS whose DB status is
+            // already CANCELLED, the reconcile path fires PaymentSuccessful (to update expiry +
+            // activate RPN) and then immediately calls updateCancelledStatusInDb which writes
+            // status back to CANCELLED.  Recording CANCELLED→ACTIVE here would create a noisy
+            // paired entry (CANCELLED→ACTIVE then ACTIVE→CANCELLED within the same reconcile).
+            // Skip it; the single ACTIVE→CANCELLED entry from updateCancelledStatusInDb is the
+            // meaningful one.
+            val isReconcileOfExistingCancelled = !purchaseDetail.isAutoRenewing &&
+                    !isInApp &&
+                    preExistingStatus == SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id
+
+            val prevStatusId  = preExistingStatus ?: SubscriptionStatus.SubscriptionState.STATE_INITIAL.id
             val newStatusId   = SubscriptionStatus.SubscriptionState.STATE_ACTIVE.id
             val expiryChanged = existingBillingExpiry > 0L &&
                     newBillingExpiry > 0L &&
                     existingBillingExpiry != newBillingExpiry
-            if (prevStatusId != newStatusId || isPlanChange || expiryChanged) {
+            if (!isReconcileOfExistingCancelled &&
+                (prevStatusId != newStatusId || (isPlanChange && !isInAppExtension) || expiryChanged)) {
                 val historyReason = when {
+                    isInAppExtension -> "INAPP access extended: new token=${purchaseDetail.purchaseToken.take(8)}, product=${purchaseDetail.productId}"
                     isPlanChange  -> "Plan changed from $prevProductId to ${purchaseDetail.productId}"
                     expiryChanged -> "Subscription renewed from ${currentState.name}: billingExpiry $existingBillingExpiry → $newBillingExpiry"
                     else          -> "Payment successful from ${currentState.name}"
@@ -1582,9 +1670,9 @@ class SubscriptionStateMachineV2 : KoinComponent {
         s.purchaseToken = d.purchaseToken
         s.orderId = d.orderId.ifBlank { s.orderId }
         s.accountId = d.accountId.ifBlank { s.accountId }
-        // Store only the sentinel indicator — never the raw device ID — so the DB never
+        // Store only the sentinel indicator, so the DB never
         // holds a sensitive plain-text credential.  If the incoming PurchaseDetail carries
-        // a non-blank deviceId (real ID from InAppBillingHandler.lastDeviceId), mark that
+        // a non-blank deviceId (sentinel set after resolving via getObfuscatedDeviceId()), mark that
         // the ID is present in SecureIdentityStore.  If blank (e.g. reconcile path), leave
         // the existing indicator/empty value untouched.
         if (d.deviceId.isNotBlank()) s.deviceId = SubscriptionStatus.DEVICE_ID_INDICATOR
@@ -1619,19 +1707,30 @@ class SubscriptionStateMachineV2 : KoinComponent {
                     return
                 }
             val prevStatus = sub.status
+
+            // If the DB row is already marked CANCELLED, skip the upsert entirely.
+            // Skipping to write is critical: this path is also reached during
+            // handleSystemCheckAndDatabaseRestoration (cold-start restoration) when the DB
+            // already says CANCELLED.  Always upsert would refresh lastUpdatedTs to "now",
+            // tripping the RECENTLY_ACTIVE_GUARD_MS in expireStaleSubsFromDb so the row
+            // would never be expired even after the billing period ends.
+            if (prevStatus == SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id) {
+                Logger.d(LOG_IAB, "$TAG: handleUserCancelled: already CANCELLED, restoring machine data only, no DB write")
+                stateMachine.updateData(SubscriptionData(sub, data?.purchaseDetail))
+                return
+            }
+
             sub.status        = SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id
             sub.lastUpdatedTs = System.currentTimeMillis()
             val updateResult = subscriptionDb.upsert(sub)
             if (updateResult > 0) {
                 stateMachine.updateData(SubscriptionData(sub, data?.purchaseDetail))
-                if (prevStatus != SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id) {
-                    dbSyncService.recordHistoryOnly(
-                        subscriptionId = sub.id,
-                        fromStatusId = prevStatus,
-                        toStatusId = SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id,
-                        reason = "User cancelled subscription"
-                    )
-                }
+                dbSyncService.recordHistoryOnly(
+                    subscriptionId = sub.id,
+                    fromStatusId = prevStatus,
+                    toStatusId = SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id,
+                    reason = "User cancelled subscription"
+                )
             } else {
                 Logger.e(LOG_IAB, "$TAG: handleUserCancelled: DB update failed")
             }
@@ -1731,7 +1830,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
                 //
                 // CANCELLED: cold-start restore for a subscription that was cancelled but whose
                 //   billingExpiry has not yet passed.  The in-memory state machine becomes Active
-                //   so the user retains access, but the DB status MUST stay CANCELLED — do NOT
+                //   so the user retains access, but the DB status MUST stay CANCELLED, do NOT
                 //   overwrite it to ACTIVE here.  If we did, every restart would generate a
                 //   spurious "Cancelled → Active" history entry that never corresponds to a real
                 //   payment event.  Play reconcile will write the authoritative status seconds
@@ -1958,19 +2057,20 @@ class SubscriptionStateMachineV2 : KoinComponent {
         }
     }
 
-    private suspend fun handleBillingError(error: String, billingResult: BillingResult) {
-        try {
-            Logger.e(LOG_IAB, "$TAG: handleBillingError: $error (code=${billingResult.responseCode})")
-            val data = stateMachine.getCurrentData() ?: return
-            dbSyncService.recordHistoryOnly(
-                subscriptionId = data.subscriptionStatus.id,
-                fromStatusId = data.subscriptionStatus.status,
-                toStatusId = SubscriptionStatus.SubscriptionState.STATE_PURCHASE_FAILED.id,
-                reason = "Billing error: $error (${billingResult.responseCode})"
-            )
-        } catch (e: Exception) {
-            Logger.e(LOG_IAB, "$TAG: handleBillingError error: ${e.message}", e)
-        }
+    private fun handleBillingError(error: String, billingResultCode: Int) {
+        // Billing errors are transient infrastructure failures (e.g. network, Play API).
+        // We do NOT write a history entry here because:
+        //  1. The SubscriptionStatus row is NOT updated when a billing error occurs.
+        //  2. Writing toState=STATE_PURCHASE_FAILED without updating the row's `status`
+        //     field creates a mismatch: history says "went to PURCHASE_FAILED" but the
+        //     current DB row still shows the previous state (e.g. ACTIVE).
+        //  3. Billing errors are recoverable; the machine goes to Error state and returns
+        //     to Initial on ErrorRecovered, no lasting subscription change occurred.
+        //
+        // Real purchase failures (user attempted payment and it was declined) are recorded
+        // separately in handlePurchaseFailed → savePurchaseFailureHistory, which *does*
+        // have a matching SubscriptionStatus update.
+        Logger.e(LOG_IAB, "$TAG: handleBillingError: $error (code=$billingResultCode)")
     }
 
     private fun handleDatabaseError(error: String) {
@@ -1979,11 +2079,11 @@ class SubscriptionStateMachineV2 : KoinComponent {
 
     private fun createDummyPurchaseDetail(): PurchaseDetail = PurchaseDetail(
         productId = "", planId = "", productTitle = "",
-        state = Purchase.PurchaseState.PURCHASED, planTitle = "",
-        purchaseToken = "", productType = BillingClient.ProductType.SUBS,
+        state = 1 /* Purchase.PurchaseState.PURCHASED */, planTitle = "",
+        purchaseToken = "", productType = "subs" /* BillingClient.ProductType.SUBS */,
         purchaseTime = "", purchaseTimeMillis = 0L, isAutoRenewing = false,
         accountId = "", payload = "", expiryTime = 0L,
-        status = Purchase.PurchaseState.PURCHASED,
+        status = 1 /* Purchase.PurchaseState.PURCHASED */,
         windowDays = REVOKE_WINDOW_SUBS_MONTHLY_DAYS,
         orderId = ""
     )

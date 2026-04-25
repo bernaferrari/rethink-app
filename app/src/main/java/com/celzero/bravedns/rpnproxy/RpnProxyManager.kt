@@ -16,8 +16,11 @@
 package com.celzero.bravedns.rpnproxy
 
 import Logger
+import Logger.LOG_IAB
 import Logger.LOG_TAG_PROXY
 import android.content.Context
+import android.text.format.DateUtils
+import com.android.billingclient.api.BillingClient
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.data.SsidItem
 import com.celzero.bravedns.database.CountryConfig
@@ -25,22 +28,25 @@ import com.celzero.bravedns.database.CountryConfigRepository
 import com.celzero.bravedns.database.RpnProxy
 import com.celzero.bravedns.database.RpnProxyRepository
 import com.celzero.bravedns.database.SubscriptionStatus
+import com.celzero.bravedns.database.SubscriptionStatusRepository
+import com.celzero.bravedns.iab.BillingBackendClient
 import com.celzero.bravedns.iab.InAppBillingHandler
+import com.celzero.bravedns.iab.InAppBillingHandler.ONE_TIME_PRODUCT_ID
 import com.celzero.bravedns.iab.PurchaseDetail
-import com.celzero.bravedns.service.DomainRulesManager
+import com.celzero.bravedns.iab.SubscriptionCheckWorker
 import com.celzero.bravedns.service.EncryptedFileManager
-import com.celzero.bravedns.service.IpRulesManager
+import com.celzero.bravedns.service.EncryptionException
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager
-import com.celzero.bravedns.service.ProxyManager.ID_RPN_WIN
-import com.celzero.bravedns.service.ProxyManager.ID_WG_BASE
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.subscription.SubscriptionStateMachineV2
+import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_COUNTRY_CODE
+import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.RPN_PROXY_FOLDER_NAME
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.firestack.backend.Backend
+import com.celzero.firestack.backend.IPMetadata
 import com.celzero.firestack.backend.RpnServers
 import com.celzero.firestack.settings.Settings
 import kotlinx.coroutines.CoroutineScope
@@ -48,12 +54,18 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.File
 import java.time.Instant
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArraySet
 
 object RpnProxyManager : KoinComponent {
@@ -61,11 +73,11 @@ object RpnProxyManager : KoinComponent {
 
     private const val TAG = "RpnMgr"
 
-    private var preferredId = Backend.Auto
-
     private val db: RpnProxyRepository by inject()
     private val countryConfigRepo: CountryConfigRepository by inject()
     private val persistentState by inject<PersistentState>()
+    private val billingBackendClient by inject<BillingBackendClient>()
+    private val subscriptionStatusRepository: SubscriptionStatusRepository by inject()
 
     private const val WIN_ID = 4
     private const val WIN_NAME = "WIN"
@@ -74,16 +86,43 @@ object RpnProxyManager : KoinComponent {
     const val MAX_WIN_SERVERS = 5
 
     private var winConfig: ByteArray? = null
-    // In-memory cache for WIN servers (CountryConfig as unified model)
+    // In-memory cache for WIN servers (CountryConfig as unified model).
     private val winServersCache = mutableListOf<CountryConfig>()
+    private val winCacheMutex = Mutex()
+
+    /**
+     * Emits a list of [CountryConfig] objects that were selected by the user but are
+     * no longer present in the server list returned by the tunnel after an update.
+     */
+    private val _serverRemovedEvent = MutableSharedFlow<List<CountryConfig>>(
+        replay = 0,
+        extraBufferCapacity = 1
+    )
+    val serverRemovedEvent: SharedFlow<List<CountryConfig>> = _serverRemovedEvent.asSharedFlow()
 
     private val rpnProxies = CopyOnWriteArraySet<RpnProxy>()
 
-    private val selectedCountries = mutableSetOf<String>()
+    private val selectedKeys = CopyOnWriteArraySet<String>()
+
+    data class ServerKeyMeta(
+        val selectedAt: Long,
+        val sinceTs: Long = 0L,
+        val ip4Meta: IPMetadata? = null,
+        val ip6Meta: IPMetadata? = null,
+    )
+
+    // Tracks per-server-key metadata (selection time, last tunnel-start ts, cached client IPs).
+    // Populated from CountryConfig.lastModified on startup; overwritten on every runtime
+    // enable/disable; sinceTs / ip[46]Meta updated by RpnConfigDetailActivity after each poll.
+    private val serverKeyMeta = ConcurrentHashMap<String, ServerKeyMeta>()
 
     private val subscriptionStateMachine: SubscriptionStateMachineV2 by inject()
     private val stateObserverJob = SupervisorJob()
     private val stateObserverScope = CoroutineScope(Dispatchers.IO + stateObserverJob)
+    private const val DEFAULT_DNS = "tls://p0.freedns.controld.com"
+    private const val AD_FILTER_DNS = "tls://p2.freedns.controld.com"
+    private const val PARENTAL_FILTER_DNS = "tls://family.freedns.controld.com"
+    private const val SECURITY_FILTER_DNS = "tls://p1.freedns.controld.com"
 
     init {
         io {
@@ -96,7 +135,6 @@ object RpnProxyManager : KoinComponent {
                 )
             } catch (e: Exception) {
                 Logger.e(LOG_TAG_PROXY, "$TAG; error during initialization: ${e.message}", e)
-                // Continue without state machine if initialization fails
             }
         }
     }
@@ -126,15 +164,6 @@ object RpnProxyManager : KoinComponent {
 
         companion object {
             fun fromId(id: Int) = RpnMode.entries.first { it.id == id }
-
-            fun getPreferredId(id: Int): String {
-                val mode = fromId(id)
-                return when (mode) {
-                    NONE -> ""
-                    ANTI_CENSORSHIP -> getPreferredId()
-                    HIDE_IP -> getPreferredId()
-                }
-            }
         }
 
         fun isAntiCensorship() = this == ANTI_CENSORSHIP
@@ -158,8 +187,27 @@ object RpnProxyManager : KoinComponent {
         fun isInactive() = this == DISABLED
     }
 
+    /**
+     * Server-side DNS filter options. [id] is stable (persisted); do not reorder.
+     */
+    enum class DnsMode(val id: Int, val url: String, val tunType: String) {
+        // presets from go-tun, see below
+        // SetDNSConfig sets the DNS filter preset configuration. v is a csv of filter presets:
+        // "family", "security", "social", "privacy", "all", "none", "default". "none" and
+        // "default" are aliases that disable all filters. Leave it empty for no-op.
+        DEFAULT(0,  DEFAULT_DNS, "default"),
+        ANTI_AD(1,  AD_FILTER_DNS, "privacy"),
+        PARENTAL(2, PARENTAL_FILTER_DNS, "family"),
+        SECURITY(3, SECURITY_FILTER_DNS, "security");
+
+        companion object {
+            fun fromId(id: Int): DnsMode  = entries.firstOrNull { it.id == id }  ?: DEFAULT
+            fun fromUrl(url: String): DnsMode = entries.firstOrNull { it.url == url } ?: DEFAULT
+        }
+    }
+
     fun isRpnActive(): Boolean {
-        val isEnabled = RpnState.fromId(persistentState.rpnState).isEnabled()
+        val isEnabled = rpnState().isEnabled()
         val isActive = !rpnMode().isNone()
         return isEnabled && isActive
     }
@@ -172,11 +220,20 @@ object RpnProxyManager : KoinComponent {
 
     fun setRpnMode(mode: RpnMode) {
         if (rpnMode() == mode) {
-            Logger.i(LOG_TAG_PROXY, "$TAG; rpn mode already set to ${RpnMode.getPreferredId(mode.id)}, skipping")
+            Logger.i(LOG_TAG_PROXY, "$TAG; rpn mode already set to ${mode.name}, skipping")
             return
         }
         persistentState.rpnMode = mode.id
-        Logger.i(LOG_TAG_PROXY, "$TAG; rpn mode set to $${RpnMode.getPreferredId(mode.id)}")
+        Logger.i(LOG_TAG_PROXY, "$TAG; rpn mode set to ${mode.name}")
+    }
+
+    fun setRpnState(state: RpnState) {
+        if (rpnState() == state) {
+            Logger.i(LOG_TAG_PROXY, "$TAG; rpn state already set to ${state.name}, skipping")
+            return
+        }
+        persistentState.rpnState = state.id
+        Logger.i(LOG_TAG_PROXY, "$TAG; rpn state set to ${state.name}")
     }
 
     fun deactivateRpn(reason: String = "manual deactivation") {
@@ -190,43 +247,122 @@ object RpnProxyManager : KoinComponent {
         persistentState.rpnState = RpnState.DISABLED.id
     }
 
+    /**
+     * Stops proxying by setting the RPN mode to [RpnMode.NONE].
+     *
+     * This is a soft-stop: the RPN remains in [RpnState.ENABLED] so it can be
+     * restarted without re-authentication.  Use [deactivateRpn] for a full
+     * tear-down when the subscription is revoked.
+     */
+    suspend fun stopProxy() {
+        Logger.i(LOG_TAG_PROXY, "$TAG; stopProxy: current mode=${rpnMode()}, state=${rpnState()}")
+        if (!isRpnActive()) {
+            Logger.i(LOG_TAG_PROXY, "$TAG; stopProxy: already stopped, skipping")
+            return
+        }
+        setRpnMode(RpnMode.NONE)
+        deactivateRpn("user request")
+        VpnController.unregisterWin()
+        Logger.i(LOG_TAG_PROXY, "$TAG; stopProxy: proxy routing stopped (mode=NONE)")
+    }
 
-    fun activateRpn(purchase: PurchaseDetail, newPayload: String? = null) {
+    /**
+     * Restarts proxying after a [stopProxy] call.
+     *
+     * Returns `true` if the proxy was started, `false` if there is no valid
+     * subscription (caller should surface an appropriate error).
+     *
+     * The mode is restored to [RpnMode.ANTI_CENSORSHIP] (the default active
+     * routing mode).  This mirrors what [activateRpn] sets on first activation.
+     */
+    suspend fun startProxy() {
+        Logger.i(LOG_TAG_PROXY, "$TAG; startProxy: current mode=${rpnMode()}, state=${rpnState()}")
+        if (isRpnActive()) {
+            Logger.i(LOG_TAG_PROXY, "$TAG; startProxy: proxy already running (mode=${rpnMode()})")
+            VpnController.handleRpnProxies()
+            return
+        }
+        setRpnMode(RpnMode.ANTI_CENSORSHIP)
+        setRpnState(RpnState.ENABLED)
+        VpnController.handleRpnProxies()
+        Logger.i(LOG_TAG_PROXY, "$TAG; startProxy: proxy routing started (mode=ANTI_CENSORSHIP)")
+    }
 
-        if (persistentState.rpnState == RpnState.ENABLED.id) {
-            Logger.i(LOG_TAG_PROXY, "$TAG; rpn already activated, skipping")
+
+    /**
+     * Activates the RPN proxy for the given [purchase].
+     *
+     * @param purchase    Purchase from Play Billing that carries the developer payload.
+     * @param newPayload  Optional override payload (e.g. from a fresh server entitlement query).
+     */
+    suspend fun activateRpn(purchase: PurchaseDetail, newPayload: String? = null) {
+
+        val alreadyEnabled = persistentState.rpnState == RpnState.ENABLED.id
+
+        // Priority: explicit newPayload > purchase.payload > DB developerPayload
+        val candidatePayload = when {
+            !newPayload.isNullOrEmpty() -> {
+                Logger.i(LOG_TAG_PROXY, "$TAG; activateRpn: using explicit newPayload")
+                newPayload
+            }
+            purchase.payload.isNotEmpty() -> {
+                Logger.i(LOG_TAG_PROXY, "$TAG; activateRpn: using purchase.payload")
+                purchase.payload
+            }
+            else -> {
+                // Last resort: pull from DB developerPayload stored by the state machine
+                Logger.w(LOG_TAG_PROXY, "$TAG; activateRpn: purchase.payload is empty, trying DB developerPayload")
+                try {
+                    subscriptionStatusRepository.getCurrentSubscription()?.developerPayload ?: ""
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; activateRpn: failed to read DB developerPayload: ${e.message}", e)
+                    ""
+                }
+            }
+        }
+
+        // Even if rpnState is already ENABLED, the entitlement file or in-memory
+        // winConfig may be absent (app restart, storage cleared, first login on new device).
+        // storeWinEntitlement is idempotent; calling it again with the same data is safe.
+        if (candidatePayload.isNotEmpty()) {
+            try {
+                storeWinEntitlement(candidatePayload)
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; activateRpn: storeWinEntitlement threw: ${e.message}", e)
+                // Non-fatal: continue activation; registerProxy will use getWinEntitlement as fallback
+            }
+        } else {
+            Logger.w(LOG_TAG_PROXY, "$TAG; activateRpn: no payload available, entitlement file will NOT be updated")
+        }
+
+        if (alreadyEnabled) {
+            // RPN is already enabled; entitlement refresh was the only needed action.
+            Logger.i(LOG_TAG_PROXY, "$TAG; activateRpn: rpn already activated, entitlement refreshed, skipping state change")
             return
         }
 
-        val currentState = subscriptionStateMachine.getCurrentState()
-
         // Check if current state allows RPN activation
         if (!subscriptionStateMachine.hasValidSubscription()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; cannot activate RPN - no valid subscription, current state: ${currentState.name}")
+            val currentState = subscriptionStateMachine.getCurrentState()
+            Logger.w(LOG_TAG_PROXY, "$TAG; activateRpn: cannot activate RPN - no valid subscription, current state: ${currentState.name}")
+            return
+        }
+
+        // Additional validation, ensure purchase has required fields
+        if (purchase.productId.isEmpty()) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; activateRpn: cannot activate RPN - purchase has empty productId")
             return
         }
 
         try {
             persistentState.rpnState = RpnState.ENABLED.id
-            setRpnProductId(purchase.productId)
             persistentState.showConfettiOnRPlus = true
-            io {
-                val payload = if (newPayload != null && newPayload.isNotEmpty()) {
-                    // If new payload is provided, use it to update the purchase payload
-                    Logger.i(LOG_TAG_PROXY, "$TAG; updating purchase payload with new data")
-                    newPayload
-                } else {
-                    // Otherwise, use the existing payload from the purchase
-                    purchase.payload
-                }
-                storeWinEntitlement(payload)
-            }
             Logger.i(
                 LOG_TAG_PROXY,
-                "$TAG; rpn activated, mode: ${rpnMode()}, product: ${purchase.productId}"
+                "$TAG; activateRpn: rpn activated, mode: ${rpnMode()}, product: ${purchase.productId}"
             )
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error activating RPN: ${e.message}", e)
+            Logger.e(LOG_TAG_PROXY, "$TAG; activateRpn: error activating RPN: ${e.message}", e)
             // Rollback on error
             persistentState.rpnState = RpnState.DISABLED.id
             throw e
@@ -234,25 +370,24 @@ object RpnProxyManager : KoinComponent {
     }
 
     fun getSessionTokenFromPayload(payload: String): String {
-        // "developerPayload":"{\"ws\":{\"cid\":\"aa95f04efcb19a54c7605a02e5dd0b435906b993d12bec031a60f3f1272f4f0e\",\"sessiontoken\":\"22695:4:1752256088:524537c17ba103463ba1d330efaf05c146ba3404af:023f958b6c1949568f55078e3c58fe6885d3e57322\",\"expiry\":\"2025-08-11T00:00:00.000Z\",\"status\":\"valid\"}}"
+        // "developerPayload":"{\"ws\":{\"cid\":\"aa95f04efcb19a54c7605a02e5dd0b435906b993d12bec031a60f3f1272f4f0e\",\"sessiontoken\":\"22695:4:1752256088:524537c17**c146ba3404af:023f958b6c194**fe6885d3e57322\",\"expiry\":\"2025-08-11T00:00:00.000Z\",\"status\":\"valid\"}}"
         try {
-            val json = JSONObject(payload)
-            val ws = json.getJSONObject("ws")
-            val sessionToken = ws.getString("sessiontoken")
+            val ws = extractWsObject(payload) ?: return ""
+            val sessionToken = ws.optString("sessiontoken", "")
             Logger.i(LOG_TAG_PROXY, "$TAG; session token parsed from payload? ${sessionToken.isNotEmpty()}")
             return sessionToken
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error parsing session token from payload: ${e.message}", e)
+            Logger.e(LOG_TAG_PROXY, "$TAG; error parsing session token from payload($payload): ${e.message}", e)
         }
         return ""
     }
 
     fun getExpiryFromPayload(payload: String): Long? {
-        // "developerPayload":"{\"ws\":{\"cid\":\"aa95f04efcb19a54c7605a02e5dd0b435906b993d12bec031a60f3f1272f4f0e\",\"sessiontoken\":\"22695:4:1752256088:524537c17ba103463ba1d330efaf05c146ba3404af:023f958b6c1949568f55078e3c58fe6885d3e57322\",\"expiry\":\"2025-08-11T00:00:00.000Z\",\"status\":\"valid\"}}"
+        if (payload.isEmpty()) return null
         try {
-            val json = JSONObject(payload)
-            val ws = json.getJSONObject("ws")
-            val expiryStr = ws.getString("expiry")
+            val ws = extractWsObject(payload) ?: return null
+            val expiryStr = ws.optString("expiry", "")
+            if (expiryStr.isEmpty()) return null
             val timestamp: Long = Instant.parse(expiryStr).toEpochMilli()
             Logger.i(LOG_TAG_PROXY, "$TAG; expiry parsed from payload: $timestamp")
             return timestamp
@@ -262,21 +397,400 @@ object RpnProxyManager : KoinComponent {
         return null
     }
 
+    suspend fun getIsTestEntitlement(retryAttempt: Int = 0): Boolean {
+        return try {
+            val entitlement = VpnController.getEntitlementDetails(getWinEntitlement(), billingBackendClient.getDeviceId())
+            // RpnEntitlement.test() returns Boolean: true = test, false = production
+            if (entitlement == null) {
+                Logger.d(LOG_TAG_PROXY, "$TAG; getIsTestEntitlement: null entitlement, querying server for refresh")
+                // refresh entitlement from server
+                if (retryAttempt >= 3) {
+                    return persistentState.appTestMode
+                }
+                refreshEntitlementFromServer()
+                return getIsTestEntitlement(retryAttempt + 1)
+            }
+            entitlement.test()
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; getIsTestEntitlement: ${e.message}")
+            persistentState.appTestMode
+        }
+    }
+
+
+    suspend fun consumePurchaseIfTest() {
+        val mname = "consumePurchaseInTest"
+        val purchase = subscriptionStateMachine.getSubscriptionData()?.purchaseDetail
+        if (purchase == null) {
+            Logger.w(LOG_IAB, "$TAG $mname: no purchase to consume")
+            return
+        }
+        Logger.i(LOG_IAB, "$TAG $mname: consuming purchase token=${purchase.purchaseToken.take(8)}")
+        if (!getIsTestEntitlement()) {
+            Logger.i(LOG_IAB, "$TAG; $mname: not test entitlement - skipping")
+            return
+        }
+
+        callConsumeApi(purchase)
+    }
+
+    private suspend fun callConsumeApi(purchase: PurchaseDetail) {
+        val mname = "callConsumeApi"
+        if (purchase.accountId.isBlank()) {
+            Logger.e(LOG_IAB, "$TAG; $mname: accountId blank for token=${purchase.purchaseToken.take(8)}, skipping")
+            return
+        }
+        val sku = purchase.productId
+        Logger.i(LOG_IAB, "$TAG; $mname: delegating to BillingServerRepository for " +
+                "token=${purchase.purchaseToken.take(8)}, sku=$sku, accLen=${purchase.accountId.length}")
+        // purchase.deviceId holds only the sentinel indicator, always fetch the real ID from SecureIdentityStore.
+        val deviceId = billingBackendClient.getDeviceId()
+        val success = billingBackendClient.consumePurchase(purchase.accountId, deviceId, sku, purchase.purchaseToken)
+        if (success) {
+            Logger.i(LOG_IAB, "$TAG; $mname: consume succeeded for token=${purchase.purchaseToken.take(8)}")
+        } else {
+            Logger.w(LOG_IAB, "$TAG; $mname: consume failed for token=${purchase.purchaseToken.take(8)} (will retry next cycle)")
+        }
+    }
+
+    /**
+     * Queries the billing server for a fresh entitlement and stores it locally.
+     *
+     * Uses [BillingBackendClient.queryEntitlement] directly (same as the server-ack path
+     * used elsewhere in the codebase).
+     */
+    suspend fun refreshEntitlementFromServer() {
+        val mname = "refreshEntitlementFromServer"
+        try {
+            val sub = subscriptionStatusRepository.getCurrentSubscription()
+            val accountId     = sub?.accountId     ?: ""
+            val purchaseToken = sub?.purchaseToken ?: ""
+            if (accountId.isEmpty() || purchaseToken.isEmpty()) {
+                Logger.w(LOG_TAG_PROXY, "$TAG; $mname: accountId or purchaseToken empty, skipping")
+                return
+            }
+            val deviceId = billingBackendClient.getDeviceId(accountId)
+            val purchase = PurchaseDetail(
+                productId        = sub?.productId ?: "",
+                planId           = sub?.planId ?: "",
+                productTitle     = sub?.productTitle ?: "",
+                planTitle        = sub?.productTitle ?: "",
+                state            = sub?.state ?: 0,
+                purchaseToken    = purchaseToken,
+                productType      = if ((sub?.productId ?: "").contains("onetime", ignoreCase = true)) "inapp" else "subs",
+                purchaseTime     = "",
+                purchaseTimeMillis = sub?.purchaseTime ?: 0L,
+                isAutoRenewing   = false,
+                accountId        = accountId,
+                // Store only the sentinel
+                deviceId         = if (deviceId.isNotBlank()) SubscriptionStatus.DEVICE_ID_INDICATOR else "",
+                payload          = "",
+                expiryTime       = sub?.billingExpiry ?: 0L,
+                status           = sub?.status ?: 0,
+                windowDays       = sub?.windowDays ?: 0,
+                orderId          = sub?.orderId ?: ""
+            )
+            Logger.d(LOG_TAG_PROXY, "$TAG; $mname: querying server entitlement for accLen=${accountId.length}")
+            val updated = billingBackendClient.queryEntitlement(accountId, deviceId, purchase, purchaseToken)
+            if (updated.payload.isNotEmpty()) {
+                Logger.i(LOG_TAG_PROXY, "$TAG; $mname: server entitlement received, storing")
+                storeWinEntitlement(updated.payload)
+            } else {
+                Logger.w(LOG_TAG_PROXY, "$TAG; $mname: server entitlement returned empty payload")
+            }
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; $mname: error querying server entitlement: ${e.message}", e)
+        }
+    }
+
+    /**
+     * Represents the outcome of a full RPN reset operation.
+     */
+    sealed class ResetResult {
+        /** All steps completed successfully. */
+        object Success : ResetResult()
+        /** One of the required steps failed; [reason] is a human-readable description. */
+        data class Failure(val reason: String) : ResetResult()
+    }
+
+    /**
+     * Performs a full RPN reset:
+     *  1. Unregisters the current WIN registration from the tunnel.
+     *  2. Fetches a fresh entitlement from the server.
+     *  3. Stores the new entitlement (replacing the old one).
+     *  4. Re-registers WIN in the tunnel with the fresh entitlement.
+     *  5. Force-fetches the server list and syncs it to DB/cache.
+     *
+     * Returns [ResetResult.Success] when all steps complete, or
+     * [ResetResult.Failure] with a reason string if a fatal step fails.
+     */
+    suspend fun resetAndRefetchRpn(): ResetResult {
+        Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: starting full reset")
+
+        try {
+            VpnController.unregisterWin()
+            Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: unregistered from tunnel")
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: unregister failed (non-fatal): ${e.message}")
+        }
+
+        val sub = try {
+            subscriptionStatusRepository.getCurrentSubscription()
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: failed to read subscription: ${e.message}", e)
+            return ResetResult.Failure("Failed to read subscription details")
+        }
+
+        if (sub == null) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: no active subscription found")
+            return ResetResult.Failure("No active subscription found")
+        }
+
+        val accountId = sub.accountId
+        val purchaseToken = sub.purchaseToken
+        if (accountId.isEmpty() || purchaseToken.isEmpty()) {
+            Logger.w(
+                LOG_TAG_PROXY,
+                "$TAG; resetAndRefetchRpn: incomplete account info " +
+                    "(accountEmpty=${accountId.isEmpty()}, tokenEmpty=${purchaseToken.isEmpty()})"
+            )
+            return ResetResult.Failure("Account information is incomplete")
+        }
+
+        val deviceId = billingBackendClient.getDeviceId(accountId)
+
+        val fakePurchase = PurchaseDetail(
+            productId = sub.productId,
+            planId = sub.planId,
+            productTitle = sub.productTitle,
+            planTitle = sub.productTitle,
+            state = sub.state,
+            purchaseToken = purchaseToken,
+            productType = if (sub.productId.contains("onetime", ignoreCase = true))
+                BillingClient.ProductType.INAPP else BillingClient.ProductType.SUBS,
+            purchaseTime = "",
+            purchaseTimeMillis = sub.purchaseTime,
+            isAutoRenewing = false,
+            accountId = accountId,
+            deviceId = if (deviceId.isNotBlank()) SubscriptionStatus.DEVICE_ID_INDICATOR else "",
+            payload = sub.developerPayload,
+            expiryTime = sub.billingExpiry,
+            status = sub.status,
+            windowDays = sub.windowDays,
+            orderId = sub.orderId
+        )
+
+        val updatedPurchase = try {
+            InAppBillingHandler.queryEntitlementFromServer(accountId, deviceId, fakePurchase)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: entitlement query failed: ${e.message}", e)
+            return ResetResult.Failure("Failed to fetch entitlement from server")
+        }
+
+        if (updatedPurchase.payload.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: server returned empty payload")
+            return ResetResult.Failure("Server returned an empty entitlement")
+        }
+
+        try {
+            storeWinEntitlement(updatedPurchase.payload)
+            Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: new entitlement stored")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: storeWinEntitlement failed: ${e.message}", e)
+            return ResetResult.Failure("Failed to store new entitlement")
+        }
+
+        // Update state machine with fresh payload (non-fatal)
+        try {
+            val subsData = subscriptionStateMachine.getSubscriptionData()
+            if (subsData != null) {
+                subsData.subscriptionStatus.developerPayload = updatedPurchase.payload
+                val updatedSubsData = subsData.copy(purchaseDetail = updatedPurchase)
+                subscriptionStateMachine.stateMachine.updateData(updatedSubsData)
+                Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: state machine payload updated")
+            }
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: state machine update failed (non-fatal): ${e.message}")
+        }
+
+        val entitlementBytes = getWinEntitlement()
+        val registrationBytes = try {
+            VpnController.registerAndFetchWinConfig(entitlementBytes, billingBackendClient.getDeviceId())
+                ?: VpnController.registerAndFetchWinConfig(null, billingBackendClient.getDeviceId())
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: tunnel registration failed: ${e.message}", e)
+            return ResetResult.Failure("Failed to register with tunnel")
+        }
+        updateWinConfigState(registrationBytes)
+        Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: re-registered with tunnel")
+
+        val (servers, _) = fetchAndConstructWinLocations()
+
+        if (servers.isNotEmpty()) {
+            syncWinServers(servers)
+            Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: synced ${servers.size} servers")
+        } else {
+            Logger.w(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: no servers returned after reset")
+        }
+
+        Logger.i(LOG_TAG_PROXY, "$TAG; resetAndRefetchRpn: complete, servers=${servers.size}")
+        return ResetResult.Success
+    }
+
+    /**
+     * Update both billingExpiry and accountExpiry for the current active subscription.
+     *
+     * Use this after a successful acknowledgement from the server that returns updated
+     * expiry values for the billing period and the account-access period.
+     *
+     * @param newBillingExpiry  New billing-period expiry epoch-millis (0 = no change).
+     * @param newAccountExpiry  New account-access expiry epoch-millis (0 = no change).
+     * @return `true` if all requested updates succeeded.
+     */
+    suspend fun updateBillingAndAccountExpiry(newBillingExpiry: Long, newAccountExpiry: Long): Boolean {
+        if (newBillingExpiry <= 0L && newAccountExpiry <= 0L) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; updateBillingAndAccountExpiry: both values are 0, skipping")
+            return false
+        }
+        return try {
+            val current = subscriptionStatusRepository.getCurrentSubscription()
+            if (current == null) {
+                Logger.w(LOG_TAG_PROXY, "$TAG; updateBillingAndAccountExpiry: no active subscription found")
+                return false
+            }
+            val now = System.currentTimeMillis()
+            var ok = true
+            if (newBillingExpiry > 0L) {
+                val r = subscriptionStatusRepository.updateBillingExpiry(current.id, newBillingExpiry, now)
+                if (r <= 0) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; updateBillingAndAccountExpiry: billingExpiry update failed for id=${current.id}")
+                    ok = false
+                }
+            }
+            if (newAccountExpiry > 0L) {
+                val r = subscriptionStatusRepository.updateAccountExpiry(current.id, newAccountExpiry, now)
+                if (r <= 0) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; updateBillingAndAccountExpiry: accountExpiry update failed for id=${current.id}")
+                    ok = false
+                }
+            }
+            if (ok) Logger.i(LOG_TAG_PROXY, "$TAG; updateBillingAndAccountExpiry: billing=$newBillingExpiry, account=$newAccountExpiry for id=${current.id}")
+            ok
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; updateBillingAndAccountExpiry: error: ${e.message}", e)
+            false
+        }
+    }
+
+    /**
+     * Extracts the "ws" JSON object from a payload string.
+     *
+     * The payload can arrive in two shapes:
+     *
+     * Shape 1 – full purchase originalJson (from Play Billing's Purchase.getOriginalJson()).
+     *   The "ws" object is nested inside the "developerPayload" string value which is itself
+     *   a JSON string that must be parsed a second time:
+     *   { ..., "developerPayload": "{\"ws\":{...}}", ... }
+     *
+     * Shape 2 – already-extracted developerPayload string stored in the DB.
+     *   The "ws" object is top-level inside this string:
+     *   { "ws": { "cid": "...", "sessiontoken": "...", "expiry": "...", ... } }
+     *
+     * Both shapes are handled: try top-level "ws" first; if absent, look inside
+     * "developerPayload" for a nested "ws".
+     */
+    fun extractWsObject(payload: String): JSONObject? {
+        if (payload.isEmpty()) return null
+        return try {
+            val json = JSONObject(payload)
+
+            // Shape 2: "ws" is top-level (already-extracted developerPayload).
+            val ws = json.optJSONObject("ws")
+            if (ws != null) return ws
+
+            // Shape 1: "ws" is embedded inside the "developerPayload" string value.
+            val devPayloadStr = json.optString("developerPayload", "")
+            if (devPayloadStr.isNotEmpty()) {
+                val devPayloadJson = JSONObject(devPayloadStr)
+                val wsFromDev = devPayloadJson.optJSONObject("ws")
+                if (wsFromDev != null) return wsFromDev
+            }
+
+            Logger.w(LOG_TAG_PROXY, "$TAG; extractWsObject: ws not found in payload")
+            null
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; extractWsObject: failed to parse payload: ${e.message}")
+            null
+        }
+    }
+
     suspend fun storeWinEntitlement(payload: String) {
         // Store the win entitlement in a file and the path in serverResponsePath
+        if (payload.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: payload is empty, skipping")
+            return
+        }
+
         try {
-            // "developerPayload":"{\"ws\":{\"cid\":\"aa95f04efcb19a54c7605a02e5dd0b435906b993d12bec031a60f3f1272f4f0e\",\"sessiontoken\":\"22695:4:1752256088:524537c17ba103463ba1d330efaf05c146ba3404af:023f958b6c1949568f55078e3c58fe6885d3e57322\",\"expiry\":\"2025-08-11T00:00:00.000Z\",\"status\":\"valid\"}}"
-            val json = JSONObject(payload)
-            val ws = json.getJSONObject("ws")
+            // Use extractWsObject to handle both payload shapes:
+            // Shape 1: full purchase originalJson  → ws nested inside developerPayload
+            // Shape 2: already-extracted payload   → ws is top-level
+            val ws = extractWsObject(payload)
+            if (ws == null) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: ws object not found in payload")
+                return
+            }
+
             val fileName = getJsonResponseFileName(WIN_ID)
-            val file = File(applicationContext.getExternalFilesDir(RPN_PROXY_FOLDER_NAME), fileName)
-            val res = EncryptedFileManager.write(applicationContext, ws.toString(), file)
+            val folder = applicationContext.getExternalFilesDir(RPN_PROXY_FOLDER_NAME)
+            if (folder == null) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: failed to get external files dir")
+                return
+            }
+
+            if (!folder.exists()) {
+                val created = try {
+                    folder.mkdirs()
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: exception creating folder: ${e.message}", e)
+                    false
+                }
+                if (!created) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: failed to create folder: ${folder.absolutePath}")
+                    return
+                }
+            }
+
+            val file = File(folder, fileName)
+            val res = try {
+                EncryptedFileManager.write(applicationContext, ws.toString(), file)
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: exception writing file: ${e.message}", e)
+                false
+            }
+
+            if (!res) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: failed to write file: ${file.absolutePath}")
+                return
+            }
+
             // update the winConfig with the file path
             winConfig = ws.toString().toByteArray()
-            val winProxy = db.getProxyById(WIN_ID)
+            val winProxy = try {
+                db.getProxyById(WIN_ID)
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: failed to get win proxy from DB: ${e.message}", e)
+                null
+            }
+
             val ll = if (winProxy != null) {
                 winProxy.serverResPath = file.absolutePath
-                db.update(winProxy)
+                try {
+                    db.update(winProxy)
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: failed to update win proxy: ${e.message}", e)
+                    -1
+                }
             } else {
                 // insert a new proxy entry if it doesn't exist
                 val newWinProxy = RpnProxy(
@@ -293,7 +807,12 @@ object RpnProxyManager : KoinComponent {
                     latency = 0,
                     lastRefreshTime = System.currentTimeMillis()
                 )
-                db.insert(newWinProxy).toInt()
+                try {
+                    db.insert(newWinProxy).toInt()
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; storeWinEntitlement: failed to insert win proxy: ${e.message}", e)
+                    -1
+                }
             }
             if (ll < 0) {
                 Logger.w(LOG_TAG_PROXY, "$TAG; error updating win proxy in db, result: $ll")
@@ -306,28 +825,8 @@ object RpnProxyManager : KoinComponent {
         }
     }
 
-
-    fun changePreferredId(id: String) {
-        if (id.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; err; preferred id is empty, resetting to default")
-            preferredId = Backend.Auto
-            return
-        }
-        preferredId = id
-        Logger.i(LOG_TAG_PROXY, "$TAG; preferred id changed to $preferredId")
-    }
-
-    fun getPreferredId(): String {
-        Logger.v(LOG_TAG_PROXY, "$TAG; getPreferredId: $preferredId")
-        return preferredId
-    }
-
     fun getRpnProductId(): String {
-        return persistentState.rpnProductId
-    }
-
-    fun setRpnProductId(productId: String) {
-        persistentState.rpnProductId = productId
+        return subscriptionStateMachine.getSubscriptionData()?.purchaseDetail?.productId ?: ""
     }
 
     enum class RpnType(val id: Int) {
@@ -355,12 +854,25 @@ object RpnProxyManager : KoinComponent {
     suspend fun load(): Int {
         // need to read the filepath from database and load the file
         // there will be an entry in the database for each RPN proxy
-        selectedCountries.clear()
-        val rp = db.getAllProxies()
+        selectedKeys.clear()
+        serverKeyMeta.clear()
+        val rp = try {
+            db.getAllProxies()
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; init load, failed to get proxies from DB: ${e.message}", e)
+            emptyList()
+        }
         Logger.i(LOG_TAG_PROXY, "$TAG; init load, db size: ${rp.size}")
+        // Clear before adding to avoid duplicates on reload
+        rpnProxies.clear()
         rpnProxies.addAll(rp)
         rp.forEach {
             try {
+                if (it.configPath.isEmpty() && it.id != WIN_ID) {
+                    Logger.w(LOG_TAG_PROXY, "$TAG; load, config path is empty for ${it.name}")
+                    return@forEach
+                }
+
                 val cfgFile = File(it.configPath)
                 if (!cfgFile.exists() && it.id != WIN_ID) { // win proxy is handled differently
                     Logger.w(LOG_TAG_PROXY, "$TAG; load, file not found: ${it.configPath} for ${it.name}")
@@ -369,16 +881,42 @@ object RpnProxyManager : KoinComponent {
                 when (it.id) {
                     WIN_ID -> {
                         // read the win entitlement file
-                        val entitlementFile = File(it.serverResPath)
-                        val entitlement = EncryptedFileManager.readByteArray(applicationContext, entitlementFile)
-                        val state = EncryptedFileManager.readByteArray(applicationContext, cfgFile)
-                        if (state.isEmpty()) {
-                            Logger.d(LOG_TAG_PROXY, "$TAG; win state file is empty (path: ${cfgFile.absolutePath}, using entitlement")
-                            winConfig = entitlement
-                        } else {
-                            winConfig = state
+                        if (it.serverResPath.isEmpty()) {
+                            Logger.w(LOG_TAG_PROXY, "$TAG; load, win serverResPath is empty")
+                            return@forEach
                         }
-                        Logger.i(LOG_TAG_PROXY, "$TAG; win config loaded, ${winConfig?.isNotEmpty()}")
+                        val entitlementFile = File(it.serverResPath)
+                        val entitlement = if (entitlementFile.exists()) {
+                            try {
+                                EncryptedFileManager.readByteArray(applicationContext, entitlementFile)
+                            } catch (e: Exception) {
+                                Logger.e(LOG_TAG_PROXY, "$TAG; load, error reading win entitlement file: ${e.message}", e)
+                                byteArrayOf()
+                            }
+                        } else {
+                            Logger.w(LOG_TAG_PROXY, "$TAG; load, win entitlement file not found: ${it.serverResPath}")
+                            byteArrayOf()
+                        }
+
+                        val state = if (cfgFile.exists()) {
+                            try {
+                                EncryptedFileManager.readByteArray(applicationContext, cfgFile)
+                            } catch (e: Exception) {
+                                Logger.e(LOG_TAG_PROXY, "$TAG; load, error reading win state file: ${e.message}", e)
+                                byteArrayOf()
+                            }
+                        } else {
+                            Logger.d(LOG_TAG_PROXY, "$TAG; load, win state file not found: ${it.configPath}")
+                            byteArrayOf()
+                        }
+
+                        winConfig = if (state.isEmpty()) {
+                            Logger.d(LOG_TAG_PROXY, "$TAG; win state file is empty (path: ${cfgFile.absolutePath}), using entitlement")
+                            entitlement
+                        } else {
+                            state
+                        }
+                        Logger.i(LOG_TAG_PROXY, "$TAG; win config loaded, size: ${winConfig?.size ?: 0}")
                     }
                 }
             } catch (e: Exception) {
@@ -386,21 +924,22 @@ object RpnProxyManager : KoinComponent {
             }
         }
 
-        selectedCountries.addAll(DomainRulesManager.getAllUniqueCCs()) // add the domain rules cc
-        selectedCountries.addAll(IpRulesManager.getAllUniqueCCs()) // add the ip rules cc
-        Logger.d(
-            LOG_TAG_PROXY,
-            "$TAG; total selected countries: ${selectedCountries.size}, $selectedCountries"
-        )
-
         // Populate WIN servers cache from DB at startup
         try {
+            // Ensure AUTO server exists in database
+            ensureAutoServerExists()
+
             val dbServers = countryConfigRepo.getAllConfigs()
-            synchronized(winServersCache) {
+            winCacheMutex.withLock {
                 winServersCache.clear()
                 winServersCache.addAll(dbServers)
             }
-            Logger.i(LOG_TAG_PROXY, "$TAG; load: cached ${dbServers.size} WIN servers from DB")
+            val sk = dbServers.filter { it.isEnabled }.map { it.key }
+            selectedKeys.addAll(sk)
+            // Seed timestamps from the DB record's lastModified (best available proxy for
+            // "when was this server selected" after a cold start / reload).
+            dbServers.filter { it.isEnabled }.forEach { serverKeyMeta[it.key] = ServerKeyMeta(selectedAt = it.lastModified) }
+            Logger.i(LOG_TAG_PROXY, "$TAG; load: cached ${dbServers.size}, selected: ${selectedKeys.size} WIN servers from DB (AUTO server ensured)")
         } catch (e: Exception) {
             Logger.w(LOG_TAG_PROXY, "$TAG; load: failed to cache WIN servers: ${e.message}")
         }
@@ -411,14 +950,22 @@ object RpnProxyManager : KoinComponent {
     fun getProxy(type: RpnType): RpnProxy? {
         return when (type) {
             RpnType.WIN -> {
-                rpnProxies.find { it.name == WIN_NAME || it.name == WIN_NAME.lowercase() }
+                try {
+                    rpnProxies.find { it.name == WIN_NAME || it.name == WIN_NAME.lowercase() }
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; error getting WIN proxy: ${e.message}", e)
+                    null
+                }
             }
-            else -> null
+            else -> {
+                Logger.w(LOG_TAG_PROXY, "$TAG; unsupported proxy type: $type")
+                null
+            }
         }
     }
 
     // This function is called from RpnProxiesUpdateWorker
-    suspend fun registerNewProxy(type: RpnType): Boolean {
+    suspend fun registerProxy(type: RpnType): Boolean {
         // in case of update failure, call register with null
         when (type) {
             RpnType.WIN -> {
@@ -429,10 +976,84 @@ object RpnProxyManager : KoinComponent {
                     bytes = getWinEntitlement()
                 }
                 if (bytes == null || bytes.isEmpty()) {
-                    Logger.w(LOG_TAG_PROXY, "$TAG; win entitlement is null or empty, cannot register")
-                    return false
+                    // This handles the case where:
+                    //   (a) the entitlement file was never written (race between activateRpn
+                    //       and registerProxy on first launch), OR
+                    //   (b) external storage was cleared / the file was deleted.
+                    // We pull the developerPayload from the DB subscription row (written by
+                    // the state machine during handlePaymentSuccessful) and re-store it,
+                    // which populates winConfig so the tunnel can be registered.
+                    Logger.w(LOG_TAG_PROXY, "$TAG; registerProxy: both state and entitlement files absent, attempting DB payload recovery")
+                    val dbPayload = try {
+                        subscriptionStatusRepository.getCurrentSubscription()?.developerPayload ?: ""
+                    } catch (e: Exception) {
+                        Logger.e(LOG_TAG_PROXY, "$TAG; registerProxy: failed to read DB developerPayload: ${e.message}", e)
+                        ""
+                    }
+                    if (dbPayload.isNotEmpty()) {
+                        Logger.i(LOG_TAG_PROXY, "$TAG; registerProxy: found DB payload (len=${dbPayload.length}), re-storing entitlement")
+                        try {
+                            storeWinEntitlement(dbPayload)
+                            bytes = getWinEntitlement()
+                        } catch (e: Exception) {
+                            Logger.e(LOG_TAG_PROXY, "$TAG; registerProxy: error re-storing entitlement from DB: ${e.message}", e)
+                        }
+                    }
+
+                    if (bytes == null || bytes.isEmpty()) {
+                        // DB also had no usable payload.  Try a live server query as last resort.
+                        Logger.w(LOG_TAG_PROXY, "$TAG; registerProxy: DB payload also empty, querying server entitlement")
+                        val sub = try { subscriptionStatusRepository.getCurrentSubscription() } catch (e: Exception) { null }
+                        val accountId = sub?.accountId ?: ""
+                        // sub.deviceId holds only the sentinel indicator "pip/identity.json"
+                        val deviceId = billingBackendClient.getDeviceId(accountId)
+                        val purchaseToken = sub?.purchaseToken ?: ""
+                        if (accountId.isNotEmpty() && purchaseToken.isNotEmpty()) {
+                            try {
+                                val fakePurchase = PurchaseDetail(
+                                    productId = sub?.productId ?: "",
+                                    planId = sub?.planId ?: "",
+                                    productTitle = sub?.productTitle ?: "",
+                                    planTitle = sub?.productTitle ?: "",
+                                    state = sub?.state ?: 0,
+                                    purchaseToken = purchaseToken,
+                                    productType = if ((sub?.productId ?: "").contains("onetime", ignoreCase = true)) BillingClient.ProductType.INAPP else BillingClient.ProductType.SUBS,
+                                    purchaseTime = "",
+                                    purchaseTimeMillis = sub?.purchaseTime ?: 0L,
+                                    isAutoRenewing = false,
+                                    accountId = accountId,
+                                    // Store only the sentinel
+                                    // Callers that need the actual ID use billingBackendClient.getDeviceId().
+                                    deviceId = if (deviceId.isNotBlank()) SubscriptionStatus.DEVICE_ID_INDICATOR else "",
+                                    payload = "",
+                                    expiryTime = sub?.billingExpiry ?: 0L,
+                                    status = sub?.status ?: 0,
+                                    windowDays = sub?.windowDays ?: 0,
+                                    orderId = sub?.orderId ?: ""
+                                )
+                                val updated = InAppBillingHandler.queryEntitlementFromServer(accountId, deviceId, fakePurchase)
+                                if (updated.payload.isNotEmpty()) {
+                                    Logger.i(LOG_TAG_PROXY, "$TAG; registerProxy: server query succeeded, storing entitlement")
+                                    storeWinEntitlement(updated.payload)
+                                    bytes = getWinEntitlement()
+                                }
+                            } catch (e: Exception) {
+                                Logger.e(LOG_TAG_PROXY, "$TAG; registerProxy: server entitlement query failed: ${e.message}", e)
+                            }
+                        }
+                    }
+
+                    if (bytes == null || bytes.isEmpty()) {
+                        Logger.e(LOG_TAG_PROXY, "$TAG; registerProxy: win entitlement unavailable after all recovery attempts, cannot register")
+                        return false
+                    }
                 }
-                val currBytes = VpnController.registerAndFetchWinConfig(bytes) ?: return false
+                var currBytes = VpnController.registerAndFetchWinConfig(bytes, billingBackendClient.getDeviceId())
+                if (currBytes == null) {
+                    // try registering with null
+                    Logger.w(LOG_TAG_PROXY, "$TAG; win registration failed with existing bytes, trying with no prev bytes")
+                    currBytes = VpnController.registerAndFetchWinConfig(null, billingBackendClient.getDeviceId())
+                }
                 val ok = updateWinConfigState(currBytes)
                 // Fetch servers from API and sync to database and cache
                 val (servers, removedSelectedIds) = fetchAndConstructWinLocations()
@@ -457,7 +1078,7 @@ object RpnProxyManager : KoinComponent {
     }
 
     suspend fun retryLocationFetch() {
-        for (i in 1..15) {
+        for (i in 1..5) {
             Logger.i(LOG_TAG_PROXY, "$TAG; retrying to fetch win properties, attempt: $i")
             val (servers, removedSelectedIds) = fetchAndConstructWinLocations()
             if (servers.isNotEmpty()) {
@@ -475,49 +1096,63 @@ object RpnProxyManager : KoinComponent {
 
     /**
      * Get all WIN servers.
-     * Prefers in-memory cache; falls back to DB; if empty, fetches from API, syncs DB, and updates cache.
+     * Prefers in-memory cache; falls back to DB; if empty (or only the synthetic AUTO entry
+     * exists), fetches from the tunnel API, syncs DB, and updates cache.
+     *
+     * **Important:** AUTO is a local synthetic entry created by [ensureAutoServerExists].
      */
     suspend fun getWinServers(): List<CountryConfig> {
-        // Return cached list if available
-        synchronized(winServersCache) {
-            if (winServersCache.isNotEmpty()) {
-                Logger.v(LOG_TAG_PROXY, "$TAG; returning cached win servers, size: ${winServersCache.size}")
+        // Return cached list only if it contains real (non-AUTO) servers.
+        winCacheMutex.withLock {
+            val realCached = winServersCache.filter { it.id != AUTO_SERVER_ID }
+            if (realCached.isNotEmpty()) {
+                Logger.v(LOG_TAG_PROXY, "$TAG; returning cached win servers, size: ${winServersCache.size} (real=${realCached.size})")
                 return winServersCache.toList()
             }
         }
 
-        // Try DB next
+        // Try DB, same rule: only use it when real (non-AUTO) rows exist.
         val dbServers = countryConfigRepo.getAllConfigs()
-        if (dbServers.isNotEmpty()) {
-            synchronized(winServersCache) {
+        val realDbServers = dbServers.filter { it.id != AUTO_SERVER_ID }
+        if (realDbServers.isNotEmpty()) {
+            winCacheMutex.withLock {
                 winServersCache.clear()
                 winServersCache.addAll(dbServers)
             }
-            Logger.v(LOG_TAG_PROXY, "$TAG; loaded ${dbServers.size} win servers from DB into cache")
+            Logger.v(LOG_TAG_PROXY, "$TAG; loaded ${dbServers.size} win servers from DB into cache (real=${realDbServers.size})")
             return dbServers
         }
 
-        // Database is empty, fetch from API and sync
-        Logger.w(LOG_TAG_PROXY, "$TAG; database is empty, fetching win servers from tun")
+        // Cache and DB contain only AUTO (or are completely empty) -  fetch real data from tunnel.
+        Logger.w(LOG_TAG_PROXY, "$TAG; no real servers in cache/DB (only AUTO or empty), fetching win servers from tun")
         val (apiServers, removedSelectedIds) = fetchAndConstructWinLocations()
         if (apiServers.isNotEmpty()) {
             syncWinServers(apiServers)
             if (removedSelectedIds.isNotEmpty()) {
                 Logger.w(LOG_TAG_PROXY, "$TAG; getWinServers: ${removedSelectedIds.size} selected servers were removed")
             }
+        } else {
+            Logger.w(LOG_TAG_PROXY, "$TAG; getWinServers: tunnel returned no servers (win props null/empty)")
         }
-        return apiServers.toList()
+        // Return whatever is now in the cache (may still be AUTO-only if tunnel failed).
+        // The caller (ServerSelectionFragment) will detect the absence of real servers
+        // and show an appropriate error to the user.
+        return winCacheMutex.withLock { winServersCache.toList() }
     }
-
-    // ===== WIN Server Database Operations (delegated to CountryConfigRepository) =====
-    // These methods are now available through countryConfigRepo if needed elsewhere
 
     suspend fun getWinEntitlement(): ByteArray? {
         val proxy = db.getProxyById(WIN_ID) ?: return null
         val file = File(proxy.serverResPath)
         if (!file.exists()) return null
-        val bytes = EncryptedFileManager.readByteArray(applicationContext, file)
-        return if (bytes.isNotEmpty()) bytes else null
+        return try {
+            val bytes = EncryptedFileManager.readByteArray(applicationContext, file)
+            if (bytes.isNotEmpty()) bytes else null
+        } catch (e: EncryptionException) {
+            // File is corrupted, encrypted with an invalidated key, or unreadable.
+            // Return null so the caller falls back to fetching fresh entitlement from the API.
+            Logger.w(LOG_TAG_PROXY, "$TAG; getWinEntitlement: encrypted file unreadable (${e::class.simpleName}), returning null", e)
+            null
+        }
     }
 
     /**
@@ -541,8 +1176,23 @@ object RpnProxyManager : KoinComponent {
         return subscriptionStateMachine.getCurrentState()
     }
 
-    suspend fun getCurrentSubscription(): SubscriptionStateMachineV2.SubscriptionData? {
+    fun getCurrentSubscription(): SubscriptionStateMachineV2.SubscriptionData? {
         return subscriptionStateMachine.getSubscriptionData()
+    }
+
+    /**
+     * Returns the best available [PurchaseDetail] for the current subscription.
+     * Returns `null` only when there is no subscription data at all.
+     */
+    fun getEffectivePurchaseDetail(): PurchaseDetail? {
+        val data = subscriptionStateMachine.getSubscriptionData() ?: return null
+        return data.purchaseDetail
+            ?: data.subscriptionStatus
+                .takeIf { it.purchaseToken.isNotEmpty() }
+                ?.let {
+                    Logger.i(LOG_TAG_PROXY, "$TAG; getEffectivePurchaseDetail: reconstructing from subscriptionStatus (token=${it.purchaseToken.take(8)})")
+                    subscriptionStateMachine.createPurchaseDetailFromSubscription(it)
+                }
     }
 
     suspend fun updateCancelledSubscription(accountId: String, purchaseToken: String): Boolean {
@@ -564,62 +1214,147 @@ object RpnProxyManager : KoinComponent {
         return true
     }
 
+    /**
+     * Called from [SubscriptionStateMachineV2.handlePaymentSuccessful] after the DB row is
+     * written and the state machine has been updated.
+     *
+     * Responsibilities:
+     *  1. Ensure a valid developer payload (entitlement token) is stored on disk so that
+     *     [registerProxy] can find it even on subsequent app launches.
+     *  2. If the purchase payload is absent or stale, query a fresh one from the server.
+     *  3. Always call [activateRpn] to persist the entitlement file and set rpnState.
+     */
     suspend fun processRpnPurchase(purchase: PurchaseDetail?, existingSubs: SubscriptionStatus): Boolean {
         if (purchase == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; err; no purchases to process")
-            try {
-                subscriptionStateMachine.subscriptionExpired()
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; error notifying state machine of expiration: ${e.message}", e)
+            Logger.w(LOG_TAG_PROXY, "$TAG; processRpnPurchase: no purchase to process")
+            try { subscriptionStateMachine.subscriptionExpired() } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; processRpnPurchase: error notifying state machine: ${e.message}", e)
             }
             return false
         }
 
         if (purchase.productId.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; err; productId is empty for purchase: $purchase")
-            try {
-                subscriptionStateMachine.purchaseFailed("Empty product ID", null)
-            } catch (e: Exception) {
-                Logger.e(LOG_TAG_PROXY, "$TAG; error notifying state machine of purchase failure: ${e.message}", e)
+            Logger.w(LOG_TAG_PROXY, "$TAG; processRpnPurchase: productId empty")
+            try { subscriptionStateMachine.purchaseFailed("Empty product ID", null) } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; processRpnPurchase: error notifying state machine: ${e.message}", e)
             }
             return false
         }
 
-        val accExpiry = existingSubs.accountExpiry
+        val accExpiry     = existingSubs.accountExpiry
         val billingExpiry = existingSubs.billingExpiry
-        val currTs = System.currentTimeMillis()
 
-        if (billingExpiry > currTs) {
-            Logger.d(LOG_TAG_PROXY, "$TAG; existing subscription is still valid, no immediate action needed")
-        }
+        Logger.d(LOG_TAG_PROXY, "$TAG; processRpnPurchase: billingExpiry=$billingExpiry, accExpiry=$accExpiry, " +
+                "payload?=${purchase.payload.isNotEmpty()}, dbPayload?=${existingSubs.developerPayload.isNotEmpty()}")
 
-        if (accExpiry > currTs) {
-            Logger.d(LOG_TAG_PROXY, "$TAG; existing account is still valid, no immediate action needed")
-        }
+        // A valid payload must parse to a JSON object containing a non-empty "sessiontoken"
+        // inside the "ws" block.  Empty / unparseable payloads must trigger a server query.
+        val existingPayloadValid = isPayloadUsable(purchase.payload)
+        val dbPayloadValid       = isPayloadUsable(existingSubs.developerPayload)
 
-        val oneDay = 24 * 60 * 60 * 1000
-        if (accExpiry < billingExpiry + oneDay) {
-            Logger.d(LOG_TAG_PROXY, "$TAG; account expiry is less than billing expiry, querying entitlement")
-            try {
-                val developerPayload = InAppBillingHandler.queryEntitlementFromServer(purchase.accountId)
-                if (developerPayload != null && developerPayload.isNotEmpty()) {
-                    Logger.i(LOG_TAG_PROXY, "$TAG; developer payload received for ${purchase.productId}")
-                    activateRpn(purchase, developerPayload)
-                    val newPurchase = purchase.copy(payload = developerPayload)
-                    val subsData = subscriptionStateMachine.getSubscriptionData()
-                    if (subsData != null) {
-                        subsData.subscriptionStatus.developerPayload = newPurchase.payload
-                        subsData.purchaseDetail?.copy(payload = developerPayload)
-                        subscriptionStateMachine.stateMachine.updateData(subsData)
+        val tenDaysMs = 10L * 24 * 60 * 60 * 1000   // 10 days in ms
+
+        // We need a fresh server entitlement when:
+        //   (a) purchase payload is not usable (empty or no sessiontoken), AND
+        //   (b) DB developerPayload is also not usable, OR accountExpiry hasn't been confirmed
+        //       from the server yet (0 = never queried, or lags > 10 days behind billingExpiry).
+        val needsFreshEntitlement = !existingPayloadValid && !dbPayloadValid
+            || (accExpiry == 0L && billingExpiry > 0L)
+            || (billingExpiry > 0L && billingExpiry != Long.MAX_VALUE && accExpiry < billingExpiry - tenDaysMs)
+
+        var effectivePurchase = purchase
+
+        if (needsFreshEntitlement) {
+            Logger.i(LOG_TAG_PROXY, "$TAG; processRpnPurchase: needs fresh entitlement " +
+                    "(existingPayloadValid=$existingPayloadValid, dbPayloadValid=$dbPayloadValid, " +
+                    "accExpiry=$accExpiry, billingExpiry=$billingExpiry)")
+
+            val accountId = purchase.accountId.ifEmpty { existingSubs.accountId }
+            // purchase.deviceId holds only the sentinel indicator (or is empty)
+            // Always resolve the actual device ID from SecureIdentityStore via billingBackendClient.
+            val deviceId = billingBackendClient.getDeviceId()
+            if (accountId.isEmpty()) {
+                Logger.w(LOG_TAG_PROXY, "$TAG; processRpnPurchase: accountId empty, cannot query server, using best available payload")
+                // Fall through to activateRpn with whatever we have (may also check DB below)
+            } else {
+                try {
+                    val updatedPurchase = InAppBillingHandler.queryEntitlementFromServer(accountId, deviceId, purchase)
+                    val serverPayloadValid = isPayloadUsable(updatedPurchase.payload)
+
+                    if (serverPayloadValid) {
+                        Logger.i(LOG_TAG_PROXY, "$TAG; processRpnPurchase: server entitlement received for ${updatedPurchase.productId}")
+                        effectivePurchase = updatedPurchase
+
+                        // Persist the server-returned expiry
+                        val serverExpiry = updatedPurchase.expiryTime
+                        if (serverExpiry > 0L && serverExpiry != Long.MAX_VALUE && serverExpiry != accExpiry) {
+                            Logger.i(LOG_TAG_PROXY, "$TAG; processRpnPurchase: persisting server expiry=$serverExpiry (was accExpiry=$accExpiry)")
+                            updateBillingAndAccountExpiry(
+                                newBillingExpiry = serverExpiry,
+                                newAccountExpiry = serverExpiry
+                            )
+                        }
+
+                        // Update state machine with fresh payload
+                        val subsData = subscriptionStateMachine.getSubscriptionData()
+                        if (subsData != null) {
+                            subsData.subscriptionStatus.developerPayload = updatedPurchase.payload
+                            val updatedSubsData = subsData.copy(purchaseDetail = updatedPurchase)
+                            subscriptionStateMachine.stateMachine.updateData(updatedSubsData)
+                        } else {
+                            Logger.w(LOG_TAG_PROXY, "$TAG; processRpnPurchase: subscription data is null, cannot update payload in state machine")
+                        }
+                    } else {
+                        Logger.w(LOG_TAG_PROXY, "$TAG; processRpnPurchase: server entitlement returned but payload unusable, using DB payload as fallback")
+                        // Construct a purchase with the DB payload so activateRpn has something to store
+                        if (dbPayloadValid) {
+                            effectivePurchase = purchase.copy(payload = existingSubs.developerPayload)
+                        }
+                    }
+                } catch (e: Exception) {
+                    Logger.w(LOG_TAG_PROXY, "$TAG; processRpnPurchase: server entitlement query failed: ${e.message}")
+                    // Fall through, use DB payload if available
+                    if (dbPayloadValid && !existingPayloadValid) {
+                        Logger.i(LOG_TAG_PROXY, "$TAG; processRpnPurchase: falling back to DB developerPayload")
+                        effectivePurchase = purchase.copy(payload = existingSubs.developerPayload)
                     }
                 }
-            } catch (e: Exception) {
-                Logger.w(LOG_TAG_PROXY, "$TAG; error querying entitlement: ${e.message}")
             }
+        } else if (!existingPayloadValid && dbPayloadValid) {
+            // purchase.payload is empty but DB has a valid payload from a previous session
+            Logger.i(LOG_TAG_PROXY, "$TAG; processRpnPurchase: purchase.payload empty, using DB developerPayload")
+            effectivePurchase = purchase.copy(payload = existingSubs.developerPayload)
         }
 
-        activateRpn(purchase)
-        return true
+        // This is the single point that writes the entitlement file and sets rpnState.
+        // Calling it even when already-enabled ensures the file is present after app restart.
+        activateRpn(effectivePurchase)
+
+        val storedOk = effectivePurchase.payload.isNotEmpty()
+        Logger.i(LOG_TAG_PROXY, "$TAG; processRpnPurchase: complete, payloadStored=$storedOk, product=${purchase.productId}")
+        return storedOk
+    }
+
+    /**
+     * Returns `true` if [payload] contains a valid `ws.sessiontoken` that can be passed to
+     * the tunnel for WIN registration.
+     *
+     * An empty string, a payload that fails JSON parsing, or one that lacks a non-empty
+     * `sessiontoken` inside the `ws` block is considered unusable, the caller must obtain
+     * a fresh entitlement from the server before proceeding.
+     */
+    private fun isPayloadUsable(payload: String): Boolean {
+        if (payload.isEmpty()) return false
+        return try {
+            val ws = extractWsObject(payload) ?: return false
+            val sessionToken = ws.optString("sessiontoken", "")
+            val isUsable = sessionToken.isNotEmpty()
+            if (!isUsable) Logger.d(LOG_TAG_PROXY, "$TAG; isPayloadUsable: ws found but sessiontoken is empty")
+            isUsable
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; isPayloadUsable: failed to parse payload: ${e.message}")
+            false
+        }
     }
 
     private fun startStateObserver() {
@@ -638,38 +1373,60 @@ object RpnProxyManager : KoinComponent {
     private suspend fun handleStateChange(state: SubscriptionStateMachineV2.SubscriptionState) {
         when (state) {
             is SubscriptionStateMachineV2.SubscriptionState.Active -> {
-                Logger.i(LOG_TAG_PROXY, "$TAG; subscription activated, ensuring RPN is enabled if configured")
-                if (!isRpnEnabled()) {
-                    val subs = subscriptionStateMachine.getSubscriptionData()
-                    val purchaseDetail = subs?.purchaseDetail
-                    if (purchaseDetail == null) {
-                        Logger.w(LOG_TAG_PROXY, "$TAG; no purchase detail available for activation, but state is active")
-                        return
-                    }
+                Logger.i(LOG_TAG_PROXY, "$TAG; subscription activated, ensuring RPN is enabled and entitlement refreshed")
+                val subs = subscriptionStateMachine.getSubscriptionData()
+                // Use getEffectivePurchaseDetail() which tries in-memory purchaseDetail first,
+                // then falls back to reconstructing from subscriptionStatus (DB-restored cold-start).
+                val purchaseDetail = getEffectivePurchaseDetail()
+                if (purchaseDetail == null) {
+                    Logger.w(LOG_TAG_PROXY, "$TAG; handleStateChange.Active: no purchase detail and no DB subscription, cannot ensure entitlement")
+                    return
+                }
+                if (subs?.purchaseDetail == null) {
+                    Logger.i(LOG_TAG_PROXY, "$TAG; handleStateChange.Active: purchaseDetail reconstructed from subscriptionStatus (token=${purchaseDetail.purchaseToken.take(8)})")
+                }
+                // Always call activateRpn here
+                // Even if rpnState is already ENABLED, the entitlement file may be absent
+                // after an app restart; activateRpn will re-store it from the DB payload.
+                try {
                     activateRpn(purchaseDetail)
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; handleStateChange.Active: error activating RPN: ${e.message}", e)
                 }
             }
             is SubscriptionStateMachineV2.SubscriptionState.Cancelled -> {
-                Logger.i(LOG_TAG_PROXY, "$TAG; subscription cancelled, disabling RPN if active")
-                val subs = subscriptionStateMachine.getSubscriptionData()
-                val status = subs?.subscriptionStatus
-                val currTs = System.currentTimeMillis()
-                if ((status != null && status.billingExpiry > currTs) || DEBUG) {
-                    deactivateRpn("Subscription cancelled")
-                } else {
-                    Logger.w(LOG_TAG_PROXY, "$TAG; subscription cancelled but still valid, not deactivating RPN")
+                Logger.i(LOG_TAG_PROXY, "$TAG; subscription cancelled, checking if should disable RPN")
+                try {
+                    val subs = subscriptionStateMachine.getSubscriptionData()
+                    val status = subs?.subscriptionStatus
+                    val currTs = System.currentTimeMillis()
+                    if ((status != null && status.billingExpiry > currTs) || DEBUG) {
+                        Logger.i(LOG_TAG_PROXY, "$TAG; subscription cancelled but still valid until ${status?.billingExpiry}, not deactivating RPN yet")
+                    } else {
+                        deactivateRpn("Subscription cancelled and expired")
+                    }
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; error handling cancelled state: ${e.message}", e)
                 }
             }
             is SubscriptionStateMachineV2.SubscriptionState.Expired -> {
                 Logger.w(LOG_TAG_PROXY, "$TAG; subscription expired, disabling RPN")
-                deactivateRpn("Subscription expired")
+                try {
+                    deactivateRpn("Subscription expired")
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; error deactivating RPN on expiry: ${e.message}", e)
+                }
             }
             is SubscriptionStateMachineV2.SubscriptionState.Revoked -> {
                 Logger.w(LOG_TAG_PROXY, "$TAG; subscription revoked, immediately disabling RPN")
-                deactivateRpn("Subscription revoked")
+                try {
+                    deactivateRpn("Subscription revoked")
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; error deactivating RPN on revocation: ${e.message}", e)
+                }
             }
             is SubscriptionStateMachineV2.SubscriptionState.Error -> {
-                Logger.e(LOG_TAG_PROXY, "$TAG; subscription state machine in error state")
+                Logger.e(LOG_TAG_PROXY, "$TAG; subscription state machine in error state: ${state.name}")
             }
             else -> {
                 Logger.d(LOG_TAG_PROXY, "$TAG; subscription state: ${state.name}")
@@ -682,10 +1439,6 @@ object RpnProxyManager : KoinComponent {
     }
 
     fun hasValidSubscription(): Boolean {
-        /*if (DEBUG) {
-            persistentState.rpnState = RpnState.ENABLED.id
-            return true
-        }*/
         val valid = subscriptionStateMachine.hasValidSubscription()
         Logger.i(LOG_TAG_PROXY, "$TAG; using state machine for subscription check, valid: $valid")
         return valid
@@ -711,109 +1464,188 @@ object RpnProxyManager : KoinComponent {
         }
     }
 
-    fun isRpnValidForCurrentSubscription(): Boolean {
-        if (!isRpnEnabled()) {
-            return false
-        }
-
-        val currentState = subscriptionStateMachine.getCurrentState()
-        when (currentState) {
-            is SubscriptionStateMachineV2.SubscriptionState.Active,
-            is SubscriptionStateMachineV2.SubscriptionState.Cancelled -> {
-                Logger.i(LOG_TAG_PROXY, "$TAG; RPN is valid for current subscription state: ${currentState.name}")
-                return true
-            }
-            is SubscriptionStateMachineV2.SubscriptionState.Revoked,
-            is SubscriptionStateMachineV2.SubscriptionState.Expired -> {
-                Logger.w(LOG_TAG_PROXY, "$TAG; RPN should be disabled - subscription ${currentState.name}")
-                return false
-            }
-            else -> {
-                Logger.d(LOG_TAG_PROXY, "$TAG; RPN validity uncertain for state: ${currentState.name}")
-                return true
-            }
-        }
-    }
-
-    suspend fun isValidPayload(payload: String): Boolean {
-        if (payload.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; err; payload is empty")
-            return false
-        }
-        val keyState = PipKeyManager.getToken(applicationContext)
-        val keyFromPlayBilling = getCidFromPayload(payload)
-        if (keyState.isEmpty() || keyFromPlayBilling.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; err; key state or key from play billing is empty")
-            return false
-        }
-        if (keyState != keyFromPlayBilling) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; err; key state and key from play billing do not match")
-            return false
-        }
-        Logger.i(LOG_TAG_PROXY, "$TAG; key state and key from play billing match, processing payment")
-        return true
-    }
-
-    private fun getCidFromPayload(payload: String): String {
-        // sample payload: payload={"ws":{"cid":"aa95f04efcb19a54c7605a02e5dd0b435906b993d12bec031a60f3f1272f4f0e","sessiontoken":"22605:4:1752145272:1da0c248e6cf32ca071a96e477bdf0033368599b4b:307dfd06996672f735409fec4807fcf40a0677e2ef","status":"valid"}}
-        val payloadJson = try {
-            JSONObject(payload)
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; err parsing payload json: ${e.message}")
-            return ""
-        }
-        val ws = payloadJson.optJSONObject("ws")
-        if (ws == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; err; ws object is null in payload")
-            return ""
-        }
-        return ws.optString("cid", "")
-    }
-
-    fun canSelectCountryCode(cc: String): Pair<Boolean, String> {
-        // TODO: get country code from win config
-        val isAvailable = false
-        if (!isAvailable) {
-            Logger.i(LOG_TAG_PROXY, "$TAG; cc not available in config: $cc")
-            return Pair(false, "Country code not available in the config")
-        }
-        return if (selectedCountries.size >= 5) {
-            Logger.i(
-                LOG_TAG_PROXY,
-                "$TAG; cc limit reached, selected: ${selectedCountries.size}, $selectedCountries"
-            )
-            Pair(false, "Country code limit reached for the selected endpoint")
-        } else {
-            selectedCountries.add(cc)
-            Logger.d(LOG_TAG_PROXY, "$TAG; cc added to selected list: $cc")
-            Pair(true, "")
-        }
-    }
-
     suspend fun getSelectedCCs(): Set<String> {
-        return selectedCountries
+        return selectedKeys
     }
 
-    suspend fun isValidAccountId(accountId: String): Boolean {
-        if (accountId.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; err; accountId is empty")
-            return false
+    /**
+     * Returns the epoch-millisecond timestamp at which [key] was last selected
+     * (i.e. [enableWinServer] succeeded), or the [CountryConfig.lastModified] value
+     * that was seeded from the database on startup.  Returns 0 if the key is not
+     * currently selected.
+     */
+    fun getSelectedSinceTs(key: String): Long {
+        return serverKeyMeta[key]?.selectedAt ?: 0L
+    }
+
+    fun getCachedSinceTs(key: String): Long = serverKeyMeta[key]?.sinceTs ?: 0L
+
+    /**
+     * Returns the cached (IPv4 metadata, IPv6 metadata) pair for [key], or `null` if the
+     * client IPs have not been resolved yet for this server.
+     */
+    fun getCachedIpMeta(key: String): Pair<IPMetadata?, IPMetadata?>? {
+        val meta = serverKeyMeta[key] ?: return null
+        return Pair(meta.ip4Meta, meta.ip6Meta)
+    }
+
+    fun updateIpMeta(key: String, sinceTs: Long, ip4Meta: IPMetadata?, ip6Meta: IPMetadata?) {
+        val existing = serverKeyMeta[key]
+        serverKeyMeta[key] = existing?.copy(sinceTs = sinceTs, ip4Meta = ip4Meta, ip6Meta = ip6Meta)
+            ?: ServerKeyMeta(selectedAt = 0L, sinceTs = sinceTs, ip4Meta = ip4Meta, ip6Meta = ip6Meta)
+    }
+
+    suspend fun getEnabledConfigs(): Set<CountryConfig> {
+        return winCacheMutex.withLock {
+            val es = winServersCache.filter { it.isEnabled }.toSet()
+            es
         }
-        val keyState = PipKeyManager.getToken(applicationContext)
-        if (keyState.isEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; err; key state is empty")
-            return false
+    }
+
+    /**
+     *
+     * Full update pipeline:
+     *  1. Ask the tunnel to refresh and return updated WIN state bytes
+     *     ([VpnController.updateWin]).
+     *  2a. If the tunnel returns bytes → persist them with [updateWinConfigState].
+     *  2b. If the tunnel returns null → fall back to [registerProxy] (full re-register)
+     *     and retry [VpnController.updateWin] once more.  If that also fails return null
+     *     so callers can show an error.
+     *  3. Fetch server locations from the tunnel ([fetchAndConstructWinLocations]).
+     *     If empty, retry up to 3 times with 1 s back-off.
+     *  4. Sync fetched locations to DB + in-memory cache ([syncWinServers]).
+     *  5. Re-add every currently-enabled server key back into the tunnel
+     *     ([VpnController.addNewWinServer]) so WireGuard peers are refreshed.
+     *  6. If any previously-selected servers are absent from the new location list,
+     *     emit them on [serverRemovedEvent] for the UI to surface a notification.
+     *
+     * Return contract
+     *  - `null` → hard failure; caller should show an error / retry.
+     *  - empty list → update succeeded but tunnel reported no locations yet; treat as
+     *                 success, show retry / await next cycle.
+     *  - non-empty → full success; contains the refreshed [CountryConfig] list.
+     */
+    suspend fun updateWinProxy(userRequest: Boolean): List<CountryConfig>? {
+        Logger.i(LOG_TAG_PROXY, "$TAG; updateWinProxy: starting WIN proxy update")
+
+        val currTs = System.currentTimeMillis()
+        val lastUpdatedTs = VpnController.getWinLastUpdatedTs() ?: 0
+        val fifteenMins = 15 * 60 * 1000
+
+        // do not perform the update, if last update is less than 15 mins and not user req
+        if (currTs - lastUpdatedTs < fifteenMins && !userRequest) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: last update was less than 10 mins ago, return curr servers")
+            val currentServers = winCacheMutex.withLock { winServersCache.toList() }
+            return currentServers
         }
-        if (keyState != accountId) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; err; key state and accountId do not match")
-            return false
+
+        val bytes: ByteArray? = VpnController.updateWin()
+
+        if (bytes == null) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: updateWin() returned null, attempting re-register")
+            return null
         }
-        Logger.i(LOG_TAG_PROXY, "$TAG; key state and accountId match, processing payment")
-        return true
+
+        val persisted = updateWinConfigState(bytes)
+        if (!persisted) {
+            // Log the failure but do NOT return null; the in-memory state is already
+            // updated by updateWinConfigState before it touches the DB.
+            Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: failed to persist WIN config state (continuing)")
+        }
+
+        var fetchResult: Pair<Set<CountryConfig>, List<String>> = Pair(emptySet(), emptyList())
+        val maxFetchRetries = 3
+        for (attempt in 1..maxFetchRetries) {
+            fetchResult = try {
+                fetchAndConstructWinLocations()
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; updateWinProxy: fetchAndConstructWinLocations threw on attempt $attempt: ${e.message}", e)
+                Pair(emptySet(), emptyList())
+            }
+
+            if (fetchResult.first.isNotEmpty()) {
+                Logger.i(LOG_TAG_PROXY, "$TAG; updateWinProxy: fetched ${fetchResult.first.size} locations on attempt $attempt")
+                break
+            }
+
+            if (attempt < maxFetchRetries) {
+                Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: no locations on attempt $attempt, retrying in 1s…")
+                delay(2_000L)
+            }
+        }
+
+        val (newServers, removedSelectedIds) = fetchResult
+
+        if (newServers.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: no locations after $maxFetchRetries attempts; cache unchanged")
+            // Return empty list (not null) bytes persisted successfully, just no locations yet
+            return emptyList()
+        }
+
+        try {
+            syncWinServers(newServers)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; updateWinProxy: syncWinServers threw: ${e.message}", e)
+            // Non-fatal; continue to re-add servers and notify UI
+        }
+
+        // Read enabled configs from the freshly-synced cache so we never re-add stale keys.
+        val enabledConfigs = winCacheMutex.withLock {
+            winServersCache.filter { it.isEnabled && it.id != AUTO_SERVER_ID }.toList()
+        }
+
+        for (config in enabledConfigs) {
+            try {
+                val result = VpnController.addNewWinServer(config.key)
+                if (result.first) {
+                    Logger.i(LOG_TAG_PROXY, "$TAG; updateWinProxy: re-added server key=${config.key}")
+                } else {
+                    Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: failed to re-add server key=${config.key}: ${result.second}")
+                    // Mark as disabled in cache + DB so the UI reflects the real state
+                    winCacheMutex.withLock {
+                        winServersCache.firstOrNull { it.key == config.key }?.isEnabled = false
+                    }
+                    try {
+                        val dbConfig = countryConfigRepo.getById(config.id)
+                        if (dbConfig != null) {
+                            dbConfig.isEnabled = false
+                            countryConfigRepo.update(dbConfig)
+                        }
+                    } catch (dbErr: Exception) {
+                        Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: could not mark server disabled in DB: ${dbErr.message}")
+                    }
+                }
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; updateWinProxy: exception re-adding server key=${config.key}: ${e.message}", e)
+            }
+        }
+
+        if (removedSelectedIds.isNotEmpty()) {
+            // Resolve full CountryConfig objects for the removed IDs so the UI can
+            // display country names / flags in ServerRemovalNotificationBottomSheet.
+            val removedConfigs = try {
+                countryConfigRepo.getAllConfigs()
+                    .filter { removedSelectedIds.contains(it.id) && it.id != AUTO_SERVER_ID }
+            } catch (e: Exception) {
+                Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: could not resolve removed configs: ${e.message}")
+                emptyList()
+            }
+
+            if (removedConfigs.isNotEmpty()) {
+                Logger.w(LOG_TAG_PROXY, "$TAG; updateWinProxy: emitting removal event for ${removedConfigs.size} server(s)")
+                // Emit on the shared-flow so any active ServerSelectionFragment shows the sheet
+                _serverRemovedEvent.tryEmit(removedConfigs)
+            }
+        }
+
+        val currentServers = winCacheMutex.withLock { winServersCache.toList() }
+        Logger.i(LOG_TAG_PROXY, "$TAG; updateWinProxy: complete, ${currentServers.size} servers in cache, " +
+                "${enabledConfigs.size} re-added to tunnel, ${removedSelectedIds.size} removed-selected notified")
+        return currentServers
     }
 
     private fun io(f: suspend () -> Unit) {
-        CoroutineScope(Dispatchers.IO).launch { f() }
+        stateObserverScope.launch { f() }
     }
 
     private fun getConfigFileName(id: Int): String {
@@ -837,22 +1669,71 @@ object RpnProxyManager : KoinComponent {
         if (cfg.isEmpty()) return null
         val file = File(cfg)
         if (!file.exists()) return null
-        return EncryptedFileManager.readByteArray(applicationContext, file)
+        return try {
+            val bytes = EncryptedFileManager.readByteArray(applicationContext, file)
+            if (bytes.isNotEmpty()) bytes else null
+        } catch (e: EncryptionException) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; getWinExistingData: encrypted file unreadable (${e::class.simpleName}), returning null", e)
+            null
+        }
     }
 
-
     suspend fun updateWinConfigState(byteArray: ByteArray?): Boolean {
-        if (byteArray == null || byteArray.isEmpty()) return false
+        if (byteArray == null || byteArray.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; updateWinConfigState: byteArray is null or empty")
+            return false
+        }
         return try {
             val fileName = getConfigFileName(WIN_ID)
-            val file = File(applicationContext.getExternalFilesDir(RPN_PROXY_FOLDER_NAME), fileName)
-            val ok = EncryptedFileManager.write(applicationContext, byteArray, file)
-            if (!ok) return false
-            val proxy = db.getProxyById(WIN_ID)
-            if (proxy != null) {
+            val folder = applicationContext.getExternalFilesDir(RPN_PROXY_FOLDER_NAME)
+            if (folder == null) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: failed to get external files dir")
+                return false
+            }
+
+            if (!folder.exists()) {
+                val created = try {
+                    folder.mkdirs()
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: exception creating folder: ${e.message}", e)
+                    false
+                }
+                if (!created) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: failed to create folder: ${folder.absolutePath}")
+                    return false
+                }
+            }
+
+            val file = File(folder, fileName)
+            val ok = try {
+                EncryptedFileManager.write(applicationContext, byteArray, file)
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: exception writing file: ${e.message}", e)
+                false
+            }
+
+            if (!ok) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: failed to write file: ${file.absolutePath}")
+                return false
+            }
+
+            val proxy = try {
+                db.getProxyById(WIN_ID)
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: failed to get proxy from DB: ${e.message}", e)
+                null
+            }
+
+            val updateResult = if (proxy != null) {
                 proxy.configPath = file.absolutePath
                 proxy.modifiedTs = System.currentTimeMillis()
-                db.update(proxy)
+                try {
+                    db.update(proxy)
+                    true
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: failed to update proxy: ${e.message}", e)
+                    false
+                }
             } else {
                 val newProxy = RpnProxy(
                     id = WIN_ID,
@@ -868,10 +1749,23 @@ object RpnProxyManager : KoinComponent {
                     latency = 0,
                     lastRefreshTime = System.currentTimeMillis()
                 )
-                db.insert(newProxy)
+                try {
+                    db.insert(newProxy)
+                    true
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; updateWinConfigState: failed to insert proxy: ${e.message}", e)
+                    false
+                }
             }
-            winConfig = byteArray
-            true
+
+            if (updateResult) {
+                winConfig = byteArray
+                Logger.i(LOG_TAG_PROXY, "$TAG; updateWinConfigState: successfully updated config, size: ${byteArray.size}")
+            } else {
+                Logger.w(LOG_TAG_PROXY, "$TAG; updateWinConfigState: file written but DB update failed")
+            }
+
+            updateResult
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$TAG; err updating win config: ${e.message}", e)
             false
@@ -886,12 +1780,26 @@ object RpnProxyManager : KoinComponent {
      */
     suspend fun fetchAndConstructWinLocations(): Pair<Set<CountryConfig>, List<String>> {
          // Fetch from API
-         val winProps = VpnController.getRpnProps(RpnType.WIN).first
+         val winPropsResult = try {
+             VpnController.getRpnProps(RpnType.WIN)
+         } catch (e: Exception) {
+             Logger.e(LOG_TAG_PROXY, "$TAG; fetchAndConstructWinLocations: exception getting RPN props: ${e.message}", e)
+             return Pair(emptySet(), emptyList())
+         }
+
+         val winProps = winPropsResult.first
          if (winProps == null) {
              Logger.w(LOG_TAG_PROXY, "$TAG; err; win props is null")
              return Pair(emptySet(), emptyList())
          }
-         val count = winProps.locations.len()
+
+         val count = try {
+             winProps.locations.len()
+         } catch (e: Exception) {
+             Logger.e(LOG_TAG_PROXY, "$TAG; fetchAndConstructWinLocations: exception getting locations count: ${e.message}", e)
+             return Pair(emptySet(), emptyList())
+         }
+
          if (count == 0L) {
              Logger.w(LOG_TAG_PROXY, "$TAG; err; no locations found in win props")
              return Pair(emptySet(), emptyList())
@@ -899,44 +1807,80 @@ object RpnProxyManager : KoinComponent {
 
          val newServers = mutableSetOf<CountryConfig>()
          for(i in 0 until count) {
-             val loc = winProps.locations.get(i)
-             if (loc == null) {
-                 Logger.w(LOG_TAG_PROXY, "$TAG; err; location is null at index $i")
-                 continue
+             try {
+                 val loc = winProps.locations.get(i)
+                 if (loc == null) {
+                     Logger.w(LOG_TAG_PROXY, "$TAG; err; location is null at index $i")
+                     continue
+                 }
+
+                 // Validate essential fields
+                 if (loc.cc.isNullOrEmpty() || loc.name.isNullOrEmpty() || loc.key.isNullOrEmpty()) {
+                     Logger.w(LOG_TAG_PROXY, "$TAG; err; location has null or empty essential fields at index $i, cc=${loc.cc}, name=${loc.name}, key=${loc.key}")
+                     continue
+                 }
+
+                 // Additional validation for address
+                 val address = loc.addrs ?: ""
+                 if (address.isEmpty()) {
+                     Logger.w(LOG_TAG_PROXY, "$TAG; warning; location at index $i has empty address, cc=${loc.cc}, name=${loc.name}")
+                 }
+
+                 val id = "${loc.cc}-${loc.name}-${loc.key}"
+                 val cfg = CountryConfig(
+                     id = id,
+                     cc = loc.cc,
+                     name = loc.name,
+                     address = address,
+                     city = loc.city,
+                     key = loc.key,
+                     load = loc.load,
+                     link = loc.link,
+                     premium = loc.premium,
+                     count = loc.count,
+                     isActive = true
+                 )
+                 newServers.add(cfg)
+             } catch (e: Exception) {
+                 Logger.w(LOG_TAG_PROXY, "$TAG; err; error processing location at index $i: ${e.message}", e)
              }
-             val id = "${loc.cc}-${loc.name}-${loc.key}"
-             val cfg = CountryConfig(
-                 id = id,
-                 cc = loc.cc,
-                 name = loc.name,
-                 address = loc.addrs,
-                 city = loc.name,
-                 key = loc.key,
-                 load = 0,
-                 link = 0,
-                 count = 1,
-                 isActive = true
-             )
-             newServers.add(cfg)
          }
 
          // Get existing servers from DB to identify removed ones
-         val existingServers = countryConfigRepo.getAllConfigs()
+         val existingServers = try {
+             countryConfigRepo.getAllConfigs()
+         } catch (e: Exception) {
+             Logger.e(LOG_TAG_PROXY, "$TAG; err; failed to get existing servers: ${e.message}", e)
+             emptyList()
+         }
+
          val existingIds = existingServers.map { it.id }.toSet()
+         val auto = existingServers.firstOrNull { it.id.contains(AUTO_SERVER_ID, ignoreCase = true) } ?: createAutoServer()
+         newServers.add(auto)
          val newIds = newServers.map { it.id }.toSet()
          val removedIds = existingIds - newIds
 
          // Check if any removed servers were in the selected list
          val removedSelectedIds = mutableListOf<String>()
          if (removedIds.isNotEmpty()) {
+             val countryCodesToRemove = mutableSetOf<String>()
              for (removedId in removedIds) {
                  val removed = existingServers.firstOrNull { it.id == removedId }
-                 if (removed != null && selectedCountries.contains(removed.cc)) {
+                 if (removed != null && selectedKeys.contains(removed.cc)) {
                      removedSelectedIds.add(removedId)
-                     // Remove from selected countries
-                     selectedCountries.remove(removed.cc)
+                     // Collect country codes to remove
+                     countryCodesToRemove.add(removed.cc)
                      Logger.w(LOG_TAG_PROXY, "$TAG; removed server $removedId (${removed.cc}) was in selected list")
                  }
+             }
+             // Remove all at once to avoid ConcurrentModificationException
+             if (countryCodesToRemove.isNotEmpty()) {
+                 // Use a safer approach - create a new set without the removed items
+                 val updatedCountries = selectedKeys.filter { !countryCodesToRemove.contains(it) }.toSet()
+                 selectedKeys.clear()
+                 selectedKeys.addAll(updatedCountries)
+                  countryCodesToRemove.forEach { serverKeyMeta.remove(it) }
+                 Logger.i(LOG_TAG_PROXY, "$TAG; removed ${countryCodesToRemove.size} country codes from selected list")
              }
          }
 
@@ -950,91 +1894,425 @@ object RpnProxyManager : KoinComponent {
      * Updates the database and in-memory cache upon successful activation.
      */
     suspend fun enableWinServer(key: String): Pair<Boolean, String> {
-        val config = winServersCache.find { it.key == key }
+        if (key.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; enableWinServer: key is empty")
+            return Pair(false, "Server key is empty")
+        }
 
-        if (config != null) {
-            val res = VpnController.addNewWinServer(config.key)
-            if (res.first) {
-                countryConfigRepo.update(config)
-                config.isActive = true
-                Logger.i(LOG_TAG_PROXY, "$TAG; enableWinServer: enabled rpn: $key")
-            } else {
-                Logger.w(LOG_TAG_PROXY, "$TAG; enableWinServer: failed to enable server with key $key, error: ${res.second}")
-            }
-            return res
-        } else {
-            Logger.w(LOG_TAG_PROXY, "$TAG; enableWinServer: server with key $key not found")
+        val config = winCacheMutex.withLock {
+            winServersCache.find { it.key == key }
+        }
+
+        if (config == null) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; enableWinServer: server with key $key not found in cache")
             return Pair(false, "Server with key $key not found")
+        }
+
+        // Check if already enabled
+        if (config.isEnabled) {
+            Logger.i(LOG_TAG_PROXY, "$TAG; enableWinServer: server $key already enabled")
+            return Pair(true, "Server already enabled")
+        }
+
+        val res = try {
+            VpnController.addNewWinServer(config.key)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; enableWinServer: exception calling VpnController for $key: ${e.message}", e)
+            return Pair(false, "Failed to add server: ${e.message}")
+        }
+
+        if (res.first) {
+            winCacheMutex.withLock {
+                winServersCache.filter { it.key == key }.forEach { it.isEnabled = true }
+            }
+            config.isEnabled = true
+            try {
+                countryConfigRepo.update(config)
+                val now = System.currentTimeMillis()
+                val existing = serverKeyMeta[key]
+                serverKeyMeta[key] = existing?.copy(selectedAt = now)
+                    ?: ServerKeyMeta(selectedAt = now)
+                Logger.i(LOG_TAG_PROXY, "$TAG; enableWinServer: enabled rpn: $key")
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; enableWinServer: failed to update DB for $key: ${e.message}", e)
+                // Revert cache change on DB failure
+                winCacheMutex.withLock {
+                    winServersCache.filter { it.key == key }.forEach { it.isEnabled = false }
+                }
+                config.isEnabled = false
+                return Pair(false, "Failed to update database: ${e.message}")
+            }
+        } else {
+            Logger.w(LOG_TAG_PROXY, "$TAG; enableWinServer: failed to enable server with key $key, error: ${res.second}")
+        }
+        return res
+    }
+
+    suspend fun setLockdownForWinServer(key: String, lockdown: Boolean) {
+        if (key.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; setLockdownForWinServer: key is empty")
+            return
+        }
+
+        val config = winCacheMutex.withLock {
+            winServersCache.find { it.key == key }
+        }
+
+        if (config == null) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; setLockdownForWinServer: server with key $key not found")
+            return
+        }
+
+        val oldValue = config.lockdown
+        config.lockdown = lockdown
+        winCacheMutex.withLock {
+            winServersCache.filter { w -> w.key == key }.forEach { w ->
+                w.lockdown = lockdown
+            }
+        }
+
+        try {
+            countryConfigRepo.update(config)
+            Logger.i(LOG_TAG_PROXY, "$TAG; setLockdownForWinServer: set lockdown=$lockdown for server: $key")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; setLockdownForWinServer: failed to update DB for $key: ${e.message}", e)
+            // Revert on DB failure
+            config.lockdown = oldValue
+            winCacheMutex.withLock {
+                winServersCache.filter { w -> w.key == key }.forEach { w ->
+                    w.lockdown = oldValue
+                }
+            }
         }
     }
 
     suspend fun setCatchAllForWinServer(key: String, catchAll: Boolean) {
-        winServersCache.find { it.key == key }?.let {
-            if (!it.isActive && catchAll) {
-                Logger.w(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: enabling inactive server $key for catch-all")
-                val res = VpnController.addNewWinServer(it.key)
-                if (res.first) {
-                    it.isActive = true
-                    Logger.i(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: enabled server $key for catch-all")
-                } else {
-                    Logger.w(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: failed to enable server $key for catch-all, error: ${res.second}")
-                    return@let
+        if (key.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: key is empty")
+            return
+        }
+
+        val config = winCacheMutex.withLock {
+            winServersCache.find { it.key == key }
+        }
+
+        if (config == null) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: server with key $key not found")
+            return
+        }
+
+        val oldCatchAll = config.catchAll
+        val oldEnabled = config.isEnabled
+
+        if (!config.isEnabled && catchAll) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: enabling inactive server $key for catch-all")
+            val res = try {
+                VpnController.addNewWinServer(config.key)
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: exception enabling server $key: ${e.message}", e)
+                return
+            }
+
+            if (res.first) {
+                config.isEnabled = true
+                config.catchAll = true
+                Logger.i(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: enabled server $key for catch-all")
+                winCacheMutex.withLock {
+                    winServersCache.filter { w -> w.key == key }.forEach { w ->
+                        w.isEnabled = true
+                        w.catchAll = true
+                    }
+                }
+            } else {
+                Logger.w(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: failed to enable server $key for catch-all, error: ${res.second}")
+                return
+            }
+        } else {
+            config.catchAll = catchAll
+            Logger.i(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: set catchAll=$catchAll for server: $key")
+            winCacheMutex.withLock {
+                winServersCache.filter { w -> w.key == key }.forEach { w ->
+                    w.catchAll = catchAll
                 }
             }
-            it.catchAll = catchAll
-            countryConfigRepo.update(it)
-            Logger.i(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: set catchAll=$catchAll for server: $key")
-        } ?: Logger.w(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: server with key $key not found")
+        }
+
+        try {
+            countryConfigRepo.update(config)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; setCatchAllForWinServer: failed to update DB for $key: ${e.message}", e)
+            // Revert changes on DB failure
+            config.isEnabled = oldEnabled
+            config.catchAll = oldCatchAll
+            winCacheMutex.withLock {
+                winServersCache.filter { w -> w.key == key }.forEach { w ->
+                    w.isEnabled = oldEnabled
+                    w.catchAll = oldCatchAll
+                }
+            }
+        }
     }
 
-    suspend fun setLockdownForWinServer(key: String, lockdown: Boolean) {
-        winServersCache.find { it.key == key }?.let {
-            it.lockdown = lockdown
-            countryConfigRepo.update(it)
-            Logger.i(LOG_TAG_PROXY, "$TAG; setLockdownForWinServer: set lockdown=$lockdown for server: $key")
-        } ?: Logger.w(LOG_TAG_PROXY, "$TAG; setLockdownForWinServer: server with key $key not found")
+    suspend fun setMobileOnlyForWinServer(key: String, mobileOnly: Boolean) {
+        if (key.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; setMobileOnlyForWinServer: key is empty")
+            return
+        }
+
+        val config = winCacheMutex.withLock {
+            winServersCache.find { it.key == key }
+        }
+
+        if (config == null) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; setMobileOnlyForWinServer: server with key $key not found")
+            return
+        }
+
+        val oldValue = config.mobileOnly
+        config.mobileOnly = mobileOnly
+        winCacheMutex.withLock {
+            winServersCache.filter { w -> w.key == key }.forEach { w ->
+                w.mobileOnly = mobileOnly
+            }
+        }
+
+        try {
+            countryConfigRepo.update(config)
+            Logger.i(LOG_TAG_PROXY, "$TAG; setMobileOnlyForWinServer: set mobileOnly=$mobileOnly for server: $key")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; setMobileOnlyForWinServer: failed to update DB for $key: ${e.message}", e)
+            // Revert on DB failure
+            config.mobileOnly = oldValue
+            winCacheMutex.withLock {
+                winServersCache.filter { w -> w.key == key }.forEach { w ->
+                    w.mobileOnly = oldValue
+                }
+            }
+        }
+    }
+
+    suspend fun setSsidEnabledForWinServer(key: String, ssidEnabled: Boolean) {
+        if (key.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; setSsidEnabledForWinServer: key is empty")
+            return
+        }
+
+        val config = winCacheMutex.withLock {
+            winServersCache.find { it.key == key }
+        }
+
+        if (config == null) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; setSsidEnabledForWinServer: server with key $key not found")
+            return
+        }
+
+        val oldValue = config.ssidBased
+        config.ssidBased = ssidEnabled
+        winCacheMutex.withLock {
+            winServersCache.filter { w -> w.key == key }.forEach { w ->
+                w.ssidBased = ssidEnabled
+            }
+        }
+
+        try {
+            countryConfigRepo.update(config)
+            Logger.i(LOG_TAG_PROXY, "$TAG; setSsidEnabledForWinServer: set ssidEnabled=$ssidEnabled for server: $key")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; setSsidEnabledForWinServer: failed to update DB for $key: ${e.message}", e)
+            // Revert on DB failure
+            config.ssidBased = oldValue
+            winCacheMutex.withLock {
+                winServersCache.filter { w -> w.key == key }.forEach { w ->
+                    w.ssidBased = oldValue
+                }
+            }
+        }
     }
 
     suspend fun disableWinServer(key: String): Pair<Boolean, String> {
-        val config = winServersCache.find { it.key == key }
-        if (config != null) {
-            val res = VpnController.removeWinServer(config.key)
-            if (res.first) {
-                countryConfigRepo.update(config)
-                config.isActive = false
-                Logger.i(LOG_TAG_PROXY, "$TAG; disableWinServer: disabled rpn: $key")
-            } else {
-                Logger.w(LOG_TAG_PROXY, "$TAG; disableWinServer: failed to disable server with key $key, error: ${res.second}")
-            }
-            return res
-        } else {
-            Logger.w(LOG_TAG_PROXY, "$TAG; disableWinServer: server with key $key not found")
+        if (key.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; disableWinServer: key is empty")
+            return Pair(false, "Server key is empty")
+        }
+
+        val config = winCacheMutex.withLock {
+            winServersCache.find { it.key == key }
+        }
+
+        if (config == null) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; disableWinServer: server with key $key not found in cache")
             return Pair(false, "Server with key $key not found")
+        }
+
+        // Check if already disabled
+        if (!config.isEnabled) {
+            Logger.i(LOG_TAG_PROXY, "$TAG; disableWinServer: server $key already disabled")
+            return Pair(true, "Server already disabled")
+        }
+
+        val res = try {
+            VpnController.removeWinServer(config.key)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; disableWinServer: exception calling VpnController for $key: ${e.message}", e)
+            return Pair(false, "Failed to remove server: ${e.message}")
+        }
+
+        if (res.first) {
+            config.isEnabled = false
+            winCacheMutex.withLock {
+                winServersCache.filter { it.key == key }.forEach { it.isEnabled = false }
+            }
+                try {
+                    countryConfigRepo.update(config)
+                    serverKeyMeta.remove(key)
+                    Logger.i(LOG_TAG_PROXY, "$TAG; disableWinServer: disabled rpn: $key")
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; disableWinServer: failed to update DB for $key: ${e.message}", e)
+                    // Revert cache change on DB failure
+                    winCacheMutex.withLock {
+                        winServersCache.filter { it.key == key }.forEach { it.isEnabled = true }
+                    }
+                    config.isEnabled = true
+                    val now = System.currentTimeMillis()
+                    val existing = serverKeyMeta[key]
+                    serverKeyMeta[key] = existing?.copy(selectedAt = now)
+                        ?: ServerKeyMeta(selectedAt = now)
+                    return Pair(false, "Failed to update database: ${e.message}")
+                }
+        } else {
+            Logger.w(LOG_TAG_PROXY, "$TAG; disableWinServer: failed to disable server with key $key, error: ${res.second}")
+        }
+        return res
+    }
+
+    /**
+     * Ensures AUTO server exists in database. Creates it if it doesn't exist.
+     * AUTO server is a special server that represents automatic server selection.
+     */
+    suspend fun ensureAutoServerExists() {
+        try {
+            val autoServer = countryConfigRepo.getById(AUTO_SERVER_ID)
+            if (autoServer == null) {
+                Logger.i(LOG_TAG_PROXY, "$TAG; ensureAutoServerExists: AUTO server not found, creating...")
+                val newAutoServer = createAutoServer()
+                countryConfigRepo.insert(newAutoServer)
+                // Add to cache
+                winCacheMutex.withLock {
+                    winServersCache.add(newAutoServer)
+                }
+                Logger.i(LOG_TAG_PROXY, "$TAG; ensureAutoServerExists: AUTO server created successfully")
+            } else {
+                Logger.v(LOG_TAG_PROXY, "$TAG; ensureAutoServerExists: AUTO server already exists")
+                // Ensure it's in the cache
+                winCacheMutex.withLock {
+                    if (winServersCache.none { it.id == AUTO_SERVER_ID }) {
+                        winServersCache.add(autoServer)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; ensureAutoServerExists: error - ${e.message}", e)
+        }
+    }
+
+    /**
+     * Creates an AUTO server configuration
+     */
+    private fun createAutoServer(): CountryConfig {
+        return CountryConfig(
+            id = AUTO_SERVER_ID,
+            cc = AUTO_COUNTRY_CODE,
+            name = AUTO_SERVER_ID,
+            address = AUTO_SERVER_ID,
+            city = AUTO_SERVER_ID,
+            key = AUTO_SERVER_ID,
+            load = 0,
+            link = 0,
+            count = 1,
+            premium = true,
+            isActive = true,
+            isEnabled = false, // Not enabled by default
+            catchAll = true,
+            lockdown = false,
+            mobileOnly = false,
+            ssidBased = false,
+            priority = 999, // Highest priority so it appears first
+            ssids = "",
+            lastModified = System.currentTimeMillis()
+        )
+    }
+
+    /**
+     * Gets AUTO server from database/cache
+     */
+    suspend fun getAutoServer(): CountryConfig? {
+        return try {
+            winCacheMutex.withLock {
+                winServersCache.find { it.id == AUTO_SERVER_ID }
+            } ?: countryConfigRepo.getById(AUTO_SERVER_ID)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; getAutoServer: error - ${e.message}", e)
+            null
+        }
+    }
+
+    /**
+     * Updates AUTO server state in database and cache
+     */
+    suspend fun updateAutoServerState(autoServer: CountryConfig) {
+        try {
+            countryConfigRepo.update(autoServer)
+            // Update cache
+            winCacheMutex.withLock {
+                val index = winServersCache.indexOfFirst { it.key == AUTO_SERVER_ID }
+                if (index >= 0) {
+                    winServersCache[index] = autoServer
+                }
+            }
+            Logger.i(LOG_TAG_PROXY, "$TAG; updateAutoServerState: AUTO server updated, isEnabled=${autoServer.isEnabled}")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; updateAutoServerState: error - ${e.message}", e)
         }
     }
 
      /**
       * Syncs fetched servers with database and cache.
       * This should be called after fetchAndConstructWinLocations.
+      * AUTO server is protected and never deleted.
       */
      suspend fun syncWinServers(servers: Set<CountryConfig>) {
          try {
+             // Ensure AUTO server exists before syncing
+             ensureAutoServerExists()
+
              // Sync to database (this handles insertions, updates, and deletions)
              val syncServerList = if (servers.isEmpty()) {
-                 Logger.w(LOG_TAG_PROXY, "$TAG; syncWinServers: empty server list, clearing DB")
-                    emptyList<CountryConfig>()
+                 Logger.w(LOG_TAG_PROXY, "$TAG; syncWinServers: empty server list, clearing DB except AUTO")
+                    emptyList()
              } else {
                  servers.toList()
              }
+
+             // Sync to database (AUTO server is protected in the repository method)
              countryConfigRepo.syncServers(syncServerList)
 
-             // Update cache - clear and refill with new data
-             synchronized(winServersCache) {
-                 winServersCache.clear()
-                 winServersCache.addAll(servers)
+             // Read back from DB to ensure consistency
+             val existingServers = try {
+                 countryConfigRepo.getAllConfigs()
+             } catch (e: Exception) {
+                 Logger.e(LOG_TAG_PROXY, "$TAG; syncWinServers: failed to read from DB after sync: ${e.message}", e)
+                 emptyList()
              }
 
-             Logger.i(LOG_TAG_PROXY, "$TAG; syncWinServers: synced ${servers.size} servers to DB & cache")
+             // Update cache - clear and refill with new data
+             winCacheMutex.withLock {
+                 winServersCache.clear()
+                 if (existingServers.isNotEmpty()) {
+                     winServersCache.addAll(existingServers)
+                 }
+             }
+
+             Logger.i(LOG_TAG_PROXY, "$TAG; syncWinServers: synced ${servers.size} servers to DB, ${existingServers.size} in cache")
          } catch (e: Exception) {
              Logger.e(LOG_TAG_PROXY, "$TAG; syncWinServers: error - ${e.message}", e)
          }
@@ -1052,11 +2330,16 @@ object RpnProxyManager : KoinComponent {
              val existingServers = countryConfigRepo.getAllConfigs()
              val (newServers, removedSelectedIds) = fetchAndConstructWinLocations()
 
+             if (newServers.isEmpty()) {
+                 retryLocationFetch()
+                 return Pair(emptyList(), emptyList())
+             }
+
              // Sync to DB and cache
              syncWinServers(newServers)
 
              // Find the actual removed server objects for notification
-             val removedServers = existingServers.filter { removedSelectedIds.contains(it.id) }
+             val removedServers = existingServers.filter { removedSelectedIds.contains(it.id) && it.id != AUTO_SERVER_ID }
 
              Logger.i(LOG_TAG_PROXY, "$TAG; refreshWinServers: refreshed ${newServers.size} servers, ${removedServers.size} selected servers removed")
              return Pair(newServers.toList(), removedServers)
@@ -1077,10 +2360,17 @@ object RpnProxyManager : KoinComponent {
         val block = Backend.Block
         val proxyIds: MutableList<String> = mutableListOf()
 
-        // --- App-specific WireGuard configs (multi-proxy aware) ---
-        // collect all proxy-ids for this uid and keep only WireGuard ones (wgX)
-        val allProxyIdsForApp = ProxyManager.getProxyIdsForApp(uid)
-        val rpnProxyIdsForApp = allProxyIdsForApp.filter { it.startsWith(ID_RPN_WIN) }
+        // collect all proxy-ids for this uid
+        val allProxyIdsForApp = try {
+            ProxyManager.getProxyIdsForApp(uid)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; error getting proxy ids for app $uid: ${e.message}", e)
+            emptyList()
+        }
+
+        val rpnProxyIdsForApp = allProxyIdsForApp.filter { it.startsWith(Backend.RpnWin) }
+
+        Logger.v(LOG_TAG_PROXY, "$TAG; allProxyIdsForApp: $allProxyIdsForApp, rpnProxyIdsForApp: $rpnProxyIdsForApp")
 
         // app-specific configs may be empty if the app is not configured
         if (rpnProxyIdsForApp.isNotEmpty()) {
@@ -1092,45 +2382,72 @@ object RpnProxyManager : KoinComponent {
                     if (appProxyPair.first == block) {
                         proxyIds.add(block)
                     } else if (appProxyPair.first.isNotEmpty()) {
-                        proxyIds.add(appProxyPair.first)
+                        var id = appProxyPair.first
+                        if (id == AUTO_SERVER_ID) {
+                            id = VpnController.getWinByKey("")?.id() ?: block
+                            proxyIds.add(id)
+                        } else {
+                            proxyIds.add(appProxyPair.first)
+                        }
                     }
-                    Logger.i(LOG_TAG_PROXY, "lockdown wg for app($uid) => return $proxyIds")
+                    Logger.i(LOG_TAG_PROXY, "$TAG lockdown wg for app($uid) => return $proxyIds")
                     return proxyIds
                 }
                 if (appProxyPair.first.isNotEmpty()) {
                     // add eligible app-specific config in the order we see them
-                    proxyIds.add(appProxyPair.first)
+                    var id = appProxyPair.first
+                    if (id == AUTO_SERVER_ID) {
+                        id = VpnController.getWinByKey("")?.id() ?: block
+                        proxyIds.add(id)
+                    } else {
+                        proxyIds.add(appProxyPair.first)
+                    }
                 }
             }
         }
 
         // once the app-specific config is added, check if any catch-all config is enabled
         // if catch-all config is enabled, then add the config id to the list
-        val cac = winServersCache.filter { it.isActive && it.catchAll }
+        val cac = winCacheMutex.withLock {
+            try {
+                winServersCache.filter { it.isEnabled && it.catchAll }.toList()
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; error filtering catch-all configs: ${e.message}", e)
+                emptyList()
+            }
+        }
+
+        Logger.v(LOG_TAG_PROXY, "$TAG; cac: $cac")
         cac.forEach {
-            if ((checkEligibilityBasedOnNw(
-                    it.id,
-                    usesMobileNw
-                ) && checkEligibilityBasedOnSsid(it.id, ssid)) &&
-                !proxyIds.contains(ID_WG_BASE + it.id)
-            ) {
-                proxyIds.add(ID_WG_BASE + it.id)
-                Logger.i(
-                    LOG_TAG_PROXY,
-                    "catch-all config is active: ${it.id}, ${it.name} => add ${ID_WG_BASE + it.id}"
-                )
+            try {
+                val configId = Backend.RpnWin + it.key
+                if ((checkEligibilityBasedOnNw(
+                        it.id,
+                        usesMobileNw
+                    ) || checkEligibilityBasedOnSsid(it.id, ssid)) &&
+                    !proxyIds.contains(configId)
+                ) {
+                    val key = if (it.id == AUTO_SERVER_ID) {
+                        VpnController.getWinByKey("")?.id() ?: block
+                    } else {
+                        configId
+                    }
+                    proxyIds.add(key)
+                    Logger.i(
+                        LOG_TAG_PROXY,
+                        "$TAG catch-all config is active: ${it.id}, ${it.name} => add $key"
+                    )
+                }
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; error processing catch-all config ${it.id}: ${e.message}", e)
             }
         }
 
         // the proxyIds list will contain the ip-app specific, domain-app specific, app specific,
         // universal ip, universal domain, catch-all and default configs in the order of priority
         // the go-tun will check the routing based on the order of the list
-        Logger.i(LOG_TAG_PROXY, "returning proxy ids for $uid, $ip, $port, $domain: $proxyIds")
+        Logger.i(LOG_TAG_PROXY, "$TAG returning proxy ids for $uid, $ip, $port, $domain: $proxyIds")
         return proxyIds
-    }
-
-    private fun isDnsRequest(defaultTid: String): Boolean {
-        return defaultTid == Backend.System || defaultTid == Backend.Plus || defaultTid == Backend.Preferred
     }
 
     private suspend fun canUseConfig(
@@ -1142,65 +2459,81 @@ object RpnProxyManager : KoinComponent {
         if (id.isEmpty()) {
             return Pair("", true)
         }
+        val actualId = id.substringAfter(Backend.RpnWin)
 
-        val config = winServersCache.find { it.id == id }
+        val config = winCacheMutex.withLock {
+            winServersCache.find { it.id == actualId || it.key == actualId }
+        }
 
         if (config == null) {
-            Logger.d(LOG_TAG_PROXY, "config null($id) no need to proceed, return empty")
-            winServersCache.forEach {
-                Logger.d(LOG_TAG_PROXY, "cached wg: ${it.id}, active: ${it.isActive}, lockdown: ${it.lockdown}")
+            Logger.d(LOG_TAG_PROXY, "$TAG; config null($actualId) no need to proceed, return empty")
+            winCacheMutex.withLock {
+                winServersCache.forEach {
+                    Logger.d(LOG_TAG_PROXY, "$TAG; cached wg: ${it.id}, ${it.key}, active: ${it.isEnabled}, lockdown: ${it.lockdown}")
+                }
             }
             return Pair("", true)
         }
 
-        if (config.lockdown && (checkEligibilityBasedOnNw(
-                id,
-                usesMtrdNw
-            ) && checkEligibilityBasedOnSsid(id, ssid))
-        ) {
-            Logger.d(LOG_TAG_PROXY, "lockdown wg for $type => return $id")
-            return Pair(id, false) // no need to proceed further for lockdown
-        }
+        Logger.vv(LOG_TAG_PROXY, "$TAG; config-details: $config")
 
         // check if the config is active and if it can be used on this network
-        if (config.isActive && (checkEligibilityBasedOnNw(
+        if (config.isEnabled && (checkEligibilityBasedOnNw(
                 id,
                 usesMtrdNw
             ) && checkEligibilityBasedOnSsid(id, ssid))
         ) {
-            Logger.d(LOG_TAG_PROXY, "active wg for $type => add $id")
+            Logger.d(LOG_TAG_PROXY, "$TAG active wg for $type => add $id")
             return Pair(id, true)
         }
 
         Logger.v(
             LOG_TAG_PROXY,
-            "wg for $type not active or not eligible nw, return empty, for id: $id, usesMtrdNw: $usesMtrdNw, ssid: $ssid"
+            "$TAG wg for $type not active or not eligible nw, return empty, for id: $id, usesMtrdNw: $usesMtrdNw, ssid: $ssid"
         )
         return Pair("", true)
     }
 
     // only when config is set to use on mobile network and current network is not mobile
     // then return false, all other cases return true
-    private fun checkEligibilityBasedOnNw(id: String, usesMobileNw: Boolean): Boolean {
-        val config = winServersCache.find { it.id == id }
+    private suspend fun checkEligibilityBasedOnNw(id: String, usesMobileNw: Boolean): Boolean {
+        if (id.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; checkEligibilityBasedOnNw: id is empty")
+            return false
+        }
+
+        val actualId = id.substringAfter(Backend.RpnWin)
+        val config = winCacheMutex.withLock {
+            winServersCache.find { it.id == id || it.id == actualId || it.key == id || it.key == actualId }
+        }
+
         if (config == null) {
-            Logger.e(LOG_TAG_PROXY, "canAdd: wg not found, id: $id, ${winServersCache.size}")
+            Logger.e(LOG_TAG_PROXY, "$TAG; checkEligibilityBasedOnNw: wg not found, id: $id, actualId: $actualId, cache size: ${winServersCache.size}")
             return false
         }
 
         if (config.mobileOnly && !usesMobileNw) {
-            Logger.i(LOG_TAG_PROXY, "canAdd: useOnlyOnMetered is true, but not metered nw")
+            Logger.i(LOG_TAG_PROXY, "$TAG; checkEligibilityBasedOnNw: mobileOnly is true for ${config.key}, but not mobile nw")
             return false
         }
 
-        Logger.d(LOG_TAG_PROXY, "canAdd: eligible for metered nw: $usesMobileNw")
+        Logger.d(LOG_TAG_PROXY, "$TAG; checkEligibilityBasedOnNw: eligible for mobile nw: $usesMobileNw, key: ${config.key}")
         return true
     }
 
-    private fun checkEligibilityBasedOnSsid(id: String, ssid: String): Boolean {
-        val config = winServersCache.find { it.id == id }
+    private suspend fun checkEligibilityBasedOnSsid(id: String, ssid: String): Boolean {
+        if (id.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; checkEligibilityBasedOnSsid: id is empty")
+            return false
+        }
+
+        val actualId = id.substringAfter(Backend.RpnWin)
+        val config = winCacheMutex.withLock {
+            winServersCache.find { it.id == id || it.id == actualId || it.key == id || it.key == actualId }
+        }
+
         if (config == null) {
-            Logger.e(LOG_TAG_PROXY, "canAdd: wg not found, id: $id, ${winServersCache.size}")
+            Logger.e(LOG_TAG_PROXY, "$TAG; checkEligibilityBasedOnSsid: wg not found, id: $id, actualId: $actualId, cache size: ${winServersCache.size}")
             return false
         }
 
@@ -1210,7 +2543,7 @@ object RpnProxyManager : KoinComponent {
             if (ssidItems.isEmpty()) { // treat empty as match all
                 Logger.d(
                     LOG_TAG_PROXY,
-                    "canAdd: ssidEnabled is true, but ssid list is empty, match all"
+                    "checkEligibilityBasedOnSsid: ssidEnabled is true, but ssid list is empty, match all"
                 )
                 return true
             }
@@ -1229,7 +2562,7 @@ object RpnProxyManager : KoinComponent {
             }
 
             if (notEqualMatch) {
-                Logger.d(LOG_TAG_PROXY, "canAdd: ssid matched in NOT_EQUAL items, return false")
+                Logger.d(LOG_TAG_PROXY, "checkEligibilityBasedOnSsid: ssid matched in NOT_EQUAL items, return false")
                 return false
             }
 
@@ -1238,7 +2571,7 @@ object RpnProxyManager : KoinComponent {
             if (equalItems.isEmpty() && notEqualItems.isNotEmpty()) {
                 Logger.d(
                     LOG_TAG_PROXY,
-                    "canAdd: only NOT_EQUAL items present and none matched, return true"
+                    "checkEligibilityBasedOnSsid: only NOT_EQUAL items present and none matched, return true"
                 )
                 return true
             }
@@ -1257,37 +2590,65 @@ object RpnProxyManager : KoinComponent {
             }
 
             if (!equalMatch) {
-                Logger.d(LOG_TAG_PROXY, "canAdd: ssid did not match in EQUAL items, return false")
+                Logger.d(LOG_TAG_PROXY, "checkEligibilityBasedOnSsid: ssid did not match in EQUAL items, return false")
                 return false
             }
         }
 
-        Logger.d(LOG_TAG_PROXY, "canAdd: eligible for ssid: $ssid")
+        Logger.d(LOG_TAG_PROXY, "checkEligibilityBasedOnSsid: eligible for ssid: $ssid")
         return true
     }
 
     private fun matchesWildcard(pattern: String, text: String): Boolean {
+        if (pattern.isEmpty() || text.isEmpty()) {
+            Logger.v(LOG_TAG_PROXY, "$TAG; matchesWildcard: empty pattern or text")
+            return false
+        }
+
         // Convert wildcard pattern to regex
         // * matches any sequence of characters
         // ? matches any single character
-        val regexPattern = pattern
-            .replace(".", "\\.")  // Escape dots
-            .replace("*", ".*")   // Convert * to .*
-            .replace("?", ".")    // Convert ? to .
-
         return try {
-            text.matches(Regex(regexPattern, RegexOption.IGNORE_CASE)) || text.contains(
-                pattern,
-                ignoreCase = true
-            )
+            val regexPattern = pattern
+                .replace(".", "\\.")  // Escape dots
+                .replace("*", ".*")   // Convert * to .*
+                .replace("?", ".")    // Convert ? to .
+
+            val matches = text.matches(Regex(regexPattern, RegexOption.IGNORE_CASE))
+            val contains = text.contains(pattern, ignoreCase = true)
+
+            matches || contains
         } catch (e: Exception) {
-            Logger.w(LOG_TAG_PROXY, "Invalid wildcard pattern: $pattern, error: ${e.message}")
-            false
+            Logger.w(LOG_TAG_PROXY, "$TAG; matchesWildcard: invalid wildcard pattern: $pattern, error: ${e.message}")
+            // Fallback to simple contains check
+            try {
+                text.contains(pattern, ignoreCase = true)
+            } catch (e2: Exception) {
+                Logger.e(LOG_TAG_PROXY, "$TAG; matchesWildcard: fallback also failed: ${e2.message}", e2)
+                false
+            }
         }
     }
 
     fun matchesSsidList(ssidList: String, ssid: String): Boolean {
-        val ssidItems = SsidItem.parseStorageList(ssidList)
+        if (ssidList.isEmpty()) {
+            // Empty list means match all
+            Logger.v(LOG_TAG_PROXY, "$TAG; matchesSsidList: empty ssidList, match all")
+            return true
+        }
+
+        if (ssid.isEmpty()) {
+            Logger.v(LOG_TAG_PROXY, "$TAG; matchesSsidList: empty ssid, no match")
+            return false
+        }
+
+        val ssidItems = try {
+            SsidItem.parseStorageList(ssidList)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; matchesSsidList: failed to parse ssidList: ${e.message}", e)
+            return true // Fail open
+        }
+
         if (ssidItems.isEmpty()) { // treat empty as match all
             return true
         }
@@ -1298,14 +2659,18 @@ object RpnProxyManager : KoinComponent {
 
         // Check NOT_EQUAL items first - if any match, return false
         val notEqualMatch = notEqualItems.any { ssidItem ->
-            when {
-                ssidItem.type.isExact -> {
-                    ssidItem.name.equals(ssid, ignoreCase = true)
+            try {
+                when {
+                    ssidItem.type.isExact -> {
+                        ssidItem.name.equals(ssid, ignoreCase = true)
+                    }
+                    else -> { // wildcard
+                        matchesWildcard(ssidItem.name, ssid)
+                    }
                 }
-
-                else -> { // wildcard
-                    matchesWildcard(ssidItem.name, ssid)
-                }
+            } catch (e: Exception) {
+                Logger.w(LOG_TAG_PROXY, "$TAG; matchesSsidList: error matching NOT_EQUAL item: ${e.message}")
+                false
             }
         }
 
@@ -1320,50 +2685,83 @@ object RpnProxyManager : KoinComponent {
 
         // Check EQUAL items (exact or wildcard)
         return equalItems.any { ssidItem ->
-            when {
-                ssidItem.type.isExact -> {
-                    ssidItem.name.equals(ssid, ignoreCase = true)
+            try {
+                when {
+                    ssidItem.type.isExact -> {
+                        ssidItem.name.equals(ssid, ignoreCase = true)
+                    }
+                    else -> { // wildcard
+                        matchesWildcard(ssidItem.name, ssid)
+                    }
                 }
-
-                else -> { // wildcard
-                    matchesWildcard(ssidItem.name, ssid)
-                }
+            } catch (e: Exception) {
+                Logger.w(LOG_TAG_PROXY, "$TAG; matchesSsidList: error matching EQUAL item: ${e.message}")
+                false
             }
         }
     }
-
-    // ===== SSID-based connection management for Country Configs =====
 
     /**
      * Update SSID based status for a country
      * @param cc Country code
      * @param ssidBased Whether SSID-based connection is enabled
      */
-    suspend fun updateSsidBased(cc: String, ssidBased: Boolean) {
+    suspend fun updateSsidBased(key: String, ssidBased: Boolean) {
+        if (key.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; updateSsidBased: cc is empty")
+            return
+        }
+
+        val config = synchronized(winServersCache) {
+            winServersCache.find { it.key == key }
+        }
+
+        if (config == null) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; updateSsidBased: config not found in cache for key: $key")
+            return
+        }
+
+        val oldValue = config.ssidBased
+
         try {
-            countryConfigRepo.updateSsidBased(cc, ssidBased)
+            countryConfigRepo.updateSsidBased(key, ssidBased)
             
             // Update cache
             synchronized(winServersCache) {
-                val config = winServersCache.find { it.cc == cc }
-                if (config != null) {
-                    winServersCache.remove(config)
-                    winServersCache.add(config.copy(ssidBased = ssidBased, lastModified = System.currentTimeMillis()))
+                val cachedConfig = winServersCache.find { it.key == key }
+                if (cachedConfig != null) {
+                    winServersCache.remove(cachedConfig)
+                    winServersCache.add(cachedConfig.copy(ssidBased = ssidBased, lastModified = System.currentTimeMillis()))
+                } else {
+                    Logger.w(LOG_TAG_PROXY, "$TAG; updateSsidBased: config disappeared from cache for key: $key")
                 }
             }
             
-            Logger.i(LOG_TAG_PROXY, "$TAG; updateSsidBased: $cc = $ssidBased")
+            Logger.i(LOG_TAG_PROXY, "$TAG; updateSsidBased: $key = $ssidBased")
             
             // Trigger connection monitor to update SSID info if country is selected
-            if (selectedCountries.contains(cc)) {
-                if (ssidBased) {
-                    VpnController.notifyConnectionMonitor(enforcePolicyChange = true)
+            if (selectedKeys.contains(key)) {
+                try {
+                    if (ssidBased) {
+                        VpnController.notifyConnectionMonitor(enforcePolicyChange = true)
+                    }
+                    // Refresh proxies to immediately pause/resume based on new SSID setting
+                    VpnController.refreshOrPauseOrResumeOrReAddProxies()
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_PROXY, "$TAG; updateSsidBased: failed to refresh proxies: ${e.message}", e)
+                    // Don't revert DB change if only the VPN controller refresh failed
                 }
-                // Refresh proxies to immediately pause/resume based on new SSID setting
-                VpnController.refreshOrPauseOrResumeOrReAddProxies()
             }
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error updating SSID based for $cc: ${e.message}", e)
+            Logger.e(LOG_TAG_PROXY, "$TAG; error updating SSID based for $key: ${e.message}", e)
+            // Revert cache on DB failure
+            synchronized(winServersCache) {
+                val cachedConfig = winServersCache.find { it.key == key }
+                if (cachedConfig != null) {
+                    winServersCache.remove(cachedConfig)
+                    winServersCache.add(cachedConfig.copy(ssidBased = oldValue))
+                }
+            }
         }
     }
 
@@ -1372,58 +2770,145 @@ object RpnProxyManager : KoinComponent {
      * @param cc Country code
      * @param ssids JSON string of SSID items
      */
-    suspend fun updateSsids(cc: String, ssids: String) {
+    suspend fun updateSsids(key: String, ssids: String) {
+        if (key.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; updateSsids: cc is empty")
+            return
+        }
+
+        val config = synchronized(winServersCache) {
+            winServersCache.find { it.key == key }
+        }
+
+        if (config == null) {
+            Logger.w(LOG_TAG_PROXY, "$TAG; updateSsids: config not found in cache for key: $key")
+            return
+        }
+
+        val oldSsids = config.ssids
+
         try {
-            countryConfigRepo.updateSsids(cc, ssids)
+            countryConfigRepo.updateSsids(key, ssids)
             
             // Update cache
             synchronized(winServersCache) {
-                val config = winServersCache.find { it.cc == cc }
-                if (config != null) {
-                    winServersCache.remove(config)
-                    winServersCache.add(config.copy(ssids = ssids, lastModified = System.currentTimeMillis()))
+                val cachedConfig = winServersCache.find { it.key == key }
+                if (cachedConfig != null) {
+                    winServersCache.remove(cachedConfig)
+                    winServersCache.add(cachedConfig.copy(ssids = ssids, lastModified = System.currentTimeMillis()))
+                } else {
+                    Logger.w(LOG_TAG_PROXY, "$TAG; updateSsids: config disappeared from cache for key: $key")
                 }
             }
             
-            Logger.i(LOG_TAG_PROXY, "$TAG; updateSsids: $cc, ssids length=${ssids.length}")
+            Logger.i(LOG_TAG_PROXY, "$TAG; updateSsids: $key, ssids length=${ssids.length}")
             
             // If country is selected and SSID based enabled, refresh proxies
-            if (selectedCountries.contains(cc)) {
-                val config = winServersCache.find { it.cc == cc }
-                if (config?.ssidBased == true) {
-                    VpnController.notifyConnectionMonitor(enforcePolicyChange = true)
-                    VpnController.refreshOrPauseOrResumeOrReAddProxies()
+            if (selectedKeys.contains(key)) {
+                val updatedConfig = synchronized(winServersCache) {
+                    winServersCache.find { it.key == key }
+                }
+                if (updatedConfig?.ssidBased == true) {
+                    try {
+                        VpnController.notifyConnectionMonitor(enforcePolicyChange = true)
+                        VpnController.refreshOrPauseOrResumeOrReAddProxies()
+                    } catch (e: Exception) {
+                        Logger.e(LOG_TAG_PROXY, "$TAG; updateSsids: failed to refresh proxies: ${e.message}", e)
+                        // Don't revert DB change if only the VPN controller refresh failed
+                    }
                 }
             }
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error updating SSIDs for $cc: ${e.message}", e)
+            Logger.e(LOG_TAG_PROXY, "$TAG; error updating SSIDs for $key: ${e.message}", e)
+            // Revert cache on DB failure
+            synchronized(winServersCache) {
+                val cachedConfig = winServersCache.find { it.key == key }
+                if (cachedConfig != null) {
+                    winServersCache.remove(cachedConfig)
+                    winServersCache.add(cachedConfig.copy(ssids = oldSsids))
+                }
+            }
         }
     }
 
-    /**
-     * Get all country configs with SSID enabled
-     */
-    suspend fun getSsidEnabledCountries(): List<CountryConfig> {
-        return try {
-            countryConfigRepo.getSsidEnabledConfigs()
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error getting SSID enabled countries: ${e.message}", e)
-            emptyList()
-        }
-    }
-
-    /**
-     * Get country config by country code
-     */
-    suspend fun getCountryConfig(cc: String): CountryConfig? {
+    suspend fun getCountryConfigByKey(key: String): CountryConfig? {
         return try {
             synchronized(winServersCache) {
-                winServersCache.find { it.cc == cc }
-            } ?: countryConfigRepo.getConfig(cc)
+                winServersCache.find { it.key == key }
+            }
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; error getting country config for $cc: ${e.message}", e)
+            Logger.e(LOG_TAG_PROXY, "$TAG; error getting country config for $key: ${e.message}", e)
             null
         }
+    }
+
+    /**
+     * Cleanup method to cancel observer job and release resources.
+     * Should be called when the manager is no longer needed.
+     */
+    fun cleanup() {
+        try {
+            stateObserverJob.cancel()
+            Logger.i(LOG_TAG_PROXY, "$TAG; cleanup: observer job cancelled")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG; cleanup: error cancelling observer job: ${e.message}", e)
+        }
+    }
+
+    suspend fun stats(): String {
+        val sb = StringBuilder()
+        sb.append("   Rpn active: ${isRpnActive()}\n\n")
+
+        if (!isRpnActive()) return sb.toString()
+
+        winServersCache.filter { it.isEnabled }.forEach {
+            val id = if (it.key.equals(AUTO_SERVER_ID, true)) {
+                VpnController.getWinProxyId() ?: (Backend.RpnWin + "**")
+            } else {
+                Backend.RpnWin + it.key
+            }
+            val stats = VpnController.getWireGuardStats(id)
+            val routerStats = stats?.routerStats
+            sb.append("   id: ${it.id}, name: ${it.name}\n")
+            sb.append("   addr: ${routerStats?.addrs}").append("\n")
+            sb.append("   mtu: ${stats?.mtu}\n")
+            sb.append("   status: ${routerStats?.status}\n")
+            sb.append("   statusReason: ${routerStats?.statusReason}\n")
+            sb.append("   ip4: ${stats?.ip4}\n")
+            sb.append("   ip6: ${stats?.ip6}\n")
+            sb.append("   rx: ${routerStats?.rx}\n")
+            sb.append("   tx: ${routerStats?.tx}\n")
+            sb.append("   lastRx: ${getRelativeTimeSpan(routerStats?.lastRx)}\n")
+            sb.append("   lastTx: ${getRelativeTimeSpan(routerStats?.lastTx)}\n")
+            sb.append("   lastGoodRx: ${getRelativeTimeSpan(routerStats?.lastGoodRx)}\n")
+            sb.append("   lastGoodTx: ${getRelativeTimeSpan(routerStats?.lastGoodTx)}\n")
+            sb.append("   lastRxErr: ${routerStats?.lastRxErr}\n")
+            sb.append("   lastTxErr: ${routerStats?.lastTxErr}\n")
+            sb.append("   lastOk: ${getRelativeTimeSpan(routerStats?.lastOK)}\n")
+            sb.append("   since: ${getRelativeTimeSpan(routerStats?.since)}\n")
+            sb.append("   errRx: ${routerStats?.errRx}\n")
+            sb.append("   errTx: ${routerStats?.errTx}\n")
+            sb.append("   extra: ${routerStats?.extra}\n\n")
+        }
+        if (sb.isEmpty()) {
+            sb.append("   N/A\n\n")
+        }
+        return sb.toString()
+    }
+
+    private fun getRelativeTimeSpan(t: Long?): CharSequence? {
+        if (t == null) return "0"
+
+        if (t < 0) return "-1"
+
+        val now = System.currentTimeMillis()
+        // returns a string describing 'time' as a time relative to 'now'
+        return DateUtils.getRelativeTimeSpanString(
+            t,
+            now,
+            DateUtils.SECOND_IN_MILLIS,
+            DateUtils.FORMAT_ABBREV_RELATIVE
+        )
     }
 
 }

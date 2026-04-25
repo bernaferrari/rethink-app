@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.celzero.bravedns.subscription
+package com.celzero.bravedns.rpnproxy
 
 import Logger
 import Logger.LOG_IAB
@@ -123,7 +123,7 @@ abstract class StateMachine<S : State, E : Event, D : Any>(
 
                         // Transition state BEFORE running the action so that:
                         // 1. If the action writes to DB, the in-memory state already
-                        //    matches the DB state — no desync window.
+                        //    matches the DB state no desync window.
                         // 2. If the action reads the current state (e.g. for logging),
                         //    it sees the new state, which is correct.
                         // If the action throws, we revert to the previous state below.
@@ -133,8 +133,6 @@ abstract class StateMachine<S : State, E : Event, D : Any>(
                         try {
                             transition.action(event, _data.value)
                         } catch (actionError: Exception) {
-                            // Action failed — revert the optimistic state transition
-                            // so that in-memory state does NOT advance past the failed action.
                             _currentState.value = currentState
                             throw actionError
                         }

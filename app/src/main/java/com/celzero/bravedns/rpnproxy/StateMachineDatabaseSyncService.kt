@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.celzero.bravedns.subscription
+package com.celzero.bravedns.rpnproxy
 
 import Logger
 import Logger.LOG_IAB
-import com.android.billingclient.api.BillingResult
+// BillingResult import removed: savePurchaseFailureHistory now uses Int? for cross-flavor compat
 import com.celzero.bravedns.database.SubscriptionStateHistory
 import com.celzero.bravedns.database.SubscriptionStateHistoryDao
 import com.celzero.bravedns.database.SubscriptionStatus
@@ -28,15 +28,6 @@ import org.koin.core.component.inject
 
 /**
  * Handles persistence of subscription state history and DB-state loading.
- *
- * ### Design invariants (mirror of [SubscriptionStateMachineV2])
- * - This service NEVER writes to the [SubscriptionStatus] row for success paths.
- *   [SubscriptionStateMachineV2.handlePaymentSuccessful] is the sole writer.
- * - [recordHistoryOnly] inserts a [SubscriptionStateHistory] row; it skips the insert
- *   when fromStatusId == toStatusId to prevent duplicate history entries.
- * - [saveStateTransition] is kept for callers that still use it (e.g. error paths),
- *   but it too records history only — it no longer calls [subscriptionRepository.update].
- * - Expiry is never derived from the `ws` payload; callers pass Play-computed values.
  */
 class StateMachineDatabaseSyncService : KoinComponent {
 
@@ -70,11 +61,10 @@ class StateMachineDatabaseSyncService : KoinComponent {
     /**
      * Derive the recommended in-memory state from the stored [SubscriptionStatus].
      *
-     * ### Key rules
-     * - **SUBS**: Google Play is the single authority on active/expired.  The local
+     * - **SUBS**: Google Play is the single authority on active/expired. The local
      *   billingExpiry is only an estimate.  We never expire a SUBS from the local clock
-     *   — [reconcileWithPlayBilling] will correct the state seconds after app start.
-     * - **INAPP**: The access window is fixed (e.g. 2 years).  Play has no server-side
+     *   [reconcileWithPlayBilling] will correct the state seconds after app start.
+     * - **INAPP**: The access window is fixed (e.g. 2 years). Play has no server-side
      *   record of per-entitlement expiry for one-time purchases, so our local expiryTime
      *   IS the authority gate.
      * - billingExpiry = 0 → expiry unknown → return Active (reconcile will correct).
@@ -102,12 +92,12 @@ class StateMachineDatabaseSyncService : KoinComponent {
 
             SubscriptionStatus.SubscriptionState.STATE_ACTIVE -> {
                 when {
-                    // INAPP: fixed access window — local expiry IS authoritative
+                    // INAPP: fixed access window, local expiry IS authoritative
                     isInApp && isLocallyExpired -> {
                         Logger.d(LOG_IAB, "$TAG: INAPP active purchase expired locally → Expired")
                         SubscriptionStateMachineV2.SubscriptionState.Expired
                     }
-                    // SUBS: Play is the ONLY authority — never expire from local clock.
+                    // SUBS: Play is the ONLY authority, never expire from local clock.
                     // billingExpiry is an estimate only; Play may have already renewed.
                     // Play reconcile (run seconds after app start) will correct if truly expired.
                     else -> {
@@ -124,10 +114,10 @@ class StateMachineDatabaseSyncService : KoinComponent {
                         Logger.d(LOG_IAB, "$TAG: INAPP cancelled purchase expired locally → Expired")
                         SubscriptionStateMachineV2.SubscriptionState.Expired
                     }
-                    // SUBS cancelled: NEVER use local clock to mark Expired.
+                    // SUBS canceled: NEVER use local clock to mark Expired.
                     // The user still has access until Play says otherwise.
-                    // Cancelled + billingExpiry < now → return Cancelled so the machine
-                    // stays in Cancelled (which hasValidSubscription = true for UI).
+                    // Canceled + billingExpiry < now → return Canceled so the machine
+                    // stays in Canceled (which hasValidSubscription = true for UI).
                     // Play reconcile will fire SubscriptionExpired if truly expired.
                     !isInApp -> {
                         Logger.d(LOG_IAB, "$TAG: SUBS cancelled → Cancelled (Play is master for expiry)")
@@ -171,21 +161,12 @@ class StateMachineDatabaseSyncService : KoinComponent {
     /**
      * Insert a single [SubscriptionStateHistory] row.
      *
-     * ### Append-only guarantee
-     * Every call results in a fresh `@Insert` — this method **never** updates or
-     * replaces an existing row. The history table is an immutable log.
-     *
-     * ### Why there is NO same-state skip here
-     * A previous version of this method skipped the insert when
-     * `fromStatusId == toStatusId`, intending to suppress duplicate entries.
-     * That guard was **too aggressive**: it silently dropped meaningful same-state
-     * events such as subscription renewals (`Active → Active` with updated expiry)
-     * and plan-change markers.
-     *
-     * Callers that genuinely want to suppress duplicate writes already carry their
-     * own guards (e.g. `if (prevStatus == STATE_X) return` before calling here, or
-     * `if (prevStatusId != newStatusId || isPlanChange)` in [handlePaymentSuccessful]).
-     * Duplicating those guards here caused legitimate events to vanish from the log.
+     * When [fromStatusId] == [toStatusId] no real state transition occurred (e.g.
+     * `Active → Active` during a subscription renewal where only billingExpiry
+     * changed).  These entries are pure noise in the payment history UI and are
+     * skipped here.  Every meaningful transition (Initial → Active, Active →
+     * Canceled, etc.) always has different from/to values, so this guard never
+     * suppresses a real event.
      */
     suspend fun recordHistoryOnly(
         subscriptionId: Int,
@@ -193,16 +174,23 @@ class StateMachineDatabaseSyncService : KoinComponent {
         toStatusId: Int,
         reason: String? = null
     ) {
+        val normalizedFrom = if (fromStatusId < 0) SubscriptionStatus.SubscriptionState.STATE_INITIAL.id else fromStatusId
+        val normalizedTo   = if (toStatusId   < 0) SubscriptionStatus.SubscriptionState.STATE_INITIAL.id else toStatusId
+
+        if (normalizedFrom == normalizedTo) {
+            Logger.d(LOG_IAB, "$TAG: recordHistoryOnly: skipping same-state entry sub=$subscriptionId state=$normalizedFrom reason=$reason")
+            return
+        }
         try {
             val history = SubscriptionStateHistory(
                 subscriptionId = subscriptionId,
-                fromState      = fromStatusId,
-                toState        = toStatusId,
+                fromState      = normalizedFrom,
+                toState        = normalizedTo,
                 timestamp      = System.currentTimeMillis(),
                 reason         = reason
             )
             val id = historyDAO.insert(history)
-            Logger.d(LOG_IAB, "$TAG: history recorded id=$id sub=$subscriptionId: $fromStatusId → $toStatusId reason=$reason")
+            Logger.d(LOG_IAB, "$TAG: history recorded id=$id sub=$subscriptionId: $normalizedFrom → $normalizedTo reason=$reason")
         } catch (e: Exception) {
             Logger.e(LOG_IAB, "$TAG: recordHistoryOnly error: ${e.message}", e)
         }
@@ -210,7 +198,7 @@ class StateMachineDatabaseSyncService : KoinComponent {
 
     /**
      * Records a state transition in history only.
-     * Does NOT update the subscription row — the state machine handlers own that.
+     * Does NOT update the subscription row - the state machine handlers own that.
      * Kept for callers that pass SubscriptionData; delegates to [recordHistoryOnly].
      */
     suspend fun saveStateTransition(
@@ -297,7 +285,7 @@ class StateMachineDatabaseSyncService : KoinComponent {
         }
     }
 
-    suspend fun savePurchaseFailureHistory(error: String, billingResult: BillingResult?) {
+    suspend fun savePurchaseFailureHistory(error: String, billingResultCode: Int?) {
         try {
             Logger.e(LOG_IAB, "$TAG: savePurchaseFailureHistory: $error")
             val sub = try {
@@ -312,7 +300,7 @@ class StateMachineDatabaseSyncService : KoinComponent {
                 subscriptionId = subscriptionId,
                 fromStatusId   = fromStatusId,
                 toStatusId     = SubscriptionStatus.SubscriptionState.STATE_PURCHASE_FAILED.id,
-                reason         = "Purchase failed: $error, BillingResult: ${billingResult?.responseCode ?: "Unknown"}"
+                reason         = "Purchase failed: $error, BillingResult: ${billingResultCode ?: "Unknown"}"
             )
         } catch (e: Exception) {
             Logger.e(LOG_IAB, "$TAG: savePurchaseFailureHistory error: ${e.message}", e)
@@ -329,11 +317,11 @@ class StateMachineDatabaseSyncService : KoinComponent {
             // records where the cancellation came from.  For a brand-new user who never
             // completed a purchase, sub is null → fromState defaults to STATE_INITIAL.
             // In that case fromState == toState == STATE_INITIAL, which is meaningless noise
-            // (user just opened the screen and backed out) — skip the insert entirely.
+            // (user just opened the screen and backed out), skip the insert entirely.
             val fromStatusId = sub?.status
                 ?: SubscriptionStatus.SubscriptionState.STATE_INITIAL.id
             // fromState == STATE_INITIAL means the user had no active subscription and never
-            // completed a purchase flow — toState is always STATE_INITIAL in this function.
+            // completed a purchase flow, toState is always STATE_INITIAL in this function.
             // Recording Initial → Initial is pure noise in the payment history UI; skip it.
             if (fromStatusId == SubscriptionStatus.SubscriptionState.STATE_INITIAL.id) {
                 Logger.d(LOG_IAB, "$TAG: saveUserCancelledPurchaseHistory: no-op for Initial→Initial (no purchase was ever started)")
@@ -437,7 +425,7 @@ class StateMachineDatabaseSyncService : KoinComponent {
         val playExpiry = if (rawExpiry > 0L && rawExpiry != Long.MAX_VALUE) rawExpiry else 0L
         return SubscriptionStatus().apply {
             accountId        = purchaseDetail.accountId
-            // Store only the sentinel indicator — never the raw device ID — so the DB
+            // Store only the sentinel indicator
             // never holds a sensitive plain-text credential.  The real value lives in
             // SecureIdentityStore and is obtained via BillingBackendClient.getDeviceId().
             deviceId         = if (purchaseDetail.deviceId.isNotBlank()) SubscriptionStatus.DEVICE_ID_INDICATOR else ""
