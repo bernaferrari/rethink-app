@@ -47,7 +47,7 @@ class ProxyAppsMappingViewModel(private val mappingDAO: ProxyApplicationMappingD
             Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
                 when (filterType) {
                     WgIncludeAppsDialog.TopLevelFilter.ALL_APPS ->
-                        mappingDAO.getAllAppsMapping(searchTxt)
+                        mappingDAO.getAllAppsMapping(searchTxt, proxyId)
                     WgIncludeAppsDialog.TopLevelFilter.SELECTED_APPS ->
                         mappingDAO.getSelectedAppsMapping(searchTxt, proxyId)
                     WgIncludeAppsDialog.TopLevelFilter.UNSELECTED_APPS ->
