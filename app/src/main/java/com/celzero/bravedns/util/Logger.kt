@@ -57,7 +57,9 @@ object Logger : KoinComponent {
     const val LOG_PROVIDER = "BlocklistProvider"
     const val LOG_TAG_PROXY = "ProxyLogs"
     const val LOG_QR_CODE = "QrCodeFromFileScanner"
-    const val LOG_GO_LOGGER = "GoLogV2"
+    const val LOG_GO_LOGGER = "GoLog"
+    const val LOG_GO_LOGGER_V2 = "GoLogV2"
+    const val LOG_GO_LOGGER_SM = "GoLogSM"
     const val LOG_TAG_APP_OPS = "AppOpsService"
     const val LOG_IAB = "InAppBilling"
     const val LOG_FIREBASE = "FirebaseErrorReporting"
@@ -206,6 +208,16 @@ object Logger : KoinComponent {
         dbWrite(LOG_GO_LOGGER, message, type)
     }
 
+    fun goLog2(message: String, type: LoggerLevel) {
+        // no need to log the go logs, add it to the database
+        dbWrite(LOG_GO_LOGGER_V2, message, type)
+    }
+
+    fun goLog3(message: String, type: LoggerLevel) {
+        // no need to log the go logs, add it to the database
+        dbWrite(LOG_GO_LOGGER_SM, message, type)
+    }
+
     fun log(tag: String, msg: String, type: LoggerLevel, e: Exception? = null) {
         when (type) {
             LoggerLevel.VERY_VERBOSE -> if (logLevel <= LoggerLevel.VERY_VERBOSE.id) Log.v(tag, msg)
@@ -256,3 +268,4 @@ object Logger : KoinComponent {
         } catch (_: Exception) { }
     }
 }
+
