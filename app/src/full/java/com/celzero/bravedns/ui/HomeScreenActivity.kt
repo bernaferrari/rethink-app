@@ -63,6 +63,7 @@ import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.AppInfoRepository
 import com.celzero.bravedns.database.RefreshDatabase
 import com.celzero.bravedns.service.AppUpdater
+import com.celzero.bravedns.service.InAppMessageProvider
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.RethinkBlocklistManager
@@ -103,6 +104,7 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
     private val persistentState by inject<PersistentState>()
     private val appInfoDb by inject<AppInfoRepository>()
     private val appUpdateManager by inject<AppUpdater>()
+    private val inAppMessageProvider by inject<InAppMessageProvider>()
     private val rdb by inject<RefreshDatabase>()
     private val appConfig by inject<AppConfig>()
 
@@ -170,6 +172,9 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
             appInBackground = false
             Logger.d(LOG_TAG_UI, "app restored from background, maintaining activity stack")
         }
+        // Show any pending Play Billing in-app messages (payment recovery, grace-period
+        // notices, etc.).  This is a no-op on non-Play flavors.
+        inAppMessageProvider.showMessages(this)
     }
 
     // check if app running on TV
@@ -458,7 +463,7 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
         // do not check for debug builds
         if (BuildConfig.DEBUG) return
 
-        // do not check for alpha builds — alpha testers get updates via direct distribution
+        // do not check for alpha builds, alpha testers get updates via direct distribution
         if (Utilities.isAlphaBuild()) {
             Logger.i(LOG_TAG_APP_UPDATE, "update check skipped for alpha build")
             return
@@ -723,7 +728,6 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
 
                     when {
                         currentId == homeId -> {
-                            // Already at home — exit the app.
                             finish()
                         }
                         currentId == R.id.rethinkPlusDashboardFragment -> {
@@ -737,7 +741,7 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
                         }
                         else -> {
                             // Any other non-home top-level destination (statistics, configure,
-                            // about, rethinkPlus) — navigate to home and clear the back stack.
+                            // about, rethinkPlus), navigate to home and clear the back stack.
                             val btmNavView = findViewById<BottomNavigationView>(R.id.nav_view)
                             btmNavView.selectedItemId = homeId
                             navController?.navigate(
@@ -781,10 +785,10 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
                 R.id.summaryStatisticsFragment,
                 R.id.configureFragment,
                 R.id.aboutFragment -> {
-                    // These are direct menu items — BottomNavigationView updates isChecked
+                    // These are direct menu items: BottomNavigationView updates isChecked
                     // automatically when selectedItemId is set; nothing extra needed here.
                 }
-                else -> { /* other destinations — no bottom-nav highlight change */ }
+                else -> { /* other destinations: no bottom-nav highlight change */ }
             }
         }
 
