@@ -438,7 +438,7 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
      * - RPN enabled / valid sub but not yet active → show plan name
      * - No valid subscription → default "Subscribe" call-to-action
      *
-     * Always visible — the row is the entry point to either subscribe or manage the proxy.
+     * Always visible, the row is the entry point to either subscribe or manage the proxy.
      */
     private fun displayRpnUi() {
         val isEnabled = RpnProxyManager.isRpnEnabled()
@@ -446,7 +446,6 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
 
         when {
             isEnabled && RpnProxyManager.isRpnActive() -> {
-                // RPN is fully active — fetch selected countries on IO then update UI
                 io {
                     val selectedCCs = RpnProxyManager.getSelectedCCs()
                     val desc = if (selectedCCs.isNotEmpty()) {
@@ -467,7 +466,6 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
                 b.settingsActivityRpnIcon.alpha = 1.0f
             }
             else -> {
-                // No subscription — invite user to subscribe
                 b.settingsActivityRpnDesc.text = getString(R.string.proxy_rpn_desc_inactive)
                 b.settingsActivityRpnIcon.alpha = 0.5f
             }
