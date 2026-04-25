@@ -259,7 +259,7 @@ class WgIncludeAppsDialog(
     private fun refreshPagingAdapter() {
         // Changing the filter causes the ViewModel to emit new PagingData; the host
         // observer (collectLatest / submitData) picks it up automatically.
-        // Do NOT call notifyDataSetChanged() on a PagingDataAdapter — it manages all
+        // Do NOT call notifyDataSetChanged() on a PagingDataAdapter, it manages all
         // its own notifications via DiffUtil, and an external notify corrupts internal
         // position tracking, causing IndexOutOfBoundsException in RecyclerView layout.
         viewModel.setFilter(searchText, filterType, proxyId)
