@@ -12,7 +12,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.RadioButton
 import android.widget.Toast
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -37,8 +39,6 @@ import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -129,7 +129,6 @@ class CustomIpRulesBtmSheet :
         io {
             if (uid == UID_EVERYBODY) {
                 b.customIpAppNameTv.text = getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
-                b.customIpAppIconIv.visibility = View.GONE
             } else {
                 val appNames = FirewallManager.getAppNamesByUid(ci.uid)
                 val appName = getAppName(ci.uid, appNames)
@@ -151,7 +150,6 @@ class CustomIpRulesBtmSheet :
         val rules = IpRuleStatus.getStatus(ci.status)
         b.customIpTv.text = ci.ipAddress
         showBypassUi(uid)
-        b.customIpToggleGroup.tag = 1
         updateToggleGroup(rules)
         updateStatusUi(rules, ci.modifiedDateTime)
     }
@@ -196,107 +194,19 @@ class CustomIpRulesBtmSheet :
     }
 
     private fun initClickListeners() {
-        b.customIpToggleGroup.addOnButtonCheckedListener(ipRulesGroupListener)
+        b.customIpTgNoRule.setOnClickListener { handleIpRuleClick(IpRuleStatus.NONE) }
+        b.customIpTgBlock.setOnClickListener { handleIpRuleClick(IpRuleStatus.BLOCK) }
+        b.customIpTgBypassUniv.setOnClickListener { handleIpRuleClick(IpRuleStatus.BYPASS_UNIVERSAL) }
+        b.customIpTgBypassApp.setOnClickListener { handleIpRuleClick(IpRuleStatus.TRUST) }
 
         b.customIpDeleteChip.setOnClickListener {
             showDialogForDelete()
         }
-
-       /* b.chooseProxyCard.setOnClickListener {
-            val ctx = requireContext()
-            var v: MutableList<WgConfigFilesImmutable?> = mutableListOf()
-            io {
-                v.add(null)
-                v.addAll(WireguardManager.getAllMappings())
-                if (v.isEmpty() || v.size == 1) {
-                    Logger.w(LOG_TAG_UI, "$TAG No Wireguard configs found")
-                    uiCtx {
-                        Utilities.showToastUiCentered(
-                            ctx,
-                            getString(R.string.wireguard_no_config_msg),
-                            Toast.LENGTH_SHORT
-                        )
-                    }
-                    return@io
-                }
-                uiCtx {
-                    Logger.v(LOG_TAG_UI, "$TAG show wg list(${v.size}) for ${ci.ipAddress}")
-                    showWgListBtmSheet(v)
-                }
-            }
-        }
-
-        b.chooseCountryCard.setOnClickListener {
-            io {
-                val ctrys = emptyList<String>()//RpnProxyManager.getProtonUniqueCC()
-                if (ctrys.isEmpty()) {
-                    Logger.w(LOG_TAG_UI, "$TAG No country codes found")
-                    uiCtx {
-                        Utilities.showToastUiCentered(
-                            requireContext(),
-                            "No country codes found",
-                            Toast.LENGTH_SHORT
-                        )
-                    }
-                    return@io
-                }
-                uiCtx {
-                    Logger.v(
-                        LOG_TAG_UI,
-                        "$TAG show country list(${ctrys.size}) for ${ci.ipAddress}"
-                    )
-                    showProxyCountriesBtmSheet(ctrys)
-                }
-            }
-        }*/
     }
 
-    private val ipRulesGroupListener =
-        MaterialButtonToggleGroup.OnButtonCheckedListener { group, checkedId, isChecked ->
-            val b: MaterialButton = b.customIpToggleGroup.findViewById(checkedId)
-            val statusId = findSelectedIpRule(getTag(b.tag))
-            if (statusId == null) {
-                Logger.i(LOG_TAG_UI, "$TAG: statusId is null")
-                return@OnButtonCheckedListener
-            }
-
-            if (isChecked) {
-                // checked change listener is called multiple times, even for position change
-                // so, check if the status has changed or not
-                // also see CustomDomainAdapter#domainRulesGroupListener
-                val hasStatusChanged = ci.status != statusId.id
-                if (hasStatusChanged) {
-                    val t = getToggleBtnUiParams(statusId)
-                    // update the toggle button
-                    selectToggleBtnUi(b, t)
-
-                    changeIpStatus(statusId, ci)
-                } else {
-                    // no-op
-                }
-            } else {
-                unselectToggleBtnUi(b)
-            }
-        }
-
-    private fun findSelectedIpRule(ruleId: Int): IpRulesManager.IpRuleStatus? {
-        return when (ruleId) {
-            IpRuleStatus.NONE.id -> {
-                IpRuleStatus.NONE
-            }
-            IpRuleStatus.BLOCK.id -> {
-                IpRuleStatus.BLOCK
-            }
-            IpRuleStatus.BYPASS_UNIVERSAL.id -> {
-                IpRuleStatus.BYPASS_UNIVERSAL
-            }
-            IpRuleStatus.TRUST.id -> {
-                IpRuleStatus.TRUST
-            }
-            else -> {
-                null
-            }
-        }
+    private fun handleIpRuleClick(status: IpRuleStatus) {
+        if (ci.status == status.id) return // no change
+        changeIpStatus(status, ci)
     }
 
     private fun updateStatusUi(status: IpRuleStatus, modifiedTs: Long) {
@@ -398,98 +308,59 @@ class CustomIpRulesBtmSheet :
         return copy
     }
 
-    private fun selectToggleBtnUi(btn: MaterialButton, toggleBtnUi: ToggleBtnUi) {
-        btn.setTextColor(toggleBtnUi.txtColor)
-        btn.backgroundTintList = ColorStateList.valueOf(toggleBtnUi.bgColor)
-    }
-
-    private fun unselectToggleBtnUi(btn: MaterialButton) {
-        btn.setTextColor(fetchToggleBtnColors(requireContext(), R.color.defaultToggleBtnTxt))
-        btn.backgroundTintList =
-            ColorStateList.valueOf(
-                fetchToggleBtnColors(
-                    requireContext(),
-                    R.color.defaultToggleBtnBg
-                )
-            )
-    }
-
     data class ToggleBtnUi(val txtColor: Int, val bgColor: Int)
 
     private fun getToggleBtnUiParams(id: IpRuleStatus): ToggleBtnUi {
         return when (id) {
-            IpRuleStatus.NONE -> {
-                ToggleBtnUi(
-                    fetchColor(requireContext(), R.attr.chipTextNeutral),
-                    fetchColor(requireContext(), R.attr.chipBgColorNeutral)
-                )
-            }
-
-            IpRuleStatus.BLOCK -> {
-                ToggleBtnUi(
-                    fetchColor(requireContext(), R.attr.chipTextNegative),
-                    fetchColor(requireContext(), R.attr.chipBgColorNegative)
-                )
-            }
-
-            IpRuleStatus.BYPASS_UNIVERSAL -> {
-                ToggleBtnUi(
-                    fetchColor(requireContext(), R.attr.chipTextPositive),
-                    fetchColor(requireContext(), R.attr.chipBgColorPositive)
-                )
-            }
-
-            IpRuleStatus.TRUST -> {
-                ToggleBtnUi(
-                    fetchColor(requireContext(), R.attr.chipTextPositive),
-                    fetchColor(requireContext(), R.attr.chipBgColorPositive)
-                )
-            }
+            IpRuleStatus.NONE -> ToggleBtnUi(
+                fetchColor(requireContext(), R.attr.chipTextNeutral),
+                fetchColor(requireContext(), R.attr.chipBgColorNeutral)
+            )
+            IpRuleStatus.BLOCK -> ToggleBtnUi(
+                fetchColor(requireContext(), R.attr.chipTextNegative),
+                fetchColor(requireContext(), R.attr.chipBgColorNegative)
+            )
+            IpRuleStatus.BYPASS_UNIVERSAL -> ToggleBtnUi(
+                fetchColor(requireContext(), R.attr.chipTextPositive),
+                fetchColor(requireContext(), R.attr.chipBgColorPositive)
+            )
+            IpRuleStatus.TRUST -> ToggleBtnUi(
+                fetchColor(requireContext(), R.attr.chipTextPositive),
+                fetchColor(requireContext(), R.attr.chipBgColorPositive)
+            )
         }
+    }
+
+    private fun selectRowUi(badge: AppCompatTextView, rb: RadioButton, t: ToggleBtnUi) {
+        badge.setTextColor(t.txtColor)
+        badge.backgroundTintList = ColorStateList.valueOf(t.bgColor)
+        rb.isChecked = true
+    }
+
+    private fun unselectRowUi(badge: AppCompatTextView, rb: RadioButton) {
+        badge.setTextColor(fetchToggleBtnColors(requireContext(), R.color.defaultToggleBtnTxt))
+        badge.backgroundTintList = ColorStateList.valueOf(
+            fetchToggleBtnColors(requireContext(), R.color.defaultToggleBtnBg)
+        )
+        rb.isChecked = false
     }
 
     private fun updateToggleGroup(id: IpRuleStatus) {
         val t = getToggleBtnUiParams(id)
 
+        // Unselect all rows first
+        unselectRowUi(b.customIpBadgeNoRule, b.customIpRbNoRule)
+        unselectRowUi(b.customIpBadgeBlock, b.customIpRbBlock)
+        unselectRowUi(b.customIpBadgeBypassUniv, b.customIpRbBypassUniv)
+        unselectRowUi(b.customIpBadgeBypassApp, b.customIpRbBypassApp)
+
+        // Select the active row
         when (id) {
-            IpRuleStatus.NONE -> {
-                b.customIpToggleGroup.check(b.customIpTgNoRule.id)
-                selectToggleBtnUi(b.customIpTgNoRule, t)
-                unselectToggleBtnUi(b.customIpTgBlock)
-                unselectToggleBtnUi(b.customIpTgBypassUniv)
-                unselectToggleBtnUi(b.customIpTgBypassApp)
-            }
-
-            IpRuleStatus.BLOCK -> {
-                b.customIpToggleGroup.check(b.customIpTgBlock.id)
-                selectToggleBtnUi(b.customIpTgBlock, t)
-                unselectToggleBtnUi(b.customIpTgNoRule)
-                unselectToggleBtnUi(b.customIpTgBypassUniv)
-                unselectToggleBtnUi(b.customIpTgBypassApp)
-            }
-
-            IpRuleStatus.BYPASS_UNIVERSAL -> {
-                b.customIpToggleGroup.check(b.customIpTgBypassUniv.id)
-                selectToggleBtnUi(b.customIpTgBypassUniv, t)
-                unselectToggleBtnUi(b.customIpTgBlock)
-                unselectToggleBtnUi(b.customIpTgNoRule)
-                unselectToggleBtnUi(b.customIpTgBypassApp)
-            }
-
-            IpRuleStatus.TRUST -> {
-                b.customIpToggleGroup.check(b.customIpTgBypassApp.id)
-                selectToggleBtnUi(b.customIpTgBypassApp, t)
-                unselectToggleBtnUi(b.customIpTgBlock)
-                unselectToggleBtnUi(b.customIpTgNoRule)
-                unselectToggleBtnUi(b.customIpTgBypassUniv)
-            }
+            IpRuleStatus.NONE -> selectRowUi(b.customIpBadgeNoRule, b.customIpRbNoRule, t)
+            IpRuleStatus.BLOCK -> selectRowUi(b.customIpBadgeBlock, b.customIpRbBlock, t)
+            IpRuleStatus.BYPASS_UNIVERSAL -> selectRowUi(b.customIpBadgeBypassUniv, b.customIpRbBypassUniv, t)
+            IpRuleStatus.TRUST -> selectRowUi(b.customIpBadgeBypassApp, b.customIpRbBypassApp, t)
         }
-    }
-
-    // each button in the toggle group is associated with tag value.
-    // tag values are ids of DomainRulesManager.DomainStatus
-    private fun getTag(tag: Any): Int {
-        return tag.toString().toIntOrNull() ?: 0
     }
 
     private fun showWgListBtmSheet(data: List<WgConfigFilesImmutable?>) {
