@@ -96,7 +96,12 @@ internal constructor(
         // now connectedDnsName has the dns name and url, extract the dns name and update
         // csv is <dns-name,url>, url maybe empty
         val dnsName = persistentState.connectedDnsName.split(",").firstOrNull() ?: ""
-        connectedDns.postValue(dnsName)
+
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+            connectedDns.value = dnsName
+        } else {
+            connectedDns.postValue(dnsName)
+        }
 
         // initialize pcapFilePath from persistent state
         pcapFilePath = persistentState.pcapFilePath
