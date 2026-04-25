@@ -119,6 +119,9 @@
             android:name=".ui.activity.PurchaseHistoryActivity"
             android:finishOnTaskLaunch="true" />
         <activity
+            android:name=".ui.activity.ServerOrderHistoryActivity"
+            android:finishOnTaskLaunch="true" />
+        <activity
             android:name=".ui.activity.CustomerSupportActivity"
             android:finishOnTaskLaunch="true" />
         <activity
@@ -183,10 +186,8 @@
             android:excludeFromRecents="true"
             android:taskAffinity=""
             android:launchMode="standard"/>
-        <activity android:name=".ui.activity.ServerWgConfigDetailActivity"
+        <activity android:name=".ui.activity.RpnConfigDetailActivity"
                     android:finishOnTaskLaunch="true" />
-       <!-- <activity android:name=".ui.location.LocationSelectorActivity"
-            android:finishOnTaskLaunch="true" />-->
 
         <receiver
             android:name=".receiver.BraveAutoStartReceiver"
