@@ -20,7 +20,6 @@ import Logger.LOG_TAG_APP_UPDATE
 import Logger.LOG_TAG_BACKUP_RESTORE
 import Logger.LOG_TAG_DOWNLOAD
 import Logger.LOG_TAG_UI
-import android.app.ActivityManager
 import android.app.UiModeManager
 import android.content.ActivityNotFoundException
 import android.content.Context
@@ -34,11 +33,9 @@ import android.os.SystemClock
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
-import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.updatePadding
@@ -63,8 +60,8 @@ import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.AppInfoRepository
 import com.celzero.bravedns.database.RefreshDatabase
 import com.celzero.bravedns.service.AppUpdater
-import com.celzero.bravedns.service.InAppMessageProvider
 import com.celzero.bravedns.service.BraveVPNService
+import com.celzero.bravedns.service.InAppMessageProvider
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.VpnController
@@ -73,6 +70,7 @@ import com.celzero.bravedns.ui.activity.MiscSettingsActivity
 import com.celzero.bravedns.ui.activity.PauseActivity
 import com.celzero.bravedns.ui.activity.WelcomeActivity
 import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.Constants.Companion.ALPHA_UPDATE_CHECK_URL
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.Constants.Companion.PKG_NAME_PLAY_STORE
 import com.celzero.bravedns.util.FirebaseErrorReporting
@@ -81,6 +79,7 @@ import com.celzero.bravedns.util.FirebaseErrorReporting.TOKEN_REGENERATION_PERIO
 import com.celzero.bravedns.util.NewSettingsManager
 import com.celzero.bravedns.util.RemoteFileTagUtil
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
+import com.celzero.bravedns.util.UIUtils.openUrl
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getPackageMetadata
 import com.celzero.bravedns.util.Utilities.getRandomString
@@ -100,7 +99,7 @@ import org.koin.android.ext.android.inject
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
-class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
+class HomeScreenActivity : BaseActivity(R.layout.activity_home_screen) {
     private val persistentState by inject<PersistentState>()
     private val appInfoDb by inject<AppInfoRepository>()
     private val appUpdateManager by inject<AppUpdater>()
@@ -463,9 +462,10 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
         // do not check for debug builds
         if (BuildConfig.DEBUG) return
 
-        // do not check for alpha builds, alpha testers get updates via direct distribution
+        //  alpha testers get updates via direct distribution, take to the url
         if (Utilities.isAlphaBuild()) {
             Logger.i(LOG_TAG_APP_UPDATE, "update check skipped for alpha build")
+            openUrl(this, ALPHA_UPDATE_CHECK_URL)
             return
         }
 
@@ -806,6 +806,16 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
 
             when (item.itemId) {
                 R.id.rethinkPlus -> {
+                    // RPN is not available in alpha builds; show a "coming soon"
+                    // toast and stay on the current destination.
+                    if (Utilities.isAlphaBuild()) {
+                        showToastUiCentered(
+                            this,
+                            getString(R.string.coming_soon_toast),
+                            Toast.LENGTH_SHORT
+                        )
+                        return@setOnItemSelectedListener false
+                    }
                     // Navigate to rethinkPlus (start destination of the nested nav graph).
                     // popUpTo homeId with inclusive=false keeps home in the back stack so
                     // that back from rethinkPlus returns to home, not to a prior tab.
