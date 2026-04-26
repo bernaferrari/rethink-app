@@ -4,7 +4,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- Existing scrollable content -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -26,6 +25,7 @@
                 android:padding="15dp">
 
                 <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/fss_title_rethink"
                     style="@style/TextAppearance.Heading.HomeScreen"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"

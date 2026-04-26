@@ -95,6 +95,11 @@ class SummaryStatisticsFragment : Fragment(R.layout.fragment_summary_statistics)
     }
 
     private fun initView() {
+        // Show "α" badge next to the app name when running an alpha build so testers
+        // can immediately identify they are on a pre-release version.
+        if (Utilities.isAlphaBuild()) {
+            b.fssTitleRethink.setText(R.string.app_name_alpha)
+        }
         setTabbedViewTxt()
         highlightToggleBtn()
         showTopActiveApps()

@@ -35,6 +35,8 @@ class Constants {
 
         const val FILE_TAG = "filetag.json"
 
+        const val ALPHA_UPDATE_CHECK_URL = "https://github.com/celzero/rethink-app/actions/workflows/nightly.yml"
+
         // file names which are downloaded as part of on-device blocklists
         val ONDEVICE_BLOCKLIST_FILE_TAG = File.separator + FILE_TAG
         val ONDEVICE_BLOCKLIST_FILE_BASIC_CONFIG = File.separator + "basicconfig.json"

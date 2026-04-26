@@ -24,6 +24,7 @@ import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.net.Uri
+import android.provider.OpenableColumns
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -44,6 +45,7 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.backup.BackupAgent
 import com.celzero.bravedns.backup.BackupHelper
 import com.celzero.bravedns.backup.BackupHelper.Companion.BACKUP_FILE_EXTN
+import com.celzero.bravedns.backup.BackupHelper.Companion.BACKUP_FILE_EXTN_ALPHA
 import com.celzero.bravedns.backup.BackupHelper.Companion.BACKUP_FILE_NAME
 import com.celzero.bravedns.backup.BackupHelper.Companion.BACKUP_FILE_NAME_DATETIME
 import com.celzero.bravedns.backup.BackupHelper.Companion.DATA_BUILDER_BACKUP_URI
@@ -158,7 +160,12 @@ class BackupRestoreBottomSheet : BottomSheetDialogFragment() {
             val sdf = SimpleDateFormat(BACKUP_FILE_NAME_DATETIME, Locale.ROOT)
             // filename format (Rethink_version_DATA_FORMAT.bk)
             val version = getVersionName().replace(' ', '_')
-            val zipFileName: String = BACKUP_FILE_NAME + version + sdf.format(Date()) + BACKUP_FILE_EXTN
+            val bkExtension = if (Utilities.isAlphaBuild()) {
+                BACKUP_FILE_EXTN_ALPHA
+            } else {
+                BACKUP_FILE_EXTN
+            }
+            val zipFileName: String = BACKUP_FILE_NAME + version + sdf.format(Date()) + bkExtension
 
             intent.putExtra(Intent.EXTRA_TITLE, zipFileName)
 
@@ -315,6 +322,17 @@ class BackupRestoreBottomSheet : BottomSheetDialogFragment() {
             }
     }
 
+    private fun getFileNameFromUri(uri: Uri): String {
+        var name = ""
+        requireContext().contentResolver.query(uri, null, null, null, null)?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val idx = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                if (idx >= 0) name = cursor.getString(idx) ?: ""
+            }
+        }
+        return name
+    }
+
     private fun startRestoreProcess(fileUri: Uri?) {
         if (fileUri == null) {
             Logger.w(
@@ -322,6 +340,24 @@ class BackupRestoreBottomSheet : BottomSheetDialogFragment() {
                 "uri received from activity result is null, cancel restore process"
             )
             showRestoreFailureDialog()
+            return
+        }
+
+        // Validate that the selected file matches the expected extension for this build type.
+        // Alpha builds require .rbka files; regular builds require .rbk files.
+        val expectedExtension =
+            if (Utilities.isAlphaBuild()) BACKUP_FILE_EXTN_ALPHA else BACKUP_FILE_EXTN
+        val fileName = getFileNameFromUri(fileUri)
+        if (!fileName.endsWith(expectedExtension)) {
+            Logger.w(
+                LOG_TAG_BACKUP_RESTORE,
+                "invalid backup file selected: $fileName, expected extension: $expectedExtension"
+            )
+            Utilities.showToastUiCentered(
+                requireContext(),
+                getString(R.string.brbs_restore_invalid_file, expectedExtension),
+                Toast.LENGTH_LONG
+            )
             return
         }
 
