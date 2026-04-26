@@ -1,5 +1,6 @@
 # Detekt configuration file
 # Excludes test files from code scanning
+# excludes magic numbers, return count, long parameter, long methods
 
 style:
   MaxLineLength:
@@ -9,8 +10,16 @@ style:
     excludeImportStatements: true
     excludeCommentStatements: false
     excludeRawStrings: true
+
   ForbiddenComment:
     active: false
+
+  MagicNumber:
+    active: false
+
+  ReturnCount:
+    active: false
+
 
 exceptions:
   TooGenericExceptionCaught:
@@ -19,13 +28,22 @@ exceptions:
       - Throwable
       - Error
 
+
 coroutines:
   RedundantSuspendModifier:
     active: false
 
+
 complexity:
   TooManyFunctions:
     active: false
+
   LargeClass:
+    active: false
+
+  LongParameterList:
+    active: false
+
+  LongMethod:
     active: false
 
