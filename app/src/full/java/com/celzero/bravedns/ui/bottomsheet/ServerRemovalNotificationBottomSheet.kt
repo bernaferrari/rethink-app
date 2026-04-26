@@ -19,6 +19,7 @@ import Logger
 import Logger.LOG_TAG_UI
 import android.animation.Animator
 import android.animation.ObjectAnimator
+import android.content.DialogInterface
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -232,10 +233,14 @@ class ServerRemovalNotificationBottomSheet : BottomSheetDialogFragment() {
             .start()
     }
 
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        onDismissCallback?.invoke()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        onDismissCallback?.invoke()
     }
 
     /**
