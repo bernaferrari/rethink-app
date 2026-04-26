@@ -36,7 +36,7 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -58,6 +58,9 @@ import com.celzero.bravedns.service.TcpProxyHelper
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.ui.fragment.RethinkPlusFragment
+import com.celzero.bravedns.ui.fragment.ServerSelectionFragment
 import com.celzero.bravedns.ui.bottomsheet.OrbotBottomSheet
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.OrbotHelper
@@ -79,7 +82,7 @@ import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
 
-class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configure) {
+class ProxySettingsActivity : BaseActivity(R.layout.fragment_proxy_configure) {
     private val b by viewBinding(FragmentProxyConfigureBinding::bind)
 
     private val persistentState by inject<PersistentState>()
@@ -138,6 +141,7 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
         refreshOrbotUi()
         handleProxyUi()
         displayWireguardUi()
+        displayRpnUi()
     }
 
     private fun initView() {
@@ -146,16 +150,7 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
         b.orbotTitle.text = getString(R.string.orbot).lowercase()
         b.otherTitle.text = getString(R.string.category_name_others).lowercase()
 
-        /*if (RpnProxyManager.isRpnEnabled()) {
-            b.rpnTitle.visibility = View.VISIBLE
-            b.settingsActivityRpnContainer.visibility = View.VISIBLE
-        } else {
-            b.rpnTitle.visibility = View.GONE
-            b.settingsActivityRpnContainer.visibility = View.GONE
-        }*/
-        b.rpnTitle.visibility = View.GONE
-        b.settingsActivityRpnContainer.visibility = View.GONE
-
+        displayRpnUi()
         displayHttpProxyUi()
         displaySocks5Ui()
     }
@@ -163,7 +158,7 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
     private fun initClickListeners() {
 
         b.settingsActivityRpnContainer.setOnClickListener {
-            // create an empty activity and load RethinkPlusDashboard fragment
+            openRpnScreen()
         }
 
         b.wgRefresh.setOnClickListener { refresh() }
@@ -434,6 +429,68 @@ class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configur
                 }
             }
         }
+    }
+
+    /**
+     * Updates the RPN row description to reflect the current subscription / activation state.
+     *
+     * - RPN enabled & active  → show selected-country summary (same style as WireGuard desc)
+     * - RPN enabled / valid sub but not yet active → show plan name
+     * - No valid subscription → default "Subscribe" call-to-action
+     *
+     * Always visible, the row is the entry point to either subscribe or manage the proxy.
+     */
+    private fun displayRpnUi() {
+        val isEnabled = RpnProxyManager.isRpnEnabled()
+        val hasValidSub = RpnProxyManager.hasValidSubscription()
+
+        when {
+            isEnabled && RpnProxyManager.isRpnActive() -> {
+                io {
+                    val selectedCCs = RpnProxyManager.getSelectedCCs()
+                    val desc = if (selectedCCs.isNotEmpty()) {
+                        val countryList = selectedCCs.take(3).joinToString(", ")
+                        getString(R.string.proxy_rpn_desc_active, countryList)
+                    } else {
+                        getString(R.string.proxy_rpn_desc_active, getString(R.string.rethink_plus_title))
+                    }
+                    uiCtx {
+                        b.settingsActivityRpnDesc.text = desc
+                        b.settingsActivityRpnIcon.alpha = 1.0f
+                    }
+                }
+            }
+            isEnabled || hasValidSub -> {
+                // Subscription valid but proxy not yet active
+                b.settingsActivityRpnDesc.text = getString(R.string.rethink_plus_title)
+                b.settingsActivityRpnIcon.alpha = 1.0f
+            }
+            else -> {
+                b.settingsActivityRpnDesc.text = getString(R.string.proxy_rpn_desc_inactive)
+                b.settingsActivityRpnIcon.alpha = 0.5f
+            }
+        }
+    }
+
+    /**
+     * Navigates to the appropriate RPN screen:
+     *  - If the user has an active/valid subscription → open [ServerSelectionFragment]
+     *    so they can manage which countries to proxy through.
+     *  - Otherwise → open [RethinkPlusFragment] (the purchase / sign-up flow).
+     */
+    private fun openRpnScreen() {
+        val fragmentClass: Class<out androidx.fragment.app.Fragment> =
+            if (RpnProxyManager.isRpnEnabled() || RpnProxyManager.hasValidSubscription()) {
+                ServerSelectionFragment::class.java
+            } else {
+                RethinkPlusFragment::class.java
+            }
+
+        val intent = FragmentHostActivity.createIntent(
+            context = this,
+            fragmentClass = fragmentClass
+        )
+        startActivity(intent)
     }
 
     private fun displayWireguardUi() {

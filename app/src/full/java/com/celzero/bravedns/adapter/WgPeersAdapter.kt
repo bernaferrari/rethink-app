@@ -29,7 +29,6 @@ import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.ui.dialog.WgAddPeerDialog
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
-import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.wireguard.Peer
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
@@ -84,7 +83,7 @@ class WgPeersAdapter(
                 b.persistentKeepaliveText.visibility = View.GONE
                 b.persistentKeepaliveLabel.visibility = View.GONE
             }
-            b.publicKeyText.text = wgPeer.getPublicKey().base64().tos()
+            b.publicKeyText.text = wgPeer.getPublicKey().base64()
 
             b.peerEdit.setOnClickListener { openEditPeerDialog(wgPeer) }
             b.peerDelete.setOnClickListener { showDeleteInterfaceDialog(wgPeer) }

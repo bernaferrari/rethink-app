@@ -19,19 +19,20 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.databinding.ActivityAdvancedSettingBinding
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.tour.GuidedTourManager
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import org.koin.android.ext.android.inject
 
-class AdvancedSettingActivity : AppCompatActivity(R.layout.activity_advanced_setting) {
+class AdvancedSettingActivity : BaseActivity(R.layout.activity_advanced_setting) {
     private val persistentState by inject<PersistentState>()
     private val b by viewBinding(ActivityAdvancedSettingBinding::bind)
 
@@ -55,7 +56,6 @@ class AdvancedSettingActivity : AppCompatActivity(R.layout.activity_advanced_set
     }
 
     private fun initView() {
-
         if (DEBUG) {
             b.settingsExperimentalRl.visibility = View.VISIBLE
             b.dvExperimentalSwitch.isChecked = persistentState.nwEngExperimentalFeatures
@@ -63,12 +63,13 @@ class AdvancedSettingActivity : AppCompatActivity(R.layout.activity_advanced_set
             b.dvAutoDialSwitch.isChecked = persistentState.autoDialsParallel
             b.settingsPanicRandRl.visibility = View.VISIBLE
             b.dvPanicRandSwitch.isChecked = persistentState.panicRandom
+            b.settingsResetTourRl.visibility = View.VISIBLE
         } else {
             b.settingsExperimentalRl.visibility = View.GONE
             b.settingsAutoDialRl.visibility = View.GONE
             b.settingsPanicRandRl.visibility = View.GONE
+            b.settingsResetTourRl.visibility = View.GONE
         }
-
     }
 
     private fun setupClickListeners() {
@@ -100,6 +101,11 @@ class AdvancedSettingActivity : AppCompatActivity(R.layout.activity_advanced_set
 
         b.dvPanicRandSwitch.setOnCheckedChangeListener { _, isChecked ->
             persistentState.panicRandom = isChecked
+        }
+
+        b.settingsResetTourRl.setOnClickListener {
+            GuidedTourManager.resetForDebug(persistentState)
+            b.settingsResetTourDesc.text = getString(R.string.tour_debug_reset_done)
         }
     }
 

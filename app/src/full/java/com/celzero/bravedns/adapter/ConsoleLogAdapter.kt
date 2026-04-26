@@ -15,8 +15,6 @@
  */
 package com.celzero.bravedns.adapter
 
-import Logger
-import Logger.LOG_TAG_UI
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -54,17 +52,8 @@ class ConsoleLogAdapter(private val context: Context) :
     }
 
     override fun onBindViewHolder(holder: ConsoleLogViewHolder, position: Int) {
-        // Prevent IndexOutOfBoundsException
-        if (position < 0 || position >= itemCount) {
-            return
-        }
-
-        try {
-            val logInfo = getItem(position) ?: return
-            holder.update(logInfo)
-        } catch (e: IndexOutOfBoundsException) {
-            Logger.w(LOG_TAG_UI, "err invalid pos: $position, itemCount: $itemCount")
-        }
+        val logInfo = getItem(position) ?: return
+        holder.update(logInfo)
     }
 
     inner class ConsoleLogViewHolder(private val b: ListItemConsoleLogBinding) :

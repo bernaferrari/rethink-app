@@ -20,6 +20,7 @@ import Logger.LOG_TAG_APP
 import android.content.Context
 import com.celzero.bravedns.scheduler.EnhancedBugReport
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.util.Utilities.isFdroidFlavour
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.lang.ref.WeakReference
@@ -89,6 +90,8 @@ class GlobalExceptionHandler private constructor(
      * Report the uncaught exception to Firebase
      */
     private fun reportToFirebase(exception: Exception) {
+        if (isFdroidFlavour()) return
+
         try {
             FirebaseErrorReporting.recordException(exception)
         } catch (e: Exception) {

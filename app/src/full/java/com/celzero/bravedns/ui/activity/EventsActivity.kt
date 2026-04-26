@@ -22,7 +22,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.CompoundButton
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
@@ -55,7 +55,7 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class EventsActivity : AppCompatActivity(R.layout.activity_events), SearchView.OnQueryTextListener {
+class EventsActivity : BaseActivity(R.layout.activity_events), SearchView.OnQueryTextListener {
     private val b by viewBinding(ActivityEventsBinding::bind)
     private val persistentState by inject<PersistentState>()
     private val viewModel: EventsViewModel by viewModel()
@@ -305,6 +305,7 @@ class EventsActivity : AppCompatActivity(R.layout.activity_events), SearchView.O
             EventSource.SERVICE -> "Service"
             EventSource.WORKER -> "Worker"
             EventSource.MANAGER -> "Manager"
+            EventSource.PROXY -> "Proxy"
         }
         chip.isCheckedIconVisible = true
         chip.tag = source

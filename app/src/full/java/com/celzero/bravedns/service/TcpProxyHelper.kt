@@ -10,13 +10,12 @@ import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
-import com.celzero.bravedns.customdownloader.ITcpProxy
+import com.celzero.bravedns.customdownloader.IBillingServerApi
 import com.celzero.bravedns.customdownloader.RetrofitManager
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.TcpProxyEndpoint
 import com.celzero.bravedns.database.TcpProxyRepository
 import com.celzero.bravedns.scheduler.PaymentWorker
-import com.celzero.bravedns.util.Utilities.togs
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.IpTree
 import kotlinx.coroutines.CoroutineScope
@@ -116,7 +115,7 @@ object TcpProxyHelper : KoinComponent {
 
     private fun loadTrie() {
         cfIpTrie = Backend.newIpTree()
-        cfIpAddresses.forEach { cfIpTrie.set(it.togs(), "".togs()) }
+        cfIpAddresses.forEach { cfIpTrie.set(it, "") }
         Logger.d(LOG_TAG_PROXY, "loadTrie: loading trie for cloudflare ips")
     }
 
@@ -124,7 +123,7 @@ object TcpProxyHelper : KoinComponent {
         // do not check for cloudflare ips for now
         // return false
         return try {
-            cfIpTrie.hasAny(ip.togs())
+            cfIpTrie.hasAny(ip)
         } catch (e: Exception) {
             Logger.w(LOG_TAG_PROXY, "isCloudflareIp: exception while checking ip: $ip")
             false
@@ -145,7 +144,7 @@ object TcpProxyHelper : KoinComponent {
                 RetrofitManager.getTcpProxyBaseBuilder(persistentState.routeRethinkInRethink)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build()
-            val retrofitInterface = retrofit.create(ITcpProxy::class.java)
+            val retrofitInterface = retrofit.create(IBillingServerApi::class.java)
 
             val response = retrofitInterface.getPublicKey(persistentState.appVersion.toString())
             Logger.d(
@@ -274,6 +273,10 @@ object TcpProxyHelper : KoinComponent {
 
         val data = Data.Builder()
         data.putLong("workerStartTime", SystemClock.elapsedRealtime())
+        data.putString("orderId", "")
+        data.putString("productId", "")
+        data.putString("purchaseToken", "")
+        data.putString("productType", "")
 
         val paymentWorker =
             OneTimeWorkRequestBuilder<PaymentWorker>()

@@ -18,16 +18,18 @@ package com.celzero.bravedns.scheduler
 import Logger
 import Logger.LOG_TAG_BUG_REPORT
 import android.content.Context
-import android.database.Cursor
-import androidx.sqlite.db.SimpleSQLiteQuery
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.celzero.bravedns.database.ConsoleLogDAO
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.BufferedOutputStream
+import java.io.BufferedWriter
 import java.io.File
 import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
@@ -37,57 +39,70 @@ class LogExportWorker(context: Context, workerParams: WorkerParameters) :
     private val consoleLogDao by inject<ConsoleLogDAO>()
 
     companion object {
-        private const val QUERY = "SELECT * FROM ConsoleLog order by id"
+        private const val CHUNK_SIZE = 5_000
     }
 
     override suspend fun doWork(): Result {
         return try {
             val filePath = inputData.getString("filePath") ?: return Result.failure()
             Logger.i(LOG_TAG_BUG_REPORT, "Exporting logs to $filePath")
-            exportLogsToCsvStream(filePath)
-            Result.success()
+            val ok = withContext(Dispatchers.IO) { exportLogsChunked(filePath) }
+            if (ok) Result.success() else Result.failure()
         } catch (e: Exception) {
+            Logger.e(LOG_TAG_BUG_REPORT, "doWork failed: ${e.message}", e)
             Result.failure()
         }
     }
 
-    private fun exportLogsToCsvStream(filePath: String): Boolean {
-        var cursor: Cursor? = null
-        try {
-            val query = SimpleSQLiteQuery(QUERY)
-            cursor = consoleLogDao.getLogsCursor(query)
-
+    /**
+     * Streams log rows from the DB in [CHUNK_SIZE] batches directly into the ZipOutputStream.
+     * This avoids building a single giant StringBuilder in memory, which previously caused
+     * GC pauses / OOM when log tables held millions of rows.
+     */
+    private fun exportLogsChunked(filePath: String): Boolean {
+        return try {
             val file = File(filePath)
             if (file.exists()) {
-                Logger.v(LOG_TAG_BUG_REPORT, "Deleting existing zip file, ${file.absolutePath}")
+                Logger.v(LOG_TAG_BUG_REPORT, "Deleting existing zip file: ${file.absolutePath}")
                 file.delete()
             }
 
-            val stringBuilder = StringBuilder()
-            cursor.let {
-                if (it.moveToFirst()) {
-                    do {
-                        val timestamp = it.getLong(it.getColumnIndexOrThrow("timestamp"))
-                        val message = it.getString(it.getColumnIndexOrThrow("message"))
-                        stringBuilder.append("$timestamp,$message\n")
-                    } while (it.moveToNext())
-                }
-            }
-
-            ZipOutputStream(BufferedOutputStream(FileOutputStream(filePath))).use { zos ->
+            ZipOutputStream(BufferedOutputStream(FileOutputStream(file), 128 * 1024)).use { zos ->
                 val zipEntry = ZipEntry("log_${System.currentTimeMillis()}.txt")
                 zos.putNextEntry(zipEntry)
-                zos.write(stringBuilder.toString().toByteArray())
-                zos.closeEntry()
-            }
 
-            Logger.i(LOG_TAG_BUG_REPORT, "Logs exported to ${file.absolutePath}")
-            return true
+                val writer = BufferedWriter(OutputStreamWriter(zos, Charsets.UTF_8), 64 * 1024)
+                var offset = 0
+                var totalRows = 0
+
+                while (true) {
+                    val chunk = consoleLogDao.getLogsChunked(CHUNK_SIZE, offset)
+                    if (chunk.isEmpty()) break
+
+                    for (log in chunk) {
+                        writer.write(log.timestamp.toString())
+                        writer.write(",")
+                        writer.write(log.message)
+                        writer.newLine()
+                    }
+                    // Flush writer periodically so zos can compress incrementally
+                    writer.flush()
+
+                    totalRows += chunk.size
+                    offset += chunk.size
+
+                    // Exit early if last chunk was smaller than requested (no more rows)
+                    if (chunk.size < CHUNK_SIZE) break
+                }
+
+                writer.flush()
+                zos.closeEntry()
+                Logger.i(LOG_TAG_BUG_REPORT, "Exported $totalRows rows to ${file.absolutePath}")
+            }
+            true
         } catch (e: Exception) {
-            Logger.e(LOG_TAG_BUG_REPORT, "Error exporting logs", e)
-        } finally {
-            cursor?.close()
+            Logger.e(LOG_TAG_BUG_REPORT, "Error exporting logs: ${e.message}", e)
+            false
         }
-        return false
     }
 }

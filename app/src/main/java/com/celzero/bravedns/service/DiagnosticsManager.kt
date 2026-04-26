@@ -136,7 +136,7 @@ class DiagnosticsManager(
 
         try {
             cdm = context.getSystemService("connectivity_diagnostics") as ConnectivityDiagnosticsManager
-            val executor = Daemons.make("diagExecutor").executor
+            val executor = Daemons.make("conndiag").executor
             cdm?.registerConnectivityDiagnosticsCallback(diagRequest, executor, this)
             logd("$TAG; nw diags mgr registered")
         } catch (e: Exception) {

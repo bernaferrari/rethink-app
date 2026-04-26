@@ -14,218 +14,103 @@
  * limitations under the License.
  */
 package com.celzero.bravedns.ui.fragment
-/*
 
 import Logger
-import Logger.LOG_IAB
-import android.content.Intent
+import Logger.LOG_TAG_UI
+import android.animation.ObjectAnimator
 import android.graphics.Color
-import android.os.Build
 import android.os.Bundle
-import android.text.Html
 import android.text.Spanned
 import android.text.method.LinkMovementMethod
-import android.util.TypedValue
-import android.view.LayoutInflater
 import android.view.View
-import android.widget.TextView
+import android.view.animation.AnticipateOvershootInterpolator
 import android.widget.Toast
-import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.widget.AppCompatButton
-import androidx.appcompat.widget.AppCompatTextView
-import androidx.core.content.ContentProviderCompat.requireContext
-import androidx.core.content.ContextCompat.startActivity
-import androidx.core.text.HtmlCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.distinctUntilChanged
+import androidx.fragment.app.viewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
-import com.android.billingclient.api.BillingClient.ProductType
 import com.celzero.bravedns.R
-import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.adapter.GooglePlaySubsAdapter
-import com.celzero.bravedns.adapter.GooglePlaySubsAdapter.SubscriptionChangeListener
-import com.celzero.bravedns.databinding.FragmentRethinkPlusBinding
+import com.celzero.bravedns.databinding.FragmentRethinkPlusPremiumBinding
 import com.celzero.bravedns.iab.BillingListener
 import com.celzero.bravedns.iab.InAppBillingHandler
-import com.celzero.bravedns.iab.InAppBillingHandler.fetchPurchases
-import com.celzero.bravedns.iab.InAppBillingHandler.purchaseSubs
 import com.celzero.bravedns.iab.ProductDetail
 import com.celzero.bravedns.iab.PurchaseDetail
-import com.celzero.bravedns.rpnproxy.PipKeyManager
-import com.celzero.bravedns.rpnproxy.RpnProxyManager
-import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.subscription.SubscriptionStateMachineV2
+import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import com.celzero.bravedns.ui.activity.FragmentHostActivity
-import com.celzero.bravedns.ui.activity.RpnAvailabilityCheckActivity
-import com.celzero.bravedns.util.Constants.Companion.PKG_NAME_PLAY_STORE
-import com.celzero.bravedns.util.UIUtils.fetchColor
-import com.celzero.bravedns.util.UIUtils.underline
+import com.celzero.bravedns.ui.bottomsheet.PurchaseProcessingBottomSheet
+import com.celzero.bravedns.ui.dialog.SubscriptionAnimDialog
+import com.celzero.bravedns.util.UIUtils
+import com.celzero.bravedns.util.UIUtils.htmlToSpannedText
 import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.viewmodel.RethinkPlusViewModel
+import com.celzero.bravedns.viewmodel.SubscriptionUiState
 import com.facebook.shimmer.Shimmer
-import com.google.android.gms.common.GooglePlayServicesUtilLight.isGooglePlayServicesAvailable
-import com.google.android.material.bottomnavigation.BottomNavigationView
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
-class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus), SubscriptionChangeListener, BillingListener {
-    private val b by viewBinding(FragmentRethinkPlusBinding::bind)
-    private var productId = ""
-    private var planId = ""
-    private var loadingDialog: AlertDialog? = null
-    private var errorDialog: AlertDialog? = null
-    private var msgDialog: AlertDialog? = null
+class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
+    GooglePlaySubsAdapter.SubscriptionChangeListener,
+    BillingListener {
 
-    private var pollingJob: Job? = null
-    private var pollingStartTime = 0L
+    private val b by viewBinding(FragmentRethinkPlusPremiumBinding::bind)
+    private val viewModel: RethinkPlusViewModel by viewModels()
 
     private var adapter: GooglePlaySubsAdapter? = null
+    private var processingBottomSheet: PurchaseProcessingBottomSheet? = null
 
-    //private val subsProducts: MutableList<ProductDetail> = mutableListOf()
+    // dismiss the processing sheet after 60 s if no callback arrives.
+    private var processingTimeoutJob: kotlinx.coroutines.Job? = null
+    // flag set when a timeout fires so we re-check billing on next resume.
+    private var shouldRecheckOnResume: Boolean = false
+    // guard against double-taps on the subscribe button while a purchase is in flight.
+    private var purchaseInFlight: Boolean = false
+
+    private enum class PurchaseButtonState {
+        PURCHASED, NOT_PURCHASED
+    }
 
     companion object {
         private const val TAG = "R+Ui"
-        private const val POLLING_INTERVAL_MS = 1500L // 1.5 seconds
-        private const val POLLING_TIMEOUT_MS = 30000L // 60 seconds
-        private const val ON_HOLD_PERIOD = 1 * 24 * 60 * 60 * 1000L
+        private const val PROCESSING_TIMEOUT_MS = 60_000L
+
+        /**
+         * When this argument is `true` the fragment opens in *extend mode*:
+         * - The ONE_TIME tab is pre-selected.
+         * - The "already subscribed" guard is bypassed so users with an active one-time
+         *   purchase can buy an additional access window before their current one expires.
+         */
+        const val ARG_EXTEND_MODE = "arg_extend_mode"
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // this should not happen, but just in case, as the caller fragment would have already
-        // checked for the subscription status
-        if (isRethinkPlusSubscribed()) {
-            handlePlusSubscribed(RpnProxyManager.getRpnProductId())
-            return
+        // Read extend mode argument before any other setup so the ViewModel and UI are
+        // configured correctly from the start.
+        val extendMode = arguments?.getBoolean(ARG_EXTEND_MODE, false) ?: false
+        if (extendMode) {
+            viewModel.extendMode = true
         }
-        initView()
-        initObservers()
+        setupUI()
+        setupObservers()
         setupClickListeners()
-    }
-
-    override fun onSubscriptionSelected(productId: String, planId: String) {
-        this.productId = productId
-        this.planId = planId
-        Logger.d(LOG_IAB, "Selected product: $productId, $planId")
-    }
-
-    private fun initView() {
-        // show a loading dialog
-        showLoadingDialog()
-
-        io {
-            val playAvailable = isGooglePlayServicesAvailable()
-            if (!playAvailable) {
-                uiCtx { showRethinkNotAvailableUi(requireContext().getString(R.string.play_service_not_available)) }
-                return@io
-            }
-
-            val works = isRethinkPlusAvailable()
-
-            if (!works.first) {
-                uiCtx { showRethinkNotAvailableUi(works.second) }
-                return@io
-            }
-
-            // initiate the product details query
-            queryProductDetail()
-        }
-    }
-
-    private fun isRethinkPlusSubscribed(): Boolean {
-        // check whether the rethink+ is subscribed or not
-        return InAppBillingHandler.hasValidSubscription()
-    }
-
-    */
-/*private fun setBanner() {
-        b.shimmerViewBanner.setShimmer(Shimmer.AlphaHighlightBuilder()
-            .setDuration(2000)
-            .setBaseAlpha(0.85f)
-            .setDropoff(1f)
-            .setHighlightAlpha(0.35f)
-            .build())
-        b.shimmerViewBanner.startShimmer()
-        // Initialize adapter
-        val myPagerAdapter = MyPagerAdapter()
-
-        // Set up ViewPager
-        b.viewPager.adapter = myPagerAdapter
-        b.viewPager.addOnPageChangeListener(
-            object : ViewPager.OnPageChangeListener {
-                override fun onPageScrollStateChanged(state: Int) {}
-
-                override fun onPageScrolled(
-                    position: Int,
-                    positionOffset: Float,
-                    positionOffsetPixels: Int
-                ) {
-                }
-
-                override fun onPageSelected(position: Int) {
-                    addBottomDots(position)
-                }
-            }
-        )
-    }
-
-    inner class MyPagerAdapter : PagerAdapter() {
-        override fun isViewFromObject(view: View, `object`: Any): Boolean {
-            return view == `object`
-        }
-
-        override fun getCount(): Int {
-            return layouts.count()
-        }
-
-        override fun instantiateItem(container: ViewGroup, position: Int): Any {
-            val imageView = ImageView(requireContext()).apply {
-                setImageResource(layouts[position])
-                scaleType =
-                    ImageView.ScaleType.CENTER_CROP  // or FIT_CENTER, CENTER_INSIDE depending on your need
-                layoutParams = ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT,
-                    ViewGroup.LayoutParams.MATCH_PARENT
-                )
-            }
-            container.addView(imageView)
-            return imageView
-        }
-
-        override fun destroyItem(container: ViewGroup, position: Int, `object`: Any) {
-            container.removeView(`object` as View)
-        }
-    }*//*
-
-
-    private fun initTermsAndPolicy() {
-        b.termsText.text = updateHtmlEncodedText(getString(R.string.rethink_terms))
-        b.termsText.movementMethod = LinkMovementMethod.getInstance()
-        b.termsText.highlightColor = Color.TRANSPARENT
-    }
-
-    fun updateHtmlEncodedText(text: String): Spanned {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            Html.fromHtml(text, Html.FROM_HTML_MODE_LEGACY)
-        } else {
-            HtmlCompat.fromHtml(text, HtmlCompat.FROM_HTML_MODE_LEGACY)
-        }
+        initializeBilling()
     }
 
     override fun onResume() {
         super.onResume()
-        startShimmer()
+        if (b.loadingContainer.isVisible) startShimmer()
+        if (shouldRecheckOnResume) {
+            shouldRecheckOnResume = false
+            viewModel.initializeBilling()
+        }
+        // Show any pending Play Billing in-app messages (e.g. payment recovery overlay).
+        InAppBillingHandler.enableInAppMessaging(requireActivity())
     }
 
     override fun onPause() {
@@ -233,666 +118,554 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus), Subscripti
         stopShimmer()
     }
 
-    private fun stopShimmer() {
-        if (!b.shimmerViewContainer.isShimmerStarted) return
-
-        b.shimmerViewContainer.stopShimmer()
+    override fun onDestroyView() {
+        super.onDestroyView()
+        cancelProcessingTimeout()
+        dismissProcessingBottomSheet()
+        adapter = null
     }
 
-    private fun startShimmer() {
-        if (!b.shimmerViewContainer.isVisible) return
+    private fun setupUI() {
+        b.fhsTitleRethink.text = getString(R.string.rethink_plus_title).lowercase()
+        applyButtonTheme()
+        setupRecyclerView()
+        setupTermsAndPolicy()
+        setupProductTypeToggle()
+        adjustCtaBottomMargin()
 
-        if (b.shimmerViewContainer.isShimmerStarted) return
-
-        val builder = Shimmer.AlphaHighlightBuilder()
-        builder.setDuration(2000)
-        builder.setBaseAlpha(0.85f)
-        builder.setDropoff(1f)
-        builder.setHighlightAlpha(0.35f)
-        b.shimmerViewContainer.setShimmer(builder.build())
-        b.shimmerViewContainer.startShimmer()
-    }
-
-    private fun isBillingAvailable(): Boolean {
-        return InAppBillingHandler.isBillingClientSetup()
-    }
-
-    private fun initiateBillingIfNeeded() {
-        if (isBillingAvailable()) {
-            Logger.i(LOG_IAB, "ensureBillingSetup: billing client already setup")
-            return
-        }
-
-        InAppBillingHandler.initiate(requireContext().applicationContext, this)
-        Logger.i(LOG_IAB, "ensureBillingSetup: billing client initiated")
-    }
-
-    private suspend fun queryProductDetail() {
-        initiateBillingIfNeeded()
-        InAppBillingHandler.queryProductDetailsWithTimeout()
-        Logger.v(LOG_IAB, "queryProductDetails: initiated")
-    }
-
-    private fun purchaseSubs() {
-        if (!isBillingAvailable()) {
-            Logger.e(LOG_IAB, "purchaseSubs: billing client not available")
-            Utilities.showToastUiCentered(
-                requireContext(),
-                "Billing client not available, please try again later",
-                Toast.LENGTH_LONG
-            )
-            showNotAvailableUi()
-            return
-        }
-        if (!InAppBillingHandler.canMakePurchase()) {
-            Logger.e(LOG_IAB, "purchaseSubs: cannot make purchase")
-            Utilities.showToastUiCentered(
-                requireContext(),
-                "Cannot make purchase, please try again later",
-                Toast.LENGTH_LONG
-            )
-            showNotAvailableUi()
-            return
-        }
-        // initiate the payment flow
-        io { InAppBillingHandler.purchaseSubs(requireActivity(), productId, planId) }
-        Logger.v(LOG_IAB, "purchaseSubs: initiated for $productId, $planId")
-    }
-
-    */
-/*private lateinit var dots: Array<TextView?>
-    private val layouts: IntArray = intArrayOf(
-        R.drawable.rethink_plus_home_banner,
-        R.drawable.rethink_plus_banner_anti_censorship,
-        R.drawable.rethink_plus_hide_ip_banner
-    )
-
-    private fun addBottomDots(currentPage: Int) {
-        dots = arrayOfNulls(layouts.size)
-
-        val colorActive = fetchColor(requireContext(), R.attr.primaryColor)
-        val colorInActive = fetchColor(requireContext(), R.attr.primaryDarkColor)
-
-        b.layoutDots.removeAllViews()
-
-        for (i in dots.indices) {
-            dots[i] = TextView(requireContext())
-            dots[i]?.text = updateHtmlEncodedText("&#8226;")
-            dots[i]?.setTextSize(TypedValue.COMPLEX_UNIT_SP, 30F)
-            dots[i]?.setTextColor(colorInActive)
-            b.layoutDots.addView(dots[i])
-        }
-
-        if (dots.isNotEmpty()) {
-            dots[currentPage]?.setTextColor(colorActive)
-        }
-    }*//*
-
-
-    private fun showLoadingDialog() {
-        val builder = MaterialAlertDialogBuilder(requireContext())
-        // show progress dialog
-        builder.setTitle(requireContext().getString(R.string.loading_dialog_title))
-        builder.setMessage(requireContext().getString(R.string.rethink_plus_loading_dialog_desc))
-        builder.setCancelable(true)
-        loadingDialog = builder.create()
-        loadingDialog?.show()
-        loadingDialog?.setOnCancelListener {
-            Logger.v(LOG_IAB, "loading dialog cancelled")
-            // if the user cancels the dialog, stop the pending purchase polling
-            stopPendingPurchasePolling()
-            // navigate to home screen
-            //navigateToHomeScreen()
+        if (viewModel.extendMode) {
+            // In extend mode: hide the tab toggle and the page title,show only one-time products.
+            b.productTypeToggle.isVisible = false
+            // Show the extend-mode banner so the user knows they are adding more access time.
+            b.extendModeBanner.isVisible = true
         }
     }
 
-    private fun hideLoadingDialog() {
-        Logger.v(LOG_IAB, "hide loading dialog")
-        if (isAdded && loadingDialog?.isShowing == true) {
-            loadingDialog?.dismiss()
+    private fun applyButtonTheme() {
+        val ctx = requireContext()
+
+        // subscribe button
+        val accentGood = UIUtils.fetchColor(ctx, R.attr.accentGood)
+        val primaryText = UIUtils.fetchColor(ctx, R.attr.primaryTextColor)
+        val lightText  = UIUtils.fetchColor(ctx, R.attr.primaryLightColorText)
+
+        b.subscribeButton.apply {
+            backgroundTintList = android.content.res.ColorStateList.valueOf(accentGood)
+            setTextColor(primaryText)
+            iconTint = android.content.res.ColorStateList.valueOf(primaryText)
         }
-        Logger.v(LOG_IAB, "loading dialog dismissed")
-    }
 
-    private suspend fun isRethinkPlusAvailable(): Pair<Boolean, String> {
-        // TODO: added for testing, remove later
-        // check whether the rethink+ is available for the user or not
-        val res = PipKeyManager.isRethinkPlusActive(requireContext())
-        // added as default text, maybe pass relevant message from the server/calling function
-        // the message part is used only when the result is false
-        Logger.i(LOG_IAB, "isRethinkPlusAvailable? $res")
-        return res
-    }
-
-    private fun showPendingPurchaseUi() {
-        if (!isAdded) return
-        hideLoadingDialog()
-        hidePaymentContainerUi()
-        hideNotAvailableUi()
-        hideErrorDialog()
-        hideMsgDialog()
-
-        b.topBanner.visibility = View.VISIBLE
-        b.shimmerViewContainer.visibility = View.GONE
-        b.pendingPurchaseLayout.visibility = View.VISIBLE
-    }
-
-    private fun showPaymentContainerUi() {
-        Logger.v(LOG_IAB, "showPaymentContainerUi: showing payment container UI")
-        initTermsAndPolicy()
-        hideLoadingDialog()
-        hideErrorDialog()
-        hideMsgDialog()
-        hideNotAvailableUi()
-
-        b.topBanner.visibility = View.VISIBLE
-        b.shimmerViewContainer.visibility = View.VISIBLE
-        b.paymentContainer.visibility = View.VISIBLE
-        b.paymentButtonContainer.visibility = View.VISIBLE
-        b.testPingButton.underline()
-        setAdapter(emptyList())
-        Logger.i(LOG_IAB, "adapter set")
-    }
-
-    private fun setAdapterData(subsProduct: List<ProductDetail>) {
-        hideLoadingDialog()
-        hideErrorDialog()
-        hideMsgDialog()
-        if (b.paymentContainer.visibility != View.VISIBLE) {
-            showPaymentContainerUi()
+        b.btnContactSupport.apply {
+            setTextColor(lightText)
+            iconTint = android.content.res.ColorStateList.valueOf(lightText)
         }
-        if (adapter == null) {
-            Logger.d(LOG_IAB, "Adapter is null, initializing it")
-            setAdapter(subsProduct)
+
+        b.retryButton.apply {
+            backgroundTintList = android.content.res.ColorStateList.valueOf(accentGood)
+            setTextColor(primaryText)
+        }
+
+        b.btnContactSupportError.apply {
+            setTextColor(lightText)
+            iconTint = android.content.res.ColorStateList.valueOf(lightText)
+        }
+    }
+
+    private fun setupRecyclerView() {
+        b.subscriptionPlans.apply {
+            layoutManager = GridLayoutManager(requireContext(), 2)
+            setHasFixedSize(false)
+        }
+    }
+
+    private fun setupTermsAndPolicy() {
+        b.termsText.apply {
+            text = updateHtmlEncodedText(getString(R.string.rethink_terms))
+            movementMethod = LinkMovementMethod.getInstance()
+            highlightColor = Color.TRANSPARENT
+        }
+    }
+
+    private fun adjustCtaBottomMargin() {
+        if (activity is FragmentHostActivity) {
+            val lp = b.ctaInnerContainer.layoutParams as? android.view.ViewGroup.MarginLayoutParams
+            lp?.bottomMargin = 0
+            b.ctaInnerContainer.layoutParams = lp
+        }
+    }
+
+    private fun setupProductTypeToggle() {
+        // In extend mode pre-select ONE_TIME and hide the SUBS tab so the
+        // user focuses on one-time purchase options only.
+        val initialType = if (viewModel.extendMode) {
+            RethinkPlusViewModel.ProductTypeFilter.ONE_TIME
         } else {
-            Logger.d(LOG_IAB, "Adapter is not null, updating data")
-            adapter?.setData(subsProduct)
+            RethinkPlusViewModel.ProductTypeFilter.SUBSCRIPTION
         }
-    }
+        updateToggleState(initialType)
 
-    private fun hidePaymentContainerUi() {
-        if (!isAdded) return
-
-        b.paymentContainer.visibility = View.GONE
-        b.paymentButtonContainer.visibility = View.GONE
-        b.shimmerViewContainer.visibility = View.GONE
-    }
-
-    private fun showNotAvailableUi() {
-        hideLoadingDialog()
-        hidePaymentContainerUi()
-        b.topBanner.visibility = View.GONE
-
-        b.notAvailableLayout.visibility = View.VISIBLE
-    }
-
-    private fun hideNotAvailableUi() {
-        b.notAvailableLayout.visibility = View.GONE
-    }
-
-    private fun showRethinkNotAvailableUi(msg: String) {
-        showNotAvailableUi()
-        hideLoadingDialog()
-        hideMsgDialog()
-        hideErrorDialog()
-        val dialogView = LayoutInflater.from(requireContext())
-            .inflate(R.layout.dialog_transaction_error, null)
-
-        dialogView.findViewById<AppCompatTextView>(R.id.dialog_title).text = requireContext().getString(R.string.rpn_availablity)
-        dialogView.findViewById<AppCompatTextView>(R.id.dialog_message).text = msg
-
-        msgDialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(dialogView)
-            .setCancelable(false)
-            .create()
-
-        dialogView.findViewById<AppCompatButton>(R.id.button_ok).apply {
-            text = requireContext().getString(R.string.dns_info_positive)
-            setOnClickListener {
-                msgDialog?.dismiss()
+        if (!viewModel.extendMode) {
+            b.btnSubscription.setOnClickListener {
+                animateButtonPress(b.btnSubscription)
+                viewModel.selectProductType(RethinkPlusViewModel.ProductTypeFilter.SUBSCRIPTION)
             }
         }
-        msgDialog?.show()
+
+        b.btnOneTime.setOnClickListener {
+            animateButtonPress(b.btnOneTime)
+            viewModel.selectProductType(RethinkPlusViewModel.ProductTypeFilter.ONE_TIME)
+        }
     }
 
-    private fun setAdapter(productDetails: List<ProductDetail>) {
-        // set the adapter for the recycler view
-        Logger.i(LOG_IAB, "setting adapter for the recycler view: ${productDetails.size}")
-        b.subscriptionPlans.setHasFixedSize(true)
-        val layoutManager = LinearLayoutManager(requireContext())
-        b.subscriptionPlans.layoutManager = layoutManager
-        adapter = GooglePlaySubsAdapter(this, requireContext(), productDetails)
-        b.subscriptionPlans.adapter = adapter
-    }
-
-    fun startPendingPurchasePolling(scope: CoroutineScope) {
-        if (pollingJob != null) return
-
-        pollingStartTime = System.currentTimeMillis()
-        pollingJob = scope.launch(Dispatchers.IO) {
-            while (isActive) {
-                val elapsedTime = System.currentTimeMillis() - pollingStartTime
-                if (elapsedTime > POLLING_TIMEOUT_MS) {
-                    Logger.i(LOG_IAB, "Polling timeout reached, stopping pending purchase polling, elapsed: $elapsedTime ms")
-                    stopPendingPurchasePolling()
-                    //navigateToHomeScreen()
-                    break
+    private fun updateToggleState(selectedType: RethinkPlusViewModel.ProductTypeFilter) {
+        when (selectedType) {
+            RethinkPlusViewModel.ProductTypeFilter.SUBSCRIPTION -> {
+                b.btnSubscription.apply {
+                    setBackgroundColor(UIUtils.fetchColor(requireContext(), R.attr.primaryColor))
+                    setTextColor(UIUtils.fetchColor(requireContext(), R.attr.accentGood))
                 }
-
-                Logger.d(LOG_IAB, "Polling pending purchase status, elapsed: $elapsedTime ms")
-                fetchPurchases(listOf(ProductType.SUBS))
-                delay(POLLING_INTERVAL_MS)
-            }
-        }
-    }
-
-    fun stopPendingPurchasePolling() {
-        pollingJob?.cancel()
-        pollingJob = null
-        Logger.i(LOG_IAB, "Pending purchase polling stopped")
-    }
-
-    private fun hidePendingPurchaseUi() {
-        if (!isAdded) return
-
-        b.pendingPurchaseLayout.visibility = View.GONE
-        b.topBanner.visibility = View.GONE
-        b.shimmerViewContainer.visibility = View.GONE
-    }
-
-    private fun navigateToHomeScreen() {
-        ui {
-            if (!isAdded) return@ui
-            try {
-                val btmNavView = activity?.findViewById<BottomNavigationView>(R.id.nav_view)
-                val homeId = R.id.homeScreenFragment
-                btmNavView?.selectedItemId = homeId
-                findNavController().navigate(R.id.action_switch_to_homeScreenFragment)
-            } catch (e: Exception) {
-                Logger.e(LOG_IAB, "Navigation failed: ${e.message}")
-            }
-        }
-    }
-
-    private fun initObservers() {
-        */
-/*io {
-            Result.getResultStateFlow().collect { i ->
-                Logger.d(LOG_IAB, "res state: ${i.name}, ${i.message};p? ${i.priority}")
-                if (i.priority == InAppBillingHandler.Priority.HIGH) {
-                    ui {
-                        Logger.e(LOG_IAB, "res failure: ${i.name}, ${i.message}; p? ${i.priority}")
-
-                        if (isAdded && isVisible) {
-                            hideLoadingDialog()
-                            showErrorDialog(requireContext().getString(R.string.settings_gologger_dialog_option_5), i.message)
-                        }
-                    }
+                b.btnOneTime.apply {
+                    setBackgroundColor(Color.TRANSPARENT)
+                    setTextColor(UIUtils.fetchColor(requireContext(), R.attr.primaryTextColor))
                 }
             }
-        }*//*
-
-
-        InAppBillingHandler.connectionResultLiveData.distinctUntilChanged().observe(viewLifecycleOwner) { i ->
-            if (!i.isSuccess) {
-                Logger.e(LOG_IAB, "Billing connection failed: ${i.message}")
-                ui {
-                    if (isAdded && isVisible) {
-                        hideLoadingDialog()
-                        Utilities.showToastUiCentered(
-                            requireContext(),
-                            i.message,
-                            Toast.LENGTH_SHORT
-                        )
-                        showNotAvailableUi()
-                    }
+            RethinkPlusViewModel.ProductTypeFilter.ONE_TIME -> {
+                b.btnOneTime.apply {
+                    setBackgroundColor(UIUtils.fetchColor(requireContext(), R.attr.primaryColor))
+                    setTextColor(UIUtils.fetchColor(requireContext(), R.attr.accentGood))
                 }
-                return@observe
-            }
-            // check for the subscription status after the connection is established
-            val productType = listOf(ProductType.SUBS)
-            io {
-                fetchPurchases(productType)
-            }
-        }
-
-        io {
-            RpnProxyManager.collectSubscriptionState().collect { state ->
-                Logger.d(LOG_IAB, "Subscription state changed: ${state.name}")
-                // Handle state changes if needed
-                handleStateChange(state)
-            }
-        }
-
-        InAppBillingHandler.productDetailsLiveData.observe(viewLifecycleOwner) { list ->
-            Logger.d(LOG_IAB, "product details: ${list.size}")
-            if (list.isEmpty()) {
-                Logger.e(LOG_IAB, "product details is empty")
-                ui {
-                    if (isAdded && isVisible) {
-                        hideLoadingDialog()
-                        Utilities.showToastUiCentered(
-                            requireContext(),
-                            requireContext().getString(R.string.product_details_error),
-                            Toast.LENGTH_SHORT
-                        )
-                        showNotAvailableUi()
-                        showRethinkNotAvailableUi(
-                            requireContext().getString(R.string.product_details_error)
-                        )
-                        return@ui
-                    }
-                }
-                return@observe
-            }
-            val subsProducts = mutableListOf<ProductDetail>()
-            subsProducts.addAll(list.filter { it.productType == ProductType.SUBS })
-            // set the first product as the default selected product
-            val first = subsProducts.first()
-            productId = first.productId
-            planId = first.planId
-
-            val currState = RpnProxyManager.getSubscriptionState()
-            if (!currState.canMakePurchase) {
-                // if the user has a valid subscription, handle it
-                Logger.i(LOG_IAB, "canMakePurchase is false, no purchase allowed, current state: ${currState.name}")
-                return@observe
-            }
-
-            if (subsProducts.isEmpty()) {
-                Logger.e(LOG_IAB, "subscription product details is empty")
-                ui {
-                    if (isAdded && isVisible) {
-                        hideLoadingDialog()
-                        Utilities.showToastUiCentered(
-                            requireContext(),
-                            requireContext().getString(R.string.product_details_error),
-                            Toast.LENGTH_SHORT
-                        )
-                        showNotAvailableUi()
-                        showRethinkNotAvailableUi(
-                            requireContext().getString(R.string.product_details_error)
-                        )
-                        return@ui
-                    }
-                }
-                return@observe
-            }
-            if (isAdded && isVisible) {
-                setAdapterData(subsProducts)
-                Logger.i(LOG_IAB, "product details fetched, size: ${subsProducts.size}")
-            }
-        }
-
-        */
-/*InAppBillingHandler.transactionErrorLiveData.observe(viewLifecycleOwner) { billingResult ->
-            if (isAdded && isVisible) {
-                hideLoadingDialog()
-                val error = getTransactionError(billingResult)
-                showErrorDialog(error.title, error.message)
-            }
-        }*//*
-
-    }
-
-    private fun handleStateChange(state: SubscriptionStateMachineV2.SubscriptionState) {
-        Logger.d(LOG_IAB, "$TAG handleStateChange: ${state.name}")
-        when (state) {
-            SubscriptionStateMachineV2.SubscriptionState.PurchasePending -> {
-                // show the pending purchase UI
-                ui { showPendingPurchaseUi() }
-                startPendingPurchasePolling(this.lifecycleScope)
-            }
-            SubscriptionStateMachineV2.SubscriptionState.Active -> {
-                // handle the active state
-                // hide the loading dialog and pending purchase UI
-                ui {
-                    if (!isAdded) return@ui
-                    hideLoadingDialog()
-                    hidePendingPurchaseUi()
-                    hidePaymentContainerUi()
-                    // navigate to the rethink+ dashboard
-                    handlePlusSubscribed(RpnProxyManager.getRpnProductId())
-                }
-
-            }
-            SubscriptionStateMachineV2.SubscriptionState.Error -> {
-                // handle the error state
-                ui { showErrorDialog("Subscription Error", "An error occurred while processing your subscription.") }
-            }
-            SubscriptionStateMachineV2.SubscriptionState.Initial -> {
-                // do nothing for initial state, as it is handled when product details are fetched
-            }
-            SubscriptionStateMachineV2.SubscriptionState.Cancelled,
-            SubscriptionStateMachineV2.SubscriptionState.Revoked,
-            SubscriptionStateMachineV2.SubscriptionState.Expired -> {
-                // show the products  UI  with the option to resubscribe
-                // edit the button text to "Resubscribe"
-                ui {
-                    if (!isAdded) return@ui
-                    hideLoadingDialog()
-                    hidePendingPurchaseUi()
-                    showPaymentContainerUi()
-
-                    val data = RpnProxyManager.getSubscriptionData()
-                    if (data == null) {
-                        Logger.e(LOG_IAB, "Subscription data is null, cannot show resubscribe UI")
-                        b.paymentButton.text = getString(R.string.subscribe_title)
-                        return@ui
-                    }
-                    val billingExpiry = data.purchaseDetail?.expiryTime ?: 0L
-                    // if expiry time is greater than 60 days do not show the resubscribe option
-                    Logger.v(LOG_IAB, "billingExpiry: $billingExpiry, current time: ${System.currentTimeMillis()}, on-hold period: $ON_HOLD_PERIOD, debug: $DEBUG, resubscribe? ${billingExpiry > 0L && (System.currentTimeMillis() - billingExpiry < ON_HOLD_PERIOD)}")
-                    if (billingExpiry <= 0L || (System.currentTimeMillis() - billingExpiry < ON_HOLD_PERIOD || DEBUG)) {
-                        // if the subscription is cancelled or revoked, show the resubscribe option
-                        b.paymentButton.text = getString(R.string.resubscribe_title)
-                    } else {
-                        // subscription is expired and not in the on-hold period, show the subscribe option
-                        b.paymentButton.text = getString(R.string.subscribe_title)
-                    }
+                b.btnSubscription.apply {
+                    setBackgroundColor(Color.TRANSPARENT)
+                    setTextColor(UIUtils.fetchColor(requireContext(), R.attr.primaryTextColor))
                 }
             }
-            else -> {
-                // do nothing for other states
-            }
+        }
+        updateSubscribeButtonText(selectedType, isResubscribeState)
+    }
+
+    private fun updateSubscribeButtonText(
+        productType: RethinkPlusViewModel.ProductTypeFilter,
+        isResubscribe: Boolean = false
+    ) {
+        b.subscribeButton.text = when (productType) {
+            RethinkPlusViewModel.ProductTypeFilter.SUBSCRIPTION ->
+                if (isResubscribe) getString(R.string.resubscribe_title)
+                else getString(R.string.subscribe_now)
+            RethinkPlusViewModel.ProductTypeFilter.ONE_TIME ->
+                getString(R.string.purchase_now)
         }
     }
 
-    private fun showErrorDialog(title: String, message: String) {
-        if (!isAdded) return
-
-        // hide all the existing dialogs
-        hideLoadingDialog()
-        hideMsgDialog()
-        hideErrorDialog()
-
-        val dialogView = LayoutInflater.from(requireContext())
-            .inflate(R.layout.dialog_transaction_error, null)
-
-        dialogView.findViewById<AppCompatTextView>(R.id.dialog_title).text = title
-        dialogView.findViewById<AppCompatTextView>(R.id.dialog_message).text = message
-
-        errorDialog = MaterialAlertDialogBuilder(requireContext())
-            .setView(dialogView)
-            .setCancelable(false)
-            .create()
-
-        dialogView.findViewById<AppCompatButton>(R.id.button_ok).apply {
-            setOnClickListener {
-                if (!isAdded || !isVisible) {
-                    errorDialog?.dismiss()
-                    return@setOnClickListener
-                }
-                //navigateToHomeScreen()
-                errorDialog?.dismiss()
-            }
-        }
-        errorDialog?.setOnCancelListener {
-            errorDialog?.dismiss()
-        }
-        errorDialog?.show()
-    }
-
-    private fun hideErrorDialog() {
-        if (isAdded && errorDialog?.isShowing == true) {
-            errorDialog?.dismiss()
-        }
-    }
-
-    private fun hideMsgDialog() {
-        if (isAdded && msgDialog?.isShowing == true) {
-            msgDialog?.dismiss()
-        }
-    }
-
-    private fun handlePlusSubscribed(productId: String) {
-        if (!isAdded) return
-        // finish this fragment and navigate to the rethink+ dashboard
-        hideLoadingDialog()
-        // close any error/message dialog if it is showing
-        hideErrorDialog()
-        hideMsgDialog()
-        Logger.i(LOG_IAB, "R+ subscribed, productId: $productId, navigating to dashboard")
-        if (!isAdded) {
-            Logger.w(LOG_IAB, "Fragment not added, cannot navigate")
-            return
-        }
-        try {
-            findNavController().navigate(R.id.rethinkPlusDashboardFragment)
-        } catch (e: Exception) {
-            Logger.e(LOG_IAB, "Navigation failed: ${e.message}")
-            launchRethinkPlusDashboardInFragmentHost()
-        }
-    }
-
-    private fun launchRethinkPlusDashboardInFragmentHost() {
-        // Prepare arguments if needed
-        val args = Bundle().apply { putString("ARG_KEY", "Launch_Manage_Subscriptions") }
-
-        // Create intent using the helper
-        val intent = FragmentHostActivity.createIntent(
-            context = requireContext(),
-            fragmentClass = RethinkPlusDashboardFragment::class.java,
-            args = args // or null if none
-        )
-
-        // Start the activity
-        startActivity(intent)
-    }
+    // whether the current state is a resubscription (canceled / expired).
+    private var isResubscribeState: Boolean = false
 
     private fun setupClickListeners() {
-
-        b.paymentButton.setOnClickListener { purchaseSubs() }
-
-        b.testPingButton.setOnClickListener {
-            if (!VpnController.hasTunnel()) {
-                Logger.i(LOG_IAB, "$TAG; VPN not active, cannot perform tests")
-                Utilities.showToastUiCentered(
-                    requireContext(),
-                    getString(R.string.settings_socks5_vpn_disabled_error),
-                    Toast.LENGTH_LONG
-                )
+        b.subscribeButton.setOnClickListener {
+            if (purchaseInFlight) {
+                Logger.d(Logger.LOG_IAB, "$TAG: purchase already in flight, ignoring tap")
                 return@setOnClickListener
             }
-            val intent = Intent(requireContext(), RpnAvailabilityCheckActivity::class.java)
-            startActivity(intent)
+            animateButtonPress(b.subscribeButton)
+            purchaseSubscription()
+        }
+
+        b.retryButton.setOnClickListener {
+            animateButtonPress(b.retryButton)
+            viewModel.retry()
+        }
+
+        b.btnContactSupport.setOnClickListener {
+            openHelpAndSupport()
+        }
+
+        b.btnContactSupportError.setOnClickListener {
+            openHelpAndSupport()
         }
     }
 
-    private fun isGooglePlayServicesAvailable(): Boolean {
-        // applicationInfo.enabled - When false, indicates that all components within
-        // this application are considered disabled, regardless of their individually set enabled
-        // status.
-        // TODO: prompt dialog to user that Play service is disabled, so switch to update
-        // check for website
-        return Utilities.getApplicationInfo(requireContext(), PKG_NAME_PLAY_STORE)?.enabled == true
+    private fun openHelpAndSupport() {
+        val args = Bundle().apply { putString("ARG_KEY", "Launch_Rethink_Support_Dashboard") }
+        startActivity(
+            FragmentHostActivity.createIntent(
+                context = requireContext(),
+                fragmentClass = RethinkPlusDashboardFragment::class.java,
+                args = args
+            )
+        )
     }
 
-    override fun onDetach() {
-        super.onDetach()
-        // cancel any pending purchase polling job
-        stopPendingPurchasePolling()
-        Logger.v(LOG_IAB, "onDetach: pending purchase polling job cancelled")
-        // hide any dialogs
-        hideLoadingDialog()
-        hideErrorDialog()
-        hideMsgDialog()
-        Logger.v(LOG_IAB, "onDetach: dialogs hidden")
-        // reset the productId and planId
-        productId = ""
-        planId = ""
-        Logger.v(LOG_IAB, "onDetach: productId and planId reset")
-        // reset the polling start time
-        pollingStartTime = 0L
-        Logger.v(LOG_IAB, "onDetach: polling start time reset")
-        // reset the polling job
-        pollingJob = null
-        Logger.v(LOG_IAB, "onDetach: polling job reset")
+    private fun setupObservers() {
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.uiState.collect { state -> handleUiState(state) }
+            }
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.selectedProductType.collect { productType ->
+                    updateToggleState(productType)
+                }
+            }
+        }
+
+        // when retry() detects the billing client is not ready, the ViewModel cannot reconnect
+        // itself (it has no live context). This event tells the Fragment to do it.
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                viewModel.retryConnectionEvent.collect {
+                    Logger.d(Logger.LOG_IAB, "$TAG: retryConnectionEvent, re-initiating billing")
+                    reconnectBilling()
+                }
+            }
+        }
+
+        setupIab()
     }
 
-    private suspend fun uiCtx(f: suspend () -> Unit) {
-        withContext(Dispatchers.Main) { f() }
+    private fun setupIab() {
+        val owner = viewLifecycleOwner
+
+        viewModel.subscriptionState.observe(owner) { state ->
+            handleSubscriptionState(state)
+        }
+
+        // observe billing errors (user cancel, network, etc.) to dismiss the processing sheet
+        InAppBillingHandler.transactionErrorLiveData.observe(owner) { billingResult ->
+            billingResult ?: return@observe
+            purchaseInFlight = false
+            cancelProcessingTimeout()
+            dismissProcessingBottomSheet()
+
+            val response = com.celzero.bravedns.iab.BillingResponse(billingResult.responseCode)
+            when {
+                response.isUserCancelled -> {
+                    Logger.d(Logger.LOG_IAB, "$TAG: User cancelled purchase")
+                }
+                response.isRecoverableError -> {
+                    showTransactionError(getString(R.string.billing_error_recoverable))
+                }
+                else -> {
+                    showTransactionError(
+                        billingResult.debugMessage.ifBlank { getString(R.string.billing_error_generic) }
+                    )
+                }
+            }
+        }
     }
 
-    private fun ui(f: () -> Unit) {
-        lifecycleScope.launch(Dispatchers.Main) { f() }
+    private fun handleSubscriptionState(state: SubscriptionStateMachineV2.SubscriptionState) {
+        Logger.d(LOG_TAG_UI, "$TAG: Observed subscription state: ${state.name}")
+        if (state.hasValidSubscription) {
+            setPurchaseButtonState(PurchaseButtonState.PURCHASED)
+        } else {
+            setPurchaseButtonState(PurchaseButtonState.NOT_PURCHASED)
+        }
     }
 
-    private fun io(f: suspend () -> Unit) {
-        lifecycleScope.launch(SupervisorJob() + Dispatchers.IO) { f() }
+    private fun setPurchaseButtonState(state: PurchaseButtonState) {
+        when (state) {
+            PurchaseButtonState.PURCHASED -> {
+                b.subscribeButton.text = getString(R.string.rethink_plus_purchased_state)
+                b.subscribeButton.isEnabled = false
+            }
+            PurchaseButtonState.NOT_PURCHASED -> {
+                updateSubscribeButtonText(viewModel.selectedProductType.value, isResubscribeState)
+                b.subscribeButton.isEnabled = true
+            }
+        }
     }
+
+    private fun handleUiState(state: SubscriptionUiState) {
+        Logger.d(Logger.LOG_IAB, "$TAG: Handling UI state: ${state::class.simpleName}")
+        when (state) {
+            is SubscriptionUiState.Loading -> showLoading()
+            is SubscriptionUiState.Ready -> showReady(state.products, state.isResubscribe, state.availabilityData)
+            is SubscriptionUiState.Processing -> showProcessing(state.message)
+            is SubscriptionUiState.PendingPurchase -> showPendingPurchase()
+            is SubscriptionUiState.Success -> showSuccess(state.productId)
+            is SubscriptionUiState.Error -> showError(state.title, state.message, state.isRetryable)
+            is SubscriptionUiState.AlreadySubscribed -> navigateToDashboard(state.productId)
+            is SubscriptionUiState.Available -> showConnectionInfo(state)
+        }
+    }
+
+    private fun showLoading() {
+        purchaseInFlight = false
+        hideAllContainers()
+        b.loadingContainer.isVisible = true
+        startShimmer()
+    }
+
+    private fun showReady(
+        products: List<ProductDetail>,
+        isResubscribe: Boolean,
+        availabilityData: SubscriptionUiState.Available?
+    ) {
+        hideAllContainers()
+        stopShimmer()
+
+        b.scrollView.isVisible = true
+        b.ctaContainer.isVisible = true
+
+        Logger.i(LOG_TAG_UI, "$TAG: Ready: ${products.size} products, resubscribe=$isResubscribe")
+
+        availabilityData?.let { showConnectionInfo(it) }
+
+        isResubscribeState = isResubscribe
+        updateSubscribeButtonText(viewModel.selectedProductType.value, isResubscribe)
+
+        // reset subscribe button state in case it was locked by a previous PURCHASED state.
+        b.subscribeButton.isEnabled = true
+
+        if (adapter == null) {
+            adapter = GooglePlaySubsAdapter(this, requireContext(), products, 1, false)
+            b.subscriptionPlans.adapter = adapter
+        } else {
+            adapter?.setData(products)
+        }
+
+        animateContentEntrance()
+    }
+
+    private fun showConnectionInfo(state: SubscriptionUiState.Available) {
+        if (state.ip.isEmpty()) {
+            b.connectionInfoCard.isVisible = false
+            return
+        }
+
+        b.connectionInfoCard.isVisible = true
+        b.connectionIp.text = state.ip
+
+        val locationParts = mutableListOf<String>()
+        if (state.city.isNotEmpty()) locationParts.add(state.city)
+        if (state.country.isNotEmpty()) locationParts.add(state.country.uppercase())
+        var locationText = locationParts.joinToString(", ")
+        if (state.colo.isNotEmpty()) {
+            locationText = getString(R.string.connection_location_with_colo, locationText, state.colo)
+        }
+        b.connectionLocation.text = locationText
+
+        if (state.asorg.isNotEmpty()) {
+            b.ispContainer.isVisible = true
+            b.connectionIsp.text =
+                if (state.asorg.length > 20) getString(R.string.truncated_text, state.asorg.take(17))
+                else state.asorg
+        } else {
+            b.ispContainer.isVisible = false
+        }
+    }
+
+    private fun showProcessing(message: String) {
+        purchaseInFlight = true
+        showProcessingBottomSheet(PurchaseProcessingBottomSheet.ProcessingState.Processing, message)
+        startProcessingTimeout()
+    }
+
+    private fun showPendingPurchase() {
+        purchaseInFlight = true
+        showProcessingBottomSheet(PurchaseProcessingBottomSheet.ProcessingState.PendingVerification, null)
+        startProcessingTimeout()
+    }
+
+    private fun showSuccess(productId: String) {
+        purchaseInFlight = false
+        cancelProcessingTimeout()
+        showProcessingBottomSheet(
+            PurchaseProcessingBottomSheet.ProcessingState.Success,
+            getString(R.string.subscription_activated)
+        )
+
+        try {
+            SubscriptionAnimDialog().show(childFragmentManager, "SubscriptionAnimDialog")
+        } catch (e: Exception) {
+            Logger.w(Logger.LOG_IAB, "$TAG: err showing subscription anim: ${e.message}")
+        }
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            delay(1500)
+            navigateToDashboard(productId)
+        }
+    }
+
+    private fun showError(title: String, message: String, isRetryable: Boolean) {
+        purchaseInFlight = false
+        cancelProcessingTimeout()
+        dismissProcessingBottomSheet()
+        hideAllContainers()
+        stopShimmer()
+
+        b.errorContainer.isVisible = true
+        b.errorTitle.text = title
+        b.errorMessage.text = message
+        b.retryButton.isVisible = isRetryable
+    }
+
+    private fun showTransactionError(message: String) {
+        if (!isAdded || context == null) return
+        Utilities.showToastUiCentered(requireContext(), message, Toast.LENGTH_LONG)
+    }
+
+    private fun hideAllContainers() {
+        b.loadingContainer.isVisible = false
+        b.scrollView.isVisible = false
+        b.ctaContainer.isVisible = false
+        b.errorContainer.isVisible = false
+    }
+
+    private fun navigateToDashboard(productId: String) {
+        if (!isAdded) return
+        Logger.i(Logger.LOG_IAB, "$TAG: navigating to dashboard for: $productId")
+
+        try {
+            val navController = findNavController()
+            navController.navigate(R.id.action_switch_to_rethinkPlusDashboardFragment)
+        } catch (_: IllegalStateException) {
+            Logger.w(Logger.LOG_IAB, "$TAG: no NavController found, finishing host activity")
+            if (isAdded) requireActivity().finish()
+        } catch (e: Exception) {
+            Logger.e(Logger.LOG_IAB, "$TAG: navigation failed: ${e.message}", e)
+            if (isAdded) requireActivity().finish()
+        }
+    }
+
+    private fun initializeBilling() {
+        viewModel.initializeBilling()
+        if (!InAppBillingHandler.isBillingClientSetup()) {
+            InAppBillingHandler.initiate(requireContext().applicationContext, this)
+        } else {
+            InAppBillingHandler.registerListener(this)
+            viewModel.onBillingConnected(true, "already connected")
+        }
+    }
+
+    private fun reconnectBilling() {
+        Logger.d(Logger.LOG_IAB, "$TAG: reconnectBilling, calling initiate()")
+        InAppBillingHandler.initiate(requireContext().applicationContext, this)
+    }
+
+    /**
+     * Initiate a purchase for the currently selected plan.
+     */
+    private fun purchaseSubscription() {
+        val selection = viewModel.selectedProduct.value
+        if (selection == null) {
+            Utilities.showToastUiCentered(
+                requireContext(),
+                getString(R.string.select_plan_first),
+                Toast.LENGTH_SHORT
+            )
+            return
+        }
+
+        val (productId, planId) = selection
+        lifecycleScope.launch {
+            when (viewModel.selectedProductType.value) {
+                RethinkPlusViewModel.ProductTypeFilter.SUBSCRIPTION ->
+                    InAppBillingHandler.purchaseSubs(requireActivity(), productId, planId)
+                RethinkPlusViewModel.ProductTypeFilter.ONE_TIME -> {
+                    // In extend mode the state machine stays in Active (no PurchaseInitiated
+                    // transition from Active), so purchaseFlowActive would never be set by the
+                    // state change observer. Set it manually so the Active callback shows Success.
+                    if (viewModel.extendMode) viewModel.markPurchaseFlowActive()
+                    InAppBillingHandler.purchaseOneTime(requireActivity(), productId, planId, forceExtend = viewModel.extendMode)
+                }
+            }
+        }
+    }
+
+    private fun showProcessingBottomSheet(
+        state: PurchaseProcessingBottomSheet.ProcessingState,
+        message: String?
+    ) {
+        if (processingBottomSheet == null || processingBottomSheet?.isAdded != true) {
+            processingBottomSheet = PurchaseProcessingBottomSheet.newInstance(state, message)
+            processingBottomSheet?.show(childFragmentManager, "processing")
+        } else {
+            processingBottomSheet?.updateState(state, message)
+        }
+    }
+
+    private fun dismissProcessingBottomSheet() {
+        cancelProcessingTimeout()
+        try {
+            processingBottomSheet?.dismissAllowingStateLoss()
+        } catch (e: Exception) {
+            Logger.w(Logger.LOG_IAB, "$TAG: err dismissing btmsht: ${e.message}")
+        } finally {
+            processingBottomSheet = null
+        }
+    }
+
+    private fun startProcessingTimeout() {
+        cancelProcessingTimeout()
+        processingTimeoutJob = viewLifecycleOwner.lifecycleScope.launch {
+            delay(PROCESSING_TIMEOUT_MS)
+            if (isAdded && processingBottomSheet?.isAdded == true) {
+                Logger.w(Logger.LOG_IAB, "$TAG: processing timeout, dismissing sheet")
+                purchaseInFlight = false
+                dismissProcessingBottomSheet()
+                shouldRecheckOnResume = true
+                showTransactionError(getString(R.string.subscription_processing_timeout))
+            }
+        }
+    }
+
+    private fun cancelProcessingTimeout() {
+        processingTimeoutJob?.cancel()
+        processingTimeoutJob = null
+    }
+
+
+    private fun startShimmer() {
+        if (!b.shimmerContainer.isShimmerStarted) {
+            val shimmer = Shimmer.AlphaHighlightBuilder()
+                .setDuration(2000)
+                .setBaseAlpha(0.85f)
+                .setDropoff(1f)
+                .setHighlightAlpha(0.35f)
+                .build()
+            b.shimmerContainer.setShimmer(shimmer)
+            b.shimmerContainer.startShimmer()
+        }
+    }
+
+    private fun stopShimmer() {
+        if (b.shimmerContainer.isShimmerStarted) b.shimmerContainer.stopShimmer()
+    }
+
+    private fun animateContentEntrance() {
+        b.scrollView.alpha = 0f
+        b.scrollView.animate().alpha(1f).setDuration(300).start()
+        b.ctaContainer.alpha = 0f
+        b.ctaContainer.animate().alpha(1f).setDuration(300).start()
+    }
+
+    private fun animateButtonPress(view: View) {
+        ObjectAnimator.ofFloat(view, "scaleX", 1f, 0.95f, 1f).apply {
+            duration = 100; interpolator = AnticipateOvershootInterpolator(); start()
+        }
+        ObjectAnimator.ofFloat(view, "scaleY", 1f, 0.95f, 1f).apply {
+            duration = 100; interpolator = AnticipateOvershootInterpolator(); start()
+        }
+    }
+
+    private fun updateHtmlEncodedText(text: String): Spanned =
+        htmlToSpannedText(text)
 
     override fun onConnectionResult(isSuccess: Boolean, message: String) {
-        if (!isSuccess) {
-            Logger.e(LOG_IAB, "Billing connection failed: $message")
-            ui {
-                if (isAdded && isVisible) {
-                    hideLoadingDialog()
-                    Utilities.showToastUiCentered(
-                        requireContext(),
-                        message,
-                        Toast.LENGTH_SHORT
-                    )
-                    showNotAvailableUi()
-                }
-            }
-            return
-        }
+        viewModel.onBillingConnected(isSuccess, message)
     }
 
-    override fun purchasesResult(
-        isSuccess: Boolean,
-        purchaseDetailList: List<PurchaseDetail>
-    ) {
-        if (!isSuccess) {
-            Logger.e(LOG_IAB, "purchasesResult: failed to fetch purchases")
-            return
-        }
+    override fun purchasesResult(isSuccess: Boolean, purchaseDetailList: List<PurchaseDetail>) {
+        // handled by state machine via InAppBillingHandler.
     }
 
-    override fun productResult(
-        isSuccess: Boolean,
-        productList: List<ProductDetail>
-    ) {
-        if (!isSuccess) {
-            Logger.e(LOG_IAB, "productResult: failed to fetch product details")
-            ui {
-                if (isAdded && isVisible) {
-                    hideLoadingDialog()
-                    Utilities.showToastUiCentered(
-                        requireContext(),
-                        requireContext().getString(R.string.product_details_error),
-                        Toast.LENGTH_SHORT
-                    )
-                    showNotAvailableUi()
-                    showRethinkNotAvailableUi(
-                        requireContext().getString(R.string.product_details_error)
-                    )
-                    return@ui
-                }
-            }
-            return
-        }
+    override fun productResult(isSuccess: Boolean, productList: List<ProductDetail>) {
+        viewModel.onProductsFetched(isSuccess, productList)
+    }
+
+    override fun onSubscriptionSelected(productId: String, planId: String) {
+        viewModel.selectProduct(productId, planId)
     }
 }
-*/

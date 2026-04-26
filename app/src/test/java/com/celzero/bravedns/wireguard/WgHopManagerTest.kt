@@ -25,7 +25,6 @@ import com.celzero.bravedns.service.WireguardManager
 import io.mockk.*
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.assertFalse
-import junit.framework.TestCase.assertNotNull
 import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -109,7 +108,7 @@ class WgHopManagerTest : KoinTest {
         }
 
         // Default empty repository response
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
 
         // Clear the manager state by loading empty data
         runTest {
@@ -133,7 +132,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should validate test setup works correctly`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
 
         // Act
         val result = WgHopManager.load(forceRefresh = true)
@@ -148,7 +147,7 @@ class WgHopManagerTest : KoinTest {
         val testMaps = listOf(
             WgHopMap(1, TEST_SRC_STRING, TEST_HOP_STRING, true, "active")
         )
-        coEvery { mockRepository.getAll() } returns testMaps
+        coEvery { mockRepository.getAllWgs() } returns testMaps
 
         // Act
         val result = WgHopManager.load(forceRefresh = true)
@@ -160,7 +159,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle hop creation with valid configs`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns mockConfig1
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns mockConfig2
         coEvery { VpnController.createWgHop(TEST_SRC_STRING, TEST_HOP_STRING) } returns Pair(true, "Success")
@@ -180,7 +179,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should reject hop to self`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -194,7 +193,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle invalid source config`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns null
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns mockConfig2
         WgHopManager.load(forceRefresh = true)
@@ -211,7 +210,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle VPN controller failure`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns mockConfig1
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns mockConfig2
         coEvery { VpnController.createWgHop(TEST_SRC_STRING, TEST_HOP_STRING) } returns Pair(false, "VPN Error")
@@ -229,7 +228,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle removeHop when map not found`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -244,7 +243,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle empty hop retrieval`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -266,7 +265,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty list when no hopable configs available`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getActiveConfigs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
@@ -280,7 +279,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return available configs for hopping`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getActiveConfigs() } returns listOf(mockConfig2, mockConfig3)
         WgHopManager.load(forceRefresh = true)
 
@@ -296,7 +295,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return false for isAlreadyHop when no hops exist`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -309,7 +308,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return false for isWgEitherHopOrSrc when id not used`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -322,7 +321,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return true for canRoute when no conflicts exist`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -335,7 +334,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty maps when repository is empty`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -348,7 +347,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return null when specific map does not exist`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -361,7 +360,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty hop list when no hops exist`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -374,7 +373,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle printMaps without exception`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act & Assert - should not throw
@@ -387,7 +386,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle handleWgDelete gracefully`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act & Assert - should not throw
@@ -400,7 +399,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should complete full hop creation workflow`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns mockConfig1
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns mockConfig2
         coEvery { VpnController.createWgHop(TEST_SRC_STRING, TEST_HOP_STRING) } returns Pair(true, "Created")
@@ -429,7 +428,7 @@ class WgHopManagerTest : KoinTest {
         // We'll test the core functionality rather than mock verification
 
         // Arrange - Set up empty state
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Verify starting state is empty
@@ -439,7 +438,7 @@ class WgHopManagerTest : KoinTest {
         val testMaps = listOf(
             WgHopMap(1, TEST_SRC_STRING, TEST_HOP_STRING, true, "active")
         )
-        coEvery { mockRepository.getAll() } returns testMaps
+        coEvery { mockRepository.getAllWgs() } returns testMaps
 
         // Act - Force refresh should load new data
         val result = WgHopManager.load(forceRefresh = true)
@@ -465,12 +464,12 @@ class WgHopManagerTest : KoinTest {
             WgHopMap(1, TEST_SRC_STRING, TEST_HOP_STRING, true, "active")
         )
         clearMocks(mockRepository, answers = false)
-        coEvery { mockRepository.getAll() } returns testMaps
+        coEvery { mockRepository.getAllWgs() } returns testMaps
         WgHopManager.load(forceRefresh = true) // Load initially
 
         // Clear mocks again to count only the next call
         clearMocks(mockRepository, answers = false)
-        coEvery { mockRepository.getAll() } returns testMaps
+        coEvery { mockRepository.getAllWgs() } returns testMaps
 
         // Act
         val result = WgHopManager.load(forceRefresh = false)
@@ -478,14 +477,14 @@ class WgHopManagerTest : KoinTest {
         // Assert
         assertTrue("Should return existing size", result >= 0)
         // Since forceRefresh = false and maps are not empty, repository should NOT be called
-        coVerify(exactly = 0) { mockRepository.getAll() }
+        coVerify(exactly = 0) { mockRepository.getAllWgs() }
     }
 
     // Tests for hop() method comprehensive scenarios
     @Test
     fun `should create hop successfully with valid source and hop configs`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns mockConfig1
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns mockConfig2
         coEvery { VpnController.createWgHop(TEST_SRC_STRING, TEST_HOP_STRING) } returns Pair(true, "Hop created successfully")
@@ -504,7 +503,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should reject hop when source config is null`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns null
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns mockConfig2
         WgHopManager.load(forceRefresh = true)
@@ -520,7 +519,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should reject hop when hop config is null`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns mockConfig1
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns null
         WgHopManager.load(forceRefresh = true)
@@ -536,7 +535,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should reject hop when both configs are null`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns null
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns null
         WgHopManager.load(forceRefresh = true)
@@ -552,7 +551,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle VPN controller createWgHop failure`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns mockConfig1
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns mockConfig2
         coEvery { VpnController.createWgHop(TEST_SRC_STRING, TEST_HOP_STRING) } returns Pair(false, "VPN creation failed")
@@ -569,7 +568,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle database exception during hop creation`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns mockConfig1
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns mockConfig2
         coEvery { VpnController.createWgHop(TEST_SRC_STRING, TEST_HOP_STRING) } returns Pair(true, "Success")
@@ -587,7 +586,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle removeHop for non-existent map`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -601,7 +600,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle removeHop with negative IDs`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -615,7 +614,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle removeHop with zero IDs`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -629,7 +628,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle removeHop with large IDs`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -644,7 +643,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty string for getHop with int parameter when no hops exist`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -694,7 +693,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty list when getHopableWgs called with no active configs`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getActiveConfigs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
@@ -708,7 +707,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should filter source config from hopable configs list`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getActiveConfigs() } returns listOf(mockConfig1, mockConfig2, mockConfig3)
         WgHopManager.load(forceRefresh = true)
 
@@ -724,7 +723,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle getHopableWgs with negative source ID`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getActiveConfigs() } returns listOf(mockConfig1, mockConfig2)
         WgHopManager.load(forceRefresh = true)
 
@@ -738,7 +737,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle getHopableWgs with zero source ID`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getActiveConfigs() } returns listOf(mockConfig1, mockConfig2)
         WgHopManager.load(forceRefresh = true)
 
@@ -752,7 +751,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle getHopableWgs with large source ID`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getActiveConfigs() } returns listOf(mockConfig1, mockConfig2)
         WgHopManager.load(forceRefresh = true)
 
@@ -767,7 +766,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return false for isAlreadyHop with empty string`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -780,7 +779,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return false for isAlreadyHop with whitespace string`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -793,7 +792,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return false for isAlreadyHop with invalid format`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -807,7 +806,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty list from getMaps when no maps loaded`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -821,7 +820,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return null from getMap with empty parameters`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -834,7 +833,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return null from getMap with whitespace parameters`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -847,7 +846,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return null from getMap with invalid format parameters`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -860,7 +859,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return null from getMap with mixed valid-invalid parameters`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -874,7 +873,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty list from getAllHop when no hops exist`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -888,7 +887,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty list from getMapBySrc when no maps exist`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -901,7 +900,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty list from getMapBySrc with empty string`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -914,7 +913,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty list from getMapBySrc with invalid format`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -928,7 +927,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty list from getMapByHop when no maps exist`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -941,7 +940,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty list from getMapByHop with empty string`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -954,7 +953,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return empty list from getMapByHop with invalid format`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -968,7 +967,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle handleWgDelete with negative ID`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act & Assert - Should not crash
@@ -978,7 +977,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle handleWgDelete with zero ID`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act & Assert - Should not crash
@@ -988,7 +987,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle handleWgDelete with large ID`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act & Assert - Should not crash
@@ -999,7 +998,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return false for isWgEitherHopOrSrc with negative ID`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -1012,7 +1011,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return false for isWgEitherHopOrSrc with zero ID`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -1025,7 +1024,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return false for isWgEitherHopOrSrc with large ID`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -1039,7 +1038,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return true for canRoute with valid string when no conflicts`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -1052,7 +1051,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return true for canRoute with different valid string`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -1065,7 +1064,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return true for canRoute with empty string`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -1078,7 +1077,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return true for canRoute with whitespace string`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -1091,7 +1090,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should return true for canRoute with invalid format string`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act
@@ -1105,7 +1104,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle load with repository returning null`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
 
         // Act & Assert - Should handle gracefully
         try {
@@ -1119,7 +1118,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle load with repository throwing exception`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } throws RuntimeException("Repository error")
+        coEvery { mockRepository.getAllWgs() } throws RuntimeException("Repository error")
 
         // Act & Assert - Should handle gracefully
         try {
@@ -1133,7 +1132,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle load with repository throwing SQL exception`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } throws java.sql.SQLException("Database connection failed")
+        coEvery { mockRepository.getAllWgs() } throws java.sql.SQLException("Database connection failed")
 
         // Act & Assert - Should handle gracefully
         try {
@@ -1147,7 +1146,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle printMaps without crashing`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act & Assert - Should not throw any exceptions
@@ -1177,7 +1176,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle multiple rapid method calls without crashing`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act - Make multiple rapid calls to different methods
@@ -1202,7 +1201,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle concurrent-style access patterns`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act - Simulate concurrent access patterns
@@ -1231,7 +1230,7 @@ class WgHopManagerTest : KoinTest {
             WgHopMap(3, "", "wg1", true, "active"),
             WgHopMap(4, "invalid_format", "wg1", true, "active")
         )
-        coEvery { mockRepository.getAll() } returns testData
+        coEvery { mockRepository.getAllWgs() } returns testData
         WgHopManager.load(forceRefresh = true)
 
         // Act & Assert - Should handle all formats gracefully
@@ -1243,7 +1242,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle repository insert exceptions gracefully`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns mockConfig1
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns mockConfig2
         coEvery { VpnController.createWgHop(TEST_SRC_STRING, TEST_HOP_STRING) } returns Pair(true, "Success")
@@ -1260,7 +1259,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle repository delete exceptions gracefully`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         coEvery { mockRepository.deleteBySrcAndHop(any(), any()) } throws RuntimeException("Delete failed")
         WgHopManager.load(forceRefresh = true)
 
@@ -1272,7 +1271,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle WireguardManager getConfigById returning null for various IDs`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(any()) } returns null
         WgHopManager.load(forceRefresh = true)
 
@@ -1290,7 +1289,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle WireguardManager getActiveConfigs returning empty list`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getActiveConfigs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
@@ -1304,7 +1303,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle WireguardManager getActiveConfigs returning null`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getActiveConfigs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
@@ -1324,7 +1323,7 @@ class WgHopManagerTest : KoinTest {
         // Since the WgHopManager converts IDs to strings, we test the edge cases
 
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns mockConfig1
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns mockConfig2
         coEvery { VpnController.createWgHop(any(), any()) } returns Pair(false, "Invalid parameters")
@@ -1341,7 +1340,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle complete hop lifecycle - create then remove`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         every { WireguardManager.getConfigById(TEST_SRC_ID) } returns mockConfig1
         every { WireguardManager.getConfigById(TEST_HOP_ID) } returns mockConfig2
         coEvery { VpnController.createWgHop(TEST_SRC_STRING, TEST_HOP_STRING) } returns Pair(true, "Created")
@@ -1364,7 +1363,7 @@ class WgHopManagerTest : KoinTest {
     @Test
     fun `should handle large number of method calls efficiently`() = runTest {
         // Arrange
-        coEvery { mockRepository.getAll() } returns emptyList()
+        coEvery { mockRepository.getAllWgs() } returns emptyList()
         WgHopManager.load(forceRefresh = true)
 
         // Act - Test with large number of calls

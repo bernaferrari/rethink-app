@@ -12,7 +12,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.RadioButton
 import android.widget.Toast
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.lifecycleScope
@@ -36,8 +38,6 @@ import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
-import com.google.android.material.button.MaterialButton
-import com.google.android.material.button.MaterialButtonToggleGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -127,7 +127,6 @@ class CustomDomainRulesBtmSheet :
             if (uid == UID_EVERYBODY) {
                 b.customDomainAppNameTv.text =
                     getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
-                b.customDomainAppIconIv.visibility = View.GONE
             } else {
                 val appNames = FirewallManager.getAppNamesByUid(cd.uid)
                 val appName = getAppName(cd.uid, appNames)
@@ -152,7 +151,6 @@ class CustomDomainRulesBtmSheet :
             DomainRulesManager.Status.getStatus(cd.status),
             cd.modifiedTs
         )
-        b.customDomainToggleGroup.tag = 1
         updateToggleGroup(rules.id)
     }
 
@@ -227,104 +225,30 @@ class CustomDomainRulesBtmSheet :
     }
 
     private fun initClickListeners() {
-        b.customDomainToggleGroup.addOnButtonCheckedListener(domainRulesGroupListener)
+        b.customDomainTgNoRule.setOnClickListener { handleDomainRuleClick(DomainRulesManager.Status.NONE) }
+        b.customDomainTgBlock.setOnClickListener { handleDomainRuleClick(DomainRulesManager.Status.BLOCK) }
+        b.customDomainTgWhitelist.setOnClickListener { handleDomainRuleClick(DomainRulesManager.Status.TRUST) }
 
         b.customDomainDeleteChip.setOnClickListener {
             showDialogForDelete()
         }
-
-        /*b.chooseProxyCard.setOnClickListener {
-            val ctx = requireContext()
-            val v: MutableList<WgConfigFilesImmutable?> = mutableListOf()
-            io {
-                v.add(null)
-                v.addAll(WireguardManager.getAllMappings())
-                if (v.isEmpty()) {
-                    Logger.v(LOG_TAG_UI, "$TAG no wireguard configs found")
-                    uiCtx {
-                        Utilities.showToastUiCentered(
-                            ctx,
-                            getString(R.string.wireguard_no_config_msg),
-                            Toast.LENGTH_SHORT
-                        )
-                    }
-                    return@io
-                }
-                uiCtx {
-                    Logger.v(LOG_TAG_UI, "$TAG show wg list(${v.size} for ${cd.domain}")
-                    showWgListBtmSheet(v)
-                }
-            }
-        }
-
-        b.chooseCountryCard.setOnClickListener {
-            io {
-                val ctrys = RpnProxyManager.getProtonUniqueCC()
-                if (ctrys.isEmpty()) {
-                    Logger.v(LOG_TAG_UI, "$TAG no country codes found")
-                    uiCtx {
-                        Utilities.showToastUiCentered(
-                            requireContext(),
-                            "No ProtonVPN country codes found",
-                            Toast.LENGTH_SHORT
-                        )
-                    }
-                    return@io
-                }
-                uiCtx {
-                    Logger.v(LOG_TAG_UI, "$TAG show countries(${ctrys.size} for ${cd.domain}")
-                    showProxyCountriesBtmSheet(ctrys)
-                }
-            }
-        }*/
     }
 
-    private val domainRulesGroupListener =
-        MaterialButtonToggleGroup.OnButtonCheckedListener { group, checkedId, isChecked ->
-            val b: MaterialButton = b.customDomainToggleGroup.findViewById(checkedId)
-
-            val statusId = findSelectedRuleByTag(getTag(b.tag))
-
-            // invalid selection
-            if (statusId == null) {
-                return@OnButtonCheckedListener
-            }
-
-            if (isChecked) {
-                // See CustomIpAdapter.kt for the same code (ipRulesGroupListener)
-                val hasStatusChanged = cd.status != statusId.id
-                if (!hasStatusChanged) {
-                    return@OnButtonCheckedListener
-                }
-                val t = toggleBtnUi(statusId)
-                // update toggle button
-                selectToggleBtnUi(b, t)
-                // change status based on selected btn
-                changeDomainStatus(statusId, cd)
-            } else {
-                unselectToggleBtnUi(b)
-            }
-        }
-
-    private fun selectToggleBtnUi(b: MaterialButton, toggleBtnUi: ToggleBtnUi) {
-        b.setTextColor(toggleBtnUi.txtColor)
-        b.backgroundTintList = ColorStateList.valueOf(toggleBtnUi.bgColor)
+    private fun handleDomainRuleClick(status: DomainRulesManager.Status) {
+        if (cd.status == status.id) return // no change
+        changeDomainStatus(status, cd)
     }
 
     private fun changeDomainStatus(id: DomainRulesManager.Status, cd: CustomDomain) {
         io {
             when (id) {
-                DomainRulesManager.Status.NONE -> {
-                    noRule(cd)
-                }
-
-                DomainRulesManager.Status.BLOCK -> {
-                    block(cd)
-                }
-
-                DomainRulesManager.Status.TRUST -> {
-                    whitelist(cd)
-                }
+                DomainRulesManager.Status.NONE -> noRule(cd)
+                DomainRulesManager.Status.BLOCK -> block(cd)
+                DomainRulesManager.Status.TRUST -> whitelist(cd)
+            }
+            uiCtx {
+                updateToggleGroup(id.id)
+                updateStatusUi(id, this.cd.modifiedTs)
             }
         }
     }
@@ -344,60 +268,7 @@ class CustomDomainRulesBtmSheet :
         logEvent("Domain rule for ${cd.domain} is set to no rule")
     }
 
-    private fun unselectToggleBtnUi(b: MaterialButton) {
-        b.setTextColor(fetchToggleBtnColors(requireContext(), R.color.defaultToggleBtnTxt))
-        b.backgroundTintList =
-            ColorStateList.valueOf(
-                fetchToggleBtnColors(
-                    requireContext(),
-                    R.color.defaultToggleBtnBg
-                )
-            )
-    }
-
     data class ToggleBtnUi(val txtColor: Int, val bgColor: Int)
-
-    private fun showDialogForDelete() {
-        val builder = MaterialAlertDialogBuilder(requireContext(), R.style.App_Dialog_NoDim)
-        builder.setTitle(R.string.cd_remove_dialog_title)
-        builder.setMessage(R.string.cd_remove_dialog_message)
-        builder.setCancelable(true)
-        builder.setPositiveButton(requireContext().getString(R.string.lbl_delete)) { _, _ ->
-            io { DomainRulesManager.deleteDomain(cd) }
-            Utilities.showToastUiCentered(
-                requireContext(),
-                requireContext().getString(R.string.cd_toast_deleted),
-                Toast.LENGTH_SHORT
-            )
-            logEvent("Deleted custom domain rule for ${cd.domain}")
-            dismiss()
-        }
-
-        builder.setNegativeButton(requireContext().getString(R.string.lbl_cancel)) { _, _ ->
-            // no-op
-        }
-        builder.create().show()
-    }
-
-    private fun findSelectedRuleByTag(ruleId: Int): DomainRulesManager.Status? {
-        return when (ruleId) {
-            DomainRulesManager.Status.NONE.id -> {
-                DomainRulesManager.Status.NONE
-            }
-
-            DomainRulesManager.Status.TRUST.id -> {
-                DomainRulesManager.Status.TRUST
-            }
-
-            DomainRulesManager.Status.BLOCK.id -> {
-                DomainRulesManager.Status.BLOCK
-            }
-
-            else -> {
-                null
-            }
-        }
-    }
 
     private fun toggleBtnUi(id: DomainRulesManager.Status): ToggleBtnUi {
         return when (id) {
@@ -424,39 +295,66 @@ class CustomDomainRulesBtmSheet :
         }
     }
 
+    private fun selectRowUi(badge: AppCompatTextView, rb: RadioButton, t: ToggleBtnUi) {
+        badge.setTextColor(t.txtColor)
+        badge.backgroundTintList = ColorStateList.valueOf(t.bgColor)
+        rb.isChecked = true
+    }
+
+    private fun unselectRowUi(badge: AppCompatTextView, rb: RadioButton) {
+        badge.setTextColor(fetchToggleBtnColors(requireContext(), R.color.defaultToggleBtnTxt))
+        badge.backgroundTintList = ColorStateList.valueOf(
+            fetchToggleBtnColors(requireContext(), R.color.defaultToggleBtnBg)
+        )
+        rb.isChecked = false
+    }
+
     private fun updateToggleGroup(id: Int) {
         val fid = findSelectedRuleByTag(id) ?: return
-
         val t = toggleBtnUi(fid)
 
+        // Unselect all rows first
+        unselectRowUi(b.customDomainBadgeNoRule, b.customDomainRbNoRule)
+        unselectRowUi(b.customDomainBadgeBlock, b.customDomainRbBlock)
+        unselectRowUi(b.customDomainBadgeWhitelist, b.customDomainRbWhitelist)
+
+        // Select the active row
         when (id) {
-            DomainRulesManager.Status.NONE.id -> {
-                b.customDomainToggleGroup.check(b.customDomainTgNoRule.id)
-                selectToggleBtnUi(b.customDomainTgNoRule, t)
-                unselectToggleBtnUi(b.customDomainTgBlock)
-                unselectToggleBtnUi(b.customDomainTgWhitelist)
-            }
-
-            DomainRulesManager.Status.BLOCK.id -> {
-                b.customDomainToggleGroup.check(b.customDomainTgBlock.id)
-                selectToggleBtnUi(b.customDomainTgBlock, t)
-                unselectToggleBtnUi(b.customDomainTgNoRule)
-                unselectToggleBtnUi(b.customDomainTgWhitelist)
-            }
-
-            DomainRulesManager.Status.TRUST.id -> {
-                b.customDomainToggleGroup.check(b.customDomainTgWhitelist.id)
-                selectToggleBtnUi(b.customDomainTgWhitelist, t)
-                unselectToggleBtnUi(b.customDomainTgBlock)
-                unselectToggleBtnUi(b.customDomainTgNoRule)
-            }
+            DomainRulesManager.Status.NONE.id -> selectRowUi(b.customDomainBadgeNoRule, b.customDomainRbNoRule, t)
+            DomainRulesManager.Status.BLOCK.id -> selectRowUi(b.customDomainBadgeBlock, b.customDomainRbBlock, t)
+            DomainRulesManager.Status.TRUST.id -> selectRowUi(b.customDomainBadgeWhitelist, b.customDomainRbWhitelist, t)
         }
     }
 
-    // each button in the toggle group is associated with tag value.
-    // tag values are ids of DomainRulesManager.DomainStatus
-    private fun getTag(tag: Any): Int {
-        return tag.toString().toIntOrNull() ?: 0
+    private fun findSelectedRuleByTag(ruleId: Int): DomainRulesManager.Status? {
+        return when (ruleId) {
+            DomainRulesManager.Status.NONE.id -> DomainRulesManager.Status.NONE
+            DomainRulesManager.Status.TRUST.id -> DomainRulesManager.Status.TRUST
+            DomainRulesManager.Status.BLOCK.id -> DomainRulesManager.Status.BLOCK
+            else -> null
+        }
+    }
+
+    private fun showDialogForDelete() {
+        val builder = MaterialAlertDialogBuilder(requireContext(), R.style.App_Dialog_NoDim)
+        builder.setTitle(R.string.cd_remove_dialog_title)
+        builder.setMessage(R.string.cd_remove_dialog_message)
+        builder.setCancelable(true)
+        builder.setPositiveButton(requireContext().getString(R.string.lbl_delete)) { _, _ ->
+            io { DomainRulesManager.deleteDomain(cd) }
+            Utilities.showToastUiCentered(
+                requireContext(),
+                requireContext().getString(R.string.cd_toast_deleted),
+                Toast.LENGTH_SHORT
+            )
+            logEvent("Deleted custom domain rule for ${cd.domain}")
+            dismiss()
+        }
+
+        builder.setNegativeButton(requireContext().getString(R.string.lbl_cancel)) { _, _ ->
+            // no-op
+        }
+        builder.create().show()
     }
 
     private fun showWgListBtmSheet(data: List<WgConfigFilesImmutable?>) {
@@ -470,7 +368,7 @@ class CustomDomainRulesBtmSheet :
 
     private fun showProxyCountriesBtmSheet(data: List<String>) {
         Logger.v(LOG_TAG_UI, "$TAG show countries(${data.size} for ${cd.domain}")
-        val bottomSheetFragment = ProxyCountriesBtmSheet.newInstance(ProxyCountriesBtmSheet.InputType.DOMAIN, cd,  data, this)
+        val bottomSheetFragment = ProxyCountriesBtmSheet.newInstance(ProxyCountriesBtmSheet.InputType.DOMAIN, cd, data, this)
         bottomSheetFragment.show(
             requireActivity().supportFragmentManager,
             bottomSheetFragment.tag

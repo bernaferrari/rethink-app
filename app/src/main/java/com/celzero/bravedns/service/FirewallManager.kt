@@ -465,8 +465,18 @@ object FirewallManager : KoinComponent {
 
     suspend fun isTombstone(packageName: String): Boolean {
         mutex.withLock {
-            return appInfos.values().any {
-                it.packageName == packageName && it.tombstoneTs > 0L
+            return try {
+                appInfos.values().any {
+                    it.packageName == packageName && it.tombstoneTs > 0L
+                }
+            } catch (e: NoSuchElementException) {
+                Logger.w(LOG_TAG_FIREWALL, "isTombstone iterator fault, using fallback: ${e.message}")
+                appInfos.asMap().values.flatten().any {
+                    it.packageName == packageName && it.tombstoneTs > 0L
+                }
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_FIREWALL, "isTombstone failed: ${e.message}", e)
+                false
             }
         }
     }
@@ -709,8 +719,8 @@ object FirewallManager : KoinComponent {
         mutex.withLock {
             appInfos.clear()
             apps.forEach { appInfos.put(it.uid, it) }
-            informObservers()
         }
+        informObservers()
         return apps.size
     }
 
@@ -914,7 +924,15 @@ object FirewallManager : KoinComponent {
 
     suspend fun getTombstoneApps(): List<AppInfo> {
         mutex.withLock {
-            return appInfos.values().filter { it.tombstoneTs > 0L }
+            return try {
+                appInfos.values().filter { it.tombstoneTs > 0L }
+            } catch (e: NoSuchElementException) {
+                Logger.w(LOG_TAG_FIREWALL, "getTombstoneApps iterator fault, using fallback: ${e.message}")
+                appInfos.asMap().values.flatten().filter { it.tombstoneTs > 0L }
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_FIREWALL, "getTombstoneApps failed: ${e.message}", e)
+                emptyList()
+            }
         }
     }
 
@@ -922,10 +940,11 @@ object FirewallManager : KoinComponent {
         return getAppInfoByUid(uid)?.isProxyExcluded ?: false
     }
 
-    fun stats(): String {
+    suspend fun stats(): String {
         // add count of apps in each firewall status
         val statusCount = HashMap<FirewallStatus, Int>()
-        appInfos.values().forEach {
+        // snapshot under lock to avoid iterator faults from concurrent writes
+        mutex.withLock { appInfos.values().toList() }.forEach {
             val status = FirewallStatus.getStatus(it.firewallStatus)
             statusCount[status] = (statusCount[status] ?: 0) + 1
         }
@@ -950,10 +969,92 @@ object FirewallManager : KoinComponent {
 
     data class AppInfoTuple(val uid: Int, val packageName: String)
 
-    private fun informObservers() {
+    private suspend fun snapshotAppInfos(): List<AppInfo> {
+        // Multi-level fallback strategy to handle iterator exceptions from Guava's HashMultimap
+        // These exceptions can occur even with mutex protection due to internal iterator state
+
+        // Strategy 1: Try direct toList() on values with defensive copy
+        return try {
+            mutex.withLock {
+                // Create a defensive copy to avoid iterator issues
+                val snapshot = mutableListOf<AppInfo>()
+                snapshot.addAll(appInfos.values())
+                snapshot.toList()
+            }
+        } catch (e: NoSuchElementException) {
+            Logger.w(LOG_TAG_FIREWALL, "snapshot retry after iterator fault: ${e.message}")
+
+            // Strategy 2: Try flattening from asMap (creates new view)
+            try {
+                mutex.withLock {
+                    val flattened = mutableListOf<AppInfo>()
+                    appInfos.asMap().values.forEach { values ->
+                        flattened.addAll(values)
+                    }
+                    flattened.toList()
+                }
+            } catch (e2: Exception) {
+                Logger.w(LOG_TAG_FIREWALL, "snapshot flatten failed: ${e2.message}")
+
+                // Strategy 3: Iterate keys individually (most defensive)
+                try {
+                    mutex.withLock {
+                        val result = mutableListOf<AppInfo>()
+                        val keys = try {
+                            appInfos.keySet().toList()  // Snapshot keys first
+                        } catch (ke: Exception) {
+                            Logger.w(LOG_TAG_FIREWALL, "snapshot keySet failed: ${ke.message}")
+                            emptyList<Int>()
+                        }
+                        for (uid in keys) {
+                            try {
+                                val infos = appInfos.get(uid)
+                                result.addAll(infos)
+                            } catch (ge: Exception) {
+                                // Skip this UID if it causes issues
+                                Logger.d(LOG_TAG_FIREWALL, "snapshot skipped uid $uid: ${ge.message}")
+                            }
+                        }
+                        result.toList()
+                    }
+                } catch (e3: Exception) {
+                    // Strategy 4: Last resort - return empty list (graceful degradation)
+                    Logger.e(LOG_TAG_FIREWALL, "snapshot all fallbacks failed: ${e3.message}", e3)
+                    emptyList()
+                }
+            }
+        } catch (e: ConcurrentModificationException) {
+            Logger.w(LOG_TAG_FIREWALL, "snapshot concurrent modification: ${e.message}")
+            // Retry once with fresh attempt using asMap approach
+            try {
+                mutex.withLock {
+                    val result = mutableListOf<AppInfo>()
+                    appInfos.asMap().values.forEach { values ->
+                        result.addAll(values)
+                    }
+                    result.toList()
+                }
+            } catch (retry: Exception) {
+                Logger.e(LOG_TAG_FIREWALL, "snapshot retry failed: ${retry.message}", retry)
+                emptyList()
+            }
+        } catch (e: Exception) {
+            // Catch-all for any unexpected exceptions
+            Logger.e(LOG_TAG_FIREWALL, "snapshot unexpected error: ${e.message}", e)
+            emptyList()
+        }
+    }
+
+    private suspend fun informObservers() {
         // existing code expects this to broadcast appInfos snapshot.
         // Use a snapshot to avoid exposing internal live collections.
-        appInfosLiveData.postValue(appInfos.values().toList())
+        try {
+            appInfosLiveData.postValue(snapshotAppInfos())
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_FIREWALL, "informObservers failed: ${e.message}", e)
+            // Post empty list to prevent observers from hanging
+            appInfosLiveData.postValue(emptyList())
+        }
     }
 
     fun isUnknownPackage(uid: Int): Boolean {

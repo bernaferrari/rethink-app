@@ -74,7 +74,7 @@
                         style="@style/TextAppearance.AppCompat.Subhead"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginBottom="10dp"
+                        android:layout_marginBottom="20dp"
                         android:gravity="center_vertical"
                         android:lineSpacingExtra="5dp"
                         android:paddingLeft="20dp"
@@ -90,7 +90,6 @@
                         android:layout_marginBottom="10dp"
                         android:gravity="center_vertical"
                         android:lineSpacingExtra="5dp"
-                        android:paddingTop="10dp"
                         android:paddingLeft="20dp"
                         android:paddingRight="20dp"
                         android:textSize="@dimen/large_font_text_view" />
@@ -119,6 +118,30 @@
                     android:paddingEnd="15dp"
                     android:paddingBottom="10dp"
                     android:text="@string/about_sponsor_link_text"
+                    android:textColor="?attr/secondaryTextColor"
+                    android:textSize="@dimen/large_font_text_view" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/about_manage_rpn"
+                    style="@style/TextAppearance.AppCompat.Subhead"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="25dp"
+                    android:layout_marginTop="10dp"
+                    android:layout_marginEnd="25dp"
+                    android:layout_marginBottom="30dp"
+                    android:background="@drawable/rectangle_border_background"
+                    android:clickable="true"
+                    android:drawableStart="@drawable/ic_rethink_plus"
+                    android:drawablePadding="-15dp"
+                    android:focusable="true"
+                    android:foreground="?attr/selectableItemBackground"
+                    android:gravity="center"
+                    android:paddingStart="15dp"
+                    android:paddingTop="10dp"
+                    android:paddingEnd="15dp"
+                    android:paddingBottom="10dp"
+                    android:text="Manage RPN"
                     android:textColor="?attr/secondaryTextColor"
                     android:textSize="@dimen/large_font_text_view" />
 
@@ -713,7 +736,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
                 android:background="?android:attr/selectableItemBackground"
-                android:drawableStart="@drawable/ic_backup"
+                android:drawableStart="@drawable/ic_flight_recorder"
                 android:drawablePadding="20dp"
                 android:gravity="start|center_vertical"
                 android:lineSpacingExtra="5dp"
@@ -735,6 +758,22 @@
                 android:lineSpacingExtra="5dp"
                 android:padding="5dp"
                 android:text="@string/event_logs_title"
+                android:textSize="@dimen/large_font_text_view" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/about_crash"
+                style="@style/TextAppearance.AppCompat.Subhead"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="10dp"
+                android:background="?android:attr/selectableItemBackground"
+                android:drawableStart="@drawable/ic_event_note"
+                android:drawablePadding="20dp"
+                android:gravity="start|center_vertical"
+                android:lineSpacingExtra="5dp"
+                android:padding="5dp"
+                android:text="Crash app"
                 android:textSize="@dimen/large_font_text_view" />
 
         </LinearLayout>

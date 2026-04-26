@@ -17,6 +17,10 @@
         <item>@string/url13</item>
         <item>@string/url14</item>
         <item>@string/url15</item>
+        <item>@string/url16</item>
+        <item>@string/url17</item>
+        <item>@string/url18</item>
+        <item>@string/url19</item>
     </string-array>
     <string-array name="ips">
         <item>@string/ips0</item>
@@ -35,5 +39,9 @@
         <item>@string/ips13</item>
         <item>@string/ips14</item>
         <item>@string/ips15</item>
+        <item>@string/ips16</item>
+        <item>@string/ips17</item>
+        <item>@string/ips18</item>
+        <item>@string/ips19</item>
     </string-array>
 </resources>

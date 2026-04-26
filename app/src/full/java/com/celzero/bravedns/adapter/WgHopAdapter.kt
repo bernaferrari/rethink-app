@@ -40,6 +40,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+/**
+ * Adapter for WireGuard configuration hopping
+ * 
+ * NOTE: For new implementations, consider using GenericHopAdapter which supports
+ * both WireGuard configs and RPN proxies through the HopItem sealed interface.
+ * This adapter is kept for backwards compatibility.
+ */
 class WgHopAdapter(
     private val context: Context,
     private val srcId: Int,
@@ -65,6 +72,10 @@ class WgHopAdapter(
     }
 
     override fun onBindViewHolder(holder: HopViewHolder, position: Int) {
+        if (position < 0 || position >= itemCount) {
+            Logger.w(LOG_TAG_UI, "$TAG; Invalid position $position for itemCount $itemCount")
+            return
+        }
         holder.update(hopables[position])
     }
 
@@ -158,7 +169,7 @@ class WgHopAdapter(
 
         private fun updatePropertiesChip(config: Config) {
             val mapping = WireguardManager.getConfigFilesById(config.getId()) ?: return
-            if (!mapping.isCatchAll && !mapping.useOnlyOnMetered && !mapping.ssidEnabled) {
+            if (!mapping.isCatchAll && !mapping.isLockdown && !mapping.useOnlyOnMetered && !mapping.ssidEnabled) {
                 b.chipProperties.visibility = View.GONE
                 return
             }
@@ -166,6 +177,14 @@ class WgHopAdapter(
             if (mapping.isCatchAll) {
                 b.chipProperties.visibility = View.VISIBLE
                 b.chipProperties.text = context.getString(R.string.symbol_lightening)
+            }
+            if (mapping.isLockdown) {
+                b.chipProperties.visibility = View.VISIBLE
+                b.chipProperties.text = context.getString(
+                    R.string.two_argument_space,
+                    b.chipProperties.text.toString(),
+                    context.getString(R.string.symbol_lockdown)
+                )
             }
             if (mapping.useOnlyOnMetered) {
                 b.chipProperties.visibility = View.VISIBLE

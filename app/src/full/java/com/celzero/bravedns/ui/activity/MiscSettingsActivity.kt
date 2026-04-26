@@ -42,7 +42,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.AppCompatEditText
 import androidx.appcompat.widget.AppCompatTextView
@@ -78,6 +78,7 @@ import com.celzero.bravedns.util.PcapMode
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
 import com.celzero.bravedns.util.UIUtils.openUrl
+import com.celzero.bravedns.util.SnackbarHelper
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.delay
 import com.celzero.bravedns.util.Utilities.getRandomString
@@ -99,7 +100,7 @@ import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
 
-class MiscSettingsActivity : AppCompatActivity(R.layout.activity_misc_settings) {
+class MiscSettingsActivity : BaseActivity(R.layout.activity_misc_settings) {
     private val b by viewBinding(ActivityMiscSettingsBinding::bind)
 
     private val persistentState by inject<PersistentState>()
@@ -133,19 +134,18 @@ class MiscSettingsActivity : AppCompatActivity(R.layout.activity_misc_settings) 
         const val THEME_CHANGED_RESULT = 24
         private const val KEY_THEME_CHANGE = "key_theme_change"
         private const val CLICK_DELAY_SHORT_MS = 500L
-        private const val CLICK_DELAY_LONG_MS = 1000L
         private const val GO_LOG_LEVEL_EXTREME = 7
         private const val GO_LOG_LEVEL_EXTREME_DISPLAY = 8
 
         // Biometric type constants
-        private val BIOMETRIC_ACTION_OFF = 0
-        private val BIOMETRIC_ACTION_IMMEDIATE = 1
-        private val BIOMETRIC_ACTION_FIVE_MIN = 2
-        private val BIOMETRIC_ACTION_FIFTEEN_MIN = 3
-        private val BIOMETRIC_MINS_OFF = -1L
-        private val BIOMETRIC_MINS_IMMEDIATE = 0L
-        private val BIOMETRIC_MINS_FIVE = 5L
-        private val BIOMETRIC_MINS_FIFTEEN = 15L
+        private const val BIOMETRIC_ACTION_OFF = 0
+        private const val BIOMETRIC_ACTION_IMMEDIATE = 1
+        private const val BIOMETRIC_ACTION_FIVE_MIN = 2
+        private const val BIOMETRIC_ACTION_FIFTEEN_MIN = 3
+        private const val BIOMETRIC_MINS_OFF = -1L
+        private const val BIOMETRIC_MINS_IMMEDIATE = 0L
+        private const val BIOMETRIC_MINS_FIVE = 5L
+        private const val BIOMETRIC_MINS_FIFTEEN = 15L
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -211,8 +211,8 @@ class MiscSettingsActivity : AppCompatActivity(R.layout.activity_misc_settings) 
         b.settingsActivityEnableLogsSwitch.isChecked = persistentState.logsEnabled
         // set log level name in the  description
         b.genSettingsGoLogDesc.text =
-            Logger.LoggerLevel.fromId(persistentState.goLoggerLevel.toInt()).name.lowercase()
-                .replaceFirstChar(Char::titlecase).replace("_", " ")
+            Logger.LoggerLevel.fromId(persistentState.goLoggerLevel.toInt())?.name?.lowercase()
+                ?.replaceFirstChar(Char::titlecase)?.replace("_", " ")
 
 
         // for app locale (default system/user selected locale)
@@ -643,7 +643,9 @@ class MiscSettingsActivity : AppCompatActivity(R.layout.activity_misc_settings) 
             persistentState.prefAutoStartBootUp = b
             if (b) {
                 // Enable experimental-dependent settings when experimental features are enabled
-                persistentState.enableStabilityDependentSettings(this)
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(window.decorView, persistentState)
+                }
             }
             logEvent("Auto start on boot set to $b")
         }
@@ -773,9 +775,9 @@ class MiscSettingsActivity : AppCompatActivity(R.layout.activity_misc_settings) 
             GoVpnAdapter.setLogLevel(persistentState.goLoggerLevel.toInt())
             updateConfigLevel(persistentState.goLoggerLevel)
             val logLevel = if (persistentState.goLoggerLevel.toInt() == GO_LOG_LEVEL_EXTREME) GO_LOG_LEVEL_EXTREME_DISPLAY else persistentState.goLoggerLevel.toInt()
-            b.genSettingsGoLogDesc.text = Logger.LoggerLevel.fromId(logLevel).name.lowercase()
-                    .replaceFirstChar(Char::titlecase).replace("_", " ")
-            logEvent("Go log level set to ${Logger.LoggerLevel.fromId(logLevel).name}")
+            b.genSettingsGoLogDesc.text = Logger.LoggerLevel.fromId(logLevel)?.name?.lowercase()
+                    ?.replaceFirstChar(Char::titlecase)?.replace("_", " ")
+            logEvent("Go log level set to ${Logger.LoggerLevel.fromId(logLevel)?.name}")
         }
         alertBuilder.create().show()
     }

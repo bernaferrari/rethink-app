@@ -18,42 +18,41 @@ package com.celzero.bravedns.viewmodel
 import Logger
 import Logger.LOG_TAG_UI
 import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
+import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
 import com.celzero.bravedns.database.ConsoleLog
 import com.celzero.bravedns.database.ConsoleLogDAO
 import com.celzero.bravedns.util.Constants
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 class ConsoleLogViewModel(private val dao: ConsoleLogDAO) : ViewModel() {
-    private var filter: MutableLiveData<String> = MutableLiveData()
-    private var logLevel: Long = Logger.LoggerLevel.ERROR.id
-    init {
-        filter.postValue("")
-    }
 
-    val logs = filter.switchMap { input: String -> getLogs(input) }
+    private data class QueryParams(val filter: String = "", val minLevel: Int = 0)
 
-    private fun getLogs(filter: String): LiveData<PagingData<ConsoleLog>> {
-        val query = "%$filter%"
-        return Pager(pagingConfig) { dao.getLogs(query) }
-            .liveData
-            .cachedIn(viewModelScope)
-    }
-    
-    val pagingConfig = PagingConfig(
+    private val queryParams = MutableStateFlow(QueryParams())
+
+    private val pagingConfig = PagingConfig(
         pageSize = Constants.LIVEDATA_PAGE_SIZE,
-        enablePlaceholders = false,  // Prevents position issues
+        enablePlaceholders = false,
         prefetchDistance = 10
     )
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val logs: LiveData<PagingData<ConsoleLog>> = queryParams
+        .flatMapLatest { params ->
+            Pager(pagingConfig) {
+                dao.getLogs("%${params.filter}%", params.minLevel)
+            }.flow
+        }
+        .cachedIn(viewModelScope)
+        .asLiveData()
 
     suspend fun sinceTime(): Long {
         return try {
@@ -65,13 +64,10 @@ class ConsoleLogViewModel(private val dao: ConsoleLogDAO) : ViewModel() {
     }
 
     fun setLogLevel(level: Long) {
-        logLevel = level
+        queryParams.value = queryParams.value.copy(minLevel = level.toInt())
     }
 
     fun setFilter(filter: String) {
-        viewModelScope.launch {
-            delay(100) // Prevent rapid updates
-            this@ConsoleLogViewModel.filter.postValue(filter)
-        }
+        queryParams.value = queryParams.value.copy(filter = filter)
     }
 }

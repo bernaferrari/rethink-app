@@ -20,7 +20,7 @@ import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
@@ -36,7 +36,7 @@ import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class DomainConnectionsActivity : AppCompatActivity(R.layout.activity_domain_connections){
+class DomainConnectionsActivity : BaseActivity(R.layout.activity_domain_connections){
     private val b by viewBinding(ActivityDomainConnectionsBinding::bind)
     private val persistentState by inject<PersistentState>()
     private val viewModel by viewModel<DomainConnectionsViewModel>()

@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.database
 
+import com.celzero.bravedns.iab.ServerOrderHistoryRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.dsl.module
 
@@ -47,6 +48,7 @@ object DatabaseModule {
         single { get<AppDatabase>().wgHopMapDao() }
         single { get<AppDatabase>().subscriptionStatusDao() }
         single { get<AppDatabase>().subscriptionStateHistoryDao()}
+        single { get<AppDatabase>().countryConfigDAO() }
 
         single { get<LogDatabase>().connectionTrackerDAO() }
         single { get<LogDatabase>().dnsLogDAO() }
@@ -82,6 +84,7 @@ object DatabaseModule {
         single { get<AppDatabase>().wgHopMapRepository() }
         single { get<AppDatabase>().subscriptionStatusRepository() }
         single { get<AppDatabase>().subscriptionStateHistoryDao() }
+        single { get<AppDatabase>().countryConfigRepository() }
 
         single { get<LogDatabase>().rethinkConnectionLogRepository() }
         single { get<LogDatabase>().connectionTrackerRepository() }
@@ -89,6 +92,8 @@ object DatabaseModule {
         single { get<LogDatabase>().ipInfoRepository() }
 
         single { get<ConsoleLogDatabase>().consoleLogRepository() }
+
+        single { ServerOrderHistoryRepository(get()) }
     }
 
     val modules = listOf(databaseModule, daoModule, repositoryModule)

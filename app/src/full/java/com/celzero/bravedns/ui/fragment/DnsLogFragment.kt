@@ -36,6 +36,7 @@ import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.DnsLogRepository
 import com.celzero.bravedns.databinding.FragmentDnsLogsBinding
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.activity.NetworkLogsActivity.Companion.RULES_SEARCH_ID_RPN
 import com.celzero.bravedns.ui.activity.NetworkLogsActivity.Companion.RULES_SEARCH_ID_WIREGUARD
 import com.celzero.bravedns.ui.activity.UniversalFirewallSettingsActivity
 import com.celzero.bravedns.util.Constants
@@ -63,6 +64,7 @@ class DnsLogFragment : Fragment(R.layout.fragment_dns_logs), SearchView.OnQueryT
     private var filterType = DnsLogFilter.ALL
 
     private var fromWireGuardScreen: Boolean = false
+    private var fromRpnScreen: Boolean = false
 
     private val dnsLogRepository by inject<DnsLogRepository>()
     private val persistentState by inject<PersistentState>()
@@ -94,10 +96,15 @@ class DnsLogFragment : Fragment(R.layout.fragment_dns_logs), SearchView.OnQueryT
         if (arguments != null) {
             val query = arguments?.getString(Constants.SEARCH_QUERY) ?: ""
             fromWireGuardScreen = query.contains(RULES_SEARCH_ID_WIREGUARD)
+            fromRpnScreen = query.contains(RULES_SEARCH_ID_RPN)
             if (fromWireGuardScreen) {
                 val wgId = query.substringAfter(RULES_SEARCH_ID_WIREGUARD)
                 hideSearchLayout()
                 viewModel.setIsWireGuardLogs(true, wgId)
+            } else if (fromRpnScreen) {
+                val rpnId = query.substringAfter(RULES_SEARCH_ID_RPN)
+                hideSearchLayout()
+                viewModel.setIsRpnLogs(true, rpnId)
             } else {
                 if (query.isEmpty()) return
                 if (query.contains(UniversalFirewallSettingsActivity.RULES_SEARCH_ID)) {

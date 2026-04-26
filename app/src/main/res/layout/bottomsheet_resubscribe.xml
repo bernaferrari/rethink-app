@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/background"
+    android:fillViewport="true">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="24dp"
+        android:paddingTop="12dp"
+        android:paddingEnd="24dp"
+        android:paddingBottom="32dp">
+
+        <View
+            android:id="@+id/drag_handle"
+            android:layout_width="40dp"
+            android:layout_height="4dp"
+            android:background="?attr/divider"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatImageView
+            android:id="@+id/icon_resubscribe"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
+            android:layout_marginTop="20dp"
+            android:src="@drawable/ic_rethink_plus_sparkle"
+            app:tint="?attr/accentGood"
+            android:scaleType="centerInside"
+            app:layout_constraintTop_toBottomOf="@id/drag_handle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tv_title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/resubscribe_sheet_title"
+            android:textAlignment="center"
+            android:textColor="?attr/primaryTextColor"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            app:layout_constraintTop_toBottomOf="@id/icon_resubscribe"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tv_description"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/resubscribe_sheet_description"
+            android:textAlignment="center"
+            android:textColor="?attr/primaryLightColorText"
+            android:textSize="14sp"
+            android:lineSpacingMultiplier="1.4"
+            app:layout_constraintTop_toBottomOf="@id/tv_title"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/plan_card"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            app:cardCornerRadius="12dp"
+            app:cardElevation="0dp"
+            app:strokeWidth="1dp"
+            app:strokeColor="?attr/divider"
+            app:layout_constraintTop_toBottomOf="@id/tv_description"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/resubscribe_sheet_plan_label"
+                    android:textColor="?attr/primaryTextColor"
+                    android:textSize="13sp" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tv_plan_name"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/primaryTextColor"
+                    android:textSize="13sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+        </com.google.android.material.card.MaterialCardView>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_resubscribe"
+            style="@style/Widget.Material3.Button"
+            android:layout_width="0dp"
+            android:layout_height="56dp"
+            android:layout_marginTop="24dp"
+            android:text="@string/resubscribe_btn_confirm"
+            android:textAllCaps="false"
+            android:textSize="@dimen/extra_large_font_text_view"
+            android:textStyle="bold"
+            app:cornerRadius="12dp"
+            app:backgroundTint="?attr/accentGood"
+            android:textColor="?attr/homeScreenHeaderTextColor"
+            app:layout_constraintTop_toBottomOf="@id/plan_card"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.progressindicator.LinearProgressIndicator
+            android:id="@+id/progress_resubscribe"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"
+            android:indeterminate="true"
+            android:visibility="gone"
+            app:indicatorColor="?attr/accentGood"
+            app:trackColor="?attr/chipBgColorPositive"
+            app:layout_constraintTop_toBottomOf="@id/btn_resubscribe"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_not_now"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginTop="4dp"
+            android:text="@string/resubscribe_btn_not_now"
+            android:textAllCaps="false"
+            android:textColor="?attr/primaryLightColorText"
+            android:textSize="@dimen/default_font_text_view"
+            app:layout_constraintTop_toBottomOf="@id/progress_resubscribe"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.core.widget.NestedScrollView>
+

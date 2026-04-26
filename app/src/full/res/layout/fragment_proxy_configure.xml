@@ -30,25 +30,31 @@
             android:visibility="visible"
             app:drawableStartCompat="@drawable/dis_allowed" />
 
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/rpn_title"
-            style="@style/TextAppearance.AppCompat.Subhead"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="55dp"
-            android:fontFamily="sans-serif-smallcaps"
-            android:lineSpacingExtra="5dp"
-            android:padding="5dp"
-            android:visibility="gone"
-            android:text="Rethink Proxy Network (RPN)"
-            android:textColor="?attr/accentGood"
-            android:textSize="@dimen/extra_large_font_text_view"
-            android:textStyle="bold" />
+        <RelativeLayout
+            android:id="@+id/rpn_header"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/rpn_title"
+                style="@style/TextAppearance.AppCompat.Subhead"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_centerVertical="true"
+                android:layout_marginStart="55dp"
+                android:fontFamily="sans-serif-smallcaps"
+                android:lineSpacingExtra="5dp"
+                android:padding="5dp"
+                android:text="@string/rethink_plus_title"
+                android:textColor="?attr/accentGood"
+                android:textSize="@dimen/extra_large_font_text_view"
+                android:textStyle="bold" />
+
+        </RelativeLayout>
 
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone">
+            android:layout_height="wrap_content">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -57,12 +63,11 @@
 
                 <RelativeLayout
                     android:id="@+id/settings_activity_rpn_container"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:background="?android:attr/selectableItemBackground"
                     android:paddingTop="15dp"
-                    android:paddingBottom="15dp"
-                    android:visibility="visible">
+                    android:paddingBottom="15dp">
 
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/settings_activity_rpn_icon"
@@ -71,10 +76,10 @@
                         android:layout_centerVertical="true"
                         android:layout_marginStart="5dp"
                         android:layout_marginTop="5dp"
+                        android:alpha="0.5"
                         android:layout_marginEnd="5dp"
                         android:layout_marginBottom="5dp"
                         android:padding="10dp"
-                        android:alpha="0.5"
                         android:src="@drawable/ic_rethink_plus_sparkle" />
 
                     <LinearLayout
@@ -90,7 +95,7 @@
                             style="@style/TextAppearance.AppCompat.Subhead"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Rethink's Proxy Network"
+                            android:text="@string/proxy_rpn_heading"
                             android:textSize="@dimen/large_font_text_view" />
 
                         <androidx.appcompat.widget.AppCompatTextView
@@ -100,8 +105,9 @@
                             android:layout_gravity="center_vertical"
                             android:paddingTop="5dp"
                             android:paddingBottom="5dp"
-                            android:text="Reimagine the way you use the internet"
+                            android:text="@string/proxy_rpn_desc_inactive"
                             android:textSize="@dimen/default_font_text_view" />
+
                     </LinearLayout>
 
                     <androidx.appcompat.widget.AppCompatImageView

@@ -20,7 +20,7 @@ import Logger.LOG_TAG_UI
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import com.celzero.bravedns.R
@@ -34,7 +34,7 @@ import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import org.koin.android.ext.android.inject
 
-class ConfigureRethinkBasicActivity : AppCompatActivity(R.layout.fragment_rethink_basic) {
+class ConfigureRethinkBasicActivity : BaseActivity(R.layout.fragment_rethink_basic) {
     private val persistentState by inject<PersistentState>()
 
     enum class FragmentLoader {

@@ -20,11 +20,15 @@ import Logger.LOG_TAG_SCHEDULER
 import android.app.Application
 import android.content.pm.ApplicationInfo
 import android.os.StrictMode
+import com.celzero.bravedns.scheduler.EnhancedBugReport
 import com.celzero.bravedns.scheduler.ScheduleManager
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.util.FirebaseErrorReporting
 import com.celzero.bravedns.util.GlobalExceptionHandler
+import com.celzero.bravedns.util.GoReportingHandler
+import com.celzero.firestack.intra.Intra
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
@@ -49,13 +53,22 @@ class RethinkDnsApplication : Application() {
             koin.loadModules(AppModules)
         }
 
+        val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
         // Initialize global exception handler
         GlobalExceptionHandler.initialize(this)
         FirebaseErrorReporting.initialize()
+        GoReportingHandler.initialize(appScope, this)
+
+        // On every app start, report any tombstone files from the previous session
+        val appCtx = this
+        appScope.launch(Dispatchers.IO) {
+            EnhancedBugReport.reportTombstonesToFirebaseOnStartup(appCtx)
+        }
 
         turnOnStrictMode()
 
-        CoroutineScope(SupervisorJob()).launch {
+        appScope.launch {
             scheduleJobs()
         }
     }

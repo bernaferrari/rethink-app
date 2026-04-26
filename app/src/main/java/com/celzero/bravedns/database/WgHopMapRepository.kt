@@ -32,8 +32,12 @@ class WgHopMapRepository(private val dao: WgHopMapDao) {
         return dao.insert(map)
     }
 
-    suspend fun getAll(): List<WgHopMap> {
-        return dao.getAll()
+    suspend fun getAllWgs(): List<WgHopMap> {
+        return dao.getAllWgs()
+    }
+
+    suspend fun getAllRpn(): List<WgHopMap> {
+        return dao.getAllRpn()
     }
 
     suspend fun getBySrc(src: String): WgHopMap? {
