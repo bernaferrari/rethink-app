@@ -233,6 +233,11 @@ android {
         }
     }
 
+    // required for google play developer api model classes
+    packaging {
+        resources.excludes += "META-INF/INDEX.LIST"
+    }
+
     flavorDimensions = ["releaseChannel", "releaseType"]
     productFlavors {
         play {
@@ -268,14 +273,14 @@ configurations {
 def firestackRepo = project.findProperty("firestackRepo") ?: "github"
 def firestackCommit = project.findProperty("firestackCommit") ?: "main"
 
-def firestackDependency = { suffix = ":debug" ->
+def firestackDependency = { ->
     switch (firestackRepo) {
         case "jitpack":
-            return "com.github.celzero:firestack:$firestackCommit${suffix}@aar"
+            return "com.github.celzero:firestack:$firestackCommit@aar"
         case "github":
-            return "com.github.celzero:firestack:$firestackCommit${suffix}@aar"
+            return "com.github.celzero:firestack:$firestackCommit@aar"
         case "ossrh":
-            return "com.celzero:firestack:$firestackCommit${suffix}@aar"
+            return "com.celzero:firestack:$firestackCommit@aar"
         default:
             throw new GradleException("Unknown firestackRepo: $firestackRepo")
     }
@@ -419,6 +424,25 @@ dependencies {
     // for stripe payment gateway
     //websiteImplementation 'com.stripe:stripe-android:21.21.0'
     //fdroidImplementation 'com.stripe:stripe-android:21.21.0'
+
+    // google play developer api model classes (ProductPurchaseV2, SubscriptionPurchaseV2, …)
+    // Only model classes + GsonFactory are needed, Apache HTTP transport is excluded.
+    // The version v3-rev20240301-2.0.0 cited in the API docs does not exist on Maven Central;
+    // v3-rev20260318-2.0.0 is the closest available release with the same model classes.
+    // ref: github.com/googleapis/google-api-java-client-services/tree/main/clients/google-api-services-androidpublisher/v3
+    playImplementation('com.google.apis:google-api-services-androidpublisher:v3-rev20260318-2.0.0') {
+        // Exclude Apache HTTP transport, conflicts with Android's built-in HTTP stack
+        exclude group: 'com.google.http-client', module: 'google-http-client-apache-v2'
+        exclude group: 'org.apache.httpcomponents'
+        // Exclude OAuth, not needed for model-only parsing
+        exclude group: 'com.google.oauth-client'
+    }
+    websiteImplementation('com.google.apis:google-api-services-androidpublisher:v3-rev20260318-2.0.0') {
+        exclude group: 'com.google.http-client', module: 'google-http-client-apache-v2'
+        exclude group: 'org.apache.httpcomponents'
+        exclude group: 'com.google.oauth-client'
+    }
+
 
     lintChecks 'com.android.security.lint:lint:1.0.4'
 
