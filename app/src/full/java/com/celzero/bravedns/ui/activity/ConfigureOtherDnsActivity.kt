@@ -18,7 +18,7 @@ package com.celzero.bravedns.ui.activity
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -37,7 +37,7 @@ import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.google.android.material.tabs.TabLayoutMediator
 import org.koin.android.ext.android.inject
 
-class ConfigureOtherDnsActivity : AppCompatActivity(R.layout.activity_configure_other_dns) {
+class ConfigureOtherDnsActivity : BaseActivity(R.layout.activity_configure_other_dns) {
     private val b by viewBinding(ActivityConfigureOtherDnsBinding::bind)
 
     private val persistentState by inject<PersistentState>()

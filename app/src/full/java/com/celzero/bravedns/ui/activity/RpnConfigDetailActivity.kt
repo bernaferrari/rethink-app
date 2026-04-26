@@ -41,7 +41,7 @@ import android.text.style.StyleSpan
 import android.text.style.TypefaceSpan
 import android.view.View
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -90,7 +90,7 @@ import kotlin.math.abs
  * Stats card: The poll runs every [STATS_POLL_MS] milliseconds while the activity
  * is resumed, and is canceled on pause so it does not drain battery in the background.
  */
-class RpnConfigDetailActivity : AppCompatActivity(R.layout.activity_rpn_config_detail) {
+class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail) {
     private val b by viewBinding(ActivityRpnConfigDetailBinding::bind)
     private val persistentState by inject<PersistentState>()
     private val mappingViewModel: ProxyAppsMappingViewModel by viewModel()

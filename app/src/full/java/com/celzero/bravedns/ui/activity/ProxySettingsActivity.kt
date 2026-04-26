@@ -36,7 +36,7 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -82,7 +82,7 @@ import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
 
-class ProxySettingsActivity : AppCompatActivity(R.layout.fragment_proxy_configure) {
+class ProxySettingsActivity : BaseActivity(R.layout.fragment_proxy_configure) {
     private val b by viewBinding(FragmentProxyConfigureBinding::bind)
 
     private val persistentState by inject<PersistentState>()

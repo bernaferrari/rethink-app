@@ -26,7 +26,7 @@ import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
 import android.os.SystemClock
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.biometric.BiometricManager
 import androidx.biometric.BiometricPrompt
 import androidx.core.content.ContextCompat
@@ -44,7 +44,7 @@ import java.util.concurrent.Executor
 import java.util.concurrent.TimeUnit
 import kotlin.math.abs
 
-class AppLockActivity : AppCompatActivity(R.layout.activity_app_lock) {
+class AppLockActivity : BaseActivity(R.layout.activity_app_lock) {
     private val persistentState by inject<PersistentState>()
 
     private lateinit var executor: Executor

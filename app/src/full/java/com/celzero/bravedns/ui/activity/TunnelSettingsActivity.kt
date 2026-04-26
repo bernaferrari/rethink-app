@@ -26,7 +26,7 @@ import android.widget.ArrayAdapter
 import android.widget.CompoundButton
 import android.widget.SeekBar
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.appcompat.widget.AppCompatRadioButton
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.WindowInsetsControllerCompat
@@ -57,7 +57,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
 
-class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settings) {
+class TunnelSettingsActivity : BaseActivity(R.layout.activity_tunnel_settings) {
     private val b by viewBinding(ActivityTunnelSettingsBinding::bind)
     private val persistentState by inject<PersistentState>()
     private val appConfig by inject<AppConfig>()

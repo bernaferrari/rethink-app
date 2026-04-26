@@ -19,7 +19,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
@@ -32,7 +32,7 @@ import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import org.koin.android.ext.android.inject
 
-class AdvancedSettingActivity : AppCompatActivity(R.layout.activity_advanced_setting) {
+class AdvancedSettingActivity : BaseActivity(R.layout.activity_advanced_setting) {
     private val persistentState by inject<PersistentState>()
     private val b by viewBinding(ActivityAdvancedSettingBinding::bind)
 

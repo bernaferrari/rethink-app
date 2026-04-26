@@ -19,7 +19,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
-class DnsListActivity : AppCompatActivity(R.layout.activity_other_dns_list) {
+class DnsListActivity : BaseActivity(R.layout.activity_other_dns_list) {
     private val b by viewBinding(ActivityOtherDnsListBinding::bind)
 
     private val persistentState by inject<PersistentState>()

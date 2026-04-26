@@ -28,7 +28,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.text.HtmlCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.viewpager.widget.PagerAdapter
@@ -43,7 +43,7 @@ import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import org.koin.android.ext.android.inject
 
-class WelcomeActivity : AppCompatActivity(R.layout.activity_welcome) {
+class WelcomeActivity : BaseActivity(R.layout.activity_welcome) {
 
     private val b by viewBinding(ActivityWelcomeBinding::bind)
     private lateinit var dots: Array<androidx.appcompat.widget.AppCompatTextView?>

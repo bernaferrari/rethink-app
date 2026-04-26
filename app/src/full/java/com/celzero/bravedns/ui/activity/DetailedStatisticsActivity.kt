@@ -20,7 +20,7 @@ import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
 import android.view.View
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.LiveData
 import androidx.paging.PagingData
@@ -41,7 +41,7 @@ import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
-class DetailedStatisticsActivity : AppCompatActivity(R.layout.activity_detailed_statistics) {
+class DetailedStatisticsActivity : BaseActivity(R.layout.activity_detailed_statistics) {
     private val b by viewBinding(ActivityDetailedStatisticsBinding::bind)
 
     private val persistentState by inject<PersistentState>()

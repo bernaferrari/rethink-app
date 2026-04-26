@@ -25,7 +25,7 @@ import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.RadioButton
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
@@ -51,7 +51,7 @@ import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.UUID
 
-class CheckoutActivity : AppCompatActivity(R.layout.activity_checkout_proxy) {
+class CheckoutActivity : BaseActivity(R.layout.activity_checkout_proxy) {
     private val b by viewBinding(ActivityCheckoutProxyBinding::bind)
     private val persistentState by inject<PersistentState>()
 

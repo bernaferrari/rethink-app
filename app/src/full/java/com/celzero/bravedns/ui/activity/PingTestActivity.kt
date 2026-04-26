@@ -27,7 +27,7 @@ import android.view.animation.OvershootInterpolator
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
@@ -48,7 +48,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
-class PingTestActivity : AppCompatActivity(R.layout.activity_ping_test) {
+class PingTestActivity : BaseActivity(R.layout.activity_ping_test) {
     private val b by viewBinding(ActivityPingTestBinding::bind)
 
     private val persistentState by inject<PersistentState>()

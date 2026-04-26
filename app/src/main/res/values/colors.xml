@@ -494,4 +494,10 @@
     <color name="tourBtnTextLight">#FFFFFF</color>
     <color name="tourBtnTextDark">#000000</color>
 
+    <!-- Alpha build accent — purple shades used as theme overlay for pre-release builds.
+         alpha_accent_dark  : Purple 200 (#CE93D8) — legible on dark/black backgrounds.
+         alpha_accent_light : Purple 700 (#7B1FA2) — sufficient contrast on white/light backgrounds. -->
+    <color name="alpha_accent_dark">#CE93D8</color>
+    <color name="alpha_accent_light">#7B1FA2</color>
+
 </resources>

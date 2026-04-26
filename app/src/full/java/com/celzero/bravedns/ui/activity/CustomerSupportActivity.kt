@@ -25,7 +25,7 @@ import android.net.Uri
 import android.os.Bundle
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
@@ -57,7 +57,7 @@ import kotlin.text.ifEmpty
 /**
  * CustomerSupportActivity: lets users submit a support request via email.
  */
-class CustomerSupportActivity : AppCompatActivity(R.layout.activity_customer_support) {
+class CustomerSupportActivity : BaseActivity(R.layout.activity_customer_support) {
 
     private val b by viewBinding(ActivityCustomerSupportBinding::bind)
 

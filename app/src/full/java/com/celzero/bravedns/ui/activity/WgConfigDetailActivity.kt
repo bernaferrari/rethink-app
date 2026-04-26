@@ -26,7 +26,7 @@ import android.text.format.DateUtils
 import android.view.View
 import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
@@ -82,7 +82,7 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import kotlin.getValue
 
-class WgConfigDetailActivity : AppCompatActivity(R.layout.activity_wg_detail) {
+class WgConfigDetailActivity : BaseActivity(R.layout.activity_wg_detail) {
     private val b by viewBinding(ActivityWgDetailBinding::bind)
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()

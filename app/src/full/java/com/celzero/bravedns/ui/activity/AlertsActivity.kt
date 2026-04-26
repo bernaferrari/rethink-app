@@ -15,10 +15,10 @@
  */
 package com.celzero.bravedns.ui.activity
 
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import com.celzero.bravedns.R
 
-class AlertsActivity : AppCompatActivity(R.layout.activity_alerts) {
+class AlertsActivity : BaseActivity(R.layout.activity_alerts) {
 
     /*private val b by viewBinding(ActivityAlertsBinding::bind)
     private var alertAdapter: AlertAdapter? = null

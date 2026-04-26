@@ -20,7 +20,7 @@ import Logger.LOG_TAG_UI
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -53,7 +53,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
  * transitions stored in Room), this activity always fetches fresh data from
  * the server, giving the user an accurate view of what the server holds.
  */
-class ServerOrderHistoryActivity : AppCompatActivity(R.layout.activity_server_order_history) {
+class ServerOrderHistoryActivity : BaseActivity(R.layout.activity_server_order_history) {
 
     private val b by viewBinding(ActivityServerOrderHistoryBinding::bind)
     private val viewModel: ServerOrderHistoryViewModel by viewModel()

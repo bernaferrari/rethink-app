@@ -20,7 +20,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.activity.addCallback
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.lifecycle.lifecycleScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -66,7 +66,7 @@ import org.koin.android.ext.android.inject
  * - Material Design 3 UI
  * - Works with Android's system bubble framework (not custom overlays)
  */
-class BubbleActivity : AppCompatActivity(R.layout.activity_bubble) {
+class BubbleActivity : BaseActivity(R.layout.activity_bubble) {
     private val b by viewBinding(ActivityBubbleBinding::bind)
 
     private val persistentState by inject<PersistentState>()

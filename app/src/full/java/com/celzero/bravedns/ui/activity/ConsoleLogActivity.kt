@@ -28,7 +28,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
@@ -64,7 +64,7 @@ import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 import java.io.File
 
-class ConsoleLogActivity : AppCompatActivity(R.layout.activity_console_log), androidx.appcompat.widget.SearchView.OnQueryTextListener {
+class ConsoleLogActivity : BaseActivity(R.layout.activity_console_log), androidx.appcompat.widget.SearchView.OnQueryTextListener {
 
     private val b by viewBinding(ActivityConsoleLogBinding::bind)
     private var layoutManager: RecyclerView.LayoutManager? = null

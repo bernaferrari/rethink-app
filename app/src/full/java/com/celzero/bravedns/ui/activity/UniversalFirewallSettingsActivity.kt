@@ -26,7 +26,7 @@ import android.provider.Settings
 import android.view.View
 import android.widget.CompoundButton
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -57,7 +57,7 @@ import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
 class UniversalFirewallSettingsActivity :
-    AppCompatActivity(R.layout.activity_universal_firewall_settings) {
+    BaseActivity(R.layout.activity_universal_firewall_settings) {
     private val b by viewBinding(ActivityUniversalFirewallSettingsBinding::bind)
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()

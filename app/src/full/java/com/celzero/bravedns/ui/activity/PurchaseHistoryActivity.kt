@@ -20,7 +20,7 @@ import Logger.LOG_TAG_UI
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.paging.LoadState
@@ -50,7 +50,7 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
  * the SubscriptionStateHistory table, loaded in pages of 30 rows at a time
  * (using Paging 3) to avoid an ANR on devices with thousands of records.
  */
-class PurchaseHistoryActivity : AppCompatActivity(R.layout.activity_purchase_history) {
+class PurchaseHistoryActivity : BaseActivity(R.layout.activity_purchase_history) {
 
     private val b by viewBinding(ActivityPurchaseHistoryBinding::bind)
     private val viewModel: PurchaseHistoryViewModel by viewModel()

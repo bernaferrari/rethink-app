@@ -30,7 +30,7 @@ import android.view.animation.RotateAnimation
 import android.widget.CompoundButton
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.TooltipCompat
 import androidx.core.content.ContextCompat
@@ -68,7 +68,7 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AppListActivity :
-    AppCompatActivity(R.layout.activity_app_list), SearchView.OnQueryTextListener {
+    BaseActivity(R.layout.activity_app_list), SearchView.OnQueryTextListener {
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()
     private val b by viewBinding(ActivityAppListBinding::bind)
