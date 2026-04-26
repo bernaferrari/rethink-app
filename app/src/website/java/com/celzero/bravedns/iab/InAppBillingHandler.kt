@@ -775,6 +775,7 @@ object InAppBillingHandler : KoinComponent {
                     unackedSeenCount.remove(purchase.purchaseToken)
                     subsToEscalate.add(purchase)
                 } else {
+                    // Still waiting, include in reconcile so state machine stays PurchasePending.
                     subsForReconcile.add(purchase)
                 }
             }
@@ -1014,8 +1015,8 @@ object InAppBillingHandler : KoinComponent {
      * Builds a [PurchaseDetail] by delegating to the appropriate processor based on
      * product type.
      *
-     * - SUBS → [SubscriptionPurchaseProcessor.buildPurchaseDetail] never returns null
-     * - INAPP → [OneTimePurchaseProcessor.buildPurchaseDetail] returns null
+     * - SUBS → [SubscriptionPurchaseProcessor.buildPurchaseDetail]: never returns null
+     * - INAPP → [OneTimePurchaseProcessor.buildPurchaseDetail]: returns null
      *
      */
     private suspend fun createPurchaseDetailFromPurchase(purchase: Purchase): PurchaseDetail? {
@@ -1678,7 +1679,7 @@ object InAppBillingHandler : KoinComponent {
         // forceResubscribe bypasses the state check when the user explicitly resubscribes from
         // the ResubscribeBottomSheet while the subscription is still Active (cancelled but not
         // yet expired). Active has no PurchaseInitiated transition, so startPurchase() is also
-        // skipped, the result comes back via PaymentSuccessful which Active→Active handles.
+        // skipped: the result comes back via PaymentSuccessful which Active→Active handles.
         if (!forceResubscribe && !subscriptionStateMachine.canMakePurchase()) {
             val currentState = subscriptionStateMachine.getCurrentState()
             loge(mname, "Cannot make purchase - current state: ${currentState.name}")
@@ -1772,7 +1773,7 @@ object InAppBillingHandler : KoinComponent {
         }
 
         // startPurchase fires PurchaseInitiated event. In extend mode the state is Active,
-        // which has no PurchaseInitiated transition the event is safely dropped (no-op).
+        // which has no PurchaseInitiated transition, the event is safely dropped (no-op).
         // The purchase result comes back via PaymentSuccessful which Active→Active handles.
         if (!forceExtend) {
             try {
@@ -1831,7 +1832,7 @@ object InAppBillingHandler : KoinComponent {
 
         // Ensure server-driven accountId + deviceId are available BEFORE launching the
         // billing flow. fetchOrEnsureCustomerIds() calls /customer when IDs are absent,
-        // then falls back to PipKeyManager local tokens if the server is unreachable
+        // then falls back to PipKeyManager local tokens if the server is unreachable,
         // so the purchase flow is never blocked by a server outage.
         val (accountId, resolvedDeviceId) = try {
             fetchOrEnsureCustomerIds()
@@ -1926,7 +1927,7 @@ object InAppBillingHandler : KoinComponent {
      * Returns `Pair("", "")` if the server is unreachable and no IDs are stored.
      * The caller is responsible for aborting the purchase flow in this case.
      *
-     * @return Pair(accountId, deviceId) blank pair if server unavailable.
+     * @return Pair(accountId, deviceId): blank pair if server unavailable.
      */
     private suspend fun fetchOrEnsureCustomerIds(): Pair<String, String> {
         val mname = "fetchOrEnsureCustomerIds"
@@ -2125,11 +2126,11 @@ object InAppBillingHandler : KoinComponent {
      *
      * Design:
      * - **Active / Grace / OnHold / Paused / Canceled**: the user has (or recently had) a
-     *   valid subscription post current purchase details so the UI can show subscription
+     *   valid subscription: post current purchase details so the UI can show subscription
      *   info. For Active/Grace also clear any stale transaction error LiveData.
-     * - **PurchasePending / PurchaseInitiated**: purchase is in flight keep whatever the
+     * - **PurchasePending / PurchaseInitiated**: purchase is in flight, keep whatever the
      *   UI currently shows; do not clear or update mid-flight.
-     * - **Expired / Revoked / Error / Initial / Uninitialized**: no valid purchase post
+     * - **Expired / Revoked / Error / Initial / Uninitialized**: no valid purchase, post
      *   an empty list so the UI clears previously shown subscription details.
      *
      * The [state] parameter is the primary driver, it is never ignored.

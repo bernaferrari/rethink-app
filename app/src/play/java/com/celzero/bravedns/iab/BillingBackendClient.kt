@@ -40,41 +40,6 @@ import java.net.URLEncoder
 import java.net.UnknownHostException
 import java.time.Instant
 
-/**
- * Typed result for [BillingBackendClient.createOrRegisterCid].
- *
- * @param accountId Server-assigned or confirmed account ID; blank on error.
- * @param errorCode 0 = success; non-zero = HTTP error code (401, 409, …).
- */
-data class CidResult(
-    val accountId: String,
-    val errorCode: Int = 0
-) {
-    val isSuccess: Boolean get() = errorCode == 0 && accountId.isNotBlank()
-
-    companion object {
-        val EMPTY = CidResult("", 0)
-        fun error(code: Int) = CidResult("", code)
-    }
-}
-
-/**
- * Typed result for [BillingBackendClient.createOrRegisterDid].
- *
- * @param deviceId Server-assigned or confirmed device ID; blank on error.
- * @param errorCode 0 = success; non-zero = HTTP error code (401, 409, …).
- */
-data class DidResult(
-    val deviceId: String,
-    val errorCode: Int = 0
-) {
-    val isSuccess: Boolean get() = errorCode == 0 && deviceId.isNotBlank()
-
-    companion object {
-        val EMPTY = DidResult("", 0)
-        fun error(code: Int) = DidResult("", code)
-    }
-}
 
 /**
  * Pure data/service layer for all Rethink backend (non-Play) billing API calls.
@@ -326,7 +291,7 @@ class BillingBackendClient(
             // Pass null for did when blank so Retrofit omits the header, letting the server
             // assign a fresh DID.  accountId is always required and sent as a non-null header.
             val didHeader = existingDeviceId.takeIf { it.isNotBlank() }
-            Logger.v(LOG_IAB, "$TAG $mname: calling /d/reg, cidLen=${accountId.length}, didHeader=${if (didHeader != null) "present(len=${didHeader.length})" else "absent"}")
+            Logger.v(LOG_IAB, "$TAG $mname: calling /d/reg, cidLen=${accountId.length}, didHeader=${if (didHeader != null) "present(len=${didHeader.length})" else "absent"}, test? ${persistentState.appTestMode}")
             val response = if (persistentState.appTestMode) {
                 buildTestApi().registerDevice(accountId, didHeader, test = "", meta = meta)
             } else {
@@ -540,8 +505,8 @@ class BillingBackendClient(
     /**
      * Core retry engine for [acknowledgePurchase].
      *
-     * Executes [attempt] up to 4 times with delays of 300 ms, 1 200 ms, and 5 000 ms
-     * between consecutive tries.  The [ApiHandle] is resolved **once** before the first
+     * Executes [attempt] up to 3 times with delays of 3000 ms and 9000 ms between
+     * consecutive tries.  The [ApiHandle] is resolved **once** before the first
      * attempt so the test/production split is stable for the entire retry sequence.
      *
      * ### Retry policy
@@ -568,7 +533,7 @@ class BillingBackendClient(
         // After attempt N fails transiently, wait ACK_RETRY_DELAYS[N] before attempt N+1.
         // When all delays are exhausted the loop exits and we return the last failure.
         val delaysMs = ACK_RETRY_DELAYS
-        val maxAttempts = delaysMs.size + 1   // 4: one immediate + one per delay
+        val maxAttempts = delaysMs.size + 1   // 3: one immediate + one per delay
 
         var lastFailureMsg = "No response from server"
 

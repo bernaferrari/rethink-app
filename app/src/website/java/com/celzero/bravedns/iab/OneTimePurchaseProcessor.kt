@@ -112,8 +112,8 @@ internal class OneTimePurchaseProcessor(
 
         val candidates = storeProductDetails.filter {
             it.productDetail.productId == productId &&
-            it.productDetail.productType == ProductType.INAPP &&
-            it.oneTimeOfferDetails != null
+                    it.productDetail.productType == ProductType.INAPP &&
+                    it.oneTimeOfferDetails != null
         }
 
         if (candidates.isEmpty()) {
@@ -198,7 +198,7 @@ internal class OneTimePurchaseProcessor(
         val oneTimeOfferDetails = resolveOneTimePurchaseOfferDetails(purchase)
         val storeEntry = storeProductDetails.find {
             it.productDetail.productId == purchase.products.firstOrNull() &&
-            it.productDetail.productType == ProductType.INAPP
+                    it.productDetail.productType == ProductType.INAPP
         }
         val productDetail = storeEntry?.productDetail
 

@@ -234,7 +234,7 @@ class SubscriptionCheckWorker(
      *    - Last resort: GoVpnAdapter.getEntitlementDetails (tunnel, if VPN active)
      *
      * ### Idempotency
-     * The server `/g/con` endpoint is idempotent, calling it for an already-consumed
+     * The server `/g/con` endpoint is idempotent: calling it for an already-consumed
      * purchase returns an `"already consumed"` error which is logged and not retried.
      *
      */
@@ -302,22 +302,22 @@ class SubscriptionCheckWorker(
     /**
      * Resolves the entitlement expiry for [purchase] using a four-tier fallback:
      *
-     * **server ack (billingExpiry)**
+     * **Tier 1 – server ack (billingExpiry)**
      * The `billingExpiry` field on [PurchaseDetail] is populated by the server ack
      * response (via [InAppBillingHandler.acknowledgePurchaseFromServer]).  If it is
      * non-zero and not [Long.MAX_VALUE], it is the most authoritative value.
      *
-     * **payload ws.expiry**
+     * **Tier 2 – payload ws.expiry**
      * If billingExpiry is unavailable, parse `ws.expiry` from [PurchaseDetail.payload]
      * using [RpnProxyManager.getExpiryFromPayload] the same helper used everywhere else
      * in the codebase to extract the server-side expiry timestamp.
      *
-     * **GoVpnAdapter.getEntitlementDetails (tunnel)**
+     * **Tier 3 – GoVpnAdapter.getEntitlementDetails (tunnel)**
      * If the VPN tunnel is active, GoVpnAdapter.getEntitlementDetails returns
      * RpnEntitlement which carries the expiry directly from the WireGuard key exchange.
      * This path is only reached when both Tier 1 and Tier 2 produce no usable value.
      *
-     * **BillingBackendClient.queryEntitlement (server fallback)**
+     * **Tier 4 – BillingBackendClient.queryEntitlement (server fallback)**
      * When GoVpnAdapter.getEntitlementDetails returns null (tunnel not connected or
      * unavailable), query the billing server directly via [BillingBackendClient.queryEntitlement].
      * The returned [PurchaseDetail.payload] is stored as the new entitlement via
@@ -339,7 +339,7 @@ class SubscriptionCheckWorker(
 
         // GoVpnAdapter.getEntitlementDetails via VpnController (tunnel fallback)
         // RpnEntitlement.expiry() returns an ISO 8601 String (e.g. "2025-08-11T00:00:00.000Z").
-        // Convert to epoch-millis via Instant.parse same approach as RpnProxyManager.getExpiryFromPayload.
+        // Convert to epoch-millis via Instant.parse, same approach as RpnProxyManager.getExpiryFromPayload.
         try {
             val winEntitlement = RpnProxyManager.getWinEntitlement()
             val entitlement = VpnController.getEntitlementDetails(winEntitlement, billingBackendClient.getDeviceId())
@@ -405,7 +405,7 @@ class SubscriptionCheckWorker(
     }
 
     /**
-     * Calls the server-side `/g/con` API for [purchase] via [BillingBackendClient].
+     * Calls the server-side `/g/consume` API for [purchase] via [BillingBackendClient].
      *
      * Idempotent: "already consumed" responses are treated as success.
      * Network failures are caught and logged; the worker will retry on the next cycle.

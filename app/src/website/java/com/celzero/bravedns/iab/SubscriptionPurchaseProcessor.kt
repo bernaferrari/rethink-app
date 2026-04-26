@@ -170,7 +170,7 @@ internal class SubscriptionPurchaseProcessor(
         val offerDetails = resolveOfferDetails(purchase)
         val storeEntry = storeProductDetails.find {
             it.productDetail.productId == purchase.products.firstOrNull() &&
-            it.productDetail.productType == ProductType.SUBS
+                    it.productDetail.productType == ProductType.SUBS
         }
         val productDetail = storeEntry?.productDetail
 
@@ -305,7 +305,7 @@ internal class SubscriptionPurchaseProcessor(
             val pd = buildPurchaseDetail(purchase) ?: return
             val pdWithPayload = pd.copy(
                 payload = if (ackOk && developerPayload.isNotEmpty()) developerPayload
-                          else pd.payload
+                else pd.payload
             )
             subscriptionStateMachine.completePurchase(pdWithPayload)
 

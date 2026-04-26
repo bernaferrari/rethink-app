@@ -40,41 +40,6 @@ import java.net.URLEncoder
 import java.net.UnknownHostException
 import java.time.Instant
 
-/**
- * Typed result for [BillingBackendClient.createOrRegisterCid].
- *
- * @param accountId Server-assigned or confirmed account ID; blank on error.
- * @param errorCode 0 = success; non-zero = HTTP error code (401, 409, …).
- */
-data class CidResult(
-    val accountId: String,
-    val errorCode: Int = 0
-) {
-    val isSuccess: Boolean get() = errorCode == 0 && accountId.isNotBlank()
-
-    companion object {
-        val EMPTY = CidResult("", 0)
-        fun error(code: Int) = CidResult("", code)
-    }
-}
-
-/**
- * Typed result for [BillingBackendClient.createOrRegisterDid].
- *
- * @param deviceId Server-assigned or confirmed device ID; blank on error.
- * @param errorCode 0 = success; non-zero = HTTP error code (401, 409, …).
- */
-data class DidResult(
-    val deviceId: String,
-    val errorCode: Int = 0
-) {
-    val isSuccess: Boolean get() = errorCode == 0 && deviceId.isNotBlank()
-
-    companion object {
-        val EMPTY = DidResult("", 0)
-        fun error(code: Int) = DidResult("", code)
-    }
-}
 
 /**
  * Pure data/service layer for all Rethink backend (non-Play) billing API calls.
@@ -193,9 +158,9 @@ class BillingBackendClient(
      * Returns the current (accountId, deviceId) pair.
      *
      * Resolution order:
-     * 1. [SecureIdentityStore] (encrypted file) primary source; returned directly when
+     * 1. [SecureIdentityStore] (encrypted file)- primary source; returned directly when
      *    both IDs are present.
-     * 2. [refreshIdentity] obtains fresh CID via `POST /d/acc` and fresh DID via
+     * 2. [refreshIdentity] - obtains fresh CID via `POST /d/acc` and fresh DID via
      *    `POST /d/reg`; persists both atomically on success.
      *
      * Returns `Pair("", "")` when both sources fail. Callers must check for blank IDs
@@ -300,7 +265,7 @@ class BillingBackendClient(
      * by this method; the caller (or [refreshIdentity]) is responsible for saving it
      * together with the CID.
      *
-     * [accountId] is required: a device cannot exist without an account.
+     * [accountId] is required, a device cannot exist without an account.
      *
      * ### Error codes in [DidResult.errorCode]
      * - 0   → success ([DidResult.isSuccess] == true, [DidResult.deviceId] is non-blank)
@@ -309,7 +274,7 @@ class BillingBackendClient(
      * - -1  → blank [accountId] guard or transient / network error ([DidResult.EMPTY])
      * - other non-zero → HTTP error from server
      *
-     * @param accountId The account (CID) this device belongs to.  Must be non-blank.
+     * @param accountId      The account (CID) this device belongs to.  Must be non-blank.
      * @param existingDeviceId Previously known device ID, or blank for new device registrations.
      */
     suspend fun createOrRegisterDid(
@@ -326,7 +291,7 @@ class BillingBackendClient(
             // Pass null for did when blank so Retrofit omits the header, letting the server
             // assign a fresh DID.  accountId is always required and sent as a non-null header.
             val didHeader = existingDeviceId.takeIf { it.isNotBlank() }
-            Logger.v(LOG_IAB, "$TAG $mname: calling /d/reg, cidLen=${accountId.length}, didHeader=${if (didHeader != null) "present(len=${didHeader.length})" else "absent"}")
+            Logger.v(LOG_IAB, "$TAG $mname: calling /d/reg, cidLen=${accountId.length}, didHeader=${if (didHeader != null) "present(len=${didHeader.length})" else "absent"}, test? ${persistentState.appTestMode}")
             val response = if (persistentState.appTestMode) {
                 buildTestApi().registerDevice(accountId, didHeader, test = "", meta = meta)
             } else {
@@ -384,13 +349,13 @@ class BillingBackendClient(
      *
      * ### Resolution logic
      * **CID**
-     * 1. Read from [SecureIdentityStore] reused if non-blank.
-     * 2. Call [createOrRegisterCid] (`POST /d/acc`) assigned by the server.
+     * 1. Read from [SecureIdentityStore]: reused if non-blank.
+     * 2. Call [createOrRegisterCid] (`POST /d/acc`): assigned by the server.
      *
      * **DID**
-     * 1. Read from [SecureIdentityStore] reused *only* when the stored CID matches
+     * 1. Read from [SecureIdentityStore], reused *only* when the stored CID matches
      *    the resolved CID (avoids a stale DID being used under a new CID).
-     * 2. Call [createOrRegisterDid] (`POST /d/reg`) assigned by the server.
+     * 2. Call [createOrRegisterDid] (`POST /d/reg`), assigned by the server.
      *
      * **Persistence** both IDs are written atomically to [SecureIdentityStore] via
      * [SecureIdentityStore.save] only when at least one of them changed or was missing.
@@ -417,7 +382,7 @@ class BillingBackendClient(
             Logger.d(LOG_IAB, "$TAG $mname: cid loaded from store (len=${cid.length})")
         }
 
-        // Reuse the stored DID only when the CID hasn't changed a new CID means
+        // Reuse the stored DID only when the CID hasn't changed, a new CID means
         // the old DID belongs to a different account and must not be re-used.
         var did = if (!cidWasAbsent && !storedDid.isNullOrBlank()) storedDid else ""
         if (did.isBlank()) {
@@ -441,7 +406,7 @@ class BillingBackendClient(
     }
 
     /**
-     * Calls `POST /g/reg` to register [accountId] + [deviceId] with the server.
+     * Calls `POST /g/device` to register [accountId] + [deviceId] with the server.
      *
      * @param m Optional JSON body (appVersion, productId, planId, orderId).
      * @return [RegisterDeviceResult.Success] on HTTP 2xx.
@@ -512,7 +477,7 @@ class BillingBackendClient(
      * back-off schedule before giving up:
      *
      * Hard failures: 409 Conflict, 4xx client errors, or a successfully parsed
-     * server response (Ok or Err) are returned immediately without retrying.
+     * server response (Ok or Err): are returned immediately without retrying.
      *
      * @return Pair(success, developerPayload or error message).
      */
@@ -540,8 +505,8 @@ class BillingBackendClient(
     /**
      * Core retry engine for [acknowledgePurchase].
      *
-     * Executes [attempt] up to 4 times with delays of 300 ms, 1 200 ms, and 5 000 ms
-     * between consecutive tries.  The [ApiHandle] is resolved **once** before the first
+     * Executes [attempt] up to 3 times with delays of 3000 ms and 9000 ms between
+     * consecutive tries.  The [ApiHandle] is resolved **once** before the first
      * attempt so the test/production split is stable for the entire retry sequence.
      *
      * ### Retry policy
@@ -550,8 +515,8 @@ class BillingBackendClient(
      * - **No retry** (return immediately):
      *   - HTTP 409: conflict; must be handled by the caller.
      *   - HTTP 4xx: permanent client error; retrying will not help.
-     *   - [RpnPurchaseAckServerResponse.Ok] success.
-     *   - [RpnPurchaseAckServerResponse.Err] server-side business error (e.g. invalid token);
+     *   - [RpnPurchaseAckServerResponse.Ok]: success.
+     *   - [RpnPurchaseAckServerResponse.Err]: server-side business error (e.g. invalid token);
      *     retrying will not change the outcome.
      *
      * @param caller   Name of the calling method, used only in log messages.
@@ -561,13 +526,14 @@ class BillingBackendClient(
         caller: String,
         attempt: suspend (ApiHandle) -> Response<JsonObject?>?
     ): Pair<Boolean, String> {
+        // Resolve the test/production split once, stable across all retries.
         val handle = resolveApi()
 
         // Back-off delays in ms.  The first attempt is immediate (no leading delay).
         // After attempt N fails transiently, wait ACK_RETRY_DELAYS[N] before attempt N+1.
         // When all delays are exhausted the loop exits and we return the last failure.
         val delaysMs = ACK_RETRY_DELAYS
-        val maxAttempts = delaysMs.size + 1   // 4: one immediate + one per delay
+        val maxAttempts = delaysMs.size + 1   // 3: one immediate + one per delay
 
         var lastFailureMsg = "No response from server"
 
@@ -763,7 +729,7 @@ class BillingBackendClient(
     }
 
     /**
-     * Calls `POST /g/con` to consume an expired one-time purchase server-side.
+     * Calls `POST /g/consume` to consume an expired one-time purchase server-side.
      *
      * Idempotent: "already consumed" 409 responses are treated as success.
      *
@@ -876,6 +842,10 @@ class BillingBackendClient(
      * - [ApiHandle.Test]       when the entitlement is a test one (non-null value).
      * - [ApiHandle.Production] when the entitlement is production (null value) or when
      *   the lookup throws (fail-safe: always prefer production on error).
+     *
+     * The Retrofit instances are created fresh per-call, Retrofit interface creation
+     * is lightweight (no network I/O) and this avoids threading concerns around caching
+     * a potentially stale test/production split.
      */
     private suspend fun resolveApi(): ApiHandle {
         val testValue = try {
