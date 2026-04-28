@@ -184,6 +184,7 @@ android {
             minifyEnabled true
             shrinkResources true
             signingConfig signingConfigs.alpha
+            resValue "string", "app_name", "Rethink(α)"
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

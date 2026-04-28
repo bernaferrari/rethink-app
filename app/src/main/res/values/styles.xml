@@ -918,9 +918,9 @@
     </style>
 
     <!--
-        Alpha-build theme overlays — applied on top of the user's chosen theme when
+        Alpha-build theme overlays: applied on top of the user's chosen theme when
         BuildConfig.BUILD_TYPE == "alpha" so testers can immediately tell they are
-        on a pre-release build.  Only accent-colour attributes are overridden; the
+        on a pre-release build. Only accent-color attributes are overridden; the
         rest of the theme is inherited from the base style.
 
         AlphaDark  : Purple 200 — good contrast on dark/black surfaces.
@@ -940,6 +940,8 @@
         <item name="accentGood">@color/alpha_accent_light</item>
         <item name="controlActivated">@color/alpha_accent_light</item>
         <item name="secondaryTextColor">@color/alpha_accent_light</item>
+        <item name="homeScreenBtnGradientEnd">@color/alpha_accent_light</item>
+        <item name="homeScreenBtnGradientStart">@color/alpha_accent_light</item>
     </style>
 
 

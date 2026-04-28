@@ -92,9 +92,6 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
     val retryConnectionEvent: SharedFlow<Unit> = _retryConnectionEvent.asSharedFlow()
 
     private var loadingWatchdogJob: Job? = null
-    private val persistentState: PersistentState by inject()
-
-
     /**
      * Guards against re-entrant [initializeBilling] calls.
      *

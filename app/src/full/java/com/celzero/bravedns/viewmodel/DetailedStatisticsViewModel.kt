@@ -33,17 +33,17 @@ class DetailedStatisticsViewModel(
     private val connectionTrackerDAO: ConnectionTrackerDAO,
     private val statsDao: StatsSummaryDao
 ) : ViewModel() {
-    private var allActiveConns: MutableLiveData<Long> = MutableLiveData()
-    private var allowedNetworkActivity: MutableLiveData<String> = MutableLiveData()
-    private var blockedNetworkActivity: MutableLiveData<String> = MutableLiveData()
-    private var allowedAsn: MutableLiveData<String> = MutableLiveData()
-    private var blockedAsn: MutableLiveData<String> = MutableLiveData()
-    private var allowedDomains: MutableLiveData<String> = MutableLiveData()
-    private var blockedDomains: MutableLiveData<String> = MutableLiveData()
-    private var allowedIps: MutableLiveData<String> = MutableLiveData()
-    private var blockedIps: MutableLiveData<String> = MutableLiveData()
-    private var allowedCountries: MutableLiveData<String> = MutableLiveData()
-    private var startTime: MutableLiveData<Long> = MutableLiveData()
+    private val allActiveConns: MutableLiveData<Long> = MutableLiveData()
+    private val allowedNetworkActivity: MutableLiveData<String> = MutableLiveData()
+    private val blockedNetworkActivity: MutableLiveData<String> = MutableLiveData()
+    private val allowedAsn: MutableLiveData<String> = MutableLiveData()
+    private val blockedAsn: MutableLiveData<String> = MutableLiveData()
+    private val allowedDomains: MutableLiveData<String> = MutableLiveData()
+    private val blockedDomains: MutableLiveData<String> = MutableLiveData()
+    private val allowedIps: MutableLiveData<String> = MutableLiveData()
+    private val blockedIps: MutableLiveData<String> = MutableLiveData()
+    private val allowedCountries: MutableLiveData<String> = MutableLiveData()
+    private val startTime: MutableLiveData<Long> = MutableLiveData()
 
     companion object {
         private const val ONE_HOUR_MILLIS = 1 * 60 * 60 * 1000L

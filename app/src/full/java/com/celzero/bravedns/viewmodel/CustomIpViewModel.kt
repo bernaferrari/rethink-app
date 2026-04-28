@@ -32,7 +32,7 @@ import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
 
 class CustomIpViewModel(private val customIpDao: CustomIpDao) : ViewModel() {
 
-    private var filteredList: MutableLiveData<String> = MutableLiveData()
+    private val filteredList: MutableLiveData<String> = MutableLiveData()
     private var uid: Int = UID_EVERYBODY
 
     init {
