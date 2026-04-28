@@ -136,20 +136,12 @@
                         android:paddingEnd="16dp"
                         android:paddingBottom="10dp">
 
-                        <androidx.appcompat.widget.AppCompatImageView
-                            android:layout_width="18dp"
-                            android:layout_height="18dp"
-                            android:layout_marginEnd="10dp"
-                            android:alpha="0.7"
-                            android:src="@drawable/ic_ip_address"
-                            android:tint="?attr/svgStrokeColor" />
-
                         <androidx.appcompat.widget.AppCompatTextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
                             android:fontFamily="sans-serif-medium"
-                            android:text="@string/firewall_rules"
+                            android:text="@string/lbl_ip_rules"
                             android:textColor="?attr/primaryTextColor"
                             android:textSize="14sp"
                             android:textStyle="bold" />
