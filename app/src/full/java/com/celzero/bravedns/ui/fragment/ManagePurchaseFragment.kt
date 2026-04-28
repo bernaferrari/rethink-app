@@ -230,7 +230,7 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
     }
 
     private fun resolvePlanName(subscriptionData: SubscriptionStateMachineV2.SubscriptionData): String {
-        val productId = subscriptionData.purchaseDetail?.productId ?: ""
+        val productId = subscriptionData.purchaseDetail?.productId.orEmpty()
         return when (productId) {
             InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> getString(R.string.plan_2yr)
             InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> getString(R.string.plan_5yr)
@@ -489,7 +489,7 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
 
     private fun updateBillingCycle(subscriptionData: SubscriptionStateMachineV2.SubscriptionData?) {
         try {
-            val planId = subscriptionData?.purchaseDetail?.planId ?: ""
+            val planId = subscriptionData?.purchaseDetail?.planId.orEmpty()
             val txt = when (planId)  {
                 InAppBillingHandler.SUBS_PRODUCT_YEARLY -> getString(R.string.billing_yearly)
                 InAppBillingHandler.SUBS_PRODUCT_MONTHLY -> getString(R.string.monthly_plan)
@@ -576,8 +576,8 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
             b.btnResubscribe.visibility  = View.GONE
             b.cancelNoteCard.visibility  = View.GONE
 
-            val planId = subscriptionData?.purchaseDetail?.planId ?: ""
-            val isInApp = isInAppProduct(subscriptionData?.purchaseDetail?.productId ?: "", planId)
+            val planId = subscriptionData?.purchaseDetail?.planId.orEmpty()
+            val isInApp = isInAppProduct(subscriptionData?.purchaseDetail?.productId.orEmpty(), planId)
 
             if (!state.state().isActive) {
                 when {
@@ -642,7 +642,7 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
             Logger.w(LOG_TAG_UI, "$TAG purchase time is invalid, cannot determine revocation eligibility")
             return false
         }
-        val planId = subscriptionData.purchaseDetail?.planId ?: ""
+        val planId = subscriptionData.purchaseDetail?.planId.orEmpty()
         val revokeWindowMs = when (planId) {
             InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> REVOKE_WINDOW_ONE_TIME_2YRS_DAYS * ONE_DAY_MS
             InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> REVOKE_WINDOW_ONE_TIME_5YRS_DAYS * ONE_DAY_MS

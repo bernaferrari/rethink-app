@@ -115,7 +115,7 @@ class Config private constructor(builder: Builder) {
      */
     fun toWgQuickString(): String {
         val sb = StringBuilder()
-        sb.append("[Interface]\n").append(wgInterface?.toWgQuickString() ?: "")
+        sb.append("[Interface]\n").append(wgInterface?.toWgQuickString().orEmpty())
         if (peers != null) {
             for (peer in peers) sb.append("\n[Peer]\n").append(peer.toWgQuickString())
         }
@@ -130,7 +130,7 @@ class Config private constructor(builder: Builder) {
     fun toWgUserspaceString(skipListenPort: Boolean = false, isAmz: Boolean = false): String {
         // Skip the listen port if we're in advanced mode or randomize (adv) setting is enabled.
         val sb = StringBuilder()
-        sb.append(wgInterface?.toWgUserspaceString(skipListenPort) ?: "")
+        sb.append(wgInterface?.toWgUserspaceString(skipListenPort).orEmpty())
         sb.append("replace_peers=true\n")
         if (peers != null) {
             for (peer in peers) sb.append(peer.toWgUserspaceString(isAmz))

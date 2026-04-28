@@ -130,7 +130,7 @@ class CustomerSupportActivity : BaseActivity(R.layout.activity_customer_support)
     private fun resolvePlanName(subscriptionData: SubscriptionStateMachineV2.SubscriptionData?): String {
         if (subscriptionData == null) return ""
 
-        val productId = subscriptionData.purchaseDetail?.productId ?: ""
+        val productId = subscriptionData.purchaseDetail?.productId.orEmpty()
         return when (productId) {
             InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> getString(R.string.plan_2yr)
             InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> getString(R.string.plan_5yr)

@@ -239,7 +239,7 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
         }
 
         val rule = info?.blockedByRule ?: return
-        val isIpnProxy = isNotLocalAndRpnProxy(info?.proxyDetails ?: "")
+        val isIpnProxy = isNotLocalAndRpnProxy(info?.proxyDetails.orEmpty())
         // TODO: below code is not required, remove it in future (20/03/2023)
         if (rule.contains(FirewallRuleset.RULE2G.id)) {
             b.bsConnTrackAppInfo.text =
@@ -258,7 +258,7 @@ class ConnTrackerBottomSheet : BottomSheetDialogFragment(), KoinComponent {
     }
 
     private fun isInvalidProxyDetails(): Boolean {
-        val isIpnProxy = isNotLocalAndRpnProxy(info?.proxyDetails ?: "")
+        val isIpnProxy = isNotLocalAndRpnProxy(info?.proxyDetails.orEmpty())
         val rule = info?.blockedByRule ?: return false
         val isRuleAddedAsProxy = getFirewallRule(rule)?.id == FirewallRuleset.RULE12.id
         if (isRuleAddedAsProxy && (info?.proxyDetails.isNullOrEmpty() || !isIpnProxy)) {

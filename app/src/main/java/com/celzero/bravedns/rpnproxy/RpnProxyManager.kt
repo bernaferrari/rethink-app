@@ -313,7 +313,7 @@ object RpnProxyManager : KoinComponent {
                 // Last resort: pull from DB developerPayload stored by the state machine
                 Logger.w(LOG_TAG_PROXY, "$TAG; activateRpn: purchase.payload is empty, trying DB developerPayload")
                 try {
-                    subscriptionStatusRepository.getCurrentSubscription()?.developerPayload ?: ""
+                    subscriptionStatusRepository.getCurrentSubscription()?.developerPayload.orEmpty()
                 } catch (e: Exception) {
                     Logger.e(LOG_TAG_PROXY, "$TAG; activateRpn: failed to read DB developerPayload: ${e.message}", e)
                     ""
@@ -463,21 +463,21 @@ object RpnProxyManager : KoinComponent {
         val mname = "refreshEntitlementFromServer"
         try {
             val sub = subscriptionStatusRepository.getCurrentSubscription()
-            val accountId     = sub?.accountId     ?: ""
-            val purchaseToken = sub?.purchaseToken ?: ""
+            val accountId     = sub?.accountId.orEmpty()
+            val purchaseToken = sub?.purchaseToken.orEmpty()
             if (accountId.isEmpty() || purchaseToken.isEmpty()) {
                 Logger.w(LOG_TAG_PROXY, "$TAG; $mname: accountId or purchaseToken empty, skipping")
                 return
             }
             val deviceId = billingBackendClient.getDeviceId(accountId)
             val purchase = PurchaseDetail(
-                productId        = sub?.productId ?: "",
-                planId           = sub?.planId ?: "",
-                productTitle     = sub?.productTitle ?: "",
-                planTitle        = sub?.productTitle ?: "",
+                productId        = sub?.productId.orEmpty(),
+                planId           = sub?.planId.orEmpty(),
+                productTitle     = sub?.productTitle.orEmpty(),
+                planTitle        = sub?.productTitle.orEmpty(),
                 state            = sub?.state ?: 0,
                 purchaseToken    = purchaseToken,
-                productType      = if ((sub?.productId ?: "").contains("onetime", ignoreCase = true)) "inapp" else "subs",
+                productType      = if ((sub?.productId.orEmpty()).contains("onetime", ignoreCase = true)) "inapp" else "subs",
                 purchaseTime     = "",
                 purchaseTimeMillis = sub?.purchaseTime ?: 0L,
                 isAutoRenewing   = false,
@@ -488,7 +488,7 @@ object RpnProxyManager : KoinComponent {
                 expiryTime       = sub?.billingExpiry ?: 0L,
                 status           = sub?.status ?: 0,
                 windowDays       = sub?.windowDays ?: 0,
-                orderId          = sub?.orderId ?: ""
+                orderId          = sub?.orderId.orEmpty()
             )
             Logger.d(LOG_TAG_PROXY, "$TAG; $mname: querying server entitlement for accLen=${accountId.length}")
             val updated = billingBackendClient.queryEntitlement(accountId, deviceId, purchase, purchaseToken)
@@ -826,7 +826,7 @@ object RpnProxyManager : KoinComponent {
     }
 
     fun getRpnProductId(): String {
-        return subscriptionStateMachine.getSubscriptionData()?.purchaseDetail?.productId ?: ""
+        return subscriptionStateMachine.getSubscriptionData()?.purchaseDetail?.productId.orEmpty()
     }
 
     enum class RpnType(val id: Int) {
@@ -985,7 +985,7 @@ object RpnProxyManager : KoinComponent {
                     // which populates winConfig so the tunnel can be registered.
                     Logger.w(LOG_TAG_PROXY, "$TAG; registerProxy: both state and entitlement files absent, attempting DB payload recovery")
                     val dbPayload = try {
-                        subscriptionStatusRepository.getCurrentSubscription()?.developerPayload ?: ""
+                        subscriptionStatusRepository.getCurrentSubscription()?.developerPayload.orEmpty()
                     } catch (e: Exception) {
                         Logger.e(LOG_TAG_PROXY, "$TAG; registerProxy: failed to read DB developerPayload: ${e.message}", e)
                         ""
@@ -1004,20 +1004,20 @@ object RpnProxyManager : KoinComponent {
                         // DB also had no usable payload.  Try a live server query as last resort.
                         Logger.w(LOG_TAG_PROXY, "$TAG; registerProxy: DB payload also empty, querying server entitlement")
                         val sub = try { subscriptionStatusRepository.getCurrentSubscription() } catch (e: Exception) { null }
-                        val accountId = sub?.accountId ?: ""
+                        val accountId = sub?.accountId.orEmpty()
                         // sub.deviceId holds only the sentinel indicator "pip/identity.json"
                         val deviceId = billingBackendClient.getDeviceId(accountId)
-                        val purchaseToken = sub?.purchaseToken ?: ""
+                        val purchaseToken = sub?.purchaseToken.orEmpty()
                         if (accountId.isNotEmpty() && purchaseToken.isNotEmpty()) {
                             try {
                                 val fakePurchase = PurchaseDetail(
-                                    productId = sub?.productId ?: "",
-                                    planId = sub?.planId ?: "",
-                                    productTitle = sub?.productTitle ?: "",
-                                    planTitle = sub?.productTitle ?: "",
+                                    productId = sub?.productId.orEmpty(),
+                                    planId = sub?.planId.orEmpty(),
+                                    productTitle = sub?.productTitle.orEmpty(),
+                                    planTitle = sub?.productTitle.orEmpty(),
                                     state = sub?.state ?: 0,
                                     purchaseToken = purchaseToken,
-                                    productType = if ((sub?.productId ?: "").contains("onetime", ignoreCase = true)) BillingClient.ProductType.INAPP else BillingClient.ProductType.SUBS,
+                                    productType = if ((sub?.productId.orEmpty()).contains("onetime", ignoreCase = true)) BillingClient.ProductType.INAPP else BillingClient.ProductType.SUBS,
                                     purchaseTime = "",
                                     purchaseTimeMillis = sub?.purchaseTime ?: 0L,
                                     isAutoRenewing = false,
@@ -1029,7 +1029,7 @@ object RpnProxyManager : KoinComponent {
                                     expiryTime = sub?.billingExpiry ?: 0L,
                                     status = sub?.status ?: 0,
                                     windowDays = sub?.windowDays ?: 0,
-                                    orderId = sub?.orderId ?: ""
+                                    orderId = sub?.orderId.orEmpty()
                                 )
                                 val updated = InAppBillingHandler.queryEntitlementFromServer(accountId, deviceId, fakePurchase)
                                 if (updated.payload.isNotEmpty()) {

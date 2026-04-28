@@ -102,8 +102,8 @@ class DomainConnectionsAdapter(private val context: Context, private val type: D
                     loadAppIcon(
                         Utilities.getIcon(
                             context,
-                            appInfo?.packageName ?: "",
-                            appInfo?.appName ?: ""
+                            appInfo?.packageName.orEmpty(),
+                            appInfo?.appName.orEmpty()
                         )
                     )
                 }

@@ -139,7 +139,7 @@ object ProxyManager : KoinComponent {
             val tuple = ProxyAppMapTuple(app.uid, app.packageName, proxyId)
             if (!pamSet.contains(tuple)) {
                 pamSet.add(tuple)
-                val appName = FirewallManager.getAppInfoByPackage(app.packageName)?.appName ?: ""
+                val appName = FirewallManager.getAppInfoByPackage(app.packageName)?.appName.orEmpty()
                 val pam = ProxyApplicationMapping(app.uid, app.packageName, appName, proxyName, true, proxyId)
                 db.insert(pam)
             }
@@ -163,7 +163,7 @@ object ProxyManager : KoinComponent {
             val existing = pamSet.any { it.uid == app.uid && it.packageName == app.packageName && it.proxyId == proxyId }
             if (!existing) {
                 pamSet.add(ProxyAppMapTuple(app.uid, app.packageName, proxyId))
-                val appName = FirewallManager.getAppInfoByPackage(app.packageName)?.appName ?: ""
+                val appName = FirewallManager.getAppInfoByPackage(app.packageName)?.appName.orEmpty()
                 val pam = ProxyApplicationMapping(app.uid, app.packageName, appName, proxyName, true, proxyId)
                 db.insert(pam)
             }
@@ -427,8 +427,8 @@ object ProxyManager : KoinComponent {
         val tuple = ProxyAppMapTuple(uid, packageName, proxyId)
         if (pamSet.contains(tuple)) return
         pamSet.add(tuple)
-        val appName = FirewallManager.getAppInfoByPackage(packageName)?.appName ?: ""
-        val pam = ProxyApplicationMapping(uid, packageName, appName, proxyName ?: "", true, proxyId)
+        val appName = FirewallManager.getAppInfoByPackage(packageName)?.appName.orEmpty()
+        val pam = ProxyApplicationMapping(uid, packageName, appName, proxyName, true, proxyId)
         db.insert(pam)
     }
 

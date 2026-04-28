@@ -582,7 +582,7 @@ class BillingBackendClient(
                 return when (val result = RpnPurchaseAckServerResponse.from(rawForParsing, httpCode)) {
                     is RpnPurchaseAckServerResponse.Ok -> {
                         Logger.d(LOG_IAB, "$TAG $caller: ack ok, hasEntitlement=${result.payload.hasEntitlement}")
-                        Pair(true, result.payload.developerPayload ?: "")
+                        Pair(true, result.payload.developerPayload.orEmpty())
                     }
                     is RpnPurchaseAckServerResponse.Err -> {
                         // Business-level error (e.g. invalid token): do not retry.
@@ -639,7 +639,7 @@ class BillingBackendClient(
                 is RpnPurchaseAckServerResponse.Ok  -> {
                     Logger.d(LOG_IAB, "$TAG $mname: ok, hasEntitlement=${result.payload.hasEntitlement}")
                     purchase.copy(
-                        payload     = result.payload.developerPayload ?: "",
+                        payload     = result.payload.developerPayload.orEmpty(),
                         expiryTime  = parseIsoToEpochMillis(result.payload.expiry),
                         windowDays  = result.payload.windowDays ?: 0
                     )

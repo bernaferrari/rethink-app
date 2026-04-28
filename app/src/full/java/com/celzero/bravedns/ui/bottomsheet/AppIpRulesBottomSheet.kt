@@ -291,7 +291,7 @@ class AppIpRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet
                     return@io
                 }
                 uiCtx {
-                    Logger.v(LOG_TAG_UI, "$TAG show wg list(${v.size}) for ${ci?.ipAddress ?: ""}")
+                    Logger.v(LOG_TAG_UI, "$TAG show wg list(${v.size}) for ${ci?.ipAddress.orEmpty()}")
                     showWgListBtmSheet(v)
                 }
             }

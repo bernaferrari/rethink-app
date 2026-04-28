@@ -135,8 +135,8 @@ class WgNwStatsAdapter(private val context: Context) :
                     loadAppIcon(
                         Utilities.getIcon(
                             context,
-                            appInfo?.packageName ?: "",
-                            appInfo?.appName ?: ""
+                            appInfo?.packageName.orEmpty(),
+                            appInfo?.appName.orEmpty()
                         )
                     )
                 }

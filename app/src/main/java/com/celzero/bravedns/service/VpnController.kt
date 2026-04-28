@@ -301,7 +301,7 @@ object VpnController : KoinComponent {
     }
 
     fun underlyingSsid(): String? {
-        return braveVpnService?.underlyingNetworks?.activeSsid ?: braveVpnService?.underlyingNetworks?.ipv4Net?.firstOrNull { !it.ssid.isNullOrEmpty() }?.ssid ?: braveVpnService?.underlyingNetworks?.ipv6Net?.firstOrNull { !it.ssid.isNullOrEmpty() }?.ssid ?: ""
+        return braveVpnService?.underlyingNetworks?.activeSsid ?: braveVpnService?.underlyingNetworks?.ipv4Net?.firstOrNull { !it.ssid.isNullOrEmpty() }?.ssid ?: braveVpnService?.underlyingNetworks?.ipv6Net?.firstOrNull { !it.ssid.isNullOrEmpty() }?.ssid.orEmpty()
     }
 
     fun netType(): String {
@@ -368,7 +368,7 @@ object VpnController : KoinComponent {
     }
 
     suspend fun getSystemDns(): String {
-        return braveVpnService?.getSystemDns() ?: ""
+        return braveVpnService?.getSystemDns().orEmpty()
     }
 
     fun getNetStat(): NetStat? {

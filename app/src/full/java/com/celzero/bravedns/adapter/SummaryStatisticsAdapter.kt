@@ -199,8 +199,8 @@ class SummaryStatisticsAdapter(
                             loadAppIcon(
                                 Utilities.getIcon(
                                     context,
-                                    appInfo?.packageName ?: "",
-                                    appInfo?.appName ?: ""
+                                    appInfo?.packageName.orEmpty(),
+                                    appInfo?.appName.orEmpty()
                                 )
                             )
                         }

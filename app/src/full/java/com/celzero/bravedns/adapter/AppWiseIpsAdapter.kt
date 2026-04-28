@@ -124,7 +124,7 @@ class AppWiseIpsAdapter(val context: Context, val lifecycleOwner: LifecycleOwner
             bundle.putString(AppIpRulesBottomSheet.IP_ADDRESS, conn.ipAddress)
             bundle.putString(
                 AppIpRulesBottomSheet.DOMAINS,
-                beautifyDomainString(conn.appOrDnsName ?: "")
+                beautifyDomainString(conn.appOrDnsName.orEmpty())
             )
             bottomSheetFragment.arguments = bundle
             // Fix: Validate position before passing to avoid IndexOutOfBoundsException

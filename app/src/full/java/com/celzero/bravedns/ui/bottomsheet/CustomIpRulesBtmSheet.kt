@@ -138,8 +138,8 @@ class CustomIpRulesBtmSheet :
                     displayIcon(
                         Utilities.getIcon(
                             requireContext(),
-                            appInfo?.packageName ?: "",
-                            appInfo?.appName ?: ""
+                            appInfo?.packageName.orEmpty(),
+                            appInfo?.appName.orEmpty()
                         ),
                         b.customIpAppIconIv
                     )
