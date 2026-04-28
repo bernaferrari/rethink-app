@@ -31,7 +31,7 @@ import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
 class RethinkRemoteFileTagViewModel(private val rethinkRemoteDao: RethinkRemoteFileTagDao) :
     ViewModel() {
 
-    private var list: MutableLiveData<String> = MutableLiveData()
+    private val list: MutableLiveData<String> = MutableLiveData()
     private var blocklistFilter: RethinkBlocklistFragment.Filters? = null
 
     init {

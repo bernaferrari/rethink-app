@@ -30,7 +30,7 @@ import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
 class RethinkEndpointViewModel(private val rethinkDnsEndpointDao: RethinkDnsEndpointDao) :
     ViewModel() {
 
-    private var list: MutableLiveData<String> = MutableLiveData()
+    private val list: MutableLiveData<String> = MutableLiveData()
     private var uid: Int = Constants.MISSING_UID
 
     init {

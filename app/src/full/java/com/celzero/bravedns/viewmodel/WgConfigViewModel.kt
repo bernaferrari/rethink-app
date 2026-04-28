@@ -30,7 +30,7 @@ import com.celzero.bravedns.util.Constants
 
 class WgConfigViewModel(private val wgConfigFilesDAO: WgConfigFilesDAO) : ViewModel() {
 
-    private var list: MutableLiveData<String> = MutableLiveData()
+    private val list: MutableLiveData<String> = MutableLiveData()
 
     init {
         list.postValue("")

@@ -33,8 +33,8 @@ import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
 
 class WgNwActivityViewModel(private val dao: ConnectionTrackerDAO) : ViewModel() {
 
-    private var startTime: MutableLiveData<Long> = MutableLiveData<Long>()
-    private var networkActivity: MutableLiveData<String> = MutableLiveData()
+    private val startTime: MutableLiveData<Long> = MutableLiveData<Long>()
+    private val networkActivity: MutableLiveData<String> = MutableLiveData()
 
     private var wgId: String = ""
     private var timeCategory: TimeCategory = TimeCategory.ONE_HOUR
