@@ -766,7 +766,7 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
                 android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
         }
 
-        // Start on the Threads tab
+        // Start on the Proc / mem tab
         selectTab(false)
 
         val dialog = MaterialAlertDialogBuilder(ctx, R.style.App_Dialog_NoDim)
