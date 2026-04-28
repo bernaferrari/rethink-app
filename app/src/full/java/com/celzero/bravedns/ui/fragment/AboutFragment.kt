@@ -681,18 +681,7 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
                     threadsSpan.color("    schedstat: ${t.schedstatRaw}\n", colorHint)
                 }
 
-                // Raw sched (trimmed to first 20 non-blank lines to keep it compact)
-                if (t.schedRaw.isNotBlank()) {
-                    val rawLines = t.schedRaw.lines()
-                        .filter { it.isNotBlank() }
-                        .take(20)
-                        .joinToString("\n") { "    $it" }
-                    threadsSpan.color("$rawLines\n", colorHint)
-                }
-
                 threadsSpan.append("\n")
-
-
             }
         }
 
@@ -747,8 +736,8 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         val threadsScrollView = makeScrollableText(threadsSpan)
         val otherScrollView   = makeScrollableText(otherSpan)
 
-        val tabThreads = makeTabButton("Threads")
         val tabOther   = makeTabButton("Proc / Mem")
+        val tabThreads = makeTabButton("Threads")
 
         fun selectTab(showThreads: Boolean) {
             threadsScrollView.visibility = if (showThreads) View.VISIBLE else View.GONE
@@ -764,8 +753,8 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
 
         val tabRow = android.widget.LinearLayout(ctx).apply {
             orientation = android.widget.LinearLayout.HORIZONTAL
-            addView(tabThreads)
             addView(tabOther)
+            addView(tabThreads)
         }
 
         val container = android.widget.LinearLayout(ctx).apply {
@@ -778,7 +767,7 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         }
 
         // Start on the Threads tab
-        selectTab(true)
+        selectTab(false)
 
         val dialog = MaterialAlertDialogBuilder(ctx, R.style.App_Dialog_NoDim)
             .setTitle("Proc Analysis")
