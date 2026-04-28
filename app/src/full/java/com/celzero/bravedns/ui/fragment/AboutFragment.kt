@@ -578,7 +578,7 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
                     appendLine("=== STATS ===")
                     appendLine(stats)
                     appendLine("=== METRICS ===")
-                    appendLine(formatedMetrics ?: "")
+                    appendLine(formatedMetrics.orEmpty())
                 }
 
                 MaterialAlertDialogBuilder(ctx, R.style.App_Dialog_NoDim)

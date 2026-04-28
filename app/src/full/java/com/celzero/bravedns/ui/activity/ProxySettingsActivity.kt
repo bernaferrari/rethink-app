@@ -203,7 +203,7 @@ class ProxySettingsActivity : BaseActivity(R.layout.fragment_proxy_configure) {
                     return@io
                 }
                 val packageName = endpoint.proxyAppName
-                val app = FirewallManager.getAppInfoByPackage(packageName)?.appName ?: ""
+                val app = FirewallManager.getAppInfoByPackage(packageName)?.appName.orEmpty()
                 val m = ProxyManager.ProxyMode.get(endpoint.proxyMode)
                 if (m?.isCustomSocks5() == true) {
                     val appNames: MutableList<String> = ArrayList()
@@ -1068,7 +1068,7 @@ class ProxySettingsActivity : BaseActivity(R.layout.fragment_proxy_configure) {
                 if (appName == getString(R.string.settings_app_list_default_app)) {
                     ""
                 } else {
-                    FirewallManager.getPackageNameByAppName(appName) ?: ""
+                    FirewallManager.getPackageNameByAppName(appName).orEmpty()
                 }
             val proxyEndpoint =
                 constructProxy(
@@ -1106,7 +1106,7 @@ class ProxySettingsActivity : BaseActivity(R.layout.fragment_proxy_configure) {
                 if (appName == getString(R.string.settings_app_list_default_app)) {
                     ""
                 } else {
-                    FirewallManager.getPackageNameByAppName(appName) ?: ""
+                    FirewallManager.getPackageNameByAppName(appName).orEmpty()
                 }
             val proxyEndpoint =
                 constructProxy(

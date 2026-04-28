@@ -1462,13 +1462,13 @@ class SubscriptionStateMachineV2 : KoinComponent {
             purchaseTime = Utilities.convertLongToTime(purchaseTime, Constants.TIME_FORMAT_4),
             purchaseTimeMillis = purchaseTime,
             isAutoRenewing = isAutoRenewing,
-            accountId = accountIdentifiers?.obfuscatedAccountId ?: "",
+            accountId = accountIdentifiers?.obfuscatedAccountId.orEmpty(),
             deviceId = existingDeviceId,
             payload = payloadStr,
             expiryTime = playExpiry,
             status = status,
             windowDays = windowDays,
-            orderId = orderId ?: ""
+            orderId = orderId.orEmpty()
         )
     }
 

@@ -189,7 +189,7 @@ class CheckoutActivity : BaseActivity(R.layout.activity_checkout_proxy) {
                 val keyGenerator = Backend.newPipKeyProvider(key, "")
                 val keyState = keyGenerator.blind()
                 // id: use 64 chars as account id
-                val id = keyState.msg.opaque()?.toString() ?: ""
+                val id = keyState.msg.opaque()?.toString().orEmpty()
                 val accountId = id.substring(0, 64)
                 // rest of the keyState values will never be used in kotlin
 

@@ -3045,10 +3045,10 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         var ipv4Ssid = ""
         var ipv6Ssid = ""
         networks.ipv4Net.forEach {
-            ipv4Ssid = ipv4Ssid + it.network.networkHandle.toString() + "##" + (it.ssid ?: "")
+            ipv4Ssid = ipv4Ssid + it.network.networkHandle.toString() + "##" + (it.ssid.orEmpty())
         }
         networks.ipv6Net.forEach {
-            ipv6Ssid = ipv6Ssid + it.network.networkHandle.toString() + "##" + (it.ssid ?: "")
+            ipv6Ssid = ipv6Ssid + it.network.networkHandle.toString() + "##" + (it.ssid.orEmpty())
         }
 
         logd("getNetworkSSID - onNetworkConnected: active: ${networks.activeSsid}, v4: $ipv4Ssid, v6: $ipv6Ssid")
@@ -4054,7 +4054,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     }
 
     override fun onQuery(srcType: String?, uidGostr: String?, fqdn: String, qtype: Long): DNSOpts = go2kt(dnsQueryDispatcher) {
-        val uidStr = uidGostr ?: ""
+        val uidStr = uidGostr.orEmpty()
         var result: DNSOpts?
         // TODO: if uid is received, then make sure Rethink uid always returns Default as transport
         var uid: Int = INVALID_UID
@@ -4333,7 +4333,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             }
             // only when there is an uid, we need to calculate wireguard ids
             // gives all the possible wgs for the app regardless of usesMobileNetwork
-            val ssid = getUnderlyingSsid() ?: ""
+            val ssid = getUnderlyingSsid().orEmpty()
             val rpnId = if (RpnProxyManager.isRpnActive()) RpnProxyManager.getAllPossibleConfigIdsForApp(uid, ip = "", port = 0, domain, true, ssid) else emptyList()
             val wgIds = WireguardManager.getAllPossibleConfigIdsForApp(uid, ip = "", port = 0, domain, true, ssid, "")
             Logger.v(LOG_TAG_VPN, "(onQuery)wg ids($wgIds), rpn id($rpnId) found for uid: $uid")
@@ -4905,7 +4905,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
                 dstPort,
                 protocol,
                 proxyDetails = "", // set later
-                blocklists ?: "",
+                blocklists.orEmpty(),
                 domains.firstOrNull(),
                 connId,
                 connType
@@ -5231,7 +5231,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
                 uid,
                 connTracker.destIP,
                 connTracker.destPort,
-                connTracker.query ?: "",
+                connTracker.query.orEmpty(),
                 usesMobileNw,
                 ssid
             )
@@ -5255,7 +5255,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         }
 
         val defProxy = if (rpnIds.isEmpty()) baseOrExit else ""
-        val wgs = WireguardManager.getAllPossibleConfigIdsForApp(uid, connTracker.destIP, connTracker.destPort, connTracker.query ?: "", true, ssid, defProxy)
+        val wgs = WireguardManager.getAllPossibleConfigIdsForApp(uid, connTracker.destIP, connTracker.destPort, connTracker.query.orEmpty(), true, ssid, defProxy)
         if (wgs.isNotEmpty() && wgs.first() != baseOrExit) {
             // canRoute may fail for all configs.
             // if that happens:
@@ -5444,7 +5444,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             val v4Mobile = v4first?.capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ?: false
             val v6Mobile = v6first?.capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ?: false
             val isActiveMobile = v4Mobile || (v4first == null && v6Mobile)
-            val activeSsid = getUnderlyingSsid() ?: ""
+            val activeSsid = getUnderlyingSsid().orEmpty()
             Logger.v(LOG_TAG_VPN, "refreshOrPauseOrResumeOrReAddProxies: canResumeMobileOnlyWg? $isActiveMobile, curr-ssid: $activeSsid")
             io("refreshWg") { vpnAdapter?.refreshOrPauseOrResumeOrReAddProxies(isActiveMobile, activeSsid) }
         }
@@ -5708,7 +5708,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     }
 
     suspend fun getSystemDns(): String {
-        return vpnAdapter?.getSystemDns() ?: ""
+        return vpnAdapter?.getSystemDns().orEmpty()
     }
 
     fun getNetStat(): NetStat? {
@@ -5898,7 +5898,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
                     if (id == null) {
                         Logger.e(LOG_TAG_VPN, "rpnProxiesToPing: rpn is enabled but win proxy id is null for auto")
                     } else {
-                        wgProxyPingController.startPing(VpnController.getWinProxyId() ?: "", true)
+                        wgProxyPingController.startPing(VpnController.getWinProxyId().orEmpty(), true)
                     }
                 }
                 val activeProxyIds = vpnAdapter?.getActiveWinProxies()

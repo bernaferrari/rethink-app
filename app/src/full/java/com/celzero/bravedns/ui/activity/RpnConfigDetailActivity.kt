@@ -894,7 +894,7 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
         val dlg = CountrySsidDialog(
             this, themeId, configKey,
             countryConfig?.countryName ?: configKey,
-            countryConfig?.ssids ?: ""
+            countryConfig?.ssids.orEmpty()
         ) { newSsids ->
             lifecycleScope.launch(Dispatchers.IO) {
                 RpnProxyManager.updateSsids(configKey, newSsids)

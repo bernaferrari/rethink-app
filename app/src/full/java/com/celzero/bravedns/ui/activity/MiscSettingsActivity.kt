@@ -864,7 +864,7 @@ class MiscSettingsActivity : BaseActivity(R.layout.activity_misc_settings) {
         alertBuilder.setSingleChoiceItems(items, checkedItem) { dialog, which ->
             dialog.dismiss()
             val item = items[which]
-            val tag = languages[item] ?: ""
+            val tag = languages[item].orEmpty()
             if (tag.isBlank()) {
                 AppCompatDelegate.setApplicationLocales(LocaleListCompat.getEmptyLocaleList())
             } else {

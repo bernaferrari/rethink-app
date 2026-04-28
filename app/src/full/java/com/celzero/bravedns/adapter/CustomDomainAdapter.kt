@@ -355,8 +355,8 @@ class CustomDomainAdapter(
                     displayIcon(
                         Utilities.getIcon(
                             context,
-                            appInfo?.packageName ?: "",
-                            appInfo?.appName ?: ""
+                            appInfo?.packageName.orEmpty(),
+                            appInfo?.appName.orEmpty()
                         ),
                         b.customDomainAppIconIv
                     )

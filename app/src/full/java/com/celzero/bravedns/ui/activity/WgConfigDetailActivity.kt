@@ -990,7 +990,7 @@ class WgConfigDetailActivity : BaseActivity(R.layout.activity_wg_detail) {
 
                 // Enabling with proper permissions, load and display SSIDs
                 io {
-                    val cur = WireguardManager.getConfigFilesById(configId)?.ssids ?: ""
+                    val cur = WireguardManager.getConfigFilesById(configId)?.ssids.orEmpty()
                     val list = SsidItem.parseStorageList(cur)
                     uiCtx {
                         if (list.isEmpty()) {
@@ -1049,7 +1049,7 @@ class WgConfigDetailActivity : BaseActivity(R.layout.activity_wg_detail) {
     }
 
     private fun openSsidDialog() {
-        val currentSsids = WireguardManager.getConfigFilesById(configId)?.ssids ?: ""
+        val currentSsids = WireguardManager.getConfigFilesById(configId)?.ssids.orEmpty()
         var themeId = Themes.getCurrentTheme(isDarkThemeOn(), persistentState.theme)
         if (Themes.isFrostTheme(themeId)) {
             themeId = R.style.App_Dialog_NoDim

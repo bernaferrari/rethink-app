@@ -124,11 +124,11 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
 
         val fmt = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
         // Purchase token (show first 12 chars)
-        var token = sub?.purchaseToken ?: ""
+        var token = sub?.purchaseToken.orEmpty()
         token = token.length.let { if (it > 12) token.take(12) + "…" else token.ifBlank { "" } }
 
         // Hero subtitle: "RPN Standard · 74b4c00217"
-        val accountId = sub?.accountId?.take(12) ?: ""
+        val accountId = sub?.accountId?.take(12).orEmpty()
         // Use the real device ID fetched from SecureIdentityStore (never sub.deviceId directly).
         val deviceId = realDeviceId.take(4)
         val id = "$accountId • $deviceId"
@@ -211,7 +211,7 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
     private fun resolvePlanName(subscriptionData: SubscriptionStateMachineV2.SubscriptionData?): String {
         if (subscriptionData == null) return ""
 
-        val productId = subscriptionData.purchaseDetail?.productId ?: ""
+        val productId = subscriptionData.purchaseDetail?.productId.orEmpty()
         return when (productId) {
             InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> getString(R.string.plan_2yr)
             InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> getString(R.string.plan_5yr)

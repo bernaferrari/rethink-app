@@ -737,7 +737,7 @@ internal constructor(
 
         var pkgName = app.packageName
         if (pkgName.isEmpty()) {
-            pkgName = FirewallManager.getPackageNameByUid(app.uid) ?: ""
+            pkgName = FirewallManager.getPackageNameByUid(app.uid).orEmpty()
         }
 
         val appInfo = Utilities.getApplicationInfo(ctx, pkgName)

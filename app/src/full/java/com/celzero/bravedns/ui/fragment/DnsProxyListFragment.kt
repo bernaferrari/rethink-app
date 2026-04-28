@@ -229,7 +229,7 @@ class DnsProxyListFragment : Fragment(R.layout.fragment_dns_proxy_list) {
                 if (appName == getString(R.string.settings_app_list_default_app)) {
                     ""
                 } else {
-                    FirewallManager.getPackageNameByAppName(appName) ?: ""
+                    FirewallManager.getPackageNameByAppName(appName).orEmpty()
                 }
             var proxyName = name
             if (proxyName.isBlank()) {

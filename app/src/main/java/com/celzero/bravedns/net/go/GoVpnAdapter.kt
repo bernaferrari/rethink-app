@@ -373,7 +373,7 @@ class GoVpnAdapter : KoinComponent {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: doh failure, url: $url", e)
             removeResolver(id)
             showDnsFailureNotification(context.getString(R.string.other_dns_list_tab1), e.message ?: context.getString(R.string.system_dns_connection_failure))
-            showDnsFailureToast(url ?: "")
+            showDnsFailureToast(url.orEmpty())
             logEvent(
                 Severity.HIGH,
                 "doh transport error",
@@ -414,7 +414,7 @@ class GoVpnAdapter : KoinComponent {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dot failure, url: $url", e)
             removeResolver(id)
             showDnsFailureNotification(context.getString(R.string.lbl_dot), e.message ?: context.getString(R.string.system_dns_connection_failure))
-            showDnsFailureToast(url ?: "")
+            showDnsFailureToast(url.orEmpty())
             logEvent(
                 Severity.HIGH,
                 "dot transport error",
@@ -450,7 +450,7 @@ class GoVpnAdapter : KoinComponent {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: odoh failure, res: $resolver", e)
             removeResolver(id)
             showDnsFailureNotification(context.getString(R.string.lbl_odoh), e.message ?: context.getString(R.string.system_dns_connection_failure))
-            showDnsFailureToast(resolver ?: "")
+            showDnsFailureToast(resolver.orEmpty())
             logEvent(
                 Severity.HIGH,
                 "odoh transport error",
@@ -1158,7 +1158,7 @@ class GoVpnAdapter : KoinComponent {
             Pair(status, "")
         } catch (ex: Exception) {
             Logger.i(LOG_TAG_VPN, "$TAG err getProxy($id), reason: ${ex.message}")
-            Pair(null, ex.message ?: "")
+            Pair(null, ex.message.orEmpty())
         }
     }
 
@@ -1354,7 +1354,7 @@ class GoVpnAdapter : KoinComponent {
                 val canResumeMobileWg = isWireGuardMobileOnly && isMobileActive
 
                 val useOnlyOnSsid = files?.ssidEnabled == true && !files.oneWireGuard
-                val configuredSsids = files?.ssids ?: ""
+                val configuredSsids = files?.ssids.orEmpty()
                 val ssidMatch = WireguardManager.matchesSsidList(configuredSsids, ssid) && ssid.isNotEmpty()
                 val canResumeSsidWg = useOnlyOnSsid && ssidMatch
 
