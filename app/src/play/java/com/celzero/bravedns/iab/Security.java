@@ -1,5 +1,3 @@
-package com.celzero.bravedns.iab;
-
 /*
  * Copyright (C) 2021 Google Inc. All rights reserved.
  *
@@ -15,6 +13,7 @@ package com.celzero.bravedns.iab;
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.celzero.bravedns.iab;
 
 import android.text.TextUtils;
 import android.util.Base64;

@@ -30,9 +30,9 @@ import com.celzero.bravedns.database.Severity
 
 class EventsViewModel(private val eventDao: EventDao) : ViewModel() {
 
-    private var filteredQuery = MutableLiveData<String>()
-    private var filteredSeverity = MutableLiveData<Severity?>()
-    private var filteredSources = MutableLiveData<Set<EventSource>>()
+    private val filteredQuery = MutableLiveData<String>()
+    private val filteredSeverity = MutableLiveData<Severity?>()
+    private val filteredSources = MutableLiveData<Set<EventSource>>()
 
     companion object {
         private const val PAGE_SIZE = 50

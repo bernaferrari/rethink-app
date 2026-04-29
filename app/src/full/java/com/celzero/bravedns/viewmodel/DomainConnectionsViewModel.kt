@@ -27,12 +27,12 @@ import com.celzero.bravedns.database.StatsSummaryDao
 import com.celzero.bravedns.util.Constants
 
 class DomainConnectionsViewModel(private val statsDao: StatsSummaryDao) : ViewModel() {
-    private var domains: MutableLiveData<String> = MutableLiveData()
-    private var asn: MutableLiveData<String> = MutableLiveData()
-    private var flag: MutableLiveData<String> = MutableLiveData()
-    private var ip: MutableLiveData<String> = MutableLiveData()
+    private val domains: MutableLiveData<String> = MutableLiveData()
+    private val asn: MutableLiveData<String> = MutableLiveData()
+    private val flag: MutableLiveData<String> = MutableLiveData()
+    private val ip: MutableLiveData<String> = MutableLiveData()
     private var timeCategory: TimeCategory = TimeCategory.ONE_HOUR
-    private var startTime: MutableLiveData<Long> = MutableLiveData()
+    private val startTime: MutableLiveData<Long> = MutableLiveData()
     private var isBlocked: Boolean = false
 
     companion object {

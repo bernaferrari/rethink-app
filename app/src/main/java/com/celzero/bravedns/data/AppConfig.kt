@@ -71,14 +71,14 @@ internal constructor(
     private val dnsLogs: DnsLogRepository,
     private val eventLogger: EventLogger
 ) {
-    private var braveModeObserver: MutableLiveData<Int> = MutableLiveData()
+    private val braveModeObserver: MutableLiveData<Int> = MutableLiveData()
     private var pcapFilePath: String = ""
     private var customSocks5Endpoint: ProxyEndpoint? = null
     private var customHttpEndpoint: ProxyEndpoint? = null
     private var orbotEndpoint: ProxyEndpoint? = null
 
     companion object {
-        private var connectedDns: MutableLiveData<String> = MutableLiveData()
+        private val connectedDns: MutableLiveData<String> = MutableLiveData()
 
         private const val ORBOT_DNS = "Orbot"
 

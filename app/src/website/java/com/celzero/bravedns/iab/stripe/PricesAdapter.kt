@@ -8,7 +8,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 class PricesAdapter : RecyclerView.Adapter<PricesAdapter.PriceViewHolder>() {
 
-    private var prices: List<Price> = emptyList()
+    private val prices: List<Price> = emptyList()
 
     fun submitList(newPrices: List<Price>) {
         prices = newPrices

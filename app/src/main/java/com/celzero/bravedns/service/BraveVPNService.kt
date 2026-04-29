@@ -190,13 +190,13 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     private val vpnScope = MainScope()
 
     // used mostly for service to adapter creation and updates
-    private var serializer: CoroutineDispatcher = Daemons.make("vpnser")
+    private val serializer: CoroutineDispatcher = Daemons.make("vpnser")
 
-    private var connectionMonitor: ConnectionMonitor = ConnectionMonitor(this, this, serializer, vpnScope)
+    private val connectionMonitor: ConnectionMonitor = ConnectionMonitor(this, this, serializer, vpnScope)
     private val connTrackRepository by inject<ConnectionTrackerRepository>()
     private val eventLogger by inject<EventLogger>()
 
-    private var userPresentReceiver: UserPresentReceiver = UserPresentReceiver()
+    private val userPresentReceiver: UserPresentReceiver = UserPresentReceiver()
 
     // multiple coroutines call both signalStopService and makeOrUpdateVpnAdapter and so
     // set and unset this variable on the serializer thread
@@ -223,7 +223,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     private var prevDns: MutableSet<InetAddress> = mutableSetOf()
     @Volatile
     private var lastRxTrafficTime: Long = elapsedRealtime() // tracks rx from onSocketClosed()
-    private var testFd: AtomicInteger = AtomicInteger(-1)
+    private val testFd: AtomicInteger = AtomicInteger(-1)
 
     companion object {
         private const val TAG = "VpnService;"
@@ -278,7 +278,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
 
     private var lastSubscriptionCheckTime: Long = 0
 
-    private var isLockDownPrevious = AtomicBoolean(false)
+    private val isLockDownPrevious = AtomicBoolean(false)
 
     private lateinit var connTracer: ConnectionTracer
 
@@ -295,7 +295,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
 
     @Volatile
     var accessibilityHearbeatTimestamp: Long = INIT_TIME_MS
-    private var settingUpOrbot: AtomicBoolean = AtomicBoolean(false)
+    private val settingUpOrbot: AtomicBoolean = AtomicBoolean(false)
 
     private lateinit var notificationManager: NotificationManager
     private lateinit var activityManager: ActivityManager
@@ -312,7 +312,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
 
     // used to store the conn-ids that are allowed and active, to show in network logs
     // as active connections. removed when the connection is closed (onSummary)
-    private var activeCids = Collections.newSetFromMap(ConcurrentHashMap<CidKey, Boolean>())
+    private val activeCids = Collections.newSetFromMap(ConcurrentHashMap<CidKey, Boolean>())
 
     // used to store the ConnTrackerMetaData that has multiple proxy ids associated with it
     // waiting for the connection to be established, the call from postFlow/socketClosed will
@@ -328,7 +328,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     // used to store the conn-ids that need to be closed when device is locked,
     // this is used to close the connections when the device is locked
     // list will exclude bypassed apps, domains and ip rules
-    private var activeClosableCids = Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
+    private val activeClosableCids = Collections.newSetFromMap(ConcurrentHashMap<String, Boolean>())
 
     // data class to store the connection summary
     data class CidKey(val cid: String, val uid: Int)

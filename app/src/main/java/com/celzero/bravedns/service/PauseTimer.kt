@@ -33,8 +33,8 @@ object PauseTimer {
     // default duration for pause state: 15mins
     val DEFAULT_PAUSE_TIME_MS = TimeUnit.MINUTES.toMillis(15)
 
-    private var countdownMs: AtomicLong = AtomicLong(DEFAULT_PAUSE_TIME_MS)
-    private var pauseCountDownTimer: MutableLiveData<Long> = MutableLiveData()
+    private val countdownMs: AtomicLong = AtomicLong(DEFAULT_PAUSE_TIME_MS)
+    private val pauseCountDownTimer: MutableLiveData<Long> = MutableLiveData()
     private const val COUNT_DOWN_INTERVAL = 1000L
 
     // increment/decrement value to pause vpn

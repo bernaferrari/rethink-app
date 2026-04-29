@@ -21,8 +21,8 @@ import kotlinx.coroutines.launch
 
 class AppInfoViewModel(private val appInfoDAO: AppInfoDAO) : ViewModel() {
 
-    private var filter: MutableLiveData<String> = MutableLiveData()
-    private var category: MutableSet<String> = mutableSetOf()
+    private val filter: MutableLiveData<String> = MutableLiveData()
+    private val category: MutableSet<String> = mutableSetOf()
     private var topLevelFilter = AppListActivity.TopLevelFilter.ALL
     private var firewallFilter = AppListActivity.FirewallFilter.ALL
     private var search: String = ""

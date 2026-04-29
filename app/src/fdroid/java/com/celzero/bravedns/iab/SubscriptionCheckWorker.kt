@@ -17,7 +17,7 @@ class SubscriptionCheckWorker(
 ) : CoroutineWorker(context, workerParams), KoinComponent {
 
     private val persistentState by inject<PersistentState>()
-    private var attempts = 0
+    private val attempts = 0
 
     companion object {
         const val WORK_NAME = "SubscriptionCheckWorker"

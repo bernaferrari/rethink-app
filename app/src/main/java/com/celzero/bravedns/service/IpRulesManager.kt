@@ -40,7 +40,7 @@ object IpRulesManager : KoinComponent {
     // max size of ip request look-up cache
     private const val CACHE_MAX_SIZE = 10000L
 
-    private var iptree = Backend.newIpTree()
+    private val iptree = Backend.newIpTree()
 
     // key-value object for ip look-up
     data class CacheKey(val ipNetPort: String, val uid: Int)

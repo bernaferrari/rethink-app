@@ -60,7 +60,7 @@ object WireguardManager : KoinComponent {
     private var mappings: CopyOnWriteArraySet<WgConfigFilesImmutable> = CopyOnWriteArraySet()
 
     // contains parsed wg configs
-    private var configs: CopyOnWriteArraySet<Config> = CopyOnWriteArraySet()
+    private val configs: CopyOnWriteArraySet<Config> = CopyOnWriteArraySet()
 
     // Set to true once load() has completed its first run. Used by the UI to distinguish
     // "no active configs" from "configs not loaded yet" so the proxy card never shows

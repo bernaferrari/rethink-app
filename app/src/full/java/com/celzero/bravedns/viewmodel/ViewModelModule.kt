@@ -15,12 +15,11 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import com.celzero.bravedns.iab.ServerOrderHistoryRepository
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
 object ViewModelModule {
-    private val viewModelModule = module {
+    private val modelModules = module {
         viewModel { ConnectionTrackerViewModel(get()) }
         viewModel { DnsCryptEndpointViewModel(get()) }
         viewModel { DnsCryptRelayEndpointViewModel(get()) }
@@ -54,5 +53,5 @@ object ViewModelModule {
         viewModel { ServerOrderHistoryViewModel(get()) }
     }
 
-    val modules = listOf(viewModelModule)
+    val modules = listOf(modelModules)
 }

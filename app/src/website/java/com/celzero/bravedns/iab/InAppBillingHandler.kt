@@ -44,22 +44,26 @@ import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.database.SubscriptionStatus
 import com.celzero.bravedns.iab.InAppBillingHandler.ONE_TIME_PRODUCT_2YRS
 import com.celzero.bravedns.iab.InAppBillingHandler.ONE_TIME_PRODUCT_5YRS
+import com.celzero.bravedns.iab.InAppBillingHandler.UNACK_ESCALATION_THRESHOLD
 import com.celzero.bravedns.iab.InAppBillingHandler.cancelPlaySubscription
 import com.celzero.bravedns.iab.InAppBillingHandler.getObfuscatedDeviceId
+import com.celzero.bravedns.iab.InAppBillingHandler.getRemainingDaysForInApp
+import com.celzero.bravedns.iab.InAppBillingHandler.getRemainingDaysForInAppSuspend
+import com.celzero.bravedns.iab.InAppBillingHandler.handleConflict409
 import com.celzero.bravedns.iab.InAppBillingHandler.handlePurchase
-import com.celzero.bravedns.iab.InAppBillingHandler.launchFlow
 import com.celzero.bravedns.iab.InAppBillingHandler.purchasesLiveData
 import com.celzero.bravedns.iab.InAppBillingHandler.queryProductDetails
 import com.celzero.bravedns.iab.InAppBillingHandler.queryUtils
 import com.celzero.bravedns.iab.InAppBillingHandler.registerDevice
 import com.celzero.bravedns.iab.InAppBillingHandler.revokeSubscription
+import com.celzero.bravedns.iab.InAppBillingHandler.serverApiErrorLiveData
 import com.celzero.bravedns.iab.InAppBillingHandler.startStateObserver
 import com.celzero.bravedns.iab.InAppBillingHandler.updateUIForState
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import com.google.gson.JsonObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -688,7 +692,7 @@ object InAppBillingHandler : KoinComponent {
                     )
                 } else {
                     logd(mname, "PurchasePending is for a different product type than $queriedProductType " +
-                        "(pendingProduct=$pendingProductId), skipping failure")
+                            "(pendingProduct=$pendingProductId), skipping failure")
                 }
             }
             return
@@ -816,8 +820,8 @@ object InAppBillingHandler : KoinComponent {
             consecutiveEmptyQueries++
             if (consecutiveEmptyQueries >= EMPTY_QUERY_THRESHOLD) {
                 logd(mname, "No SUBS in purchase list despite SUBS query;" +
-                    "threshold reached ($consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD), " +
-                    "expiring stale SUBS DB rows")
+                        "threshold reached ($consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD), " +
+                        "expiring stale SUBS DB rows")
                 try {
                     subscriptionStateMachine.reconcileWithPlayBilling(
                         purchases          = emptyList<Purchase>(),
@@ -828,7 +832,7 @@ object InAppBillingHandler : KoinComponent {
                 }
             } else {
                 logd(mname, "No SUBS in purchase list despite SUBS query;" +
-                    "ignoring (consecutive=$consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD)")
+                        "ignoring (consecutive=$consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD)")
             }
         }
 
@@ -1039,18 +1043,18 @@ object InAppBillingHandler : KoinComponent {
 
     private suspend fun buildSubsPurchaseDetailInline(purchase: Purchase): PurchaseDetail {
         val offerDetails = resolveOfferDetailsInline(purchase)
-        val storeEntry   = storeProductDetails.find { it.productDetail.productId == purchase.products.firstOrNull() }
-        val expiryTime   = calculateExpiryTimeInline(purchase, offerDetails)
+        val storeEntry = storeProductDetails.find { it.productDetail.productId == purchase.products.firstOrNull() }
+        val expiryTime = calculateExpiryTimeInline(purchase, offerDetails)
 
-        val accountId = purchase.accountIdentifiers?.obfuscatedAccountId ?: ""
+        val accountId = purchase.accountIdentifiers?.obfuscatedAccountId.orEmpty()
         if (accountId.isBlank()) {
             loge("buildSubsPurchaseDetailInline", "obfuscatedAccountId blank for SUBS token=${purchase.purchaseToken.take(8)}; was launchFlow called?")
         }
         return PurchaseDetail(
-            productId = purchase.products.firstOrNull() ?: "",
-            planId = offerDetails?.basePlanId ?: storeEntry?.productDetail?.planId ?: "",
-            productTitle = storeEntry?.productDetail?.productTitle ?: "",
-            planTitle = offerDetails?.let { queryUtils.getPlanTitle(it) } ?: "",
+            productId = purchase.products.firstOrNull().orEmpty(),
+            planId = offerDetails?.basePlanId ?: storeEntry?.productDetail?.planId.orEmpty(),
+            productTitle = storeEntry?.productDetail?.productTitle.orEmpty(),
+            planTitle = offerDetails?.let { queryUtils.getPlanTitle(it) }.orEmpty(),
             state = purchase.purchaseState,
             purchaseToken = purchase.purchaseToken,
             productType = ProductType.SUBS,
@@ -1065,16 +1069,16 @@ object InAppBillingHandler : KoinComponent {
             expiryTime = expiryTime,
             status = purchase.purchaseState.toSubscriptionStatusId(),
             windowDays = REVOKE_WINDOW_SUBS_MONTHLY_DAYS,
-            orderId = purchase.orderId ?: ""
+            orderId = purchase.orderId.orEmpty()
         )
     }
 
     private suspend fun buildInAppPurchaseDetailInline(purchase: Purchase): PurchaseDetail? {
-        val productId  = purchase.products.firstOrNull() ?: ""
+        val productId  = purchase.products.firstOrNull().orEmpty()
         val expiryTime = calculateOneTimeExpiryTime(purchase)
         if (expiryTime < System.currentTimeMillis()) return null
         val storeEntry = storeProductDetails.find { it.productDetail.productId == productId }
-        val accountId = purchase.accountIdentifiers?.obfuscatedAccountId ?: ""
+        val accountId = purchase.accountIdentifiers?.obfuscatedAccountId.orEmpty()
         if (accountId.isBlank()) {
             loge("buildInAppPurchaseDetailInline", "obfuscatedAccountId blank for INAPP token=${purchase.purchaseToken.take(8)}, was launchFlow called?")
         }
@@ -1082,7 +1086,7 @@ object InAppBillingHandler : KoinComponent {
             productId = productId,
             planId = storeEntry?.oneTimeOfferDetails?.purchaseOptionId ?: productId,
             productTitle = storeEntry?.productDetail?.productTitle ?: QueryUtils.getPlanTitle(getOneTimeBillingPeriod(productId)),
-            planTitle = storeEntry?.productDetail?.productTitle ?: "",
+            planTitle = storeEntry?.productDetail?.productTitle.orEmpty(),
             state = purchase.purchaseState,
             purchaseToken = purchase.purchaseToken,
             productType = ProductType.INAPP,
@@ -1097,7 +1101,7 @@ object InAppBillingHandler : KoinComponent {
             expiryTime = expiryTime,
             status = purchase.purchaseState.toSubscriptionStatusId(),
             windowDays = resolveOneTimeRevokeDays(productId),
-            orderId = purchase.orderId ?: ""
+            orderId = purchase.orderId.orEmpty()
         )
     }
 
@@ -1349,7 +1353,7 @@ object InAppBillingHandler : KoinComponent {
             }
             else -> {
                 loge(mname, "unknown productId=$productId, defaulting to SUBS; " +
-                    "add this product ID to resolveProductTypeFromKnownIds()")
+                        "add this product ID to resolveProductTypeFromKnownIds()")
                 ProductType.SUBS // by default assume as subs; should not happen
             }
         }
@@ -1705,8 +1709,8 @@ object InAppBillingHandler : KoinComponent {
         log(mname, "Looking for product: $productId, plan: $planId")
         var queryProductDetail = storeProductDetails.find {
             it.productDetail.productId == productId &&
-            it.productDetail.planId == planId &&
-            it.productDetail.productType == ProductType.SUBS
+                    it.productDetail.planId == planId &&
+                    it.productDetail.productType == ProductType.SUBS
         }
 
         // storeProductDetails may be empty when purchaseSubs is reached without the RethinkPlus
@@ -1721,8 +1725,8 @@ object InAppBillingHandler : KoinComponent {
             }
             queryProductDetail = storeProductDetails.find {
                 it.productDetail.productId == productId &&
-                it.productDetail.planId == planId &&
-                it.productDetail.productType == ProductType.SUBS
+                        it.productDetail.planId == planId &&
+                        it.productDetail.productType == ProductType.SUBS
             }
         }
 

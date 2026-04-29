@@ -62,7 +62,7 @@ class ConnectionTrackerFragment :
     private val viewModel: ConnectionTrackerViewModel by viewModel()
 
     private var filterQuery: String = ""
-    private var filterCategories: MutableSet<String> = mutableSetOf()
+    private val filterCategories: MutableSet<String> = mutableSetOf()
     private var filterType: TopLevelFilter = TopLevelFilter.ALL
     private val connectionTrackerRepository by inject<ConnectionTrackerRepository>()
     private val persistentState by inject<PersistentState>()
