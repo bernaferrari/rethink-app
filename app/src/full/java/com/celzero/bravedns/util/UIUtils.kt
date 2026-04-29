@@ -23,7 +23,7 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.content.res.TypedArray
-import android.graphics.Paint
+import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.provider.Settings
@@ -31,8 +31,14 @@ import android.text.Html
 import android.text.Spanned
 import android.text.format.DateUtils
 import android.util.TypedValue
+import android.view.View
+import android.view.ViewGroup
+import android.view.ViewOutlineProvider
+import android.widget.FrameLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.widget.AppCompatTextView
+import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
@@ -42,9 +48,12 @@ import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.glide.FavIconDownloader
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.service.DnsLogTracker
+import com.celzero.bravedns.service.PersistentState
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.NetStat
+import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.radiobutton.MaterialRadioButton
+import com.google.android.material.snackbar.Snackbar
 import java.util.Calendar
 import java.util.Date
 import java.util.regex.Matcher
@@ -683,10 +692,11 @@ object UIUtils {
         val nic = stat.nic()?.toString()
         val rdnsInfo = stat.rdnsinfo()?.toString()
         val nicInfo = stat.nicinfo()?.toString()
-        val go = stat.go()?.toString()
+
         val tun = stat.tun()?.toString()
 
-        var stats = nic + nicInfo + tun + fwd + ip + icmp + tcp + udp + rdnsInfo + go
+
+        var stats = nic + nicInfo + tun + fwd + ip + icmp + tcp + udp + rdnsInfo
         stats = stats.replace("{", "\n")
         stats = stats.replace("}", "\n\n")
         stats = stats.replace(",", "\n")
@@ -694,8 +704,18 @@ object UIUtils {
         return stats
     }
 
-    fun AppCompatTextView.underline() {
-        paintFlags = paintFlags or Paint.UNDERLINE_TEXT_FLAG
+    fun formatNetMetrics(stat: NetStat?): String? {
+        if (stat == null) return null
+
+        val go = stat.go()?.toString()
+        val go2 = stat.gO2().toString()
+
+        var stats = go + go2
+        stats = stats.replace("{", "\n")
+        stats = stats.replace("}", "\n\n")
+        stats = stats.replace(",", "\n")
+
+        return stats
     }
 
     fun AppCompatTextView.setBadgeDotVisible(context: Context, visible: Boolean) {
@@ -724,3 +744,240 @@ object UIUtils {
         }
     }
 }
+
+/**
+ * Centralized, themed, and throttled Snackbar helper for the Rethink app.
+ *
+ * ### Usage
+ * ```kotlin
+ * SnackbarHelper.show(
+ *     view        = b.root,           // any view in the hierarchy
+ *     message     = getString(R.string.server_selection_proxy_unavailable),
+ *     actionLabel = getString(R.string.server_selection_error_retry),
+ *     action      = { retryLoadingServers() }
+ * )
+ * ```
+ */
+object SnackbarHelper {
+
+    /** Minimum ms between two identical messages. Prevents rapid-fire error floods. */
+    private const val THROTTLE_MS = 30_000L
+
+    /** Last shown message and the timestamp it was shown. */
+    private var lastMessage: String = ""
+    private var lastShownAt: Long = 0L
+
+    /** Reference to the currently visible Snackbar so we can dismiss it before showing a new one. */
+    private var current: Snackbar? = null
+
+    /**
+     * Show a themed, deduped Snackbar.
+     *
+     * @param view        Any view inside the fragment/activity hierarchy. The helper walks up to
+     *                    find the best anchor ([CoordinatorLayout] or the decor view) and also
+     *                    looks for a [BottomNavigationView] to position above it automatically.
+     * @param message     The message to display.
+     * @param duration    [Snackbar.LENGTH_LONG] by default. Pass [Snackbar.LENGTH_INDEFINITE]
+     *                    for actionable errors the user must explicitly dismiss.
+     * @param actionLabel Optional label for the action button.
+     * @param action      Optional callback when the action button is tapped.
+     * @param forceShow   If `true`, bypass the throttle and always show (use sparingly).
+     */
+    fun show(
+        view: View,
+        message: String,
+        duration: Int = Snackbar.LENGTH_LONG,
+        actionLabel: String? = null,
+        action: (() -> Unit)? = null,
+        forceShow: Boolean = false
+    ) {
+        val now = System.currentTimeMillis()
+
+        // Throttle: drop identical repeated messages within THROTTLE_MS.
+        if (!forceShow &&
+            message == lastMessage &&
+            (now - lastShownAt) < THROTTLE_MS
+        ) {
+            Logger.d(LOG_TAG_UI, "SnackbarHelper: suppressed duplicate '${message.take(40)}'")
+            return
+        }
+
+        // Dismiss any currently visible Snackbar before showing a new one.
+        current?.dismiss()
+        current = null
+
+        val snackbar = Snackbar.make(bestAnchorFor(view), message, duration)
+
+        // Anchor above BottomNavigationView so the snackbar is never hidden behind it.
+        findBottomNavView(view)?.let { navView ->
+            snackbar.anchorView = navView
+        }
+
+        // Style the container view.
+        val snackView = snackbar.view
+        styleContainer(snackView, view.context)
+
+        // Style the message text.
+        val msgTv = snackView.findViewById<TextView>(
+            com.google.android.material.R.id.snackbar_text
+        )
+        msgTv?.let {
+            it.setTextColor(resolveThemeColor(view.context, R.attr.primaryTextColor))
+            it.textSize = 14f
+            it.maxLines = 3
+        }
+
+        // Action button.
+        if (actionLabel != null && action != null) {
+            snackbar.setAction(actionLabel) {
+                current = null
+                action()
+            }
+            snackbar.setActionTextColor(
+                resolveThemeColor(view.context, R.attr.accentGood)
+            )
+            val actionTv = snackView.findViewById<TextView>(
+                com.google.android.material.R.id.snackbar_action
+            )
+            actionTv?.let {
+                it.textSize = 14f
+                it.isAllCaps = false
+            }
+        }
+
+        snackbar.addCallback(object : Snackbar.Callback() {
+            override fun onDismissed(transientBottomBar: Snackbar?, event: Int) {
+                if (current === transientBottomBar) current = null
+            }
+        })
+
+        current = snackbar
+        lastMessage = message
+        lastShownAt = now
+        snackbar.show()
+        Logger.d(LOG_TAG_UI, "SnackbarHelper: showing '${message.take(60)}'")
+    }
+
+    /** Dismiss the currently visible Snackbar, if any. */
+    fun dismiss() {
+        current?.dismiss()
+        current = null
+    }
+
+    /**
+     * Show the stability-program enrollment Snackbar with a **Disable** action.
+     *
+     * Automatically anchors above the BottomNavigationView when one is present in the
+     * view hierarchy (e.g. fragments hosted by HomeScreenActivity).
+     *
+     * @param view           Any view inside the activity/fragment hierarchy.
+     * @param persistentState The PersistentState instance used to disable the program.
+     */
+    fun showStabilityProgram(view: View, persistentState: PersistentState) {
+        val context = view.context
+        val message = context.getString(R.string.stability_program_snackbar_msg)
+        val actionLabel = context.getString(R.string.stability_program_snackbar_disable)
+        show(
+            view = view,
+            message = message,
+            duration = Snackbar.LENGTH_INDEFINITE,
+            actionLabel = actionLabel,
+            action = {
+                persistentState.firebaseErrorReportingEnabled = false
+                FirebaseErrorReporting.setEnabled(false)
+                Logger.i(LOG_TAG_UI, "Stability program disabled by user via snackbar")
+            },
+            forceShow = true
+        )
+    }
+
+    /**
+     * Walk the view hierarchy upward to find the nearest [CoordinatorLayout] ancestor.
+     * Falls back to the root decor view so the Snackbar is never clipped by
+     * `fitsSystemWindows` insets on the fragment root.
+     */
+    private fun bestAnchorFor(view: View): View {
+        var v: View? = view
+        while (v != null) {
+            if (v is CoordinatorLayout) return v
+            v = v.parent as? View
+        }
+        return view.rootView ?: view
+    }
+
+    /**
+     * Walk the full view tree (from the root downward) to find a [BottomNavigationView].
+     * Returns `null` if none is found (e.g., in standalone activities without a nav bar).
+     */
+    private fun findBottomNavView(view: View): BottomNavigationView? {
+        // Walk up to the root first, then search the entire tree from there.
+        val root = view.rootView as? ViewGroup ?: return null
+        return searchForBottomNav(root)
+    }
+
+    private fun searchForBottomNav(group: ViewGroup): BottomNavigationView? {
+        for (i in 0 until group.childCount) {
+            val child = group.getChildAt(i)
+            if (child is BottomNavigationView) return child
+            if (child is ViewGroup) {
+                val found = searchForBottomNav(child)
+                if (found != null) return found
+            }
+        }
+        return null
+    }
+
+    /**
+     * Apply the themed background, elevation, and margins to the Snackbar container.
+     *
+     */
+    private fun styleContainer(snackView: View, context: Context) {
+        // First child is always the SnackbarContentLayout.
+        val contentView: View = (snackView as? ViewGroup)?.getChildAt(0) ?: snackView
+
+        // Outer container → transparent so the nav-bar insets area is see-through.
+        snackView.background = null
+
+        // Content view → themed card background + shadow.
+        contentView.background = ContextCompat.getDrawable(context, R.drawable.snackbar_background)
+        // Elevation on the content view so the shadow follows the rounded-rect outline.
+        contentView.elevation = context.resources.getDimension(R.dimen.snackbar_elevation)
+        // GradientDrawable provides the rounded-rect outline via BACKGROUND provider.
+        contentView.outlineProvider = ViewOutlineProvider.BACKGROUND
+
+        // Outer layout margins: float the bar away from screen edges and off the nav bar.
+        val hMargin = context.resources.getDimensionPixelSize(R.dimen.snackbar_horizontal_margin)
+        val bMargin = context.resources.getDimensionPixelSize(R.dimen.snackbar_bottom_margin)
+
+        val lp = snackView.layoutParams
+        when (lp) {
+            is CoordinatorLayout.LayoutParams -> {
+                lp.setMargins(hMargin, lp.topMargin, hMargin, bMargin)
+                snackView.layoutParams = lp
+            }
+            is FrameLayout.LayoutParams -> {
+                lp.setMargins(hMargin, lp.topMargin, hMargin, bMargin)
+                snackView.layoutParams = lp
+            }
+        }
+    }
+
+    /**
+     * Resolve a theme attribute to a concrete color int.
+     * Falls back to white (#FFFFFF) if the attribute is not found so text is
+     * always visible even if the theme is misconfigured.
+     */
+    private fun resolveThemeColor(context: Context, attrRes: Int): Int {
+        val tv = TypedValue()
+        return if (context.theme.resolveAttribute(attrRes, tv, true)) {
+            if (tv.resourceId != 0) {
+                ContextCompat.getColor(context, tv.resourceId)
+            } else {
+                tv.data
+            }
+        } else {
+            Color.WHITE
+        }
+    }
+}
+

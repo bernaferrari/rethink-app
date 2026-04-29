@@ -25,7 +25,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
@@ -58,7 +58,7 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class AppWiseDomainLogsActivity :
-    AppCompatActivity(R.layout.activity_app_wise_domain_logs), SearchView.OnQueryTextListener {
+    BaseActivity(R.layout.activity_app_wise_domain_logs), SearchView.OnQueryTextListener {
     private val b by viewBinding(ActivityAppWiseDomainLogsBinding::bind)
 
     private val persistentState by inject<PersistentState>()

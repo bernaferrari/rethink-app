@@ -32,9 +32,11 @@ import android.os.SystemClock
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
+import androidx.paging.LOG_TAG
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.AppInfoRepository.Companion.NO_PACKAGE_PREFIX
 import com.celzero.bravedns.receiver.NotificationActionReceiver
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.FirewallManager
@@ -65,7 +67,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
-import kotlin.math.log
+import kotlin.jvm.java
 import kotlin.random.Random
 
 class RefreshDatabase
@@ -153,11 +155,11 @@ internal constructor(
             val wgm = WireguardManager.load(forceRefresh = false)
             val hm = WgHopManager.load(forceRefresh = false)
             // val tm = TcpProxyHelper.load() // no need to load tcp-proxy mapping now (055v)
-            //val rm = RpnProxyManager.load()
+            val rm = RpnProxyManager.load()
 
             Logger.i(
                 LOG_TAG_APP_DB,
-                "reload: fm: $fm; ip: $ipm; dom: $dm; px: $pxm; wg: $wgm; hm: $hm"
+                "reload: fm: $fm; ip: $ipm; dom: $dm; px: $pxm; wg: $wgm; hm: $hm, rm: $rm"
             )
 
             val canTombstone = persistentState.tombstoneApps
@@ -525,7 +527,7 @@ internal constructor(
             return
         }
 
-        ProxyManager.purgeDupsBeforeRefresh()
+        // ProxyManager.purgeDupsBeforeRefresh()
         val canTombstone = persistentState.tombstoneApps
         // remove the apps from proxy mapping which are not tracked by app info repository
         // this will just sync the proxy mapping with the app info repository
@@ -536,8 +538,12 @@ internal constructor(
         val update = findPackagesToUpdate(pxm, trackedApps, restore)
         val add =
             findPackagesToAdd(pxm, trackedApps).map {
-                FirewallManager.getAppInfoByPackage(it.packageName)
-            }
+                val appInfo = FirewallManager.getAppInfoByPackage(it.packageName)
+                if (appInfo == null) {
+                    Logger.w(LOG_TAG_APP_DB, "invalid app info for ${it.packageName}")
+                }
+                appInfo
+            }.filterNotNull()
         printAll(pxm, "px: tracked apps")
         printAll(packageToAdd, "px: add apps")
         printAll(update, "px: update apps")
@@ -549,16 +555,6 @@ internal constructor(
         ProxyManager.updateApps(update)
 
         // proceed to actual add/update/delete based on the package manager's installed apps
-        packageToAdd.forEach {
-            val appInfo = FirewallManager.getAppInfoByPackage(it.packageName)
-            if (appInfo != null) {
-                ProxyManager.addApp(appInfo)
-            }
-        }
-
-        packagesToUpdate.forEach {
-            ProxyManager.updateApp(it.uid, it.packageName)
-        }
 
         packagesToTombstone.forEach {
             ProxyManager.tombstoneApp(it.uid)
@@ -572,6 +568,17 @@ internal constructor(
                 ProxyManager.deleteAppIfNeeded(it.uid, it.packageName)
             }
 
+        }
+
+        packagesToUpdate.forEach {
+            ProxyManager.updateApp(it.uid, it.packageName)
+        }
+
+        packageToAdd.forEach {
+            val appInfo = FirewallManager.getAppInfoByPackage(it.packageName)
+            if (appInfo != null) {
+                ProxyManager.addNewApp(appInfo)
+            }
         }
 
         Logger.i(
@@ -730,7 +737,7 @@ internal constructor(
 
         var pkgName = app.packageName
         if (pkgName.isEmpty()) {
-            pkgName = FirewallManager.getPackageNameByUid(app.uid) ?: ""
+            pkgName = FirewallManager.getPackageNameByUid(app.uid).orEmpty()
         }
 
         val appInfo = Utilities.getApplicationInfo(ctx, pkgName)

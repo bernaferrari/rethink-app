@@ -16,17 +16,17 @@
 package com.celzero.bravedns.service
 
 import android.content.Context
-import android.os.Handler
 import android.os.Looper
-import android.widget.Toast
 import androidx.lifecycle.MutableLiveData
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.DnsCryptRelayEndpoint
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.ui.activity.AntiCensorshipActivity
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.celzero.bravedns.util.Constants.Companion.INVALID_PORT
+import com.celzero.bravedns.util.FirebaseErrorReporting
 import com.celzero.bravedns.util.InternetProtocol
 import com.celzero.bravedns.util.PcapMode
 import com.celzero.bravedns.util.ResourceRecordTypes
@@ -90,6 +90,14 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
         const val CUSTOM_LAN_MODE_IPS_CHANGED = "custom_lan_mode_ip_changed"
 
         const val FIREWALL_BUBBLE = "pref_firewall_bubble_enabled"
+
+        // RPN server-side DNS mode (0=Default, 1=AntiAd, 2=Parental, 3=Security)
+        const val RPN_DNS_URL = "rpn_dns_mode"
+
+        // Guided tour version bump this constant to re-show the tour after major UI changes.
+        // Any stored version lower than this will cause the tour to re-trigger.
+        // v2: added Rethink+ premium nav-item step (step 6) + fixed tour button text contrast.
+        const val GUIDED_TOUR_CURRENT_VERSION = 2
     }
 
     // when vpn is started by the user, this is set to true; set to false when user stops
@@ -341,9 +349,6 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
     // retry strategy type (before split, after split, never)
     var retryStrategy by intPref("retry_strategy").withDefault<Int>(AntiCensorshipActivity.RetryStrategies.RETRY_AFTER_SPLIT.mode)
 
-    // bypass blocking in dns level, decision is made in flow() (see BraveVPNService#flow)
-    var bypassBlockInDns by booleanPref("bypass_block_in_dns").withDefault<Boolean>(false)
-
     // randomize listen port for advanced wireguard configuration, default false
     // restart of tunnel when wireguard is enabled is required to randomize the port to work properly
     // this is not a user facing option, but a developer option
@@ -364,10 +369,7 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
     var rpnMode by intPref("rpn_mode").withDefault<Int>(1)
 
     // current rpn state, see enum RpnState
-    //var rpnState by intPref("rpn_state").withDefault<Int>(RpnProxyManager.RpnState.DISABLED.id)
-
-    // subscribe product id for the current user, empty string if not subscribed
-    var rpnProductId by stringPref("rpn_product_id").withDefault<String>("")
+    var rpnState by intPref("rpn_state").withDefault<Int>(RpnProxyManager.RpnState.DISABLED.id)
 
     var nwEngExperimentalFeatures by booleanPref("network_engine_experimental").withDefault<Boolean>(false)
 
@@ -386,9 +388,6 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
     // user setting to allow only added packages can trigger the app
     var appTriggerPackages by stringPref("app_trigger_packages").withDefault<String>("")
 
-    // last key rotation time
-    var pipKeyRotationTime by longPref("pip_key_rotation_time").withDefault<Long>(INIT_TIME_MS)
-
     // perform auto or manual network connectivity checks
     var performAutoNetworkConnectivityChecks by booleanPref("perform_auto_network_connectivity_checks").withDefault<Boolean>(true)
 
@@ -396,10 +395,6 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
     // TODO: add routes as normal but do not send fd to netstack
     // repopulateTrackedNetworks also fails open see isAnyNwValidated
     var stallOnNoNetwork by booleanPref("fail_open_on_no_network").withDefault<Boolean>(false)
-
-    // last grace period reminder time, when rethinkdns+ is enabled and user is cancelled/expired
-    // this is used to show a reminder to the user to renew the subscription with grace period
-    var lastGracePeriodReminderTime by longPref("last_grace_period_reminder_time").withDefault<Long>(INIT_TIME_MS)
 
     var newSettings by stringPref("new_settings").withDefault<String>("")
     var newSettingsSeen by stringPref("new_settings_seen").withDefault<String>("")
@@ -421,6 +416,10 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
     var firebaseUserToken by stringPref("firebase_user_token").withDefault("")
     var firebaseUserTokenTimestamp by longPref("firebase_user_token_timestamp").withDefault(0L)
 
+    // Name of the last tombstone file that was successfully reported to Firebase Crashlytics.
+    // Used on app restart to skip files already uploaded and to decide which files to delete.
+    var lastReportedTombstoneFile by stringPref("last_reported_tombstone_file").withDefault("")
+
     // experimental feature to use max mtu
     var useMaxMtu by booleanPref("use_max_mtu").withDefault<Boolean>(false)
 
@@ -435,6 +434,11 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
 
     // global lockdown for wireguard proxy
     var wgGlobalLockdown by booleanPref("wg_global_lockdown").withDefault<Boolean>(false)
+
+    // smart persistent keep alive for wireguard proxy
+    var smartPersistentKeepalive by booleanPref("smart_persistent_keepalive").withDefault<Boolean>(false)
+
+    var appTestMode by booleanPref("app_test_mode").withDefault<Boolean>(false)
 
     var orbotConnectionStatus: MutableLiveData<Boolean> = MutableLiveData()
     var vpnEnabledLiveData: MutableLiveData<Boolean> = MutableLiveData()
@@ -573,7 +577,7 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
     }
 
     fun updateProxyStatus(): MutableLiveData<Int> {
-        val status =
+        var status =
             when (AppConfig.ProxyProvider.getProxyProvider(proxyProvider)) {
                 AppConfig.ProxyProvider.WIREGUARD -> {
                     R.string.lbl_wireguard
@@ -602,29 +606,39 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
                     -1
                 }
             }
-        proxyStatus.postValue(status)
+        // work around for now to check RPN proxy as well
+        if (status == -1) {
+            if (RpnProxyManager.isRpnActive()) {
+                status = R.string.rethink_plus_title
+            }
+        }
+        if (Looper.myLooper() == Looper.getMainLooper()) {
+            proxyStatus.value = status
+        } else {
+            proxyStatus.postValue(status)
+        }
         return proxyStatus
     }
 
     /**
      * Enable settings which are dependent on stability program participation.
      * Currently, only Firebase error reporting is enabled here.
+     * @return true if the state was changed (i.e., it was newly enabled), false otherwise.
      */
-    fun enableStabilityDependentSettings(context: Context) {
+    fun enableStabilityDependentSettings(): Boolean {
         // Skip for fdroid flavor
         if (Utilities.isFdroidFlavour()) {
-            return
+            return false
         }
 
         // Enable Firebase error reporting for play and website variants
         if (!firebaseErrorReportingEnabled) {
             firebaseErrorReportingEnabled = true
-            Handler(Looper.getMainLooper()).post {
-                Toast.makeText(context, context.getString(R.string.stability_program_toast), Toast.LENGTH_LONG).show()
-            }
+            FirebaseErrorReporting.setEnabled(firebaseErrorReportingEnabled)
+            return true
         }
 
-        return
+        return false
     }
 
     // Allowed DNS record types (stored as comma-separated enum names)
@@ -693,4 +707,29 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
     var customLanDnsIpv6 by stringPref("custom_lan_dns_ipv6").withDefault<String>("fd66:f83a:c650::3/128")
 
     var customModeOrIpChanged by booleanPref("custom_lan_mode_ip_changed").withDefault<Boolean>(false)
+
+    // RPN DNS url
+    var rpnDnsUrl by stringPref(RPN_DNS_URL).withDefault<String>(RpnProxyManager.DnsMode.DEFAULT.url)
+
+    // RPN configuration handling mode: false = AUTO (app decides), true = MANUAL (user decides)
+    var rpnConfigHandlingManual by booleanPref("rpn_config_handling_manual").withDefault<Boolean>(false)
+
+    // RPN always change identity on each connection: only effective when rpnConfigHandlingManual=true
+    var rpnAlwaysChangeIdentity by booleanPref("rpn_always_change_identity").withDefault<Boolean>(false)
+
+    // RPN connection port: 0=AUTO, or a specific port (80, 443, 53, 61222)
+    // Only effective when rpnConfigHandlingManual=true
+    var rpnPort by intPref("rpn_port").withDefault<Int>(0)
+
+    // RPN use permanent configuration: only effective when rpnConfigHandlingManual=true
+    var rpnUsePermanentConfig by booleanPref("rpn_use_permanent_config").withDefault<Boolean>(false)
+
+    // timestamp of the last successful /g/device registration call.
+    var deviceRegistrationTimestamp by longPref("device_registration_timestamp").withDefault<Long>(0L)
+
+    // whether the guided tour has been completed; false = show the tour
+    var guidedTourCompleted by booleanPref("guided_tour_completed").withDefault<Boolean>(false)
+
+    // the version of the guided tour that was last shown; used to re-trigger on UI changes
+    var guidedTourVersion by intPref("guided_tour_version").withDefault<Int>(0)
 }

@@ -34,14 +34,14 @@ class SummaryStatisticsViewModel(
     private val connectionTrackerDAO: ConnectionTrackerDAO,
     private val statsDao: StatsSummaryDao
 ) : ViewModel() {
-    private var topActiveConns: MutableLiveData<Long> = MutableLiveData()
-    private var networkActivity: MutableLiveData<String> = MutableLiveData()
-    private var asn: MutableLiveData<String> = MutableLiveData()
-    private var countryActivities: MutableLiveData<String> = MutableLiveData()
-    private var domains: MutableLiveData<String> = MutableLiveData()
-    private var ips: MutableLiveData<String> = MutableLiveData()
+    private val topActiveConns: MutableLiveData<Long> = MutableLiveData()
+    private val networkActivity: MutableLiveData<String> = MutableLiveData()
+    private val asn: MutableLiveData<String> = MutableLiveData()
+    private val countryActivities: MutableLiveData<String> = MutableLiveData()
+    private val domains: MutableLiveData<String> = MutableLiveData()
+    private val ips: MutableLiveData<String> = MutableLiveData()
     private var timeCategory: TimeCategory = TimeCategory.ONE_HOUR
-    private var startTime: MutableLiveData<Long> = MutableLiveData()
+    private val startTime: MutableLiveData<Long> = MutableLiveData()
     private var loadMoreClicked: Boolean = false
 
     companion object {

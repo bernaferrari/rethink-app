@@ -212,73 +212,6 @@
                         app:layout_constraintTop_toBottomOf="@+id/mtu_label"
                         tools:text="1500" />
 
-
-                    <androidx.appcompat.widget.AppCompatTextView
-                        android:id="@+id/applications_btn"
-                        style="@style/Widget.AppCompat.Button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginStart="15dp"
-                        android:layout_marginTop="20dp"
-                        android:layout_marginEnd="15dp"
-                        android:alpha="0.75"
-                        android:background="@drawable/rectangle_border_background"
-                        android:foreground="?attr/selectableItemBackground"
-                        android:gravity="center"
-                        android:padding="15dp"
-                        android:text="@string/add_remove_apps"
-                        android:textColor="?attr/secondaryTextColor"
-                        android:textSize="@dimen/large_font_text_view"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/mtu_text"
-                        app:rippleColor="?attr/secondaryTextColor" />
-
-
-                    <androidx.appcompat.widget.AppCompatTextView
-                        android:id="@+id/hop_btn"
-                        style="@style/Widget.AppCompat.Button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_centerInParent="true"
-                        android:layout_gravity="center"
-                        android:layout_marginStart="15dp"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginEnd="15dp"
-                        android:alpha="0.75"
-                        android:background="@drawable/rectangle_border_background"
-                        android:drawablePadding="10dp"
-                        android:foreground="?attr/selectableItemBackground"
-                        android:foregroundGravity="center"
-                        android:gravity="center"
-                        android:padding="15dp"
-                        android:text="@string/hop_add_remove_title"
-                        android:textColor="?attr/secondaryTextColor"
-                        android:textSize="@dimen/large_font_text_view"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/applications_btn" />
-
-                    <androidx.appcompat.widget.AppCompatTextView
-                        android:id="@+id/logs_btn"
-                        style="@style/Widget.AppCompat.Button"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:layout_marginStart="15dp"
-                        android:layout_marginTop="10dp"
-                        android:layout_marginEnd="15dp"
-                        android:alpha="0.75"
-                        android:background="@drawable/rectangle_border_background"
-                        android:foreground="?attr/selectableItemBackground"
-                        android:gravity="center"
-                        android:padding="15dp"
-                        android:text="@string/lbl_logs"
-                        android:textColor="?attr/secondaryTextColor"
-                        android:textSize="@dimen/large_font_text_view"
-                        app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/hop_btn"
-                        app:rippleColor="?attr/secondaryTextColor" />
-
                     <LinearLayout
                         android:id="@+id/edit_delete_layout"
                         android:layout_width="match_parent"
@@ -289,7 +222,7 @@
                         android:orientation="horizontal"
                         android:weightSum="1"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toBottomOf="@id/logs_btn">
+                        app:layout_constraintTop_toBottomOf="@id/mtu_text">
 
                         <androidx.appcompat.widget.AppCompatTextView
                             android:id="@+id/edit_btn"
@@ -352,7 +285,6 @@
                         android:textColor="?attr/primaryTextColor"
                         android:textStyle="bold" />
 
-                    <!-- Premium Horizontal Actions -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -386,8 +318,11 @@
 
                             <com.google.android.material.textview.MaterialTextView
                                 android:id="@+id/apps_label"
-                                android:layout_width="wrap_content"
+                                android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
+                                android:ellipsize="end"
+                                android:gravity="center"
+                                android:maxLines="1"
                                 android:text="Apps(0)"
                                 android:textAllCaps="false"
                                 android:textColor="?attr/primaryTextColor"
@@ -412,6 +347,7 @@
                             android:paddingBottom="10dp">
 
                             <androidx.appcompat.widget.AppCompatImageView
+                                android:id="@+id/hop_icon"
                                 android:layout_width="24dp"
                                 android:layout_height="24dp"
                                 android:layout_marginBottom="4dp"
@@ -419,13 +355,30 @@
                                 android:src="@drawable/ic_network_tunnel"
                                 app:tint="?attr/primaryTextColor" />
 
-                            <com.google.android.material.textview.MaterialTextView
+                            <FrameLayout
                                 android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Relay"
-                                android:textAllCaps="false"
-                                android:textColor="?attr/primaryTextColor"
-                                android:textSize="12sp" />
+                                android:layout_height="wrap_content">
+
+                                <com.google.android.material.textview.MaterialTextView
+                                    android:id="@+id/hop_label"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:maxLines="1"
+                                    android:paddingEnd="9dp"
+                                    android:text="Relay"
+                                    android:textAllCaps="false"
+                                    android:textColor="?attr/primaryTextColor"
+                                    android:textSize="12sp" />
+
+                                <View
+                                    android:id="@+id/hop_badge"
+                                    android:layout_width="7dp"
+                                    android:layout_height="7dp"
+                                    android:layout_gravity="top|end"
+                                    android:background="@drawable/dot_accent"
+                                    android:visibility="gone" />
+                            </FrameLayout>
+
                         </LinearLayout>
 
                         <LinearLayout
@@ -488,6 +441,51 @@
                         android:paddingTop="15dp"
                         android:textAppearance="?attr/textAppearanceHeadline6"
                         android:textColor="?attr/primaryTextColor" />
+
+                    <RelativeLayout
+                        android:id="@+id/lockdown_rl"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="15dp"
+                        android:layout_marginEnd="15dp"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:paddingTop="10dp"
+                        android:paddingBottom="10dp">
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentStart="true"
+                            android:layout_centerVertical="true"
+                            android:layout_toStartOf="@id/lockdown_check"
+                            android:orientation="vertical">
+
+                            <androidx.appcompat.widget.AppCompatTextView
+                                android:id="@+id/lockdown_title_tv"
+                                style="@style/TextAppearance.AppCompat.Subhead"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="@string/firewall_rule_global_lockdown"
+                                android:textSize="@dimen/large_font_text_view" />
+
+                            <androidx.appcompat.widget.AppCompatTextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:paddingTop="5dp"
+                                android:text="@string/lockdown_wg_dialog_desc"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="@dimen/default_font_text_view" />
+                        </LinearLayout>
+
+                        <com.google.android.material.switchmaterial.SwitchMaterial
+                            android:id="@+id/lockdown_check"
+                            style="@style/CustomWidget.MaterialComponents.CompoundButton.Switch"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_alignParentEnd="true"
+                            android:layout_centerVertical="true" />
+
+                    </RelativeLayout>
 
                     <RelativeLayout
                         android:id="@+id/catch_all_rl"
@@ -620,7 +618,6 @@
 
                     </RelativeLayout>
 
-                    <!-- New SSID restriction layout inserted here -->
                     <RelativeLayout
                         android:id="@+id/ssid_filter_rl"
                         android:layout_width="wrap_content"
@@ -732,7 +729,6 @@
                             android:src="@drawable/ic_edit_icon_grey" />
                     </LinearLayout>
 
-                    <!-- SSID Permission Error Section -->
                     <LinearLayout
                         android:id="@+id/ssid_permission_error_layout"
                         android:layout_width="match_parent"
@@ -767,7 +763,6 @@
 
                     </LinearLayout>
 
-                    <!-- SSID Location Error Section -->
                     <LinearLayout
                         android:id="@+id/ssid_location_error_layout"
                         android:layout_width="match_parent"

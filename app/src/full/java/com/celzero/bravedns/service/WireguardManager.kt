@@ -19,22 +19,21 @@ import Logger
 import Logger.LOG_TAG_PROXY
 import android.content.Context
 import android.text.format.DateUtils
+import com.celzero.firestack.backend.Backend
 import com.celzero.bravedns.backup.BackupHelper.Companion.TEMP_WG_DIR
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.data.SsidItem
 import com.celzero.bravedns.database.WgConfigFiles
 import com.celzero.bravedns.database.WgConfigFilesImmutable
 import com.celzero.bravedns.database.WgConfigFilesRepository
-import com.celzero.bravedns.service.EncryptionException
-import com.celzero.bravedns.service.ProxyManager.ID_NONE
 import com.celzero.bravedns.service.ProxyManager.ID_WG_BASE
 import com.celzero.bravedns.util.Constants.Companion.WIREGUARD_FOLDER_NAME
+import com.celzero.bravedns.util.InternetProtocol
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.wireguard.Config
 import com.celzero.bravedns.wireguard.Peer
 import com.celzero.bravedns.wireguard.WgHopManager
 import com.celzero.bravedns.wireguard.WgInterface
-import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.RouterStats
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -63,6 +62,11 @@ object WireguardManager : KoinComponent {
 
     // contains parsed wg configs
     private var configs: CopyOnWriteArraySet<Config> = CopyOnWriteArraySet()
+
+    // Set to true once load() has completed its first run. Used by the UI to distinguish
+    // "no active configs" from "configs not loaded yet" so the proxy card never shows
+    // "Inactive" during the async initialization window at app launch.
+    @Volatile private var loadComplete: Boolean = false
 
     // retrieve last added config id
     private var lastAddedConfigId = 0
@@ -102,9 +106,24 @@ object WireguardManager : KoinComponent {
             val config = try {
                 EncryptedFileManager.readWireguardConfig(applicationContext, path)
             } catch (e: EncryptionException) {
-                // Critical encryption failure - config is unreadable
-                Logger.e(LOG_TAG_PROXY, "Critical encryption failure for wg config: $path, deleting config", e)
-                return@forEach
+                when (e) {
+                    is EncryptionException.IOError -> {
+                        // Missing or unreadable file; keep db entry but mark inactive to avoid crash/loop.
+                        Logger.w(LOG_TAG_PROXY, "wg config missing/unreadable: $path (${e.message})")
+                        if (it.isActive) {
+                            val inactive = it.copy(isActive = false, oneWireGuard = false)
+                            mappings.remove(it)
+                            mappings.add(inactive)
+                            db.disableConfig(it.id)
+                            VpnController.removeWireGuardProxy(it.id)
+                        }
+                        return@forEach
+                    }
+                    else -> {
+                        Logger.e(LOG_TAG_PROXY, "Critical encryption failure for wg config: $path, deleting config", e)
+                        return@forEach
+                    }
+                }
             }
             if (config == null) {
                 Logger.e(LOG_TAG_PROXY, "err loading wg config: $path, invalid config")
@@ -127,8 +146,16 @@ object WireguardManager : KoinComponent {
                 configs.add(c)
             }
         }
+        loadComplete = true
         return configs.size
     }
+
+    /**
+     * Returns true once the initial [load] has finished. The UI uses this to distinguish
+     * "WireGuard configs are genuinely empty" from "configs haven't been loaded from DB yet"
+     * so the proxy card never flashes "Inactive" during the async initialisation window.
+     */
+    fun isLoaded(): Boolean = loadComplete
 
     // remove this post v055o,  sometimes the db update does not delete the entry, so adding this
     // as precaution.
@@ -149,6 +176,7 @@ object WireguardManager : KoinComponent {
     private fun clearLoadedConfigs() {
         configs.clear()
         mappings.clear()
+        loadComplete = false
     }
 
     fun getConfigById(id: Int): Config? {
@@ -236,6 +264,7 @@ object WireguardManager : KoinComponent {
                 map.serverResponse,
                 true,
                 map.isCatchAll,
+                map.isLockdown,
                 map.oneWireGuard,
                 map.useOnlyOnMetered,
                 map.isDeletable,
@@ -331,6 +360,7 @@ object WireguardManager : KoinComponent {
                 m.serverResponse,
                 false, // confirms with db.disableConfig query
                 m.isCatchAll,
+                m.isLockdown,
                 false, // confirms with db.disableConfig query
                 m.useOnlyOnMetered,
                 m.isDeletable,
@@ -353,7 +383,6 @@ object WireguardManager : KoinComponent {
 
     // pair - first: proxyId, second - can proceed for next check
     private fun canUseConfig(idStr: String, type: String, usesMtrdNw: Boolean, ssid: String): Pair<String, Boolean> {
-        val lockdown = persistentState.wgGlobalLockdown
         val block = Backend.Block
         if (idStr.isEmpty()) {
             return Pair("", true)
@@ -365,6 +394,8 @@ object WireguardManager : KoinComponent {
             Logger.d(LOG_TAG_PROXY, "config null($idStr) no need to proceed, return empty")
             return Pair("", true)
         }
+
+        val lockdown = persistentState.wgGlobalLockdown || config.isLockdown
 
         if (lockdown && (checkEligibilityBasedOnNw(id, usesMtrdNw) && checkEligibilityBasedOnSsid(id, ssid))) {
             Logger.d(LOG_TAG_PROXY, "lockdown wg for $type => return $idStr")
@@ -394,11 +425,38 @@ object WireguardManager : KoinComponent {
         return defaultTid == Backend.System || defaultTid == Backend.Plus || defaultTid == Backend.Preferred
     }
 
+    private suspend fun isWireGuardSplitTunnelEnabled(id: String): Boolean {
+        val stats = VpnController.getWireGuardStats(id) ?: return false
+
+        val ip4 = stats.ip4
+        val ip6 = stats.ip6
+        val pt = persistentState.internetProtocolType
+        val chosenProtocol = InternetProtocol.getInternetProtocol(pt)
+        return when (chosenProtocol) {
+            InternetProtocol.IPv4 -> {
+                ip4 != null && ip4
+            }
+
+            InternetProtocol.IPv6 -> {
+                ip6 != null && ip6
+            }
+
+            else -> {
+                (ip4 != null && ip6 != null && ip4 && ip6)
+            }
+        }
+    }
+
+    private suspend fun hasAnyFullTunnelWireGuard(proxies: List<String>): Boolean {
+        return proxies.any { !isWireGuardSplitTunnelEnabled(it) }
+    }
+
     // no need to check for app excluded from proxy here, expected to call this fn after that
-    fun getAllPossibleConfigIdsForApp(uid: Int, ip: String, port: Int, domain: String, usesMobileNw: Boolean, ssid: String, default: String): List<String> {
+    suspend fun getAllPossibleConfigIdsForApp(uid: Int, ip: String, port: Int, domain: String, usesMobileNw: Boolean, ssid: String, default: String): List<String> {
         val lockdown = persistentState.wgGlobalLockdown
         val block = Backend.Block
         val proxyIds: MutableList<String> = mutableListOf()
+
         if (oneWireGuardEnabled()) {
             val id = getOneWireGuardProxyId()
             if (id == null || id == INVALID_CONF_ID) {
@@ -423,7 +481,9 @@ object WireguardManager : KoinComponent {
             // add default to the list, can route check is done in go-tun
             // let one-wg use wg-dns no need to add the default to the list
             // as go-tun will not prioritize wg id if default is fast / has less-errors
-            if (default.isNotEmpty() && !isDnsRequest(default)) proxyIds.add(default)
+            // no need to use default if the one-wg is not split proxy
+            val isSplitProxy = isWireGuardSplitTunnelEnabled(ID_WG_BASE + id)
+            if (default.isNotEmpty() && !isDnsRequest(default) && isSplitProxy) proxyIds.add(default)
             Logger.i(LOG_TAG_PROXY, "one-wg enabled, return $proxyIds")
             return proxyIds
         }
@@ -466,25 +526,32 @@ object WireguardManager : KoinComponent {
         if (dcProxyPair.first.isNotEmpty()) proxyIds.add(dcProxyPair.first) // domain-app specific
         */
 
-        // check for app specific config
-        val ac = ProxyManager.getProxyIdForApp(uid)
-        // app-specific config can be empty, if the app is not configured
-        // app-specific config id
-        val acid = if (ac == ID_NONE) "" else ac // ignore id string if it is ID_NONE
-        val appProxyPair = canUseConfig(acid, "app($uid)", usesMobileNw, ssid)
-        if (!appProxyPair.second) {
-            if (appProxyPair.first == block) {
-                proxyIds.clear()
-                proxyIds.add(block)
-            } else {
-                proxyIds.add(appProxyPair.first)
-            }
-            Logger.i(LOG_TAG_PROXY, "lockdown wg for app($uid) => return $proxyIds")
-            return proxyIds
-        }
+        // --- App-specific WireGuard configs (multi-proxy aware) ---
+        // collect all proxy-ids for this uid and keep only WireGuard ones (wgX)
+        val allProxyIdsForApp = ProxyManager.getProxyIdsForApp(uid)
+        val wgProxyIdsForApp = allProxyIdsForApp.filter { it.startsWith(ID_WG_BASE) }
 
-        // add the app specific config to the list
-        if (appProxyPair.first.isNotEmpty()) proxyIds.add(appProxyPair.first)
+        // app-specific configs may be empty if the app is not configured
+        if (wgProxyIdsForApp.isNotEmpty()) {
+            for (pid in wgProxyIdsForApp) {
+                val appProxyPair = canUseConfig(pid, "app($uid)", usesMobileNw, ssid)
+                if (!appProxyPair.second) {
+                    // lockdown or block; honor it and stop further processing
+                    proxyIds.clear()
+                    if (appProxyPair.first == block) {
+                        proxyIds.add(block)
+                    } else if (appProxyPair.first.isNotEmpty()) {
+                        proxyIds.add(appProxyPair.first)
+                    }
+                    Logger.i(LOG_TAG_PROXY, "lockdown wg for app($uid) => return $proxyIds")
+                    return proxyIds
+                }
+                if (appProxyPair.first.isNotEmpty()) {
+                    // add eligible app-specific config in the order we see them
+                    proxyIds.add(appProxyPair.first)
+                }
+            }
+        }
 
         /* TODO: commenting the code as v055o doesn't use universal ip and domain rules
         // check for universal ip config
@@ -525,7 +592,9 @@ object WireguardManager : KoinComponent {
         // if catch-all config is enabled, then add the config id to the list
         val cac = mappings.filter { it.isActive && it.isCatchAll }
         cac.forEach {
-            if ((checkEligibilityBasedOnNw(it.id, usesMobileNw) && checkEligibilityBasedOnSsid(it.id, ssid)) && !proxyIds.contains(ID_WG_BASE + it.id)) {
+            if ((checkEligibilityBasedOnNw(it.id, usesMobileNw) || checkEligibilityBasedOnSsid(it.id, ssid)) &&
+                !proxyIds.contains(ID_WG_BASE + it.id)
+            ) {
                 proxyIds.add(ID_WG_BASE + it.id)
                 Logger.i(
                     LOG_TAG_PROXY,
@@ -535,13 +604,24 @@ object WireguardManager : KoinComponent {
         }
 
         if (proxyIds.isEmpty()) {
-            Logger.i(LOG_TAG_PROXY, "no proxy ids found for $uid, $ip, $port, $domain; returning $default")
-            return listOf(default)
+            Logger.i(
+                LOG_TAG_PROXY,
+                "no proxy ids found for $uid, $ip, $port, $domain; returning $default"
+            )
+            return if (default.isEmpty()) emptyList() else listOf(default)
         }
 
+        // see if any id is part of lockdown, if so, then return the list, cac's can have lockdown
+        val isAnyIdLockdown = proxyIds.any { id ->
+            val confId = convertStringIdToId(id)
+            val conf = mappings.find { it.id == confId }
+            conf?.isLockdown ?: false
+        }
+
+        val hasFullTunnelWgs = hasAnyFullTunnelWireGuard(proxyIds)
         // add the default proxy to the end, will not be true for lockdown but lockdown is handled
         // above, so no need to check here
-        if (default.isNotEmpty() && !lockdown) proxyIds.add(default)
+        if (default.isNotEmpty() && !isAnyIdLockdown && !lockdown && !hasFullTunnelWgs) proxyIds.add(default)
 
         // the proxyIds list will contain the ip-app specific, domain-app specific, app specific,
         // universal ip, universal domain, catch-all and default configs in the order of priority
@@ -811,6 +891,40 @@ object WireguardManager : KoinComponent {
         }
     }
 
+    suspend fun updateLockdownConfig(id: Int, isLockdown: Boolean) {
+        val config = configs.find { it.getId() == id }
+        val map = mappings.find { it.id == id }
+        if (config == null) {
+            Logger.e(LOG_TAG_PROXY, "updateLockdownConfig: wg not found, id: $id, ${configs.size}")
+            return
+        }
+        Logger.i(LOG_TAG_PROXY, "updating lockdown for config: $id, ${config.getPeers()}")
+        db.updateLockdownConfig(id, isLockdown)
+        val m = mappings.find { it.id == id } ?: return
+        mappings.remove(m)
+        mappings.add(
+            WgConfigFilesImmutable(
+                id,
+                config.getName(),
+                m.configPath,
+                m.serverResponse,
+                m.isActive,
+                m.isCatchAll,
+                isLockdown, // just updating lockdown field
+                m.oneWireGuard,
+                m.useOnlyOnMetered,
+                m.isDeletable,
+                m.ssidEnabled,
+                m.ssids
+            )
+        )
+        if (map?.isActive == true) {
+            VpnController.addWireGuardProxy(id = ID_WG_BASE + config.getId())
+            VpnController.notifyConnectionMonitor()
+        }
+    }
+
+
     suspend fun updateCatchAllConfig(id: Int, isEnabled: Boolean) {
         val config = configs.find { it.getId() == id }
         if (config == null) {
@@ -829,6 +943,7 @@ object WireguardManager : KoinComponent {
                 m.serverResponse,
                 m.isActive,
                 isEnabled, // just updating catch all field
+                m.isLockdown,
                 m.oneWireGuard,
                 m.useOnlyOnMetered,
                 m.isDeletable,
@@ -858,6 +973,7 @@ object WireguardManager : KoinComponent {
                 m.serverResponse,
                 m.isActive,
                 m.isCatchAll,
+                m.isLockdown,
                 owg, // updating just one wireguard field
                 m.useOnlyOnMetered,
                 m.isDeletable,
@@ -885,6 +1001,7 @@ object WireguardManager : KoinComponent {
                 m.serverResponse,
                 m.isActive,
                 m.isCatchAll,
+                m.isLockdown,
                 m.oneWireGuard,
                 useMobileNw, // just updating useMobileNw
                 m.isDeletable,
@@ -923,6 +1040,7 @@ object WireguardManager : KoinComponent {
                 m.serverResponse,
                 m.isActive,
                 m.isCatchAll,
+                m.isLockdown,
                 m.oneWireGuard,
                 m.useOnlyOnMetered,
                 m.isDeletable,
@@ -958,6 +1076,7 @@ object WireguardManager : KoinComponent {
                 m.serverResponse,
                 m.isActive,
                 m.isCatchAll,
+                m.isLockdown,
                 m.oneWireGuard,
                 m.useOnlyOnMetered,
                 m.isDeletable,
@@ -1058,6 +1177,7 @@ object WireguardManager : KoinComponent {
                     serverResponse,
                     isActive = false,
                     isCatchAll = false,
+                    isLockdown = false,
                     oneWireGuard = false,
                     useOnlyOnMetered = false,
                     isDeletable = true,
@@ -1094,6 +1214,7 @@ object WireguardManager : KoinComponent {
                     serverResponse,
                     isActive = false,
                     isCatchAll = false,
+                    isLockdown = false,
                     oneWireGuard = false,
                     isDeletable = true,
                     useOnlyOnMetered = false,
@@ -1118,7 +1239,8 @@ object WireguardManager : KoinComponent {
             sb.append("   id: ${it.id}, name: ${it.name}\n")
             sb.append("   addr: ${routerStats?.addrs}").append("\n")
             sb.append("   mtu: ${stats?.mtu}\n")
-            sb.append("   status: ${stats?.status}\n")
+            sb.append("   status: ${routerStats?.status}\n")
+            sb.append("   status-reason: ${routerStats?.statusReason}\n")
             sb.append("   ip4: ${stats?.ip4}\n")
             sb.append("   ip6: ${stats?.ip6}\n")
             sb.append("   rx: ${routerStats?.rx}\n")
@@ -1127,6 +1249,8 @@ object WireguardManager : KoinComponent {
             sb.append("   lastTx: ${getRelativeTimeSpan(routerStats?.lastTx)}\n")
             sb.append("   lastGoodRx: ${getRelativeTimeSpan(routerStats?.lastGoodRx)}\n")
             sb.append("   lastGoodTx: ${getRelativeTimeSpan(routerStats?.lastGoodTx)}\n")
+            sb.append("   lastRxErr: ${routerStats?.lastRxErr}\n")
+            sb.append("   lastTxErr: ${routerStats?.lastTxErr}\n")
             sb.append("   lastOk: ${getRelativeTimeSpan(routerStats?.lastOK)}\n")
             sb.append("   since: ${getRelativeTimeSpan(routerStats?.since)}\n")
             sb.append("   errRx: ${routerStats?.errRx}\n")

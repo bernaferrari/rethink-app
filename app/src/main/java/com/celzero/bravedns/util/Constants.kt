@@ -35,6 +35,8 @@ class Constants {
 
         const val FILE_TAG = "filetag.json"
 
+        const val ALPHA_UPDATE_CHECK_URL = "https://github.com/celzero/rethink-app/actions/workflows/nightly.yml"
+
         // file names which are downloaded as part of on-device blocklists
         val ONDEVICE_BLOCKLIST_FILE_TAG = File.separator + FILE_TAG
         val ONDEVICE_BLOCKLIST_FILE_BASIC_CONFIG = File.separator + "basicconfig.json"
@@ -44,7 +46,7 @@ class Constants {
         val ONDEVICE_GEOIP_IPV4 = File.separator + "dbip.v4"
         val ONDEVICE_GEOIP_IPV6 = File.separator + "dbip.v6"
 
-        // url to check to check the if there is update available for on-device blocklist
+        // url to check if there is update available for on-device blocklist
         // url parameter used in configure blocklist webview
         private const val RETHINK_BLOCKLIST_CONFIGURE_URL_PARAMETER = "tstamp="
 
@@ -54,9 +56,12 @@ class Constants {
 
         const val RETHINK_PACKAGE = "com.celzero.bravedns"
 
-        // url to check to check the if there is update available for on-device blocklist
+        // url to check if there is update available for on-device blocklist
         const val ONDEVICE_IPDB_UPDATE_CHECK_URL =
             "$DOWNLOAD_BASE_URL/update/geoip?$RETHINK_BLOCKLIST_CONFIGURE_URL_PARAMETER"
+
+        // const val ONDEVICE_IPDB_DOWNLOAD_URL4 = "$DOWNLOAD_BASE_URL/geoip?v4"
+        // const val ONDEVICE_IPDB_DOWNLOAD_URL6 = "$DOWNLOAD_BASE_URL/geoip?v6"
 
         // url parameter, part of update check for on-device blocklist
         const val ONDEVICE_BLOCKLIST_UPDATE_CHECK_PARAMETER_VCODE = "vcode="
@@ -197,6 +202,8 @@ class Constants {
         const val FLAVOR_WEBSITE = "website"
         const val FLAVOR_HEADLESS = "headless"
 
+        const val BUILD_TYPE_ALPHA = "alpha"
+
         // Various notification action constants used part of NotificationCompat.Action
         const val NOTIFICATION_ACTION = "NOTIFICATION_VALUE"
         const val NOTIF_ACTION_STOP_VPN = "RETHINK_STOP" // stop vpn service
@@ -218,6 +225,18 @@ class Constants {
             "NEW_APP_INSTALL_NOTIFY" // new app install value
         const val NOTIF_WG_PERMISSION_NAME = "WG_PERMISSION" // wireguard permission name
         const val NOTIF_WG_PERMISSION_VALUE = "WG_PERMISSION_NOTIFY" // wireguard permission
+
+        // IAB purchase conflict (HTTP 409) notification tapping opens PurchaseConflictBottomSheet
+        const val NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME  = "IAB_CONFLICT"
+        const val NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE = "IAB_CONFLICT_409"
+        // Stable notification ID for the 409 conflict alert (only one at a time)
+        const val NOTIF_ID_IAB_CONFLICT = 0x409
+
+        // IAB device-not-registered notification tapping opens DeviceNotRegisteredBottomSheet
+        const val NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_NAME  = "IAB_DEVICE_NOT_REGISTERED"
+        const val NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_VALUE = "IAB_DEVICE_NOT_REGISTERED_NOTIFY"
+        // Stable notification ID for the device-not-registered alert (only one at a time)
+        const val NOTIF_ID_IAB_DEVICE_NOT_REGISTERED = 0x410
 
         // new app install intent extra name for uid. see RefreshDatabase#makeNewAppVpnIntent()
         const val NOTIF_INTENT_EXTRA_APP_UID = "NEW_APP_UID"
@@ -291,6 +310,8 @@ class Constants {
 
         const val BLOCK_FREE_DNS_MAX = "https://max.rethinkdns.com/dns-query"
         const val BLOCK_FREE_DNS_SKY = "https://sky.rethinkdns.com/dns-query"
+
+        const val BLOCK_FREE_DNS_ZERO = "https://zero.rethinkdns.com/dns-query"
 
         // all fallback dns servers should have the corresponding ip address in servers.xml
         val DEFAULT_DNS_LIST =

@@ -25,7 +25,7 @@ import android.text.SpannableStringBuilder
 import android.text.style.ForegroundColorSpan
 import android.view.View
 import android.widget.RadioButton
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.work.WorkInfo
@@ -40,9 +40,6 @@ import com.celzero.bravedns.service.TcpProxyHelper
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities.isAtleastQ
-import com.celzero.bravedns.util.Utilities.togb
-import com.celzero.bravedns.util.Utilities.togs
-import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.firestack.backend.Backend
 import kotlinx.coroutines.Dispatchers
@@ -54,7 +51,7 @@ import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.UUID
 
-class CheckoutActivity : AppCompatActivity(R.layout.activity_checkout_proxy) {
+class CheckoutActivity : BaseActivity(R.layout.activity_checkout_proxy) {
     private val b by viewBinding(ActivityCheckoutProxyBinding::bind)
     private val persistentState by inject<PersistentState>()
 
@@ -189,10 +186,10 @@ class CheckoutActivity : AppCompatActivity(R.layout.activity_checkout_proxy) {
                 val key = TcpProxyHelper.getPublicKey()
                 Logger.d(Logger.LOG_TAG_PROXY, "Public Key: $key")
                 // if there is a key state, the msgOrExistingState (keyState.msg/keyState.v()) should not be empty
-                val keyGenerator = Backend.newPipKeyProvider(key.togb(), "".togs())
+                val keyGenerator = Backend.newPipKeyProvider(key, "")
                 val keyState = keyGenerator.blind()
                 // id: use 64 chars as account id
-                val id = keyState.msg.opaque()?.s ?: ""
+                val id = keyState.msg.opaque()?.toString().orEmpty()
                 val accountId = id.substring(0, 64)
                 // rest of the keyState values will never be used in kotlin
 
@@ -209,7 +206,7 @@ class CheckoutActivity : AppCompatActivity(R.layout.activity_checkout_proxy) {
                             TcpProxyHelper.PIP_KEY_FILE_NAME
                     )
                 try {
-                    EncryptedFileManager.writeTcpConfig(this, keyState.v().tos() ?: "", TcpProxyHelper.PIP_KEY_FILE_NAME)
+                    EncryptedFileManager.writeTcpConfig(this, keyState.v() ?: "", TcpProxyHelper.PIP_KEY_FILE_NAME)
                     val content = EncryptedFileManager.read(this, path)
                     Logger.d(Logger.LOG_TAG_PROXY, "Content: $content")
                 } catch (e: EncryptionException) {

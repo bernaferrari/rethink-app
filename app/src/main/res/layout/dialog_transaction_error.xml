@@ -10,7 +10,7 @@
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:layout_gravity="center_horizontal"
-        android:src="@drawable/fingerprint_dialog_error" />
+        android:src="@drawable/ic_filter_error" />
 
     <androidx.appcompat.widget.AppCompatTextView
         android:id="@+id/dialog_title"

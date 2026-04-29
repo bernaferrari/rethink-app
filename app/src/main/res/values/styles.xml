@@ -25,6 +25,7 @@
         <item name="colorAccent">@color/accentGood</item>
         <item name="accentGood">@color/accentGood</item>
         <item name="accentBad">@color/accentBad</item>
+        <item name="accentWarning">@color/accentWarning</item>
 
         <item name="switchNormal">@color/switchNormal</item>
         <item name="colorSwitchThumbNormal">@color/colorSwitchThumbNormal</item>
@@ -87,7 +88,17 @@
 
         <item name="homeScreenBtnGradientEnd">@color/colorPrimaryDark</item>
         <item name="homeScreenBtnGradientStart">@color/colorPrimary</item>
+        <item name="vpnHeaderGradientStart">@color/vpnHeaderGradientStart</item>
+        <item name="vpnHeaderGradientCenter">@color/vpnHeaderGradientCenter</item>
+        <item name="vpnHeaderGradientEnd">@color/vpnHeaderGradientEnd</item>
+        <item name="colorGolden">@color/colorGolden</item>
         <item name="materialCardViewStyle">@style/Widget.Rethink.MaterialCardView</item>
+        <!-- Guided Tour -->
+        <item name="tourOverlayColor">@color/tourOverlayDark</item>
+        <item name="tourTooltipBackground">@color/colorSurface</item>
+        <item name="tourStrokeColor">@color/tourStrokeDark</item>
+        <item name="tourButtonBackground">@color/buttonBackground</item>
+        <item name="tourButtonTextColor">@color/primaryText</item>
     </style>
 
     <style name="AppThemeWhite" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
@@ -101,6 +112,7 @@
         <item name="colorAccent">@color/accentGoodLight</item>
         <item name="accentGood">@color/accentGoodLight</item>
         <item name="accentBad">@color/accentBadLight</item>
+        <item name="accentWarning">@color/accentWarningLight</item>
 
         <item name="switchNormal">@color/switchNormalLight</item>
         <item name="colorSwitchThumbNormal">@color/colorSwitchThumbNormalLight</item>
@@ -162,7 +174,17 @@
 
         <item name="homeScreenBtnGradientEnd">@color/colorPrimaryDarkLight</item>
         <item name="homeScreenBtnGradientStart">@color/accentGoodLight</item>
+        <item name="vpnHeaderGradientStart">@color/vpnHeaderGradientStartLight</item>
+        <item name="vpnHeaderGradientCenter">@color/vpnHeaderGradientCenterLight</item>
+        <item name="vpnHeaderGradientEnd">@color/vpnHeaderGradientEndLight</item>
+        <item name="colorGolden">@color/colorGoldenLight</item>
         <item name="materialCardViewStyle">@style/Widget.Rethink.MaterialCardView</item>
+        <!-- Guided Tour -->
+        <item name="tourOverlayColor">@color/tourOverlayLight</item>
+        <item name="tourTooltipBackground">@color/colorSurfaceLight</item>
+        <item name="tourStrokeColor">@color/tourStrokeLight</item>
+        <item name="tourButtonBackground">@color/buttonBackgroundLight</item>
+        <item name="tourButtonTextColor">@color/tourBtnTextLight</item>
     </style>
 
     <style name="AppThemeTrueBlack" parent="Theme.MaterialComponents.NoActionBar.Bridge">
@@ -176,6 +198,7 @@
         <item name="colorAccent">@color/accentGoodBlack</item>
         <item name="accentGood">@color/accentGoodBlack</item>
         <item name="accentBad">@color/accentBadBlack</item>
+        <item name="accentWarning">@color/accentWarningBlack</item>
 
         <item name="navBarColor">@color/navBarColorBlack</item>
         <item name="android:navigationBarColor">@color/navBarColorBlack</item>
@@ -238,7 +261,17 @@
 
         <item name="homeScreenBtnGradientEnd">@color/homeScreenBtnBackgroundBlack</item>
         <item name="homeScreenBtnGradientStart">@color/colorPrimaryDarkBlack</item>
+        <item name="vpnHeaderGradientStart">@color/vpnHeaderGradientStartBlack</item>
+        <item name="vpnHeaderGradientCenter">@color/vpnHeaderGradientCenterBlack</item>
+        <item name="vpnHeaderGradientEnd">@color/vpnHeaderGradientEndBlack</item>
+        <item name="colorGolden">@color/colorGoldenBlack</item>
         <item name="materialCardViewStyle">@style/Widget.Rethink.MaterialCardView</item>
+        <!-- Guided Tour -->
+        <item name="tourOverlayColor">@color/tourOverlayBlack</item>
+        <item name="tourTooltipBackground">@color/colorSurfaceBlack</item>
+        <item name="tourStrokeColor">@color/tourStrokeBlack</item>
+        <item name="tourButtonBackground">@color/buttonBackgroundBlack</item>
+        <item name="tourButtonTextColor">@color/tourBtnTextDark</item>
     </style>
 
     <style name="AppThemeWhitePlus" parent="Theme.MaterialComponents.Light.NoActionBar.Bridge">
@@ -252,6 +285,7 @@
         <item name="colorAccent">@color/accentGoodLightPlus</item>
         <item name="accentGood">@color/accentGoodLightPlus</item>
         <item name="accentBad">@color/accentBadLightPlus</item>
+        <item name="accentWarning">@color/accentWarningLightPlus</item>
 
         <item name="switchNormal">@color/switchNormalLightPlus</item>
         <item name="colorSwitchThumbNormal">@color/colorSwitchThumbNormalLightPlus</item>
@@ -313,7 +347,17 @@
 
         <item name="homeScreenBtnGradientEnd">@color/accentGoodLightPlus</item>
         <item name="homeScreenBtnGradientStart">@color/colorPrimaryDarkLightPlus</item>
+        <item name="vpnHeaderGradientStart">@color/vpnHeaderGradientStartLightPlus</item>
+        <item name="vpnHeaderGradientCenter">@color/vpnHeaderGradientCenterLightPlus</item>
+        <item name="vpnHeaderGradientEnd">@color/vpnHeaderGradientEndLightPlus</item>
+        <item name="colorGolden">@color/colorGoldenLightPlus</item>
         <item name="materialCardViewStyle">@style/Widget.Rethink.MaterialCardView</item>
+        <!-- Guided Tour -->
+        <item name="tourOverlayColor">@color/tourOverlayLight</item>
+        <item name="tourTooltipBackground">@color/colorSurfaceLightPlus</item>
+        <item name="tourStrokeColor">@color/tourStrokeLight</item>
+        <item name="tourButtonBackground">@color/buttonBackgroundLightPlus</item>
+        <item name="tourButtonTextColor">@color/tourBtnTextLight</item>
     </style>
 
     <style name="AppThemeTrueBlackPlus" parent="Theme.MaterialComponents.NoActionBar.Bridge">
@@ -327,6 +371,7 @@
         <item name="colorAccent">@color/accentGoodBlackPlus</item>
         <item name="accentGood">@color/accentGoodBlackPlus</item>
         <item name="accentBad">@color/accentBadBlackPlus</item>
+        <item name="accentWarning">@color/accentWarningBlackPlus</item>
 
         <item name="navBarColor">@color/navBarColorBlackPlus</item>
         <item name="android:navigationBarColor">@color/navBarColorBlackPlus</item>
@@ -389,7 +434,17 @@
 
         <item name="homeScreenBtnGradientEnd">@color/colorPrimaryDarkBlackPlus</item>
         <item name="homeScreenBtnGradientStart">@color/colorBackgroundFloatingBlackPlus</item>
+        <item name="vpnHeaderGradientStart">@color/vpnHeaderGradientStartBlackPlus</item>
+        <item name="vpnHeaderGradientCenter">@color/vpnHeaderGradientCenterBlackPlus</item>
+        <item name="vpnHeaderGradientEnd">@color/vpnHeaderGradientEndBlackPlus</item>
+        <item name="colorGolden">@color/colorGoldenBlackPlus</item>
         <item name="materialCardViewStyle">@style/Widget.Rethink.MaterialCardView</item>
+        <!-- Guided Tour -->
+        <item name="tourOverlayColor">@color/tourOverlayBlack</item>
+        <item name="tourTooltipBackground">@color/colorSurfaceBlackPlus</item>
+        <item name="tourStrokeColor">@color/tourStrokeBlack</item>
+        <item name="tourButtonBackground">@color/buttonBackgroundBlackPlus</item>
+        <item name="tourButtonTextColor">@color/tourBtnTextDark</item>
     </style>
 
     <style name="AppThemeTrueBlackFrost" parent="Theme.MaterialComponents.NoActionBar.Bridge">
@@ -403,6 +458,7 @@
         <item name="colorAccent">@color/accentGoodBlack</item>
         <item name="accentGood">@color/accentGoodBlack</item>
         <item name="accentBad">@color/accentBadBlack</item>
+        <item name="accentWarning">@color/accentWarningBG</item>
 
         <item name="navBarColor">@color/navBarColorBlack</item>
         <item name="android:navigationBarColor">@color/navBarColorBlack</item>
@@ -465,7 +521,17 @@
 
         <item name="homeScreenBtnGradientEnd">@color/homeScreenBtnBackgroundBlack</item>
         <item name="homeScreenBtnGradientStart">@color/colorPrimaryDarkBlack</item>
+        <item name="vpnHeaderGradientStart">@color/vpnHeaderGradientStartBlack</item>
+        <item name="vpnHeaderGradientCenter">@color/vpnHeaderGradientCenterBlack</item>
+        <item name="vpnHeaderGradientEnd">@color/vpnHeaderGradientEndBlack</item>
+        <item name="colorGolden">@color/colorGoldenBlackFrost</item>
         <item name="materialCardViewStyle">@style/Widget.Rethink.MaterialCardView.Frost</item>
+        <!-- Guided Tour -->
+        <item name="tourOverlayColor">@color/tourOverlayBlack</item>
+        <item name="tourTooltipBackground">@color/colorSurfaceBlack</item>
+        <item name="tourStrokeColor">@color/tourStrokeBlack</item>
+        <item name="tourButtonBackground">@color/buttonBackgroundBlack</item>
+        <item name="tourButtonTextColor">@color/tourBtnTextDark</item>
     </style>
 
     <style name="CustomWidget.MaterialComponents.CompoundButton.Switch" parent="Widget.MaterialComponents.CompoundButton.Switch">
@@ -824,10 +890,10 @@
         <item name="tabIndicatorFullWidth">true</item>
         <item name="tabIconTint">?attr/svgFillColor</item>
         <item name="tabRippleColor">?attr/svgFillColor</item>
-        <item name="tabIndicatorColor">?attr/secondaryTextColor</item>
+        <item name="tabIndicatorColor">?attr/accentGood</item>
         <item name="tabPaddingStart">25dp</item>
         <item name="tabPaddingEnd">25dp</item>
-        <item name="tabSelectedTextColor">?attr/secondaryTextColor</item>
+        <item name="tabSelectedTextColor">?attr/accentGood</item>
         <item name="tabTextAppearance">@style/TabTextDefault</item>
         <item name="tabTextColor">?attr/primaryLightColorText</item>
     </style>
@@ -849,6 +915,33 @@
         <item name="strokeColor">@android:color/transparent</item>
         <item name="cardUseCompatPadding">true</item>
         <item name="android:clipToPadding">true</item>
+    </style>
+
+    <!--
+        Alpha-build theme overlays: applied on top of the user's chosen theme when
+        BuildConfig.BUILD_TYPE == "alpha" so testers can immediately tell they are
+        on a pre-release build. Only accent-color attributes are overridden; the
+        rest of the theme is inherited from the base style.
+
+        AlphaDark  : Purple 200 — good contrast on dark/black surfaces.
+        AlphaLight : Purple 700 — sufficient contrast on white/light surfaces.
+    -->
+    <style name="ThemeOverlay.App.AlphaDark" parent="">
+        <item name="colorAccent">@color/alpha_accent_dark</item>
+        <item name="android:colorAccent">@color/alpha_accent_dark</item>
+        <item name="accentGood">@color/alpha_accent_dark</item>
+        <item name="controlActivated">@color/alpha_accent_dark</item>
+        <item name="secondaryTextColor">@color/alpha_accent_dark</item>
+    </style>
+
+    <style name="ThemeOverlay.App.AlphaLight" parent="">
+        <item name="colorAccent">@color/alpha_accent_light</item>
+        <item name="android:colorAccent">@color/alpha_accent_light</item>
+        <item name="accentGood">@color/alpha_accent_light</item>
+        <item name="controlActivated">@color/alpha_accent_light</item>
+        <item name="secondaryTextColor">@color/alpha_accent_light</item>
+        <item name="homeScreenBtnGradientEnd">@color/alpha_accent_light</item>
+        <item name="homeScreenBtnGradientStart">@color/alpha_accent_light</item>
     </style>
 
 

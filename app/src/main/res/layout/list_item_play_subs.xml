@@ -1,75 +1,152 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:id="@+id/subs_card"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/plan_card"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_margin="4dp"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:foreground="?attr/selectableItemBackground"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="1dp"
+    app:strokeWidth="0dp"
+    app:strokeColor="@android:color/transparent"
+    app:cardBackgroundColor="?attr/background">
 
-    <RelativeLayout
-        android:id="@+id/subs_parent"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="0.5dp"
-        android:background="?android:attr/selectableItemBackground">
+        android:orientation="vertical">
 
-        <RelativeLayout
-            android:id="@+id/subs_detail"
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="3dp"
+            android:background="?attr/accentGood"
+            tools:visibility="visible" />
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:padding="5dp"
-            android:visibility="visible">
-
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/product_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentStart="true"
-                android:layout_centerVertical="true"
-                android:layout_toStartOf="@id/price_container"
-                android:ellipsize="end"
-                android:fontFamily="serif-monospace"
-                android:maxLines="10"
-                android:padding="10dp"
-                android:textColor="?attr/primaryLightColorText"
-                android:textSize="@dimen/extra_large_font_text_view" />
+            android:orientation="vertical"
+            android:padding="12dp">
 
             <LinearLayout
-                android:id="@+id/price_container"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_centerVertical="true"
-                android:layout_marginEnd="10dp"
-                android:orientation="vertical">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
                 <androidx.appcompat.widget.AppCompatTextView
-                    android:id="@+id/offer_price"
+                    android:id="@+id/plan_duration"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColor="?attr/primaryLightColorText"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    tools:text="Yearly" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/savings_text"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="10dp"
-                    android:alpha="0.8"
-                    android:ellipsize="end"
-                    android:fontFamily="serif-monospace"
-                    android:maxLines="10"
+                    android:background="@drawable/chip_bg_positive"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    android:paddingTop="1dp"
+                    android:paddingBottom="1dp"
                     android:textColor="?attr/primaryTextColor"
-                    android:textSize="@dimen/heading_font_text_view" />
-
-                <androidx.appcompat.widget.AppCompatTextView
-                    android:id="@+id/original_price"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:fontFamily="serif-monospace"
-                    android:gravity="end"
-                    android:padding="5dp"
+                    android:textSize="11sp"
+                    android:textStyle="bold"
                     android:visibility="gone"
-                    android:textColor="?attr/primaryLightColorText"
-                    android:textSize="@dimen/large_font_text_view" />
-            </LinearLayout>
-        </RelativeLayout>
+                    tools:visibility="visible"
+                    tools:text="–40%" />
 
-    </RelativeLayout>
+            </LinearLayout>
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="?attr/primaryTextColor"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:fontFamily="sans-serif-medium"
+                android:maxLines="1"
+                tools:text="₹1,700" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/original_price"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="?attr/secondaryTextColor"
+                android:alpha="0.6"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:text="₹2,100" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/billing_info"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:textColor="?attr/primaryLightColorText"
+                android:textSize="11sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Cancel anytime" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/price_per_month"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textColor="?attr/accentGood"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:visibility="visible"
+                tools:text="₹141 / mo" />
+
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:id="@+id/badge_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/badge_text"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <com.google.android.material.radiobutton.MaterialRadioButton
+        android:id="@+id/selection_indicator"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:id="@+id/trial_container"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:orientation="horizontal"
+        android:visibility="gone">
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/trial_text"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone" />
+    </LinearLayout>
+
 </com.google.android.material.card.MaterialCardView>

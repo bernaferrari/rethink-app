@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.viewmodel
 
+import com.celzero.bravedns.iab.ServerOrderHistoryRepository
 import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.module
 
@@ -48,6 +49,9 @@ object ViewModelModule {
         viewModel { DomainConnectionsViewModel(get()) }
         viewModel { WgNwActivityViewModel(get()) }
         viewModel { EventsViewModel(get()) }
+        viewModel { PurchaseHistoryViewModel(get()) }
+        viewModel { ManagePurchaseViewModel() }
+        viewModel { ServerOrderHistoryViewModel(get()) }
     }
 
     val modules = listOf(viewModelModule)

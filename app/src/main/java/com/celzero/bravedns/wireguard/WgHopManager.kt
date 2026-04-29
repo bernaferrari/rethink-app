@@ -31,7 +31,7 @@ object WgHopManager: KoinComponent {
             return maps.size
         }
         maps.clear()
-        maps = CopyOnWriteArrayList(db.getAll())
+        maps = CopyOnWriteArrayList(db.getAllWgs())
         printMaps()
         Logger.i(LOG_TAG_PROXY, "$TAG load complete: ${maps.size}")
         return maps.size

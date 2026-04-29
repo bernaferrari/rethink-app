@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="title_about" translatable="true">Haqida</string>
+    <string name="title_settings" translatable="true">Sozlamalar</string>
+    <string name="about_title_desc" translatable="true">Internet xavflarini topish va bloklash</string>
+    <string name="txt_home" translatable="true">Uy</string>
+    <string name="next" translatable="true">Keyingi</string>
+    <string name="skip" translatable="true">O\'tkazish</string>
+    <string name="finish" translatable="true">Yakunlash</string>
+    <string name="lbl_all" translatable="true">Hammasi</string>
+    <string name="lbl_allowed" translatable="true">Ruxsat berildi</string>
+    <string name="lbl_blocked" translatable="true">Bloklandi</string>
+    <string name="lbl_disabled" translatable="true">O\'chirildi</string>
+    <string name="lbl_domain" translatable="true">Domen</string>
+    <string name="lbl_rules" translatable="true">qoidalar</string>
+    <string name="lbl_network" translatable="true">internet</string>
+    <string name="lbl_create" translatable="true">Yaratish</string>
+    <string name="lbl_qr_code" translatable="true">QR kod</string>
+    <string name="lbl_wireguard" translatable="true">WireGuard</string>
+    <string name="lbl_dns_servers" translatable="true">DNS Serverlar</string>
+    <string name="lbl_applications" translatable="true">Ilovalar</string>
+    <string name="lbl_ip_rules" translatable="true">IP qoidalar</string>
+    <string name="lbl_domain_rules" translatable="true">Domen qoidalari</string>
+    <string name="lbl_delete" translatable="true">O\'chirish</string>
+    <string name="lbl_auto" translatable="true">(avto)</string>
+    <string name="lbl_select_all" translatable="true">hammasini belgilash</string>
+    <string name="lbl_active" translatable="true">Aktiv</string>
+    <string name="lbl_inactive" translatable="true">Aktiv emas</string>
+    <string name="lbl_socks5" translatable="true">SOCKS5</string>
+    <string name="lbl_http" translatable="true">HTTP</string>
+    <string name="lbl_http_socks5" translatable="true">HTTP &amp; SOCKS5</string>
+    <string name="lbl_fast" translatable="true">tez</string>
+    <string name="lbl_slow" translatable="true">sekin</string>
+    <string name="lbl_very" translatable="true">juda</string>
+    <string name="lbl_add" translatable="true">qo\'shish</string>
+    <string name="lbl_day" translatable="true">kun</string>
+    <string name="lbl_allowed_ips" translatable="true">Ruxsat berilgan IPlar</string>
+    <string name="lbl_save" translatable="true">saqlash</string>
+    <string name="lbl_cache" translatable="true">Kesh</string>
+    <string name="lbl_stopped" translatable="true">To\'xtatildi</string>
+    <string name="lbl_secure" translatable="true">xavfsiz</string>
+    <string name="lbl_unselected" translatable="true">Belgilanmagan</string>
+    <string name="lbl_notification" translatable="true">bildirishnoma</string>
+    <string name="lbl_test" translatable="true">test</string>
+    <string name="slide_2_title" translatable="true">Hush kelibsiz</string>
+    <string name="wireguard_title" translatable="true">WireGuard bilan xavfsiz internet</string>
+    <string name="firewall_title" translatable="true">Androidingizni Firewall bilan himoya qiling</string>
+    <string name="allow" translatable="true">ruxsat berish</string>
+    <string name="block" translatable="true">bloklash</string>
+    <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Himoya sozlamalarini o\'zgartirish uchun bosing</string>
+    <string name="dns_mode_notification_title" translatable="true">Himoyalandi! Tez va xavfsiz DNSga ulandi.</string>
+    <string name="firewall_mode_notification_title" translatable="true">Himoyalandi! Firewallga ulandi</string>
+    <string name="hybrid_mode_notification_title" translatable="true">Himoyalandi! DNS + Firewallga ulandi.</string>
+    <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Himoyalandi! DNS + Firewall + Proksiga ulandi.</string>
+    <string name="status_protected" description="This is a large message in a reassuring color. It indicates that DNS queries can't be surveilled or modified in transit." translatable="true">himoyalandi</string>
+    <string name="status_app_error" translatable="true">ilova xatosi</string>
+    <string name="status_dns_error" translatable="true">dns xatosi</string>
+    <string name="status_no_internet" translatable="true">internetga ulanmagan</string>
+    <string name="status_protected_with_tor" translatable="true">tor bilan himoyalandi</string>
+</resources>

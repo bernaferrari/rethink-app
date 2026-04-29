@@ -27,6 +27,11 @@
 
     <dimen name="badge_dot_padding">10dp</dimen>
 
+    <!-- Snackbar styling -->
+    <dimen name="snackbar_elevation">8dp</dimen>
+    <dimen name="snackbar_horizontal_margin">16dp</dimen>
+    <dimen name="snackbar_bottom_margin">12dp</dimen>
+
     <dimen name="standard_0">0dp</dimen>
     <dimen name="standard_55">70dp</dimen>
     <dimen name="standard_105">140dp</dimen>

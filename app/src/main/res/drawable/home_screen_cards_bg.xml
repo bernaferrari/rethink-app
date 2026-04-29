@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Base gradient background -->
     <item>
         <shape android:shape="rectangle">
             <gradient
@@ -13,7 +12,6 @@
         </shape>
     </item>
 
-    <!-- Subtle highlight overlay (top-right) -->
     <item android:left="0dp" android:top="0dp" android:right="0dp" android:bottom="0dp">
         <shape android:shape="rectangle">
             <gradient

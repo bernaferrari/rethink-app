@@ -54,10 +54,10 @@ import com.celzero.bravedns.util.NewSettingsManager
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.setBadgeDotVisible
+import com.celzero.bravedns.util.SnackbarHelper
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastR
 import com.celzero.bravedns.util.Utilities.isPlayStoreFlavour
-import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.firestack.backend.Backend
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
@@ -98,6 +98,8 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
 
     override fun onResume() {
         super.onResume()
+        io { handleProxyDnsUi() }
+        io { handlePreventDnsLeaksUi() }
         // update selected dns values
         updateSelectedDns()
         // update local blocklist ui
@@ -121,8 +123,6 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
         initAnimation()
         // display fav icon in dns logs
         b.dcFaviconSwitch.isChecked = persistentState.fetchFavIcon
-        // prevent dns leaks
-        b.dcPreventDnsLeaksSwitch.isChecked = persistentState.preventDnsLeaks
         // enable per-app domain rules (dns alg)
         b.dcAlgSwitch.isChecked = persistentState.enableDnsAlg
         // periodically check for blocklist update
@@ -131,14 +131,80 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
         b.dcDownloaderSwitch.isChecked = persistentState.useCustomDownloadManager
         // enable dns caching in tunnel
         b.dcEnableCacheSwitch.isChecked = persistentState.enableDnsCache
-        // proxy dns
-        b.dcProxyDnsSwitch.isChecked = !persistentState.proxyDns
         // use system dns for undelegated domains
         b.dcUndelegatedDomainsSwitch.isChecked = persistentState.useSystemDnsForUndelegatedDomains
         b.connectedStatusTitle.text = getConnectedDnsType()
         b.dcUseFallbackToBypassSwitch.isChecked = persistentState.useFallbackDnsToBypass
         showSplitDnsUi()
         updateAllowedRecordTypesUi()
+    }
+
+    private suspend fun handleProxyDnsUi() {
+        // proxy dns
+        uiCtx { b.dcProxyDnsSwitch.isChecked = !persistentState.proxyDns }
+
+        // if dns proxy enabled with any app, disable never proxy dns
+        if (!appConfig.isDnsProxyActive()) {
+            return
+        }
+
+        val prxyDtls = appConfig.getSelectedDnsProxyDetails()
+        uiCtx {
+            if (prxyDtls?.proxyAppName.isNullOrEmpty()) {
+                b.dcProxyDnsSwitch.isEnabled = true
+                b.dcProxyDnsSwitch.isClickable = true
+
+                b.dcProxyDnsRl.isClickable = true
+                b.dcProxyDnsRl.isEnabled = true
+
+                b.dcProxyDnsRl.alpha = 1f
+            } else {
+                // disable proxy dns
+                b.dcProxyDnsSwitch.isEnabled = false
+                b.dcProxyDnsSwitch.isClickable = false
+
+                b.dcProxyDnsRl.isEnabled = false
+                b.dcProxyDnsRl.isClickable = false
+
+                b.dcProxyDnsRl.alpha = 0.5f
+            }
+        }
+    }
+
+    private suspend fun handlePreventDnsLeaksUi() {
+        // prevent dns leaks
+        uiCtx { b.dcPreventDnsLeaksSwitch.isChecked = persistentState.preventDnsLeaks }
+
+        // if dns proxy enabled with any app and loopback proxy frwdr is true, then disable
+        // prevent dns leaks
+        if (!appConfig.isDnsProxyActive()) {
+            return
+        }
+
+        val prxyDtls = appConfig.getSelectedDnsProxyDetails()
+        uiCtx {
+            if (prxyDtls?.proxyAppName.isNullOrEmpty()) {
+                b.dcPreventDnsLeaksSwitch.isEnabled = true
+                b.dcPreventDnsLeaksSwitch.isClickable = true
+
+                b.dcPreventDnsLeaksRl.isClickable = true
+                b.dcPreventDnsLeaksRl.isEnabled = true
+
+                b.dcPreventDnsLeaksRl.alpha = 1f
+            } else {
+                if (persistentState.excludeAppsInProxy) return@uiCtx
+
+                // disable prevent dns leaks
+                b.dcPreventDnsLeaksSwitch.isEnabled = false
+                b.dcPreventDnsLeaksSwitch.isClickable = false
+
+                b.dcPreventDnsLeaksRl.isEnabled = false
+                b.dcPreventDnsLeaksRl.isClickable = false
+
+                b.dcPreventDnsLeaksRl.alpha = 0.5f
+            }
+        }
+
     }
 
     private fun updateLocalBlocklistUi() {
@@ -222,13 +288,6 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
     }
 
     private fun showSplitDnsUi() {
-        if (persistentState.enableDnsAlg) {
-            b.dvBypassDnsBlockRl.visibility = View.VISIBLE
-            b.dvBypassDnsBlockSwitch.isChecked = persistentState.bypassBlockInDns
-        } else {
-            b.dvBypassDnsBlockRl.visibility = View.GONE
-        }
-
         if (isAtleastR()) {
             // show split dns by default only if the device is running on Android 12 or above
             b.dcSplitDnsRl.visibility = View.VISIBLE
@@ -459,7 +518,9 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
             persistentState.enableDnsAlg = enabled
             if (enabled) {
                 // Enable experimental-dependent settings when experimental features are enabled
-                requireContext().let { persistentState.enableStabilityDependentSettings(it) }
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                }
             }
             updateSpiltDns()
             logEvent(
@@ -479,7 +540,9 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
             persistentState.fetchFavIcon = enabled
             if (enabled) {
                 // Enable experimental-dependent settings when experimental features are enabled
-                requireContext().let { persistentState.enableStabilityDependentSettings(it) }
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                }
             }
             logEvent("fav icon? $enabled", "User changed fav icon setting to $enabled")
         }
@@ -584,29 +647,13 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
             )
         }
 
-        b.dvBypassDnsBlockSwitch.setOnCheckedChangeListener { _, isChecked ->
-            if (!persistentState.enableDnsAlg) return@setOnCheckedChangeListener
-
-            persistentState.bypassBlockInDns = isChecked
-            if (isChecked) {
-                // Enable experimental-dependent settings when experimental features are enabled
-                requireContext().let { persistentState.enableStabilityDependentSettings(it) }
-            }
-            logEvent(
-                "bypass dns block? $isChecked",
-                "User changed bypass dns block setting to $isChecked"
-            )
-        }
-
-        b.dvBypassDnsBlockRl.setOnClickListener {
-            b.dvBypassDnsBlockSwitch.isChecked = !b.dvBypassDnsBlockSwitch.isChecked
-        }
-
         b.dcSplitDnsSwitch.setOnCheckedChangeListener { _, isChecked ->
             persistentState.splitDns = isChecked
             if (isChecked) {
                 // Enable experimental-dependent settings when experimental features are enabled
-                requireContext().let { persistentState.enableStabilityDependentSettings(it) }
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                }
             }
             updateConnectedStatus(persistentState.connectedDnsName)
             logEvent(
@@ -684,7 +731,7 @@ class DnsSettingsFragment : Fragment(R.layout.fragment_dns_configure),
                     return@forEach
                 }
                 val transport = VpnController.getPlusTransportById(it)
-                val address = transport?.addr?.tos() ?: ""
+                val address = transport?.addr ?: ""
                 if (address.isNotEmpty()) dnsList.add(address)
             }
 

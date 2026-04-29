@@ -16,19 +16,16 @@
 package com.celzero.bravedns.rpnproxy
 
 import Logger
+import Logger.LOG_IAB
 import Logger.LOG_TAG_PROXY
 import android.content.Context
-import com.celzero.bravedns.customdownloader.ITcpProxy
+import com.celzero.bravedns.customdownloader.IBillingServerApi
+import com.celzero.bravedns.customdownloader.SafeResponseConverterFactory
 import com.celzero.bravedns.customdownloader.RetrofitManager
 import com.celzero.bravedns.service.EncryptedFileManager
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.util.Utilities.togb
-import com.celzero.bravedns.util.Utilities.togs
-import com.celzero.bravedns.util.Utilities.tos
-import com.celzero.firestack.backend.Backend
-import com.celzero.firestack.backend.PipMsg
-import com.google.gson.Gson
-import kotlinx.serialization.SerializationException
+import com.celzero.bravedns.viewmodel.SubscriptionUiState
+import org.json.JSONObject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import retrofit2.converter.gson.GsonConverterFactory
@@ -36,12 +33,14 @@ import java.io.File
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import java.nio.charset.StandardCharsets
-import java.util.Calendar
+import java.security.SecureRandom
 
 object PipKeyManager : KoinComponent {
 
     /*
+        * NOTE: some of the implementation regarding the key states are commented out and not
+        * used in current impl, keeping it for future ref if needed.
+        *
         * This class is used to manage the keys for the RPN proxy.
         * It provides methods to generate, store, and retrieve keys.
         * get the public key for the RPN proxy from https://redir.nile.workers.dev/r/{app_version}
@@ -72,11 +71,10 @@ object PipKeyManager : KoinComponent {
     private const val PIP_KEY_FILE_NAME = "pip_key.key"
     private const val PIP_MESSAGE_FILE_NAME = "pip_message.message"
     private const val PIP_TOKEN_FILE_NAME = "pip_token.token"
+    private const val PIP_DEVICE_ID_FILE_NAME = "pip_device_id.id"
 
-    private const val ERR_NOT_AVAILABLE = "Rethink+ is not available for your device"
-    private const val ERR_UPDATE_REQUIRED = "Rethink+ requires an update to the app"
-    private const val ERR_UNSUPPORTED_VERSION = "Rethink+ is not supported on this version of the app"
-    private const val ERR_UNSUPPORTED_DEVICE = "Rethink+ is not supported on this device"
+    private const val ERR_NOT_AVAILABLE = "RPN is not available for your device"
+    private const val ERR_UNSUPPORTED_VERSION = "RPN is not supported on this version of the app"
     private const val ERR_INTERNET_UNAVAILABLE = "No internet connection. Please check your network and try again."
 
     private const val MAX_RETRY_COUNT = 3
@@ -84,83 +82,65 @@ object PipKeyManager : KoinComponent {
     private val persistentState by inject<PersistentState>()
 
     private var isRethinkPlusAvailableForDevice: Boolean? = null
+    // Store availability data to preserve it across states
+    private var availabilityData: SubscriptionUiState.Available? = null
     private var recentFailureError = ""
 
-    data class ApiResponse(
-        val minvcode: String,
-        val pubkey: String, // This will hold the string representation of the inner JSON
-        val status: String
-    )
+    // see if the rpn can be activated, the url will let us know if the status is ok
+    // if rpn needs to be suspended, then make use of this method
+    suspend fun checkRpnAvailability(context: Context): Pair<Boolean, String> {
+        return publicKeyUsable(context, shouldPersistResult = false)
+    }
 
-    suspend fun getKeyState(context: Context): KeyState? {
-        // Load the key state from encrypted storage
-        var storedKeyState = loadKeyState(context)
+    fun getAvailabilityData(): SubscriptionUiState.Available? {
+        return availabilityData
+    }
 
-        Logger.d(LOG_TAG_PROXY, "$TAG is key state loaded? ${storedKeyState != null}")
-        // ideally the key state should be present in the storage after the first run
-        if (storedKeyState == null) {
-            Logger.w(LOG_TAG_PROXY, "$TAG no key state found in storage")
-            publicKeyUsable(context, 0, true).let { usable ->
-                if (!usable.first) {
-                    Logger.w(LOG_TAG_PROXY, "$TAG public key is not usable")
-                    return null
+    private fun processAvailabilityData(avd: String): SubscriptionUiState.Available {
+        return try {
+            val json = JSONObject(avd)
+
+            // Parse addresses array
+            val addrsArray = json.optJSONArray("addrs")
+            val addrs = mutableListOf<String>()
+            addrsArray?.let {
+                for (i in 0 until it.length()) {
+                    addrs.add(it.getString(i))
                 }
             }
-            // public key is usable, generate a new key state and will store in encrypted storage
-            // we can assume that the public key by reading from storage
-            // TODO: should we get the response from the publicKeyUsable method instead of
-            // reading from storage again?
-            Logger.i(LOG_TAG_PROXY, "$TAG generating new key state")
-            storedKeyState = loadKeyState(context)
-            if (storedKeyState == null) {
-                Logger.w(LOG_TAG_PROXY, "$TAG failed to load key state after generation")
-                return null
-            }
+            val addrString = if (addrs.isNotEmpty()) addrs.joinToString(", ") else ""
+
+            SubscriptionUiState.Available(
+                vcode = json.optString("vcode", ""),
+                minVcode = json.optString("minvcode", ""),
+                canSell = json.optBoolean("cansell", false),
+                ip = json.optString("ip", ""),
+                country = json.optString("country", ""),
+                asorg = json.optString("asorg", ""),
+                city = json.optString("city", ""),
+                colo = json.optString("colo", ""),
+                region = json.optString("region", ""),
+                postalCode = json.optString("postalcode", ""),
+                addr = addrString
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_IAB, "err parsing availability data: ${e.message}", e)
+            availabilityData?.let { return it }
+            // Return default empty state on error
+            SubscriptionUiState.Available(
+                vcode = "",
+                minVcode = "",
+                canSell = false,
+                ip = "",
+                country = "",
+                asorg = "",
+                city = "",
+                colo = "",
+                region = "",
+                postalCode = "",
+                addr = ""
+            )
         }
-
-        Logger.i(LOG_TAG_PROXY, "$TAG loaded key state: ${storedKeyState.accountId}")
-        return storedKeyState
-    }
-
-    suspend fun getToken(context: Context): String {
-        var tokenString = fetchPipToken(context)
-        if (tokenString.isNullOrEmpty() || needsRotation(persistentState.pipKeyRotationTime)) {
-            Logger.i(LOG_TAG_PROXY, "$TAG token needs rotation, last rotation time: ${persistentState.pipKeyRotationTime}")
-            val token = Backend.token()
-            // if the token needs to be rotated, we can call rotate() method
-            // this will return a new PipMsg with the rotated token
-            val pipMsg = Backend.newPipMsgWith(token).rotate()
-            // update the token string with the new token from the PipMsg
-            tokenString = pipMsg.opaque().s
-            saveToken(context, tokenString)
-            Logger.i(LOG_TAG_PROXY, "$TAG pip-token saved successfully")
-        }
-
-        return tokenString
-    }
-
-    // see if the rethink plus can be activated, the url will let us know if the status is ok
-    // if plus needs to be suspended, then make use of this method
-    suspend fun isRethinkPlusActive(context: Context): Pair<Boolean, String> {
-        val lastRotationTime = getLastKeyRotationTime()
-
-        // Check if the key needs to be rotated
-        if (needsRotation(lastRotationTime)) {
-            Logger.i(LOG_TAG_PROXY, "$TAG key rotation needed, last rotation time: $lastRotationTime")
-            // If the key needs to be rotated, we can call publicKeyUsable to refresh the key
-            return publicKeyUsable(context, shouldPersistResult = true)
-        }
-
-        val works = isRethinkPlusAvailableForDevice
-        // only check the availability if we don't have a cached value or if the error is cached
-        if (works != null && recentFailureError.isEmpty()) {
-            // If we already know the availability, return it
-            Logger.i(LOG_TAG_PROXY, "$TAG returning cached availability: $works")
-            return Pair(works, if (!works) recentFailureError else "")
-        }
-
-        Logger.i(LOG_TAG_PROXY, "$TAG key rotation not needed, last rotation time: $lastRotationTime")
-        return publicKeyUsable(context, shouldPersistResult = false)
     }
 
 
@@ -174,14 +154,16 @@ object PipKeyManager : KoinComponent {
     private suspend fun publicKeyUsable(context: Context, retryCount: Int = 0, shouldPersistResult: Boolean): Pair<Boolean, String> {
         var works = false
         try {
+            val lenientGson = com.google.gson.GsonBuilder().setLenient().create()
             val retrofit =
                 RetrofitManager.getTcpProxyBaseBuilder(persistentState.routeRethinkInRethink)
-                    .addConverterFactory(GsonConverterFactory.create())
+                    .addConverterFactory(SafeResponseConverterFactory())
+                    .addConverterFactory(GsonConverterFactory.create(lenientGson))
                     .build()
             /**
-             * for response: see [ITcpProxy.getPublicKey]
+             * for response: see [IBillingServerApi.getPublicKey]
              */
-            val retrofitInterface = retrofit.create(ITcpProxy::class.java)
+            val retrofitInterface = retrofit.create(IBillingServerApi::class.java)
 
             val response = retrofitInterface.getPublicKey(persistentState.appVersion.toString())
 
@@ -201,11 +183,11 @@ object PipKeyManager : KoinComponent {
             }
 
             Logger.v(LOG_TAG_PROXY, "$TAG publicKeyUsable: response body size: ${responseBody.size()}")
-            // parse the response body to ApiResponse
-            val apiResponse = Gson().fromJson(responseBody, ApiResponse::class.java)
-            works = apiResponse.status == STATUS_OK
-            val minVersionCode = apiResponse.minvcode.toIntOrNull()
-            val publicKey = apiResponse.pubkey
+            // responseBody is already a JsonObject, no need to parse again
+            val status = responseBody.get("status")?.asString ?: ""
+            works = status == STATUS_OK
+            val minVersionCode = responseBody.get("minvcode")?.asString?.toIntOrNull()
+            val publicKey = responseBody.get("pubkey")?.asString ?: ""
 
             if (minVersionCode == null || minVersionCode > persistentState.appVersion) {
                 Logger.w(
@@ -217,8 +199,10 @@ object PipKeyManager : KoinComponent {
                 return Pair(false, recentFailureError)
             }
 
-            if (shouldPersistResult) {
-                val pubKeyBytes = getPubKeyAsJsonBytes(apiResponse.pubkey)
+            availabilityData = processAvailabilityData(responseBody.toString())
+
+           /* if (shouldPersistResult) {
+                val pubKeyBytes = getPubKeyAsJsonBytes(publicKey)
                 if (pubKeyBytes == null || pubKeyBytes.isEmpty()) {
                     Logger.w(LOG_TAG_PROXY, "$TAG failed to parse public key from response")
                     recentFailureError = ERR_NOT_AVAILABLE
@@ -233,25 +217,24 @@ object PipKeyManager : KoinComponent {
                     isRethinkPlusAvailableForDevice = false
                     return Pair(false, recentFailureError)
                 }
-                saveLastKeyRotationTime()
-            }
+            }*/
 
-            Logger.i(LOG_TAG_PROXY, "$TAG publicKeyUsable: minvcode: $minVersionCode, pub-key: ${publicKey.length}, status: ${apiResponse.status}")
+            Logger.i(LOG_TAG_PROXY, "$TAG publicKeyUsable: minvcode: $minVersionCode, pub-key: ${publicKey.length}, status: $status")
             recentFailureError = ""
             isRethinkPlusAvailableForDevice = works
-            return Pair(works, "")
+            return Pair(works, availabilityData.toString())
         } catch (e: UnknownHostException) {
             Logger.w(LOG_TAG_PROXY, "$TAG err; no internet connection: ${e.message}")
             recentFailureError = ERR_INTERNET_UNAVAILABLE
             isRethinkPlusAvailableForDevice = false
             return Pair(false, ERR_INTERNET_UNAVAILABLE)
         } catch (e: ConnectException) {
-            Logger.w(LOG_TAG_PROXY, "$TAG err; onnection failed: ${e.message}")
+            Logger.w(LOG_TAG_PROXY, "$TAG err; connection failed: ${e.message}")
             recentFailureError = ERR_INTERNET_UNAVAILABLE
             isRethinkPlusAvailableForDevice = false
             return Pair(false, ERR_INTERNET_UNAVAILABLE)
         } catch (e: SocketTimeoutException) {
-            Logger.w(LOG_TAG_PROXY, "$TAG err; onnection timed out: ${e.message}")
+            Logger.w(LOG_TAG_PROXY, "$TAG err; connection timed out: ${e.message}")
             recentFailureError = ERR_INTERNET_UNAVAILABLE
             isRethinkPlusAvailableForDevice = false
             return Pair(false, ERR_INTERNET_UNAVAILABLE)
@@ -266,7 +249,7 @@ object PipKeyManager : KoinComponent {
             Logger.i(LOG_TAG_PROXY, "$TAG retry count exceeded for publicKeyUsable")
             recentFailureError = ERR_NOT_AVAILABLE
             isRethinkPlusAvailableForDevice = false
-            return Pair(false, ERR_NOT_AVAILABLE)
+            Pair(false, ERR_NOT_AVAILABLE)
         }
     }
 
@@ -274,7 +257,7 @@ object PipKeyManager : KoinComponent {
         return retryCount < MAX_RETRY_COUNT
     }
 
-    private fun getPubKeyAsJsonBytes(pubKeyString: String): ByteArray? {
+    /*private fun getPubKeyAsJsonBytes(pubKeyString: String): ByteArray? {
         try {
             Logger.v(LOG_TAG_PROXY, "$TAG public key string: $pubKeyString")
             if (pubKeyString.isNotEmpty()) {
@@ -295,9 +278,9 @@ object PipKeyManager : KoinComponent {
     }
 
 
-    /**
+    *//**
      * Generates a new key state using the public key
-     */
+     *//*
     private fun generateAndSaveKeyState(context: Context, publicKeyJwk: ByteArray, message: String): KeyState? {
         try {
             Logger.d(LOG_TAG_PROXY, "$TAG public key size: ${publicKeyJwk.size}")
@@ -331,12 +314,12 @@ object PipKeyManager : KoinComponent {
             Logger.e(LOG_TAG_PROXY, "$TAG err generating key state: ${e.message}", e)
         }
         return null
-    }
+    }*/
 
     /**
      * Saves the key state to encrypted storage
      */
-    private fun saveKeyState(context: Context, keyStateValue: String): Boolean {
+    /*private fun saveKeyState(context: Context, keyStateValue: String): Boolean {
         return try {
             val file = getPipKeyFilePath(context, PIP_KEY_FILE_NAME)
             // ensure the parent directory exists
@@ -348,65 +331,7 @@ object PipKeyManager : KoinComponent {
             Logger.e(LOG_TAG_PROXY, "$TAG err saving key state: ${e.message}", e)
             false
         }
-    }
-
-    private fun saveToken(context: Context, token: String?): Boolean {
-        if (token.isNullOrEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG token is null or empty, not saving")
-            return false
-        }
-        return try {
-            val file = getPipKeyFilePath(context, PIP_TOKEN_FILE_NAME)
-            // ensure the parent directory exists
-            file.parentFile?.mkdirs()
-            val res = EncryptedFileManager.write(context, token, file)
-            Logger.d(LOG_TAG_PROXY, "$TAG save token, res? $res, file: ${file.absolutePath}")
-            persistentState.pipKeyRotationTime = System.currentTimeMillis() // update the last rotation time
-            true
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG err saving token: ${e.message}", e)
-            false
-        }
-    }
-
-    private fun saveMessage(context: Context, message: String?): Boolean {
-        if (message.isNullOrEmpty()) {
-            Logger.w(LOG_TAG_PROXY, "$TAG message is null or empty, not saving")
-            return false
-        }
-        return try {
-            val file = getPipKeyFilePath(context, PIP_MESSAGE_FILE_NAME)
-            // ensure the parent directory exists
-            file.parentFile?.mkdirs()
-            val res =EncryptedFileManager.write(context, message, file)
-            Logger.d(LOG_TAG_PROXY, "$TAG save message, res? $res, file: ${file.absolutePath}")
-            true
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG err saving message: ${e.message}", e)
-            false
-        }
-    }
-
-    /**
-     * Loads the key state from encrypted storage
-     */
-    private fun loadKeyState(context: Context): KeyState? {
-        return try {
-            val path = getPipKeyFilePath(context, PIP_KEY_FILE_NAME)
-            if (!path.exists()) {
-                return null
-            }
-            val k = EncryptedFileManager.read(context, path)
-            if (k.isEmpty()) {
-                Logger.w(LOG_TAG_PROXY, "$TAG key state file is empty or does not exist")
-                return null
-            }
-            fetchKeyState(context, k)
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG err loading key state: ${e.message}", e)
-            null
-        }
-    }
+    }*/
 
     /**
      * Gets the path to the PIP key file
@@ -422,7 +347,7 @@ object PipKeyManager : KoinComponent {
     /**
      * Recreates key state from stored value
      */
-    private fun fetchKeyState(context: Context, storedKeyState: String): KeyState? {
+    /*private fun fetchKeyState(context: Context, storedKeyState: String): KeyState? {
         return try {
             val keyState = Backend.newPipKeyStateFrom(storedKeyState.togs())
             if (keyState == null) {
@@ -472,67 +397,19 @@ object PipKeyManager : KoinComponent {
 
     private fun fetchPipMsg(context: Context): PipMsg? {
         val message = fetchPipMsgFromStorage(context)
-        if (message == null || message.isEmpty()) {
+        if (message.isNullOrEmpty()) {
             Logger.w(LOG_TAG_PROXY, "$TAG no message found in storage")
             return null
         }
         return Backend.asPipMsg(message.togs())
-    }
+    }*/
 
-    private fun fetchPipToken(context: Context): String? {
-        return try {
-            val path = getPipKeyFilePath(context, PIP_TOKEN_FILE_NAME)
-            if (!path.exists()) {
-                Logger.w(LOG_TAG_PROXY, "$TAG token file does not exist")
-                return null
-            }
-            EncryptedFileManager.read(context, path)
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG err loading token: ${e.message}", e)
-            null
-        }
-    }
-
-    /**
-     * Determines if key rotation is needed based on last rotation time
-     */
-    private fun needsRotation(lastRotationTime: Long): Boolean {
-        if (lastRotationTime == 0L) {
-            return true // Never rotated before
-        }
-
-        val currentDate = Calendar.getInstance()
-        val lastRotationDate = Calendar.getInstance().apply {
-            timeInMillis = lastRotationTime
-        }
-        Logger.d(LOG_TAG_PROXY, "$TAG last rotation time: ${lastRotationDate.time}, current time: ${currentDate.time}")
-
-        // Calculate difference in milliseconds
-        val diffInMillis = currentDate.timeInMillis - lastRotationDate.timeInMillis
-        // Convert months to milliseconds (approximate)
-        val monthsInMillis = KEY_ROTATION_PERIOD_MONTHS * 30L * 24 * 60 * 60 * 1000L // 30 days per month
-        return diffInMillis >= monthsInMillis
-    }
-
-    /**
-     * Gets the timestamp of the last key rotation
-     */
-    private fun getLastKeyRotationTime(): Long {
-        return persistentState.pipKeyRotationTime
-    }
-
-    /**
-     * Saves the current time as the last key rotation time
-     */
-    private fun saveLastKeyRotationTime() {
-        persistentState.pipKeyRotationTime = System.currentTimeMillis()
-    }
 
     /**
      * Data class to hold key state information; for now only accountId is used add other fields as
      * needed
      */
-    data class KeyState(
+    /*data class KeyState(
         val accountId: String
-    )
+    )*/
 }

@@ -37,8 +37,8 @@ class ConnectionTrackerViewModel(private val connectionTrackerDAO: ConnectionTra
     ViewModel() {
 
     private val _filterString = MutableLiveData<String>()
-    private var filterString: LiveData<String> = _filterString
-    private var filterRules: MutableSet<String> = mutableSetOf()
+    private val filterString: LiveData<String> = _filterString
+    private val filterRules: MutableSet<String> = mutableSetOf()
     private var filterType: TopLevelFilter = TopLevelFilter.ALL
 
     enum class TopLevelFilter(val id: Int) {

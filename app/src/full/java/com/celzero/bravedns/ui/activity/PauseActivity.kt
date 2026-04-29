@@ -22,7 +22,7 @@ import android.content.res.Configuration
 import android.os.Bundle
 import android.os.SystemClock
 import android.view.MotionEvent
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -45,7 +45,7 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
 
-class PauseActivity : AppCompatActivity(R.layout.activity_pause) {
+class PauseActivity : BaseActivity(R.layout.activity_pause) {
     private val b by viewBinding(ActivityPauseBinding::bind)
     private val persistentState by inject<PersistentState>()
     @Volatile var j: CompletableJob? = null

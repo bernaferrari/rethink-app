@@ -17,12 +17,17 @@ package com.celzero.bravedns
 
 import android.app.Application
 import android.content.pm.ApplicationInfo
+import com.celzero.bravedns.scheduler.EnhancedBugReport
 import com.celzero.bravedns.scheduler.ScheduleManager
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.AppUpdater
+import com.celzero.bravedns.service.InAppMessageProvider
+import com.celzero.bravedns.service.PlayInAppMessageProvider
 import com.celzero.bravedns.util.FirebaseErrorReporting
 import com.celzero.bravedns.util.GlobalExceptionHandler
+import com.celzero.bravedns.util.GoReportingHandler
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
@@ -51,16 +56,27 @@ class RethinkDnsApplicationPlay : Application() {
                         // New Koin override strategy allow to override any definition by default.
                         // don't need to specify override = true anymore in module.
                         single<AppUpdater> { StoreAppUpdater(androidContext()) }
+                        // Play Billing in-app messaging
+                        single<InAppMessageProvider> { PlayInAppMessageProvider() }
                     }
                 )
             )
         }
 
-        // Initialize global exception handler
+        val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+        // Initialize exception handlers
         GlobalExceptionHandler.initialize(this)
         FirebaseErrorReporting.initialize()
+        GoReportingHandler.initialize(appScope, this)
 
-        CoroutineScope(SupervisorJob()).launch {
+        // On every app start, report any tombstone files from the previous session
+        val appCtx = this
+        appScope.launch(Dispatchers.IO) {
+             EnhancedBugReport.reportTombstonesToFirebaseOnStartup(appCtx)
+        }
+
+        appScope.launch {
             scheduleJobs()
         }
     }

@@ -27,7 +27,7 @@ import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.lifecycleScope
@@ -65,7 +65,7 @@ import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class WgMainActivity :
-    AppCompatActivity(R.layout.activity_wireguard_main), OneWgConfigAdapter.DnsStatusListener {
+    BaseActivity(R.layout.activity_wireguard_main), OneWgConfigAdapter.DnsStatusListener {
     private val b by viewBinding(ActivityWireguardMainBinding::bind)
     private val persistentState by inject<PersistentState>()
     private val appConfig by inject<AppConfig>()
@@ -258,12 +258,6 @@ class WgMainActivity :
         b.backgroundTintList =
             ColorStateList.valueOf(fetchToggleBtnColors(this, R.color.defaultToggleBtnBg))
         b.setTextColor(UIUtils.fetchColor(this, R.attr.primaryTextColor))
-    }
-
-    override fun onResume() {
-        super.onResume()
-        oneWgConfigAdapter?.notifyDataSetChanged()
-        wgConfigAdapter?.notifyDataSetChanged()
     }
 
     private fun Context.isDarkThemeOn(): Boolean {

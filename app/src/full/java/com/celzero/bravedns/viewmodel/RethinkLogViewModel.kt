@@ -31,7 +31,7 @@ import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
 
 class RethinkLogViewModel(private val rlogDao: RethinkLogDao) : ViewModel() {
 
-    private var filterString: MutableLiveData<String> = MutableLiveData()
+    private val filterString: MutableLiveData<String> = MutableLiveData()
     private val pagingConfig: PagingConfig
 
     init {

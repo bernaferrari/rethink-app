@@ -33,6 +33,10 @@ class UserPresentReceiver : BroadcastReceiver() {
                 VpnController.screenUnlock()
                 Logger.v(LOG_TAG_UI, "user-present: action user present, inform vpn service")
             }
+            Intent.ACTION_SCREEN_OFF -> {
+                VpnController.screenLock()
+                Logger.v(LOG_TAG_UI, "user-present: action screen off, inform vpn service")
+            }
             else -> {
                 Logger.v(LOG_TAG_UI, "user-present: unknown action ${intent.action}, skipping")
             }

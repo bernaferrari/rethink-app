@@ -23,7 +23,7 @@ import android.os.Bundle
 import android.view.View
 import android.widget.CompoundButton
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
@@ -41,7 +41,7 @@ import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.firestack.settings.Settings
 import org.koin.android.ext.android.inject
 
-class AntiCensorshipActivity : AppCompatActivity(R.layout.activity_anti_censorship) {
+class AntiCensorshipActivity : BaseActivity(R.layout.activity_anti_censorship) {
     val b by viewBinding(ActivityAntiCensorshipBinding::bind)
 
     private val persistentState by inject<PersistentState>()

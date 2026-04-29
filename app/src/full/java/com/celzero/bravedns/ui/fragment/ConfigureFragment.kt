@@ -33,6 +33,7 @@ import com.celzero.bravedns.ui.activity.MiscSettingsActivity
 import com.celzero.bravedns.ui.activity.NetworkLogsActivity
 import com.celzero.bravedns.ui.activity.ProxySettingsActivity
 import com.celzero.bravedns.ui.activity.TunnelSettingsActivity
+import com.celzero.bravedns.util.Utilities
 
 class ConfigureFragment : Fragment(R.layout.fragment_configure) {
 
@@ -64,6 +65,11 @@ class ConfigureFragment : Fragment(R.layout.fragment_configure) {
     }
 
     private fun initView() {
+        // Show "α" badge next to the app name when running an alpha build so testers
+        // can immediately identify they are on a pre-release version.
+        if (Utilities.isAlphaBuild()) {
+            b.fhsTitleRethink.setText(R.string.app_name_alpha)
+        }
         if (DEBUG) {
             b.fsAdvancedCard.visibility = View.VISIBLE
             b.fsAdvancedTv.text = getString(R.string.lbl_advanced).replaceFirstChar(Char::titlecase)

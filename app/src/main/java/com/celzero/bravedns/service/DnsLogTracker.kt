@@ -279,7 +279,7 @@ internal constructor(
         if (transaction.status === Transaction.Status.COMPLETE) {
             // skip updating the connection state if the transaction was resolved locally.
             // locally resolved transaction has no server name, indicating it was blocked
-            // by a local rule—either a firewall rule or the local DNS blocklist.
+            // by a local rule either a firewall rule or the local DNS blocklist.
 
             if (isLocallyResolved(transaction)) return
 

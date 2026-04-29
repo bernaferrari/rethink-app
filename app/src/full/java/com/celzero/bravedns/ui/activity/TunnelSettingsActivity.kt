@@ -26,7 +26,7 @@ import android.widget.ArrayAdapter
 import android.widget.CompoundButton
 import android.widget.SeekBar
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.appcompat.widget.AppCompatRadioButton
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.view.WindowInsetsControllerCompat
@@ -45,6 +45,7 @@ import com.celzero.bravedns.ui.dialog.NetworkReachabilityDialog
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.InternetProtocol
 import com.celzero.bravedns.util.NewSettingsManager
+import com.celzero.bravedns.util.SnackbarHelper
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.setBadgeDotVisible
@@ -56,7 +57,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
 
-class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settings) {
+class TunnelSettingsActivity : BaseActivity(R.layout.activity_tunnel_settings) {
     private val b by viewBinding(ActivityTunnelSettingsBinding::bind)
     private val persistentState by inject<PersistentState>()
     private val appConfig by inject<AppConfig>()
@@ -151,6 +152,8 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
 
         b.dvWgLockdownSwitch.isChecked = persistentState.wgGlobalLockdown
 
+        b.dvWgSmartPersistentKeepaliveSwitch.isChecked = persistentState.smartPersistentKeepalive
+
         // endpoint independent mapping (eim) / endpoint independent filtering (eif)
         b.dvEimfSwitch.isChecked = persistentState.endpointIndependence
         if (persistentState.endpointIndependence) {
@@ -241,7 +244,9 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
             b: Boolean ->
             persistentState.useMultipleNetworks = b
             if (b) {
-                persistentState.enableStabilityDependentSettings(this)
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(window.decorView, persistentState)
+                }
             }
             if (!b && persistentState.routeRethinkInRethink) {
                 persistentState.routeRethinkInRethink = false
@@ -307,7 +312,9 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
             } else {
                 persistentState.routeRethinkInRethink = isChecked
                 if (isChecked) {
-                    persistentState.enableStabilityDependentSettings(this)
+                    if (persistentState.enableStabilityDependentSettings()) {
+                        SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                    }
                 }
                 logEvent(
                     "rinr toggled",
@@ -353,7 +360,9 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
             checked: Boolean ->
             persistentState.privateIps = checked
             if (checked) {
-                persistentState.enableStabilityDependentSettings(this)
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                }
             }
             b.settingsActivityLanTrafficSwitch.isEnabled = false
 
@@ -499,6 +508,18 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
             b.dvWgLockdownSwitch.isChecked = !b.dvWgLockdownSwitch.isChecked
         }
 
+        b.dvWgSmartPersistentKeepaliveSwitch.setOnCheckedChangeListener { _, isChecked ->
+            persistentState.smartPersistentKeepalive = isChecked
+            logEvent(
+                "wg smart persistent keepalive",
+                "WireGuard smart persistent keep alive set to: $isChecked"
+            )
+        }
+
+        b.dvWgSmartPersistentKeepaliveRl.setOnClickListener {
+            b.dvWgSmartPersistentKeepaliveSwitch.isChecked = !b.dvWgSmartPersistentKeepaliveSwitch.isChecked
+        }
+
         b.dvTcpKeepAliveSwitch.setOnCheckedChangeListener { _, isChecked ->
             persistentState.tcpKeepAlive = isChecked
             logEvent(
@@ -589,15 +610,6 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
     }
 
     private fun showDefaultDnsDialog() {
-        /*if (RpnProxyManager.isRpnEnabled()) {
-            showToastUiCentered(
-                this,
-                getString(R.string.fallback_rplus_toast),
-                Toast.LENGTH_SHORT
-            )
-            return
-        }*/
-
         val alertBuilder = MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
         alertBuilder.setTitle(getString(R.string.settings_default_dns_heading))
         val items = Constants.DEFAULT_DNS_LIST.map { it.name }.toTypedArray()
@@ -653,7 +665,9 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
                 currentSelection = which
                 if (currentSelection == POLICY_FIXED) {
                     // enable experimental settings prompt
-                    persistentState.enableStabilityDependentSettings(this)
+                    if (persistentState.enableStabilityDependentSettings()) {
+                        SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                    }
                 }
                 saveNetworkPolicy(which)
                 adapter.notifyDataSetChanged()
@@ -849,7 +863,9 @@ class TunnelSettingsActivity : AppCompatActivity(R.layout.activity_tunnel_settin
             if (protocolType.id == InternetProtocol.IPv6.id ||
                 protocolType.id == InternetProtocol.IPv46.id ||
                 protocolType.id == InternetProtocol.ALWAYSv46.id) {
-                persistentState.enableStabilityDependentSettings(this)
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                }
             }
 
             displayInternetProtocolUi()

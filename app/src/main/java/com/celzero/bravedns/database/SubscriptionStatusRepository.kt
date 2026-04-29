@@ -94,16 +94,36 @@ class SubscriptionStatusRepository(private val subscriptionStatusDAO: Subscripti
     }
 
     /**
-     * Get current active subscription
+     * Get current active subscription.
+     *
+     * Prefers rows with valid status (Active, Cancelled, Purchased, AckPending, Grace,
+     * OnHold, Paused) to avoid returning a stale Expired row that was recently touched
+     * by an expiry-sweep method. Falls back to the most recently updated row of any
+     * status if no valid row exists.
      */
     suspend fun getCurrentSubscription(): SubscriptionStatus? {
         return try {
             Logger.d(LOG_IAB, "$TAG Getting current subscription")
-            val subscription = subscriptionStatusDAO.getCurrentSubscription()
+            val subscription = subscriptionStatusDAO.getCurrentValidSubscription()
+                ?: subscriptionStatusDAO.getCurrentSubscription()
             Logger.d(LOG_IAB, "$TAG Current subscription: ${subscription?.productId}")
             subscription
         } catch (e: Exception) {
             Logger.e(LOG_IAB, "$TAG Error getting current subscription: ${e.message}", e)
+            null
+        }
+    }
+
+    /**
+     * Get a subscription row by its primary key.
+     * Used when the caller already knows the row id (e.g. to read the previous
+     * status before writing a history entry).
+     */
+    suspend fun getById(id: Int): SubscriptionStatus? {
+        return try {
+            subscriptionStatusDAO.getSubscriptionById(id)
+        } catch (e: Exception) {
+            Logger.e(LOG_IAB, "$TAG Error getting subscription by id: ${e.message}", e)
             null
         }
     }
@@ -236,6 +256,18 @@ class SubscriptionStatusRepository(private val subscriptionStatusDAO: Subscripti
     }
 
     /**
+     * Get subscriptions by multiple status values
+     */
+    suspend fun getSubscriptionsByStates(statuses: List<Int>): List<SubscriptionStatus> {
+        return try {
+            subscriptionStatusDAO.getSubscriptionsByStates(statuses)
+        } catch (e: Exception) {
+            Logger.e(LOG_IAB, "$TAG Error getting subscriptions by states: ${e.message}", e)
+            emptyList()
+        }
+    }
+
+    /**
      * Get all invalid subscriptions
      */
     suspend fun getInvalidSubscriptions(): List<SubscriptionStatus> {
@@ -360,23 +392,20 @@ class SubscriptionStatusRepository(private val subscriptionStatusDAO: Subscripti
         require(subscriptionStatus.productId.isNotEmpty()) {
             "Product ID cannot be empty"
         }
-        require(subscriptionStatus.accountId.isNotEmpty()) {
-            "Account ID cannot be empty"
+
+        // accountId can be empty for test purchases; log a warning but do not block the write.
+        if (subscriptionStatus.accountId.isEmpty()) {
+            Logger.w(LOG_IAB, "$TAG Subscription has empty accountId for product: ${subscriptionStatus.productId}")
         }
 
-        // Validate status is within valid range
-        val validStatuses = SubscriptionStatus.SubscriptionState.entries.map { it.id }
-        require(subscriptionStatus.status in validStatuses) {
-            "Invalid subscription status: ${subscriptionStatus.status}"
-        }
-
-        // Validate expiry times
-        /*if (subscriptionStatus.billingExpiry > 0 && subscriptionStatus.accountExpiry > 0) {
-            require(subscriptionStatus.accountExpiry >= subscriptionStatus.billingExpiry) {
-                "Account expiry must be >= billing expiry, but got " +
-                        "accountExpiry=${subscriptionStatus.accountExpiry}, billingExpiry=${subscriptionStatus.billingExpiry}"
+        // status == -1 is the unset default (SubscriptionStatus() before status is assigned).
+        // Only validate when a real status value has been written.
+        if (subscriptionStatus.status != -1) {
+            val validStatuses = SubscriptionStatus.SubscriptionState.entries.map { it.id }
+            require(subscriptionStatus.status in validStatuses) {
+                "Invalid subscription status: ${subscriptionStatus.status}"
             }
-        }*/
+        }
 
         Logger.d(LOG_IAB, "$TAG Subscription validation passed for: ${subscriptionStatus.productId}")
     }

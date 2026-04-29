@@ -19,7 +19,6 @@ import Logger
 import Logger.LOG_TAG_UI
 import Logger.LOG_TAG_VPN
 import android.Manifest
-import android.R.attr.type
 import android.app.Activity
 import android.app.ActivityManager
 import android.content.ActivityNotFoundException
@@ -32,12 +31,10 @@ import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.TrafficStats
 import android.net.VpnService
-import android.os.Build
 import android.os.Bundle
 import android.os.SystemClock
 import android.provider.Settings
 import android.text.format.DateUtils
-import android.util.StatsLog.logEvent
 import android.util.TypedValue
 import android.view.LayoutInflater
 import android.view.View
@@ -59,6 +56,7 @@ import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.databinding.FragmentHomeScreenBinding
 import com.celzero.bravedns.net.doh.Transaction
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.DnsLogTracker
@@ -80,11 +78,15 @@ import com.celzero.bravedns.ui.activity.ConfigureRethinkBasicActivity.Companion.
 import com.celzero.bravedns.ui.activity.CustomRulesActivity
 import com.celzero.bravedns.ui.activity.DnsDetailActivity
 import com.celzero.bravedns.ui.activity.FirewallActivity
+import com.celzero.bravedns.ui.activity.FragmentHostActivity
 import com.celzero.bravedns.ui.activity.NetworkLogsActivity
 import com.celzero.bravedns.ui.activity.PauseActivity
 import com.celzero.bravedns.ui.activity.ProxySettingsActivity
 import com.celzero.bravedns.ui.activity.WgMainActivity
 import com.celzero.bravedns.ui.bottomsheet.HomeScreenSettingBottomSheet
+import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
+import com.celzero.bravedns.ui.tour.GuidedTourManager
+import com.celzero.bravedns.ui.tour.TourOverlayController
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.RETHINKDNS_SPONSOR_LINK
 import com.celzero.bravedns.util.NotificationActionType
@@ -134,10 +136,18 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
 
     companion object {
         private const val TAG = "HSFragment"
-        private const val GRACE_DIALOG_REMIND_AFTER_DAYS = 1 // days to remind again
 
         // UI interaction delays (milliseconds)
         private const val UI_DELAY_MS = 500L
+
+        // Proxy status polling delays (milliseconds).
+        // The next poll is delayed by however long the previous status check took, clamped
+        // to this range. If the library is slow (e.g. 6 s for a far-away server) we back
+        // off to the same duration so we never have overlapping in-flight requests, but we
+        // cap at MAX so the card never goes stale for too long.
+        private const val MIN_PROXY_POLL_DELAY_MS = 2500L
+        private const val MAX_PROXY_POLL_DELAY_MS = 10_000L
+        private const val TEXT_FADE_DURATION_MS = 150L
 
         // Time calculation constants
         private const val MILLISECONDS_PER_SECOND = 1000L
@@ -178,7 +188,7 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         // Shimmer animation constants
         private const val SHIMMER_DURATION_MS = 2000L
         private const val SHIMMER_BASE_ALPHA = 0.85f
-        private const val SHIMMER_DROPOFF = 1f
+        private const val SHIMMER_DROP_OFF = 1f
         private const val SHIMMER_HIGHLIGHT_ALPHA = 0.35f
     }
 
@@ -203,7 +213,12 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         Logger.v(LOG_TAG_UI, "$TAG: init view in home screen fragment")
         initializeValues()
         initializeClickListeners()
+        isVpnActivated = VpnController.state().activationRequested
+        updateMainButtonUi()
+        updateCardsUi()
+        syncDnsStatus()
         observeVpnState()
+        scheduleTourIfNeeded()
     }
 
     private fun initializeValues() {
@@ -218,16 +233,47 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         appConfig.getBraveModeObservable().postValue(appConfig.getBraveMode().mode)
         b.fhsCardLogsTv.text = getString(R.string.lbl_logs).replaceFirstChar(Char::titlecase)
 
+        // Show "α" badge in the title when running an alpha build so testers can
+        // immediately identify they are on a pre-release version.
+        if (Utilities.isAlphaBuild()) {
+            b.fhsTitleRethink.setText(R.string.app_name_alpha)
+        }
+
         // do not show the sponsor card if the rethink plus is enabled
-        /*if (RpnProxyManager.isRpnEnabled()) {
+        if (RpnProxyManager.isRpnEnabled()) {
             b.fhsSponsor.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_rethink_plus_sparkle))
             b.fhsSponsor.visibility = View.VISIBLE
         } else {
             b.fhsSponsor.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_heart_accent))
             b.fhsSponsor.visibility = View.VISIBLE
-        }*/
-        b.fhsSponsor.setImageDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.ic_heart_accent))
-        b.fhsSponsor.visibility = View.VISIBLE
+        }
+    }
+
+    /**
+     * Schedules the guided tour to start 350 ms after the layout settles.
+     *
+     * The short delay lets the home screen render its cards fully before the
+     * overlay attaches, preventing any visual flash.  If the tour has already
+     * been completed at the current version, this is a no-op.
+     */
+    private fun scheduleTourIfNeeded() {
+        if (!GuidedTourManager.shouldShowTour(persistentState)) return
+        delay(350L, lifecycleScope) {
+            val host = activity ?: return@delay
+            if (!isAdded || isDetached) return@delay
+            try {
+                TourOverlayController(
+                    activity   = host,
+                    steps      = GuidedTourManager.homeScreenSteps(),
+                    onComplete = {
+                        GuidedTourManager.markCompleted(persistentState)
+                        Logger.v(LOG_TAG_UI, "$TAG: guided tour completed")
+                    },
+                ).start()
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_UI, "$TAG: failed to start guided tour: ${e.message}", e)
+            }
+        }
     }
 
     private fun initializeClickListeners() {
@@ -332,10 +378,12 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
 
         b.fhsSponsor.setOnClickListener {
             Logger.v(LOG_TAG_UI, "$TAG: click event on sponsor card")
-            /*if (RpnProxyManager.isRpnEnabled()) {
+            if (RpnProxyManager.isRpnEnabled()) {
                 Logger.d(LOG_TAG_UI, "RPlus is enabled, not showing sponsor dialog")
+                // load rethink plus dashboard
+                openRpnDashboardScreen()
                 return@setOnClickListener
-            }*/
+            }
             promptForAppSponsorship()
             logEvent(
                 EventType.UI_NAVIGATION,
@@ -346,10 +394,12 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
 
         b.fhsSponsorBottom.setOnClickListener {
             Logger.v(LOG_TAG_UI, "$TAG: click event on sponsor card")
-            /*if (RpnProxyManager.isRpnEnabled()) {
+            if (RpnProxyManager.isRpnEnabled()) {
                 Logger.d(LOG_TAG_UI, "RPlus is enabled, not showing sponsor dialog")
+                // load rethink plus dashboard
+                openRpnDashboardScreen()
                 return@setOnClickListener
-            }*/
+            }
             promptForAppSponsorship()
             logEvent(
                 EventType.UI_NAVIGATION,
@@ -360,10 +410,13 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
 
         b.fhsTitleRethink.setOnClickListener {
             Logger.v(LOG_TAG_UI, "$TAG: click event on rethink card")
-            /*if (RpnProxyManager.isRpnEnabled()) {
+            if (RpnProxyManager.isRpnEnabled()) {
                 Logger.d(LOG_TAG_UI, "RPlus is enabled, not showing sponsor dialog")
+                // load rethink plus dashboard
+                openRpnDashboardScreen()
                 return@setOnClickListener
-            }*/
+            }
+
             promptForAppSponsorship()
             logEvent(
                 EventType.UI_NAVIGATION,
@@ -374,6 +427,17 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
 
         // comment out the below code to disable the alerts card (v0.5.5b)
         // b.fhsCardAlertsLl.setOnClickListener { startActivity(ScreenType.ALERTS) }
+    }
+
+    private fun openRpnDashboardScreen() {
+        val args = Bundle().apply { putString("ARG_KEY", "Launch_Rethink_Support_Dashboard") }
+        startActivity(
+            FragmentHostActivity.createIntent(
+                context = requireContext(),
+                fragmentClass = RethinkPlusDashboardFragment::class.java,
+                args = args
+            )
+        )
     }
 
     private fun logEvent(type: EventType, msg: String, details: String) {
@@ -531,14 +595,20 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
     }
 
     private fun enableProxyCardIfNeeded() {
+        Logger.vv(LOG_TAG_UI, "$TAG enableProxyCardIfNeeded")
         if (isVpnActivated && !appConfig.getBraveMode().isDnsMode()) {
-            val isAnyProxyEnabled = appConfig.isProxyEnabled()
+            Logger.vv(LOG_TAG_UI, "$TAG enableProxyCardIfNeeded: isVpnActivated")
+            val isAnyProxyEnabled = appConfig.isProxyEnabled() || RpnProxyManager.isRpnActive()
+            Logger.vv(LOG_TAG_UI, "$TAG enableProxyCardIfNeeded: isAnyProxyEnabled=$isAnyProxyEnabled")
             if (isAnyProxyEnabled) {
                 observeProxyStates()
             } else {
+                unobserveProxyStates()
                 disableProxyCard()
             }
         } else {
+            Logger.vv(LOG_TAG_UI, "$TAG enableProxyCardIfNeeded: isVpnActivated=$isVpnActivated")
+            unobserveProxyStates()
             disableProxyCard()
         }
     }
@@ -590,36 +660,85 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         }
     } */
     private var proxyStateListenerJob: Job? = null
+    // Cache the distinctUntilChanged() LiveData so the same observer instance is reused and
+    // unobserveProxyStates() can actually remove it. Without this, every call to
+    // observeProxyStates() creates a NEW MediatorLiveData wrapper and registers a brand-new
+    // observer – they accumulate silently and all fire together on the next state change.
+    private var proxyStatusLiveData: androidx.lifecycle.LiveData<Int>? = null
+
+    // Guard flag: prevents observeDnsStates() from registering duplicate observers on
+    // connectedDns / regionLiveData across the multiple updateCardsUi() call sites within a
+    // single view-lifecycle.  Reset in unobserveDnsStates() and onDestroyView().
+    private var dnsObserverActive: Boolean = false
 
     private fun observeProxyStates() {
-        persistentState.getProxyStatus().distinctUntilChanged().observe(viewLifecycleOwner) {
-            Logger.vv(LOG_TAG_UI, "$TAG proxy state changed to $it")
-            if (it != -1) {
-                if (proxyStateListenerJob?.isActive == true) {
-                    Logger.vv(LOG_TAG_UI, "$TAG cancel prev proxy state listener job")
-                    proxyStateListenerJob?.cancel()
-                    proxyStateListenerJob = null
+        Logger.vv(LOG_TAG_UI, "$TAG observeProxyStates")
+            if (proxyStatusLiveData != null) {
+            // Restart the job here if it is no longer active so the card stays live.
+            if (proxyStateListenerJob?.isActive != true) {
+                val lastStatus = proxyStatusLiveData!!.value
+                Logger.vv(LOG_TAG_UI, "$TAG proxy state changed to $lastStatus")
+                if (lastStatus != null && lastStatus != -1) {
+                    Logger.vv(LOG_TAG_UI, "$TAG restarting proxy poll after resume, lastStatus=$lastStatus")
+                    startProxyStatePolling(lastStatus)
                 }
-                proxyStateListenerJob = ui("proxyStates") {
-                    while (isVisible && isAdded && view != null) {
-                        updateUiWithProxyStates(it)
-                        kotlinx.coroutines.delay(1500L)
-                    }
-                    proxyStateListenerJob?.cancel()
-                }
+            }
+            return
+        } else {
+            Logger.vv(LOG_TAG_UI, "$TAG observeProxyStates: first time")
+        }
+        proxyStatusLiveData = persistentState.getProxyStatus()
+        Logger.vv(LOG_TAG_UI, "$TAG proxy state changed to ${proxyStatusLiveData?.value}")
+        proxyStatusLiveData?.distinctUntilChanged()?.observe(viewLifecycleOwner) { resId ->
+            Logger.vv(LOG_TAG_UI, "$TAG proxy state changed to $resId")
+            if (resId != -1) {
+                startProxyStatePolling(resId)
             } else {
                 // Check if view is available before accessing binding
                 if (view != null && isAdded) {
-                    b.fhsCardProxyCount.text = getString(R.string.lbl_inactive)
+                    b.fhsCardProxyCount.setTextAnimated(getString(R.string.lbl_inactive))
                     b.fhsCardOtherProxyCount.visibility = View.VISIBLE
-                    b.fhsCardOtherProxyCount.text = getString(R.string.lbl_disabled)
+                    b.fhsCardOtherProxyCount.setTextAnimated(getString(R.string.lbl_disabled))
                 }
             }
         }
     }
 
-    private fun updateUiWithProxyStates(resId: Int) {
-        // Check if view is available before accessing binding
+    /**
+     * Cancels any in-flight polling job and starts a fresh one for the given [resId].
+     * Extracted so both the LiveData observer and the resume-restart path share identical
+     * logic and there is a single place to read/cancel/assign [proxyStateListenerJob].
+     */
+    private fun startProxyStatePolling(resId: Int) {
+        if (proxyStateListenerJob?.isActive == true) {
+            Logger.vv(LOG_TAG_UI, "$TAG cancel prev proxy state listener job")
+            proxyStateListenerJob?.cancel()
+            proxyStateListenerJob = null
+        }
+        proxyStateListenerJob = ui("proxyStates") {
+            while (isAdded && view != null) {
+                // updateUiWithProxyStates is now suspend: the while-loop awaits its
+                // completion before the next delay, so no overlapping IO coroutines.
+                val checkStart = SystemClock.elapsedRealtime()
+                updateUiWithProxyStates(resId)
+                val elapsed = SystemClock.elapsedRealtime() - checkStart
+                // Adaptive delay: if the library status call was slow (e.g. 6 s for a
+                // distant server), wait at least that long before the next check.
+                // This prevents back-to-back in-flight requests while still staying
+                // responsive when the service is fast. Capped at MAX_PROXY_POLL_DELAY_MS
+                // so the card never goes stale for too long.
+                val nextDelay = elapsed.coerceIn(MIN_PROXY_POLL_DELAY_MS, MAX_PROXY_POLL_DELAY_MS)
+                Logger.v(LOG_TAG_UI, "$TAG proxy poll: check took ${elapsed}ms, next delay ${nextDelay}ms")
+                kotlinx.coroutines.delay(nextDelay)
+            }
+            proxyStateListenerJob?.cancel()
+        }
+    }
+
+    // suspend so the while-loop in observeProxyStates awaits completion before the next delay,
+    // and so withContext(IO) is a structured child of proxyStateListenerJob (cancellable).
+    private suspend fun updateUiWithProxyStates(resId: Int) {
+        // These checks run on the Main thread (called from ui("proxyStates") coroutine).
         if (view == null || !isAdded) {
             proxyStateListenerJob?.cancel()
             return
@@ -631,11 +750,11 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
                 .currentState
                 .isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED)
         ) {
-            proxyStateListenerJob?.cancel()
             return
         }
 
         if (!isVpnActivated) {
+            proxyStateListenerJob?.cancel()
             disableProxyCard()
             return
         }
@@ -643,121 +762,62 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         // get proxy type from app config
         val proxyType = AppConfig.ProxyType.of(appConfig.getProxyType())
 
-        if (proxyType.isProxyTypeWireguard()) {
-            io {
+        if (proxyType.isProxyTypeWireguard() || RpnProxyManager.isRpnActive()) {
+            withContext(Dispatchers.IO) {
+                if (view == null || !isAdded) return@withContext
+
                 val proxies = WireguardManager.getActiveConfigs()
+                val rpnProxies = if (RpnProxyManager.isRpnActive()) RpnProxyManager.getEnabledConfigs() else emptyList()
                 var active = 0
                 var failing = 0
                 var idle = 0
                 val now = System.currentTimeMillis()
-                Logger.v(LOG_TAG_UI, "$TAG wg active proxies: ${proxies.size}")
-                
-                // If no proxies are configured but WireGuard is enabled, show appropriate message
-                if (proxies.isEmpty()) {
+                Logger.v(LOG_TAG_UI, "$TAG active proxies; wg: ${proxies.size}, rpn: ${rpnProxies.size}")
+
+                // If no proxies are configured but WireGuard/rpn is enabled, show appropriate message
+                if (proxies.isEmpty() && rpnProxies.isEmpty()) {
                     uiCtx {
-                        if (!isVisible || !isAdded || view == null) return@uiCtx
+                        if (!isAdded || view == null) return@uiCtx
                         b.fhsCardOtherProxyCount.visibility = View.VISIBLE
-                        b.fhsCardProxyCount.text = getString(R.string.lbl_inactive)
-                        b.fhsCardOtherProxyCount.text = getString(resId)
+
+                        if (proxyType.isProxyTypeWireguard() && !WireguardManager.isLoaded()) {
+                            Logger.v(LOG_TAG_UI, "$TAG wg configs empty – manager still loading, showing Checking")
+                            b.fhsCardProxyCount.setTextAnimated(getString(R.string.lbl_checking))
+                        } else if (RpnProxyManager.isRpnActive()) {
+                            Logger.v(LOG_TAG_UI, "$TAG rpn configs empty – manager still loading, showing Checking")
+                            b.fhsCardProxyCount.setTextAnimated(getString(R.string.lbl_checking))
+                        } else {
+                            b.fhsCardProxyCount.setTextAnimated(getString(R.string.lbl_inactive))
+                        }
+                        b.fhsCardOtherProxyCount.setTextAnimated(getString(resId))
                     }
-                    return@io
+                    return@withContext
                 }
-                
+
                 proxies.forEach {
                     val proxyId = "${ProxyManager.ID_WG_BASE}${it.getId()}"
-                    Logger.vv(LOG_TAG_UI, "$TAG init stats check for $proxyId")
-                    val stats = VpnController.getProxyStats(proxyId)
-                    val statusPair = VpnController.getProxyStatusById(proxyId)
-                    val status = UIUtils.ProxyStatus.entries.find { s -> s.id == statusPair.first }
-
-                    // check for dns status of the wg if splitDns is enabled
-                    val dnsStats = if (isSplitDns()) {
-                        VpnController.getDnsStatus(proxyId)
-                    } else {
-                        null
-                    }
-
-                    // Handle paused state as idle (TPU is the pause status)
-                    if (status == UIUtils.ProxyStatus.TPU) {
-                        idle++ // paused proxies are counted as idle
-                        return@forEach
-                    }
-
-                    // Check DNS errors first
-                    if (dnsStats != null && isDnsError(dnsStats)) {
-                        failing++
-                        return@forEach
-                    }
-
-                    // Handle null stats
-                    if (stats == null) {
-                        failing++
-                        return@forEach
-                    }
-
-                    val lastOk = stats.lastOK
-                    val since = stats.since
-
-                    // Check if it's been running long enough without success
-                    if (now - since > WG_UPTIME_THRESHOLD && lastOk == 0L) {
-                        failing++
-                        return@forEach
-                    }
-                    
-                    if (status != null) {
-                        when (status) {
-                            UIUtils.ProxyStatus.TOK -> {
-                                // For TOK (connected), check if it's recently active
-                                if (lastOk > 0L && (now - lastOk < WG_HANDSHAKE_TIMEOUT)) {
-                                    active++
-                                } else if (lastOk > 0L) {
-                                    // Has connected before but not recently, consider idle
-                                    idle++
-                                } else if (now - since < WG_UPTIME_THRESHOLD) {
-                                    // Still in startup period, consider as starting (active)
-                                    active++
-                                } else {
-                                    failing++
-                                }
-                            }
-                            UIUtils.ProxyStatus.TUP -> {
-                                // Starting state - always consider as active (transitioning)
-                                active++
-                            }
-                            UIUtils.ProxyStatus.TZZ -> {
-                                // For TZZ (idle), be more lenient - consider it as idle if it has had any connection
-                                if (lastOk > 0L) {
-                                    // Has had successful handshake before, consider it idle
-                                    idle++
-                                } else if (now - since < WG_UPTIME_THRESHOLD) {
-                                    // Still in startup period, give it more time
-                                    idle++
-                                } else {
-                                    // No recent handshake and been running long enough, consider it failing
-                                    failing++
-                                }
-                            }
-                            UIUtils.ProxyStatus.TNT -> {
-                                // Waiting state
-                                // see WgConfigAdapter#getStrokeColorForStatus for details
-                                idle++
-                            }
-                            UIUtils.ProxyStatus.TPU -> {
-                                // Paused state - consider as idle
-                                idle++
-                            }
-                            else -> {
-                                // Unknown or error states (TKO, TEND, etc.)
-                                failing++
-                            }
-                        }
-                    } else {
-                        // No status available, mark as failing
-                        failing++
-                    }
+                    val triple = getProxyStatus(proxyId, now, active, failing, idle)
+                    active = triple.first
+                    failing = triple.second
+                    idle = triple.third
+                    Logger.v(LOG_TAG_UI, "$TAG wg proxy status: act: $active, fail: $failing, idle: $idle")
                 }
+                // Fetch the live win proxy id once for the AUTO entry.
+                // Falls back to the wildcard only when the tunnel is not connected.
+                val winProxyId = VpnController.getWinProxyId() ?: "${Backend.RpnWin}**"
+                rpnProxies.forEach {
+                    val proxyId = if (it.key.equals(AUTO_SERVER_ID, true)) winProxyId else Backend.RpnWin + it.key
+                    val triple = getProxyStatus(proxyId, now, active, failing, idle)
+                    active = triple.first
+                    failing = triple.second
+                    idle = triple.third
+                    Logger.v(LOG_TAG_UI, "$TAG rpn proxy status: act: $active, fail: $failing, idle: $idle")
+                }
+
+                val isBoth = proxies.isNotEmpty() && rpnProxies.isNotEmpty()
+
                 uiCtx {
-                    if (!isVisible || !isAdded || view == null) return@uiCtx
+                    if (!isAdded || view == null) return@uiCtx
                     b.fhsCardOtherProxyCount.visibility = View.VISIBLE
                     var text = ""
                     // show as 3 active 1 failing 1 idle, prioritize showing something if any proxy exists
@@ -793,15 +853,22 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
                         )
                     }
                     Logger.v(LOG_TAG_UI, "$TAG overall wg proxy status: $text, proxies: ${proxies.size}, active: $active, failing: $failing, idle: $idle")
-                    
+
                     // If we have proxies but no status text, something went wrong - show a fallback
-                    if (text.isEmpty() && proxies.isNotEmpty()) {
-                        b.fhsCardProxyCount.text = getString(R.string.lbl_active)
+                    if (text.isEmpty() && (proxies.isNotEmpty() || rpnProxies.isNotEmpty())) {
+                        b.fhsCardProxyCount.setTextAnimated(getString(R.string.lbl_active))
                         Logger.w(LOG_TAG_UI, "$TAG proxy status empty but proxies exist, showing fallback active status")
                     } else if (text.isEmpty()) {
-                        b.fhsCardProxyCount.text = getString(R.string.lbl_inactive)
+                        b.fhsCardProxyCount.setTextAnimated(getString(R.string.lbl_inactive))
                     } else {
-                        b.fhsCardProxyCount.text = text
+                        b.fhsCardProxyCount.setTextAnimated(text)
+                    }
+
+                    if (isBoth) {
+                        b.fhsCardOtherProxyCount.isSelected = true
+                        b.fhsCardOtherProxyCount.setTextAnimated(getString(R.string.two_argument, getString(R.string.lbl_wireguard), getString(R.string.rethink_plus_title)))
+                    } else {
+                        b.fhsCardOtherProxyCount.setTextAnimated(getString(resId))
                     }
                 }
             }
@@ -809,18 +876,111 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
             // For non-WireGuard proxies, show active if any proxy is enabled
             if (view == null || !isAdded) return
 
-            if (appConfig.isProxyEnabled()) {
-                b.fhsCardProxyCount.text = getString(R.string.lbl_active)
+            if (appConfig.isProxyEnabled() || RpnProxyManager.isRpnActive()) {
+                b.fhsCardProxyCount.setTextAnimated(getString(R.string.lbl_active))
             } else {
-                b.fhsCardProxyCount.text = getString(R.string.lbl_inactive)
+                b.fhsCardProxyCount.setTextAnimated(getString(R.string.lbl_inactive))
             }
+            b.fhsCardOtherProxyCount.visibility = View.VISIBLE
+            b.fhsCardOtherProxyCount.setTextAnimated(getString(resId))
+        }
+    }
+
+    private suspend fun getProxyStatus(proxyId: String, now: Long, a: Int, f: Int, i: Int): Triple<Int, Int, Int> {
+        var active = a
+        var failing = f
+        var idle = i
+        Logger.vv(LOG_TAG_UI, "$TAG init stats check for $proxyId")
+
+        val stats = VpnController.getProxyStats(proxyId)
+        val statusPair = VpnController.getProxyStatusById(proxyId)
+
+        val status = UIUtils.ProxyStatus.entries.find { s -> s.id == statusPair.first }
+
+        // check for dns status of the wg if splitDns is enabled
+        val dnsStats = if (isSplitDns()) {
+            val ds = VpnController.getDnsStatus(proxyId)
+            ds
+        } else {
+            null
         }
 
-        // Final check before accessing binding
-        if (view == null || !isAdded) return
+        // Handle paused state as idle (TPU is the pause status)
+        if (status == UIUtils.ProxyStatus.TPU) {
+            idle++ // paused proxies are counted as idle
+            return Triple(active, failing, idle)
+        }
 
-        b.fhsCardOtherProxyCount.visibility = View.VISIBLE
-        b.fhsCardOtherProxyCount.text = getString(resId)
+        // Check DNS errors first
+        if (dnsStats != null && isDnsError(dnsStats)) {
+            failing++
+            return Triple(active, failing, idle)
+        }
+
+        // Handle null stats
+        if (stats == null) {
+            failing++
+            return Triple(active, failing, idle)
+        }
+
+        val lastOk = stats.lastOK
+        val since = stats.since
+
+        // Check if it's been running long enough without success
+        if (now - since > WG_UPTIME_THRESHOLD && lastOk == 0L) {
+            failing++
+            return Triple(active, failing, idle)
+        }
+
+        if (status != null) {
+            when (status) {
+                UIUtils.ProxyStatus.TOK -> {
+                    // For TOK (connected), check if it's recently active
+                    if (lastOk > 0L && (now - lastOk < WG_HANDSHAKE_TIMEOUT)) {
+                        active++
+                    } else if (lastOk > 0L) {
+                        // Has connected before but not recently, consider idle
+                        idle++
+                    } else if (now - since < WG_UPTIME_THRESHOLD) {
+                        // Still in startup period, consider as starting (active)
+                        active++
+                    } else {
+                        failing++
+                    }
+                }
+                UIUtils.ProxyStatus.TUP -> {
+                    // Starting state - always consider as active (transitioning)
+                    active++
+                }
+                UIUtils.ProxyStatus.TZZ -> {
+                    // For TZZ (idle), be more lenient - consider it as idle if it has had any connection
+                    if (lastOk > 0L) {
+                        // Has had successful handshake before, consider it idle
+                        idle++
+                    } else if (now - since < WG_UPTIME_THRESHOLD) {
+                        // Still in startup period, give it more time
+                        idle++
+                    } else {
+                        // No recent handshake and been running long enough, consider it failing
+                        failing++
+                    }
+                }
+                UIUtils.ProxyStatus.TNT -> {
+                    // Waiting state
+                    // see WgConfigAdapter#getStrokeColorForStatus for details
+                    idle++
+                }
+                // UIUtils.ProxyStatus.TPU handled above
+                else -> {
+                    // Unknown or error states (TKO, TEND, etc.)
+                    failing++
+                }
+            }
+        } else {
+            // No status available, mark as failing
+            failing++
+        }
+        return Triple(active, failing, idle)
     }
 
     private fun isSplitDns(): Boolean {
@@ -840,7 +1000,13 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
 
 
     private fun unobserveProxyStates() {
-        persistentState.getProxyStatus().removeObservers(viewLifecycleOwner)
+        // Must remove from the distinctUntilChanged() wrapper we registered on, not from the
+        // raw getProxyStatus() LiveData. Previously this called removeObservers() on the wrong
+        // LiveData instance, leaving ghost observers that accumulated across calls.
+        proxyStatusLiveData?.removeObservers(viewLifecycleOwner)
+        proxyStatusLiveData = null
+        proxyStateListenerJob?.cancel()
+        proxyStateListenerJob = null
     }
 
     private fun disableLogsCard() {
@@ -855,6 +1021,7 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         proxyStateListenerJob?.cancel()
         if (view == null || !isAdded) return
 
+        Logger.w(LOG_TAG_UI, "$TAG disable proxy card, showing inactive")
         b.fhsCardProxyCount.text = getString(R.string.lbl_inactive)
         b.fhsCardOtherProxyCount.visibility = View.VISIBLE
         b.fhsCardOtherProxyCount.text = getString(R.string.lbl_disabled)
@@ -892,6 +1059,8 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
      * are register to update the UI in the home screen
      */
     private fun observeDnsStates() {
+        // The latency check is a one-shot IO call that refreshes the displayed latency every time
+        // this function is called (e.g. on each brave-mode observer or onResume() cycle).
         io {
             val dnsId = if (WireguardManager.oneWireGuardEnabled()) {
                 val id = WireguardManager.getOneWireGuardProxyId()
@@ -913,7 +1082,7 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
             }
             val p50 = VpnController.p50(dnsId)
             uiCtx {
-                if (!isVisible || !isAdded || view == null) return@uiCtx
+                if (!isAdded || view == null) return@uiCtx
                 when (p50) {
                     in 0L..LATENCY_VERY_FAST_MAX -> {
                         val string =
@@ -952,11 +1121,24 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
             }
         }
 
+        // Guard: only register the LiveData observers once per view-lifecycle.  Without this,
+        // every call to updateCardsUi() → enableDnsCardIfNeeded() → observeDnsStates() adds a
+        // NEW lambda observer to connectedDns, causing duplicate updateUiWithDnsStates() calls and
+        // accumulating IO coroutines. The latency block above still runs on every call so the
+        // displayed latency is always fresh. Reset in unobserveDnsStates() / onDestroyView().
+        if (dnsObserverActive) {
+            Logger.v(LOG_TAG_UI, "$TAG dns observer already registered")
+            return
+        }
+        dnsObserverActive = true
+
         appConfig.getConnectedDnsObservable().observe(viewLifecycleOwner) {
+            Logger.vv(LOG_TAG_UI, "$TAG connectedDns changed to $it")
             updateUiWithDnsStates(it)
         }
 
         VpnController.getRegionLiveData().distinctUntilChanged().observe(viewLifecycleOwner) {
+            Logger.vv(LOG_TAG_UI, "$TAG region changed to $it")
             if (it != null) {
                 b.fhsCardRegion.text = it.uppercase()
             }
@@ -1066,7 +1248,7 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
     }
 
     private fun formatDecimal(i: Long?): String {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+        return if (isAtleastN()) {
             CompactDecimalFormat.getInstance(Locale.US, CompactDecimalFormat.CompactStyle.SHORT)
                 .format(i)
         } else {
@@ -1076,6 +1258,7 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
 
     // unregister all dns related observers
     private fun unobserveDnsStates() {
+        dnsObserverActive = false
         appConfig.getConnectedDnsObservable().removeObservers(viewLifecycleOwner)
         VpnController.getRegionLiveData().removeObservers(viewLifecycleOwner)
     }
@@ -1191,8 +1374,8 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         }
 
         // prompt user to disable battery optimization and restrict background data
-        // disabled the battery optimization check as its confusing for users
-        if (false && isRestrictBackgroundActive(requireContext()) && batteryOptimizationActive(requireContext()) && !isVpnActivated) {
+        // disabled the battery optimization check as it's confusing for users
+        if (isRestrictBackgroundActive(requireContext()) && batteryOptimizationActive(requireContext()) && !isVpnActivated) {
             showBatteryOptimizationDialog()
         }
 
@@ -1409,15 +1592,15 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         val curr = TxRx()
         if (txRx.time <= 0L) {
             txRx = curr
-            b.fhsInternetSpeed.visibility = View.GONE
-            b.fhsInternetSpeedUnit.visibility = View.GONE
+            b.fhsInternetSpeed.visibility = View.INVISIBLE
+            b.fhsInternetSpeedUnit.visibility = View.INVISIBLE
             return
         }
         val dur = (curr.time - txRx.time) / 1000L
 
         if (dur <= 0) {
-            b.fhsInternetSpeed.visibility = View.GONE
-            b.fhsInternetSpeedUnit.visibility = View.GONE
+            b.fhsInternetSpeed.visibility = View.INVISIBLE
+            b.fhsInternetSpeedUnit.visibility = View.INVISIBLE
             return
         }
         val tx = curr.tx - txRx.tx
@@ -1529,6 +1712,8 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         // Cancel any running jobs before the view is destroyed
         proxyStateListenerJob?.cancel()
         proxyStateListenerJob = null
+        proxyStatusLiveData = null
+        dnsObserverActive = false
         super.onDestroyView()
     }
 
@@ -1627,7 +1812,7 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         val builder = Shimmer.AlphaHighlightBuilder()
         builder.setDuration(SHIMMER_DURATION_MS)
         builder.setBaseAlpha(SHIMMER_BASE_ALPHA)
-        builder.setDropoff(SHIMMER_DROPOFF)
+        builder.setDropoff(SHIMMER_DROP_OFF)
         builder.setHighlightAlpha(SHIMMER_HIGHLIGHT_ALPHA)
         b.shimmerViewContainer1.setShimmer(builder.build())
         b.shimmerViewContainer1.startShimmer()
@@ -1720,87 +1905,6 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         }
         builder.create().show()
     }
-
-    /*private fun maybeShowGracePeriodDialog() {
-        val now = System.currentTimeMillis()
-
-        val lastShown = persistentState.lastGracePeriodReminderTime
-        val daysSinceLastShown = TimeUnit.MILLISECONDS.toDays(now - lastShown)
-        if (daysSinceLastShown < GRACE_DIALOG_REMIND_AFTER_DAYS) return
-        Logger.d(LOG_TAG_UI, "$TAG Grace period dialog last shown $daysSinceLastShown days ago")
-        io {
-            val currentSubs = RpnProxyManager.getSubscriptionState()
-            if (currentSubs.isActive) {
-                Logger.v(LOG_TAG_UI, "$TAG Current subscription is active, skipping grace period dialog")
-                return@io
-            }
-            if (!currentSubs.isCancelled) {
-                Logger.v(LOG_TAG_UI, "$TAG Current subscription is not cancelled, skipping grace period dialog, state: ${currentSubs.state().name}")
-                return@io
-            }
-            val subsData = RpnProxyManager.getSubscriptionData()
-            if (subsData == null) {
-                Logger.v(LOG_TAG_UI, "$TAG No subscription data found, skipping grace period dialog")
-                return@io
-            }
-
-            val billingExpiry = subsData.subscriptionStatus.billingExpiry
-            val accountExpiry = subsData.subscriptionStatus.accountExpiry
-            // grace period is calculated based on billingExpiry and accountExpiry
-            val timeLeft = accountExpiry.minus(now)
-            val timeLeftDays = TimeUnit.MILLISECONDS.toDays(timeLeft)
-            val gracePeriod = accountExpiry - billingExpiry
-            val gracePeriodDays = TimeUnit.MILLISECONDS.toDays(gracePeriod)
-            if (gracePeriodDays <= 0L) {
-                Logger.v(LOG_TAG_UI, "$TAG No grace period available($gracePeriodDays), skipping grace period dialog")
-                return@io
-            }
-
-            if (timeLeftDays <= 0L) {
-                Logger.i(LOG_TAG_UI, "$TAG Grace period has ended(@$timeLeftDays), skipping grace period dialog")
-                return@io
-            }
-
-            val daysRemaining = TimeUnit.MILLISECONDS.toDays(timeLeft).toInt().coerceAtLeast(1)
-            if (daysRemaining <= 0) {
-                Logger.v(LOG_TAG_UI, "$TAG No days remaining in grace period, skipping dialog")
-                return@io
-            }
-            Logger.v(LOG_TAG_UI, "$TAG Showing grace period dialog, $daysRemaining days remaining")
-            uiCtx {
-                val dialogView = LayoutInflater.from(requireContext())
-                    .inflate(R.layout.dialog_grace_period_layout, null)
-
-                dialogView.findViewById<AppCompatTextView>(R.id.dialog_days_left).text =
-                    "\u23F3 $daysRemaining days remaining"
-
-                dialogView.findViewById<LinearProgressIndicator>(R.id.dialog_progress).apply {
-                    max = 100
-                    // should be decreased from 100 to 0
-                    progress =  100 - (timeLeftDays * 100 / gracePeriodDays).toInt()
-                    if (progress < 0) 0 else progress
-                    Logger.v(LOG_TAG_UI, "$TAG Grace period progress: $progress%")
-                }
-
-                val dialog = MaterialAlertDialogBuilder(requireContext())
-                    .setView(dialogView)
-                    .setCancelable(false)
-                    .create()
-
-                dialogView.findViewById<AppCompatButton>(R.id.button_renew).setOnClickListener {
-                    dialog.dismiss()
-                    findNavController().navigate(R.id.rethinkPlus)
-                }
-
-                dialogView.findViewById<AppCompatButton>(R.id.button_later).setOnClickListener {
-                    dialog.dismiss()
-                    persistentState.lastGracePeriodReminderTime = System.currentTimeMillis()
-                }
-                persistentState.lastGracePeriodReminderTime = System.currentTimeMillis()
-                dialog.show()
-            }
-        }
-    }*/
 
     private fun registerForActivityResult() {
         startForResult =
@@ -1907,7 +2011,9 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         }
 
         if (statusId == R.string.status_protected) {
-            if (appConfig.getBraveMode().isDnsMode() && isPrivateDnsActive(requireContext())) {
+            if (RpnProxyManager.isRpnActive()) {
+                statusId = R.string.status_protected_with_rpn
+            } else if (appConfig.getBraveMode().isDnsMode() && isPrivateDnsActive(requireContext())) {
                 statusId = R.string.status_protected_with_private_dns
                 colorId = fetchTextColor(R.color.primaryLightColorText)
             } else if (appConfig.getBraveMode().isDnsMode()) {
@@ -1951,7 +2057,9 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         if (statusId == R.string.status_no_internet || statusId == R.string.status_failing) {
             val message = getString(statusId)
             colorId = fetchTextColor(R.color.accentBad)
-            if (appConfig.isCustomSocks5Enabled() && appConfig.isCustomHttpProxyEnabled()) {
+            if (RpnProxyManager.isRpnActive()) {
+                statusId = R.string.status_protected_with_rpn
+            } else if (appConfig.isCustomSocks5Enabled() && appConfig.isCustomHttpProxyEnabled()) {
                 statusId = R.string.status_protected_with_proxy
             } else if (appConfig.isCustomSocks5Enabled()) {
                 statusId = R.string.status_protected_with_socks5
@@ -2044,6 +2152,26 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
         return color
     }
 
+    /**
+     * Updates the [android.widget.TextView] text with a smooth crossfade so the transition
+     * from the old value to [newText] is never a jarring snap.  If the text is already equal
+     * the view is left untouched to avoid unnecessary animation work.
+     */
+    private fun android.widget.TextView.setTextAnimated(newText: String) {
+        if (text?.toString() == newText) return
+        animate()
+            .alpha(0f)
+            .setDuration(TEXT_FADE_DURATION_MS)
+            .withEndAction {
+                text = newText
+                animate()
+                    .alpha(1f)
+                    .setDuration(TEXT_FADE_DURATION_MS)
+                    .start()
+            }
+            .start()
+    }
+
     private fun io(f: suspend () -> Unit) {
         lifecycleScope.launch(Dispatchers.IO) { f() }
     }
@@ -2053,7 +2181,7 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
     }
 
     private fun ui(n: String, f: suspend () -> Unit): Job {
-        val cctx = CoroutineName(n) + Dispatchers.Main
-        return lifecycleScope.launch(cctx) { f() }
+        val mainCtx = CoroutineName(n) + Dispatchers.Main
+        return lifecycleScope.launch(mainCtx) { f() }
     }
 }

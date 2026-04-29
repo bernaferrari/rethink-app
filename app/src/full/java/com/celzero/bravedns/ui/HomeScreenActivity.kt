@@ -33,7 +33,6 @@ import android.os.SystemClock
 import android.view.View
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
@@ -62,6 +61,7 @@ import com.celzero.bravedns.database.AppInfoRepository
 import com.celzero.bravedns.database.RefreshDatabase
 import com.celzero.bravedns.service.AppUpdater
 import com.celzero.bravedns.service.BraveVPNService
+import com.celzero.bravedns.service.InAppMessageProvider
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.VpnController
@@ -70,6 +70,7 @@ import com.celzero.bravedns.ui.activity.MiscSettingsActivity
 import com.celzero.bravedns.ui.activity.PauseActivity
 import com.celzero.bravedns.ui.activity.WelcomeActivity
 import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.Constants.Companion.ALPHA_UPDATE_CHECK_URL
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.Constants.Companion.PKG_NAME_PLAY_STORE
 import com.celzero.bravedns.util.FirebaseErrorReporting
@@ -78,6 +79,7 @@ import com.celzero.bravedns.util.FirebaseErrorReporting.TOKEN_REGENERATION_PERIO
 import com.celzero.bravedns.util.NewSettingsManager
 import com.celzero.bravedns.util.RemoteFileTagUtil
 import com.celzero.bravedns.util.Themes.Companion.getCurrentTheme
+import com.celzero.bravedns.util.UIUtils.openUrl
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.getPackageMetadata
 import com.celzero.bravedns.util.Utilities.getRandomString
@@ -97,10 +99,11 @@ import org.koin.android.ext.android.inject
 import java.util.Calendar
 import java.util.concurrent.TimeUnit
 
-class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
+class HomeScreenActivity : BaseActivity(R.layout.activity_home_screen) {
     private val persistentState by inject<PersistentState>()
     private val appInfoDb by inject<AppInfoRepository>()
     private val appUpdateManager by inject<AppUpdater>()
+    private val inAppMessageProvider by inject<InAppMessageProvider>()
     private val rdb by inject<RefreshDatabase>()
     private val appConfig by inject<AppConfig>()
 
@@ -146,6 +149,7 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
 
         setupNavigationItemSelectedListener()
 
+
         // handle intent receiver for backup/restore
         handleIntent()
 
@@ -158,36 +162,7 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
         NewSettingsManager.handleNewSettings()
 
         regenerateFirebaseTokenIfNeeded()
-
-        // enable in-app messaging, will be used to show in-app messages in case of billing issues
-        //enableInAppMessaging()
     }
-
-
-    /*private fun enableInAppMessaging() {
-        initiateBillingIfNeeded()
-        // enable in-app messaging
-        InAppBillingHandler.enableInAppMessaging(this)
-        Logger.v(LOG_IAB, "enableInAppMessaging: enabled")
-    }
-
-    private fun initiateBillingIfNeeded() {
-        if (InAppBillingHandler.isBillingClientSetup()) {
-            Logger.i(LOG_IAB, "ensureBillingSetup: billing client already setup")
-            return
-        }
-
-        InAppBillingHandler.initiate(this.applicationContext)
-        Logger.i(LOG_IAB, "ensureBillingSetup: billing client initiated")
-    }*/
-
-    /*override fun onNewIntent(intent: Intent?) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        // by simply receiving and setting the new intent, we ensure that when the activity
-        // is brought back to the foreground, it uses the latest intent state
-        Logger.v(LOG_TAG_UI, "home screen activity received new intent")
-    }*/
 
     override fun onResume() {
         super.onResume()
@@ -196,6 +171,9 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
             appInBackground = false
             Logger.d(LOG_TAG_UI, "app restored from background, maintaining activity stack")
         }
+        // Show any pending Play Billing in-app messages (payment recovery, grace-period
+        // notices, etc.).  This is a no-op on non-Play flavors.
+        inAppMessageProvider.showMessages(this)
     }
 
     // check if app running on TV
@@ -484,6 +462,13 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
         // do not check for debug builds
         if (BuildConfig.DEBUG) return
 
+        //  alpha testers get updates via direct distribution, take to the url
+        if (Utilities.isAlphaBuild()) {
+            Logger.i(LOG_TAG_APP_UPDATE, "update check skipped for alpha build")
+            openUrl(this, ALPHA_UPDATE_CHECK_URL)
+            return
+        }
+
         // Check updates only for play store / website version. Not fDroid.
         if (!isPlayStoreFlavour() && !isWebsiteFlavour()) {
             Logger.i(LOG_TAG_APP_UPDATE, "update check not for ${BuildConfig.FLAVOR}")
@@ -738,101 +723,134 @@ class HomeScreenActivity : AppCompatActivity(R.layout.activity_home_screen) {
                     val navHostFragment =
                         supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
                     val navController = navHostFragment?.navController
+                    val currentId = navController?.currentDestination?.id
                     val homeId = R.id.homeScreenFragment
-                    if (navController?.currentDestination?.id != homeId) {
-                        val btmNavView = findViewById<BottomNavigationView>(R.id.nav_view)
-                        btmNavView.selectedItemId = homeId
-                        navController?.navigate(
-                            homeId,
-                            null,
-                            NavOptions.Builder().setPopUpTo(homeId, true).build()
-                        )
-                    } else {
-                        finish()
+
+                    when {
+                        currentId == homeId -> {
+                            finish()
+                        }
+                        currentId == R.id.rethinkPlusDashboardFragment -> {
+                            val btmNavView = findViewById<BottomNavigationView>(R.id.nav_view)
+                            btmNavView.selectedItemId = homeId
+                            navController?.navigate(
+                                homeId,
+                                null,
+                                NavOptions.Builder().setPopUpTo(homeId, true).build()
+                            )
+                        }
+                        else -> {
+                            // Any other non-home top-level destination (statistics, configure,
+                            // about, rethinkPlus), navigate to home and clear the back stack.
+                            val btmNavView = findViewById<BottomNavigationView>(R.id.nav_view)
+                            btmNavView.selectedItemId = homeId
+                            navController?.navigate(
+                                homeId,
+                                null,
+                                NavOptions.Builder().setPopUpTo(homeId, true).build()
+                            )
+                        }
                     }
                 }
             }
         )
     }
 
-    /*private fun updateRethinkPlusHighlight() {
-        val btmNavView = findViewById<BottomNavigationView>(R.id.nav_view)
-        val rethinkPlusItem = btmNavView.menu.findItem(R.id.rethinkPlus)
-        rethinkPlusItem.setIcon(R.drawable.ic_rethink_plus_sparkle)
-        btmNavView.removeBadge(R.id.rethinkPlus)
-    }*/
 
     private fun setupNavigationItemSelectedListener() {
-        val btmNavView = findViewById<BottomNavigationView>(R.id.nav_view)
+        val btmNavView = findViewById<BottomNavigationView>(R.id.nav_view) ?: run {
+            Logger.w(LOG_TAG_UI, "setupNavigationItemSelectedListener: BottomNavigationView not found")
+            return
+        }
+
         val navHostFragment =
             supportFragmentManager.findFragmentById(R.id.fragment_container) as? NavHostFragment
-        val navController = navHostFragment?.navController
+        val navController = navHostFragment?.navController ?: run {
+            Logger.w(LOG_TAG_UI, "setupNavigationItemSelectedListener: NavController not found")
+            return
+        }
+
+        val homeId = R.id.homeScreenFragment
+
+        // Keep the rethinkPlus bottom-nav item highlighted whenever the user is on the
+        // dashboard (a child destination of rethinkPlus that is not itself a menu item).
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            when (destination.id) {
+                R.id.rethinkPlusDashboardFragment -> {
+                    // Dashboard is a child of the rethinkPlus flow keep rethinkPlus checked.
+                    btmNavView.menu.findItem(R.id.rethinkPlus)?.isChecked = true
+                }
+                R.id.rethinkPlus,
+                R.id.homeScreenFragment,
+                R.id.summaryStatisticsFragment,
+                R.id.configureFragment,
+                R.id.aboutFragment -> {
+                    // These are direct menu items: BottomNavigationView updates isChecked
+                    // automatically when selectedItemId is set; nothing extra needed here.
+                }
+                else -> { /* other destinations: no bottom-nav highlight change */ }
+            }
+        }
 
         btmNavView.setOnItemSelectedListener { item ->
-            val homeId = R.id.homeScreenFragment
+            val currentId = navController.currentDestination?.id
+
+            // Prevent re-navigating if we are already on this destination (or its child).
+            // For rethinkPlus this also covers rethinkPlusDashboardFragment.
+            val alreadyThere = when (item.itemId) {
+                R.id.rethinkPlus ->
+                    currentId == R.id.rethinkPlus || currentId == R.id.rethinkPlusDashboardFragment
+                else -> currentId == item.itemId
+            }
+            if (alreadyThere) return@setOnItemSelectedListener false
 
             when (item.itemId) {
                 R.id.rethinkPlus -> {
-                    showToastUiCentered(this, "Coming soon!", Toast.LENGTH_SHORT)
+                    // RPN is not available in alpha builds; show a "coming soon"
+                    // toast and stay on the current destination.
+                    if (Utilities.isAlphaBuild()) {
+                        showToastUiCentered(
+                            this,
+                            getString(R.string.coming_soon_toast),
+                            Toast.LENGTH_SHORT
+                        )
+                        return@setOnItemSelectedListener false
+                    }
+                    // Navigate to rethinkPlus (start destination of the nested nav graph).
+                    // popUpTo homeId with inclusive=false keeps home in the back stack so
+                    // that back from rethinkPlus returns to home, not to a prior tab.
+                    navController.navigate(
+                        R.id.rethinkPlus,
+                        null,
+                        NavOptions.Builder()
+                            .setPopUpTo(homeId, false)
+                            .build()
+                    )
                     true
-                    /*if (RpnProxyManager.hasValidSubscription()) {
-                        // Navigate to rethinkPlusDashboardFragment
-                        if (navController?.currentDestination?.id != R.id.rethinkPlusDashboardFragment) {
-                            navController?.navigate(
-                                R.id.rethinkPlusDashboardFragment,
-                                null,
-                                NavOptions.Builder().setPopUpTo(homeId, false).build()
-                            )
-                        }
-                        btmNavView.menu.findItem(R.id.rethinkPlus)?.isChecked = true
-                        true
-                    } else {
-                        // Navigate to rethinkPlus fragment
-                        if (navController?.currentDestination?.id != R.id.rethinkPlus) {
-                            navController?.navigate(
-                                R.id.rethinkPlus,
-                                null,
-                                NavOptions.Builder().setPopUpTo(homeId, false).build()
-                            )
-                        }
-                        btmNavView.menu.findItem(R.id.rethinkPlus)?.isChecked = true
-                        true
-                    }*/
                 }
 
                 homeId -> {
-                    if (navController != null && navController.currentDestination?.id != homeId) {
-                        navController.navigate(
-                            homeId,
-                            null,
-                            NavOptions.Builder().setPopUpTo(homeId, true).build()
-                        )
-                        true
-                    } else {
-                        false
-                    }
+                    navController.navigate(
+                        homeId,
+                        null,
+                        NavOptions.Builder().setPopUpTo(homeId, true).build()
+                    )
+                    true
                 }
 
                 else -> {
-                    if (navController != null && navController.currentDestination?.id != item.itemId) {
-                        navController.navigate(
-                            item.itemId,
-                            null,
-                            NavOptions.Builder().setPopUpTo(homeId, false).build()
-                        )
-                        true
-                    } else {
-                        false
-                    }
+                    navController.navigate(
+                        item.itemId,
+                        null,
+                        NavOptions.Builder().setPopUpTo(homeId, false).build()
+                    )
+                    true
                 }
             }
         }
 
-        // Optionally sync the bottom nav highlight with nav changes
-        /*navController?.addOnDestinationChangedListener { _, destination, _ ->
-            // Update Rethink Plus badge or icon here if needed
-            updateRethinkPlusHighlight()
-        }*/
+        // Tapping an already-selected tab is a no-op (don't re-navigate or recreate).
+        btmNavView.setOnItemReselectedListener { /* intentional no-op */ }
     }
 
     private fun io(f: suspend () -> Unit) {

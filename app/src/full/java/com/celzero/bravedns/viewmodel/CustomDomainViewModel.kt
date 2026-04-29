@@ -30,7 +30,7 @@ import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
 
 class CustomDomainViewModel(private val customDomainDAO: CustomDomainDAO) : ViewModel() {
 
-    private var filteredList: MutableLiveData<String> = MutableLiveData()
+    private val filteredList: MutableLiveData<String> = MutableLiveData()
     private var uid: Int = Constants.UID_EVERYBODY
 
     init {

@@ -14,15 +14,17 @@
  * limitations under the License.
  */
 package com.celzero.bravedns.iab
-/*
+
 import Logger
 import Logger.LOG_IAB
 import android.app.Activity
 import android.content.Context
+import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.asLiveData
 import com.android.billingclient.api.BillingClient
-import com.android.billingclient.api.BillingClient.ProductType
 import com.android.billingclient.api.BillingClient.BillingResponseCode
+import com.android.billingclient.api.BillingClient.ProductType
 import com.android.billingclient.api.BillingClientStateListener
 import com.android.billingclient.api.BillingFlowParams
 import com.android.billingclient.api.BillingResult
@@ -36,65 +38,139 @@ import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
 import com.android.billingclient.api.QueryPurchasesParams
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
-import com.celzero.bravedns.customdownloader.RetrofitManager
+import com.celzero.bravedns.database.EventSource
+import com.celzero.bravedns.database.EventType
+import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.database.SubscriptionStatus
-import com.celzero.bravedns.rpnproxy.PipKeyManager
+import com.celzero.bravedns.iab.InAppBillingHandler.ONE_TIME_PRODUCT_2YRS
+import com.celzero.bravedns.iab.InAppBillingHandler.ONE_TIME_PRODUCT_5YRS
+import com.celzero.bravedns.iab.InAppBillingHandler.UNACK_ESCALATION_THRESHOLD
+import com.celzero.bravedns.iab.InAppBillingHandler.cancelPlaySubscription
+import com.celzero.bravedns.iab.InAppBillingHandler.getObfuscatedDeviceId
+import com.celzero.bravedns.iab.InAppBillingHandler.getRemainingDaysForInApp
+import com.celzero.bravedns.iab.InAppBillingHandler.getRemainingDaysForInAppSuspend
+import com.celzero.bravedns.iab.InAppBillingHandler.handleConflict409
+import com.celzero.bravedns.iab.InAppBillingHandler.handlePurchase
+import com.celzero.bravedns.iab.InAppBillingHandler.purchasesLiveData
+import com.celzero.bravedns.iab.InAppBillingHandler.queryProductDetails
+import com.celzero.bravedns.iab.InAppBillingHandler.queryUtils
+import com.celzero.bravedns.iab.InAppBillingHandler.registerDevice
+import com.celzero.bravedns.iab.InAppBillingHandler.revokeSubscription
+import com.celzero.bravedns.iab.InAppBillingHandler.serverApiErrorLiveData
+import com.celzero.bravedns.iab.InAppBillingHandler.startStateObserver
+import com.celzero.bravedns.iab.InAppBillingHandler.updateUIForState
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
+import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.subscription.SubscriptionStateMachineV2
+import com.celzero.bravedns.service.VpnController
+import com.google.gson.JsonObject
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CopyOnWriteArrayList
-import com.celzero.bravedns.customdownloader.ITcpProxy
-import org.json.JSONObject
 
-// ref: github.com/hypersoftdev/inappbilling
 object InAppBillingHandler : KoinComponent {
 
     private lateinit var billingClient: BillingClient
     private var billingListener: BillingListener? = null
 
+    // Application context stored during initiate() for use in background coroutines / ui updates
+    // like notifications
+    @Volatile
+    private var appContext: Context? = null
+
     const val TAG = "IABHandler"
 
     private val persistentState by inject<PersistentState>()
+    private val billingBackendClient by inject<BillingBackendClient>()
+    private val secureIdentityStore by inject<SecureIdentityStore>()
 
-    const val HISTORY_LINK = "https://play.google.com/store/account/orderhistory"
-    const val LINK = "https://play.google.com/store/account/subscriptions?sku=$1&package=$2"
+    private val eventLogger by inject<EventLogger>()
+
+    const val PLAY_SUBS_LINK = "https://play.google.com/store/account/subscriptions?sku=$1&package=$2"
 
     const val STD_PRODUCT_ID = "standard.tier"
+    const val ONE_TIME_PRODUCT_ID = "onetime.tier"
+    const val ONE_TIME_TEST_PRODUCT_ID = "test_product"
+
+    const val ONE_TIME_PRODUCT_2YRS = "proxy-yearly-2"
+    const val ONE_TIME_PRODUCT_5YRS = "proxy-yearly-5"
+
+    const val SUBS_PRODUCT_MONTHLY = "proxy-monthly"
+    const val SUBS_PRODUCT_YEARLY = "proxy-yearly"
+
+    // Product type string constants, mirrors BillingClient.ProductType so that
+    // shared `full` source-set code (ManagePurchaseFragment, ManagePurchaseViewModel)
+    // compiles on all flavors without importing BillingClient directly.
+    const val PRODUCT_TYPE_SUBS  = "subs"
+    const val PRODUCT_TYPE_INAPP = "inapp"
+
+    const val REVOKE_WINDOW_SUBS_MONTHLY_DAYS = 3
+    const val REVOKE_WINDOW_SUBS_YEARLY_DAYS = 7
+    const val REVOKE_WINDOW_ONE_TIME_2YRS_DAYS = 2 * 7
+    const val REVOKE_WINDOW_ONE_TIME_5YRS_DAYS = 5 * 7
 
     private lateinit var queryUtils: QueryUtils
     private val productDetails: CopyOnWriteArrayList<ProductDetail> = CopyOnWriteArrayList()
     private val storeProductDetails: CopyOnWriteArrayList<QueryProductDetail> =
         CopyOnWriteArrayList()
-    private val purchaseDetails = CopyOnWriteArrayList<PurchaseDetail>()
+
+    private var subsProcessor: SubscriptionPurchaseProcessor? = null
+    private var oneTimeProcessor: OneTimePurchaseProcessor? = null
 
     val productDetailsLiveData = MutableLiveData<List<ProductDetail>>()
     val purchasesLiveData = MutableLiveData<List<PurchaseDetail>>()
-    val transactionErrorLiveData = MutableLiveData<BillingResult>()
-    val connectionResultLiveData = MutableLiveData<ConnectionResult>()
+    val transactionErrorLiveData = MutableLiveData<BillingResult?>()
+
+    val serverApiErrorLiveData = MutableLiveData<ServerApiError?>()
 
     private val subscriptionStateMachine: SubscriptionStateMachineV2 by inject()
-    private val stateObserverJob = SupervisorJob()
-    private val stateObserverScope = CoroutineScope(Dispatchers.IO + stateObserverJob)
 
-    // Result state for the billing client
+    private val billingScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    private val connectionMutex = kotlinx.coroutines.sync.Mutex()
+
+    // state tracking
+    @Volatile private var isInitialized = false
+
+
+    private const val EMPTY_QUERY_THRESHOLD = 3
+    @Volatile private var consecutiveEmptyQueries = 0
+
+    /**
+     * How many times a token must be seen still-unacknowledged before we stop waiting
+     * for Play to propagate the ack and escalate to server-side acknowledgement.
+     */
+    const val UNACK_ESCALATION_THRESHOLD = 3
+
+    /**
+     * Per-token count of how many times a purchase has been delivered to [handlePurchase]
+     * while still unacknowledged.
+     *
+     * Key = purchase token
+     * Value = number of times this token has been seen with `isAcknowledged = false`
+     */
+    private val unackedSeenCount: ConcurrentHashMap<String, Int> = ConcurrentHashMap()
+
+    // result state for the billing client
     enum class Priority(val value: Int) {
         HIGH(0),
         MEDIUM(1),
         LOW(2)
     }
-
-    data class ConnectionResult(val isSuccess: Boolean, val message: String)
 
     internal data class BestPlan(
         val trialDays: Int,
@@ -124,36 +200,52 @@ object InAppBillingHandler : KoinComponent {
     }
 
     fun initiate(context: Context, billingListener: BillingListener? = null) {
+        val mname = this::initiate.name
         this.billingListener = billingListener
+        if (appContext == null) {
+            appContext = context.applicationContext
+        }
+
+        // initialize billing client
         setupBillingClient(context)
+
+        // initialize state machine first (before connection)
+        if (!isInitialized) {
+            billingScope.launch {
+                try {
+                    subscriptionStateMachine.initialize()
+                    startStateObserver()
+                    isInitialized = true
+                    logd(mname, "state machine initialized")
+                } catch (e: Exception) {
+                    loge(mname, "failed to initialize state machine: ${e.message}", e)
+                    // notify listener on init failures
+                    withContext(Dispatchers.Main) {
+                        billingListener?.onConnectionResult(false, "State machine initialization failed: ${e.message}")
+                    }
+                    return@launch
+                }
+            }
+        }
+
+        // start billing connection
         startConnection { isSuccess, message ->
             if (isSuccess) {
-                // Initialize subscription state machine after successful connection
-                io {
-                    try {
-                        // Start observing state changes
-                        startStateObserver()
-                        logd(
-                            "initiate",
-                            "subscription state machine initialized and observer started"
-                        )
-                    } catch (e: Exception) {
-                        loge(
-                            "initiate",
-                            "failed to initialize subscription state machine: ${e.message}",
-                            e
-                        )
-                        // Continue with legacy handling
-                    }
-                }
+                logd(mname, "billing connected, fetching initial state")
+                // reset empty-query counters on a fresh connection
+                consecutiveEmptyQueries = 0
+                fetchPurchases(listOf(ProductType.SUBS, ProductType.INAPP))
+            } else {
+                loge(mname, "billing connection failed: $message")
             }
             billingListener?.onConnectionResult(isSuccess, message)
         }
     }
 
-
     fun registerListener(billingListener: BillingListener?) {
+        val mname = this::registerListener.name
         this.billingListener = billingListener
+        log(mname, "listener registered")
     }
 
     private fun setupBillingClient(context: Context) {
@@ -169,21 +261,36 @@ object InAppBillingHandler : KoinComponent {
                     .build()
             )
             .setListener(purchasesUpdatedListener)
+            .enableAutoServiceReconnection()
             .build()
     }
 
     fun enableInAppMessaging(activity: Activity) {
-        val inAppParams = InAppMessageParams.newBuilder().addInAppMessageCategoryToShow(
-            InAppMessageParams.InAppMessageCategoryId.TRANSACTIONAL
-        ).addAllInAppMessageCategoriesToShow().build()
-        billingClient.showInAppMessages(activity, inAppParams) { it ->
-            val mname = this::enableInAppMessaging.name
-            logd(mname, "in-app messaging result: ${it.responseCode}")
-            if (it.responseCode == InAppMessageResult.InAppMessageResponseCode.NO_ACTION_NEEDED) {
-                logd(mname, "enableInAppMessaging: no action needed")
-            } else {
-                logd(TAG, "enableInAppMessaging: subs status update, fetching purchases")
-                fetchPurchases(listOf(ProductType.SUBS))
+        val mname = this::enableInAppMessaging.name
+        if (!isBillingClientSetup()) {
+            logd(mname, "billing client not ready; skipping in-app messages")
+            return
+        }
+        val inAppParams = InAppMessageParams.newBuilder()
+            .addInAppMessageCategoryToShow(InAppMessageParams.InAppMessageCategoryId.TRANSACTIONAL)
+            .addAllInAppMessageCategoriesToShow()
+            .build()
+        billingClient.showInAppMessages(activity, inAppParams) { result ->
+            logd(mname, "in-app messaging result: ${result.responseCode}")
+            when (result.responseCode) {
+                InAppMessageResult.InAppMessageResponseCode.NO_ACTION_NEEDED -> {
+                    logd(mname, "no action needed")
+                }
+                InAppMessageResult.InAppMessageResponseCode.SUBSCRIPTION_STATUS_UPDATED -> {
+                    // Play has updated the subscription status (e.g. payment recovered,
+                    // grace-period entered, subscription canceled/revoked). Re-query
+                    // purchases so the state machine and UI reflect the new state.
+                    log(mname, "subscription status updated, refreshing purchases")
+                    fetchPurchases(listOf(ProductType.SUBS, ProductType.INAPP))
+                }
+                else -> {
+                    logd(mname, "unknown response code: ${result.responseCode}")
+                }
             }
         }
     }
@@ -191,25 +298,13 @@ object InAppBillingHandler : KoinComponent {
     fun isBillingClientSetup(): Boolean {
         val mname = this::isBillingClientSetup.name
         logv(mname, "checking if billing client is setup")
-        if (!::billingClient.isInitialized) { // Corrected initialization check
+        if (!::billingClient.isInitialized) {
             logd(mname, "billing client is not initialized")
             return false
         }
         val isReady = billingClient.isReady
         logd(mname, "isInitialized: true, isReady: $isReady")
         return isReady
-    }
-
-    private fun onConnectionResultMain(
-        callback: (isSuccess: Boolean, message: String) -> Unit,
-        isSuccess: Boolean,
-        message: String
-    ) {
-        val res = ConnectionResult(isSuccess, message)
-        connectionResultLiveData.postValue(res)
-        CoroutineScope(Dispatchers.Main).launch {
-            callback.invoke(isSuccess, message)
-        }
     }
 
     fun isListenerRegistered(l: BillingListener?): Boolean {
@@ -223,448 +318,1044 @@ object InAppBillingHandler : KoinComponent {
 
     private fun startConnection(callback: (isSuccess: Boolean, message: String) -> Unit) {
         val mname = this::startConnection.name
-        logv(mname, "starting connection")
+        logv(mname, "Starting billing connection")
 
-        if (Result.getResultState() == ResultState.CONNECTION_ESTABLISHING) {
-            logd(mname, "connection establishing in progress")
-            Result.setResultState(ResultState.CONNECTION_ESTABLISHING_IN_PROGRESS)
-            onConnectionResultMain(
-                callback,
-                false,
-                ResultState.CONNECTION_ESTABLISHING_IN_PROGRESS.message
-            )
-            return
-        }
-        Result.setResultState(ResultState.CONNECTION_ESTABLISHING)
-
-        if (::billingClient.isInitialized && billingClient.isReady) {
-            logd(mname, "connection already established")
-            Result.setResultState(ResultState.CONNECTION_ALREADY_ESTABLISHED)
-            onConnectionResultMain(
-                callback,
-                true,
-                ResultState.CONNECTION_ALREADY_ESTABLISHED.message
-            )
-            return
-        }
-
-        billingClient.startConnection(object : BillingClientStateListener {
-            override fun onBillingSetupFinished(billingResult: BillingResult) {
-                if (billingResult.responseCode == BillingResponseCode.OK) {
-                    logd(mname, "billing client is ready")
-                    // only fetch the purchases for the subscription type
-                    queryUtils = QueryUtils(billingClient)
-                    queryBillingConfig()
-                    val prodTypes = listOf(ProductType.SUBS)
-                    fetchPurchases(prodTypes)
-                } else {
-                    log(
-                        mname,
-                        "billing client setup failed; code: ${billingResult.responseCode}, msg: ${billingResult.debugMessage}"
-                    )
+        // use coroutine for mutex (thread-safe connection attempt)
+        billingScope.launch {
+            if (!connectionMutex.tryLock()) {
+                logd(mname, "connection attempt already in progress")
+                withContext(Dispatchers.Main) {
+                    callback.invoke(false, "Connection already in progress")
                 }
-                val isOk = BillingResponse(billingResult.responseCode).isOk
-                when (isOk) {
-                    true -> Result.setResultState(ResultState.CONNECTION_ESTABLISHED)
-                    false -> Result.setResultState(ResultState.CONNECTION_FAILED)
-                }
-                val message = when (isOk) {
-                    true -> ResultState.CONNECTION_ESTABLISHED.message
-                    false -> billingResult.debugMessage
-                }
-                onConnectionResultMain(callback = callback, isSuccess = isOk, message = message)
+                return@launch
             }
 
-            override fun onBillingServiceDisconnected() {
-                // Try to restart the connection on the next request to
-                // Google Play by calling the startConnection() method.
-                log(mname, "billing service disconnected")
-                Result.setResultState(ResultState.CONNECTION_DISCONNECTED)
-                onConnectionResultMain(
-                    callback,
-                    isSuccess = false,
-                    message = ResultState.CONNECTION_DISCONNECTED.message
-                )
-                // Don't automatically reconnect to avoid infinite loops
-                // Let the caller handle reconnection logic
+            try {
+                // check if already connected
+                if (::billingClient.isInitialized && billingClient.isReady) {
+                    logd(mname, "billing already connected")
+                    if (!::queryUtils.isInitialized) {
+                        queryUtils = QueryUtils(billingClient)
+                    }
+                    setupProcessors()
+                    // release the mutex acquired above before returning
+                    connectionMutex.unlock()
+                    withContext(Dispatchers.Main) {
+                        callback.invoke(true, "Already connected")
+                    }
+                    return@launch
+                }
+
+                // start connection
+                withContext(Dispatchers.Main) {
+                    billingClient.startConnection(object : BillingClientStateListener {
+                        override fun onBillingSetupFinished(billingResult: BillingResult) {
+                            val isOk = BillingResponse(billingResult.responseCode).isOk
+
+                            if (isOk) {
+                                logd(mname, "billing client setup finished")
+                                queryUtils = QueryUtils(billingClient)
+                                setupProcessors()
+                                queryBillingConfig()
+                                billingScope.launch (Dispatchers.IO) { queryProductDetails() }
+                                fetchPurchases(listOf(ProductType.SUBS, ProductType.INAPP))
+                            } else {
+                                loge(mname, "billing connection failed: ${billingResult.responseCode}, ${billingResult.debugMessage}")
+                            }
+
+                            callback.invoke(isOk, if (isOk) "Connected" else billingResult.debugMessage)
+                            connectionMutex.unlock()
+                        }
+
+                        override fun onBillingServiceDisconnected() {
+                            log(mname, "billing service disconnected")
+
+                            // notify state machine of disconnection
+                            billingScope.launch {
+                                try {
+                                    subscriptionStateMachine.systemCheck()
+                                } catch (e: Exception) {
+                                    loge(mname, "err during system check on disconnect: ${e.message}", e)
+                                }
+                            }
+
+                            callback.invoke(false, "Service disconnected")
+                            if (connectionMutex.isLocked) {
+                                connectionMutex.unlock()
+                            }
+                        }
+                    })
+                }
+            } catch (e: Exception) {
+                loge(mname, "err starting billing connection: ${e.message}", e)
+                withContext(Dispatchers.Main) {
+                    callback.invoke(false, "Connection error: ${e.message}")
+                }
+                if (connectionMutex.isLocked) {
+                    connectionMutex.unlock()
+                }
             }
-        })
+        }
     }
 
     private val purchasesUpdatedListener: PurchasesUpdatedListener =
         PurchasesUpdatedListener { billingResult, purchasesList ->
             val mname = this::purchasesUpdatedListener.name
-            logd(
-                mname,
-                "purchases listener: ${billingResult.responseCode}; ${billingResult.debugMessage}"
-            )
+            logd(mname, "Purchase update: code=${billingResult.responseCode}, msg=${billingResult.debugMessage}")
 
             val response = BillingResponse(billingResult.responseCode)
-            when {
-                response.isOk -> {
-                    Result.setResultState(ResultState.PURCHASING_SUCCESSFULLY)
-                    io {
-                        handlePurchase(purchasesList)
-                    }
-                    return@PurchasesUpdatedListener
-                }
 
-                response.isAlreadyOwned -> {
-                    Result.setResultState(ResultState.PURCHASING_ALREADY_OWNED)
-                    log(mname, "already owned, but not consumed yet")
-                    io {
-                        try {
-                            purchasesList?.forEach { purchase ->
-                                val purchaseDetail = createPurchaseDetailFromPurchase(purchase)
-                                subscriptionStateMachine.restoreSubscription(purchaseDetail)
+            billingScope.launch {
+                try {
+                    when {
+                        response.isOk -> {
+                            log(mname, "purchase successful, processing ${purchasesList?.size ?: 0} items")
+                            // notify state machine of purchases
+                            val newTokens: Set<String> = purchasesList
+                                ?.filter { purchase ->
+                                    try { subscriptionStateMachine.isNewPurchase(purchase.purchaseToken) }
+                                    catch (_: Exception) { false }
+                                }
+                                ?.map { it.purchaseToken }
+                                ?.toSet()
+                                ?: emptySet()
+
+                            // register device
+                            if (newTokens.isNotEmpty()) {
+                                billingScope.launch {
+                                    try {
+                                        var deviceId = resolveDeviceId(mname)
+                                        purchasesList
+                                            ?.filter { it.purchaseToken in newTokens }
+                                            ?.forEach { purchase ->
+                                                val accountId = purchase.accountIdentifiers?.obfuscatedAccountId
+                                                val storedAccId = getObfuscatedAccountId()
+                                                var isRegistered: Boolean = false
+
+                                                if (accountId.isNullOrBlank()) {
+                                                    loge(mname, "obfuscatedAccountId missing from purchase ${purchase.purchaseToken.take(8)}; skipping registerDevice")
+                                                    return@forEach
+                                                }
+                                                if (deviceId == null || accountId != storedAccId) {
+                                                    val didResult = billingBackendClient.createOrRegisterDid(accountId)
+                                                    if (didResult.errorCode == 401) {
+                                                        loge(mname, "createOrRegisterDid 401 for accountId-len=${accountId.length}; showing auth error")
+                                                        handleUnauthorized401(ServerApiError.Operation.CUSTOMER, accountId, "")
+                                                        return@forEach
+                                                    }
+                                                    if (didResult.errorCode == 409) {
+                                                        loge(mname, "createOrRegisterDid 409 conflict for accountId-len=${accountId.length}")
+                                                        handleConflict409(ServerApiError.Operation.CUSTOMER, accountId, "", "", "", null)
+                                                        return@forEach
+                                                    }
+                                                    deviceId = didResult.deviceId.takeIf { it.isNotBlank() }
+                                                    isRegistered = true
+                                                }
+                                                try {
+                                                    logd(mname, "registerDevice for new token=${purchase.purchaseToken.take(8)}, accountId-len=${accountId.length}, deviceId-len=${deviceId?.length}")
+                                                    if (deviceId == null) {
+                                                        loge(mname, "deviceId missing from purchase ${purchase.purchaseToken.take(8)}; skipping registerDevice")
+                                                    } else {
+                                                        if (!isRegistered) registerDevice(accountId, deviceId)
+                                                    }
+                                                } catch (e: Exception) {
+                                                    loge(mname, "registerDevice for failed (non-fatal): ${e.message}", e)
+                                                }
+                                            }
+                                    } catch (e: Exception) {
+                                        loge(mname, "registerDevice batch for failed (non-fatal): ${e.message}", e)
+                                    }
+                                }
                             }
-                        } catch (e: Exception) {
-                            loge(
-                                mname,
-                                "Error restoring subscription through state machine: ${e.message}",
-                                e
-                            )
+
+                            handlePurchase(purchasesList)
                         }
-                    }
-                }
 
-                response.isUserCancelled -> {
-                    log(mname, "user cancelled the purchase flow")
-                    // no-op, just return
-                }
-
-                response.isTerribleFailure -> {
-                    loge(
-                        mname,
-                        "terrible failure occurred, billing result: ${billingResult.responseCode}, ${billingResult.debugMessage}"
-                    )
-                    Result.setResultState(ResultState.PURCHASING_FAILURE)
-                    io {
-                        try {
-                            subscriptionStateMachine.purchaseFailed(billingResult.debugMessage, billingResult)
-                        } catch (e: Exception) {
-                            loge(
-                                mname,
-                                "Error handling terrible failure in state machine: ${e.message}",
-                                e
-                            )
+                        response.isAlreadyOwned -> {
+                            log(mname, "item already owned; restoring subscription")
+                            purchasesList?.forEach { purchase ->
+                                try {
+                                    val purchaseDetail = createPurchaseDetailFromPurchase(purchase) ?: return@forEach
+                                    subscriptionStateMachine.restoreSubscription(purchaseDetail)
+                                } catch (e: Exception) {
+                                    loge(mname, "err restoring purchase: ${e.message}", e)
+                                }
+                            }
                         }
-                    }
-                }
 
-                response.isRecoverableError -> {
-                    log(mname, "recoverable error occurred")
-                    Result.setResultState(ResultState.LAUNCHING_FLOW_INVOCATION_EXCEPTION_FOUND)
-                    io {
-                        try {
-                            subscriptionStateMachine.purchaseFailed(billingResult.debugMessage, billingResult)
-                        } catch (e: Exception) {
-                            loge(
-                                mname,
-                                "Error handling recoverable error in state machine: ${e.message}",
-                                e
+                        response.isUserCancelled -> {
+                            log(mname, "user cancelled purchase flow")
+                            // post to livedata so ui can dismiss bottom sheet
+                            transactionErrorLiveData.postValue(billingResult)
+                            try {
+                                subscriptionStateMachine.userCancelled()
+                            } catch (e: Exception) {
+                                loge(mname, "err notifying cancellation: ${e.message}", e)
+                            }
+                        }
+
+                        response.isTerribleFailure || response.isNonrecoverableError -> {
+                            loge(mname, "fatal billing error: ${billingResult.responseCode}, ${billingResult.debugMessage}")
+                            // post to LiveData so UI can dismiss bottom sheet and show error
+                            transactionErrorLiveData.postValue(billingResult)
+                            subscriptionStateMachine.purchaseFailed(
+                                "Fatal error: ${billingResult.debugMessage}",
+                                billingResult.responseCode
                             )
                         }
 
-                    }
-                }
+                        response.isRecoverableError -> {
+                            log(mname, "recoverable billing error: ${billingResult.debugMessage}")
+                            // post to LiveData so UI can dismiss bottom sheet and show error
+                            transactionErrorLiveData.postValue(billingResult)
+                            subscriptionStateMachine.purchaseFailed(
+                                "Recoverable error: ${billingResult.debugMessage}",
+                                billingResult.responseCode
+                            )
+                        }
 
-                response.isNonrecoverableError -> {
-                    loge(
-                        mname,
-                        "non-recoverable error occurred, billing result: ${billingResult.responseCode}, ${billingResult.debugMessage}"
-                    )
-                    Result.setResultState(ResultState.PURCHASING_FAILURE)
-                    io {
-                        try {
-                            subscriptionStateMachine.purchaseFailed(billingResult.debugMessage, billingResult)
-                        }catch (e: Exception) {
-                                loge(mname, "Error handling non-recoverable error in state machine: ${e.message}", e)
+                        else -> {
+                            loge(mname, "unknown billing error: ${billingResult.responseCode}")
+                            // post to LiveData so UI can dismiss bottom sheet and show error
+                            transactionErrorLiveData.postValue(billingResult)
+                            subscriptionStateMachine.purchaseFailed(
+                                "Unknown error: ${billingResult.debugMessage}",
+                                billingResult.responseCode
+                            )
                         }
                     }
-                }
-
-                else -> {
-                    log(mname, "unknown error occurred")
-                    io {
-                        try {
-                            subscriptionStateMachine.purchaseFailed(billingResult.debugMessage, billingResult)
-                        }catch (e: Exception) {
-                                loge(mname, "Error handling unknown error in state machine: ${e.message}", e)
-                        }
+                } catch (e: Exception) {
+                    loge(mname, "err in purchase listener: ${e.message}", e)
+                    try {
+                        subscriptionStateMachine.purchaseFailed("Critical error: ${e.message}", billingResult.responseCode)
+                    } catch (smError: Exception) {
+                        loge(mname, "failed to notify state machine: ${smError.message}", smError)
                     }
                 }
             }
         }
 
-    private suspend fun handlePurchase(purchasesList: List<Purchase>?) {
+    private suspend fun handlePurchase(
+        purchasesList: List<Purchase>?,
+        queriedProductType: String? = null
+    ) {
         val mname = "handlePurchase"
-        if (purchasesList == null || purchasesList.isEmpty()) {
-            loge(mname, "purchases list is null")
-            Result.setResultState(ResultState.PURCHASING_NO_PURCHASES_FOUND)
-            // TODO: no purchases found, handle this case. Either should be in cancelled state or expired
-            try {
-                if (subscriptionStateMachine.getCurrentState() is SubscriptionStateMachineV2.SubscriptionState.Active) {
-                    val billingExpiry = subscriptionStateMachine.getSubscriptionData()?.subscriptionStatus?.billingExpiry
-                    if (billingExpiry == null) {
-                        loge(mname, "no billing or account expiry found, should not be in active state")
-                        subscriptionStateMachine.subscriptionExpired()
-                        return
-                    }
-                    // if there is a valid billing period then user has cancelled the subscription
-                    // but in grace period. notify the state machine to handle user cancellation
-                    // if billing expiry are less than current time then the subscription is expired
-                    if (billingExpiry < System.currentTimeMillis()) {
-                        log(mname, "no purchases found, subscription is expired")
-                        try {
-                            subscriptionStateMachine.subscriptionExpired()
-                        } catch (e: Exception) {
-                            loge(mname, "err handling expiry in state machine: ${e.message}", e)
-                        }
-                    } else {
-                        // no need to take account expiry into account here
-                        log(mname, "no purchases found, user has cancelled the subscription.")
-                        // Notify state machine about user cancellation
-                        try {
-                            RpnProxyManager.handleUserCancellation() // this will notify the state machine
-                        } catch (e: Exception) {
-                            loge(mname, "err handling user cancellation in state machine: ${e.message}", e)
-                        }
-                    }
+        // play may deliver the same purchase twice in one callback
+        val normalized = purchasesList?.distinctBy { it.purchaseToken } ?: emptyList()
+        logd(mname, "processing ${normalized.size} play purchases (prdType=$queriedProductType)")
+
+        if (normalized.isEmpty()) {
+            // purchasesUpdatedListener never delivers an empty list, so queriedProductType is
+            // always non-null here (set by queryPurchases). Guard defensively anyway.
+            if (queriedProductType == null) return
+
+            // google play can return empty purchase lists on some devices (Play Services issue,
+            // network flake, etc.). single empty response must never expire an active purchase.
+            if (queriedProductType == ProductType.SUBS) {
+                consecutiveEmptyQueries++
+                if (consecutiveEmptyQueries < EMPTY_QUERY_THRESHOLD) {
+                    logd(mname, "SUBS, empty purchase, ignoring (consecutive=$consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD)")
+                    queryPurchases(queriedProductType, false)
+                    return
                 }
-            } catch (e: Exception) {
-                loge(mname, "err handling no purchases: ${e.message}", e)
+                logd(mname, "SUBS query returned empty, threshold reached ($consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD), reconcile...")
+
+                // reset so repeated polls don't re-fire the heavy reconcile path every iteration.
+                consecutiveEmptyQueries = 0
+                subscriptionStateMachine.reconcileWithPlayBilling(
+                    purchases          = emptyList<Purchase>(),
+                    queriedProductType = queriedProductType
+                )
+            } else {
+                consecutiveEmptyQueries++
+                if (consecutiveEmptyQueries < EMPTY_QUERY_THRESHOLD) {
+                    logd(mname, "INAPP, empty purchase, ignoring (consecutive=$consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD)")
+                    queryPurchases(queriedProductType, false)
+                    return
+                }
+                logd(mname, "INAPP query returned empty, threshold reached ($consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD), expire old purchases...")
+                // Reset so repeated polls don't re-fire the expiry path every iteration.
+                consecutiveEmptyQueries = 0
+
+                // Before expiring, confirm from the server that no active INAPP purchase
+                // still has a valid entitlement. this can happen when the user chose to
+                // purchase one time before 30 day of expiry, to purchase one-time the
+                // prev purchase should be consumed before the purchase.
+                val serverConfirmedValidTokens = mutableSetOf<String>()
+                try {
+                    val activeInAppRows = subscriptionStateMachine.getActiveInAppPurchase()
+                    logd(mname, "INAPP empty-threshold: checking ${activeInAppRows.size} active INAPP row(s) against server")
+                    if (activeInAppRows.isNotEmpty()) {
+                        // device id in the db is just a path to actual device id
+                        val deviceId  = getObfuscatedDeviceId()
+                        val now = System.currentTimeMillis()
+                        for (sub in activeInAppRows) {
+                            try {
+                                if (sub.purchaseToken.isBlank()) {
+                                    logd(mname, "INAPP row id=${sub.id} has blank token; fail-safe keep")
+                                    // Fail-safe: cannot query server without a token; don't expire.
+                                    continue
+                                }
+                                // Use the account ID stored on the row; fall back to the
+                                // current identity-store value if the row pre-dates that field.
+                                val effectiveAccountId = sub.accountId.ifEmpty { getObfuscatedAccountId() }
+                                val purchaseDetailForQuery = PurchaseDetail(
+                                    productId = sub.productId,
+                                    planId = sub.planId,
+                                    productTitle = sub.productTitle,
+                                    state = sub.state,
+                                    planTitle = "",
+                                    purchaseToken = sub.purchaseToken,
+                                    productType = ProductType.INAPP,
+                                    purchaseTime = sub.purchaseTime.toString(),
+                                    purchaseTimeMillis = sub.purchaseTime,
+                                    isAutoRenewing = false,
+                                    accountId = effectiveAccountId,
+                                    deviceId = deviceId,
+                                    payload = sub.developerPayload,
+                                    expiryTime = sub.billingExpiry,
+                                    status = sub.status,
+                                    windowDays = sub.windowDays,
+                                    orderId = sub.orderId
+                                )
+                                // Always query the server to get the freshest entitlement for this
+                                // purchase token.
+                                val updatedDetail = try {
+                                    queryEntitlementFromServer(effectiveAccountId, deviceId, purchaseDetailForQuery)
+                                } catch (serverEx: Exception) {
+                                    loge(mname, "server entitlement check failed for token=${sub.purchaseToken.take(8)}: ${serverEx.message}", serverEx)
+                                    // Fail-safe: server unreachable → preserve the token.
+                                    serverConfirmedValidTokens.add(sub.purchaseToken)
+                                    continue
+                                }
+                                // Validate the server-returned payload via VpnController to
+                                // get the authoritative expiry from the in-memory tunnel state.
+                                val payloadBytes = updatedDetail.payload.toByteArray()
+                                val entitlement = VpnController.getEntitlementDetails(payloadBytes, deviceId)
+                                val expiryIso = entitlement?.expiry() ?: ""
+                                val tunnelExpiry: Long = if (expiryIso.isNotEmpty()) {
+                                    try {
+                                        java.time.Instant.parse(expiryIso).toEpochMilli()
+                                    } catch (parseEx: Exception) {
+                                        logd(mname, "expiry parse failed for token=${sub.purchaseToken.take(8)} expiry=$expiryIso: ${parseEx.message}")
+                                        0L
+                                    }
+                                } else {
+                                    0L
+                                }
+                                if (entitlement != null && tunnelExpiry > now) {
+                                    logd(mname, "INAPP token=${sub.purchaseToken.take(8)} server-confirmed valid (expiry=$expiryIso); skipping expire")
+                                    serverConfirmedValidTokens.add(sub.purchaseToken)
+                                } else {
+                                    logd(mname, "INAPP token=${sub.purchaseToken.take(8)} not valid per server (tunnelExpiry=$tunnelExpiry, now=$now); will expire")
+                                }
+                            } catch (rowEx: Exception) {
+                                loge(mname, "unexpected error checking INAPP entitlement for id=${sub.id}: ${rowEx.message}", rowEx)
+                                // Fail-safe: unexpected error → preserve the token.
+                                serverConfirmedValidTokens.add(sub.purchaseToken)
+                            }
+                        }
+                    }
+                } catch (outerEx: Exception) {
+                    loge(mname, "error fetching active INAPP rows before expiry: ${outerEx.message}", outerEx)
+                    // Fail-safe: if we couldn't even read the DB rows, abort the expiry path
+                    // entirely by treating all tokens as valid.
+                    return
+                }
+                // Tokens in serverConfirmedValidTokens are still valid per the server and will
+                // NOT be expired by expireStaleInAppFromDb (the non-empty set prevents noPlayRecord
+                // from triggering for those tokens). Tokens absent from the set ARE expired.
+                logd(mname, "INAPP empty-threshold: serverConfirmedValidTokens=${serverConfirmedValidTokens.size}")
+                subscriptionStateMachine.expireStaleInAppFromDb(playTokens = serverConfirmedValidTokens)
+            }
+
+            val currentState = subscriptionStateMachine.getCurrentState()
+            if (currentState == SubscriptionStateMachineV2.SubscriptionState.PurchasePending) {
+                // Only mark as failed if the pending purchase type MATCHES the queried type.
+                // An empty SUBS result must NOT fail an INAPP (one-time) purchase that is
+                // waiting for acknowledgement and there is no subscription to find in Play,
+                // which is the expected state after a one-time purchase.
+                val pendingProductId = subscriptionStateMachine.getSubscriptionData()
+                    ?.subscriptionStatus?.productId ?: ""
+                val pendingIsInApp = pendingProductId == ONE_TIME_PRODUCT_ID || pendingProductId == ONE_TIME_PRODUCT_2YRS || pendingProductId == ONE_TIME_PRODUCT_5YRS
+                        || pendingProductId == ONE_TIME_TEST_PRODUCT_ID
+                val pendingMatchesQueriedType = when (queriedProductType) {
+                    ProductType.INAPP -> pendingIsInApp
+                    ProductType.SUBS  -> !pendingIsInApp && pendingProductId.isNotBlank()
+                    else              -> false
+                }
+                if (pendingMatchesQueriedType) {
+                    logd(mname, "purchase pending in db but play returned 0 $queriedProductType purchases, mark failed...")
+                    subscriptionStateMachine.purchaseFailed(
+                        "No purchase found in Play after repeated queries",
+                        null
+                    )
+                } else {
+                    logd(mname, "PurchasePending is for a different product type than $queriedProductType " +
+                        "(pendingProduct=$pendingProductId), skipping failure")
+                }
             }
             return
         }
 
-        // Validate current state machine state
+        logd(mname, "non-empty response, size (${purchasesList?.size}; resetting empty counter (was $consecutiveEmptyQueries)")
+        consecutiveEmptyQueries = 0
 
-        val canProcess: Boolean
-        val currentState = subscriptionStateMachine.getCurrentState()
-        logd(mname, "Current state machine state: ${currentState.name}")
-
-        // Allow processing in most states, but warn about unexpected ones
-        when (currentState) {
-            is SubscriptionStateMachineV2.SubscriptionState.Error -> {
-                loge(mname, "Processing purchase while in error state")
-                canProcess = false
-            }
-            else -> {
-                canProcess = true
-            }
-        }
-
-        // Filter out duplicates based on purchase token
-        val uniquePurchases = purchasesList.distinctBy { it.purchaseToken }
-        if (uniquePurchases.size != purchasesList.size) {
-            logd(mname, "Found ${purchasesList.size - uniquePurchases.size} duplicate purchases")
-        }
-
-        uniquePurchases.forEach { purchase ->
-            when (purchase.purchaseState) {
-                Purchase.PurchaseState.PURCHASED -> {
-                    logd(mname, "purchase state is purchased, processing...")
-                    Result.setResultState(ResultState.PURCHASING_SUCCESSFULLY)
-
-                    if (isPurchaseStateCompleted(purchase)) {
-                        logd(mname, "purchase is acknowledged, processing as valid purchase")
-                        // processValidPurchase(purchase) - This is now handled by the state machine
-
-                        // Notify state machine about successful payment
-                        try {
-                            val purchaseDetail = createPurchaseDetailFromPurchase(purchase)
-                            subscriptionStateMachine.paymentSuccessful(purchaseDetail)
-                        } catch (e: Exception) {
-                            loge(mname, "Error notifying state machine of successful payment: ${e.message}", e)
-                        }
-                    } else { // isPurchaseStatePurchased will be true in this case
-                        // treat as ack pending
-                        Result.setResultState(ResultState.PURCHASE_ACK_PENDING)
-                        createUnacknowledgedPurchase(purchase)
-                        try {
-                            // Correct event for new unacknowledged purchase
-                            subscriptionStateMachine.completePurchase(createPurchaseDetailFromPurchase(purchase))
-                        } catch (e: Exception) {
-                            loge(mname, "Error handling pending purchase in state machine: ${e.message}", e)
-                        }
-                    }
-                }
-
-                Purchase.PurchaseState.PENDING -> {
-                    logd(mname, "purchase state is pending, showing pending UI")
-                    Result.setResultState(ResultState.PURCHASE_PENDING)
-                }
-
-                Purchase.PurchaseState.UNSPECIFIED_STATE -> {
-                    logd(mname, "purchase state unspecified")
-                    if (canProcess) {
-                        try {
-                            subscriptionStateMachine.purchaseFailed(
-                                "Purchase state unspecified",
-                                null
-                            )
-                        } catch (e: Exception) {
-                            loge(mname, "Error handling unspecified state in state machine: ${e.message}", e)
-                        }
-                    }
-                }
-
-                else -> {
-                    logd(mname, "purchase state unknown: ${purchase.purchaseState}")
-                    if (canProcess) {
-                        try {
-                            subscriptionStateMachine.purchaseFailed(
-                                "Purchase state unknown: ${purchase.purchaseState}",
-                                null
-                            )
-                        } catch (e: Exception) {
-                            loge(mname, "Error handling unknown state in state machine: ${e.message}", e)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    private fun createPurchaseDetailFromPurchase(purchase: Purchase): PurchaseDetail {
-        return try {
-            // Find the product details for this purchase
-            val productDetails = storeProductDetails.find {
-                it.productDetail.productId == purchase.products.firstOrNull()
-            }
-
-            val productDetail = productDetails?.productDetail
-            val offerDetails = productDetails?.offerDetails
-
-            // Calculate expiry time more accurately
-            val expiryTime = calculateExpiryTime(purchase, offerDetails)
-
-            // Validate account ID
-            val accountId = purchase.accountIdentifiers?.obfuscatedAccountId ?: ""
-            if (accountId.isEmpty()) {
-                loge(
-                    "createPurchaseDetailFromPurchase",
-                    "Account ID is empty for purchase: ${purchase.purchaseToken}"
+        // print all the values in purchase
+        if (DEBUG) {
+            purchasesList?.forEach {
+                logd(
+                    mname,
+                    "purchase: productIds: ${it.products}}, purchaseTime: ${it.purchaseTime}, purchaseState: ${it.purchaseState}"
                 )
             }
+        }
 
-            PurchaseDetail(
-                productId = purchase.products.firstOrNull() ?: "",
-                planId = offerDetails?.basePlanId ?: "",
-                productTitle = productDetail?.productTitle ?: "",
-                planTitle = offerDetails?.let { queryUtils.getPlanTitle(it) } ?: "",
-                state = purchase.purchaseState,
-                purchaseToken = purchase.purchaseToken,
-                productType = ProductType.SUBS,
-                purchaseTime = purchase.purchaseTime.toFormattedDate(),
-                purchaseTimeMillis = purchase.purchaseTime,
-                isAutoRenewing = purchase.isAutoRenewing,
-                accountId = accountId,
-                payload = purchase.developerPayload,
-                expiryTime = expiryTime,
-                status = when (purchase.purchaseState) {
-                    Purchase.PurchaseState.PURCHASED -> SubscriptionStatus.SubscriptionState.STATE_ACTIVE.id
-                    Purchase.PurchaseState.PENDING -> SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING.id
-                    else -> SubscriptionStatus.SubscriptionState.STATE_UNKNOWN.id
+        // get product meta for each productId in the purchase (planId, title)
+        val productMetaByPlanId: Map<String, Pair<String, String>> = buildMap {
+            val grouped = storeProductDetails.groupBy { it.productDetail.productId }
+            grouped.forEach { (productId, entries) ->
+                // per-plan entries keyed by planId
+                entries.forEach { qpd ->
+                    val planId = qpd.productDetail.planId.ifBlank { qpd.offerDetails?.basePlanId ?: "" }
+                    val title = qpd.productDetail.productTitle.ifBlank { qpd.productDetails.title }
+                    if (planId.isNotEmpty()) put(planId, Pair(planId, title))
                 }
-            )
-        } catch (e: Exception) {
-            loge(
-                "createPurchaseDetailFromPurchase",
-                "Error creating purchase detail: ${e.message}",
-                e
-            )
-            // Return a minimal valid PurchaseDetail
-            PurchaseDetail(
-                productId = purchase.products.firstOrNull() ?: "",
-                planId = "",
-                productTitle = "",
-                planTitle = "",
-                state = purchase.purchaseState,
-                purchaseToken = purchase.purchaseToken,
-                productType = BillingClient.ProductType.SUBS,
-                purchaseTime = purchase.purchaseTime.toFormattedDate(),
-                purchaseTimeMillis = purchase.purchaseTime,
-                isAutoRenewing = purchase.isAutoRenewing,
-                accountId = purchase.accountIdentifiers?.obfuscatedAccountId ?: "",
-                payload = purchase.developerPayload,
-                expiryTime = 0L,
-                status = SubscriptionStatus.SubscriptionState.STATE_UNKNOWN.id
-            )
+
+                val basePlan = entries.firstOrNull { it.offerDetails?.offerId == null }
+                    ?: entries.firstOrNull()
+                if (basePlan != null) {
+                    val planId = basePlan.productDetail.planId.ifBlank { basePlan.offerDetails?.basePlanId ?: "" }
+                    val title  = basePlan.productDetail.productTitle.ifBlank { basePlan.productDetails.title }
+                    // write productId fallback if not already available
+                    putIfAbsent(productId, Pair(planId, title))
+                    put(productId, Pair(planId, title))
+                }
+            }
+        }
+        logd(mname, "productMetaByPlanId built: ${productMetaByPlanId.size} entries")
+        if (DEBUG) {
+            productMetaByPlanId.entries.forEach { (k, v) ->
+                logd(mname, "meta[$k] → planId=${v.first}, title=${v.second}")
+            }
+        }
+
+        val purchaseExpiryMap: Map<String, Long> = normalized.associate { purchase ->
+            val offerDetails = resolveOfferDetailsForPurchase(purchase)
+            val expiry = calculateExpiryTime(purchase, offerDetails)
+            logd(mname, "expiry for ${purchase.purchaseToken.take(8)}: " +
+                    "productId=${purchase.products.firstOrNull()}, " +
+                    "expiry=$expiry")
+            purchase.purchaseToken to expiry
+        }
+
+        val (subsPurchases, oneTimePurchases) = normalized.partition {
+            getProductType(it, queriedProductType) == ProductType.SUBS
+        }
+        logd(mname, "Reconciling ${subsPurchases.size} subscription purchases")
+        logd(mname, "Handling ${oneTimePurchases.size} one-time purchases")
+
+        if (subsPurchases.isNotEmpty()) {
+            consecutiveEmptyQueries = 0
+
+            // Partition SUBS by acknowledgement state.
+            // Acknowledged tokens always go straight to reconcile so no counter needed.
+            // Unacknowledged tokens are tracked; once the seen-count reaches
+            // UNACK_ESCALATION_THRESHOLD they are escalated to server-side ack via
+            // subsProcessor instead of being handled by the state machine's reconcile path.
+            val (unackedSubs, ackedSubs) = subsPurchases.partition { !it.isAcknowledged }
+
+            // Build the list for reconcileWithPlayBilling: acknowledged purchases + unacked
+            // ones that are still below the escalation threshold.
+            val subsForReconcile = ackedSubs.toMutableList()
+            val subsToEscalate   = mutableListOf<Purchase>()
+
+            for (purchase in unackedSubs) {
+                val count = unackedSeenCount.merge(purchase.purchaseToken, 1, Int::plus) ?: 1
+                val escalate = count >= UNACK_ESCALATION_THRESHOLD
+                logd(mname, "SUBS token=${purchase.purchaseToken.take(8)} unacked: " +
+                        "seenCount=$count/$UNACK_ESCALATION_THRESHOLD, escalate=$escalate")
+                if (escalate) {
+                    unackedSeenCount.remove(purchase.purchaseToken)
+                    subsToEscalate.add(purchase)
+                } else {
+                    // Still waiting, include in reconcile so state machine stays PurchasePending.
+                    subsForReconcile.add(purchase)
+                }
+            }
+
+            // Reconcile the non-escalated purchases normally.
+            // Use queriedProductType when available; fall back to SUBS because purchases
+            // in subsPurchases were already confirmed as SUBS by the partition logic.
+            if (subsForReconcile.isNotEmpty()) {
+                try {
+                    subscriptionStateMachine.reconcileWithPlayBilling(
+                        subsForReconcile,
+                        productMetaByPlanId,
+                        purchaseExpiryMap,
+                        queriedProductType ?: ProductType.SUBS
+                    )
+                } catch (e: Exception) {
+                    loge(mname, "err reconciling subscription purchases: ${e.message}", e)
+                }
+            }
+
+            // Escalate threshold-crossed unacked tokens to server ack.
+            if (subsToEscalate.isNotEmpty()) {
+                val processor = subsProcessor
+                if (processor == null) {
+                    loge(mname, "subsProcessor not ready; cannot escalate ${subsToEscalate.size} SUBS token(s)")
+                } else {
+                    subsToEscalate.forEach { purchase ->
+                        logd(mname, "SUBS token=${purchase.purchaseToken.take(8)} escalating to server ack")
+                        try {
+                            processor.process(purchase, shouldEscalateToServer = true)
+                        } catch (e: Exception) {
+                            loge(mname, "err escalating SUBS token=${purchase.purchaseToken.take(8)}: ${e.message}", e)
+                        }
+                    }
+                }
+            }
+        } else if (queriedProductType == ProductType.SUBS) {
+            consecutiveEmptyQueries++
+            if (consecutiveEmptyQueries >= EMPTY_QUERY_THRESHOLD) {
+                logd(mname, "No SUBS in purchase list despite SUBS query;" +
+                    "threshold reached ($consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD), " +
+                    "expiring stale SUBS DB rows")
+                try {
+                    subscriptionStateMachine.reconcileWithPlayBilling(
+                        purchases          = emptyList<Purchase>(),
+                        queriedProductType = ProductType.SUBS
+                    )
+                } catch (e: Exception) {
+                    loge(mname, "Error expiring stale SUBS rows: ${e.message}", e)
+                }
+            } else {
+                logd(mname, "No SUBS in purchase list despite SUBS query;" +
+                    "ignoring (consecutive=$consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD)")
+            }
+        }
+
+        if (oneTimePurchases.isNotEmpty()) {
+            oneTimePurchases.forEach { purchase ->
+                try {
+                    processSinglePurchase(purchase)
+                } catch (e: Exception) {
+                    loge(mname, "err processing one-time purchase ${purchase.purchaseToken.take(8)}: ${e.message}", e)
+                }
+            }
+            // Expire any DB rows that are past their access window or absent from Play.
+            val oneTimePlayTokens = oneTimePurchases.map { it.purchaseToken }.toSet()
+            try {
+                subscriptionStateMachine.expireStaleInAppFromDb(oneTimePlayTokens)
+            } catch (e: Exception) {
+                loge(mname, "err expiring stale one-time DB rows: ${e.message}", e)
+            }
         }
     }
 
-    private fun createUnacknowledgedPurchase(purchase: Purchase) {
-        val unacknowledgedPurchase = PurchaseDetail(
+    /**
+     * Creates [SubscriptionPurchaseProcessor] and [OneTimePurchaseProcessor].
+     * Must be called after [queryUtils] is initialized (i.e. after billing connects).
+     */
+    private fun setupProcessors() {
+        if (subsProcessor != null && oneTimeProcessor != null) return
+        val activateRpnFn: suspend (PurchaseDetail) -> Unit = { pd ->
+            RpnProxyManager.activateRpn(pd)
+        }
+
+        val getProductTypeFn: (Purchase) -> String = { p -> getProductType(p) }
+
+        val getDeviceIdFn: suspend () -> String = { billingBackendClient.getDeviceId() }
+
+        val onInAppAckSuccessFn: suspend (Purchase) -> Unit = { purchase ->
+            // accountId for an existing purchase always comes from the play purchase.
+            // PipKeyManager.getAccountToken() is only used when generating the id BEFORE a new
+            // purchase flow (in launchFlow)
+            val accountId = purchase.accountIdentifiers?.obfuscatedAccountId
+            if (accountId.isNullOrBlank()) {
+                loge("onInAppAckSuccess", "obfuscatedAccountId missing from INAPP purchase ${purchase.purchaseToken.take(8)}; skipping registerDevice")
+            } else {
+                // resolveDeviceId() returns null on failure
+                val deviceId = resolveDeviceId("onInAppAckSuccess")
+                if (deviceId == null) {
+                    // error already logged inside resolveDeviceId
+                } else {
+                    try {
+                        logd("onInAppAckSuccess", "ack succeeded; registerDevice token=${purchase.purchaseToken.take(8)}, accountId-len=${accountId.length}, deviceId-len=${deviceId.length}")
+                        registerDevice(accountId, deviceId)
+                    } catch (e: Exception) {
+                        loge("onInAppAckSuccess", "registerDevice failed (non-fatal): ${e.message}", e)
+                    }
+                }
+            }
+        }
+
+        subsProcessor = SubscriptionPurchaseProcessor(
+            storeProductDetails = storeProductDetails,
+            subscriptionStateMachine = subscriptionStateMachine,
+            queryUtils = { queryUtils },
+            acknowledgePurchase = ::acknowledgePurchaseFromServer,
+            activateRpn = activateRpnFn,
+            getProductType = getProductTypeFn,
+            getDeviceId = getDeviceIdFn,
+            reconcileCidDid = ::reconcileCidDidFromPurchase,
+            validatePayloadAndFetchIfRequired = ::validatePayloadAndFetchIfRequired
+        )
+        oneTimeProcessor = OneTimePurchaseProcessor(
+            storeProductDetails = storeProductDetails,
+            subscriptionStateMachine = subscriptionStateMachine,
+            acknowledgePurchase = ::acknowledgePurchaseFromServer,
+            activateRpn = activateRpnFn,
+            getProductType = getProductTypeFn,
+            getDeviceId = getDeviceIdFn,
+            onAckSuccess = onInAppAckSuccessFn,
+            reconcileCidDid = ::reconcileCidDidFromPurchase,
+            validatePayloadAndFetchIfRequired = ::validatePayloadAndFetchIfRequired
+        )
+        logd("setupProcessors", "SubscriptionPurchaseProcessor and InAppPurchaseProcessor created")
+    }
+
+    private suspend fun validatePayloadAndFetchIfRequired(purchaseDtl: PurchaseDetail): PurchaseDetail {
+        val mname = this::validatePayloadAndFetchIfRequired.name
+        val payloadByteArray = purchaseDtl.payload.toByteArray()
+        val entitlement = VpnController.getEntitlementDetails(payloadByteArray, getObfuscatedDeviceId())
+
+        val expiryIso = entitlement?.expiry() ?: ""
+        val now = System.currentTimeMillis()
+        val tunnelExpiry: Long = if (expiryIso.isNotEmpty()) {
+            try {
+                java.time.Instant.parse(expiryIso).toEpochMilli()
+            } catch (parseEx: Exception) {
+                log(mname, "expiry parse failed for $expiryIso: ${parseEx.message}")
+                0L
+            }
+        } else {
+            0L
+        }
+        if (entitlement != null && tunnelExpiry > now) {
+            return purchaseDtl
+        }
+
+        return queryEntitlementFromServer(getObfuscatedAccountId(), getObfuscatedDeviceId(), purchaseDtl)
+    }
+
+    suspend fun reconcileCidDidFromPurchase(cid: String) {
+        val mname = this::reconcileCidDidFromPurchase.name
+        if (cid.isEmpty()) {
+            logd(mname, "cid empty, skipping reconcile")
+            return
+        }
+        val (storedCid, storedDid) = secureIdentityStore.get()
+        if (storedCid == cid && storedDid?.isNotEmpty() == true) {
+            logv(mname, "no need to reconcile cid, did from purchase")
+            return
+        }
+
+        // this takes care of retrieving device id from the server and storing in the
+        // encrypted file
+        billingBackendClient.getDeviceId(cid)
+    }
+
+
+    private fun resolveOfferDetailsForPurchase(
+        purchase: Purchase
+    ): ProductDetails.SubscriptionOfferDetails? {
+        if (getProductType(purchase) == ProductType.INAPP) return null
+
+        return subsProcessor?.resolveOfferDetails(purchase)
+            ?: resolveOfferDetailsInline(purchase)
+    }
+
+    private fun resolveOfferDetailsInline(purchase: Purchase): ProductDetails.SubscriptionOfferDetails? {
+        val productId = purchase.products.firstOrNull() ?: return null
+        val candidates = storeProductDetails.filter {
+            it.productDetail.productId == productId && it.offerDetails != null
+        }
+        if (candidates.isEmpty()) return null
+        return candidates.firstOrNull { it.offerDetails?.offerId == null }?.offerDetails
+            ?: candidates.first().offerDetails
+    }
+
+    /**
+     * Processes a single ONETIME [purchase] by delegating to [OneTimePurchaseProcessor].
+     * Called from [handlePurchase] for each one-time purchase in the list.
+     *
+     * Tracks how many times each unacknowledged token has been seen. Once the count
+     * reaches [UNACK_ESCALATION_THRESHOLD] the processor is told to escalate to
+     * server-side acknowledgement. The counter is cleared on acknowledgement or escalation.
+     */
+    private suspend fun processSinglePurchase(purchase: Purchase) {
+        val mname = "processSinglePurchase"
+        val processor = oneTimeProcessor ?: run {
+            loge(mname, "inAppProcessor not ready; setupProcessors() not called yet")
+            return
+        }
+
+        if (purchase.isAcknowledged) {
+            // Acknowledged; clear any stale counter and process normally.
+            unackedSeenCount.remove(purchase.purchaseToken)
+            processor.process(purchase, shouldEscalateToServer = false)
+            return
+        }
+
+        // Not yet acknowledged: increment seen-count and decide whether to escalate.
+        val count = unackedSeenCount.merge(purchase.purchaseToken, 1, Int::plus) ?: 1
+        val escalate = count >= UNACK_ESCALATION_THRESHOLD
+        logd(mname, "INAPP token=${purchase.purchaseToken.take(8)} unacked: " +
+                "seenCount=$count/$UNACK_ESCALATION_THRESHOLD, escalate=$escalate")
+
+        if (escalate) {
+            // Remove the counter now, whether ack succeeds or fails the next cycle
+            // starts fresh (avoids accumulating unbounded counts).
+            unackedSeenCount.remove(purchase.purchaseToken)
+        }
+
+        processor.process(purchase, shouldEscalateToServer = escalate)
+    }
+
+
+    /**
+     * Builds a [PurchaseDetail] by delegating to the appropriate processor based on
+     * product type.
+     *
+     * - SUBS → [SubscriptionPurchaseProcessor.buildPurchaseDetail]: never returns null
+     * - INAPP → [OneTimePurchaseProcessor.buildPurchaseDetail]: returns null
+     *
+     */
+    private suspend fun createPurchaseDetailFromPurchase(purchase: Purchase): PurchaseDetail? {
+        return try {
+            when (getProductType(purchase)) {
+                ProductType.SUBS  -> subsProcessor?.buildPurchaseDetail(purchase)
+                    ?: buildSubsPurchaseDetailInline(purchase)
+                ProductType.INAPP -> oneTimeProcessor?.buildPurchaseDetail(purchase)
+                    ?: buildInAppPurchaseDetailInline(purchase)
+                else -> {
+                    loge("createPurchaseDetailFromPurchase", "unknown product type for ${purchase.products}")
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            loge("createPurchaseDetailFromPurchase", "error building PurchaseDetail: ${e.message}", e)
+            buildFallbackPurchaseDetail(purchase)
+        }
+    }
+
+    private suspend fun buildSubsPurchaseDetailInline(purchase: Purchase): PurchaseDetail {
+        val offerDetails = resolveOfferDetailsInline(purchase)
+        val storeEntry = storeProductDetails.find { it.productDetail.productId == purchase.products.firstOrNull() }
+        val expiryTime = calculateExpiryTimeInline(purchase, offerDetails)
+
+        val accountId = purchase.accountIdentifiers?.obfuscatedAccountId.orEmpty()
+        if (accountId.isBlank()) {
+            loge("buildSubsPurchaseDetailInline", "obfuscatedAccountId blank for SUBS token=${purchase.purchaseToken.take(8)}; was launchFlow called?")
+        }
+        return PurchaseDetail(
             productId = purchase.products.firstOrNull().orEmpty(),
-            planId = "",
-            productTitle = "Pending Purchase",
-            state = Purchase.PurchaseState.PENDING,
-            status = SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING.id,
-            planTitle = "Pending",
+            planId = offerDetails?.basePlanId ?: storeEntry?.productDetail?.planId.orEmpty(),
+            productTitle = storeEntry?.productDetail?.productTitle.orEmpty(),
+            planTitle = offerDetails?.let { queryUtils.getPlanTitle(it) }.orEmpty(),
+            state = purchase.purchaseState,
             purchaseToken = purchase.purchaseToken,
             productType = ProductType.SUBS,
             purchaseTime = purchase.purchaseTime.toFormattedDate(),
             purchaseTimeMillis = purchase.purchaseTime,
+            isAutoRenewing = purchase.isAutoRenewing,
+            accountId = accountId,
+            // Never store the real device ID in PurchaseDetail; use sentinel only.
+            // The actual ID is always fetched from SecureIdentityStore via getObfuscatedDeviceId().
+            deviceId = if (getObfuscatedDeviceId().isNotBlank()) SubscriptionStatus.DEVICE_ID_INDICATOR else "",
+            payload = purchase.developerPayload,
+            expiryTime = expiryTime,
+            status = purchase.purchaseState.toSubscriptionStatusId(),
+            windowDays = REVOKE_WINDOW_SUBS_MONTHLY_DAYS,
+            orderId = purchase.orderId.orEmpty()
+        )
+    }
+
+    private suspend fun buildInAppPurchaseDetailInline(purchase: Purchase): PurchaseDetail? {
+        val productId  = purchase.products.firstOrNull().orEmpty()
+        val expiryTime = calculateOneTimeExpiryTime(purchase)
+        if (expiryTime < System.currentTimeMillis()) return null
+        val storeEntry = storeProductDetails.find { it.productDetail.productId == productId }
+        val accountId = purchase.accountIdentifiers?.obfuscatedAccountId.orEmpty()
+        if (accountId.isBlank()) {
+            loge("buildInAppPurchaseDetailInline", "obfuscatedAccountId blank for INAPP token=${purchase.purchaseToken.take(8)}, was launchFlow called?")
+        }
+        return PurchaseDetail(
+            productId = productId,
+            planId = storeEntry?.oneTimeOfferDetails?.purchaseOptionId ?: productId,
+            productTitle = storeEntry?.productDetail?.productTitle ?: QueryUtils.getPlanTitle(getOneTimeBillingPeriod(productId)),
+            planTitle = storeEntry?.productDetail?.productTitle.orEmpty(),
+            state = purchase.purchaseState,
+            purchaseToken = purchase.purchaseToken,
+            productType = ProductType.INAPP,
+            purchaseTime = purchase.purchaseTime.toFormattedDate(),
+            purchaseTimeMillis = purchase.purchaseTime,
             isAutoRenewing = false,
+            accountId = accountId,
+            // Never store the real device ID in PurchaseDetail; use sentinel only.
+            // The actual ID is always fetched from SecureIdentityStore via getObfuscatedDeviceId().
+            deviceId = if (getObfuscatedDeviceId().isNotBlank()) SubscriptionStatus.DEVICE_ID_INDICATOR else "",
+            payload = purchase.developerPayload,
+            expiryTime = expiryTime,
+            status = purchase.purchaseState.toSubscriptionStatusId(),
+            windowDays = resolveOneTimeRevokeDays(productId),
+            orderId = purchase.orderId.orEmpty()
+        )
+    }
+
+    private suspend fun buildFallbackPurchaseDetail(purchase: Purchase): PurchaseDetail {
+        return PurchaseDetail(
+            productId = purchase.products.firstOrNull() ?: "",
+            planId = "",
+            productTitle= "",
+            planTitle = "",
+            state = purchase.purchaseState,
+            purchaseToken = purchase.purchaseToken,
+            productType = getProductType(purchase),
+            purchaseTime = purchase.purchaseTime.toFormattedDate(),
+            purchaseTimeMillis = purchase.purchaseTime,
+            isAutoRenewing = purchase.isAutoRenewing,
             accountId = purchase.accountIdentifiers?.obfuscatedAccountId ?: "",
+            // Never store the real device ID in PurchaseDetail; use sentinel only.
+            // The actual ID is always fetched from SecureIdentityStore via getObfuscatedDeviceId().
+            deviceId = if (getObfuscatedDeviceId().isNotBlank()) SubscriptionStatus.DEVICE_ID_INDICATOR else "",
             payload = purchase.developerPayload,
             expiryTime = 0L,
+            status = SubscriptionStatus.SubscriptionState.STATE_UNKNOWN.id,
+            windowDays = REVOKE_WINDOW_SUBS_MONTHLY_DAYS,
+            orderId = purchase.orderId ?: ""
         )
-
-        // Update the purchase details list atomically
-        synchronized(purchaseDetails) {
-            // Remove any existing pending purchase with the same token
-            purchaseDetails.removeAll { it.purchaseToken == purchase.purchaseToken }
-            purchaseDetails.add(unacknowledgedPurchase)
-        }
-
-        purchasesLiveData.postValue(listOf(unacknowledgedPurchase))
     }
 
+    private fun calculateExpiryTime(
+        purchase: Purchase,
+        offerDetails: ProductDetails.SubscriptionOfferDetails?
+    ): Long {
+        return when (getProductType(purchase)) {
+            ProductType.INAPP -> calculateOneTimeExpiryTime(purchase)
+            // note: no where the expiry for subs should be calculated
+            else -> calculateExpiryTimeInline(purchase, offerDetails)
+        }
+    }
 
-    private fun calculateExpiryTime(purchase: Purchase, offerDetails: ProductDetails.SubscriptionOfferDetails?): Long {
-        return if (offerDetails != null) {
-            val billingPeriod = offerDetails.pricingPhases.pricingPhaseList.lastOrNull()?.billingPeriod ?: "P1M"
-            val billingDays = QueryUtils.getBillingPeriodDays(billingPeriod)
-            purchase.purchaseTime + (billingDays * 24 * 60 * 60 * 1000L)
+    private fun calculateExpiryTimeInline(
+        purchase: Purchase,
+        offerDetails: ProductDetails.SubscriptionOfferDetails?
+    ): Long {
+        if (offerDetails == null) return Long.MAX_VALUE
+
+        val pricingPhases = offerDetails.pricingPhases.pricingPhaseList
+        val recurringPhase = pricingPhases
+            .lastOrNull { it.recurrenceMode == ProductDetails.RecurrenceMode.INFINITE_RECURRING }
+            ?: pricingPhases.lastOrNull()
+
+        val billingPeriod = recurringPhase?.billingPeriod
+        if (billingPeriod.isNullOrEmpty()) return Long.MAX_VALUE
+
+        val cal = Calendar.getInstance().apply { timeInMillis = purchase.purchaseTime }
+        val added = addIso8601Period(cal, billingPeriod)
+        return if (added) {
+            cal.timeInMillis
         } else {
-            // Fallback for cases where offer details are not available
-            purchase.purchaseTime + (30L * 24 * 60 * 60 * 1000L) // 30 days
+            val days = QueryUtils.getBillingPeriodDays(billingPeriod)
+            if (days > 0) { cal.add(Calendar.DAY_OF_YEAR, days); cal.timeInMillis }
+            else Long.MAX_VALUE
         }
     }
 
-    private fun isTestPurchase(purchase: Purchase?): Boolean {
-        val mname = this::isTestPurchase.name
-        if (purchase == null) return false
-
-        val orderId = purchase.orderId
-        if (orderId.isNullOrEmpty()) {
-            logd(mname, "purchase orderId is null or empty")
-            return false
+    private fun calculateOneTimeExpiryTime(purchase: Purchase): Long {
+        val productId = purchase.products.firstOrNull() ?: ""
+        val cal = Calendar.getInstance().apply { timeInMillis = purchase.purchaseTime }
+        return when (productId) {
+            ONE_TIME_PRODUCT_2YRS -> {
+                cal.add(Calendar.YEAR, 2)
+                cal.timeInMillis
+            }
+            ONE_TIME_PRODUCT_5YRS -> {
+                cal.add(Calendar.YEAR, 5)
+                cal.timeInMillis
+            }
+            ONE_TIME_TEST_PRODUCT_ID -> {
+                cal.add(Calendar.DAY_OF_YEAR, 1)
+                cal.timeInMillis
+            }
+            ONE_TIME_PRODUCT_ID -> {
+                cal.add(Calendar.YEAR, 2)
+                cal.timeInMillis
+            }
+            else -> {
+                cal.add(Calendar.YEAR, 2)
+                cal.timeInMillis
+            }
         }
-        // check if the purchase is a test purchase by looking for the test product ID
-        // sample: test purchase orderId = "GPA.1234-5678-9012-TEST"
-        //         real purchase orderId = "GPA.1234-5678-9012-34567"
-        val isTest = orderId.contains("TEST")
-        logv(mname, "isTestPurchase: $isTest for orderId: ${purchase.orderId}")
-        return isTest
+    }
+
+    private fun addIso8601Period(cal: Calendar, period: String): Boolean {
+        val regex = Regex("""^P(?:(\d+)Y)?(?:(\d+)M)?(?:(\d+)W)?(?:(\d+)D)?$""")
+        val match = regex.matchEntire(period) ?: return false
+        val years = match.groupValues[1].toIntOrNull() ?: 0
+        val months = match.groupValues[2].toIntOrNull() ?: 0
+        val weeks = match.groupValues[3].toIntOrNull() ?: 0
+        val days = match.groupValues[4].toIntOrNull() ?: 0
+        if (years == 0 && months == 0 && weeks == 0 && days == 0) return false
+        if (years > 0) cal.add(Calendar.YEAR, years)
+        if (months > 0) cal.add(Calendar.MONTH, months)
+        if (weeks > 0) cal.add(Calendar.WEEK_OF_YEAR, weeks)
+        if (days > 0) cal.add(Calendar.DAY_OF_YEAR, days)
+        return true
+    }
+
+    private fun getOneTimeBillingPeriod(productId: String): String = when (productId) {
+        ONE_TIME_PRODUCT_2YRS -> "P2Y"
+        ONE_TIME_PRODUCT_5YRS -> "P5Y"
+        ONE_TIME_TEST_PRODUCT_ID -> "P1D"
+        ONE_TIME_PRODUCT_ID -> "P2Y"
+        else -> "P2Y"
+    }
+
+    private fun resolveOneTimeRevokeDays(productId: String): Int = when (productId) {
+        ONE_TIME_PRODUCT_2YRS -> REVOKE_WINDOW_ONE_TIME_2YRS_DAYS
+        ONE_TIME_PRODUCT_5YRS -> REVOKE_WINDOW_ONE_TIME_5YRS_DAYS
+        ONE_TIME_PRODUCT_ID -> REVOKE_WINDOW_SUBS_MONTHLY_DAYS
+        ONE_TIME_TEST_PRODUCT_ID -> REVOKE_WINDOW_SUBS_MONTHLY_DAYS
+        else -> REVOKE_WINDOW_SUBS_MONTHLY_DAYS
+    }
+
+    private fun Int.toSubscriptionStatusId(): Int = when (this) {
+        Purchase.PurchaseState.PURCHASED -> SubscriptionStatus.SubscriptionState.STATE_ACTIVE.id
+        Purchase.PurchaseState.PENDING -> SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING.id
+        else -> SubscriptionStatus.SubscriptionState.STATE_UNKNOWN.id
     }
 
     private fun isPurchaseStateCompleted(purchase: Purchase?): Boolean {
+        val mname = this::isPurchaseStateCompleted.name
         if (purchase?.purchaseState == null) {
+            loge(mname, "purchase or purchase state is null, $purchase")
             return false
         }
 
         val isPurchased = purchase.purchaseState == Purchase.PurchaseState.PURCHASED
         val isAcknowledged = purchase.isAcknowledged
 
-        // For subscriptions, check auto-renewal; for one-time purchases, don't require auto-renewal
-        return if (purchase.products.any { productDetails.find { pd -> pd.productId == it }?.productType == ProductType.SUBS }) {
-            isPurchased && purchase.isAutoRenewing && isAcknowledged
-        } else {
+        // treat empty product as subscription
+        purchase.products.forEach {
+            logv(mname, "Product in purchase: $it")
+        }
+        val isSubs = getProductType(purchase) == ProductType.SUBS
+        val isOneTime = getProductType(purchase) == ProductType.INAPP
+        log(mname, "isPurchaseStateCompleted: isSubs?$isSubs, isOneTime?$isOneTime, isPurchased?$isPurchased, isAcknowledged?$isAcknowledged, isAutoRenewing?${purchase.isAutoRenewing}")
+        // why isAutoRenewing is not checked for subscription?
+        // isAutoRenewing=false simply means the user canceled but the purchase is still valid.
+        return if (isSubs) {
             isPurchased && isAcknowledged
+        } else if (isOneTime) {
+            isPurchased && isAcknowledged
+        } else {
+            false
+        }
+    }
+
+    /**
+     * Determines the Google Play product type ([ProductType.SUBS] or [ProductType.INAPP])
+     * for a [purchase]
+     *
+     * If [queryProductDetails] has run, each [QueryProductDetail] carries the raw
+     * [ProductDetails] object returned by Play, whose `productType` field is set by
+     * Google and is the single source of truth.  Cross-reference by `productId`.
+     *
+     * - offerDetails != null - SUBS (SubscriptionOfferDetails only exist for subs)
+     * - oneTimeOfferDetails != null - ONETIME (OneTimePurchaseOfferDetails only exist for onetime)
+     *
+     * Used when the product-details cache has not yet been populated (e.g. first launch
+     * before [queryProductDetails] completes, or billing connection latency).
+     * Only exact-match lookups; no substring heuristics that could misfire on future IDs.
+     *
+     * Returns [ProductType.SUBS] for any truly unknown product.
+     * Logging at ERROR level so unknown products are caught during QA.
+     *
+     * @param queriedProductType When the purchase was returned by queryPurchasesAsync,
+     * @param purchase The purchase for which to resolve the product type.
+     */
+    fun getProductType(
+        purchase: Purchase,
+        queriedProductType: String? = null
+    ): String {
+        val mname = "getProductType"
+        val productId = purchase.products.firstOrNull()
+
+        if (productId == null) {
+            loge(mname, "purchase has no productIds, defaulting to SUBS")
+            return ProductType.SUBS
+        }
+
+        // queryPurchasesAsync is called with an explicit product type; every purchase
+        // in the callback belongs to that type.  Trust it unconditionally.
+        if (queriedProductType != null) {
+            logv(mname, "productId=$productId resolved via queriedProductType=$queriedProductType")
+            return queriedProductType
+        }
+
+        // ProductDetails.productType is set by Google Play and is the ground truth.
+        val cachedEntry = storeProductDetails.find { it.productDetail.productId == productId }
+        if (cachedEntry != null) {
+            val cachedType = cachedEntry.productDetails.productType
+            logv(mname, "productId=$productId resolved via cache productType=$cachedType")
+            return cachedType
+        }
+
+        // SubscriptionOfferDetails only exist on SUBS products.
+        // OneTimePurchaseOfferDetails only exist on INAPP products.
+        // If we find any cache entry for this productId (even a different plan), its
+        // offer-detail presence is structurally conclusive.
+        val anyEntry = storeProductDetails.find { qpd ->
+            qpd.productDetail.productId == productId
+        }
+        if (anyEntry != null) {
+            return when {
+                anyEntry.offerDetails != null -> {
+                    logv(mname, "productId=$productId resolved via offerDetails presence → SUBS")
+                    ProductType.SUBS
+                }
+                anyEntry.oneTimeOfferDetails != null -> {
+                    logv(mname, "productId=$productId resolved via oneTimeOfferDetails presence → INAPP")
+                    ProductType.INAPP
+                }
+                else -> {
+                    // Entry exists but both offer fields are null; shouldn't happen.
+                    // Fall through to tier 3.
+                    logd(mname, "productId=$productId cache entry has no offer details; failing")
+                    resolveProductTypeFromKnownIds(productId)
+                }
+            }
+        }
+
+        return resolveProductTypeFromKnownIds(productId)
+    }
+
+    /**
+     * resolves product type from the known product-ID set.
+     */
+    private fun resolveProductTypeFromKnownIds(productId: String): String {
+        val mname = "resolveProductTypeFromKnownIds"
+        return when (productId) {
+            STD_PRODUCT_ID -> {
+                logd(mname, "productId=$productId → SUBS (known)")
+                ProductType.SUBS
+            }
+            ONE_TIME_PRODUCT_ID,
+            ONE_TIME_TEST_PRODUCT_ID,
+            ONE_TIME_PRODUCT_2YRS,
+            ONE_TIME_PRODUCT_5YRS -> {
+                logd(mname, "productId=$productId → INAPP (known)")
+                ProductType.INAPP
+            }
+            else -> {
+                loge(mname, "unknown productId=$productId, defaulting to SUBS; " +
+                    "add this product ID to resolveProductTypeFromKnownIds()")
+                ProductType.SUBS // by default assume as subs; should not happen
+            }
         }
     }
 
@@ -677,122 +1368,157 @@ object InAppBillingHandler : KoinComponent {
     }
 
     fun fetchPurchases(productType: List<String>) {
-        io {
-            val mname = this::fetchPurchases.name
-            logv(mname, "fetching purchases...")
-            // Determine product types to be fetched
+        billingScope.launch {
+            val mname = "fetchPurchases"
+            logv(mname, "Fetching purchases for types: $productType")
+            // determine product types to be fetched
             val hasInApp = productType.any { it == ProductType.INAPP }
             val hasSubs = productType.any { it == ProductType.SUBS }
             val hasBoth = productType.any { it == ProductType.INAPP } &&
                     productType.any { it == ProductType.SUBS }
 
-            // Query for product types to be fetched
+
+            // query for product types to be fetched
             when {
                 hasBoth -> queryPurchases(ProductType.INAPP, true)
                 hasInApp -> queryPurchases(ProductType.INAPP, false)
                 hasSubs -> queryPurchases(ProductType.SUBS, false)
                 else -> {
-                    // should not happen
                     loge(mname, "No valid product types provided for fetching purchases")
-                    return@io
+                    return@launch
                 }
             }
-            logv(mname, "purchases fetch complete, processing...")
+            logv(mname, "Purchases fetch complete")
         }
     }
 
     private fun queryPurchases(productType: String, hasBoth: Boolean) {
-
         val mname = this::queryPurchases.name
-        log(mname, "type: $productType, hasBoth? $hasBoth")
+        log(mname, "Querying purchases for type: $productType, hasBoth: $hasBoth")
 
-        when (productType) {
-            ProductType.INAPP -> Result.setResultState(ResultState.CONSOLE_PURCHASE_PRODUCTS_INAPP_FETCHING)
-            ProductType.SUBS -> Result.setResultState(ResultState.CONSOLE_PURCHASE_PRODUCTS_SUB_FETCHING)
-        }
-
-        val queryPurchasesParams =
-            QueryPurchasesParams.newBuilder().setProductType(productType).build()
+        val queryPurchasesParams = QueryPurchasesParams.newBuilder().setProductType(productType).build()
 
         billingClient.queryPurchasesAsync(queryPurchasesParams) { billingResult, purchases ->
-            // sample purchase: [Purchase. Json: {"orderId":"GPA.3377-3462-2269-94965","packageName":"com.celzero.bravedns","productId":"standard.tier","purchaseTime":1753189609259,"purchaseState":0,"purchaseToken":"fjeciomnalbegbfjfgaaedoa.AO-J1Oy8-PhoHC-Uu23oYerGLKJachIeqicR-bAUn5c0bfN5j4L_rZ34pFUMSEdJi43XaC-Remq9HSdbViCMEqzHbedLURq47g","obfuscatedAccountId":"aa95f04efcb19a54c7605a02e5dd0b435906b993d12bec031a60f3f1272f4f0e","quantity":1,"autoRenewing":true,"acknowledged":true,"developerPayload":"{\"ws\":{\"kind\":\"ws#v1\",\"cid\":\"aa95f04efcb19a54c7605a02e5dd0b435906b993d12bec031a60f3f1272f4f0e\",\"sessiontoken\":\"22695:4:1752256088:524537c17ba103463ba1d330efaf05c146ba3404af:023f958b6c1949568f55078e3c58fe6885d3e57322\",\"expiry\":\"2025-08-11T00:00:00.000Z\",\"status\":\"valid\",\"test\":true}}"}]
-            log(
-                mname,
-                "type: $productType -> purchases: ${purchases}, result: ${billingResult.responseCode}, ${billingResult.debugMessage}"
-            )
-            if (BillingResponse(billingResult.responseCode).isOk) {
-                when (productType) {
-                    ProductType.INAPP -> Result.setResultState(ResultState.CONSOLE_PURCHASE_PRODUCTS_INAPP_FETCHING_SUCCESS)
-                    ProductType.SUBS -> Result.setResultState(ResultState.CONSOLE_PURCHASE_PRODUCTS_SUB_FETCHING_SUCCESS)
-                }
-                io {
-                    logv(mname, "processing purchases...")
-                    handlePurchase(purchases)
-                }
-            } else {
-                loge(mname, "failed to query purchases. result: ${billingResult.responseCode}")
-                when (productType) {
-                    ProductType.INAPP -> Result.setResultState(ResultState.CONSOLE_PURCHASE_PRODUCTS_INAPP_FETCHING_FAILED)
-                    ProductType.SUBS -> Result.setResultState(ResultState.CONSOLE_PURCHASE_PRODUCTS_SUB_FETCHING_FAILED)
+            log(mname, "Query result for $productType: code: ${billingResult.responseCode}, purchases: ${purchases.size}")
+            if (DEBUG) {
+                purchases.forEachIndexed { index, purchase ->
+                    log(mname, "Purchase ($index): $purchase")
                 }
             }
+            if (BillingResponse(billingResult.responseCode).isOk) {
+                billingScope.launch {
+                    try {
+                        logv(mname, "Processing($productType) ${purchases.size} purchases")
+                        handlePurchase(purchases, productType)
+                    } catch (e: Exception) {
+                        loge(mname, "err processing($productType) purchases: ${e.message}", e)
+                    }
+                }
+            } else {
+                loge(mname, "Failed to query purchases for $productType: ${billingResult.responseCode}")
+            }
 
+            // query SUBS if we were querying INAPP and hasBoth is true
             if (productType == ProductType.INAPP && hasBoth) {
                 queryPurchases(ProductType.SUBS, false)
-                return@queryPurchasesAsync
             }
         }
     }
 
-    suspend fun queryProductDetailsWithTimeout(timeout: Long = 5000) {
+    suspend fun queryProductDetailsWithTimeout(timeout: Long = 10_000) {
         val mname = this::queryProductDetailsWithTimeout.name
-        logv(mname, "init query product details with timeout")
-        if (storeProductDetails.isNotEmpty() && productDetails.isNotEmpty()) {
-            logd(mname, "store product details is not empty, skipping product details query")
-            productDetailsLiveData.postValue(productDetails)
+        logv(mname, "Querying product details with timeout: ${timeout}ms")
+
+        if (productDetails.isNotEmpty()) {
+            logd(mname, "Product details cached (${productDetails.size} items), notifying listener")
+            val cached = productDetails.toList()
+            withContext(Dispatchers.Main) {
+                productDetailsLiveData.value = cached
+                billingListener?.productResult(true, cached)
+            }
             return
         }
+
         val result = withTimeoutOrNull(timeout) {
             queryProductDetails()
         }
+
         if (result == null) {
-            loge(mname, "query product details timed out")
-            Result.setResultState(ResultState.CONSOLE_QUERY_PRODUCTS_FAILED)
-        }
-    }
-
-    private fun queryProductDetails() {
-        val mname = this::queryProductDetails.name
-        // clear the lists before querying for new product details
-        storeProductDetails.clear()
-        productDetails.clear()
-        val productListParams = listOf(
-            QueryProductDetailsParams.Product.newBuilder()
-                .setProductId(STD_PRODUCT_ID)
-                .setProductType(ProductType.SUBS)
-                .build()
-        )
-        logd(mname, "query product params, size: ${productListParams.size}")
-        val params = QueryProductDetailsParams.newBuilder()
-            .setProductList(productListParams)
-            .build()
-
-        billingClient.queryProductDetailsAsync(params) { billingResult, queryProductDetailsResult ->
-            val productDetailsList = queryProductDetailsResult.productDetailsList
-            logd(mname, "result: ${billingResult.responseCode}, ${billingResult.debugMessage}")
-            logv(mname, "product details: ${productDetailsList.size}")
-            if (billingResult.responseCode == BillingResponseCode.OK && productDetailsList.isNotEmpty()) {
-                processProductList(productDetailsList)
-            } else {
-                loge(
-                    mname,
-                    "failed to query product details, response code: ${billingResult.responseCode}, message: ${billingResult.debugMessage}"
-                )
+            loge(mname, "Product details query timed out after ${timeout}ms")
+            withContext(Dispatchers.Main) {
                 billingListener?.productResult(false, emptyList())
-                Result.setResultState(ResultState.CONSOLE_QUERY_PRODUCTS_FAILED)
             }
         }
     }
+
+    private suspend fun queryProductDetails() {
+        val mname = this::queryProductDetails.name
+        // clear before a fresh query so stale data doesn't leak into results.
+        storeProductDetails.clear()
+        productDetails.clear()
+
+        // launch INAPP and SUBS queries concurrently and await both.
+        val inAppResult = kotlinx.coroutines.CompletableDeferred<List<ProductDetails>>()
+        val subsResult  = kotlinx.coroutines.CompletableDeferred<List<ProductDetails>>()
+
+        val inAppParams = QueryProductDetailsParams.newBuilder()
+            .setProductList(
+                listOf(
+                    QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId(ONE_TIME_PRODUCT_ID)
+                        .setProductType(ProductType.INAPP)
+                        .build()
+                )
+            ).build()
+
+        logd(mname, "Launching INAPP product query")
+        billingClient.queryProductDetailsAsync(inAppParams) { br, result ->
+            logd(mname, "INAPP result: code=${br.responseCode}, items=${result.productDetailsList.size}")
+            if (br.responseCode == BillingResponseCode.OK) {
+                inAppResult.complete(result.productDetailsList)
+            } else {
+                loge(mname, "INAPP query failed: ${br.responseCode}, ${br.debugMessage}")
+                inAppResult.complete(emptyList()) // complete with empty so SUBS still runs
+            }
+        }
+
+        val subsParams = QueryProductDetailsParams.newBuilder()
+            .setProductList(
+                listOf(
+                    QueryProductDetailsParams.Product.newBuilder()
+                        .setProductId(STD_PRODUCT_ID)
+                        .setProductType(ProductType.SUBS)
+                        .build()
+                )
+            ).build()
+
+        logd(mname, "Launching SUBS product query")
+        billingClient.queryProductDetailsAsync(subsParams) { br, result ->
+            logd(mname, "SUBS result: code=${br.responseCode}, items=${result.productDetailsList.size}")
+            if (br.responseCode == BillingResponseCode.OK) {
+                subsResult.complete(result.productDetailsList)
+            } else {
+                loge(mname, "SUBS query failed: ${br.responseCode}, ${br.debugMessage}")
+                subsResult.complete(emptyList())
+            }
+        }
+
+        // await for both the results before merging them
+        val inAppList = inAppResult.await()
+        val subsList  = subsResult.await()
+
+        if (inAppList.isNotEmpty()) processProductList(inAppList)
+        if (subsList.isNotEmpty())  processProductList(subsList)
+
+
+        val merged = productDetails.toList()
+        logd(mname, "Product query complete: ${merged.size} total products (inApp=${inAppList.size}, subs=${subsList.size})")
+        withContext(Dispatchers.Main) {
+            productDetailsLiveData.postValue(merged)
+            billingListener?.productResult(merged.isNotEmpty(), merged)
+        }
+    }
+
 
     private fun processProductList(productDetailsList: List<ProductDetails>) {
         val mname = this::processProductList.name
@@ -803,28 +1529,38 @@ object InAppBillingHandler : KoinComponent {
 
             when (pd.productType) {
                 ProductType.INAPP -> {
-                    val pricingPhase = PricingPhase(
-                        planTitle = "",
-                        recurringMode = RecurringMode.ORIGINAL,
-                        price = pd.oneTimePurchaseOfferDetails?.formattedPrice.toString()
-                            .removeSuffix(".00"),
-                        currencyCode = pd.oneTimePurchaseOfferDetails?.priceCurrencyCode.toString(),
-                        billingCycleCount = 0,
-                        billingPeriod = "",
-                        priceAmountMicros = pd.oneTimePurchaseOfferDetails?.priceAmountMicros
-                            ?: 0L,
-                        freeTrialPeriod = 0
-                    )
+                    val offers = pd.oneTimePurchaseOfferDetailsList.orEmpty()
+                    if (offers.isEmpty()) {
+                        loge(mname, "INAPP product has no one-time offers: ${pd.productId}")
+                        return@forEach
+                    }
 
-                    val productDetail = ProductDetail(
-                        productId = pd.productId,
-                        planId = "",
-                        productTitle = pd.title,
-                        productType = ProductType.INAPP,
-                        pricingDetails = listOf(pricingPhase)
-                    )
-                    this.productDetails.add(productDetail)
-                    queryProductDetail.add(QueryProductDetail(productDetail, pd, null))
+                    offers.forEachIndexed { _, offer ->
+                        val billingPeriod = getOneTimeBillingPeriod(offer.purchaseOptionId ?: offer.offerId ?: pd.productId)
+                        val planTitle = QueryUtils.getPlanTitle(billingPeriod)
+                        val planId = offer.purchaseOptionId ?: offer.offerId ?: pd.productId
+
+                        val pricingPhase = PricingPhase(
+                            planTitle = planTitle,
+                            recurringMode = RecurringMode.ORIGINAL,
+                            price = offer.formattedPrice.removeSuffix(".00"),
+                            currencyCode = offer.priceCurrencyCode,
+                            billingCycleCount = 0,
+                            billingPeriod = billingPeriod,
+                            priceAmountMicros = offer.priceAmountMicros,
+                            freeTrialPeriod = 0
+                        )
+
+                        val productDetail = ProductDetail(
+                            productId = pd.productId,
+                            planId = planId,
+                            productTitle = planTitle,
+                            productType = ProductType.INAPP,
+                            pricingDetails = listOf(pricingPhase)
+                        )
+                        this.productDetails.add(productDetail)
+                        queryProductDetail.add(QueryProductDetail(productDetail, pd, null, offer))
+                    }
                 }
 
                 ProductType.SUBS -> {
@@ -895,7 +1631,7 @@ object InAppBillingHandler : KoinComponent {
                                 this.productDetails.add(productDetail)
                             }
                             if (!isExistInStore) {
-                                queryProductDetail.add(QueryProductDetail(productDetail, pd, offer))
+                                queryProductDetail.add(QueryProductDetail(productDetail, pd, offer, null))
                             }
                             logd(
                                 mname,
@@ -908,8 +1644,15 @@ object InAppBillingHandler : KoinComponent {
         }
 
         storeProductDetails.addAll(queryProductDetail)
-        log(mname, "storeProductDetailsList: $storeProductDetails")
-        Result.setResultState(ResultState.CONSOLE_QUERY_PRODUCTS_COMPLETED)
+        log(mname, "Processed product details list: ${storeProductDetails.size} items")
+
+        storeProductDetails.forEach {
+            log(mname, "storeProductDetails item: ${it.productDetail.productId}, ${it.productDetail.planId}, ${it.productDetail.pricingDetails}" )
+        }
+
+        productDetails.forEach {
+            log(mname, "productDetails item: ${it.productId}, ${it.planId}, ${it.pricingDetails}" )
+        }
 
         // remove duplicates from storeProductDetails and productDetails
         val s = storeProductDetails.distinctBy { it.productDetail.planId }
@@ -926,74 +1669,78 @@ object InAppBillingHandler : KoinComponent {
         )
 
         productDetailsLiveData.postValue(productDetails)
-
-        if (billingListener == null) {
-            logv(mname, "billing listener is null")
-            return
-        }
-
-        if (productDetails.isEmpty()) {
-            log(mname, "no product details found")
-            billingListener?.productResult(false, productDetails)
-        } else {
-            log(mname, "product details found: $productDetails")
-            billingListener?.productResult(true, productDetails)
-        }
     }
 
     suspend fun purchaseSubs(
         activity: Activity,
         productId: String,
-        planId: String
+        planId: String,
+        forceResubscribe: Boolean = false
     ) {
         val mname = this::purchaseSubs.name
 
-        // Check if we can make a purchase through state machine
-        if (!subscriptionStateMachine.canMakePurchase()) {
+        // check if we can make a purchase through state machine
+        // forceResubscribe bypasses the state check when the user explicitly resubscribes from
+        // the ResubscribeBottomSheet while the subscription is still Active (cancelled but not
+        // yet expired). Active has no PurchaseInitiated transition, so startPurchase() is also
+        // skipped: the result comes back via PaymentSuccessful which Active→Active handles.
+        if (!forceResubscribe && !subscriptionStateMachine.canMakePurchase()) {
             val currentState = subscriptionStateMachine.getCurrentState()
             loge(mname, "Cannot make purchase - current state: ${currentState.name}")
 
-            // Provide specific error messages based on state
-            val errorMessage = when (currentState) {
-                is SubscriptionStateMachineV2.SubscriptionState.Active -> "Subscription is already active"
-                is SubscriptionStateMachineV2.SubscriptionState.PurchasePending -> "Purchase is already pending"
-                is SubscriptionStateMachineV2.SubscriptionState.Error -> "System is in error state"
-                else -> "Cannot make purchase in current state: ${currentState.name}"
-            }
-
-            // TODO: handle error in billing listener and notify user
+            loge(mname, "Cannot make purchase in current state: ${currentState.name}")
             billingListener?.purchasesResult(false, emptyList())
-            Result.setResultState(ResultState.PURCHASING_FAILURE)
             return
         }
 
-        // Notify state machine about purchase initiation
-        try {
-            subscriptionStateMachine.startPurchase()
-        } catch (e: Exception) {
-            loge(mname, "Error starting purchase in state machine: ${e.message}", e)
+        // notify state machine about purchase initiation (skipped in forceResubscribe mode
+        // because Active state has no PurchaseInitiated transition, it would be a no-op or
+        // an invalid transition warning)
+        if (!forceResubscribe) {
+            try {
+                subscriptionStateMachine.startPurchase()
+            } catch (e: Exception) {
+                loge(mname, "Error starting purchase in state machine: ${e.message}", e)
+                billingListener?.purchasesResult(false, emptyList())
+                return
+            }
         }
 
-        log(mname, "productId: $productId, planId: $planId, ${storeProductDetails.size}")
-        val queryProductDetail = storeProductDetails.find {
-            it.productDetail.productId == productId
-                    && it.productDetail.planId == planId
-                    && it.productDetail.productType == ProductType.SUBS
+        log(mname, "Looking for product: $productId, plan: $planId")
+        var queryProductDetail = storeProductDetails.find {
+            it.productDetail.productId == productId &&
+            it.productDetail.planId == planId &&
+            it.productDetail.productType == ProductType.SUBS
+        }
+
+        // storeProductDetails may be empty when purchaseSubs is reached without the RethinkPlus
+        // screen having been opened first (e.g. directly from ResubscribeBottomSheet on a cold
+        // start). Fetch product details on-demand and retry the lookup once before giving up.
+        if (queryProductDetail == null) {
+            log(mname, "Product not found in cache (size=${storeProductDetails.size}), fetching on-demand and retrying")
+            try {
+                withTimeoutOrNull(10_000) { queryProductDetails() }
+            } catch (e: Exception) {
+                loge(mname, "On-demand product details fetch failed: ${e.message}", e)
+            }
+            queryProductDetail = storeProductDetails.find {
+                it.productDetail.productId == productId &&
+                it.productDetail.planId == planId &&
+                it.productDetail.productType == ProductType.SUBS
+            }
         }
 
         if (queryProductDetail == null) {
-            val errorMsg = "no product details found for productId: $productId, planId: $planId"
+            val errorMsg = "No product details found for productId: $productId, planId: $planId"
             loge(mname, errorMsg)
 
             try {
                 subscriptionStateMachine.purchaseFailed(errorMsg, null)
             } catch (e: Exception) {
-                loge(mname, "Error reporting purchase failure to state machine: ${e.message}", e)
+                loge(mname, "Error notifying state machine: ${e.message}", e)
             }
 
-            // TODO: handle error in billing listener and notify user
             billingListener?.purchasesResult(false, emptyList())
-            Result.setResultState(ResultState.PURCHASING_FAILURE)
             return
         }
 
@@ -1004,18 +1751,66 @@ object InAppBillingHandler : KoinComponent {
                 offerToken = queryProductDetail.offerDetails?.offerToken
             )
         } catch (e: Exception) {
-            val errorMsg = "failed to launch purchase flow: ${e.message}"
+            val errorMsg = "Failed to launch purchase flow: ${e.message}"
             loge(mname, errorMsg, e)
 
             try {
                 subscriptionStateMachine.purchaseFailed(errorMsg, null)
             } catch (stateMachineError: Exception) {
-                loge(mname, "Error reporting launch failure to state machine: ${stateMachineError.message}", stateMachineError)
+                loge(mname, "Error notifying state machine: ${stateMachineError.message}", stateMachineError)
             }
 
-            // TODO: handle error in billing listener and notify user
             billingListener?.purchasesResult(false, emptyList())
-            Result.setResultState(ResultState.PURCHASING_FAILURE)
+        }
+    }
+
+    suspend fun purchaseOneTime(activity: Activity, productId: String, planId: String, forceExtend: Boolean = false) {
+        val mname = this::purchaseOneTime.name
+
+        log(mname, "Looking for one-time product: $productId, plan: $planId, forceExtend=$forceExtend")
+
+        if (!forceExtend && !subscriptionStateMachine.canMakePurchase()) {
+            val currentState = subscriptionStateMachine.getCurrentState()
+            loge(mname, "Cannot make one-time purchase in state: ${currentState.name}")
+            billingListener?.purchasesResult(false, emptyList())
+            return
+        }
+
+        // startPurchase fires PurchaseInitiated event. In extend mode the state is Active,
+        // which has no PurchaseInitiated transition, the event is safely dropped (no-op).
+        // The purchase result comes back via PaymentSuccessful which Active→Active handles.
+        if (!forceExtend) {
+            try {
+                subscriptionStateMachine.startPurchase()
+            } catch (e: Exception) {
+                loge(mname, "Error starting one-time purchase in state machine: ${e.message}", e)
+                billingListener?.purchasesResult(false, emptyList())
+                return
+            }
+        }
+
+        val queryProductDetail = storeProductDetails.find {
+            it.productDetail.productId == productId &&
+                    it.productDetail.productType == ProductType.INAPP
+        }
+
+        if (queryProductDetail == null) {
+            val errorMsg = "No one-time product details found for productId: $productId, planId: $planId"
+            loge(mname, errorMsg)
+            try { subscriptionStateMachine.purchaseFailed(errorMsg, null) } catch (_: Exception) {}
+            billingListener?.purchasesResult(false, emptyList())
+            return
+        }
+
+        try {
+            val offerToken = queryProductDetail.oneTimeOfferDetails?.offerToken
+            launchFlow(activity = activity, pds = queryProductDetail.productDetails, offerToken = offerToken)
+            logv(mname, "One-time purchase flow launched for productId: $productId, offerToken: $offerToken")
+        } catch (e: Exception) {
+            val errorMsg = "Failed to launch one-time purchase flow: ${e.message}"
+            loge(mname, errorMsg, e)
+            try { subscriptionStateMachine.purchaseFailed(errorMsg, null) } catch (_: Exception) {}
+            billingListener?.purchasesResult(false, emptyList())
         }
     }
 
@@ -1027,58 +1822,275 @@ object InAppBillingHandler : KoinComponent {
         val mname = this::launchFlow.name
 
         if (pds == null) {
-            loge(mname, "no product details found, purchase flow cannot be initiated")
+            loge(mname, "No product details available, cannot launch purchase flow")
             try {
                 subscriptionStateMachine.purchaseFailed("No product details found", null)
             } catch (e: Exception) {
-                loge(mname, "Error reporting purchase failure to state machine: ${e.message}", e)
+                loge(mname, "err notifying state machine: ${e.message}", e)
             }
             billingListener?.purchasesResult(false, emptyList())
-            Result.setResultState(ResultState.PURCHASING_FAILURE)
             return
         }
 
-        logd(mname, "proceeding with purchase flow for product: ${pds.title}")
+        logd(mname, "Launching purchase flow for: ${pds.title}, ${pds.productId}, offerToken: $offerToken, ${pds.productType}, ${pds.oneTimePurchaseOfferDetailsList}")
+
+        // Ensure server-driven accountId + deviceId are available BEFORE launching the
+        // billing flow. fetchOrEnsureCustomerIds() calls /customer when IDs are absent,
+        // then falls back to PipKeyManager local tokens if the server is unreachable,
+        // so the purchase flow is never blocked by a server outage.
+        val (accountId, resolvedDeviceId) = try {
+            fetchOrEnsureCustomerIds()
+        } catch (e: Exception) {
+            loge(mname, "fetchOrEnsureCustomerIds threw unexpectedly; aborting: ${e.message}", e)
+            try { subscriptionStateMachine.purchaseFailed("ID resolution error: ${e.message}", null) } catch (_: Exception) {}
+            billingListener?.purchasesResult(false, emptyList())
+            return
+        }
+
+        if (accountId.isBlank()) {
+            loge(mname, "accountId is blank after resolution; aborting purchase flow")
+            try { subscriptionStateMachine.purchaseFailed("accountId unavailable", null) } catch (_: Exception) {}
+            billingListener?.purchasesResult(false, emptyList())
+            return
+        }
+        if (resolvedDeviceId.isBlank()) {
+            loge(mname, "deviceId is blank after resolution; aborting purchase flow")
+            try { subscriptionStateMachine.purchaseFailed("deviceId unavailable", null) } catch (_: Exception) {}
+            billingListener?.purchasesResult(false, emptyList())
+            return
+        }
+
+        logd(mname, "accountId ready (len=${accountId.length}), deviceId ready (len=${resolvedDeviceId.length})")
+
         val paramsList = when (offerToken.isNullOrEmpty()) {
             true -> listOf(
                 BillingFlowParams.ProductDetailsParams.newBuilder()
                     .setProductDetails(pds).build()
             )
-
             false -> listOf(
                 BillingFlowParams.ProductDetailsParams.newBuilder()
                     .setProductDetails(pds).setOfferToken(offerToken).build()
             )
         }
 
-        val accountId = getObfuscatedAccountId(activity.applicationContext)
-        val flowParams = BillingFlowParams.newBuilder().setProductDetailsParamsList(paramsList)
-            .setObfuscatedAccountId(accountId).build()
+        val flowParams = BillingFlowParams.newBuilder()
+            .setProductDetailsParamsList(paramsList)
+            .setObfuscatedAccountId(accountId)
+            .build()
+
         val billingResult = billingClient.launchBillingFlow(activity, flowParams)
+        val isSuccess = billingResult.responseCode == BillingResponseCode.OK
 
-        Result.setResultState(ResultState.LAUNCHING_FLOW_INVOCATION_SUCCESSFULLY)
-        billingListener?.purchasesResult(
-            billingResult.responseCode == BillingResponseCode.OK,
-            emptyList()
-        )
+        billingListener?.purchasesResult(isSuccess, emptyList())
 
-        if (billingResult.responseCode != BillingResponseCode.OK) {
+        if (!isSuccess) {
+            loge(mname, "Failed to launch billing flow: ${billingResult.responseCode}")
             transactionErrorLiveData.postValue(billingResult)
         }
     }
 
-    private suspend fun getObfuscatedAccountId(context: Context): String {
-        // consider token as obfuscated account id
-        return PipKeyManager.getToken(context)
+    /**
+     * Returns the obfuscated **account** ID to embed in [BillingFlowParams].
+     *
+     * Resolution order (delegated to [BillingBackendClient.getAccountId]):
+     * 1. In-memory cache
+     * 2. [SecureIdentityStore] (AES-encrypted file)
+     * 3. `d/acc` API call
+     *
+     * Returns blank if all sources fail; callers must guard against a blank return.
+     */
+    suspend fun getObfuscatedAccountId(): String {
+        return billingBackendClient.getAccountId()
     }
 
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-    private fun io(f: suspend () -> Unit) {
-        scope.launch { f() }
+    /**
+     * Returns the obfuscated **device** ID used for device registration.
+     *
+     * Resolution order (delegated to [BillingBackendClient.getDeviceId]):
+     * 1. In-memory cache
+     * 2. [SecureIdentityStore] (AES-encrypted file)
+     * 3. `d/reg` API call
+     *
+     * Returns blank if all sources fail; callers must guard against a blank return.
+     */
+    suspend fun getObfuscatedDeviceId(): String {
+        return billingBackendClient.getDeviceId()
     }
 
-    // Query user's billing configuration using BillingClient v7+ API
+    /**
+     * Ensures valid accountId and deviceId are available before launching a purchase flow
+     * or making any server API call.
+     *
+     * ### When no active purchase exists (new user / first-time buyer):
+     * Calls `d/acc` with empty IDs so the server assigns a fresh pair.
+     *
+     * ### When server IDs are already persisted:
+     * Returns immediately without a network call.
+     *
+     * ### Failure:
+     * Returns `Pair("", "")` if the server is unreachable and no IDs are stored.
+     * The caller is responsible for aborting the purchase flow in this case.
+     *
+     * @return Pair(accountId, deviceId): blank pair if server unavailable.
+     */
+    private suspend fun fetchOrEnsureCustomerIds(): Pair<String, String> {
+        val mname = "fetchOrEnsureCustomerIds"
+        logd(mname, "resolving identity via BillingServerRepository")
+        return billingBackendClient.resolveIdentity()
+    }
+
+    /**
+     * Returns a valid deviceId for use in [registerDevice].
+     *
+     * Resolves via [getObfuscatedDeviceId] (cache → prefs → /customer API → PipKeyManager
+     * local fallback).
+     *
+     * Returns **null** if all sources fail or return blank, and logs an ERROR so the
+     * issue is visible.  Callers must skip [registerDevice] when null is returned.
+     */
+    private suspend fun resolveDeviceId(caller: String): String? {
+        return try {
+            val id = getObfuscatedDeviceId()
+            id.ifBlank {
+                loge(caller, "resolveDeviceId: blank deviceId from all sources; skipping registerDevice")
+                null
+            }
+        } catch (e: Exception) {
+            loge(caller, "resolveDeviceId failed; skipping registerDevice: ${e.message}", e)
+            null
+        }
+    }
+
+    /** Maps a Play [ProductType] string to the server-side SKU string. */
+    private fun skuForType(productType: String): String =
+        if (productType == ProductType.SUBS) STD_PRODUCT_ID else ONE_TIME_PRODUCT_ID
+
+    /**
+     * Builds a [ServerApiError.Unauthorized401] for [operation], posts it to
+     * [serverApiErrorLiveData] on the main thread.
+     *
+     * Kept in [InAppBillingHandler] alongside [handleConflict409] because it needs
+     * to post to [serverApiErrorLiveData], a UI-bound [MutableLiveData] owned here.
+     *
+     * @param operation    The operation that produced the 401 (DEVICE or CUSTOMER).
+     * @param accountId    Full account ID to surface in the error screen.
+     * @param deviceId     The device ID used; only the first 8 chars are shown in the UI.
+     */
+    internal suspend fun handleUnauthorized401(
+        operation: ServerApiError.Operation,
+        accountId: String,
+        deviceId: String
+    ) {
+        val error = ServerApiError.Unauthorized401(
+            operation = operation,
+            accountId = accountId,
+            deviceIdPrefix = deviceId.take(6)
+        )
+        withContext(Dispatchers.Main) {
+            serverApiErrorLiveData.value = error
+        }
+        loge("handleUnauthorized401", "401 on ${operation.endpoint}: accLen=${accountId.length}")
+    }
+
+    /**
+     * Builds a [ServerApiError.Conflict409] for [operation], posts it to
+     * [serverApiErrorLiveData] on the main thread, and returns the standard
+     * failure [Pair] so all existing callers remain unchanged.
+     *
+     * Kept in [InAppBillingHandler] (not moved to [BillingBackendClient]) because it
+     * needs to post to [serverApiErrorLiveData] which is a UI-bound [MutableLiveData]
+     * owned by this object.
+     */
+    private suspend fun handleConflict409(
+        operation: ServerApiError.Operation,
+        accountId: String,
+        deviceId: String,
+        purchaseToken: String,
+        sku: String,
+        serverMsg: String?
+    ): Pair<Boolean, String> {
+        val error = ServerApiError.Conflict409(
+            endpoint      = operation.endpoint,
+            operation     = operation,
+            serverMessage = serverMsg?.takeIf { it.isNotBlank() },
+            accountId     = accountId,
+            purchaseToken = purchaseToken,
+            sku           = sku
+        )
+        withContext(Dispatchers.Main) {
+            serverApiErrorLiveData.value = error
+            // If no UI is observing the LiveData right now, also post a notification so
+            // the user is alerted even when the app is backgrounded.
+            if (!serverApiErrorLiveData.hasActiveObservers()) {
+                val ctx = appContext
+                if (ctx != null) {
+                    logd("handleConflict409", "posting conflict notification")
+                    PurchaseConflictNotifier.notify(ctx, error, persistentState.theme)
+                } else {
+                    loge("handleConflict409", "appContext null; cannot post conflict notification")
+                }
+            }
+        }
+        loge("handleConflict409", "409 on ${operation.endpoint}: $serverMsg")
+        return Pair(false, serverMsg ?: "Conflict: 409")
+    }
+
+    /**
+     * Returns a point-in-time snapshot of all purchases currently tracked in
+     * [purchasesLiveData]. Intended for use by [SubscriptionCheckWorker] which
+     * runs outside the billing lifecycle and cannot observe LiveData directly.
+     */
+    fun getActivePurchasesSnapshot(): List<PurchaseDetail> {
+        val pd = subscriptionStateMachine.getSubscriptionData()?.purchaseDetail
+        return if (pd != null) listOf(pd).toList() else emptyList()
+    }
+
+    /**
+     * Registers a newly-detected purchase with the backend so the server can
+     * associate this device with the account and purchase.
+     *
+     * On HTTP 401 the [ServerApiError.Unauthorized401] error is posted to
+     * [serverApiErrorLiveData] so the UI can immediately surface the
+     * "Device Authorization Failed" screen.
+     *
+     * @param accountId Obfuscated account identifier (same value set in BillingFlowParams).
+     * @param deviceId Stable per-device identifier generated by [getObfuscatedDeviceId].
+     */
+    suspend fun registerDevice(
+        accountId: String,
+        deviceId: String,
+        meta: JsonObject? = null
+    ) = withContext(Dispatchers.IO) {
+        val mname = "registerDevice"
+        if (accountId.isBlank() || deviceId.isBlank()) {
+            loge(mname, "accountId or deviceId is blank; skipping registerDevice")
+            return@withContext
+        }
+        val effectiveMeta = meta ?: billingBackendClient.buildDeviceMeta()
+        when (val result = billingBackendClient.registerDevice(accountId, deviceId, effectiveMeta)) {
+            is RegisterDeviceResult.Success -> {
+                logd(mname, "registerDevice success")
+                logEvent(EventType.PROXY_CONNECT, Severity.LOW, "registerDevice", "registerDevice success")
+            }
+            is RegisterDeviceResult.Unauthorized -> {
+                loge(mname, "registerDevice 401 unauthorized; surfacing DeviceAuthError to UI")
+                handleUnauthorized401(ServerApiError.Operation.DEVICE, accountId, deviceId)
+                logEvent(EventType.PROXY_ERROR, Severity.HIGH, "registerDevice", "registerDevice 401 unauthorized")
+            }
+            is RegisterDeviceResult.Conflict -> {
+                loge(mname, "registerDevice 409 conflict (device already registered, non-fatal)")
+                logEvent(EventType.PROXY_ERROR, Severity.HIGH, "registerDevice", "registerDevice 409 conflict")
+            }
+            is RegisterDeviceResult.Failure -> {
+                loge(mname, "registerDevice failed: code=${result.httpCode} msg=${result.message} (non-fatal)")
+                logEvent(EventType.PROXY_ERROR, Severity.HIGH, "registerDevice", "registerDevice failed: ${result.message}")
+            }
+        }
+    }
+
+
     fun queryBillingConfig() {
+        val mname = this::queryBillingConfig.name
         val getBillingConfigParams = GetBillingConfigParams.newBuilder().build()
         billingClient.getBillingConfigAsync(getBillingConfigParams) { billingResult, billingConfig ->
             if (billingResult.responseCode == BillingResponseCode.OK
@@ -1086,106 +2098,145 @@ object InAppBillingHandler : KoinComponent {
             ) {
                 val countryCode = billingConfig.countryCode
                 // TODO: Handle country code, see if we need to use it
-                Logger.i(LOG_IAB, "BillingConfig country code: $countryCode")
+                log(mname, "BillingConfig country code: $countryCode")
             } else {
                 // TODO: Handle errors
-                Logger.i(LOG_IAB, "err in billing config: ${billingResult.debugMessage}")
+                log(mname, "err in billing config: ${billingResult.debugMessage}")
             }
         }
     }
 
     private fun startStateObserver() {
-        stateObserverScope.launch {
+        billingScope.launch {
             try {
                 subscriptionStateMachine.currentState.collect { state ->
                     logd("StateObserver", "Subscription state changed to: ${state.name}")
-                    // Handle state changes if needed
                     handleStateChange(state)
+                    updateUIForState(state)
                 }
             } catch (e: Exception) {
-                loge("StateObserver", "Error in state observer: ${e.message}", e)
+                loge("StateObserver", "Critical error in state observer: ${e.message}", e)
+                try {
+                    subscriptionStateMachine.systemCheck()
+                } catch (recoveryError: Exception) {
+                    loge("StateObserver", "Failed system check during recovery: ${recoveryError.message}", recoveryError)
+                }
             }
         }
     }
 
+    /**
+     * Updates all billing-related LiveData based on the current subscription [state].
+     *
+     * Design:
+     * - **Active / Grace / OnHold / Paused / Canceled**: the user has (or recently had) a
+     *   valid subscription: post current purchase details so the UI can show subscription
+     *   info. For Active/Grace also clear any stale transaction error LiveData.
+     * - **PurchasePending / PurchaseInitiated**: purchase is in flight, keep whatever the
+     *   UI currently shows; do not clear or update mid-flight.
+     * - **Expired / Revoked / Error / Initial / Uninitialized**: no valid purchase, post
+     *   an empty list so the UI clears previously shown subscription details.
+     *
+     * The [state] parameter is the primary driver, it is never ignored.
+     */
+    private suspend fun updateUIForState(state: SubscriptionStateMachineV2.SubscriptionState) {
+        withContext(Dispatchers.Main) {
+            when (state) {
+                is SubscriptionStateMachineV2.SubscriptionState.Active,
+                is SubscriptionStateMachineV2.SubscriptionState.Grace,
+                is SubscriptionStateMachineV2.SubscriptionState.OnHold,
+                is SubscriptionStateMachineV2.SubscriptionState.Paused,
+                is SubscriptionStateMachineV2.SubscriptionState.Cancelled -> {
+                    val purchaseDetails = buildPurchaseListFromState()
+                    logd("updateUIForState", "state=${state.name} → posting ${purchaseDetails.size} purchases")
+                    purchasesLiveData.postValue(purchaseDetails)
+                    // Clear stale error banners when subscription is confirmed active/valid.
+                    if (state is SubscriptionStateMachineV2.SubscriptionState.Active ||
+                        state is SubscriptionStateMachineV2.SubscriptionState.Grace) {
+                        transactionErrorLiveData.postValue(null)
+                    }
+                }
+
+                is SubscriptionStateMachineV2.SubscriptionState.PurchasePending,
+                is SubscriptionStateMachineV2.SubscriptionState.PurchaseInitiated -> {
+                    logd("updateUIForState", "state=${state.name} → keeping current UI state (purchase in flight)")
+                }
+
+                is SubscriptionStateMachineV2.SubscriptionState.Expired,
+                is SubscriptionStateMachineV2.SubscriptionState.Revoked,
+                is SubscriptionStateMachineV2.SubscriptionState.Error,
+                is SubscriptionStateMachineV2.SubscriptionState.Initial,
+                is SubscriptionStateMachineV2.SubscriptionState.Uninitialized -> {
+                    logd("updateUIForState", "state=${state.name} → clearing purchase list")
+                    purchasesLiveData.postValue(emptyList())
+                }
+            }
+        }
+    }
+
+    /**
+     * Builds the list of [PurchaseDetail] to post to [purchasesLiveData].
+     * Uses the state machine as the single source of truth, then merges in any
+     * already-posted INAPP purchases that may not yet have been reconciled into the
+     * state machine (e.g. first launch before the first Play billing query completes).
+     */
+    private fun buildPurchaseListFromState(): List<PurchaseDetail> {
+        val result = mutableListOf<PurchaseDetail>()
+        subscriptionStateMachine.getSubscriptionData()?.purchaseDetail?.let {
+            result.add(it)
+        }
+        // Merge in cached INAPP purchases that aren't already in the result.
+        val cachedInApp = purchasesLiveData.value
+            ?.filter { it.productType == ProductType.INAPP }
+            ?.filter { existing -> result.none { it.purchaseToken == existing.purchaseToken } }
+            ?: emptyList()
+        result.addAll(cachedInApp)
+        return result
+    }
+
+    /**
+     * Handles non-UI side-effects when the subscription state changes.
+     * UI updates (LiveData) are handled by [updateUIForState] which is always
+     * called immediately after this function from [startStateObserver].
+     */
     private fun handleStateChange(state: SubscriptionStateMachineV2.SubscriptionState) {
         when (state) {
-            is SubscriptionStateMachineV2.SubscriptionState.Error -> {
-                loge("handleStateChange", "Subscription state machine entered error state")
-                // Could trigger UI update or error handling
-            }
+            is SubscriptionStateMachineV2.SubscriptionState.Active ->
+                logd("handleStateChange", "Subscription is active")
 
-            is SubscriptionStateMachineV2.SubscriptionState.Active -> {
-                logd("handleStateChange", "Subscription is now active")
-                // Could trigger UI update or feature enablement
-            }
+            is SubscriptionStateMachineV2.SubscriptionState.Grace ->
+                logd("handleStateChange", "Subscription in grace period; still valid but payment failing")
 
-            is SubscriptionStateMachineV2.SubscriptionState.Revoked -> {
-                loge("handleStateChange", "Subscription has been revoked")
-                // Handle revocation scenario
-            }
+            is SubscriptionStateMachineV2.SubscriptionState.Cancelled ->
+                logd("handleStateChange", "Subscription cancelled; still valid until billing expiry")
 
-            else -> {
+            is SubscriptionStateMachineV2.SubscriptionState.Expired ->
+                logd("handleStateChange", "Subscription expired")
+
+            is SubscriptionStateMachineV2.SubscriptionState.Revoked ->
+                loge("handleStateChange", "Subscription revoked")
+
+            is SubscriptionStateMachineV2.SubscriptionState.Error ->
+                loge("handleStateChange", "State machine entered error state; Play will re-confirm on next query")
+
+            is SubscriptionStateMachineV2.SubscriptionState.OnHold ->
+                logd("handleStateChange", "Subscription on hold; payment pending")
+
+            is SubscriptionStateMachineV2.SubscriptionState.Paused ->
+                logd("handleStateChange", "Subscription paused")
+
+            is SubscriptionStateMachineV2.SubscriptionState.PurchasePending,
+            is SubscriptionStateMachineV2.SubscriptionState.PurchaseInitiated ->
+                logd("handleStateChange", "Purchase in progress: ${state.name}")
+
+            else ->
                 logd("handleStateChange", "State changed to: ${state.name}")
-            }
         }
-    }
-
-    fun canMakePurchase(): Boolean {
-        return subscriptionStateMachine.canMakePurchase()
     }
 
     fun hasValidSubscription(): Boolean {
         return RpnProxyManager.hasValidSubscription()
     }
-
-    fun getConnectionStatusWithStateMachine(): String {
-        val connectionStatus = when {
-            !::billingClient.isInitialized -> "Not initialized"
-            !billingClient.isReady -> "Not ready"
-            else -> "Ready"
-        }
-
-        val subscriptionState = subscriptionStateMachine.getCurrentState()
-        val statistics = subscriptionStateMachine.getStatistics()
-        val subscriptionData = subscriptionStateMachine.getSubscriptionData()
-
-        return """
-            Billing Client: $connectionStatus
-            Subscription State: ${subscriptionState.name}
-            Can Make Purchase: ${subscriptionStateMachine.canMakePurchase()}
-            Has Valid Subscription: ${subscriptionStateMachine.hasValidSubscription()}
-            Subscription Active: ${subscriptionStateMachine.isSubscriptionActive()}
-            Total Transitions: ${statistics.totalTransitions}
-            Success Rate: ${String.format(Locale.getDefault(), "%.2f", statistics.successRate * 100)}%
-            Failed Transitions: ${statistics.failedTransitions}
-            Current Data: ${subscriptionData?.subscriptionStatus?.productId ?: "None"}
-            Last Updated: ${subscriptionData?.lastUpdated?.let { Date(it) } ?: "Never"}
-            Legacy Purchase Details: ${purchaseDetails.size}
-        """.trimIndent()
-    }
-
-    /*fun getDetailedErrorInfo(): String? {
-        return if (isStateMachineInitialized.get()) {
-            val statistics = subscriptionStateMachine.getStatistics()
-            //val history = subscriptionStateMachine.getTransitionHistory()
-            val failedTransitions = history.filter { !it.success }
-
-            if (failedTransitions.isNotEmpty()) {
-                val lastError = failedTransitions.lastOrNull()
-                """
-                    Last Error: ${lastError?.error}
-                    Failed Transitions: ${statistics.failedTransitions}
-                    Success Rate: ${String.format("%.2f", statistics.successRate * 100)}%
-                    Recent Failed Events: ${failedTransitions.takeLast(3).map { it.event.name }}
-                """.trimIndent()
-            } else {
-                "No errors found"
-            }
-        } else {
-            "State machine not initialized"
-        }
-    }*/
 
     fun endConnection() {
         val mname = this::endConnection.name
@@ -1198,130 +2249,258 @@ object InAppBillingHandler : KoinComponent {
         }
     }
 
-    suspend fun cancelPlaySubscription(accountId: String, purchaseToken: String): Pair<Boolean, String> {
-        // g/stop?cid&purchaseToken&test
-        // response: {"message":"canceled subscription","purchaseId":"c078ba1a42e042f3745e195aa52c952b3c99751f3de9880e6c754682698d5133"}
-        // {"error":"cannot revoke, subscription canceled or expired","expired":false,"canceled":true,"cancelCtx":{"userInitiatedCancellation":{"cancelSurveyResult":null,"cancelTime":"2025-07-10T13:21:24.743Z"},"systemInitiatedCancellation":null,"developerInitiatedCancellation":null,"replacementCancellation":null},"purchaseId":"c078ba1a42e042f3745e195aa52c952b3c99751f3de9880e6c754682698d5133"}
-        val mname = this::cancelPlaySubscription.name
-        // call ITcpProxy.cancelSubscription with the current account ID and purchase token
-        // make an API call to cancel the subscription
-        logd(mname, "canceling subscription for accountId: $accountId, purchaseToken: $purchaseToken")
-        // use retrofit to make the API call
-        val retrofit = RetrofitManager.getTcpProxyBaseBuilder(persistentState.routeRethinkInRethink)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-        val retrofitInterface = retrofit.create(ITcpProxy::class.java)
-        try {
-            val response = retrofitInterface.cancelSubscription(
-                accountId,
-                purchaseToken,
-                DEBUG
-            )
-            logd(mname, "cancel subscription, response? ${response != null} url: ${response?.raw()?.request?.url}")
-            if (response == null) {
-                loge(mname, "response is null, failed to cancel subscription")
-                return Pair(false, "No response from server, try again later")
+    /**
+     * Cancel a one-time (INAPP) purchase.
+     *
+     * Mirrors [cancelPlaySubscription] exactly but routes to the correct SKU and
+     * uses [ONE_TIME_PRODUCT_2YRS] / [ONE_TIME_PRODUCT_5YRS] as the product identifier.
+     *
+     * This should only be called when the purchase is confirmed active and within the
+     * revoke window (UI is responsible for enforcing that guard).
+     *
+     * @param accountId    Obfuscated account ID (PipKeyManager token).
+     * @param purchaseToken Play purchase token for this one-time purchase.
+     * @param productId    The one-time product ID (e.g. ONE_TIME_PRODUCT_2YRS).
+     */
+    suspend fun cancelOneTimePurchase(
+        accountId: String,
+        deviceId: String,
+        purchaseToken: String,
+        productId: String
+    ): Pair<Boolean, String> = withContext(Dispatchers.IO) {
+        val mname = "cancelOneTimePurchase"
+        logd(mname, "delegating to BillingServerRepository, productId=$productId, accLen=${accountId.length}")
+        connectionMutex.withLock {
+            val (success, msg) = billingBackendClient.cancelPurchase(accountId, deviceId, productId, purchaseToken)
+            if (!success && msg.startsWith("Conflict")) {
+                return@withLock handleConflict409(ServerApiError.Operation.CANCEL, accountId, deviceId, purchaseToken, productId, msg)
             }
-            if (!response.isSuccessful) {
-                loge(mname, "failed to cancel subscription, response code: ${response.code()}")
-                return Pair(
-                    false,
-                    "Failed to cancel subscription, response code: ${response.code()}, error: ${response.errorBody()?.string()}"
-                )
-            }
-            // check if the response body is not null and has the status field
-            return if (response.code() == 200) {
-                val res = RpnProxyManager.updateCancelledSubscription(accountId, purchaseToken)
-                Pair(res, "Subscription cancelled successfully")
+            if (!success) return@withLock Pair(false, msg)
+            val localSuccess = RpnProxyManager.updateCancelledSubscription(accountId, purchaseToken)
+            if (!localSuccess) {
+                logEvent(EventType.PROXY_ERROR, Severity.HIGH, "cancelOneTimePurchase", "Local state update failed")
+                return@withLock Pair(false, "Local state update failed")
             } else {
-                loge(mname, "err in canceling subscription: ${response.errorBody()?.string()}")
-                Pair(false, "Error canceling subscription, reason: ${response.errorBody()?.string()}")
+                logEvent(EventType.PROXY_SWITCH, Severity.LOW, "cancelOneTimePurchase", "cancelOneTimePurchase success")
             }
-        } catch (e: Exception) {
-            loge(mname, "err in canceling subscription: ${e.message}")
+            fetchPurchases(listOf(ProductType.SUBS, ProductType.INAPP))
+            try {
+                subscriptionStateMachine.userCancelled()
+                logd(mname, "One-time purchase cancelled successfully")
+                Pair(true, "One-time purchase cancelled successfully")
+            } catch (e: Exception) {
+                loge(mname, "State machine update failed: ${e.message}", e)
+                logEvent(EventType.PROXY_ERROR, Severity.HIGH, "cancelOneTimePurchase", "State machine update failed: ${e.message}")
+                Pair(false, "Cancelled on server but state sync failed")
+            }
         }
-
-        return Pair(false, "Error canceling subscription, reason: Unknown error")
     }
 
-    suspend fun revokeSubscription(accountId: String, purchaseToken: String): Pair<Boolean, String> {
-        // g/refund?cid&purchaseToken&test
-        // response: {"message":"canceled subscription","purchaseId":"c078ba1a42e042f3745e195aa52c952b3c99751f3de9880e6c754682698d5133"}
-        // {"error":"cannot revoke, subscription canceled or expired","expired":false,"canceled":true,"cancelCtx":{"userInitiatedCancellation":{"cancelSurveyResult":null,"cancelTime":"2025-07-10T13:21:24.743Z"},"systemInitiatedCancellation":null,"developerInitiatedCancellation":null,"replacementCancellation":null},"purchaseId":"c078ba1a42e042f3745e195aa52c952b3c99751f3de9880e6c754682698d5133"}
-        val mname = this::revokeSubscription.name
-        logd(mname, "revoking subscription for accountId: $accountId, purchaseToken: $purchaseToken")
-        // use retrofit to make the API call
-        val retrofit = RetrofitManager.getTcpProxyBaseBuilder(persistentState.routeRethinkInRethink)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-        val retrofitInterface = retrofit.create(ITcpProxy::class.java)
-        try {
-            val response = retrofitInterface.revokeSubscription(
-                accountId,
-                purchaseToken,
-                DEBUG
-            )
-            logd(mname, "revoke subscription response: ${response?.headers()}, ${response?.message()}, ${response?.raw()?.request?.url}")
-            if (response == null) {
-                loge(mname, "response is null, failed to revoke subscription")
-                return Pair(false, "No response from server, try again later")
+    /**
+     * Revoke a one-time (INAPP) purchase (full refund within revoke window).
+     *
+     * Mirrors [revokeSubscription] exactly but uses the correct one-time product SKU.
+     * Calls [ITcpProxy.revokeSubscription] → updates local state → fires
+     * [SubscriptionStateMachineV2.subscriptionRevoked].
+     *
+     * @param accountId    Obfuscated account ID.
+     * @param purchaseToken Play purchase token.
+     * @param productId    The one-time product ID (e.g. ONE_TIME_PRODUCT_2YRS).
+     */
+    suspend fun revokeOneTimePurchase(
+        accountId: String,
+        deviceId: String,
+        purchaseToken: String,
+        productId: String
+    ): Pair<Boolean, String> = withContext(Dispatchers.IO) {
+        val mname = "revokeOneTimePurchase"
+        logd(mname, "delegating to BillingServerRepository, productId=$productId, accLen=${accountId.length}")
+        connectionMutex.withLock {
+            val (success, msg) = billingBackendClient.revokePurchase(accountId, deviceId, productId, purchaseToken)
+            if (!success && msg.startsWith("Conflict")) {
+                return@withLock handleConflict409(ServerApiError.Operation.REVOKE, accountId, deviceId, purchaseToken, productId, msg)
             }
-            if (!response.isSuccessful) {
-                loge(mname, "failed to revoke subscription, response code: ${response.code()}, error: ${response.errorBody()?.string()}, message: ${response.message()}, url: ${response.raw().request.url}")
-                return Pair(false, "Failed to revoke subscription, response code: ${response.code()}, error: ${response.errorBody()?.string()}")
-            }
-            // check if the response body is not null and has the status field
-            return if (response.code() == 200) {
-                val res = RpnProxyManager.updateRevokedSubscription(accountId, purchaseToken)
-                Pair(res, "Subscription revoked successfully")
+            if (!success) return@withLock Pair(false, msg)
+            val localSuccess = RpnProxyManager.updateRevokedSubscription(accountId, purchaseToken)
+            if (!localSuccess) {
+                logEvent(EventType.PROXY_ERROR, Severity.HIGH, "revokeOneTimePurchase", "Local state update failed")
+                return@withLock Pair(false, "Local state update failed")
             } else {
-                loge(mname, "err in canceling subscription: ${response.errorBody()?.string()}")
-                Pair(false, "Error revoking subscription, reason: ${response.errorBody()?.string()}")
+                logEvent(EventType.PROXY_SWITCH, Severity.LOW, "revokeOneTimePurchase", "revokeOneTimePurchase success")
             }
-        } catch (e: Exception) {
-            loge(mname, "err in revoking subscription: ${e.message}")
+            fetchPurchases(listOf(ProductType.SUBS, ProductType.INAPP))
+            try {
+                subscriptionStateMachine.subscriptionRevoked()
+                logd(mname, "One-time purchase revoked successfully")
+                Pair(true, "One-time purchase revoked successfully")
+            } catch (e: Exception) {
+                loge(mname, "State machine update failed: ${e.message}", e)
+                logEvent(EventType.PROXY_ERROR, Severity.HIGH, "revokeOneTimePurchase", "State machine update failed: ${e.message}")
+                Pair(false, "Revoked on server but state sync failed")
+            }
         }
-
-        return Pair(false, "Error revoking subscription, reason: Unknown error")
     }
 
-    suspend fun queryEntitlementFromServer(accountId: String): String? {
-        // g/entitlement?cid&purchaseToken&test
-        // response: {"message":"canceled subscription","purchaseId":"c078ba1a42e042f3745e195aa52c952b3c99751f3de9880e6c754682698d5133"}
+    /**
+     * Computes the number of days remaining until the one-time purchase expires.
+     *
+     * Returns null when:
+     * - The current subscription is not a one-time (INAPP) purchase.
+     * - `billingExpiry` is 0 or [Long.MAX_VALUE] (unknown / subscription product).
+     *
+     * A negative value means the purchase is already past its access window
+     * (should be expired but hasn't been swept yet).
+     *
+     * When two INAPP purchases are simultaneously active (e.g. the user extended before expiry)
+     * this method uses the **maximum** billing expiry across all active INAPP rows via
+     * [SubscriptionStateMachineV2.getEffectiveInAppExpiryMs]. Call [getRemainingDaysForInAppSuspend]
+     * from a coroutine to get the multi-row-aware result; this synchronous overload falls back
+     * to the in-memory state machine data for backward compatibility.
+     */
+    fun getRemainingDaysForInApp(): Long? {
+        val sub = subscriptionStateMachine.getSubscriptionData()?.subscriptionStatus ?: return null
+        // only compute remaining days for INAPP products
+        val isInApp = sub.productId.contains("onetime", ignoreCase = true) ||
+                sub.productId.contains("inapp", ignoreCase = true) ||
+                sub.productId == ONE_TIME_TEST_PRODUCT_ID ||
+                sub.productId == ONE_TIME_PRODUCT_2YRS ||
+                sub.productId == ONE_TIME_PRODUCT_5YRS ||
+                sub.productId == ONE_TIME_PRODUCT_ID
+        if (!isInApp) return null
+        val expiry = sub.billingExpiry
+        // TODO: should we check with the vpnAdapter?.winExpiry here?
+        if (expiry <= 0L || expiry == Long.MAX_VALUE) return null
+        val nowMs = System.currentTimeMillis()
+        return (expiry - nowMs) / (24L * 60 * 60 * 1000)
+    }
+
+    /**
+     * Suspend version of [getRemainingDaysForInApp] that accounts for multiple concurrent
+     * active INAPP rows. Returns remaining days until the LATEST expiry across all active
+     * INAPP subscriptions. Use this from coroutines for accurate results in the extend-flow.
+     */
+    suspend fun getRemainingDaysForInAppSuspend(): Long? {
+        val sub = subscriptionStateMachine.getSubscriptionData()?.subscriptionStatus ?: return null
+        val isInApp = sub.productId.contains("onetime", ignoreCase = true) ||
+                sub.productId.contains("inapp", ignoreCase = true) ||
+                sub.productId == ONE_TIME_TEST_PRODUCT_ID ||
+                sub.productId == ONE_TIME_PRODUCT_2YRS ||
+                sub.productId == ONE_TIME_PRODUCT_5YRS ||
+                sub.productId == ONE_TIME_PRODUCT_ID
+        if (!isInApp) return null
+        val effectiveExpiry = subscriptionStateMachine.getEffectiveInAppExpiryMs() ?: return null
+        if (effectiveExpiry <= 0L || effectiveExpiry == Long.MAX_VALUE) return null
+        val nowMs = System.currentTimeMillis()
+        return (effectiveExpiry - nowMs) / (24L * 60 * 60 * 1000)
+    }
+
+    suspend fun cancelPlaySubscription(accountId: String, deviceId: String, purchaseToken: String, sku: String): Pair<Boolean, String> =
+        withContext(Dispatchers.IO) {
+            val mname = "cancelPlaySubscription"
+            logd(mname, "delegating to BillingServerRepository, accLen=${accountId.length}")
+            connectionMutex.withLock {
+                val (success, msg) = billingBackendClient.cancelPurchase(accountId, deviceId, sku, purchaseToken)
+                if (!success && msg.startsWith("Conflict")) {
+                    return@withLock handleConflict409(ServerApiError.Operation.CANCEL, accountId, deviceId, purchaseToken, sku, msg)
+                }
+                if (!success) return@withLock Pair(false, msg)
+                val localSuccess = RpnProxyManager.updateCancelledSubscription(accountId, purchaseToken)
+                if (!localSuccess) {
+                    logEvent(EventType.PROXY_ERROR, Severity.HIGH, "cancelPlaySubscription", "Local state update failed")
+                    return@withLock Pair(false, "Local state update failed")
+                } else {
+                    logEvent(EventType.PROXY_SWITCH, Severity.LOW, "cancelPlaySubscription", "cancelPlaySubscription success")
+                }
+                fetchPurchases(listOf(ProductType.SUBS, ProductType.INAPP))
+                try {
+                    subscriptionStateMachine.userCancelled()
+                    logd(mname, "Subscription cancelled successfully")
+                    Pair(true, "Subscription cancelled successfully")
+                } catch (e: Exception) {
+                    loge(mname, "State machine update failed: ${e.message}", e)
+                    logEvent(EventType.PROXY_ERROR, Severity.HIGH, "cancelPlaySubscription", "State machine update failed: ${e.message}")
+                    Pair(false, "Cancelled on server but state sync failed")
+                }
+            }
+        }
+
+    suspend fun revokeSubscription(accountId: String, deviceId: String, purchaseToken: String, sku: String): Pair<Boolean, String> =
+        withContext(Dispatchers.IO) {
+            val mname = "revokeSubscription"
+            logd(mname, "delegating to BillingServerRepository, accLen=${accountId.length}")
+            connectionMutex.withLock {
+                val (success, msg) = billingBackendClient.revokePurchase(accountId, deviceId, sku, purchaseToken)
+                if (!success && msg.startsWith("Conflict")) {
+                    return@withLock handleConflict409(ServerApiError.Operation.REVOKE, accountId, deviceId, purchaseToken, sku, msg)
+                }
+                if (!success) return@withLock Pair(false, msg)
+                val localSuccess = RpnProxyManager.updateRevokedSubscription(accountId, purchaseToken)
+                if (!localSuccess) {
+                    logEvent(EventType.PROXY_ERROR, Severity.HIGH, "revokeSubscription", "Local state update failed")
+                    return@withLock Pair(false, "Local state update failed")
+                } else {
+                    logEvent(EventType.PROXY_SWITCH, Severity.LOW, "revokeSubscription", "revokeSubscription success")
+                }
+                fetchPurchases(listOf(ProductType.SUBS, ProductType.INAPP))
+                try {
+                    subscriptionStateMachine.subscriptionRevoked()
+                    logd(mname, "Subscription revoked successfully")
+                    Pair(true, "Subscription revoked successfully")
+                } catch (e: Exception) {
+                    loge(mname, "State machine update failed: ${e.message}", e)
+                    logEvent(EventType.PROXY_ERROR, Severity.HIGH, "revokeSubscription", "State machine update failed: ${e.message}")
+                    Pair(false, "Revoked on server but state sync failed")
+                }
+            }
+        }
+
+    suspend fun queryEntitlementFromServer(accountId: String, deviceId: String, purchase: PurchaseDetail): PurchaseDetail {
         val mname = this::queryEntitlementFromServer.name
-        logd(mname, "querying entitlement for accountId: $accountId, test? $DEBUG")
-        // use retrofit to make the API call
-        val retrofit = RetrofitManager.getTcpProxyBaseBuilder(persistentState.routeRethinkInRethink)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-        val retrofitInterface = retrofit.create(ITcpProxy::class.java)
-        try {
-            val response = retrofitInterface.queryEntitlement(accountId, DEBUG)
-            logd(mname, "query entitlement response: ${response?.headers()}, ${response?.message()}, ${response?.raw()?.request?.url}")
-            if (response == null) {
-                loge(mname, "response is null, failed to query entitlement")
-                return null
-            }
-            if (!response.isSuccessful) {
-                loge(mname, "failed to query entitlement, response code: ${response.code()}, error: ${response.errorBody()?.string()}, message: ${response.message()}, url: ${response.raw().request.url}")
-                return null
-            }
-            // check if the response body is not null and has the status field
-            return if (response.body() != null) {
-                val body = response.body()!!
-                // parse the developer payload from the response
-                val developerPayload = JSONObject(body.toString()).optString("developerPayload", "")
-                logd(mname, "developer payload empty? ${developerPayload.isEmpty()}")
-                return developerPayload
-            } else {
-                loge(mname, "err in querying entitlement: ${response.errorBody()?.string()}")
-                null
-            }
-        } catch (e: Exception) {
-            loge(mname, "err in querying entitlement: ${e.message}")
+        logd(mname, "delegating to BillingServerRepository, accLen=${accountId.length}")
+        val pt = purchase.purchaseToken.ifEmpty { getLatestPurchaseToken() } ?: run {
+            logd(mname, "no purchase token; skipping")
+            return purchase
         }
 
-        return null
+        return billingBackendClient.queryEntitlement(accountId, deviceId, purchase, pt)
+    }
+
+    suspend fun acknowledgePurchaseFromServer(
+        accountId: String,
+        deviceId: String,
+        purchaseToken: String,
+        productType: String
+    ): Pair<Boolean, String> {
+        val mname = "acknowledgePurchaseFromServer"
+        logd(mname, "delegating to BillingServerRepository, accLen=${accountId.length}")
+        val (success, payload) = billingBackendClient.acknowledgePurchase(accountId, deviceId, purchaseToken, productType)
+        if (!success && payload.startsWith("Conflict")) {
+            loge(mname, "acknowledgePurchaseFromServer failed: acc: ${accountId.take(8)}, prod: $productType, token: ${purchaseToken.take(8)}")
+            handleConflict409(
+                ServerApiError.Operation.ACKNOWLEDGE, accountId, deviceId,
+                purchaseToken, skuForType(productType), payload
+            )
+        }
+        return Pair(success, payload)
+    }
+
+    fun getLatestPurchaseToken(): String? {
+        return purchasesLiveData.value?.maxByOrNull { it.purchaseTime }?.purchaseToken
+    }
+
+    fun getSubscriptionState(): SubscriptionStateMachineV2.SubscriptionState {
+        return subscriptionStateMachine.getCurrentState()
+    }
+
+    fun getSubscriptionStateLiveData(): LiveData<SubscriptionStateMachineV2.SubscriptionState> {
+        return subscriptionStateMachine.currentState.asLiveData()
+    }
+
+    fun getSubscriptionStateFlow(): StateFlow<SubscriptionStateMachineV2.SubscriptionState> {
+        return subscriptionStateMachine.currentState
+    }
+
+    private fun logEvent(eventType: EventType, severity: Severity, msg: String, details: String) {
+        eventLogger.log(eventType, severity, msg, EventSource.PROXY, false, details)
     }
 }
-*/

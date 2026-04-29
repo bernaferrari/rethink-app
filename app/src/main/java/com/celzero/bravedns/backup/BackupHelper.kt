@@ -45,6 +45,7 @@ class BackupHelper {
 
         // backup file extension
         const val BACKUP_FILE_EXTN = ".rbk"
+        const val BACKUP_FILE_EXTN_ALPHA = ".rbka"
 
         // backup shared pref file name
         const val SHARED_PREFS_BACKUP_FILE_NAME = "shared_prefs_backup.txt"

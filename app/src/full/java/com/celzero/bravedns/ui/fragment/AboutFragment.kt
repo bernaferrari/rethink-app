@@ -16,6 +16,7 @@
 package com.celzero.bravedns.ui.fragment
 
 import Logger
+import Logger.LOG_IAB
 import Logger.LOG_TAG_UI
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
@@ -48,17 +49,23 @@ import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.database.AppDatabase
+import com.celzero.bravedns.database.EventSource
+import com.celzero.bravedns.database.EventType
+import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.databinding.DialogInfoRulesLayoutBinding
 import com.celzero.bravedns.databinding.DialogWhatsnewBinding
 import com.celzero.bravedns.databinding.FragmentAboutBinding
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.scheduler.BugReportZipper
 import com.celzero.bravedns.scheduler.BugReportZipper.getZipFileName
 import com.celzero.bravedns.scheduler.EnhancedBugReport
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.AppUpdater
+import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.HomeScreenActivity
+import com.celzero.bravedns.ui.activity.FragmentHostActivity
 import com.celzero.bravedns.ui.bottomsheet.BugReportFilesBottomSheet
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.celzero.bravedns.util.Constants.Companion.RETHINKDNS_SPONSOR_LINK
@@ -90,7 +97,6 @@ import org.koin.android.ext.android.inject
 import org.koin.core.component.KoinComponent
 import java.io.File
 import java.util.concurrent.TimeUnit
-import kotlin.jvm.java
 
 class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, KoinComponent {
     private val b by viewBinding(FragmentAboutBinding::bind)
@@ -99,6 +105,7 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
     private val workScheduler by inject<WorkScheduler>()
     private val appDatabase by inject<AppDatabase>()
     private val persistentState by inject<PersistentState>()
+    private val eventLogger by inject<EventLogger>()
 
     companion object {
         private const val SCHEME_PACKAGE = "package"
@@ -116,7 +123,13 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         // Sponsorship calculation constants
         private const val BASE_AMOUNT_PER_MONTH = 0.60
         private const val ADDITIONAL_AMOUNT_PER_MONTH = 0.20
+
+        private const val TAP_THRESHOLD_MS = 2000L // reset if too slow
+        private const val REQUIRED_TAPS = 7
     }
+
+    private var tapCount = 0
+    private var lastTapTime = 0L
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -134,6 +147,13 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         if (isFdroidFlavour()) {
             b.aboutAppUpdate.visibility = View.GONE
         }
+
+        // Show "α" badge next to the app name when running an alpha build so testers
+        // can immediately identify they are on a pre-release version.
+        if (Utilities.isAlphaBuild()) {
+            b.fhsTitleRethink.setText(R.string.app_name_alpha)
+        }
+
         updateVersionInfo()
         updateSponsorInfo()
         updateTokenUi(persistentState.firebaseUserToken)
@@ -143,11 +163,15 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
 
         if (DEBUG) {
             b.aboutFlightRecord.visibility = View.VISIBLE
+            b.aboutCrash.visibility = View.VISIBLE
         } else {
             b.aboutFlightRecord.visibility = View.GONE
+            b.aboutCrash.visibility = View.GONE
         }
 
+        b.fhsTitleRethink.setOnClickListener(this)
         b.aboutSponsor.setOnClickListener(this)
+        b.aboutManageRpn.setOnClickListener(this)
         b.aboutWebsite.setOnClickListener(this)
         b.aboutTwitter.setOnClickListener(this)
         b.aboutGithub.setOnClickListener(this)
@@ -163,6 +187,7 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         b.aboutFaq.setOnClickListener(this)
         b.mozillaImg.setOnClickListener(this)
         b.fossImg.setOnClickListener(this)
+        b.flossFundsImg.setOnClickListener(this)
         b.aboutAppUpdate.setOnClickListener(this)
         b.aboutWhatsNew.setOnClickListener(this)
         b.aboutAppInfo.setOnClickListener(this)
@@ -178,6 +203,7 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         b.tokenTextView.setOnClickListener(this)
         b.aboutFlightRecord.setOnClickListener(this)
         b.aboutEventLogs.setOnClickListener(this)
+        b.aboutCrash.setOnClickListener(this)
 
         val gestureDetector = GestureDetector(
             requireContext(),
@@ -260,21 +286,31 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
     }
 
     private fun updateSponsorInfo() {
-        /*if (RpnProxyManager.isRpnEnabled()) {
-            b.sponsorInfoUsage.visibility = View.GONE
+        if (RpnProxyManager.isRpnActive()) {
             b.aboutSponsor.visibility = View.GONE
-            return
-        }*/
+            b.aboutManageRpn.visibility = View.VISIBLE
+            b.sponsorInfoUsage.visibility = View.GONE
+        } else {
+            b.aboutSponsor.visibility = View.VISIBLE
+            b.aboutManageRpn.visibility = View.GONE
+            b.sponsorInfoUsage.text = getSponsorInfo()
+        }
+    }
 
-        b.sponsorInfoUsage.text = getSponsorInfo()
+    private fun openRpnDashboardScreen() {
+        val args = Bundle().apply { putString("ARG_KEY", "Launch_Rethink_Support_Dashboard") }
+        startActivity(
+            FragmentHostActivity.createIntent(
+                context = requireContext(),
+                fragmentClass = ManagePurchaseFragment::class.java,
+                args = args
+            )
+        )
     }
 
     private fun getVersionName(): String {
         val pInfo: PackageInfo? =
-            Utilities.getPackageMetadata(
-                requireContext().packageManager,
-                requireContext().packageName
-            )
+            getPackageMetadata(requireContext().packageManager, requireContext().packageName)
         return pInfo?.versionName ?: ""
     }
 
@@ -305,6 +341,9 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
 
     override fun onClick(view: View?) {
         when (view) {
+            b.fhsTitleRethink -> {
+                handleTitleClick()
+            }
             b.aboutTelegram -> {
                 openUrl(requireContext(), getString(R.string.about_telegram_link))
             }
@@ -340,6 +379,9 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
             }
             b.aboutSponsor -> {
                 openUrl(requireContext(), RETHINKDNS_SPONSOR_LINK)
+            }
+            b.aboutManageRpn -> {
+                openRpnDashboardScreen()
             }
             b.mozillaImg -> {
                 // no-link, no action
@@ -409,7 +451,34 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
             b.aboutEventLogs -> {
                 openEventLogs()
             }
+            b.aboutCrash -> {
+                if (DEBUG) Intra.crash(500L)
+            }
         }
+    }
+
+    private fun handleTitleClick() {
+        val currentTime = System.currentTimeMillis()
+
+        // Reset if taps are too far apart
+        if (currentTime - lastTapTime > TAP_THRESHOLD_MS) {
+            tapCount = 0
+        }
+
+        tapCount++
+        lastTapTime = currentTime
+
+        if (tapCount == REQUIRED_TAPS) {
+            enableTestMode()
+            tapCount = 0
+        }
+    }
+
+    private fun enableTestMode() {
+        persistentState.appTestMode = true
+        showToastUiCentered(requireContext(), "Test mode enabled", Toast.LENGTH_SHORT)
+        Logger.i(LOG_TAG_UI, "Test mode enabled")
+        logEvent(EventType.UI_TOGGLE, "Test mode enabled", "User enabled test mode")
     }
 
     private fun initiateFlightRecord() {
@@ -429,6 +498,7 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         persistentState.firebaseUserToken = newToken
         persistentState.firebaseUserTokenTimestamp = System.currentTimeMillis()
         updateTokenUi(newToken)
+        logEvent(EventType.SYSTEM_EVENT, "Stability Program Token", "User regenerated new token for stability program")
         return newToken
     }
 
@@ -436,30 +506,89 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         io {
             val stat = VpnController.getNetStat()
             val formatedStat = UIUtils.formatNetStat(stat)
+            val formatedMetrics = UIUtils.formatNetMetrics(stat)
             val vpnStats = VpnController.vpnStats()
             val stats = formatedStat + vpnStats
             uiCtx {
                 if (!isAdded) return@uiCtx
-                val tv = android.widget.TextView(requireContext())
+                val ctx = requireContext()
                 val pad = resources.getDimensionPixelSize(R.dimen.dots_margin_bottom)
-                tv.setPadding(pad, pad, pad, pad)
-                if (formatedStat == null) {
-                    tv.text = "No Stats"
-                } else {
-                    tv.text = stats
+
+                fun makeTabButton(text: String): android.widget.Button {
+                    return android.widget.Button(ctx, null, android.R.attr.borderlessButtonStyle).apply {
+                        this.text = text
+                        textSize = 12f
+                        layoutParams = android.widget.LinearLayout.LayoutParams(
+                            0, android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                        isAllCaps = false
+                    }
                 }
-                tv.setTextIsSelectable(true)
-                tv.typeface = android.graphics.Typeface.MONOSPACE
-                val scroll = android.widget.ScrollView(requireContext())
-                scroll.addView(tv)
-                MaterialAlertDialogBuilder(requireContext(), R.style.App_Dialog_NoDim)
+
+                fun makeScrollableText(content: String?): android.widget.ScrollView {
+                    val tv = android.widget.TextView(ctx).apply {
+                        setPadding(pad, pad / 2, pad, pad)
+                        text = content ?: "No data"
+                        setTextIsSelectable(true)
+                        typeface = android.graphics.Typeface.MONOSPACE
+                        textSize = 11.5f
+                    }
+                    return android.widget.ScrollView(ctx).apply {
+                        addView(tv)
+                        scrollBarStyle = android.widget.ScrollView.SCROLLBARS_INSIDE_OVERLAY
+                    }
+                }
+
+                val statsScrollView   = makeScrollableText(stats)
+                val metricsScrollView = makeScrollableText(formatedMetrics)
+
+                val tabStats   = makeTabButton("General")
+                val tabMetrics = makeTabButton("Metrics")
+
+                fun selectTab(showStats: Boolean) {
+                    statsScrollView.visibility   = if (showStats)  View.VISIBLE else View.GONE
+                    metricsScrollView.visibility = if (!showStats) View.VISIBLE else View.GONE
+                    tabStats.alpha   = if (showStats)  1f else 0.45f
+                    tabMetrics.alpha = if (!showStats) 1f else 0.45f
+                    if (showStats)  statsScrollView.post   { statsScrollView.scrollTo(0, 0) }
+                    else            metricsScrollView.post { metricsScrollView.scrollTo(0, 0) }
+                }
+
+                tabStats.setOnClickListener   { selectTab(true) }
+                tabMetrics.setOnClickListener { selectTab(false) }
+
+                val tabRow = android.widget.LinearLayout(ctx).apply {
+                    orientation = android.widget.LinearLayout.HORIZONTAL
+                    addView(tabStats)
+                    addView(tabMetrics)
+                }
+
+                val container = android.widget.LinearLayout(ctx).apply {
+                    orientation = android.widget.LinearLayout.VERTICAL
+                    addView(tabRow)
+                    addView(statsScrollView, android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+                    addView(metricsScrollView, android.widget.LinearLayout.LayoutParams(
+                        android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+                }
+
+                // Start on the Stats tab
+                selectTab(true)
+
+                val clipText = buildString {
+                    appendLine("=== STATS ===")
+                    appendLine(stats)
+                    appendLine("=== METRICS ===")
+                    appendLine(formatedMetrics.orEmpty())
+                }
+
+                MaterialAlertDialogBuilder(ctx, R.style.App_Dialog_NoDim)
                     .setTitle(getString(R.string.title_statistics))
-                    .setView(scroll)
+                    .setView(container)
                     .setPositiveButton(R.string.fapps_info_dialog_positive_btn) { d, _ -> d.dismiss() }
                     .setNeutralButton(R.string.dns_info_neutral) { _, _ ->
-                        copyToClipboard("stats_dump", stats)
+                        copyToClipboard("stats_dump", clipText)
                         showToastUiCentered(
-                            requireContext(),
+                            ctx,
                             getString(R.string.copied_clipboard),
                             Toast.LENGTH_SHORT
                         )
@@ -470,81 +599,195 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
     }
 
     private fun openProcDialog() {
-        fun gatherProcDump(force: Boolean): String {
-            val stat = KernelProc.getStats(force)
-            val status = KernelProc.getStatus(force)
-            val mem = KernelProc.getMem(force)
-            val maps = KernelProc.getMaps(force)
-            val smaps = KernelProc.getSmaps(force)
-            val net = KernelProc.getNet(force)
-            val ns = KernelProc.getNs(force)
-            val sched = KernelProc.getSched(force)
-            val task = KernelProc.getTask(force)
-            return buildString {
-                append(stat)
-                append("\n\n")
-                append(status)
-                append("\n\n")
-                append(mem)
-                append("\n\n")
-                append(maps)
-                append("\n\n")
-                append(smaps)
-                append("\n\n")
-                append(net)
-                append("\n\n")
-                append(ns)
-                append("\n\n")
-                append(sched)
-                append("\n\n")
-                append(task)
-            }
-        }
-
         io {
-            val initial = gatherProcDump(force = false)
+            // Read everything on IO so the dialog opens quickly.
+            val allThreadsSched = KernelProc.parseSchedAllThreads()
+            val status = KernelProc.getStatus(forceRefresh = true)
+            val smaps = KernelProc.getSmaps(forceRefresh = true)
+            val auxv = KernelProc.getStats(forceRefresh = true)
             uiCtx {
                 if (!isAdded) return@uiCtx
-                val tv = android.widget.TextView(requireContext())
-                val pad = resources.getDimensionPixelSize(R.dimen.dots_margin_bottom)
-                tv.setPadding(pad, pad, pad, pad)
-                tv.text = initial.ifEmpty { "No Proc stats" }
-                tv.setTextIsSelectable(true)
-                tv.typeface = android.graphics.Typeface.MONOSPACE
-                val scroll = android.widget.ScrollView(requireContext())
-                scroll.addView(tv)
-
-                val dialog = MaterialAlertDialogBuilder(requireContext(), R.style.App_Dialog_NoDim)
-                    .setTitle(getString(R.string.title_proc))
-                    .setView(scroll)
-                    .setPositiveButton(R.string.fapps_info_dialog_positive_btn) { d, _ -> d.dismiss() }
-                    .setNegativeButton(R.string.dns_info_neutral) { _, _ ->
-                        copyToClipboard("proc_dump", tv.text.toString())
-                        showToastUiCentered(
-                            requireContext(),
-                            getString(R.string.copied_clipboard),
-                            Toast.LENGTH_SHORT
-                        )
-                    }
-                    .setNeutralButton("Refresh", null)
-                    .create()
-
-                dialog.setOnShowListener {
-                    dialog.getButton(android.app.AlertDialog.BUTTON_NEUTRAL)?.setOnClickListener {
-                        io {
-                            val refreshed = gatherProcDump(force = true)
-                            uiCtx {
-                                if (isAdded) tv.text = refreshed
-                                showToastUiCentered(requireContext(), getString(R.string.config_add_success_toast),
-                                    Toast.LENGTH_SHORT)
-                            }
-                        }
-                    }
-                }
-
-                dialog.show()
+                showProcDialog(allThreadsSched, status, smaps, auxv)
             }
         }
+    }
+
+    private fun showProcDialog(
+        allThreadsSched: List<KernelProc.ThreadSchedInfo>,
+        status: String,
+        smaps: String,
+        auxv: String
+    ) {
+        if (!isAdded) return
+        val ctx = requireContext()
+        val pad = resources.getDimensionPixelSize(R.dimen.dots_margin_bottom)
+
+        val colorHint = ContextCompat.getColor(ctx, android.R.color.darker_gray)
+
+        fun android.text.SpannableStringBuilder.bold(text: String): android.text.SpannableStringBuilder {
+            val start = length
+            append(text)
+            setSpan(android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                start, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            return this
+        }
+
+        fun android.text.SpannableStringBuilder.color(text: String, color: Int): android.text.SpannableStringBuilder {
+            val start = length
+            append(text)
+            setSpan(android.text.style.ForegroundColorSpan(color),
+                start, length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            return this
+        }
+
+        fun fmtNs(ns: Long): String = when {
+            ns <= 0 -> "-"
+            ns < 1_000L -> "$ns ns"
+            ns < 1_000_000L -> "${"%.1f".format(ns / 1_000.0)} µs"
+            ns < 1_000_000_000L -> "${"%.2f".format(ns / 1_000_000.0)} ms"
+            else -> "${"%.3f".format(ns / 1_000_000_000.0)} s"
+        }
+        fun fmtNum(v: Long): String = if (v <= 0) "-" else "%,d".format(v)
+
+        val threadsSpan = android.text.SpannableStringBuilder()
+
+        if (allThreadsSched.isEmpty()) {
+            threadsSpan.bold("  /proc/self/task not available or empty\n")
+        } else {
+            allThreadsSched.forEach { t ->
+                // Header: tid  [name]  state
+                threadsSpan.bold("  ${t.tid}  [${t.name}]  ${t.state}\n")
+
+                // Compact sched metrics (only show non-zero values)
+                val hasSchedstat = t.timeslices > 0 || t.runningNs > 0
+                val hasSchedFields = t.waitMax > 0 || t.nrWakeups > 0 ||
+                        t.nrInvoluntarySwitches > 0 || t.nrVoluntarySwitches > 0
+
+                if (hasSchedstat) {
+                    threadsSpan.append("    run=${fmtNs(t.runningNs)}  wait=${fmtNs(t.waitingNs)}  slices=${fmtNum(t.timeslices)}\n")
+                }
+                if (hasSchedFields) {
+                    val sb = StringBuilder("    ")
+                    if (t.waitMax > 0)              sb.append("wait_max=${fmtNs(t.waitMax)}  ")
+                    if (t.nrWakeups > 0)            sb.append("wakeups=${fmtNum(t.nrWakeups)}  ")
+                    if (t.nrMigrations > 0)         sb.append("mig=${fmtNum(t.nrMigrations)}  ")
+                    if (t.nrInvoluntarySwitches > 0) sb.append("inv_sw=${fmtNum(t.nrInvoluntarySwitches)}  ")
+                    if (t.nrVoluntarySwitches > 0)  sb.append("vol_sw=${fmtNum(t.nrVoluntarySwitches)}")
+                    threadsSpan.append(sb.toString().trimEnd()).append("\n")
+                }
+
+                // Raw schedstat line
+                if (t.schedstatRaw.isNotBlank()) {
+                    threadsSpan.color("    schedstat: ${t.schedstatRaw}\n", colorHint)
+                }
+
+                threadsSpan.append("\n")
+            }
+        }
+
+        val otherSpan = android.text.SpannableStringBuilder()
+
+        fun otherSection(title: String, content: String) {
+            val start = otherSpan.length
+            otherSpan.append("  $title\n")
+            otherSpan.setSpan(android.text.style.StyleSpan(android.graphics.Typeface.BOLD),
+                start, otherSpan.length, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE)
+            otherSpan.append("\n")
+            val stripped = content.substringAfter("\n").trim()
+            otherSpan.color("$stripped\n\n", colorHint)
+        }
+
+        otherSection("STATUS  (/proc/self/status)", status)
+        otherSection("SMAPS  (/proc/self/smaps_rollup)", smaps)
+        otherSection("AUXV  (/proc/self/auxv)", auxv)
+
+        val clipText = buildString {
+            appendLine("=== THREADS / SCHED ===")
+            appendLine(threadsSpan.toString())
+            appendLine("=== PROC / MEM ===")
+            appendLine(otherSpan.toString())
+        }
+
+        fun makeTabButton(text: String): android.widget.Button {
+            return android.widget.Button(ctx, null, android.R.attr.borderlessButtonStyle).apply {
+                this.text = text
+                textSize = 12f
+                layoutParams = android.widget.LinearLayout.LayoutParams(0,
+                    android.widget.LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+                isAllCaps = false
+            }
+        }
+
+        fun makeScrollableText(spannable: android.text.SpannableStringBuilder): android.widget.ScrollView {
+            val tv = android.widget.TextView(ctx).apply {
+                setPadding(pad, pad / 2, pad, pad)
+                setText(spannable, android.widget.TextView.BufferType.SPANNABLE)
+                setTextIsSelectable(true)
+                typeface = android.graphics.Typeface.MONOSPACE
+                textSize = 11.5f
+                movementMethod = android.text.method.ScrollingMovementMethod.getInstance()
+            }
+            return android.widget.ScrollView(ctx).apply {
+                addView(tv)
+                scrollBarStyle = android.widget.ScrollView.SCROLLBARS_INSIDE_OVERLAY
+            }
+        }
+
+        val threadsScrollView = makeScrollableText(threadsSpan)
+        val otherScrollView   = makeScrollableText(otherSpan)
+
+        val tabOther   = makeTabButton("Proc / Mem")
+        val tabThreads = makeTabButton("Threads")
+
+        fun selectTab(showThreads: Boolean) {
+            threadsScrollView.visibility = if (showThreads) View.VISIBLE else View.GONE
+            otherScrollView.visibility   = if (!showThreads) View.VISIBLE else View.GONE
+            tabThreads.alpha = if (showThreads) 1f else 0.45f
+            tabOther.alpha   = if (!showThreads) 1f else 0.45f
+            if (showThreads) threadsScrollView.post { threadsScrollView.scrollTo(0, 0) }
+            else             otherScrollView.post   { otherScrollView.scrollTo(0, 0) }
+        }
+
+        tabThreads.setOnClickListener { selectTab(true) }
+        tabOther.setOnClickListener   { selectTab(false) }
+
+        val tabRow = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.HORIZONTAL
+            addView(tabOther)
+            addView(tabThreads)
+        }
+
+        val container = android.widget.LinearLayout(ctx).apply {
+            orientation = android.widget.LinearLayout.VERTICAL
+            addView(tabRow)
+            addView(threadsScrollView, android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+            addView(otherScrollView, android.widget.LinearLayout.LayoutParams(
+                android.widget.LinearLayout.LayoutParams.MATCH_PARENT, 0, 1f))
+        }
+
+        // Start on the Proc / mem tab
+        selectTab(false)
+
+        val dialog = MaterialAlertDialogBuilder(ctx, R.style.App_Dialog_NoDim)
+            .setTitle("Proc Analysis")
+            .setView(container)
+            .setPositiveButton(R.string.fapps_info_dialog_positive_btn) { d, _ -> d.dismiss() }
+            .setNegativeButton(R.string.dns_info_neutral) { _, _ ->
+                copyToClipboard("proc_analysis", clipText)
+                showToastUiCentered(ctx, getString(R.string.copied_clipboard), Toast.LENGTH_SHORT)
+            }
+            .setNeutralButton("Refresh", null)
+            .create()
+
+        dialog.setOnShowListener {
+            dialog.getButton(android.app.AlertDialog.BUTTON_NEUTRAL)?.setOnClickListener {
+                dialog.dismiss()
+                openProcDialog()
+            }
+        }
+
+        dialog.show()
     }
 
     private fun copyToClipboard(label: String, text: String): ClipboardManager? {
@@ -639,9 +882,7 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
             "sqlite_sequence",
             "room_master_table",
             "TcpProxyEndpoint",
-            "RpnProxy",
-            "SubscriptionStatus",
-            "SubscriptionStateHistory"
+            "RpnProxy"
         )
         val tables = mutableListOf<String>()
         cursor.use {
@@ -944,6 +1185,12 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         lastAppExitInfoDialogInvokeTime = SystemClock.elapsedRealtime()
         hideBugReportProgressUi()
         promptCrashLogAction()
+    }
+
+    private fun logEvent(type: EventType, msg: String, details: String) {
+        io {
+            eventLogger.log(type, Severity.LOW, msg, EventSource.UI, true, details)
+        }
     }
 
     private fun io(f: suspend () -> Unit) {

@@ -21,7 +21,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -41,7 +41,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
-class RpnWinProxyDetailsActivity: AppCompatActivity(R.layout.activity_rpn_win_proxy_detail) {
+class RpnWinProxyDetailsActivity: BaseActivity(R.layout.activity_rpn_win_proxy_detail) {
 
     private val b by viewBinding(ActivityRpnWinProxyDetailBinding::bind)
     private val persistentState by inject<PersistentState>()

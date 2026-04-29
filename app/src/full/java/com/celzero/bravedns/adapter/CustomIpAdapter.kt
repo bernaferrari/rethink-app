@@ -228,8 +228,8 @@ class CustomIpAdapter(private val context: Context, private val type: CustomRule
                     displayIcon(
                         Utilities.getIcon(
                             context,
-                            appInfo?.packageName ?: "",
-                            appInfo?.appName ?: ""
+                            appInfo?.packageName.orEmpty(),
+                            appInfo?.appName.orEmpty()
                         ),
                         b.customIpAppIconIv
                     )

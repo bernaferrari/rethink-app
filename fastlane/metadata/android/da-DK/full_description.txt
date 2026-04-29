@@ -1,0 +1,31 @@
+Sig hej til et mere transparent og sikkert Android.
+
+VPN: Tilslut til flere WireGuard VPN'er efter dit eget valg.
+
+Sikker: Afslører netværksaktiviteten fra installerede apps og giver dig mulighed for at deaktivere, afinstallere eller beskytte dem med en firewall.
+
+Sikker: Første linje af forsvar mod spyware, ransomware og malware, der stjæler dine personlige oplysninger og overtager dine konti. Beskytter fra DNS-manipulation, der typisk anvendes til at censurere websteder, sociale medier og besked-apps.
+
+Hurtigt: DNS-servere fra 300+ lokationer i hele verden for at sikre, at dit internet er så hurtigt og tilgængeligt som mulilgt.
+
+Transparent: Open source og fri for trackere.
+
+***Features***
+
+Firewall: Forhindrer apps fra at tilgå internettet. Blokerer spyware, malware, ransomware med mere.
+
+En firewall blokerer enhver app, der forbinder sig til internettet via WiFi eller mobildata. Da de fleste former for overvågning kræver, at data sendes til en server, er det effektivt til at blokere truslen (filmanagere, alarm-/ur-apps, lommeregnere er eksempler på apps, der ikke kræver internetadgang for at fungere). Firewall-funktionen bruger tilgængelighedstjenester til at opdage og beskytte baggrundsapplikationer med en firewall.
+
+Overvågning: Få overblik over indgående og udgående internettrafik.
+
+Hvis aktiveret, indsamles og analyseres forbindelseslogfiler. Automatiserede rapporter advarer om tidligere ukendte eller mistænkelige forbindelser og afslører omfanget af forsøg på at stjæle data fra spywarenetværk. I vores tests er omkring 60% af trafikken markeret og rapporteret som værende initieret af kendt spyware. Logfiler genereres og er tilgængelig i tæt på realtid til brugeren, hvis man ønsker at lave sin egen analyse.
+
+WireGuard: Sikker udgående internettrafik.
+
+App'en bruger hurtig, moderne, letvægt og sikker WireGuard-protokol til at kryptere udgående forbindelser til enhver kompatibel VPN-udbyder efter dit valg.
+
+Anti-censur:
+
+App'en krypterer din internetforbindelse til en Domain Name System (DNS) server, der drives af Rethink med tilstedeværelse på 300+ lokationer over hele verden DNS-servere er internettets adressebog: En DNS-server giver de nøjagtige adresser, du skal bruge for at besøge en hjemmeside eller åbne en app.
+
+Data-monitorering: Spor pr-app og pr-tilslutning mobil- eller WiFi-databrug.

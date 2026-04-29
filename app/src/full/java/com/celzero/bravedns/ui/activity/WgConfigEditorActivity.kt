@@ -22,7 +22,7 @@ import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
 import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.lifecycle.lifecycleScope
 import by.kirich1409.viewbindingdelegate.viewBinding
@@ -35,7 +35,6 @@ import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils.clipboardCopy
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
-import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.wireguard.Config
 import com.celzero.bravedns.wireguard.WgInterface
@@ -46,7 +45,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.android.ext.android.inject
 
-class WgConfigEditorActivity : AppCompatActivity(R.layout.activity_wg_config_editor) {
+class WgConfigEditorActivity : BaseActivity(R.layout.activity_wg_config_editor) {
     private val b by viewBinding(ActivityWgConfigEditorBinding::bind)
     private val persistentState by inject<PersistentState>()
 
@@ -106,9 +105,9 @@ class WgConfigEditorActivity : AppCompatActivity(R.layout.activity_wg_config_edi
             uiCtx {
                 b.interfaceNameText.setText(wgConfig?.getName())
 
-                b.privateKeyText.setText(wgInterface?.getKeyPair()?.getPrivateKey()?.base64().tos())
-                b.publicKeyText.setText(wgInterface?.getKeyPair()?.getPublicKey()?.base64().tos())
-                var dns = wgInterface?.dnsServers?.joinToString { it.hostAddress?.toString() ?: "" }
+                b.privateKeyText.setText(wgInterface?.getKeyPair()?.getPrivateKey()?.base64())
+                b.publicKeyText.setText(wgInterface?.getKeyPair()?.getPublicKey()?.base64())
+                var dns = wgInterface?.dnsServers?.joinToString { it.hostAddress ?: "" }
                 val searchDomains = wgInterface?.dnsSearchDomains?.joinToString { it }
                 dns =
                     if (!searchDomains.isNullOrEmpty()) {

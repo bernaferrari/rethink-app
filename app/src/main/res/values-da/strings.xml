@@ -1,3 +1,180 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="title_about" translatable="true">Om</string>
+    <string name="title_settings" translatable="true">Indstillinger</string>
+    <string name="title_statistics" translatable="true">Statistik</string>
+    <string name="pause_title_desc" translatable="true">tager en lur…</string>
+    <string name="settings_title_desc" translatable="true">En yderst brugerdefinerbar DNS og Firewall</string>
+    <string name="about_title_desc" translatable="true">Opdag og blokér netværkssikkerhedstrusler</string>
+    <string name="txt_home" translatable="true">Hjem</string>
+    <string name="accessibility_service_description" translatable="true">Rethink bruger tilgængelighedstjenester til at opdage baggrundsapplikationer og sætte en firewall op. Rethink indsamler eller sælger ingen oplysninger.</string>
+    <string name="next" translatable="true">Næste</string>
+    <string name="skip" translatable="true">Spring over</string>
+    <string name="finish" translatable="true">Fuldfør</string>
+    <string name="lbl_cancel" translatable="true">Annullér</string>
+    <string name="lbl_apply" translatable="true">Anvend</string>
+    <string name="lbl_dismiss" translatable="true">Afvis</string>
+    <string name="lbl_all" translatable="true">Alle</string>
+    <string name="lbl_allowed" translatable="true">Tilladt</string>
+    <string name="lbl_maybe_blocked" translatable="true">Måske blokeret</string>
+    <string name="lbl_blocked" translatable="true">Blokeret</string>
+    <string name="lbl_disabled" translatable="true">Deaktiveret</string>
+    <string name="lbl_domain" translatable="true">Domæne</string>
+    <string name="lbl_wildcard" translatable="true">Wildcard</string>
+    <string name="lbl_action_required" translatable="true">Handling krævet</string>
+    <string name="lbl_rules" translatable="true">regler</string>
+    <string name="lbl_configure" translatable="true">Konfigurér</string>
+    <string name="lbl_logs" translatable="true">logfiler</string>
+    <string name="lbl_network" translatable="true">netværk</string>
+    <string name="lbl_create" translatable="true">Opret</string>
+    <string name="lbl_qr_code" translatable="true">QR-kode</string>
+    <string name="lbl_import" translatable="true">Importér</string>
+    <string name="lbl_wireguard" translatable="true">WireGuard</string>
+    <string name="lbl_public_key" translatable="true">Offentlig nøgle</string>
+    <string name="lbl_addresses" translatable="true">Adresser</string>
+    <string name="lbl_dns_servers" translatable="true">DNS-servere</string>
+    <string name="lbl_applications" translatable="true">Applikationer</string>
+    <string name="lbl_ip_rules" translatable="true">IP-regler</string>
+    <string name="lbl_domain_rules" translatable="true">Domæneregler</string>
+    <string name="lbl_delete" translatable="true">Slet</string>
+    <string name="lbl_proceed" translatable="true">Fortsæt</string>
+    <string name="lbl_private_key" translatable="true">Privat nøgle</string>
+    <string name="lbl_generated" translatable="true">(genereret)</string>
+    <string name="lbl_random" translatable="true">(tilfældig)</string>
+    <string name="lbl_mtu" translatable="true">MTU</string>
+    <string name="lbl_auto" translatable="true">(auto)</string>
+    <string name="lbl_include" translatable="true">Inkludér</string>
+    <string name="lbl_select_all" translatable="true">vælg alle</string>
+    <string name="lbl_active" translatable="true">Aktiv</string>
+    <string name="lbl_inactive" translatable="true">Inaktiv</string>
+    <string name="lbl_socks5" translatable="true">SOCKS5</string>
+    <string name="lbl_http" translatable="true">HTTP</string>
+    <string name="lbl_http_socks5" translatable="true">HTTPS &amp; SOCKS5</string>
+    <string name="lbl_fast" translatable="true">hurtig</string>
+    <string name="lbl_slow" translatable="true">langsom</string>
+    <string name="lbl_very" translatable="true">meget</string>
+    <string name="lbl_add" translatable="true">tilføj</string>
+    <string name="lbl_app_wise" translatable="true">pr app</string>
+    <string name="lbl_sec" translatable="true">sek</string>
+    <string name="lbl_min" translatable="true">min</string>
+    <string name="lbl_hour" translatable="true">t</string>
+    <string name="lbl_day" translatable="true">dag</string>
+    <string name="lbl_insecure" translatable="true">(usikker)</string>
+    <string name="lbl_optional" translatable="true">(valgfri)</string>
+    <string name="lbl_allowed_ips" translatable="true">Tilladte IP\'er</string>
+    <string name="lbl_save" translatable="true">gem</string>
+    <string name="lbl_cache" translatable="true">Cache</string>
+    <string name="lbl_status" translatable="true">Status</string>
+    <string name="lbl_remove" translatable="true">Fjern</string>
+    <string name="lbl_last" translatable="true">Sidst</string>
+    <string name="lbl_starting" translatable="true">Starter</string>
+    <string name="lbl_overall" translatable="true">Samlet</string>
+    <string name="lbl_stopped" translatable="true">Stoppet</string>
+    <string name="lbl_idle" translatable="true">Inaktiv</string>
+    <string name="lbl_private" translatable="true">privat</string>
+    <string name="lbl_secure" translatable="true">sikker</string>
+    <string name="lbl_anonymous" translatable="true">anonym</string>
+    <string name="lbl_peer" translatable="true">Peer</string>
+    <string name="lbl_split" translatable="true">Opdel</string>
+    <string name="lbl_on_device" translatable="true">på enheden</string>
+    <string name="lbl_unselected" translatable="true">Ikke valgt</string>
+    <string name="lbl_notification" translatable="true">notifikation</string>
+    <string name="lbl_test" translatable="true">test</string>
+    <string name="lbl_protos" translatable="true">protos</string>
+    <string name="lbl_experimental" translatable="true">(eksperimentel)</string>
+    <string name="lbl_service_providers" translatable="true">Serviceudbydere</string>
+    <string name="lbl_hop" translatable="true">Relæer</string>
+    <string name="lbl_manual" translatable="true">Vejledning</string>
+    <string name="lbl_default" translatable="true">Standard</string>
+    <string name="lbl_action" translatable="true">Handling</string>
+    <string name="lbl_connect" translatable="true">Tilslut</string>
+    <string name="lbl_criteria" translatable="true">Kriterier</string>
+    <string name="memory_notification_text">Rethink oplever lav hukommelse. Systemhandlinger kan være begrænsede.</string>
+    <string name="slide_2_title" translatable="true">Velkommen</string>
+    <string name="slide_2_desc" translatable="true">Rethink er den nemmeste måde at overvåge netværksaktivitet, omgå internetcensur og beskyt apps med en firewall på din Android-enhed.</string>
+    <string name="slide_1_title" translatable="true">Gratis og open source</string>
+    <string name="slide_1_desc" translatable="true">Rethink er open source-software understøttet af Mozilla Builders MVP-program, FOSS United Foundation.</string>
+    <string name="wireguard_title" translatable="true">Sikkert internet med WireGuard</string>
+    <string name="wireguard_desc" translatable="true">Kryptér din internettrafik med WireGuard. Vælg forskellige ruter for forskellige apps.</string>
+    <string name="firewall_title" translatable="true">Beskyt din Android-enhed med firewall</string>
+    <string name="firewall_desc" translatable="true">Kontrollér apps\' internetbrug; begræns forbindelser baseret på app- eller netværksaktivitet.</string>
+    <string name="dns_title" translatable="true">Blokér reklamer &amp; malware med DNS</string>
+    <string name="dns_desc" translatable="true">Vælg mellem 190+ lister for at stoppe annoncer, trackere og malware.</string>
+    <string name="allow" translatable="true">tillad</string>
+    <string name="block" translatable="true">blokér</string>
+    <string name="bypass_universal" translatable="true">omgå universel</string>
+    <string name="exclude" translatable="true">ekskludér</string>
+    <string name="isolate" translatable="true">isolér</string>
+    <string name="untracked" translatable="true">ikke tracket</string>
+    <string name="bypass_dns_firewall" translatable="true">omgå dns &amp; firewall</string>
+    <string name="warning_title" description="Status indicator text shown in a warning notification." translatable="true">Advarsel: Rethink er blevet deaktiveret</string>
+    <string name="notification_content" description="Indicates what will happen if the user taps the notification." translatable="true">Tryk for at ændre beskyttelsesindstilling</string>
+    <string name="dns_mode_notification_title" translatable="true">Beskyttet! Tilsluttet hurtig og sikker DNS.</string>
+    <string name="firewall_mode_notification_title" translatable="true">Beskyttet! Tilsluttet firewall.</string>
+    <string name="hybrid_mode_notification_title" translatable="true">Beskyttet! Tilsluttet DNS + firewall.</string>
+    <string name="hybrid_mode_with_proxy_notification_title" translatable="true">Beskyttet! Tilsluttet DNS + firewall + proxy.</string>
+    <string name="pause_mode_notification_title" translatable="true">Sat på pause! Blokerede apps vil forsat være beskyttet af firewall.</string>
+    <string name="status_waiting" description="This text appears during the connection process if Rethink needs user permission or the phone is offline." translatable="true">venter</string>
+    <string name="status_failing" description="This text appears if the connection is currently not working correctly. [CHAR_LIMIT=NONE]" translatable="true">fejlet</string>
+    <string name="status_protected" description="This is a large message in a reassuring color. It indicates that DNS queries can't be surveilled or modified in transit." translatable="true">beskyttet</string>
+    <string name="status_dns_error" translatable="true">dns-fejl</string>
+    <string name="status_dns_server_down" translatable="true">dns-server nede</string>
+    <string name="status_no_internet" translatable="true">ingen internetadgang</string>
+    <string name="status_no_network" translatable="true">intet netværk</string>
+    <string name="status_protected_with_tor" translatable="true">beskyttet med tor</string>
+    <string name="status_protected_with_private_dns" translatable="true">beskyttet med privat dns</string>
+    <string name="status_protected_with_tor_private_dns" translatable="true">beskyttet med tor &amp; privat dns</string>
+    <string name="status_protected_with_proxy_private_dns" translatable="true">beskyttet med proxy &amp; privat dns</string>
+    <string name="status_protected_with_socks5_private_dns" translatable="true">beskyttet med socks5 &amp; privat dns</string>
+    <string name="status_protected_with_http_private_dns" translatable="true">beskyttet med http proxy &amp; privat dns</string>
+    <string name="status_protected_with_socks5" translatable="true">beskyttet med socks proxy</string>
+    <string name="status_protected_with_http" translatable="true">beskyttet med http proxy</string>
+    <string name="status_protected_with_proxy" translatable="true">beskyttet med proxy</string>
+    <string name="status_protected_with_wg" translatable="true">beskyttet med wireguard</string>
+    <string name="status_protected_with_wg_private_dns" translatable="true">beskyttet med wireguard &amp; privat dns</string>
+    <string name="status_strict" description="This is similar to dns_on, but the protection is being provided by the operating system, not by Rethink.  It is not color-highlighted." translatable="true">privat dns er aktiveret</string>
+    <string name="status_exposed" description="This is a large message in a scary color.  It indicates that DNS queries can be surveilled or modified in transit." translatable="true">ikke beskyttet</string>
+    <string name="dns_explanation_dns_connected" translatable="true">Tilsluttet RethinkDNS</string>
+    <string name="dns_explanation_firewall_connected" translatable="true">Tilsluttet firewall</string>
+    <string name="dns_explanation_connected" description="The message will be shown when the DNS is connected" translatable="true">Tilsluttet RethinkDNS og firewall</string>
+    <string name="universal_firewall_explanation" translatable="true">Anvend firewall-regler på alle programmer baseret på enhedshændelser, f.eks. firewall når enheden er låst, eller når en bestemt app ikke er i brug.</string>
+    <string name="notification_action_resume_vpn" translatable="true">FORTSÆT</string>
+    <string name="notification_action_pause_vpn" translatable="true">SÆT PÅ PAUSE</string>
+    <string name="notification_action_stop_vpn" translatable="true">STOP</string>
+    <string name="notification_action_dns_mode" translatable="true">DNS</string>
+    <string name="notification_action_dns_firewall_mode" translatable="true">DNS + firewall</string>
+    <string name="dns_mode_info_title" translatable="true">DNS</string>
+    <string name="firewall_rules" translatable="true">Netværksregler</string>
+    <string name="firewall_mode_info_title" translatable="true">Firewall</string>
+    <string name="firewall_mode_info_explanation_new" translatable="true">Overvåg netværksaktivitet og beskyt enhver app eller IP-adresse bag en firewall.</string>
+    <string name="apps_info_title" translatable="true">Apps</string>
+    <string name="hybrid_mode_info_title" translatable="true">DNS + firewall</string>
+    <string name="dns_mode_info_explanation_new" translatable="true">Overvåg, blokér og kryptér DNS-anmodninger.</string>
+    <string name="dns_firewall_mode_info_explanation_new" translatable="true">Alle ovenstående + omgå internetcensur.</string>
+    <string name="alert_permission_accessibility" translatable="true">Tilladelse - tilgængelighed</string>
+    <string name="alert_firewall_accessibility_explanation" translatable="true">Rethink bruger tilgængelighedstjenester til at spore, hvilke apps der er i brug (i forgrunden) mod dem, der ikke er i brug (i baggrunden).\n\nRethink indsamler ikke oplysninger eller spionerer på dig på nogen som helst måde.</string>
+    <string name="alert_firewall_accessibility_regrant_explanation" translatable="true">Rethink tilgængelighedstjeneste er stoppet eller brudt sammen. <i><b>Gå til indstillinger og gennemtving et stop</b></i> Rethink og opstart igen for at bruge <i>Blokér alle apps, der ikke er i brug</i>-funktionen.\n\nRethink bruger tilgængelighedstjenester til at spore, hvilke apps der er i brug (i forgrunden) mod dem, der ikke er i brug (i baggrunden).</string>
+    <string name="alert_firewall_accessibility_exception" translatable="true">Kunne ikke åbne tilgængelighedsindstillinger. Prøv igen senere!</string>
+    <string name="brave_dns_connect_mode_change_firewall" translatable="true">Vælg tilstand.</string>
+    <string name="brave_dns_connect_mode_change_dns" translatable="true">Vælg tilstand.</string>
+    <string name="default_dns_name" translatable="true">RDNS standard</string>
+    <string name="custom_url_error_invalid_url" translatable="true">Ugyldig URL</string>
+    <string name="conn_track_clear_logs_title" translatable="true">Slet alle netværkslogfiler?</string>
+    <string name="conn_track_clear_logs_message" translatable="true">Dette sletter kun netværkslogfiler, men ikke firewall-regler. Dette kan ikke omgøres. Vil du fortsætte?</string>
+    <string name="conn_track_clear_rule_logs_title" translatable="true">Slet logfiler for denne regel?</string>
+    <string name="conn_track_clear_rule_logs_message" translatable="true">Dette vil kun slette netværkslogfiler for den aktuelle firewall-regel. Dette kan ikke omgøres. Vil du fortsætte?</string>
+    <string name="dns_query_clear_logs_title" translatable="true">Slet alle DNS-logfiler?</string>
+    <string name="dns_query_clear_logs_message" translatable="true">Dette sletter DNS-logfiler på enhenden. Dette kan ikke omgøres. Vil du fortsætte?</string>
+    <string name="bsct_app_info" translatable="true">App-information</string>
+    <string name="bsct_block_ip" translatable="true">Blokér, stol på <u>denne IP</u> for <u>denne app</u></string>
+    <string name="bsct_block_domain" translatable="true">Blokér, stol på <u>domæne(r)</u> for <u>denne app</u></string>
+    <string name="bsct_block" translatable="true">Blokér, omgå, ekskludér, isolér <u>denne app</u></string>
+    <string name="bsct_conn_block_desc" translatable="true">blokerede %1$s af %2$s</string>
+    <string name="bsct_conn_block_desc_device" translatable="true">blokerede %1$s på enheden</string>
+    <string name="bsct_conn_desc_allowed" translatable="true">tilladt på %1$s%2$s</string>
+    <string name="bsct_conn_desc_blocked" translatable="true">blokeret på %1$s%2$s</string>
+    <string name="bsct_conn_rule_explanation" translatable="true"><u>#1</u>: Blokerer en app fra at forbinde til internettet.\n<u>#2</u>: Blokerer enhver app fra tilslutning til en bestemt IP.\n<u>#3</u>: Blokerer alle forbindelser, når enheden er låst (Universel firewall).\n<u>#4</u>: Blokerer enhver app, der ikke er i brug (Universel firewall).\n<u>#5</u>: Blokerer forbindelser, når kildeapp\'en er ukendt (Universel firewall).\n<u>#6</u>: Blokerer al UDP-trafik undtagen DNS (Universel firewall).\n<u>#7</u>: Blokér forbindelser, når DNS omgås (Universel firewall).</string>
+    <string name="always_on_dialog_heading" translatable="true">Deaktivér \"Altid på-VPN\"</string>
+    <string name="always_on_dialog" translatable="true">\"Altid på-VPN\" er aktiveret på denne enhed. For at starte Rethink skal du gå til indstillinger og deaktivere \"Altid på-VPN\".</string>
+    <string name="always_on_dialog_positive_btn" translatable="true">Gå til indstillinger</string>
 </resources>

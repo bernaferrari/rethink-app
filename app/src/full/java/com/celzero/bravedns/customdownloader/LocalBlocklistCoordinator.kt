@@ -254,8 +254,8 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
 
     private suspend fun startFileDownload(
         context: Context,
-        url: String,
-        fileName: String,
+        urlPath: String,
+        filePath: String,
         retryCount: Int = 0
     ): Boolean {
         // enable the OkHttp's logging only in debug mode for testing
@@ -266,10 +266,10 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
             // create okhttp client with base url
             val retrofit =
                 getBlocklistBaseBuilder(persistentState.routeRethinkInRethink).build().create(IBlocklistDownload::class.java)
-            Logger.i(LOG_TAG_DOWNLOAD, "Downloading file: $fileName, url: $url")
-            val response = retrofit.downloadLocalBlocklistFile(url, persistentState.appVersion, "")
+            Logger.i(LOG_TAG_DOWNLOAD, "Downloading file: $filePath, urlPath: $urlPath")
+            val response = retrofit.downloadLocalBlocklistFile(urlPath, persistentState.appVersion, "")
             if (response?.isSuccessful == true) {
-                return downloadFile(context, response.body(), fileName)
+                return downloadFile(context, response.body(), filePath)
             } else {
                 Logger.e(
                     LOG_TAG_DOWNLOAD,
@@ -280,10 +280,10 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
             Logger.e(LOG_TAG_DOWNLOAD, "Error in startFileDownload: ${e.message}", e)
         }
         return if (isRetryRequired(retryCount)) {
-            Logger.i(LOG_TAG_DOWNLOAD, "retrying download($url) $fileName, count: $retryCount")
-            startFileDownload(context, url, fileName, retryCount + 1)
+            Logger.i(LOG_TAG_DOWNLOAD, "retrying download($urlPath) $filePath, count: $retryCount")
+            startFileDownload(context, urlPath, filePath, retryCount + 1)
         } else {
-            Logger.i(LOG_TAG_DOWNLOAD, "download failed for $fileName, retry: $retryCount")
+            Logger.i(LOG_TAG_DOWNLOAD, "download failed for $filePath, retry: $retryCount")
             false
         }
     }

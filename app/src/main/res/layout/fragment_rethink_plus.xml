@@ -84,7 +84,6 @@
                     android:layout_marginTop="10dp"
                     android:visibility="visible" />
 
-                <!-- @string/rethink_terms -->
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/terms_text"
                     android:layout_width="wrap_content"
@@ -92,27 +91,9 @@
                     android:clickable="true"
                     android:focusable="true"
                     android:padding="15dp"
-                    android:text=""
+                    android:text="@string/rethink_terms"
                     android:textColor="?attr/primaryLightColorText"
                     android:textSize="@dimen/small_font_text_view" />
-
-                <!-- @string/rplus_see_if_works -->
-                <androidx.appcompat.widget.AppCompatTextView
-                    android:id="@+id/test_ping_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="center"
-                    android:layout_marginStart="20dp"
-                    android:layout_marginEnd="20dp"
-                    android:backgroundTint="?attr/accentGood"
-                    android:fontFamily="serif-monospace"
-                    android:gravity="center"
-                    android:padding="16dp"
-                    android:text=""
-                    android:textColor="?attr/primaryLightColorText"
-                    android:textSize="@dimen/large_font_text_view"
-                    android:textStyle="bold"
-                    android:visibility="visible" />
 
             </LinearLayout>
 
@@ -130,22 +111,20 @@
                     android:layout_height="64dp"
                     android:src="@drawable/ic_rethink_plus"/>
 
-                <!-- @string/payment_processing -->
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/tvPendingTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=""
+                    android:text="@string/payment_processing"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:layout_marginTop="16dp" />
 
-                <!-- @string/payment_processing_desc -->
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/tvPendingMessage"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=""
+                    android:text="@string/payment_processing_desc"
                     android:textAlignment="center"
                     android:layout_marginTop="8dp"
                     android:paddingHorizontal="16dp" />
@@ -170,32 +149,29 @@
                     android:id="@+id/icon_warning"
                     android:layout_width="96dp"
                     android:layout_height="96dp"
-                    android:src="@drawable/fingerprint_dialog_error" />
+                    android:src="@drawable/ic_rethink_plus_sparkle" />
 
-                <!-- @string/rethink_plus_title -->
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/title_unavailable"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=""
+                    android:text="@string/rethink_plus_title"
                     android:textSize="20sp"
                     android:textStyle="bold"
                     android:layout_marginTop="24dp"
                     android:textColor="?attr/primaryTextColor" />
 
-                <!-- @string/rethink_plus_not_available_desc -->
                 <androidx.appcompat.widget.AppCompatTextView
                     android:id="@+id/desc_unavailable"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text=""
+                    android:text="@string/rethink_plus_not_available_desc"
                     android:textSize="16sp"
                     android:layout_marginTop="16dp"
                     android:textAlignment="center"
                     android:textColor="?attr/primaryLightColorText"
                     android:gravity="center" />
 
-                <!-- Optional action -->
                 <Button
                     android:id="@+id/btn_learn_more"
                     android:layout_width="wrap_content"
@@ -205,7 +181,7 @@
                     android:backgroundTint="?attr/colorPrimary"
                     android:textColor="@android:color/white"
                     android:elevation="2dp"
-                    android:visibility="gone" /> <!-- Set to visible if you want it -->
+                    android:visibility="gone" />
 
             </LinearLayout>
 
@@ -232,7 +208,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- @string/subscribe_title -->
             <androidx.appcompat.widget.AppCompatButton
                 android:id="@+id/payment_button"
                 android:layout_width="match_parent"
@@ -241,7 +216,7 @@
                 android:layout_marginStart="30dp"
                 android:layout_marginEnd="30dp"
                 android:letterSpacing="0.15"
-                android:text=""
+                android:text="@string/subscribe_title"
                 android:textColor="?attr/chipTextColor"
                 android:background="@drawable/rounded_corners_button_accent"
                 android:textSize="18sp" />

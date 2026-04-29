@@ -44,6 +44,7 @@ import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -127,9 +128,11 @@ class WgIncludeAppsDialog(
     }
 
     private fun observeApps() {
-        viewModel.getAppCountById(proxyId).observe(activity as LifecycleOwner) {
+        // observe DB-backed count so heading stays in sync as mappings change
+        viewModel.getAppCountById(proxyId).observe(activity as LifecycleOwner) { count ->
+            val safeCount = count ?: 0
             b.wgIncludeAppDialogHeading.text =
-                activity.getString(R.string.add_remove_apps, it.toString())
+                activity.getString(R.string.add_remove_apps, safeCount.toString())
         }
     }
 
@@ -142,6 +145,7 @@ class WgIncludeAppsDialog(
                 activity.getString(TopLevelFilter.ALL_APPS.getLabelId()),
                 true
             )
+
         val selected =
             makeFirewallChip(
                 TopLevelFilter.SELECTED_APPS.id,
@@ -252,6 +256,18 @@ class WgIncludeAppsDialog(
         io { refreshDatabase.refresh(RefreshDatabase.ACTION_REFRESH_INTERACTIVE) }
     }
 
+    private fun refreshPagingAdapter() {
+        // Changing the filter causes the ViewModel to emit new PagingData; the host
+        // observer (collectLatest / submitData) picks it up automatically.
+        // Do NOT call notifyDataSetChanged() on a PagingDataAdapter, it manages all
+        // its own notifications via DiffUtil, and an external notify corrupts internal
+        // position tracking, causing IndexOutOfBoundsException in RecyclerView layout.
+        viewModel.setFilter(searchText, filterType, proxyId)
+        // If the filter params are unchanged, call refresh() to invalidate the current
+        // PagingSource so the adapter still reloads fresh data from the database.
+        (adapter as? com.celzero.bravedns.adapter.WgIncludeAppsAdapter)?.refresh()
+    }
+
     private fun clearSearch() {
         viewModel.setFilter("", TopLevelFilter.ALL_APPS, proxyId)
     }
@@ -270,19 +286,25 @@ class WgIncludeAppsDialog(
             if (toAdd) context.getString(R.string.lbl_include)
             else context.getString(R.string.exclude)
         ) { _, _ ->
-            // add all if the list is empty or remove all if the list is full
             io {
                 if (toAdd) {
                     Logger.i(LOG_TAG_PROXY, "Adding all apps to proxy $proxyId, $proxyName")
                     ProxyManager.setProxyIdForAllApps(proxyId, proxyName)
                 } else {
                     Logger.i(LOG_TAG_PROXY, "Removing all apps from proxy $proxyId, $proxyName")
-                    ProxyManager.setNoProxyForAllApps()
+                    ProxyManager.setNoProxyForAllAppsForProxy(proxyId)
+                }
+                // re-apply current filter to force Paging source reload and UI refresh
+                withContext(Dispatchers.Main) {
+                    // Update checkbox state to match the action taken
+                    b.wgIncludeAppSelectAllCheckbox.isChecked = toAdd
+                    refreshPagingAdapter()
                 }
             }
         }
 
         builder.setNegativeButton(context.getString(R.string.lbl_cancel)) { _, _ ->
+            // Revert checkbox state on cancel
             b.wgIncludeAppSelectAllCheckbox.isChecked = !toAdd
         }
 
@@ -298,6 +320,10 @@ class WgIncludeAppsDialog(
             io {
                 Logger.i(LOG_TAG_PROXY, "Adding remaining apps to proxy $proxyId, $proxyName")
                 ProxyManager.setProxyIdForUnselectedApps(proxyId, proxyName)
+                // refresh paging / adapter after bulk add
+                withContext(Dispatchers.Main) {
+                    refreshPagingAdapter()
+                }
             }
         }
 

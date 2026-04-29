@@ -20,7 +20,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import androidx.appcompat.app.AppCompatActivity
+import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.fragment.app.Fragment
 import androidx.viewpager2.adapter.FragmentStateAdapter
@@ -43,7 +43,7 @@ import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.google.android.material.tabs.TabLayoutMediator
 import org.koin.android.ext.android.inject
 
-class NetworkLogsActivity : AppCompatActivity(R.layout.activity_network_logs) {
+class NetworkLogsActivity : BaseActivity(R.layout.activity_network_logs) {
     private val b by viewBinding(ActivityNetworkLogsBinding::bind)
     private var fragmentIndex = 0
     private var searchParam = ""
@@ -52,6 +52,7 @@ class NetworkLogsActivity : AppCompatActivity(R.layout.activity_network_logs) {
     private var isUnivNavigated = false
     // to handle the wireguard connections
     private var isWireGuardLogs = false
+    private var isRpnLogs = false
 
     private val persistentState by inject<PersistentState>()
     private val appConfig by inject<AppConfig>()
@@ -65,6 +66,7 @@ class NetworkLogsActivity : AppCompatActivity(R.layout.activity_network_logs) {
     
     companion object {
         const val RULES_SEARCH_ID_WIREGUARD = "W:"
+        const val RULES_SEARCH_ID_RPN = "RPN:"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -85,6 +87,8 @@ class NetworkLogsActivity : AppCompatActivity(R.layout.activity_network_logs) {
             isUnivNavigated = true
         } else if(searchParam.contains(RULES_SEARCH_ID_WIREGUARD)) {
             isWireGuardLogs = true
+        } else if (searchParam.contains(RULES_SEARCH_ID_RPN)) {
+            isRpnLogs = true
         }
         init()
     }
@@ -155,6 +159,13 @@ class NetworkLogsActivity : AppCompatActivity(R.layout.activity_network_logs) {
                 0 -> ConnectionTrackerFragment.newInstance(searchParam)
                 1 -> DnsLogFragment.newInstance(searchParam)
                 2 -> WgNwStatsFragment.newInstance(searchParam)
+                else -> ConnectionTrackerFragment.newInstance(searchParam)
+            }
+        }
+        if (isRpnLogs) {
+            return when(position) {
+                0 -> ConnectionTrackerFragment.newInstance(searchParam)
+                1 -> DnsLogFragment.newInstance(searchParam)
                 else -> ConnectionTrackerFragment.newInstance(searchParam)
             }
         }

@@ -29,6 +29,7 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.withContext
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 import java.util.concurrent.ThreadFactory
 import java.util.concurrent.atomic.AtomicInteger
@@ -36,6 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger
 object Daemons {
 
     fun make(tag: String) = Executors.newSingleThreadExecutor(Factory(tag)).asCoroutineDispatcher()
+    fun makeThread(tag: String): ExecutorService = Executors.newSingleThreadExecutor(Factory(tag))
     fun <T> ioDispatcher(tag: String, default: T, s: CoroutineScope) = CoFactory(tag, default, s, make(tag))
 }
 
