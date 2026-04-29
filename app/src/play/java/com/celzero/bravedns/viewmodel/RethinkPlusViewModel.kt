@@ -93,7 +93,6 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
 
     // Watchdog job: cancels Loading if billing never responds.
     private var loadingWatchdogJob: Job? = null
-    private val persistentState: PersistentState by inject()
 
 
     @Volatile private var isBillingInitializing = false
