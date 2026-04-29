@@ -1144,7 +1144,7 @@ class ConnectionMonitor(private val context: Context, private val networkListene
                         (it.isDefaultRoute && it.destination.address is Inet6Address)
 
                     has4 = hasDefaultRoute4
-                    has4 = hasDefaultRoute6
+                    has6 = hasDefaultRoute6
 
                     /*Logger.v(
                         LOG_TAG_CONNECTION,

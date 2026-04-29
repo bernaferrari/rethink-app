@@ -37,15 +37,15 @@ class AppConnectionsViewModel(
     private val rinrDao: RethinkLogDao,
     private val statsDao: StatsSummaryDao
 ) : ViewModel() {
-    private var ipFilter: MutableLiveData<String> = MutableLiveData()
-    private var domainFilter: MutableLiveData<String> = MutableLiveData()
-    private var asnFilter: MutableLiveData<String> = MutableLiveData()
-    private var activeConnsFilter: MutableLiveData<String> = MutableLiveData()
+    private val ipFilter: MutableLiveData<String> = MutableLiveData()
+    private val domainFilter: MutableLiveData<String> = MutableLiveData()
+    private val asnFilter: MutableLiveData<String> = MutableLiveData()
+    private val activeConnsFilter: MutableLiveData<String> = MutableLiveData()
 
     private var uid: Int = Constants.INVALID_UID
     private val pagingConfig: PagingConfig
     private var timeCategory: TimeCategory = TimeCategory.SEVEN_DAYS
-    private var startTime: MutableLiveData<Long> = MutableLiveData()
+    private val startTime: MutableLiveData<Long> = MutableLiveData()
     var filterQuery: String = ""
 
     companion object {

@@ -68,8 +68,8 @@ class NetLogBatcher<T, V>(
     // signal channel, holds at most 1 signal, and drops the oldest
     private val signal = Channel<Int>(Channel.Factory.CONFLATED)
 
-    private var batches: AtomicReference<MutableList<T>> = AtomicReference(mutableListOf())
-    private var updates: AtomicReference<MutableList<V>> = AtomicReference(mutableListOf())
+    private val batches: AtomicReference<MutableList<T>> = AtomicReference(mutableListOf())
+    private val updates: AtomicReference<MutableList<V>> = AtomicReference(mutableListOf())
 
     fun begin(scope: CoroutineScope) {
         // launch suspend fns sig and consume asynchronously

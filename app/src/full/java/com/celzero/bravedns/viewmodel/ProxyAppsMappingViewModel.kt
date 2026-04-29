@@ -31,7 +31,7 @@ import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
 
 class ProxyAppsMappingViewModel(private val mappingDAO: ProxyApplicationMappingDAO) : ViewModel() {
 
-    private var filteredList: MutableLiveData<String> = MutableLiveData()
+    private val filteredList: MutableLiveData<String> = MutableLiveData()
     private var filterType: WgIncludeAppsDialog.TopLevelFilter =
         WgIncludeAppsDialog.TopLevelFilter.ALL_APPS
     private var proxyId: String = ""

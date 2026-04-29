@@ -24,11 +24,11 @@ class AlertsViewModel(
     private val connectionTrackerDao: ConnectionTrackerDAO,
     private val dnsLogDao: DnsLogDAO
 ) : ViewModel() {
-    private var ipLogList: MutableLiveData<String> = MutableLiveData()
-    private var domainLogList: MutableLiveData<String> = MutableLiveData()
-    private var appLogList: MutableLiveData<String> = MutableLiveData()
-    private var fromTime: MutableLiveData<Long> = MutableLiveData()
-    private var toTime: MutableLiveData<Long> = MutableLiveData()
+    private val ipLogList: MutableLiveData<String> = MutableLiveData()
+    private val domainLogList: MutableLiveData<String> = MutableLiveData()
+    private val appLogList: MutableLiveData<String> = MutableLiveData()
+    private val fromTime: MutableLiveData<Long> = MutableLiveData()
+    private val toTime: MutableLiveData<Long> = MutableLiveData()
 
     init {
         ipLogList.postValue("")

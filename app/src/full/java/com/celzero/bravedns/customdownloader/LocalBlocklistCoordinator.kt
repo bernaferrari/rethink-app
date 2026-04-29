@@ -63,7 +63,7 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
 
     val persistentState by inject<PersistentState>()
     val appConfig by inject<AppConfig>()
-    private var downloadStatuses: ConcurrentHashMap<Long, DownloadStatus> = ConcurrentHashMap()
+    private val downloadStatuses: ConcurrentHashMap<Long, DownloadStatus> = ConcurrentHashMap()
 
     // download request status
     enum class DownloadStatus {

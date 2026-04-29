@@ -103,7 +103,7 @@ class SummaryStatisticsViewModel(
     }
 
     val getTopActiveConns =
-        topActiveConns.switchMap { it ->
+        topActiveConns.switchMap {
             val to = System.currentTimeMillis() - it
             Pager(PagingConfig(Constants.LIVEDATA_PAGE_SIZE)) {
                 statsDao.getTopActiveConns(to)

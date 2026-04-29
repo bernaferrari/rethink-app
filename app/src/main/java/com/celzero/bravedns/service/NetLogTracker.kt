@@ -56,10 +56,10 @@ internal constructor(
 
     @Volatile private var scope: CoroutineScope? = null
 
-    private var dnsdb: DnsLogTracker = DnsLogTracker(dnsLogRepository, persistentState, context)
-    private var ipdb: IPTracker =
+    private val dnsdb: DnsLogTracker = DnsLogTracker(dnsLogRepository, persistentState, context)
+    private val ipdb: IPTracker =
         IPTracker(connectionTrackerRepository, rethinkLogRepository, context)
-    private var consoleLogDb: ConsoleLogManager = ConsoleLogManager(consoleLogRepository)
+    private val consoleLogDb: ConsoleLogManager = ConsoleLogManager(consoleLogRepository)
 
     private var dnsBatcher: NetLogBatcher<DnsLog, Nothing>? = null
     private var ipBatcher: NetLogBatcher<ConnectionTracker, ConnectionSummary>? = null

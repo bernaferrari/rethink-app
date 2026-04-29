@@ -30,7 +30,7 @@ class LocalBlocklistPacksMapViewModel(
     private val localBlocklistPacksMapDao: LocalBlocklistPacksMapDao
 ) : ViewModel() {
 
-    private var filter: MutableLiveData<String> = MutableLiveData()
+    private val filter: MutableLiveData<String> = MutableLiveData()
 
     init {
         filter.value = ""

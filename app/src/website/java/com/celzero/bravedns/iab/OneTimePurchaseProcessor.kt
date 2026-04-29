@@ -212,7 +212,7 @@ internal class OneTimePurchaseProcessor(
         val productTitle = productDetail?.productTitle ?: QueryUtils.getPlanTitle(getProductBillingPeriod(productId))
         val planTitle    = productTitle  // For INAPP, planTitle == productTitle
         val expiryTime   = calculateExpiryTime(purchase, oneTimeOfferDetails)
-        val accountId    = purchase.accountIdentifiers?.obfuscatedAccountId ?: ""
+        val accountId    = purchase.accountIdentifiers?.obfuscatedAccountId.orEmpty()
 
         if (accountId.isEmpty()) {
             loge(mname, "accountId empty for purchase token ${purchase.purchaseToken.take(8)}")
@@ -246,7 +246,7 @@ internal class OneTimePurchaseProcessor(
             expiryTime = expiryTime,
             status = purchase.purchaseState.toSubscriptionStatusId(),
             windowDays = resolveRevokeDays(productId),
-            orderId = purchase.orderId ?: ""
+            orderId = purchase.orderId.orEmpty()
         )
 
         val purchaseDetail = validatePayloadAndFetchIfRequired(purchaseDtl)
@@ -344,7 +344,7 @@ internal class OneTimePurchaseProcessor(
         // threshold crossed server acknowledgement required.
         logd(mname, "INAPP token=${purchase.purchaseToken.take(8)} unacknowledged after " +
                 "threshold reached, calling server ack")
-        val accountId = purchase.accountIdentifiers?.obfuscatedAccountId ?: ""
+        val accountId = purchase.accountIdentifiers?.obfuscatedAccountId.orEmpty()
         val deviceId = getDeviceId()
         if (accountId.isEmpty()) {
             loge(mname, "accountId empty, acknowledgement failed")

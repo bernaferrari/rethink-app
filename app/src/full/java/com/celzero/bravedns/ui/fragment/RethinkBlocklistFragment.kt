@@ -142,7 +142,7 @@ class RethinkBlocklistFragment :
     companion object {
         fun newInstance() = RethinkBlocklistFragment()
 
-        private var selectedFileTags: MutableLiveData<MutableSet<Int>> = MutableLiveData()
+        private val selectedFileTags: MutableLiveData<MutableSet<Int>> = MutableLiveData()
 
         fun updateFileTagList(fileTags: Set<Int>) {
             selectedFileTags.postValue(fileTags.toMutableSet())

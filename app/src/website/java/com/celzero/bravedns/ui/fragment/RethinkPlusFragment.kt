@@ -110,7 +110,6 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
             viewModel.initializeBilling()
         }
         // Show any pending Play Billing in-app messages (e.g. payment recovery overlay).
-        // Guard: only show if the billing client is ready to avoid a crash on early calls.
         InAppBillingHandler.enableInAppMessaging(requireActivity())
     }
 
@@ -187,12 +186,6 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
         }
     }
 
-    /**
-     * The CTA container has an 80dp bottom margin to sit above the bottom navigation bar when the
-     * fragment is loaded from the home screen. When hosted in [FragmentHostActivity] (e.g. from
-     * [ManagePurchaseFragment] for the one-time purchase / extend flow) there is no navigation
-     * bar, so remove the margin to avoid the awkward blank gap.
-     */
     private fun adjustCtaBottomMargin() {
         if (activity is FragmentHostActivity) {
             val lp = b.ctaInnerContainer.layoutParams as? android.view.ViewGroup.MarginLayoutParams
@@ -415,7 +408,7 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
         b.scrollView.isVisible = true
         b.ctaContainer.isVisible = true
 
-        Logger.i(LOG_TAG_UI, "$TAG: Ready, ${products.size} products, resubscribe=$isResubscribe")
+        Logger.i(LOG_TAG_UI, "$TAG: Ready: ${products.size} products, resubscribe=$isResubscribe")
 
         availabilityData?.let { showConnectionInfo(it) }
 
@@ -536,14 +529,6 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
         }
     }
 
-    /**
-     * Called once from [onViewCreated].
-     * Re-registers the listener on every fragment (re)creation so callbacks always reach
-     * this instance: never a stale one.
-     *
-     * Always calls [viewModel.initializeBilling] first so [extendMode] is guaranteed to be
-     * committed to the ViewModel before any subscription-state callbacks fire.
-     */
     private fun initializeBilling() {
         viewModel.initializeBilling()
         if (!InAppBillingHandler.isBillingClientSetup()) {
@@ -554,11 +539,6 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
         }
     }
 
-    /**
-     * Called when [RethinkPlusViewModel.retryConnectionEvent] fires i.e. the user tapped Retry
-     * but the billing client was not connected.  We force a fresh [InAppBillingHandler.initiate]
-     * here because the ViewModel has no live Context to do it itself.
-     */
     private fun reconnectBilling() {
         Logger.d(Logger.LOG_IAB, "$TAG: reconnectBilling, calling initiate()")
         InAppBillingHandler.initiate(requireContext().applicationContext, this)

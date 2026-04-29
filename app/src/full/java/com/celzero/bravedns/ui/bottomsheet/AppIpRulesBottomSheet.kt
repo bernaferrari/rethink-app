@@ -275,7 +275,7 @@ class AppIpRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet
 
         b.chooseProxyRl.setOnClickListener {
             val ctx = requireContext()
-            var v: MutableList<WgConfigFilesImmutable?> = mutableListOf()
+            val v: MutableList<WgConfigFilesImmutable?> = mutableListOf()
             io {
                 v.add(null)
                 v.addAll(WireguardManager.getAllMappings())

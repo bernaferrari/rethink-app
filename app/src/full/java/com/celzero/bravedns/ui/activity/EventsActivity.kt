@@ -63,7 +63,7 @@ class EventsActivity : BaseActivity(R.layout.activity_events), SearchView.OnQuer
 
     private var layoutManager: RecyclerView.LayoutManager? = null
     private var filterQuery: String = ""
-    private var filterSources: MutableSet<EventSource> = mutableSetOf()
+    private val filterSources: MutableSet<EventSource> = mutableSetOf()
     private var filterSeverity: Severity? = null
     private var filterType: TopLevelFilter = TopLevelFilter.ALL
 

@@ -429,9 +429,6 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
     // debug settings, panic random
     var panicRandom by booleanPref("panic_random").withDefault<Boolean>(false)
 
-    // universal rule, block all non A & AAAA dns responses
-    private var _blockOtherDnsRecordTypes by booleanPref("block_non_ip_dns_responses").withDefault<Boolean>(false)
-
     // global lockdown for wireguard proxy
     var wgGlobalLockdown by booleanPref("wg_global_lockdown").withDefault<Boolean>(false)
 
@@ -443,7 +440,7 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
     var orbotConnectionStatus: MutableLiveData<Boolean> = MutableLiveData()
     var vpnEnabledLiveData: MutableLiveData<Boolean> = MutableLiveData()
     var universalRulesCount: MutableLiveData<Int> = MutableLiveData()
-    private var proxyStatus: MutableLiveData<Int> = MutableLiveData()
+    private val proxyStatus: MutableLiveData<Int> = MutableLiveData()
 
     // data class to store dnscrypt relay details
     data class DnsCryptRelayDetails(val relay: DnsCryptRelayEndpoint, val added: Boolean)

@@ -174,12 +174,12 @@ internal class SubscriptionPurchaseProcessor(
         }
         val productDetail = storeEntry?.productDetail
 
-        val productId   = purchase.products.firstOrNull() ?: ""
-        val planId      = offerDetails?.basePlanId ?: productDetail?.planId ?: ""
-        val productTitle = productDetail?.productTitle ?: ""
-        val planTitle   = offerDetails?.let { queryUtils().getPlanTitle(it) } ?: ""
+        val productId   = purchase.products.firstOrNull().orEmpty()
+        val planId      = offerDetails?.basePlanId ?: productDetail?.planId.orEmpty()
+        val productTitle = productDetail?.productTitle.orEmpty()
+        val planTitle   = offerDetails?.let { queryUtils().getPlanTitle(it) }.orEmpty()
         val expiryTime  = calculateExpiryTime(purchase, offerDetails)
-        val accountId   = purchase.accountIdentifiers?.obfuscatedAccountId ?: ""
+        val accountId   = purchase.accountIdentifiers?.obfuscatedAccountId.orEmpty()
 
         if (accountId.isEmpty()) {
             loge(mname, "accountId empty for purchase token ${purchase.purchaseToken.take(8)}")

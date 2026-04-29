@@ -29,7 +29,7 @@ import com.celzero.bravedns.util.Constants
 class RemoteBlocklistPacksMapViewModel(
     private val remoteBlocklistPacksMapDao: RemoteBlocklistPacksMapDao
 ) : ViewModel() {
-    private var filter: MutableLiveData<String> = MutableLiveData()
+    private val filter: MutableLiveData<String> = MutableLiveData()
 
     init {
         filter.value = ""

@@ -29,7 +29,7 @@ import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
 class DnsProxyEndpointViewModel(private val dnsProxyEndpointDAO: DnsProxyEndpointDAO) :
     ViewModel() {
 
-    private var filteredList: MutableLiveData<String> = MutableLiveData()
+    private val filteredList: MutableLiveData<String> = MutableLiveData()
 
     init {
         filteredList.value = ""
