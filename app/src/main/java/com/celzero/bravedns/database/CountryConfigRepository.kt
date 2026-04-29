@@ -18,6 +18,7 @@ package com.celzero.bravedns.database
 import Logger
 import Logger.LOG_TAG_PROXY
 import androidx.room.Transaction
+import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
 import kotlinx.coroutines.flow.Flow
 
 class CountryConfigRepository(private val countryConfigDAO: CountryConfigDAO) {
@@ -134,5 +135,20 @@ class CountryConfigRepository(private val countryConfigDAO: CountryConfigDAO) {
 
     suspend fun getSsidEnabledConfigs(): List<CountryConfig> {
         return countryConfigDAO.getSsidEnabledConfigs()
+    }
+
+    suspend fun incrementSelectionCount(cc: String) {
+        if (cc.isBlank() || cc == AUTO_SERVER_ID) return
+        countryConfigDAO.incrementSelectionCount(cc)
+        Logger.d(LOG_TAG_PROXY, "$TAG.incrementSelectionCount: cc=$cc")
+    }
+
+    suspend fun updateFavourite(cc: String, isFavourite: Boolean) {
+        countryConfigDAO.updateFavouriteByCountryCode(cc, isFavourite)
+        Logger.d(LOG_TAG_PROXY, "$TAG.updateFavourite: cc=$cc, isFavourite=$isFavourite")
+    }
+
+    suspend fun getTopFrequentCcs(limit: Int = 5): List<String> {
+        return countryConfigDAO.getTopFrequentCcs(limit)
     }
 }

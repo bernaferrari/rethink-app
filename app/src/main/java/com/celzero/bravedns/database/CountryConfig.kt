@@ -26,7 +26,8 @@ import java.util.Locale
     tableName = "CountryConfig",
     indices = [
         Index(value = ["cc"], unique = false),
-        Index(value = ["isActive"], unique = false)
+        Index(value = ["isActive"], unique = false),
+        Index(value = ["isFavourite"], unique = false)
     ]
 )
 data class CountryConfig(
@@ -58,7 +59,11 @@ data class CountryConfig(
     // SSID configuration (JSON string of SSID items, see SsidItem.kt)
     val ssids: String = "",         // JSON array of SsidItem when ssidBased is true
 
-    val lastModified: Long = System.currentTimeMillis() // Last update timestamp
+    val lastModified: Long = System.currentTimeMillis(), // Last update timestamp
+
+    val selectionCount: Int = 0, // Number of times this country has been selected by the user
+
+    var isFavourite: Boolean = false // Whether this country is marked as a favourite by the user
 ) : Parcelable {
 
     constructor(parcel: Parcel) : this(
@@ -80,7 +85,9 @@ data class CountryConfig(
         parcel.readByte() != 0.toByte(),
         parcel.readInt(),
         parcel.readString() ?: "",
-        parcel.readLong()
+        parcel.readLong(),
+        parcel.readInt(),
+        parcel.readByte() != 0.toByte()
     )
 
     override fun writeToParcel(parcel: Parcel, flags: Int) {
@@ -103,6 +110,8 @@ data class CountryConfig(
         parcel.writeInt(priority)
         parcel.writeString(ssids)
         parcel.writeLong(lastModified)
+        parcel.writeInt(selectionCount)
+        parcel.writeByte(if (isFavourite) 1 else 0)
     }
 
     override fun describeContents(): Int = 0

@@ -2317,14 +2317,11 @@
     <string name="server_selection_auto_always_on" translatable="false">AUTO is always connected and cannot be removed</string>
     <string name="server_selection_remove_title" translatable="false">Remove Server</string>
     <string name="server_selection_remove_message" translatable="false">Remove %1$s (%2$s) from your server list?</string>
+    <string name="server_selection_frequent_label" translatable="false">Frequent</string>
+    <string name="server_selection_frequent_add_hint" translatable="false">Tap to quickly add a recently used country</string>
+    <string name="server_favourite_added" translatable="false">%1$s added to favourites</string>
+    <string name="server_favourite_removed" translatable="false">%1$s removed from favourites</string>
     <string name="lbl_not_available_short" translatable="false">N/A</string>
-
-    <!-- Server speed tier labels -->
-    <string name="server_speed_very_fast" translatable="false">Very Fast</string>
-    <string name="server_speed_fast"      translatable="false">Fast</string>
-    <string name="server_speed_good"      translatable="false">Good</string>
-    <string name="server_speed_moderate"  translatable="false">Moderate</string>
-    <string name="server_speed_slow"      translatable="false">Slow</string>
 
     <!-- Server load tier labels -->
     <string name="server_load_light"      translatable="false">Light</string>
@@ -2453,7 +2450,8 @@
     <string name="lbl_server_stats" translatable="false">Live Stats</string>
     <string name="lbl_last_handshake" translatable="false">Last Handshake</string>
     <string name="lbl_active_since" translatable="false">Active Since</string>
-    <string name="lbl_health_bandwidth" translatable="false">Health · Bandwidth</string>
+    <string name="lbl_load" translatable="false">Load</string>
+    <string name="lbl_bandwidth" translatable="false">Bandwidth</string>
     <string name="lbl_errors" translatable="false">Errors</string>
     <string name="lbl_endpoint" translatable="false">Endpoint</string>
     <string name="lbl_ipv4" translatable="false">IPv4</string>

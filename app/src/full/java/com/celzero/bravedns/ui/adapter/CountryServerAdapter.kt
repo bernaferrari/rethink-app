@@ -21,6 +21,8 @@ import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -47,6 +49,13 @@ class CountryServerAdapter(
          * The host should open the settings sheet so the user can restart the proxy.
          */
         fun onProxyStoppedItemTapped()
+        /**
+         * Called when the user taps the star icon on a country card.
+         * [countryCode] identifies the country;
+         * [countryName] is provided for user feedback purposes;
+         * [isFavourite] is the new desired state;
+         */
+        fun onFavouriteToggled(countryCode: String, countryName: String, isFavourite: Boolean)
     }
 
     /**
@@ -68,7 +77,8 @@ class CountryServerAdapter(
         val countryCode: String,
         val countryName: String,
         val flagEmoji: String,
-        val serverGroups: List<ServerGroup>  // Changed from cities to serverGroups
+        val serverGroups: List<ServerGroup>,  // Changed from cities to serverGroups
+        var isFavourite: Boolean = false
     )
 
     // track which countries are expanded by country code
@@ -161,6 +171,29 @@ class CountryServerAdapter(
                 rvServers.visibility = if (isExpanded) View.VISIBLE else View.GONE
                 ivExpandArrow.rotation = if (isExpanded) 180f else 0f
 
+                bindFavouriteStar(item)
+
+                ivFavourite.setOnClickListener {
+                    val newFavourite = !item.isFavourite
+                    // Animate the star: quick scale bounce for tactile feedback
+                    ivFavourite.animate()
+                        .scaleX(1.35f).scaleY(1.35f)
+                        .setDuration(120)
+                        .setInterpolator(AccelerateDecelerateInterpolator())
+                        .withEndAction {
+                            ivFavourite.animate()
+                                .scaleX(1f).scaleY(1f)
+                                .setDuration(100)
+                                .setInterpolator(AccelerateDecelerateInterpolator())
+                                .start()
+                        }
+                        .start()
+                    bindFavouriteStar(item.copy(isFavourite = newFavourite))
+                    item.isFavourite = newFavourite
+                    notifyItemChanged(bindingAdapterPosition)
+                    listener.onFavouriteToggled(item.countryCode, item.countryName,newFavourite)
+                }
+
                 layoutCountryHeader.setOnClickListener {
                     val code = item.countryCode
                     val nowExpanded: Boolean
@@ -173,6 +206,25 @@ class CountryServerAdapter(
                     }
                     rvServers.visibility = if (nowExpanded) View.VISIBLE else View.GONE
                     ivExpandArrow.animate().rotation(if (nowExpanded) 180f else 0f).start()
+                }
+            }
+        }
+
+        private fun bindFavouriteStar(item: CountryItem) {
+            binding.apply {
+                if (item.isFavourite) {
+                    ivFavourite.setImageResource(R.drawable.ic_star_filled)
+                    // The filled star vector uses ?attr/colorGolden as its fillColor,
+                    // so no explicit tint override is needed — clear any residual tint.
+                    ivFavourite.imageTintList = null
+                } else {
+                    ivFavourite.setImageResource(R.drawable.ic_star_outline)
+                    // Outline star is tinted in the vector via ?attr/primaryLightColorText,
+                    // but set tint explicitly here for robustness at runtime.
+                    ivFavourite.imageTintList = ContextCompat.getColorStateList(
+                        itemView.context, android.R.color.transparent
+                    )
+                    ivFavourite.imageTintList = null
                 }
             }
         }
@@ -235,7 +287,7 @@ class CountryServerAdapter(
 
             fun bind(group: ServerGroup) {
                 binding.apply {
-                    tvCityName.text = group.city
+                    tvCityName.text = group.city.lowercase().replaceFirstChar {  it.uppercase() }
 
                     if (group.serverCount > 1) {
                         tvServerCount.visibility = View.VISIBLE
@@ -250,8 +302,8 @@ class CountryServerAdapter(
 
                     if (group.avgLink > 0) {
                         chipLinkSpeed.visibility = View.VISIBLE
-                        val (speedStr, speedLabel, speedAttr) = speedInfo(group.avgLink)
-                        chipLinkSpeed.text = "$speedStr · $speedLabel"
+                        val (speedStr, speedAttr) = speedInfo(group.avgLink)
+                        chipLinkSpeed.text = speedStr
                         chipLinkSpeed.chipBackgroundColor =
                             ColorStateList.valueOf(fetchColor(itemView.context, speedAttr))
                     } else {
@@ -289,24 +341,21 @@ class CountryServerAdapter(
              * Returns (formattedSpeed, tierLabel, chipBackgroundAttr) for [linkMbps].
              *
              * Tier thresholds (matching common datacenter NIC grades):
-             *   ≥ 10 000 Mbps (10 Gbps) → Very Fast   (rare premium tier)
-             *   ≥  1 000 Mbps  (1 Gbps) → Fast        (standard datacenter)
-             *   ≥    100 Mbps           → Good         (solid broadband)
-             *   ≥     10 Mbps           → Moderate     (acceptable)
-             *   >      0 Mbps           → Slow         (constrained)
+             *   ≥ 10 000 Mbps (10 Gbps)
+             *   ≥ 1 000 Mbps (1 Gbps)
+             *   ≥ 100 Mbps
+             *   ≥ 10 Mbps
+             *   > 0 Mbps
              */
-            private fun speedInfo(linkMbps: Int): Triple<String, String, Int> {
-                val ctx = itemView.context
+            private fun speedInfo(linkMbps: Int): Pair<String, Int> {
                 val formatted: String
-                val label: String
                 val attr: Int
 
                 when {
                     linkMbps >= 10_000 -> {
                         val gbps = linkMbps / 1_000.0
                         formatted = String.format(Locale.US, "%.0f Gbps", gbps)
-                        label     = ctx.getString(R.string.server_speed_very_fast)
-                        attr      = R.attr.chipTextPositive
+                        attr = R.attr.chipTextPositive
                     }
                     linkMbps >= 1_000 -> {
                         val gbps = linkMbps / 1_000.0
@@ -314,37 +363,33 @@ class CountryServerAdapter(
                             String.format(Locale.US, "%.0f Gbps", gbps)
                         else
                             String.format(Locale.US, "%.1f Gbps", gbps)
-                        label     = ctx.getString(R.string.server_speed_fast)
-                        attr      = R.attr.accentGood
+                        attr = R.attr.accentGood
                     }
                     linkMbps >= 100 -> {
                         formatted = "$linkMbps Mbps"
-                        label     = ctx.getString(R.string.server_speed_good)
-                        attr      = R.attr.chipTextNeutral
+                        attr = R.attr.chipTextNeutral
                     }
                     linkMbps >= 10 -> {
                         formatted = "$linkMbps Mbps"
-                        label     = ctx.getString(R.string.server_speed_moderate)
-                        attr      = R.attr.chipTextNeutral
+                        attr = R.attr.chipTextNeutral
                     }
                     else -> {
                         formatted = "$linkMbps Mbps"
-                        label     = ctx.getString(R.string.server_speed_slow)
-                        attr      = R.attr.chipTextNegative
+                        attr = R.attr.chipTextNegative
                     }
                 }
-                return Triple(formatted, label, attr)
+                return Pair(formatted, attr)
             }
 
             /**
              * Returns (displayText, textColorAttr) for [loadPercent].
              *
              * Tier thresholds:
-             *   ≤ 20 → Light      (plenty of headroom)
-             *   ≤ 40 → Normal     (healthy utilisation)
-             *   ≤ 60 → Busy       (noticeable but acceptable)
-             *   ≤ 80 → Very Busy  (performance may degrade)
-             *   > 80 → Overloaded (avoid if possible)
+             *   ≤ 20 → Light
+             *   ≤ 40 → Normal
+             *   ≤ 60 → Busy
+             *   ≤ 80 → Very Busy
+             *   > 80 → Overloaded
              */
             private fun loadInfo(loadPercent: Int): Pair<String, Int> {
                 val ctx = itemView.context

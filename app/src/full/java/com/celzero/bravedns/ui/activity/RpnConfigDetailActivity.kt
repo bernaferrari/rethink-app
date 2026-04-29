@@ -28,6 +28,7 @@ import android.graphics.Canvas
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.DrawableWrapper
+import androidx.appcompat.widget.AppCompatImageView
 import androidx.core.graphics.withRotation
 import android.os.Bundle
 import android.view.animation.AccelerateDecelerateInterpolator
@@ -40,6 +41,7 @@ import android.text.style.RelativeSizeSpan
 import android.text.style.StyleSpan
 import android.text.style.TypefaceSpan
 import android.view.View
+import android.widget.LinearLayout
 import android.widget.Toast
 import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.view.WindowInsetsControllerCompat
@@ -60,10 +62,12 @@ import com.celzero.bravedns.ui.dialog.CountrySsidDialog
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
 import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
 import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.SnackbarHelper
 import com.celzero.bravedns.util.SsidPermissionManager
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
+import com.celzero.bravedns.util.UIUtils.openAndroidAppInfo
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
@@ -106,15 +110,15 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
     // SSID permission callback
     private val ssidPermissionCallback = object : SsidPermissionManager.PermissionCallback {
         override fun onPermissionsGranted() {
-            lifecycleScope.launch { refreshSsidSection() }
+            Logger.vv(LOG_TAG_UI, "ssid-callback permissions granted")
+            ui { refreshSsidSection() }
         }
         override fun onPermissionsDenied() {
-            lifecycleScope.launch {
-                b.ssidCheck.isChecked = false
-                refreshSsidSection()
-            }
+            Logger.vv(LOG_TAG_UI, "ssid-callback permissions denied")
+            ui { showPermissionDeniedDialog() }
         }
         override fun onPermissionsRationale() {
+            Logger.vv(LOG_TAG_UI, "ssid-callback permissions rationale")
             showSsidPermissionExplanationDialog()
         }
     }
@@ -144,8 +148,19 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
         }
 
         configKey = intent.getStringExtra(INTENT_EXTRA_CONFIG_KEY) ?: ""
-
+        applyScrollPadding()
         setupCollapsingAnimation()
+    }
+
+    private fun applyScrollPadding() {
+        b.nestedScroll.post {
+            b.nestedScroll.setPadding(
+                b.nestedScroll.paddingLeft,
+                0,
+                b.nestedScroll.paddingRight,
+                b.nestedScroll.paddingBottom
+            )
+        }
     }
 
     override fun onResume() {
@@ -392,7 +407,7 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
      */
     private fun startStatsPolling(id: String) {
         cancelStatsJob()
-        statsJob = lifecycleScope.launch(Dispatchers.IO) {
+        statsJob = io {
             while (true) {
                 try {
                     fetchAndApplyStats(id)
@@ -483,7 +498,7 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
 
         val loadPct  = config?.load ?: 0
         val linkMbps = config?.link ?: 0
-        b.valueLoad.text = buildLoadSpeedText(loadPct, linkMbps)
+        buildLoadSpeedText(loadPct, linkMbps)
 
         // only shown when proxy is in a failing state.
         val isFailing = isFailing(ps, stats)
@@ -543,12 +558,11 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
 
     /**
      * Returns a human-readable combined load + speed string, e.g.
-     * "35% · Normal  ·  1 Gbps · Fast"
-     * If either piece is missing only the available one is shown.
+     * "35% · Normal"
+     * "1 Gbps · Fast"
      */
-    private fun buildLoadSpeedText(loadPct: Int, linkMbps: Int): String {
-        val parts = mutableListOf<String>()
-        if (loadPct > 0) {
+    private fun buildLoadSpeedText(loadPct: Int, linkMbps: Int) {
+        if (loadPct >= 0) {
             val tier = when {
                 loadPct <= 20 -> getString(R.string.server_load_light)
                 loadPct <= 40 -> getString(R.string.server_load_normal)
@@ -556,7 +570,9 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
                 loadPct <= 80 -> getString(R.string.server_load_very_busy)
                 else -> getString(R.string.server_load_overloaded)
             }
-            parts += "$loadPct% · $tier"
+            b.valueHealth.text = getString(R.string.two_argument_dot,"$loadPct%",tier)
+        } else {
+            b.valueHealth.text = getString(R.string.lbl_not_available_short)
         }
         if (linkMbps > 0) {
             val formatted = when {
@@ -570,16 +586,10 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
                 }
                 else -> "$linkMbps Mbps"
             }
-            val tier = when {
-                linkMbps >= 10_000 -> getString(R.string.server_speed_very_fast)
-                linkMbps >= 1_000 -> getString(R.string.server_speed_fast)
-                linkMbps >= 100 -> getString(R.string.server_speed_good)
-                linkMbps >= 10 -> getString(R.string.server_speed_moderate)
-                else -> getString(R.string.server_speed_slow)
-            }
-            parts += "$formatted · $tier"
+            b.valueLoad.text = formatted
+        } else {
+            b.valueLoad.text = getString(R.string.lbl_not_available_short)
         }
-        return parts.joinToString("   ").ifBlank { "-" }
     }
 
     private fun observeAppCount(proxyId: String) {
@@ -700,22 +710,9 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
             }
         }
 
-        b.ssidCheck.setOnCheckedChangeListener { _, isChecked ->
-            io {
-                RpnProxyManager.setSsidEnabledForWinServer(configKey, isChecked)
-                uiCtx {
-                    Utilities.showToastUiCentered(
-                        this,
-                        if (isChecked) "SSID based enabled" else "SSID based disabled",
-                        Toast.LENGTH_SHORT
-                    )
-                }
-            }
-        }
-
         b.catchAllRl.setOnClickListener  { b.catchAllCheck.performClick() }
         b.useMobileRl.setOnClickListener { b.useMobileCheck.performClick() }
-        b.ssidFilterRl.setOnClickListener{ b.ssidCheck.performClick() }
+        // ssidFilterRl click listener and ssidCheck listener are managed by setupSsidSectionUI
     }
 
     private fun initiateReconnect(key: String) {
@@ -843,47 +840,201 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
             val scale = 1f - pct * 0.08f
             b.configNameText.scaleX = scale
             b.configNameText.scaleY = scale
+            // Show country name in toolbar title when the header is mostly collapsed.
+            if (pct >= 0.8f) {
+                val title = b.configNameText.text?.takeIf { it.isNotBlank() }
+                b.toolbar.title = title ?: ""
+            } else {
+                b.toolbar.title = ""
+            }
         }
     }
 
     private fun setupSsidSection(cc: String) {
-        lifecycleScope.launch(Dispatchers.IO) {
+        io {
             countryConfig = RpnProxyManager.getCountryConfigByKey(cc)
-            withContext(Dispatchers.Main) { setupSsidSectionUI(countryConfig) }
+            uiCtx { setupSsidSectionUI(countryConfig) }
         }
     }
 
     private fun setupSsidSectionUI(config: CountryConfig?) {
         val sw = b.ssidCheck
-        if (config == null) { sw.isEnabled = false; return }
-        if (!SsidPermissionManager.isDeviceSupported(this)) {
+        val displayGroup: LinearLayout = b.ssidDisplayGroup
+        val editBtn: AppCompatImageView = b.ssidEditBtn
+        val valueTv = b.ssidValueTv
+        val layout = b.ssidFilterRl
+        val permissionErrorLayout: LinearLayout = b.ssidPermissionErrorLayout
+        val locationErrorLayout: LinearLayout = b.ssidLocationErrorLayout
+
+        if (config == null) {
+            displayGroup.visibility = View.GONE
+            hideErrorLayouts(permissionErrorLayout, locationErrorLayout)
             sw.isEnabled = false
-            b.ssidFilterRl.visibility = View.GONE
+            Logger.w(LOG_TAG_UI, "setupSsidSectionUI: config is null for $configKey")
             return
         }
+
+        // Check if device supports required features
+        if (!SsidPermissionManager.isDeviceSupported(this)) {
+            displayGroup.visibility = View.GONE
+            hideErrorLayouts(permissionErrorLayout, locationErrorLayout)
+            sw.isEnabled = false
+            layout.visibility = View.GONE
+            Logger.w(LOG_TAG_UI, "setupSsidSectionUI: device not supported for SSID feature")
+            return
+        }
+
+        // Always keep switch and layout enabled
         sw.isEnabled = true
-        b.ssidFilterRl.visibility = View.VISIBLE
+        layout.visibility = View.VISIBLE
+
+        val hasPermissions = SsidPermissionManager.hasRequiredPermissions(this)
+        val isLocationEnabled = SsidPermissionManager.isLocationEnabled(this)
+
+        val enabled = config.ssidBased
         val ssidItems = SsidItem.parseStorageList(config.ssids)
-        sw.isChecked = config.ssidBased
+        sw.isChecked = enabled
+
+        if (enabled && hasPermissions && isLocationEnabled) {
+            // SSID enabled and all permissions/location available — show current values
+            if (ssidItems.isEmpty()) {
+                val allTxt = getString(
+                    R.string.single_argument_parenthesis,
+                    getString(R.string.two_argument_space, getString(R.string.lbl_all), getString(R.string.lbl_ssids))
+                )
+                valueTv.text = allTxt
+            } else {
+                valueTv.text = ssidItems.joinToString(", ") { "${it.name} (${it.type.getDisplayName(this)})" }
+            }
+            displayGroup.visibility = View.VISIBLE
+        } else {
+            displayGroup.visibility = View.GONE
+        }
+
+        if (DEBUG) Logger.d(
+            LOG_TAG_UI,
+            "setupSsidSectionUI: hasPermissions=$hasPermissions, locationEnabled=$isLocationEnabled, checked=${sw.isChecked}"
+        )
+        updateErrorLayouts(hasPermissions, isLocationEnabled, permissionErrorLayout, locationErrorLayout)
+
         sw.setOnCheckedChangeListener { _, isChecked ->
-            if (isChecked && !SsidPermissionManager.hasRequiredPermissions(this)) {
+            val currentHasPermissions = SsidPermissionManager.hasRequiredPermissions(this)
+            val currentLocationEnabled = SsidPermissionManager.isLocationEnabled(this)
+
+            if (isChecked && !currentHasPermissions) {
                 SsidPermissionManager.checkAndRequestPermissions(this, ssidPermissionCallback)
+                Logger.d(LOG_TAG_UI, "SSID permissions not granted, requesting...")
                 return@setOnCheckedChangeListener
             }
-            if (isChecked && !SsidPermissionManager.isLocationEnabled(this)) {
-                showLocationEnableDialog(); return@setOnCheckedChangeListener
+
+            if (isChecked && !currentLocationEnabled) {
+                showLocationEnableDialog()
+                Logger.d(LOG_TAG_UI, "Location services not enabled, prompting user...")
+                return@setOnCheckedChangeListener
             }
-            lifecycleScope.launch(Dispatchers.IO) {
-                RpnProxyManager.updateSsidBased(configKey, isChecked)
-                withContext(Dispatchers.Main) { if (isChecked) openSsidDialog() }
+
+            // Persist the new state
+            io { RpnProxyManager.updateSsidBased(configKey, isChecked) }
+
+            if (isChecked && currentHasPermissions && currentLocationEnabled) {
+                if (persistentState.enableStabilityDependentSettings()) {
+                    SnackbarHelper.showStabilityProgram(b.root, persistentState)
+                }
+                // Load and display the latest SSID list
+                io {
+                    val cur = RpnProxyManager.getCountryConfigByKey(configKey)?.ssids.orEmpty()
+                    val list = SsidItem.parseStorageList(cur)
+                    uiCtx {
+                        if (list.isEmpty()) {
+                            val allTxt = getString(
+                                R.string.single_argument_parenthesis,
+                                getString(R.string.two_argument_space, getString(R.string.lbl_all), getString(R.string.lbl_ssids))
+                            )
+                            valueTv.text = allTxt
+                        } else {
+                            valueTv.text = list.joinToString(", ") { "${it.name} (${it.type.getDisplayName(this@RpnConfigDetailActivity)})" }
+                        }
+                        displayGroup.visibility = View.VISIBLE
+                    }
+                }
+                Logger.i(LOG_TAG_UI, "SSID feature enabled for configKey: $configKey")
+            } else {
+                displayGroup.visibility = View.GONE
+                Logger.i(LOG_TAG_UI, "SSID feature disabled for configKey: $configKey")
             }
+
+            updateErrorLayouts(currentHasPermissions, currentLocationEnabled, permissionErrorLayout, locationErrorLayout)
+        }
+
+        layout.setOnClickListener { sw.performClick() }
+
+        editBtn.setOnClickListener { openSsidDialog() }
+
+        setupSsidErrorActionListeners()
+    }
+
+    private fun setupSsidErrorActionListeners() {
+        // Permission error action — opens app settings so the user can grant permission manually
+        b.ssidPermissionErrorAction.setOnClickListener {
+            openAndroidAppInfo(this, this.packageName)
+        }
+        // Location error action — opens location settings
+        b.ssidLocationErrorAction.setOnClickListener {
+            SsidPermissionManager.requestLocationEnable(this)
         }
     }
 
+    private fun updateErrorLayouts(
+        hasPermissions: Boolean,
+        isLocationEnabled: Boolean,
+        permissionErrorLayout: LinearLayout,
+        locationErrorLayout: LinearLayout
+    ) {
+        val sw = b.ssidCheck
+        // Show permission error only when SSID is enabled but permissions are missing
+        if (sw.isChecked && !hasPermissions) {
+            Logger.vv(LOG_TAG_UI, "Showing SSID permission error layout")
+            permissionErrorLayout.visibility = View.VISIBLE
+        } else {
+            permissionErrorLayout.visibility = View.GONE
+        }
+        // Show location error only when SSID is enabled, permissions ok, but location is off
+        if (sw.isChecked && hasPermissions && !isLocationEnabled) {
+            Logger.vv(LOG_TAG_UI, "Showing SSID location error layout")
+            locationErrorLayout.visibility = View.VISIBLE
+        } else {
+            locationErrorLayout.visibility = View.GONE
+        }
+    }
+
+    private fun hideErrorLayouts(
+        permissionErrorLayout: LinearLayout,
+        locationErrorLayout: LinearLayout
+    ) {
+        Logger.vv(LOG_TAG_UI, "Hiding all SSID error layouts")
+        permissionErrorLayout.visibility = View.GONE
+        locationErrorLayout.visibility = View.GONE
+    }
+
+    private fun showPermissionDeniedDialog() {
+        MaterialAlertDialogBuilder(this, R.style.App_Dialog_NoDim)
+            .setTitle(getString(R.string.ssid_permission_error_action))
+            .setMessage(SsidPermissionManager.getPermissionExplanation(this))
+            .setCancelable(true)
+            .setPositiveButton(getString(R.string.ssid_permission_error_action)) { _, _ ->
+                SsidPermissionManager.openAppSettings(this)
+            }
+            .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
+                b.ssidCheck.isChecked = false
+                io { RpnProxyManager.updateSsidBased(configKey, false) }
+            }
+            .create().show()
+    }
+
     private fun refreshSsidSection() {
-        lifecycleScope.launch(Dispatchers.IO) {
+        io {
             countryConfig = RpnProxyManager.getCountryConfigByKey(configKey)
-            withContext(Dispatchers.Main) { setupSsidSectionUI(countryConfig) }
+            uiCtx { setupSsidSectionUI(countryConfig) }
         }
     }
 
@@ -896,9 +1047,9 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
             countryConfig?.countryName ?: configKey,
             countryConfig?.ssids.orEmpty()
         ) { newSsids ->
-            lifecycleScope.launch(Dispatchers.IO) {
+            io {
                 RpnProxyManager.updateSsids(configKey, newSsids)
-                withContext(Dispatchers.Main) {
+                uiCtx {
                     refreshSsidSection()
                     Utilities.showToastUiCentered(
                         this@RpnConfigDetailActivity,
@@ -923,7 +1074,7 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
             }
             .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
                 b.ssidCheck.isChecked = false
-                lifecycleScope.launch(Dispatchers.IO) {
+                io {
                     RpnProxyManager.updateSsidBased(configKey, false)
                 }
             }
@@ -940,7 +1091,7 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
             }
             .setNegativeButton(getString(R.string.lbl_cancel)) { _, _ ->
                 b.ssidCheck.isChecked = false
-                lifecycleScope.launch(Dispatchers.IO) {
+                io {
                     RpnProxyManager.updateSsidBased(configKey, false)
                 }
             }
@@ -958,8 +1109,14 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
         )
     }
 
-    private fun io(f: suspend () -> Unit) {
-        lifecycleScope.launch(Dispatchers.IO) { f() }
+    private fun io(f: suspend () -> Unit): Job {
+        return lifecycleScope.launch(Dispatchers.IO) { f() }
+    }
+
+    private fun ui(f: () -> Unit) {
+        if (isFinishing) return
+
+        lifecycleScope.launch(Dispatchers.Main) { f() }
     }
 
     private suspend fun uiCtx(f: () -> Unit) {

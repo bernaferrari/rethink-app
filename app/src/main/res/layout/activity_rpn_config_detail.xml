@@ -49,23 +49,14 @@
                     <androidx.appcompat.widget.AppCompatImageView
                         android:id="@+id/bg_world_map"
                         android:layout_width="0dp"
-                        android:layout_height="150dp"
+                        android:layout_height="140dp"
                         android:alpha="0.15"
                         android:scaleType="centerCrop"
                         android:src="@drawable/ic_world_map"
                         app:layout_constraintEnd_toEndOf="parent"
                         app:layout_constraintStart_toStartOf="parent"
-                        app:layout_constraintTop_toTopOf="parent" />
-
-                    <com.google.android.material.textview.MaterialTextView
-                        android:id="@+id/tv_hero_flag"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="40dp"
-                        android:textSize="36sp"
-                        app:layout_constraintStart_toStartOf="parent"
                         app:layout_constraintTop_toTopOf="parent"
-                        tools:text="🇩🇪" />
+                        app:layout_constraintBottom_toBottomOf="parent" />
 
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/config_name_text"
@@ -74,12 +65,16 @@
                         android:layout_marginStart="12dp"
                         android:ellipsize="end"
                         android:maxLines="1"
+                        android:gravity="center_vertical"
                         android:textColor="?attr/primaryTextColor"
                         android:textSize="24sp"
                         android:textStyle="bold"
                         app:layout_constraintEnd_toStartOf="@id/config_id_text"
                         app:layout_constraintStart_toEndOf="@id/tv_hero_flag"
-                        app:layout_constraintTop_toTopOf="@id/tv_hero_flag"
+                        app:layout_constraintTop_toTopOf="parent"
+                        app:layout_constraintBottom_toTopOf="@id/tv_hero_city"
+                        app:layout_constraintVertical_chainStyle="packed"
+                        app:layout_constraintVertical_bias="0.54"
                         tools:text="Germany" />
 
                     <com.google.android.material.textview.MaterialTextView
@@ -90,12 +85,24 @@
                         android:layout_marginTop="2dp"
                         android:ellipsize="end"
                         android:maxLines="1"
+                        android:gravity="center_vertical"
                         android:textColor="?attr/primaryLightColorText"
                         android:textSize="14sp"
                         app:layout_constraintEnd_toStartOf="@id/config_id_text"
                         app:layout_constraintStart_toEndOf="@id/tv_hero_flag"
                         app:layout_constraintTop_toBottomOf="@id/config_name_text"
+                        app:layout_constraintBottom_toBottomOf="parent"
                         tools:text="Frankfurt" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tv_hero_flag"
+                        android:layout_width="48dp"
+                        android:layout_height="48dp"
+                        android:textSize="36sp"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toTopOf="@id/config_name_text"
+                        app:layout_constraintBottom_toBottomOf="@id/tv_hero_city"
+                        tools:text="🇩🇪" />
 
                     <com.google.android.material.chip.Chip
                         android:id="@+id/config_id_text"
@@ -104,14 +111,14 @@
                         android:layout_marginStart="8dp"
                         android:textSize="11sp"
                         app:chipIcon="@drawable/ic_refresh_white"
-                        app:chipBackgroundColor="?attr/chipBgColorNeutral"
+                        app:chipBackgroundColor="?attr/background"
                         app:chipCornerRadius="12dp"
                         app:chipMinHeight="28dp"
                         app:chipStrokeWidth="0dp"
                         android:text="Refresh"
-                        app:layout_constraintBottom_toBottomOf="@id/tv_hero_flag"
                         app:layout_constraintEnd_toEndOf="parent"
-                        app:layout_constraintTop_toTopOf="@id/tv_hero_flag" />
+                        app:layout_constraintTop_toTopOf="@id/config_name_text"
+                        app:layout_constraintBottom_toBottomOf="@id/tv_hero_city" />
 
                 </androidx.constraintlayout.widget.ConstraintLayout>
             </FrameLayout>
@@ -129,6 +136,7 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/nested_scroll"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
@@ -150,6 +158,7 @@
                 android:id="@+id/stats_card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
                 android:layout_marginBottom="16dp"
                 app:cardCornerRadius="18dp"
                 app:cardElevation="4dp"
@@ -549,7 +558,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="@string/lbl_health_bandwidth"
+                                android:text="@string/lbl_bandwidth"
                                 android:textColor="?attr/primaryLightColorText"
                                 android:textSize="13sp" />
 
@@ -559,7 +568,40 @@
                                 android:layout_height="wrap_content"
                                 android:textColor="?attr/primaryTextColor"
                                 android:textSize="13sp"
-                                tools:text="35% · 1 Gbps" />
+                                tools:text="1 Gbps" />
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="match_parent"
+                            android:layout_height="0.5dp"
+                            android:alpha="0.08"
+                            android:background="?attr/divider" />
+
+                        <LinearLayout
+                            android:id="@+id/row_health"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_vertical"
+                            android:orientation="horizontal"
+                            android:paddingTop="8dp"
+                            android:paddingBottom="8dp">
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/label_health"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:text="@string/lbl_load"
+                                android:textColor="?attr/primaryLightColorText"
+                                android:textSize="13sp" />
+
+                            <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/value_health"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:textColor="?attr/primaryTextColor"
+                                android:textSize="13sp"
+                                tools:text="35% · Normal" />
                         </LinearLayout>
 
                         <View
@@ -994,6 +1036,7 @@
                                 android:textStyle="bold" />
 
                             <com.google.android.material.textview.MaterialTextView
+                                android:id="@+id/ssid_desc_tv"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="4dp"
@@ -1012,6 +1055,122 @@
                             android:layout_centerVertical="true" />
 
                     </RelativeLayout>
+
+                    <LinearLayout
+                        android:id="@+id/ssid_display_group"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="4dp"
+                        android:background="@drawable/rectangle_border_background"
+                        android:foreground="?attr/selectableItemBackground"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="12dp"
+                        android:paddingTop="10dp"
+                        android:paddingEnd="8dp"
+                        android:paddingBottom="10dp"
+                        android:visibility="gone"
+                        tools:visibility="visible">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/ssid_value_tv"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:lineSpacingExtra="2dp"
+                            android:textColor="?attr/primaryTextColor"
+                            android:textSize="13sp"
+                            tools:text="HomeWiFi · Office (Allowlist)" />
+
+                        <androidx.appcompat.widget.AppCompatImageView
+                            android:id="@+id/ssid_edit_btn"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:layout_gravity="center_vertical"
+                            android:layout_marginStart="8dp"
+                            android:alpha="0.65"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:contentDescription="@string/rt_edit_dialog_positive"
+                            android:padding="6dp"
+                            android:src="@drawable/ic_edit_icon_grey" />
+
+                    </LinearLayout>
+
+                    <!-- Permission error: shown when location/Wi-Fi permission is missing -->
+                    <LinearLayout
+                        android:id="@+id/ssid_permission_error_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="4dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="4dp"
+                        android:paddingBottom="6dp"
+                        android:visibility="gone"
+                        tools:visibility="gone">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/ssid_permission_error_text"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:textColor="?attr/accentBad"
+                            android:textSize="12sp" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/ssid_permission_error_action"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:padding="4dp"
+                            android:text="@string/ssid_permission_error_action"
+                            android:textColor="?attr/accentGood"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
+
+                    <!-- Location error: shown when location services are disabled -->
+                    <LinearLayout
+                        android:id="@+id/ssid_location_error_layout"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal"
+                        android:paddingStart="4dp"
+                        android:paddingTop="6dp"
+                        android:paddingEnd="4dp"
+                        android:paddingBottom="6dp"
+                        android:visibility="gone"
+                        tools:visibility="gone">
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/ssid_location_error_text"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="@string/ssid_location_error"
+                            android:textColor="?attr/accentBad"
+                            android:textSize="12sp" />
+
+                        <com.google.android.material.textview.MaterialTextView
+                            android:id="@+id/ssid_location_error_action"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:background="?attr/selectableItemBackgroundBorderless"
+                            android:padding="4dp"
+                            android:text="@string/ssid_location_error_action"
+                            android:textColor="?attr/accentGood"
+                            android:textSize="12sp"
+                            android:textStyle="bold" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
 

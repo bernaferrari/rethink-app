@@ -2342,7 +2342,12 @@ object RpnProxyManager : KoinComponent {
              val removedServers = existingServers.filter { removedSelectedIds.contains(it.id) && it.id != AUTO_SERVER_ID }
 
              Logger.i(LOG_TAG_PROXY, "$TAG; refreshWinServers: refreshed ${newServers.size} servers, ${removedServers.size} selected servers removed")
-             return Pair(newServers.toList(), removedServers)
+             // Return the cache populated by syncWinServers (read from DB) instead of the
+             // freshly-constructed API objects.  API objects are built with default field values
+             // (e.g. isFavourite = false), so returning them would silently clear every country's
+             // favourite flag in the in-memory allServers list inside ServerSelectionFragment.
+             val freshList = winCacheMutex.withLock { winServersCache.toList() }
+             return Pair(freshList, removedServers)
          } catch (e: Exception) {
              Logger.e(LOG_TAG_PROXY, "$TAG; refreshWinServers: error - ${e.message}", e)
              return Pair(emptyList(), emptyList())

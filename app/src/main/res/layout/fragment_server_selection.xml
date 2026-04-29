@@ -85,7 +85,7 @@
                                 android:layout_width="32dp"
                                 android:layout_height="32dp"
                                 android:gravity="center"
-                                android:text="🌐"
+                                tools:text="🌐"
                                 android:textSize="24sp" />
 
                             <LinearLayout
@@ -110,7 +110,7 @@
                                     android:ellipsize="end"
                                     android:fontFamily="sans-serif-medium"
                                     android:maxLines="2"
-                                    android:text="AUTO"
+                                    tools:text="Auto"
                                     android:textColor="?attr/homeScreenHeaderTextColor"
                                     android:textSize="@dimen/extra_large_font_text_view"
                                     android:textStyle="bold" />
@@ -122,7 +122,7 @@
                                     android:layout_marginTop="2dp"
                                     android:ellipsize="end"
                                     android:maxLines="1"
-                                    android:text="Automatic server selection"
+                                    tools:text="Automatic server selection"
                                     android:textColor="?attr/homeScreenHeaderTextColor"
                                     android:textSize="@dimen/default_font_text_view" />
 
@@ -539,6 +539,52 @@
                     tools:listitem="@layout/list_item_vpn_server" />
 
             </com.google.android.material.card.MaterialCardView>
+
+            <LinearLayout
+                android:id="@+id/frequent_countries_section"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginBottom="2dp"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/server_selection_frequent_label"
+                    android:textColor="?attr/primaryLightColorText"
+                    android:textSize="@dimen/small_font_text_view"
+                    android:fontFamily="sans-serif-medium"
+                    android:letterSpacing="0.06"
+                    android:paddingStart="4dp"
+                    android:paddingEnd="4dp"
+                    android:paddingTop="8dp"
+                    android:paddingBottom="6dp" />
+
+                <HorizontalScrollView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:scrollbars="none"
+                    android:clipToPadding="false"
+                    android:fadingEdgeLength="20dp"
+                    android:requiresFadingEdge="horizontal">
+
+                    <com.google.android.material.chip.ChipGroup
+                        android:id="@+id/frequent_chip_group"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:paddingStart="4dp"
+                        android:paddingEnd="20dp"
+                        android:paddingTop="2dp"
+                        android:paddingBottom="6dp"
+                        app:chipSpacingHorizontal="6dp"
+                        app:singleLine="true" />
+
+                </HorizontalScrollView>
+
+            </LinearLayout>
 
             <LinearLayout
                 android:id="@+id/error_state_container"

@@ -43,12 +43,14 @@ import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities
 import com.celzero.firestack.backend.Backend
+import com.celzero.firestack.backend.IPMetadata
 import com.celzero.firestack.backend.RouterStats
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import java.util.Locale
 
 /**
@@ -91,6 +93,18 @@ class VpnServerAdapter(
      */
     fun clearLoadingTunnelKey(key: String) {
         if (loadingTunnelKeys.remove(key)) {
+            val idx = serverGroups.indexOfFirst { it.key == key }
+            if (idx >= 0) notifyItemChanged(idx)
+        }
+    }
+
+    /**
+     * Adds [key] to the loading set so the item immediately shows "Connecting…"
+     * the next time it is (re-)bound.  Triggers a targeted rebind if the item is
+     * already visible so the transition is instant.
+     */
+    fun addLoadingTunnelKey(key: String) {
+        if (loadingTunnelKeys.add(key)) {
             val idx = serverGroups.indexOfFirst { it.key == key }
             if (idx >= 0) notifyItemChanged(idx)
         }
@@ -196,28 +210,33 @@ class VpnServerAdapter(
 
 
         fun bind(group: ServerGroup) {
+            b.tvServerIp.visibility = View.GONE
 
             if (group.key.equals(AUTO_SERVER_ID, ignoreCase = true)) {
                 b.infoIcon.visibility = View.GONE
+                // AUTO server: show the vector globe icon, hide the emoji text view
+                b.tvFlag.text = ""
+                b.ivFlagImage.visibility = View.VISIBLE
             } else {
                 b.infoIcon.visibility = View.VISIBLE
+                // Regular server: show the country flag emoji, hide the globe image
+                b.tvFlag.text = group.flagEmoji
+                b.ivFlagImage.visibility = View.GONE
             }
-            b.tvFlag.text = group.flagEmoji
-            b.tvCountryName.text = group.countryName
 
             val locationText = if (group.serverCount > 1) {
                 val cities = group.servers.map { it.serverLocation }.distinct()
-                val cityText = if (cities.size <= 2) cities.joinToString(", ")
-                else "${cities.first()} +${cities.size - 1} more"
+                val cityText = if (cities.size <= 2) cities.joinToString(", ").lowercase().replaceFirstChar(Char::titlecase)
+                else "${cities.first().lowercase().replaceFirstChar(Char::titlecase)} +${cities.size - 1} more"
                 "$cityText • ${group.countryCode}"
             } else {
                 ctx.getString(
                     R.string.server_location_format,
-                    group.cityName,
+                    group.cityName.lowercase().replaceFirstChar(Char::titlecase),
                     group.countryCode
                 )
             }
-            b.tvServerLocation.text = locationText
+            b.tvCountryName.text = locationText
 
             val hasSpeed = group.bestLinkSpeed > 0
             val hasLoad  = group.leastLoad > 0
@@ -225,24 +244,26 @@ class VpnServerAdapter(
             when {
                 hasSpeed && hasLoad -> {
                     val speedStr = speedInfo(group.bestLinkSpeed).first
-                    val (loadStr,  loadAttr) = loadInfo(group.leastLoad)
+                    val (loadStr, loadAttr) = loadInfo(group.leastLoad)
                     b.latencyBadge.text = ctx.getString(R.string.two_argument_dot, speedStr, loadStr)
                     b.latencyBadge.setTextColor(fetchColor(ctx, loadAttr))
+                    b.latencyBadge.visibility = View.VISIBLE
                 }
                 hasSpeed -> {
-                    val (speedStr, speedLabel, speedAttr) = speedInfo(group.bestLinkSpeed)
-                    b.latencyBadge.text = ctx.getString(R.string.two_argument_dot, speedStr, speedLabel)
+                    val (speedStr, speedAttr) = speedInfo(group.bestLinkSpeed)
+                    b.latencyBadge.text = speedStr
                     b.latencyBadge.setTextColor(fetchColor(ctx, speedAttr))
+                    b.latencyBadge.visibility = View.VISIBLE
                 }
                 hasLoad -> {
                     val (loadStr, loadAttr) = loadInfo(group.leastLoad)
                     b.latencyBadge.text = loadStr
                     b.latencyBadge.setTextColor(fetchColor(ctx, loadAttr))
+                    b.latencyBadge.visibility = View.VISIBLE
                 }
                 else -> {
-                    b.latencyBadge.text = ctx.getString(R.string.lbl_not_available_short)
+                    // No speed or load data available.
                     b.latencyBadge.visibility = View.GONE
-                    b.latencyBadge.setTextColor(fetchColor(ctx, R.attr.primaryLightColorText))
                 }
             }
 
@@ -262,26 +283,24 @@ class VpnServerAdapter(
                 showTunnelLoadingStatus()
                 b.infoIcon.setOnClickListener { listener.onServerGroupRemoved(group) }
                 b.serverCard.setOnClickListener { openServerDetail(group.getBestServer()) }
-                if (VpnController.hasTunnel()) {
-                    statsJob = pollStatsLoop(group)
-                }
+                // Always start polling
+                statsJob = pollStatsLoop(group)
             } else {
                 b.infoIcon.setOnClickListener { listener.onServerGroupRemoved(group) }
                 b.serverCard.setOnClickListener { openServerDetail(group.getBestServer()) }
 
-                if (VpnController.hasTunnel()) {
-                    statsJob = pollStatsLoop(group)
-                } else {
-                    hideStats()
-                }
+                // Show "Checking…" immediately so the item is never left stranded
+                showCheckingStatus()
+                statsJob = pollStatsLoop(group)
             }
         }
 
         /**
          * Displays a minimal "Proxy Stopped" status row.
-         * Live stats are hidden since the proxy is not routing traffic.
+         * Live stats and IP are hidden since the proxy is not routing traffic.
          */
         private fun showStoppedStatus() {
+            b.tvServerIp.visibility = View.GONE
             b.statsLayout.visibility = View.VISIBLE
             b.tvServerStatus.text = ctx.getString(R.string.server_settings_proxy_stopped)
             b.tvServerStatus.setTextColor(fetchColor(ctx, R.attr.chipTextNeutral))
@@ -300,6 +319,7 @@ class VpnServerAdapter(
          * [applyStats] call will cancel the pulse and display real data.
          */
         private fun showTunnelLoadingStatus() {
+            b.tvServerIp.visibility = View.GONE
             b.statsLayout.visibility = View.VISIBLE
             b.tvServerStatus.text = ctx.getString(R.string.lbl_connecting)
             b.tvServerStatus.setTextColor(fetchColor(ctx, R.attr.chipTextNeutral))
@@ -309,6 +329,30 @@ class VpnServerAdapter(
             b.tvUptimeSep.visibility = View.GONE
             b.tvUptime.visibility = View.GONE
             // Kick off a gentle alpha pulse so the user can tell this item is "live"
+            b.tvServerStatus.animate().cancel()
+            b.tvServerStatus.alpha = 1f
+            pulseTvStatus()
+        }
+
+        /**
+         * Displays a pulsing "Checking…" status row while waiting for the first
+         * stats poll to return.  Used as the initial state in the normal (non-loading)
+         * path so the item is never left visually stranded before real data arrives.
+         *
+         * The [pollStatsLoop] runs in parallel; the first successful [applyStats]
+         * call will cancel the pulse and display real data.
+         */
+        private fun showCheckingStatus() {
+            b.tvServerIp.visibility = View.GONE
+            b.statsLayout.visibility = View.VISIBLE
+            b.tvServerStatus.text = ctx.getString(R.string.ping_reach_checking)
+            b.tvServerStatus.setTextColor(fetchColor(ctx, R.attr.chipTextNeutral))
+            b.tvStatusSep.visibility = View.GONE
+            b.tvAppsCount.visibility = View.GONE
+            b.tvRxTx.visibility = View.GONE
+            b.tvUptimeSep.visibility = View.GONE
+            b.tvUptime.visibility = View.GONE
+            // states feel distinct to the user.
             b.tvServerStatus.animate().cancel()
             b.tvServerStatus.alpha = 1f
             pulseTvStatus()
@@ -348,36 +392,90 @@ class VpnServerAdapter(
         }
 
         private suspend fun fetchAndApplyStats(group: ServerGroup) {
-            val config = RpnProxyManager.getCountryConfigByKey(group.key)
-            val id = group.proxyId()
-            val statusPair = VpnController.getProxyStatusById(id)
-            val stats = VpnController.getProxyStats(id)
-            val apps = ProxyManager.getAppCountForProxy(id)
-            // show who, if not available show city name
-            val who = if (group.key.equals(AUTO_SERVER_ID, ignoreCase = true)) {
-                VpnController.getWin()?.who() ?: group.cityName
-            } else {
-                group.cityName
-            }
-
-            Logger.v(LOG_TAG_UI, "VpnServerAdapter fetchAndApplyStats for id: $id, config: $config, status: $statusPair, stats: $stats, apps/always-on: $apps/${config?.catchAll}")
-            withContext(Dispatchers.Main) {
-                if (group.key.equals(AUTO_SERVER_ID, ignoreCase = true)) {
-                    val whoTrimmed = if (who.length > 10) who.take(10) else who
-                    // update who in space of cc, for auto
-                    val text = ctx.getString(
-                        R.string.server_location_format,
-                        group.cityName,
-                        whoTrimmed
-                    )
-                    b.tvServerLocation.text = text
+            try {
+                val config = RpnProxyManager.getCountryConfigByKey(group.key)
+                val id = group.proxyId()
+                val statusPair = VpnController.getProxyStatusById(id)
+                val stats = VpnController.getProxyStats(id)
+                val apps = ProxyManager.getAppCountForProxy(id)
+                // show who, if not available show city name
+                val who = if (group.key.equals(AUTO_SERVER_ID, ignoreCase = true)) {
+                    VpnController.getWin()?.who() ?: group.cityName
+                } else {
+                    group.cityName
                 }
 
-                applyStats(config, statusPair, stats, apps)
+                // Fetch IP metadata for this server (cached by since-timestamp; live fetches
+                // only happen when the tunnel connects for the first time or after a reconnect).
+                val ip4 = fetchIpForGroup(group, stats)
+
+                Logger.v(LOG_TAG_UI, "VpnServerAdapter fetchAndApplyStats for id: $id, config: $config, status: $statusPair, stats: $stats, apps/always-on: $apps/${config?.catchAll}")
+                withContext(Dispatchers.Main) {
+                    if (!b.root.isAttachedToWindow) return@withContext
+
+                    applyStats(config, statusPair, stats, apps, ip4)
+                }
+            } catch (t: Throwable) {
+                Logger.w(LOG_TAG_UI, "VpnServerAdapter fetchAndApplyStats[${group.key}]: ${t.message}")
+                // If stats fetch fails (e.g. tunnel not up yet), keep the "Checking…"
+                // pulse visible and retry after the next poll interval.
             }
         }
 
-        private fun applyStats(config: CountryConfig?, statusPair: Pair<Long?, String>, stats: RouterStats?, appsCount: Int) {
+        /**
+         * Fetches cached IP metadata for [group], falling back to a live RPN client
+         * call only when the tunnel has reconnected (since-timestamp mismatch).
+         * Returns the IPv4 [IPMetadata] or null if not yet available.
+         */
+        private suspend fun fetchIpForGroup(group: ServerGroup, stats: RouterStats?): IPMetadata? {
+            return try {
+                val key = group.key
+                val since = stats?.since ?: 0L
+                val cachedSince = RpnProxyManager.getCachedSinceTs(key)
+                val cached = RpnProxyManager.getCachedIpMeta(key)
+
+                // Fast path: cache is warm and the tunnel hasn't reconnected.
+                if (since > 0L && since == cachedSince && cached != null) {
+                    return cached.first
+                }
+
+                // Slow path: fetch live from the Go backend (3 s timeout to stay responsive).
+                val client = withTimeoutOrNull(3_000L) {
+                    runCatching { VpnController.getRpnClientInfoById(key) }.getOrNull()
+                }
+                val ip4 = runCatching { client?.iP4() }.getOrNull()
+                val ip6 = runCatching { client?.iP6() }.getOrNull()
+                RpnProxyManager.updateIpMeta(key, since, ip4, ip6)
+                ip4
+            } catch (t: Throwable) {
+                Logger.w(LOG_TAG_UI, "VpnServerAdapter fetchIpForGroup[${group.key}]: ${t.message}")
+                // Degrade gracefully: return stale cache rather than hiding the IP row.
+                RpnProxyManager.getCachedIpMeta(group.key)?.first
+            }
+        }
+
+        /**
+         * Builds a compact ISP / city label from [ip4] metadata.
+         * Format: "City · ASN Org", "ASN Org", "City", or "" if neither is set.
+         */
+        private fun buildIspLabel(ip4: IPMetadata): String {
+            val city = ip4.city?.takeIf { it.isNotEmpty() }
+            val org  = ip4.asnOrg?.takeIf { it.isNotEmpty() }
+            return when {
+                city != null && org != null -> "$city · $org"
+                org  != null -> org
+                city != null -> city
+                else -> ""
+            }
+        }
+
+        private fun applyStats(
+            config: CountryConfig?,
+            statusPair: Pair<Long?, String>,
+            stats: RouterStats?,
+            appsCount: Int,
+            ip4: IPMetadata? = null
+        ) {
             if (config == null) {
                 hideStats()
                 return
@@ -415,9 +513,36 @@ class VpnServerAdapter(
             b.tvUptimeSep.visibility = if (uptime.isNotEmpty()) View.VISIBLE else View.GONE
             b.tvUptime.visibility = if (uptime.isNotEmpty()) View.VISIBLE else View.GONE
             if (uptime.isNotEmpty()) b.tvUptime.text = uptime
+
+            // Server IP row.
+            // Show the actual IP+ISP label when available, fall back to "N/A" once the
+            // tunnel has provided stats (so the row is never blank once we have context),
+            // or hide the row entirely while still waiting for the first stats reply.
+            val ipText = ip4?.ip?.takeIf { it.isNotEmpty() }
+            when {
+                ipText != null -> {
+                    val ispLabel = buildIspLabel(ip4!!)
+                    b.tvServerIp.text = if (ispLabel.isNotEmpty()) "$ipText · $ispLabel" else ipText
+                    b.tvServerIp.visibility = View.VISIBLE
+                }
+                stats != null -> {
+                    // Tunnel is up and returning stats but the IP metadata isn't available
+                    // yet (or the backend didn't return one) — show "N/A" so the row is
+                    // never left empty.
+                    b.tvServerIp.text = ctx.getString(R.string.lbl_not_available_short)
+                    b.tvServerIp.visibility = View.VISIBLE
+                }
+                else -> {
+                    // No stats yet — keep the IP row hidden until we have real data.
+                    b.tvServerIp.visibility = View.GONE
+                }
+            }
         }
 
-        private fun hideStats() { b.statsLayout.visibility = View.GONE }
+        private fun hideStats() {
+            b.statsLayout.visibility = View.GONE
+            b.tvServerIp.visibility = View.GONE
+        }
 
         private fun getStatusColor(status: UIUtils.ProxyStatus?, stats: RouterStats?): Int {
             val now = System.currentTimeMillis()
@@ -483,20 +608,18 @@ class VpnServerAdapter(
          * Returns (formattedSpeed, tierLabel, textColorAttr) for [linkMbps].
          *
          * Tier thresholds (same as CountryServerAdapter):
-         *   ≥ 10 000 Mbps → Very Fast   (chipTextPositive)
-         *   ≥  1 000 Mbps → Fast        (accentGood)
-         *   ≥    100 Mbps → Good        (chipTextNeutral)
-         *   ≥     10 Mbps → Moderate    (chipTextNeutral)
-         *   >      0 Mbps → Slow        (chipTextNegative)
+         *   ≥ 10 000 Mbps → Very Fast (chipTextPositive)
+         *   ≥ 1 000 Mbps → Fast (accentGood)
+         *   ≥ 100 Mbps → Good (chipTextNeutral)
+         *   ≥ 10 Mbps → Moderate (chipTextNeutral)
+         *   > 0 Mbps → Slow (chipTextNegative)
          */
-        private fun speedInfo(linkMbps: Int): Triple<String, String, Int> {
+        private fun speedInfo(linkMbps: Int): Pair<String, Int> {
             val formatted: String
-            val label: String
             val attr: Int
             when {
                 linkMbps >= 10_000 -> {
                     formatted = String.format(Locale.US, "%.0f Gbps", linkMbps / 1_000.0)
-                    label = ctx.getString(R.string.server_speed_very_fast)
                     attr = R.attr.chipTextPositive
                 }
                 linkMbps >= 1_000 -> {
@@ -505,36 +628,32 @@ class VpnServerAdapter(
                         String.format(Locale.US, "%.0f Gbps", gbps)
                     else
                         String.format(Locale.US, "%.1f Gbps", gbps)
-                    label = ctx.getString(R.string.server_speed_fast)
                     attr = R.attr.accentGood
                 }
                 linkMbps >= 100 -> {
                     formatted = "$linkMbps Mbps"
-                    label = ctx.getString(R.string.server_speed_good)
                     attr = R.attr.chipTextNeutral
                 }
                 linkMbps >= 10 -> {
                     formatted = "$linkMbps Mbps"
-                    label = ctx.getString(R.string.server_speed_moderate)
                     attr = R.attr.chipTextNeutral
                 }
                 else -> {
                     formatted = "$linkMbps Mbps"
-                    label = ctx.getString(R.string.server_speed_slow)
                     attr = R.attr.chipTextNegative
                 }
             }
-            return Triple(formatted, label, attr)
+            return Pair(formatted, attr)
         }
 
         /**
          * Returns (displayText, textColorAttr) for [loadPercent].
          *
          * Tier thresholds (same as CountryServerAdapter):
-         *   ≤ 20 → Light      (chipTextPositive)
-         *   ≤ 40 → Normal     (accentGood)
-         *   ≤ 60 → Busy       (chipTextNeutral)
-         *   ≤ 80 → Very Busy  (chipTextNegative)
+         *   ≤ 20 → Light (chipTextPositive)
+         *   ≤ 40 → Normal (accentGood)
+         *   ≤ 60 → Busy (chipTextNeutral)
+         *   ≤ 80 → Very Busy (chipTextNegative)
          *   > 80 → Overloaded (chipTextNegative)
          */
         private fun loadInfo(loadPercent: Int): Pair<String, Int> {
