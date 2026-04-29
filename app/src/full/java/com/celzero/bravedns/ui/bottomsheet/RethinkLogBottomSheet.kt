@@ -63,10 +63,9 @@ class RethinkLogBottomSheet : BottomSheetDialogFragment(), KoinComponent {
 
     private var _binding: BottomSheetConnTrackBinding? = null
 
-    // This property is only valid between onCreateView and onDestroyView.
-    private val b: BottomSheetConnTrackBinding
-        get() = _binding ?: throw IllegalStateException("Binding is only valid between onCreateView and onDestroyView")
-
+    private val b
+        get() = checkNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
     private var info: RethinkLog? = null
 
     companion object {

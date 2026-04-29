@@ -39,9 +39,9 @@ class WireguardListBtmSheet :
     BottomSheetDialogFragment() {
     private var _binding: BottomSheetProxiesListBinding? = null
 
-    // This property is only valid between onCreateView and onDestroyView.
-    private val b: BottomSheetProxiesListBinding
-        get() = _binding ?: throw IllegalStateException("Binding is only valid between onCreateView and onDestroyView")
+    private val b
+        get() = checkNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     private val persistentState by inject<PersistentState>()
 

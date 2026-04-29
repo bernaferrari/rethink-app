@@ -52,10 +52,9 @@ import org.koin.android.ext.android.inject
 class HomeScreenSettingBottomSheet : BottomSheetDialogFragment() {
     private var _binding: BottomSheetHomeScreenBinding? = null
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val b
-        get() = _binding!!
+        get() = checkNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     private val appConfig by inject<AppConfig>()
     private val persistentState by inject<PersistentState>()

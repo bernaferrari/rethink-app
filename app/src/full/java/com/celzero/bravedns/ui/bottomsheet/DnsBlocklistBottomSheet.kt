@@ -81,9 +81,9 @@ import java.util.Locale
 class DnsBlocklistBottomSheet : BottomSheetDialogFragment() {
     private var _binding: BottomSheetDnsLogBinding? = null
 
-    // This property is only valid between onCreateView and onDestroyView.
     private val b
-        get() = _binding!!
+        get() = checkNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     private var log: DnsLog? = null
 

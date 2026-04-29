@@ -72,10 +72,9 @@ import java.util.concurrent.TimeUnit
 class BackupRestoreBottomSheet : BottomSheetDialogFragment() {
     private var _binding: ActivityBackupRestoreBinding? = null
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val b
-        get() = _binding!!
+        get() = checkNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     val persistentState by inject<PersistentState>()
     private lateinit var backupActivityResult: ActivityResultLauncher<Intent>

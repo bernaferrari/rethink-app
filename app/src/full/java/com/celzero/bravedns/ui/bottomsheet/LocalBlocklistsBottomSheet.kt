@@ -68,9 +68,9 @@ import java.io.File
 class LocalBlocklistsBottomSheet : BottomSheetDialogFragment() {
     private var _binding: BottomSheetLocalBlocklistsBinding? = null
 
-    // This property is only valid between onCreateView and onDestroyView.
     private val b
-        get() = _binding!!
+        get() = checkNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     private val persistentState by inject<PersistentState>()
     private val appDownloadManager by inject<AppDownloadManager>()

@@ -48,9 +48,9 @@ class CustomDomainRulesBtmSheet :
     BottomSheetDialogFragment(), ProxyCountriesBtmSheet.CountriesDismissListener, WireguardListBtmSheet.WireguardDismissListener {
     private var _binding: BottomSheetCustomDomainsBinding? = null
 
-    // This property is only valid between onCreateView and onDestroyView.
     private val b
-        get() = _binding!!
+        get() = checkNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()
