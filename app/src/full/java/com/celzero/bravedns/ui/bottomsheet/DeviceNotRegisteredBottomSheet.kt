@@ -40,7 +40,9 @@ import androidx.core.net.toUri
 class DeviceNotRegisteredBottomSheet : BottomSheetDialogFragment() {
 
     private var _binding: BottomsheetDeviceNotRegisteredBinding? = null
-    private val binding get() = _binding!!
+    private val binding
+        get() = requireNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     companion object {
         private const val TAG = "DeviceNotRegisteredBS"

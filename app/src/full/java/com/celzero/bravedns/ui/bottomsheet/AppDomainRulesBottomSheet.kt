@@ -56,9 +56,9 @@ import org.koin.android.ext.android.inject
 class AppDomainRulesBottomSheet : BottomSheetDialogFragment(), WireguardListBtmSheet.WireguardDismissListener  {
     private var _binding: BottomSheetAppConnectionsBinding? = null
 
-    // This property is only valid between onCreateView and onDestroyView.
     private val b
-        get() = _binding!!
+        get() = requireNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     private val persistentState by inject<PersistentState>()
     private val eventLogger by inject<EventLogger>()

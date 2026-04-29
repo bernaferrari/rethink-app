@@ -69,10 +69,9 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 class OrbotBottomSheet : BottomSheetDialogFragment() {
     private var _binding: BottomSheetOrbotBinding? = null
 
-    // This property is only valid between onCreateView and
-    // onDestroyView.
     private val b
-        get() = _binding!!
+        get() = requireNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     private val persistentState by inject<PersistentState>()
     private val appConfig by inject<AppConfig>()

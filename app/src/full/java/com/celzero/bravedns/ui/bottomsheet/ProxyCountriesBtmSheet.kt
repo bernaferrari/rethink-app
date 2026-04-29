@@ -37,9 +37,9 @@ class ProxyCountriesBtmSheet :
     BottomSheetDialogFragment() {
     private var _binding: BottomSheetProxiesListBinding? = null
 
-    // This property is only valid between onCreateView and onDestroyView.
     private val b
-        get() = _binding!!
+        get() = requireNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     private val persistentState by inject<PersistentState>()
 

@@ -41,9 +41,9 @@ class RethinkListBottomSheet : BottomSheetDialogFragment() {
 
     private var _binding: BottomSheetRethinkListBinding? = null
 
-    // This property is only valid between onCreateView and onDestroyView.
-    private val b: BottomSheetRethinkListBinding
-        get() = _binding ?: throw IllegalStateException("Binding is only valid between onCreateView and onDestroyView")
+    private val b
+        get() = requireNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     private val persistentState by inject<PersistentState>()
 

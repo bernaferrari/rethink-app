@@ -45,7 +45,9 @@ import kotlinx.coroutines.withContext
 class ResubscribeBottomSheet : BottomSheetDialogFragment() {
 
     private var _binding: BottomsheetResubscribeBinding? = null
-    private val binding get() = _binding!!
+    private val binding
+        get() = requireNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     companion object {
         private const val TAG = "ResubscribeBS"

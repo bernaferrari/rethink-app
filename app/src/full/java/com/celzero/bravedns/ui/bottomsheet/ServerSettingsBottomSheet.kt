@@ -41,7 +41,9 @@ import org.koin.android.ext.android.inject
 class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
 
     private var _binding: BottomsheetServerSettingsBinding? = null
-    private val binding get() = _binding!!
+    private val binding
+        get() = requireNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     private val persistentState by inject<PersistentState>()
 
@@ -167,9 +169,9 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     }
 
     override fun onDestroyView() {
-        listener = null   // prevent fragment leak via callback reference
-        _binding = null
         super.onDestroyView()
+        listener = null // prevent fragment leak via callback reference
+        _binding = null
     }
 
     /**

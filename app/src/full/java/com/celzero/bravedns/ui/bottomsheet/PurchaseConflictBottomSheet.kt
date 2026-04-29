@@ -50,7 +50,9 @@ import kotlinx.coroutines.withContext
 class PurchaseConflictBottomSheet : BottomSheetDialogFragment() {
 
     private var _binding: BottomsheetPurchaseConflictBinding? = null
-    private val binding get() = _binding!!
+    private val binding
+        get() = requireNotNull(_binding)
+        { "Binding accessed outside of view lifecycle" }
 
     /** Called on the main thread when a refund completes (success or failure). */
     var onRefundResult: ((success: Boolean, message: String) -> Unit)? = null
