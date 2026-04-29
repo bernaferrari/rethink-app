@@ -46,7 +46,7 @@ class ResubscribeBottomSheet : BottomSheetDialogFragment() {
 
     private var _binding: BottomsheetResubscribeBinding? = null
     private val binding
-        get() = requireNotNull(_binding)
+        get() = checkNotNull(_binding)
         { "Binding accessed outside of view lifecycle" }
 
     companion object {

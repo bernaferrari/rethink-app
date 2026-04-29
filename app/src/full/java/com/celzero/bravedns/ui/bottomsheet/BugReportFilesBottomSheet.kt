@@ -61,7 +61,7 @@ import java.util.zip.ZipOutputStream
 class BugReportFilesBottomSheet : BottomSheetDialogFragment() {
     private var _binding: BottomSheetBugReportFilesBinding? = null
     private val b
-        get() = requireNotNull(_binding)
+        get() = checkNotNull(_binding)
         { "Binding accessed outside of view lifecycle" }
 
     private val persistentState by inject<PersistentState>()

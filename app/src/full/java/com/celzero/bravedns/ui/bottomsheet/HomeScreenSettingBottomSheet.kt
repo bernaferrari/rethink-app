@@ -53,7 +53,7 @@ class HomeScreenSettingBottomSheet : BottomSheetDialogFragment() {
     private var _binding: BottomSheetHomeScreenBinding? = null
 
     private val b
-        get() = requireNotNull(_binding)
+        get() = checkNotNull(_binding)
         { "Binding accessed outside of view lifecycle" }
 
     private val appConfig by inject<AppConfig>()

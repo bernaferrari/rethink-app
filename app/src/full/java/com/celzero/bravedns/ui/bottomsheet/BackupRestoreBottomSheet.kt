@@ -73,7 +73,7 @@ class BackupRestoreBottomSheet : BottomSheetDialogFragment() {
     private var _binding: ActivityBackupRestoreBinding? = null
 
     private val b
-        get() = requireNotNull(_binding)
+        get() = checkNotNull(_binding)
         { "Binding accessed outside of view lifecycle" }
 
     val persistentState by inject<PersistentState>()

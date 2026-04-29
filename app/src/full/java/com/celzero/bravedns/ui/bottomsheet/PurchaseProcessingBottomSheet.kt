@@ -18,7 +18,7 @@ class PurchaseProcessingBottomSheet : BottomSheetDialogFragment() {
 
     private var _binding: BottomsheetPurchaseProcessingBinding? = null
     private val binding
-        get() = requireNotNull(_binding)
+        get() = checkNotNull(_binding)
         { "Binding accessed outside of view lifecycle" }
 
     private var currentState: ProcessingState = ProcessingState.Processing

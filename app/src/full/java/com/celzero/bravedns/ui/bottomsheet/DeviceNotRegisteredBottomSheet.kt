@@ -41,7 +41,7 @@ class DeviceNotRegisteredBottomSheet : BottomSheetDialogFragment() {
 
     private var _binding: BottomsheetDeviceNotRegisteredBinding? = null
     private val binding
-        get() = requireNotNull(_binding)
+        get() = checkNotNull(_binding)
         { "Binding accessed outside of view lifecycle" }
 
     companion object {

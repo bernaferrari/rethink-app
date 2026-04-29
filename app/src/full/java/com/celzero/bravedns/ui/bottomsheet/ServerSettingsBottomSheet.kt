@@ -42,7 +42,7 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
 
     private var _binding: BottomsheetServerSettingsBinding? = null
     private val binding
-        get() = requireNotNull(_binding)
+        get() = checkNotNull(_binding)
         { "Binding accessed outside of view lifecycle" }
 
     private val persistentState by inject<PersistentState>()

@@ -64,7 +64,7 @@ class RethinkLogBottomSheet : BottomSheetDialogFragment(), KoinComponent {
     private var _binding: BottomSheetConnTrackBinding? = null
 
     private val b
-        get() = requireNotNull(_binding)
+        get() = checkNotNull(_binding)
         { "Binding accessed outside of view lifecycle" }
     private var info: RethinkLog? = null
 

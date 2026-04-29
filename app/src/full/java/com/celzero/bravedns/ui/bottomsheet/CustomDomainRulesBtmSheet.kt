@@ -49,7 +49,7 @@ class CustomDomainRulesBtmSheet :
     private var _binding: BottomSheetCustomDomainsBinding? = null
 
     private val b
-        get() = requireNotNull(_binding)
+        get() = checkNotNull(_binding)
         { "Binding accessed outside of view lifecycle" }
 
     private val persistentState by inject<PersistentState>()
