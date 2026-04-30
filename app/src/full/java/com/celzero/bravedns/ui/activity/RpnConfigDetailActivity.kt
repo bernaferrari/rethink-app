@@ -321,7 +321,7 @@ class RpnConfigDetailActivity : BaseActivity(R.layout.activity_rpn_config_detail
     }
 
     /**
-     * Builds a premium multi-line [SpannableStringBuilder] for a single [IPMetadata].
+     * Builds a multi-line [SpannableStringBuilder] for a single [IPMetadata].
      *
      * ```
      * 10.0.0.1                                              ← monospace bold, 1.07×

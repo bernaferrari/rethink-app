@@ -138,7 +138,6 @@ import com.celzero.firestack.backend.NetStat
 import com.celzero.firestack.backend.Proxy
 import com.celzero.firestack.backend.RDNS
 import com.celzero.firestack.backend.RouterStats
-import com.celzero.firestack.backend.Rpn
 import com.celzero.firestack.backend.RpnEntitlement
 import com.celzero.firestack.backend.RpnProxy
 import com.celzero.firestack.backend.ServerSummary

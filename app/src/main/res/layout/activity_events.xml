@@ -8,7 +8,6 @@
     android:descendantFocusability="beforeDescendants"
     android:focusableInTouchMode="true">
 
-    <!-- Search and Filter Card -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/events_card_view_top"
         android:layout_width="match_parent"
@@ -70,7 +69,6 @@
 
             </RelativeLayout>
 
-            <!-- Severity Filter Chips -->
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/filter_chip_severity_group"
                 android:layout_width="match_parent"
@@ -83,7 +81,6 @@
                 app:selectionRequired="true"
                 app:singleSelection="true" />
 
-            <!-- Source Filter Chips -->
             <HorizontalScrollView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -105,7 +102,6 @@
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <!-- RecyclerView -->
     <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
         android:id="@+id/events_recycler_view"
         android:layout_width="match_parent"
@@ -118,7 +114,6 @@
         app:fastScrollThumbColor="?attr/homeScreenHeaderTextColor"
         tools:listitem="@layout/item_event" />
 
-    <!-- Empty State -->
     <LinearLayout
         android:id="@+id/empty_state_container"
         android:layout_width="match_parent"
@@ -156,7 +151,6 @@
 
     </LinearLayout>
 
-    <!-- Scroll Header -->
     <TextView
         android:id="@+id/events_list_scroll_header"
         android:layout_width="wrap_content"
