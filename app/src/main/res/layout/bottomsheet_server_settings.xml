@@ -55,7 +55,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="sans-serif-medium"
-                android:text="@string/server_settings_sheet_title"
+                android:text="@string/server_settings_title"
                 android:textColor="?attr/primaryTextColor"
                 android:textSize="20sp"
                 android:textStyle="bold" />
@@ -652,7 +652,7 @@
                 android:layout_marginStart="24dp"
                 android:layout_marginTop="8dp"
                 android:layout_marginEnd="24dp"
-                android:text="@string/lbl_done"
+                android:text="@string/config_add_success_toast"
                 android:textAllCaps="false"
                 android:textSize="15sp"
                 android:textStyle="bold"

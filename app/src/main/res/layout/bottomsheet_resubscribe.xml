@@ -88,7 +88,7 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:text="@string/resubscribe_sheet_plan_label"
+                    android:text="@string/current_plan"
                     android:textColor="?attr/primaryTextColor"
                     android:textSize="13sp" />
 
@@ -110,7 +110,7 @@
             android:layout_width="0dp"
             android:layout_height="56dp"
             android:layout_marginTop="24dp"
-            android:text="@string/resubscribe_btn_confirm"
+            android:text="@string/resubscribe_title"
             android:textAllCaps="false"
             android:textSize="@dimen/extra_large_font_text_view"
             android:textStyle="bold"

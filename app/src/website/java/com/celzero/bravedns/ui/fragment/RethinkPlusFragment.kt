@@ -126,7 +126,7 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
     }
 
     private fun setupUI() {
-        b.fhsTitleRethink.text = getString(R.string.rethink_plus_title).lowercase()
+        b.fhsTitleRethink.text = getString(R.string.rpn_title).lowercase()
         applyButtonTheme()
         setupRecyclerView()
         setupTermsAndPolicy()
@@ -366,7 +366,7 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
     private fun setPurchaseButtonState(state: PurchaseButtonState) {
         when (state) {
             PurchaseButtonState.PURCHASED -> {
-                b.subscribeButton.text = getString(R.string.rethink_plus_purchased_state)
+                b.subscribeButton.text = getString(R.string.rpn_purchased_state)
                 b.subscribeButton.isEnabled = false
             }
             PurchaseButtonState.NOT_PURCHASED -> {

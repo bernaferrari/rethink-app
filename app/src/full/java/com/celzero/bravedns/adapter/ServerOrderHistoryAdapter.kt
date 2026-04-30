@@ -34,7 +34,7 @@ import java.util.Locale
 /**
  * [ListAdapter] for [ServerOrderEntry] items fetched from the billing server.
  *
- * Displays subscription and one-time purchase records with a premium card UI,
+ * Displays subscription and one-time purchase records with a card UI,
  * including product type badge, status chip, dates and order ID.
  */
 class ServerOrderHistoryAdapter(private val context: Context) :
@@ -137,7 +137,7 @@ class ServerOrderHistoryAdapter(private val context: Context) :
                         R.attr.chipTextNeutral
                     )
                     ServerOrderEntry.STATE_PAUSED -> Triple(
-                        context.getString(R.string.payment_history_state_paused),
+                        context.getString(R.string.status_paused),
                         R.color.chipBgNeutral,
                         R.attr.chipTextNeutral
                     )
@@ -152,7 +152,7 @@ class ServerOrderHistoryAdapter(private val context: Context) :
                             ?.replace('_', ' ')
                             ?.lowercase()
                             ?.replaceFirstChar { it.uppercase() }
-                            ?: context.getString(R.string.payment_history_state_unknown),
+                            ?: context.getString(R.string.network_log_app_name_unknown),
                         R.color.chipBgNeutral,
                         R.attr.primaryLightColorText
                     )
@@ -160,7 +160,7 @@ class ServerOrderHistoryAdapter(private val context: Context) :
             } else {
                 return when (entry.purchaseState) {
                     0 -> Triple(
-                        context.getString(R.string.payment_history_state_purchased),
+                        context.getString(R.string.rpn_purchased_state),
                         R.color.chipBackgroundColor,
                         R.attr.chipTextPositive
                     )
@@ -170,7 +170,7 @@ class ServerOrderHistoryAdapter(private val context: Context) :
                         R.attr.chipTextNeutral
                     )
                     else -> Triple(
-                        context.getString(R.string.payment_history_state_unknown),
+                        context.getString(R.string.network_log_app_name_unknown),
                         R.color.chipBgNeutral,
                         R.attr.primaryLightColorText
                     )

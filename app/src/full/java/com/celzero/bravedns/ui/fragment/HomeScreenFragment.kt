@@ -866,7 +866,7 @@ class HomeScreenFragment : Fragment(R.layout.fragment_home_screen) {
 
                     if (isBoth) {
                         b.fhsCardOtherProxyCount.isSelected = true
-                        b.fhsCardOtherProxyCount.setTextAnimated(getString(R.string.two_argument, getString(R.string.lbl_wireguard), getString(R.string.rethink_plus_title)))
+                        b.fhsCardOtherProxyCount.setTextAnimated(getString(R.string.two_argument, getString(R.string.lbl_wireguard), getString(R.string.rpn_title)))
                     } else {
                         b.fhsCardOtherProxyCount.setTextAnimated(getString(resId))
                     }

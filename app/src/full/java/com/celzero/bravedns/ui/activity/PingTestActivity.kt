@@ -214,7 +214,7 @@ class PingTestActivity : BaseActivity(R.layout.activity_ping_test) {
         b.testTimeText.text = getString(R.string.bubble_time_just_now)
 
         if (success) {
-            b.connectionStatusText.text = getString(R.string.vpn_status_connected)
+            b.connectionStatusText.text = getString(R.string.dns_connected)
             b.connectionStatusText.setTextColor(ContextCompat.getColor(this, R.color.accentGood))
         } else {
             b.connectionStatusText.text = getString(R.string.ping_status_failed)
@@ -325,7 +325,7 @@ class PingTestActivity : BaseActivity(R.layout.activity_ping_test) {
 
         b.reachInputLayout.isEnabled = false
         b.reachTestButton.isEnabled = false
-        b.reachTestButton.text = getString(R.string.ping_reach_checking)
+        b.reachTestButton.text = getString(R.string.lbl_checking)
         b.reachResultContainer.visibility = View.GONE
 
         io {

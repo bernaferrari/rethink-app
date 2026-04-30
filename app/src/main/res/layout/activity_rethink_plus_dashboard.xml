@@ -123,24 +123,12 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <androidx.appcompat.widget.AppCompatTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.08"
-                android:text="@string/support_section_subscription"
-                android:textColor="?attr/accentGood"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/card_subscription_details"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="16dp"
+                android:layout_marginTop="20dp"
                 android:layout_marginEnd="16dp"
                 android:layout_marginBottom="4dp"
                 app:cardCornerRadius="16dp"
@@ -164,7 +152,7 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/support_sub_plan_label"
+                            android:text="@string/subscription_label"
                             android:textColor="?attr/primaryLightColorText"
                             android:textSize="13sp" />
 
@@ -243,19 +231,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <androidx.appcompat.widget.AppCompatTextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="20dp"
-                android:layout_marginTop="20dp"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="sans-serif-medium"
-                android:letterSpacing="0.08"
-                android:text="@string/dashboard_section_actions"
-                android:textColor="?attr/accentGood"
-                android:textSize="11sp"
-                android:textStyle="bold" />
-
             <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -305,7 +280,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-medium"
-                                android:text="@string/rethink_plus_perform_test"
+                                android:text="@string/rpn_perform_test"
                                 android:textColor="?attr/primaryTextColor"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
@@ -314,7 +289,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="@string/rethink_plus_test_desc"
+                                android:text="@string/rpn_test_desc"
                                 android:textColor="?attr/primaryLightColorText"
                                 android:textSize="12sp" />
                         </LinearLayout>
@@ -565,7 +540,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:fontFamily="sans-serif-medium"
-                                android:text="@string/rethink_plus_report_issue"
+                                android:text="@string/rpn_report_issue"
                                 android:textColor="?attr/primaryTextColor"
                                 android:textSize="15sp"
                                 android:textStyle="bold" />
@@ -574,7 +549,7 @@
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
-                                android:text="@string/rethink_plus_report_desc"
+                                android:text="@string/rpn_report_desc"
                                 android:textColor="?attr/primaryLightColorText"
                                 android:textSize="12sp" />
                         </LinearLayout>

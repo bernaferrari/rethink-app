@@ -606,7 +606,7 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
         // work around for now to check RPN proxy as well
         if (status == -1) {
             if (RpnProxyManager.isRpnActive()) {
-                status = R.string.rethink_plus_title
+                status = R.string.rpn_title
             }
         }
         if (Looper.myLooper() == Looper.getMainLooper()) {

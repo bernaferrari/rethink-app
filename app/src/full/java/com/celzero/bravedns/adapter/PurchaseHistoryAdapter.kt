@@ -147,14 +147,14 @@ class PurchaseHistoryAdapter(private val context: Context) :
             SubscriptionStatus.SubscriptionState.STATE_ACTIVE -> R.string.lbl_active
             SubscriptionStatus.SubscriptionState.STATE_CANCELLED -> R.string.status_cancelled
             SubscriptionStatus.SubscriptionState.STATE_EXPIRED -> R.string.status_expired
-            SubscriptionStatus.SubscriptionState.STATE_REVOKED -> R.string.payment_history_state_revoked
+            SubscriptionStatus.SubscriptionState.STATE_REVOKED -> R.string.status_revoked
             SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING -> R.string.payment_history_state_pending
-            SubscriptionStatus.SubscriptionState.STATE_PURCHASED -> R.string.payment_history_state_purchased
+            SubscriptionStatus.SubscriptionState.STATE_PURCHASED -> R.string.rpn_purchased_state
             SubscriptionStatus.SubscriptionState.STATE_PURCHASE_FAILED -> R.string.ping_status_failed
             SubscriptionStatus.SubscriptionState.STATE_GRACE -> R.string.status_grace_period
             SubscriptionStatus.SubscriptionState.STATE_ON_HOLD -> R.string.server_selection_sub_on_hold
-            SubscriptionStatus.SubscriptionState.STATE_PAUSED -> R.string.payment_history_state_paused
-            else -> R.string.payment_history_state_unknown
+            SubscriptionStatus.SubscriptionState.STATE_PAUSED -> R.string.status_paused
+            else -> R.string.network_log_app_name_unknown
         }
     }
 

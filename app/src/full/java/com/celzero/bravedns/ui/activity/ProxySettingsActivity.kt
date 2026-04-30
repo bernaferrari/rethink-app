@@ -450,9 +450,9 @@ class ProxySettingsActivity : BaseActivity(R.layout.fragment_proxy_configure) {
                     val selectedCCs = RpnProxyManager.getSelectedCCs()
                     val desc = if (selectedCCs.isNotEmpty()) {
                         val countryList = selectedCCs.take(3).joinToString(", ")
-                        getString(R.string.proxy_rpn_desc_active, countryList)
+                        getString(R.string.two_argument_dot, getString(R.string.lbl_active), countryList)
                     } else {
-                        getString(R.string.proxy_rpn_desc_active, getString(R.string.rethink_plus_title))
+                        getString(R.string.two_argument_dot, getString(R.string.lbl_active), getString(R.string.rpn_title))
                     }
                     uiCtx {
                         b.settingsActivityRpnDesc.text = desc
@@ -462,7 +462,7 @@ class ProxySettingsActivity : BaseActivity(R.layout.fragment_proxy_configure) {
             }
             isEnabled || hasValidSub -> {
                 // Subscription valid but proxy not yet active
-                b.settingsActivityRpnDesc.text = getString(R.string.rethink_plus_title)
+                b.settingsActivityRpnDesc.text = getString(R.string.rpn_title)
                 b.settingsActivityRpnIcon.alpha = 1.0f
             }
             else -> {

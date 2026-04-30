@@ -231,7 +231,7 @@ class VpnServerAdapter(
                 "$cityText • ${group.countryCode}"
             } else {
                 ctx.getString(
-                    R.string.server_location_format,
+                    R.string.hero_plan_and_account,
                     group.cityName.lowercase().replaceFirstChar(Char::titlecase),
                     group.countryCode
                 )
@@ -345,7 +345,7 @@ class VpnServerAdapter(
         private fun showCheckingStatus() {
             b.tvServerIp.visibility = View.GONE
             b.statsLayout.visibility = View.VISIBLE
-            b.tvServerStatus.text = ctx.getString(R.string.ping_reach_checking)
+            b.tvServerStatus.text = ctx.getString(R.string.lbl_checking)
             b.tvServerStatus.setTextColor(fetchColor(ctx, R.attr.chipTextNeutral))
             b.tvStatusSep.visibility = View.GONE
             b.tvAppsCount.visibility = View.GONE

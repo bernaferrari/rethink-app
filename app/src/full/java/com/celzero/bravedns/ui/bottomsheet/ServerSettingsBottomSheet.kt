@@ -370,7 +370,7 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     /** Updates the port display label in the port row. */
     private fun updatePortValueLabel(port: Int) {
         binding.tvPortValue.text = if (port == 0) {
-            getString(R.string.server_settings_port_auto)
+            getString(R.string.server_settings_config_mode_auto)
         } else {
             port.toString()
         }

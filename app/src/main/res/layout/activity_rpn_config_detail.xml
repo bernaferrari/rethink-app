@@ -426,7 +426,7 @@
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
                                 android:layout_weight="1"
-                                android:text="@string/server_download_label"
+                                android:text="@string/settings_local_blocklist_dialog_positive"
                                 android:textColor="?attr/primaryLightColorText"
                                 android:textSize="13sp" />
 

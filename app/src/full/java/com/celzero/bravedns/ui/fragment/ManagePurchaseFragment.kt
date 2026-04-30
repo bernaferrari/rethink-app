@@ -224,7 +224,7 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
                 getString(R.string.hero_plan_and_account, token, id)
             token.isNotEmpty() -> token
             accountId.isNotEmpty() -> id
-            else -> getString(R.string.rethink_plus_title)
+            else -> getString(R.string.rpn_title)
         }
         return if (token.isNotEmpty()) "$token \u00B7 $id" else id
     }
@@ -284,7 +284,7 @@ class ManagePurchaseFragment : Fragment(R.layout.fragment_manage_purchase) {
     }
 
     /**
-     * Shows the premium "no subscription" empty state.
+     * Shows the "no subscription" empty state.
      * Hides the subscription detail card and features card completely.
      */
     private fun showNoSubscriptionState() {

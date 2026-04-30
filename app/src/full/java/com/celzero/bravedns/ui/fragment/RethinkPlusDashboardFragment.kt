@@ -98,7 +98,7 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
     }
 
     private fun setupToolbar() {
-        b.collapsingToolbar.title = getString(R.string.rethink_plus_title)
+        b.collapsingToolbar.title = getString(R.string.rpn_title)
     }
 
     /**
@@ -137,7 +137,7 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
                 getString(R.string.hero_plan_and_account, token, id)
             token.isNotEmpty() -> token
             accountId.isNotEmpty() -> id
-            else -> getString(R.string.rethink_plus_title)
+            else -> getString(R.string.rpn_title)
         }
 
         val subscriptionData  = RpnProxyManager.getSubscriptionData()
