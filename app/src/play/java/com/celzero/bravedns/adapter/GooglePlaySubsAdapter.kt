@@ -106,7 +106,7 @@ class GooglePlaySubsAdapter(
         }
     }
 
-    class ShimmerViewHolder(binding: ListItemShimmerCardBinding) : RecyclerView.ViewHolder(binding.root) {
+    class ShimmerViewHolder(binding: ListItemShimmerCardBinding): RecyclerView.ViewHolder(binding.root) {
         val shimmerLayout: ShimmerFrameLayout = binding.shimmerViewContainer
     }
 
@@ -221,11 +221,14 @@ class GooglePlaySubsAdapter(
         private fun getInAppDurationMonths(productId: String): Int = when (productId) {
             InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> 24
             InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> 60
-            InAppBillingHandler.ONE_TIME_PRODUCT_ID   -> 24 // legacy default 2yr
+            InAppBillingHandler.ONE_TIME_PRODUCT_ID -> 24 // legacy default 2yr
             else -> 0
         }
 
-        /** Formats a duration in months to a human-readable label like "2 Years" or appends to planTitle. */
+        /**
+         * Formats a duration in months to a human-readable label like "2 Years" or appends to
+         * planTitle.
+         */
         private fun formatDurationLabel(months: Int, planTitle: String): String {
             return when {
                 months >= 12 && months % 12 == 0 -> {
@@ -237,9 +240,9 @@ class GooglePlaySubsAdapter(
         }
 
         /**
-         * Attempts to format [micros] as a currency string using the same symbol/format
-         * as [sampleFormatted] (the already-formatted full price from Play).
-         * Strips digits/decimal from [sampleFormatted] and replaces with the per-month amount.
+         * Attempts to format [micros] as a currency string using the same symbol/format as
+         * [sampleFormatted] (the already-formatted full price from Play). Strips digits/decimal
+         * from [sampleFormatted] and replaces with the per-month amount.
          */
         private fun formatMicrosAsCurrency(micros: Long, currencyCode: String, sampleFormatted: String): String? {
             return try {
@@ -306,11 +309,14 @@ class GooglePlaySubsAdapter(
     private class ProductDiffCallback(
         private val old: List<ProductDetail>,
         private val new: List<ProductDetail>
-    ) : DiffUtil.Callback() {
+    ): DiffUtil.Callback() {
         override fun getOldListSize() = old.size
+
         override fun getNewListSize() = new.size
+
         override fun areItemsTheSame(oldPos: Int, newPos: Int): Boolean =
             old[oldPos].productId == new[newPos].productId && old[oldPos].planId == new[newPos].planId
+
         override fun areContentsTheSame(oldPos: Int, newPos: Int): Boolean =
             old[oldPos] == new[newPos]
     }
