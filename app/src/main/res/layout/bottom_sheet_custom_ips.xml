@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@android:color/transparent"
@@ -173,8 +174,8 @@
 
                         <androidx.appcompat.widget.AppCompatTextView
                             android:id="@+id/custom_ip_badge_no_rule"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:background="@drawable/rectangle_border_background"
                             android:gravity="center"
                             android:text="@string/ci_no_rule_initial"
@@ -195,15 +196,6 @@
                                 android:textColor="?attr/primaryTextColor"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
-
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:alpha="0.6"
-                                android:text="@string/ci_no_rule_desc"
-                                android:textColor="?attr/primaryLightColorText"
-                                android:textSize="12sp" />
 
                         </LinearLayout>
 
@@ -233,8 +225,8 @@
 
                         <androidx.appcompat.widget.AppCompatTextView
                             android:id="@+id/custom_ip_badge_block"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:background="@drawable/rectangle_border_background"
                             android:gravity="center"
                             android:text="@string/ci_blocked_initial"
@@ -255,15 +247,6 @@
                                 android:textColor="?attr/primaryTextColor"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
-
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:alpha="0.6"
-                                android:text="@string/ci_block_desc"
-                                android:textColor="?attr/primaryLightColorText"
-                                android:textSize="12sp" />
 
                         </LinearLayout>
 
@@ -294,8 +277,8 @@
 
                         <androidx.appcompat.widget.AppCompatTextView
                             android:id="@+id/custom_ip_badge_bypass_app"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:background="@drawable/rectangle_border_background"
                             android:gravity="center"
                             android:text="@string/ci_trust_initial"
@@ -316,15 +299,6 @@
                                 android:textColor="?attr/primaryTextColor"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
-
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:alpha="0.6"
-                                android:text="@string/ci_trust_rule_desc"
-                                android:textColor="?attr/primaryLightColorText"
-                                android:textSize="12sp" />
 
                         </LinearLayout>
 
@@ -354,8 +328,8 @@
 
                         <androidx.appcompat.widget.AppCompatTextView
                             android:id="@+id/custom_ip_badge_bypass_univ"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:background="@drawable/rectangle_border_background"
                             android:gravity="center"
                             android:text="@string/ci_bypass_universal_initial"
@@ -376,15 +350,6 @@
                                 android:textColor="?attr/primaryTextColor"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
-
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:alpha="0.6"
-                                android:text="@string/ci_bypass_universal_desc"
-                                android:textColor="?attr/primaryLightColorText"
-                                android:textSize="12sp" />
 
                         </LinearLayout>
 
@@ -466,7 +431,7 @@
                             style="@style/TextAppearance.AppCompat.Subhead"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Country"
+                            tools:text="Country"
                             android:textColor="?attr/primaryTextColor"
                             android:textSize="@dimen/large_font_text_view" />
 
@@ -475,7 +440,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:paddingTop="5dp"
-                            android:text="Select a country"
+                            tools:text="Select a country"
                             android:textColor="?attr/primaryLightColorText"
                             android:textSize="@dimen/default_font_text_view" />
 

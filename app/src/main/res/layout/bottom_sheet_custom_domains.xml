@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@android:color/transparent"
@@ -78,18 +79,20 @@
 
         <LinearLayout
             android:id="@+id/custom_domain_delete_chip"
-            android:layout_width="36dp"
-            android:layout_height="36dp"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:layout_marginStart="8dp"
+            android:padding="12dp"
             android:background="?android:attr/selectableItemBackgroundBorderless"
             android:clickable="true"
             android:focusable="true"
+            android:contentDescription="@string/lbl_delete"
             android:gravity="center">
 
             <androidx.appcompat.widget.AppCompatImageView
                 android:layout_width="24dp"
                 android:layout_height="24dp"
-                android:alpha="0.7"
+                android:alpha="0.8"
                 android:src="@drawable/ic_delete_small"
                 android:tint="?attr/accentBad" />
 
@@ -172,8 +175,8 @@
 
                         <androidx.appcompat.widget.AppCompatTextView
                             android:id="@+id/custom_domain_badge_no_rule"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:background="@drawable/rectangle_border_background"
                             android:gravity="center"
                             android:text="@string/cd_no_rule_initial"
@@ -195,14 +198,6 @@
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
 
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:alpha="0.6"
-                                android:text="@string/cd_no_rule_desc"
-                                android:textColor="?attr/primaryLightColorText"
-                                android:textSize="12sp" />
 
                         </LinearLayout>
 
@@ -232,8 +227,8 @@
 
                         <androidx.appcompat.widget.AppCompatTextView
                             android:id="@+id/custom_domain_badge_block"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:background="@drawable/rectangle_border_background"
                             android:gravity="center"
                             android:text="@string/cd_blocked_initial"
@@ -254,15 +249,6 @@
                                 android:textColor="?attr/primaryTextColor"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
-
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:alpha="0.6"
-                                android:text="@string/cd_block_desc"
-                                android:textColor="?attr/primaryLightColorText"
-                                android:textSize="12sp" />
 
                         </LinearLayout>
 
@@ -292,8 +278,8 @@
 
                         <androidx.appcompat.widget.AppCompatTextView
                             android:id="@+id/custom_domain_badge_whitelist"
-                            android:layout_width="40dp"
-                            android:layout_height="40dp"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
                             android:background="@drawable/rectangle_border_background"
                             android:gravity="center"
                             android:text="@string/ci_trust_initial"
@@ -314,15 +300,6 @@
                                 android:textColor="?attr/primaryTextColor"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
-
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:alpha="0.6"
-                                android:text="@string/cd_trust_rule_desc"
-                                android:textColor="?attr/primaryLightColorText"
-                                android:textSize="12sp" />
 
                         </LinearLayout>
 
@@ -405,7 +382,7 @@
                             style="@style/TextAppearance.AppCompat.Subhead"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Country"
+                            tools:text="Country"
                             android:textColor="?attr/primaryTextColor"
                             android:textSize="@dimen/large_font_text_view" />
 
@@ -414,7 +391,7 @@
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:paddingTop="5dp"
-                            android:text="Select a country"
+                            tools:text="Select a country"
                             android:textColor="?attr/primaryLightColorText"
                             android:textSize="@dimen/default_font_text_view" />
 
