@@ -27,8 +27,9 @@ class Constants {
         // rethink base url (modified from download to dl on v053l)
         const val DOWNLOAD_BASE_URL = "https://dl.rethinkdns.com"
 
-        // rethink base url for tcp proxy
+        // rethink base url for rpn
         const val TCP_PROXY_BASE_URL = "https://redir.nile.workers.dev"
+        const val RPN_BASE_URL = "https://svc.rethinkdns.com"
 
         // base url for ipinfo download
         const val IP_INFO_BASE_URL = "https://dl.rethinkdns.com/ip/"

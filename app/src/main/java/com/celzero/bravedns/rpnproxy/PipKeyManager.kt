@@ -22,7 +22,6 @@ import android.content.Context
 import com.celzero.bravedns.customdownloader.IBillingServerApi
 import com.celzero.bravedns.customdownloader.SafeResponseConverterFactory
 import com.celzero.bravedns.customdownloader.RetrofitManager
-import com.celzero.bravedns.service.EncryptedFileManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.viewmodel.SubscriptionUiState
 import org.json.JSONObject
@@ -33,7 +32,6 @@ import java.io.File
 import java.net.ConnectException
 import java.net.SocketTimeoutException
 import java.net.UnknownHostException
-import java.security.SecureRandom
 
 object PipKeyManager : KoinComponent {
 
@@ -156,7 +154,7 @@ object PipKeyManager : KoinComponent {
         try {
             val lenientGson = com.google.gson.GsonBuilder().setLenient().create()
             val retrofit =
-                RetrofitManager.getTcpProxyBaseBuilder(persistentState.routeRethinkInRethink)
+                RetrofitManager.getRpnBaseBuilder(persistentState.routeRethinkInRethink)
                     .addConverterFactory(SafeResponseConverterFactory())
                     .addConverterFactory(GsonConverterFactory.create(lenientGson))
                     .build()

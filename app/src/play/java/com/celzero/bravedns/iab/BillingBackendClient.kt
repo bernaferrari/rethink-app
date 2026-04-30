@@ -874,7 +874,7 @@ class BillingBackendClient(
      */
     private fun buildProductionApi(): IBillingServerApi {
         return RetrofitManager
-            .getTcpProxyBaseBuilder(persistentState.routeRethinkInRethink)
+            .getRpnBaseBuilder(persistentState.routeRethinkInRethink)
             .addConverterFactory(SafeResponseConverterFactory())
             .addConverterFactory(GsonConverterFactory.create())
             .build()
@@ -890,7 +890,7 @@ class BillingBackendClient(
      */
     private fun buildTestApi(): IBillingServerApiTest {
         return RetrofitManager
-            .getTcpProxyBaseBuilder(persistentState.routeRethinkInRethink)
+            .getRpnBaseBuilder(persistentState.routeRethinkInRethink)
             .addConverterFactory(SafeResponseConverterFactory())
             .addConverterFactory(GsonConverterFactory.create())
             .build()

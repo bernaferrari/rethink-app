@@ -323,7 +323,7 @@ class ServerOrderHistoryRepository(private val persistentState: PersistentState)
 
     private fun buildApi(): IBillingServerApi {
         return RetrofitManager
-            .getTcpProxyBaseBuilder(persistentState.routeRethinkInRethink)
+            .getRpnBaseBuilder(persistentState.routeRethinkInRethink)
             .addConverterFactory(SafeResponseConverterFactory())
             .addConverterFactory(GsonConverterFactory.create())
             .build()

@@ -46,9 +46,9 @@ class RetrofitManager {
                 .client(okHttpClient(isRinRActive))
         }
 
-        fun getTcpProxyBaseBuilder(isRinRActive: Boolean): Retrofit.Builder {
+        fun getRpnBaseBuilder(isRinRActive: Boolean): Retrofit.Builder {
             return Retrofit.Builder()
-                .baseUrl(Constants.TCP_PROXY_BASE_URL)
+                .baseUrl(Constants.RPN_BASE_URL)
                 .client(okHttpClient(isRinRActive))
         }
 
