@@ -42,6 +42,7 @@ import com.celzero.bravedns.adapter.ConsoleLogAdapter
 import com.celzero.bravedns.database.ConsoleLogRepository
 import com.celzero.bravedns.databinding.ActivityConsoleLogBinding
 import com.celzero.bravedns.net.go.GoVpnAdapter
+import com.celzero.bravedns.scheduler.BugReportZipper
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.util.Constants
@@ -334,8 +335,35 @@ class ConsoleLogActivity : BaseActivity(R.layout.activity_console_log), androidx
     private fun shareZipFileViaEmail(filePath: String) {
         disableFrostTemporarily()
         val file = File(filePath)
-        // Get the URI of the file using FileProvider
-        val uri: Uri = FileProvider.getUriForFile(this, "${this.packageName}.provider", file)
+        if (!file.exists()) {
+            Logger.w(LOG_TAG_BUG_REPORT, "log file does not exist: $filePath")
+            showFileCreationErrorToast()
+            return
+        }
+
+        // Get the URI of the file using FileProvider.
+        val uri: Uri? = try {
+            FileProvider.getUriForFile(this, BugReportZipper.FILE_PROVIDER_NAME, file)
+        } catch (e: IllegalArgumentException) {
+            Logger.e(
+                LOG_TAG_BUG_REPORT,
+                "err(shareZip) FileProvider authority not found (${BugReportZipper.FILE_PROVIDER_NAME}): ${e.message}",
+                e
+            )
+            null
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_BUG_REPORT, "err(shareZip) getting file uri: ${e.message}", e)
+            null
+        }
+
+        if (uri == null) {
+            showToastUiCentered(
+                this,
+                getString(R.string.error_loading_log_file),
+                Toast.LENGTH_SHORT
+            )
+            return
+        }
 
         // Create the intent
         val intent =
@@ -349,7 +377,16 @@ class ConsoleLogActivity : BaseActivity(R.layout.activity_console_log), androidx
             }
 
         // start the email app
-        startActivity(Intent.createChooser(intent, "Send email..."))
+        try {
+            startActivity(Intent.createChooser(intent, "Send email..."))
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_BUG_REPORT, "err(shareZip) starting share intent: ${e.message}", e)
+            showToastUiCentered(
+                this,
+                getString(R.string.error_loading_log_file),
+                Toast.LENGTH_SHORT
+            )
+        }
     }
 
     private fun makeConsoleLogFile(): String? {
