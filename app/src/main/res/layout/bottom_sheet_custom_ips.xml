@@ -28,9 +28,9 @@
         android:paddingBottom="12dp">
 
         <com.google.android.material.card.MaterialCardView
+            android:id="@+id/custom_ip_app_icon_cv"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            app:cardBackgroundColor="?attr/chipBgColorPositive"
             app:cardCornerRadius="12dp"
             app:cardElevation="0dp"
             app:strokeWidth="0dp">
@@ -45,10 +45,21 @@
 
         </com.google.android.material.card.MaterialCardView>
 
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/custom_ip_flag_tv"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:alpha="0.75"
+            android:gravity="center"
+            android:minWidth="40dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Headline"
+            android:textSize="30sp"
+            />
+
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="14dp"
+            android:layout_marginStart="4dp"
             android:layout_weight="1"
             android:orientation="vertical">
 
@@ -61,8 +72,7 @@
                 android:maxLines="1"
                 android:textColor="?attr/primaryTextColor"
                 android:textIsSelectable="true"
-                android:textSize="17sp"
-                android:textStyle="bold" />
+                android:textSize="@dimen/extra_large_font_text_view" />
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/custom_ip_app_name_tv"
@@ -73,7 +83,7 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="?attr/primaryLightColorText"
-                android:textSize="13sp" />
+                android:textSize="@dimen/default_font_text_view" />
 
         </LinearLayout>
 
@@ -126,7 +136,6 @@
                     android:layout_height="wrap_content"
                     android:orientation="vertical">
 
-                    <!-- Card header -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
