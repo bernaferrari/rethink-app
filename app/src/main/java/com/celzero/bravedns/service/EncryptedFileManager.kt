@@ -370,7 +370,8 @@ object EncryptedFileManager : KoinComponent {
                 .build()
 
         if (file.exists()) {
-            file.delete()
+            val isDeleted = file.delete()
+            Logger.vv(LOG_TAG, "Deleted existing file before write: ${file.absolutePath}, success?$isDeleted")
         }
 
         encryptedFile.openFileOutput().apply {
