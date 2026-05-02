@@ -167,6 +167,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import okhttp3.internal.concurrent.TaskRunner
 import org.koin.android.ext.android.inject
 import java.io.IOException
 import java.net.InetAddress
@@ -4338,7 +4339,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             Logger.v(LOG_TAG_VPN, "(onQuery)wg ids($wgIds), rpn id($rpnId) found for uid: $uid")
             val rpnOrWgOrDefaultTid = if (wgIds.isEmpty() && rpnId.isEmpty()) {
                 Logger.d(LOG_TAG_VPN, "(onQuery-pid)no wg/rpn found, return $defaultTid")
-                defaultTid
+                if (persistentState.wgGlobalLockdown) Backend.BlockAll else defaultTid
             } else {
                 val wgRpnIds = (rpnId + wgIds).joinToString(",")
                 Logger.d(LOG_TAG_VPN, "(onQuery-pid)wg/rpn ids($wgRpnIds) found for uid: $uid")
@@ -4497,7 +4498,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             )
             if (ids.isEmpty() && rpnIds.isEmpty()) {
                 Logger.d(LOG_TAG_VPN, "(onQuery-pid)no wg found, return $defaultProxy")
-                defaultProxy
+                if (persistentState.wgGlobalLockdown) Backend.BlockAll else defaultProxy
             } else {
                 Logger.d(LOG_TAG_VPN, "(onQuery-pid)wg ids($ids) found for uid: $uid")
                 (rpnIds + ids).joinToString(",")
@@ -5245,7 +5246,8 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             return persistAndConstructFlowResponse(connTracker, pid, connId, uid)
         }
 
-        if (FirewallManager.isAppExcludedFromProxy(uid)) {
+        val isGlobalLockdown = persistentState.wgGlobalLockdown && (appConfig.isProxyEnabled() || RpnProxyManager.isRpnActive())
+        if (FirewallManager.isAppExcludedFromProxy(uid) && !isGlobalLockdown) {
             logd("flow/inflow: app is excluded from proxy, returning Ipn.Base, $connId, $uid")
             if (connTracker.blockedByRule == FirewallRuleset.RULE0.id) {
                 connTracker.blockedByRule = FirewallRuleset.RULE15.id
@@ -5379,6 +5381,12 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             return persistAndConstructFlowResponse(connTracker, id, connId, uid)
         }
         logd("flow/inflow: no proxies, $baseOrExit, $connId, $uid")
+        if (isGlobalLockdown) {
+            Logger.vv(LOG_TAG_VPN, "flow/inflow: global lockdown is active, block the traffic for $connId, $uid")
+            connTracker.isBlocked = true
+            connTracker.blockedByRule = FirewallRuleset.RULE17.id
+            return persistAndConstructFlowResponse(connTracker, Backend.Block, connId, uid)
+        }
         return persistAndConstructFlowResponse(connTracker, baseOrExit, connId, uid)
     }
 
@@ -5464,7 +5472,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         uid: Int
     ): Mark {
 
-        // added for testing, remove it later
+        // see if this needs to be called every time when flow/inflow is called
         if (RpnProxyManager.isRpnActive()) {
             io("PlusTest") { initiatePlusSubscriptionCheckIfRequired() }
         }
