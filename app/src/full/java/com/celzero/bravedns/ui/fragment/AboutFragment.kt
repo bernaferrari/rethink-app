@@ -163,10 +163,8 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
 
         if (DEBUG) {
             b.aboutFlightRecord.visibility = View.VISIBLE
-            b.aboutCrash.visibility = View.VISIBLE
         } else {
             b.aboutFlightRecord.visibility = View.GONE
-            b.aboutCrash.visibility = View.GONE
         }
 
         b.fhsTitleRethink.setOnClickListener(this)
@@ -203,7 +201,6 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         b.tokenTextView.setOnClickListener(this)
         b.aboutFlightRecord.setOnClickListener(this)
         b.aboutEventLogs.setOnClickListener(this)
-        b.aboutCrash.setOnClickListener(this)
 
         val gestureDetector = GestureDetector(
             requireContext(),
@@ -450,9 +447,6 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
             }
             b.aboutEventLogs -> {
                 openEventLogs()
-            }
-            b.aboutCrash -> {
-                if (DEBUG) Intra.crash(500L)
             }
         }
     }
