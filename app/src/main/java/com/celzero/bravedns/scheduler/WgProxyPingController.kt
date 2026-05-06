@@ -1,3 +1,18 @@
+/*
+ * Copyright 2026 RethinkDNS and its authors
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.celzero.bravedns.scheduler
 
 import Logger
@@ -9,93 +24,121 @@ import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.util.concurrent.ConcurrentHashMap
 
 class WgProxyPingController(private val scope: CoroutineScope) {
-    private val jobs = ConcurrentHashMap<String, Job>()
+    private val activeProxies = ConcurrentHashMap<String, PingConfig>()
+
     private val intervalMs = 60_000L
     private val durationMs = 5 * 60 * 1000L
 
+    private var schedulerJob: Job? = null
+
+    data class PingConfig(
+        val startTime: Long,
+        val continuous: Boolean,
+        var running: Boolean = false // prevents overlap
+    )
+
     fun startPing(proxyId: String, continuous: Boolean) {
-        jobs.remove(proxyId)?.cancel()
+        activeProxies[proxyId] = PingConfig(
+            startTime = System.currentTimeMillis(),
+            continuous = continuous
+        )
 
-        val job =
-            scope.launch(Dispatchers.IO + CoroutineName("ping-$proxyId")) {
-                run(proxyId, continuous)
-            }
-
-        jobs[proxyId] = job
-        Logger.vv(LOG_TAG_PROXY, "initiated ping job for $proxyId, continuous? $continuous")
+        ensureScheduler()
+        Logger.vv(LOG_TAG_PROXY, "started ping for $proxyId, continuous=$continuous")
     }
 
     fun stopPing(proxyId: String) {
-        jobs.remove(proxyId)?.cancel()
-        Logger.vv(LOG_TAG_PROXY, "cancelled ping job for $proxyId")
+        activeProxies.remove(proxyId)
+        Logger.vv(LOG_TAG_PROXY, "stopped ping for $proxyId")
+
+        if (activeProxies.isEmpty()) stopScheduler()
     }
 
     fun stopAll() {
-        jobs.values.forEach { it.cancel() }
-        jobs.clear()
-        Logger.vv(LOG_TAG_PROXY, "cancelled all ping jobs")
+        activeProxies.clear()
+        stopScheduler()
+        Logger.vv(LOG_TAG_PROXY, "stopped all ping jobs")
     }
 
     fun isRunning(proxyId: String): Boolean {
-        return jobs.containsKey(proxyId)
+        return activeProxies.containsKey(proxyId)
     }
 
-    private suspend fun run(proxyId: String, continuous: Boolean) {
-        val startTime = System.currentTimeMillis()
-        var nextTick = alignToNextInterval(startTime)
+    private fun ensureScheduler() {
+        if (schedulerJob?.isActive == true) return
 
-        while (currentCoroutineContext().isActive) {
+        schedulerJob = scope.launch(Dispatchers.IO + CoroutineName("ping-scheduler")) {
+            var nextTick = alignToNextInterval(System.currentTimeMillis())
 
-            val now = System.currentTimeMillis()
-            val delayMs = nextTick - now
+            while (isActive && activeProxies.isNotEmpty()) {
 
-            if (delayMs > 0) {
-                delay(delayMs)
-            }
+                val delayMs = nextTick - System.currentTimeMillis()
+                if (delayMs > 0) delay(delayMs)
 
-            launchPing(proxyId)
+                tick()
 
-            // schedule next tick
-            nextTick += intervalMs
-
-            // exit if timed mode
-            if (!continuous) {
-                val elapsed = System.currentTimeMillis() - startTime
-                if (elapsed >= durationMs) break
+                nextTick += intervalMs
             }
         }
+    }
 
-        jobs.remove(proxyId)
+    private fun stopScheduler() {
+        schedulerJob?.cancel()
+        schedulerJob = null
+    }
+
+    private suspend fun tick() {
+        val now = System.currentTimeMillis()
+
+        for ((proxyId, config) in activeProxies) {
+
+            // skip if already running (prevents overlap)
+            if (config.running) continue
+
+            // check duration for non-continuous mode
+            if (!config.continuous) {
+                val elapsed = now - config.startTime
+                if (elapsed >= durationMs) {
+                    activeProxies.remove(proxyId)
+                    continue
+                }
+            }
+
+            config.running = true
+
+            scope.launch(Dispatchers.IO + CoroutineName("ping-$proxyId")) {
+                try {
+                    pingProxy(proxyId)
+                } catch (e: Exception) {
+                    Logger.w(LOG_TAG_PROXY, "ping failed: $proxyId err=${e.message}")
+                } finally {
+                    activeProxies[proxyId]?.running = false
+                }
+            }
+        }
     }
 
     private fun alignToNextInterval(now: Long): Long {
         return ((now / intervalMs) + 1) * intervalMs
     }
 
-    private fun launchPing(proxyId: String) {
-        scope.launch(Dispatchers.IO + CoroutineName("ping-$proxyId")) {
-            try {
-                pingProxy(proxyId)
-            } catch (e: Exception) {
-                Logger.w(LOG_TAG_PROXY, "ping failed: $proxyId at ${System.currentTimeMillis()}; err: ${e.message}")
+    private suspend fun pingProxy(proxyId: String) {
+        when {
+            proxyId.startsWith(ID_WG_BASE) -> {
+                VpnController.initiateWgPing(proxyId)
+            }
+
+            proxyId.startsWith(Backend.RpnWin) -> {
+                VpnController.initiateRpnPing(proxyId)
             }
         }
-    }
 
-    private suspend fun pingProxy(proxyId: String) {
-        if (proxyId.startsWith(ID_WG_BASE)) {
-            VpnController.initiateWgPing(proxyId)
-            Logger.vv(LOG_TAG_PROXY, "ping triggered: $proxyId at ${System.currentTimeMillis()}")
-        } else if (proxyId.startsWith(Backend.RpnWin)) {
-            VpnController.initiateRpnPing(proxyId)
-            Logger.vv(LOG_TAG_PROXY, "ping triggered: $proxyId at ${System.currentTimeMillis()}")
-        }
+        Logger.vv(LOG_TAG_PROXY, "ping triggered: $proxyId at ${System.currentTimeMillis()}")
     }
 }

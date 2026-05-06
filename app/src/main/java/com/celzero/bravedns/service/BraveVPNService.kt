@@ -4511,7 +4511,33 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             Logger.i(LOG_TAG_VPN, "received null summary for dns")
             return
         }
-        logd("onResponse: $summary")
+        logd("onResponse: ${summary}, rethinkUid: $rethinkUid")
+        Logger.vv(
+            LOG_TAG_VPN,
+            "onResponse obj: " +
+                    "id: ${summary.id}, " +
+                    "type: ${summary.type}, " +
+                    "uid: ${summary.uid}, " +
+                    "lat: ${summary.latency}, " +
+                    "qname: ${summary.qName}, " +
+                    "qtype: ${summary.qType}, " +
+                    "targets: ${summary.targets}, " +
+                    "cached: ${summary.cached}, " +
+                    "rdata: ${summary.rData}, " +
+                    "rcode: ${summary.rCode}, " +
+                    "rttl: ${summary.rTtl}, " +
+                    "server: ${summary.server}, " +
+                    "pid: ${summary.pid}, " +
+                    "rpid: ${summary.rpid}, " +
+                    "status: ${summary.status}, " +
+                    "blocklists: ${summary.blocklists}, " +
+                    "blockedTarget: ${summary.blockedTarget}, " +
+                    "upstreamBlocks: ${summary.upstreamBlocks}, " +
+                    "do: ${summary.`do`}, " +
+                    "ad: ${summary.ad}, " +
+                    "msg: ${summary.msg}, " +
+                    "region: ${summary.region}"
+        )
         if (!DEBUG) {
             // not expected to have fixed id in the summary on production builds
             if (summary.id.contains(Backend.Fixed)) {
@@ -5924,43 +5950,54 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         }
     }
 
-    //
+    // initiate ping for wg or rpn proxies if smart persistent keepalive is enabled,
+    // this will initiate the ping if the proxy is not already running and is one of the following:
+    // 1. one-wg proxy
+    // 2. catch-all proxy
+    // 3. hop proxy
     suspend fun handleWgOrRpnProxiesToPing(proxyId: String) {
-        if (proxyId.startsWith(Backend.RpnWin)) {
-            val config = RpnProxyManager.getCountryConfigByKey(proxyId.removePrefix(Backend.RpnWin))
-            if (config == null) {
-                Logger.w(LOG_TAG_VPN, "handleWgOrRpnProxiesToPing: config is null for $proxyId")
-                return
-            }
-            if (!config.catchAll) {
-                wgProxyPingController.startPing(proxyId, false)
-            } else {
-                if (!wgProxyPingController.isRunning(proxyId)) {
-                    wgProxyPingController.startPing(proxyId, true)
-                } else {
-                    if (DEBUG) Logger.vv(LOG_TAG_VPN, "handleWgOrRpnProxiesToPing: no need to initiate ping as it is taken care during screen lock/unlock")
+        val continuous: Boolean = when {
+            proxyId.startsWith(Backend.RpnWin) -> {
+                val config = RpnProxyManager.getCountryConfigByKey(
+                    proxyId.removePrefix(Backend.RpnWin)
+                ) ?: run {
+                    Logger.w(LOG_TAG_VPN, "config is null for $proxyId")
+                    return
                 }
+
+                config.catchAll
             }
-        } else if (proxyId.startsWith(ID_WG_BASE)) {
-            val config = try {
-                WireguardManager.getConfigFilesById(proxyId.removePrefix(ID_WG_BASE).toInt())
-            } catch (_: Exception) {
-                null
-            }
-            if (config == null) {
-                Logger.w(LOG_TAG_VPN, "handleWgOrRpnProxiesToPing: config is null for $proxyId")
-                return
-            }
-            val isPartOfHop = WgHopManager.isWgEitherHopOrSrc(config.id)
-            if (config.isCatchAll || config.oneWireGuard || isPartOfHop) {
-                if (!wgProxyPingController.isRunning(proxyId)) {
-                    wgProxyPingController.startPing(proxyId, true)
-                } else {
-                    if (DEBUG) Logger.vv(LOG_TAG_VPN, "handleWgOrRpnProxiesToPing: no need to initiate ping as it is taken care during screen lock/unlock")
+
+            proxyId.startsWith(ID_WG_BASE) -> {
+                val config = try {
+                    WireguardManager.getConfigFilesById(
+                        proxyId.removePrefix(ID_WG_BASE).toInt()
+                    )
+                } catch (_: Exception) {
+                    null
+                } ?: run {
+                    Logger.w(LOG_TAG_VPN, "config is null for $proxyId")
+                    return
                 }
-            } else {
-                wgProxyPingController.startPing(proxyId, false)
+
+                val isPartOfHop = WgHopManager.isWgEitherHopOrSrc(config.id)
+                config.isCatchAll || config.oneWireGuard || isPartOfHop
             }
+
+            else -> return
+        }
+
+        if (continuous) {
+            if (!wgProxyPingController.isRunning(proxyId)) {
+                wgProxyPingController.startPing(proxyId, true)
+            } else if (DEBUG) {
+                Logger.vv(
+                    LOG_TAG_VPN,
+                    "handleWgOrRpnProxiesToPing: already handled during screen lock/unlock"
+                )
+            }
+        } else {
+            wgProxyPingController.startPing(proxyId, false)
         }
     }
 
