@@ -107,10 +107,6 @@ class PingTestActivity : BaseActivity(R.layout.activity_ping_test) {
             }
         }
 
-        b.cancelButton.setOnClickListener {
-            finish()
-        }
-
         b.reachTestButton.setOnClickListener {
             performReachabilityTest()
         }
