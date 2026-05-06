@@ -23,6 +23,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
+import com.google.android.material.slider.Slider
 import androidx.core.view.WindowInsetsControllerCompat
 import com.celzero.bravedns.R
 import com.celzero.bravedns.databinding.BottomsheetServerSettingsBinding
@@ -94,6 +95,13 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     fun setOnSettingsChangedListener(l: OnSettingsChangedListener) {
         listener = l
     }
+
+    /**
+     * Tracks the last [RpnProxyManager.DnsMode] emitted to the listener so we can
+     * guard against emitting the same mode twice (e.g. slider snapping back) and
+     * so the slider listener can correctly detect a real change.
+     */
+    private var lastEmittedDnsMode: RpnProxyManager.DnsMode = RpnProxyManager.DnsMode.DEFAULT
 
     // Used by hasConfigChanged() to decide whether to fire onConfigChanged().
     private var snapshotConfigManual: Boolean = false
@@ -175,22 +183,30 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     }
 
     /**
-     * Sets up the DNS filter section - mirrors the former inline DNS dialog that lived
-     * in ServerSelectionFragment, now unified into this settings sheet.
+     * Sets up the DNS filter section using a discrete [Slider] (positions 0–3) instead of
+     * a flat radio group.  Each position is *inclusive* of all positions below it:
+     *
+     *   0 → DEFAULT  — no filtering
+     *   1 → ANTI_AD  — Default + ad/tracker blocking
+     *   2 → PARENTAL — Default + Privacy + family-safe filtering
+     *   3 → SECURITY — all of the above + malware/phishing protection
+     *
+     * The summary card (level name + description + breadcrumb chips) updates live as the
+     * user drags the slider.  The change listener only persists and notifies once the user
+     * releases on a *new* position.
      */
     private fun setupDnsSection() {
         val currentMode = RpnProxyManager.DnsMode.fromUrl(persistentState.rpnDnsUrl)
-        val radioId = when (currentMode) {
-            RpnProxyManager.DnsMode.DEFAULT -> R.id.rb_dns_default
-            RpnProxyManager.DnsMode.ANTI_AD -> R.id.rb_dns_anti_ad
-            RpnProxyManager.DnsMode.PARENTAL -> R.id.rb_dns_parental
-            RpnProxyManager.DnsMode.SECURITY -> R.id.rb_dns_security
-        }
-        binding.dnsRadioGroup.check(radioId)
+        lastEmittedDnsMode = currentMode
+
+        // Initialise slider without triggering the change listener.
+        binding.dnsSlider.value = currentMode.id.toFloat()
+        // Sync summary card instantly (no cross-fade on first load).
+        updateDnsLevelUi(currentMode.id, animate = false)
 
         val splitEnabled = persistentState.splitDns
         binding.splitDnsBanner.visibility = if (splitEnabled) View.GONE else View.VISIBLE
-        setDnsRadioGroupEnabled(splitEnabled && !isProxyStopped)
+        setDnsSliderEnabled(splitEnabled && !isProxyStopped)
 
         binding.splitDnsEnableBtn.setOnClickListener {
             persistentState.splitDns = true
@@ -201,33 +217,112 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
                     if (isAdded) {
                         binding.splitDnsBanner.visibility = View.GONE
                         binding.splitDnsBanner.alpha = 1f
-                        setDnsRadioGroupEnabled(!isProxyStopped)
+                        setDnsSliderEnabled(!isProxyStopped)
                     }
                 }
                 .start()
         }
 
-        binding.dnsRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-            if (!persistentState.splitDns || isProxyStopped) return@setOnCheckedChangeListener
-            val newMode = when (checkedId) {
-                R.id.rb_dns_default  -> RpnProxyManager.DnsMode.DEFAULT
-                R.id.rb_dns_anti_ad -> RpnProxyManager.DnsMode.ANTI_AD
-                R.id.rb_dns_parental -> RpnProxyManager.DnsMode.PARENTAL
-                R.id.rb_dns_security -> RpnProxyManager.DnsMode.SECURITY
-                else -> return@setOnCheckedChangeListener
-            }
-            if (newMode == currentMode) return@setOnCheckedChangeListener
+        binding.dnsSlider.addOnChangeListener { _, value, fromUser ->
+            // Ignore programmatic updates during initialisation.
+            if (!fromUser) return@addOnChangeListener
+            // Respect disabled state guards (split-DNS off, proxy stopped).
+            if (!persistentState.splitDns || isProxyStopped) return@addOnChangeListener
+
+            val position = value.toInt()
+            val newMode = RpnProxyManager.DnsMode.fromId(position)
+
+            // Update summary card with a subtle cross-fade.
+            updateDnsLevelUi(position, animate = true)
+
+            // Only persist + notify on an actual mode change.
+            if (newMode == lastEmittedDnsMode) return@addOnChangeListener
+            lastEmittedDnsMode = newMode
             persistentState.rpnDnsUrl = newMode.url
             listener?.onDnsModeChanged(newMode)
             Logger.i(LOG_TAG_UI, "$TAG: DNS mode → $newMode")
         }
     }
 
-    private fun setDnsRadioGroupEnabled(enabled: Boolean) {
-        binding.dnsRadioGroup.alpha = if (enabled) 1f else 0.38f
-        for (i in 0 until binding.dnsRadioGroup.childCount) {
-            binding.dnsRadioGroup.getChildAt(i).isEnabled = enabled
+    /**
+     * Updates every DNS level indicator element to reflect [position]:
+     * - Level name = the label for [position] (e.g. "Family").
+     * - Description = "Includes Default, Privacy, Family"  all levels up to and including
+     * - Tick labels: active labels are fully opaque; inactive ones are dimmed.
+     */
+    private fun updateDnsLevelUi(position: Int, animate: Boolean) {
+        // Ordered list of short level names, reusing existing string resources.
+        val levelNames = listOf(
+            getString(R.string.server_settings_dns_default),
+            getString(R.string.server_settings_dns_privacy),
+            getString(R.string.server_settings_dns_family),
+            getString(R.string.server_settings_dns_security)
+        )
+
+        val levelName = levelNames[position]
+        // "Includes Default" / "Includes Default, Privacy" / etc.
+        val activeNames = levelNames.take(position + 1).joinToString(", ")
+        val levelDesc   = getString(R.string.server_settings_dns_desc_includes, activeNames)
+
+        if (animate) {
+            val fadeDuration = 100L
+            // Cross-fade level name
+            binding.tvDnsLevelName.animate().alpha(0f).setDuration(fadeDuration)
+                .setInterpolator(AccelerateDecelerateInterpolator())
+                .withEndAction {
+                    if (isAdded) {
+                        binding.tvDnsLevelName.text = levelName
+                        binding.tvDnsLevelName.animate().alpha(1f).setDuration(fadeDuration)
+                            .setInterpolator(AccelerateDecelerateInterpolator()).start()
+                    }
+                }.start()
+            // Cross-fade description
+            binding.tvDnsLevelDesc.animate().alpha(0f).setDuration(fadeDuration)
+                .setInterpolator(AccelerateDecelerateInterpolator())
+                .withEndAction {
+                    if (isAdded) {
+                        binding.tvDnsLevelDesc.text = levelDesc
+                        binding.tvDnsLevelDesc.animate().alpha(1f).setDuration(fadeDuration)
+                            .setInterpolator(AccelerateDecelerateInterpolator()).start()
+                    }
+                }.start()
+        } else {
+            binding.tvDnsLevelName.text = levelName
+            binding.tvDnsLevelDesc.text = levelDesc
         }
+
+        // chips: checked (filled bg) + full alpha for active; dimmed for inactive.
+        val chips = listOf(
+            binding.chipDnsDefault,
+            binding.chipDnsPrivacy,
+            binding.chipDnsFamily,
+            binding.chipDnsSecurity
+        )
+        chips.forEachIndexed { index, chip ->
+            val isActive = index <= position
+            chip.isChecked = isActive
+            chip.alpha = if (isActive) 1f else 0.38f
+        }
+
+        // Tick labels: full alpha for active; dimmed for inactive.
+        val tickLabels = listOf(
+            binding.tvDnsLabelDefault,
+            binding.tvDnsLabelPrivacy,
+            binding.tvDnsLabelFamily,
+            binding.tvDnsLabelSecurity
+        )
+        tickLabels.forEachIndexed { index, label ->
+            label.alpha = if (index <= position) 1f else 0.38f
+        }
+    }
+
+    /**
+     * Enables or disables the entire DNS slider section (slider + summary card).
+     * The container alpha provides a clear disabled affordance without hiding controls.
+     */
+    private fun setDnsSliderEnabled(enabled: Boolean) {
+        binding.dnsSliderContainer.alpha = if (enabled) 1f else 0.38f
+        binding.dnsSlider.isEnabled = enabled
     }
 
     private fun setupConfigHandlingSection() {
