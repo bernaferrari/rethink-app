@@ -48,6 +48,7 @@ import com.celzero.bravedns.database.SubscriptionStatusDao
 import com.celzero.bravedns.databinding.FragmentServerSelectionBinding
 import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.AUTO_SERVER_ID
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.activity.FragmentHostActivity
@@ -142,8 +143,6 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
 
     companion object {
         private const val TAG = "ServerSelectionFragment"
-        const val AUTO_SERVER_ID   = "AUTO"
-        const val AUTO_COUNTRY_CODE = "AUTO"
 
         /**
          * Maximum number of NON-AUTO servers the user can select simultaneously.
@@ -643,7 +642,6 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         when {
             selectedServers.isEmpty() -> {
                 updateCurrentLocation(
-                    flag = "🌐",
                     countryName = if (isWinRegistered) AUTO_SERVER_ID else getString(R.string.vpn_status_disconnected),
                     location = ""
                 )
@@ -651,9 +649,9 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
             selectedServers.size == 1 -> {
                 val s = selectedServers.first()
                 if (s.id.equals(AUTO_SERVER_ID, ignoreCase = true)) {
-                    updateCurrentLocation("🌐", AUTO_SERVER_ID, "")
+                    updateCurrentLocation(AUTO_SERVER_ID, "")
                 } else {
-                    updateCurrentLocation(s.flagEmoji, s.countryName, s.serverLocation)
+                    updateCurrentLocation(s.countryName, s.serverLocation)
                 }
             }
             else -> {
@@ -669,7 +667,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
                     .distinct()
                     .take(2)
                     .joinToString(", ")
-                updateCurrentLocation("🌐", namesText, locationText)
+                updateCurrentLocation(namesText, locationText)
             }
         }
     }
@@ -704,11 +702,10 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         }
     }
 
-    private fun updateCurrentLocation(flag: String, countryName: String, location: String) {
+    private fun updateCurrentLocation(countryName: String, location: String) {
         if (!isAdded) return
 
         b.locationContent.visibility = View.VISIBLE
-        b.tvCurrentCountryFlag.text = flag
         b.tvCurrentCountry.text = countryName
         b.tvCurrentLocation.text = location
     }

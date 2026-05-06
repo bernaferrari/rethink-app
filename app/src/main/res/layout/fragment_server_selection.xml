@@ -80,25 +80,20 @@
                             android:orientation="horizontal"
                             android:visibility="visible">
 
-                            <androidx.appcompat.widget.AppCompatTextView
-                                android:id="@+id/tv_current_country_flag"
-                                android:layout_width="32dp"
-                                android:layout_height="32dp"
-                                android:gravity="center"
-                                tools:text="🌐"
-                                android:textSize="24sp" />
-
                             <LinearLayout
                                 android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:layout_marginStart="12dp"
                                 android:layout_weight="1"
                                 android:orientation="vertical">
 
                                 <androidx.appcompat.widget.AppCompatTextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/server_selection_current_location"
+                                    android:layout_gravity="center_vertical"
+                                    android:gravity="center_vertical"
+                                    android:drawableTint="?attr/primaryTextColor"
+                                    android:drawableStart="@drawable/ic_rethink_plus"
+                                    android:text="@string/proxy_rpn_heading"
                                     android:textColor="?attr/homeScreenHeaderTextColor"
                                     android:textSize="@dimen/small_font_text_view" />
 
@@ -135,10 +130,7 @@
                                 android:background="@drawable/bg_vpn_status_chip"
                                 android:gravity="center_vertical"
                                 android:orientation="horizontal"
-                                android:paddingStart="6dp"
-                                android:paddingTop="6dp"
-                                android:paddingEnd="6dp"
-                                android:paddingBottom="6dp">
+                                android:padding="4dp">
 
                                 <View
                                     android:id="@+id/status_indicator"
@@ -154,6 +146,7 @@
                                     android:layout_height="wrap_content"
                                     android:fontFamily="sans-serif-medium"
                                     android:text="@string/dns_connected"
+                                    android:padding="2dp"
                                     android:textColor="?attr/accentGood"
                                     android:textSize="@dimen/small_font_text_view"
                                     android:textStyle="bold" />
@@ -196,12 +189,6 @@
                                 android:layout_height="wrap_content"
                                 android:gravity="center_vertical"
                                 android:orientation="horizontal">
-
-                                <View
-                                    android:layout_width="48dp"
-                                    android:layout_height="48dp"
-                                    android:layout_marginEnd="12dp"
-                                    android:background="@drawable/shimmer_placeholder_circle" />
 
                                 <LinearLayout
                                     android:layout_width="0dp"
@@ -334,13 +321,6 @@
                             android:gravity="center_vertical"
                             android:orientation="horizontal">
 
-                            <androidx.appcompat.widget.AppCompatImageView
-                                android:layout_width="16dp"
-                                android:layout_height="16dp"
-                                android:layout_marginEnd="6dp"
-                                android:src="@drawable/ic_rethink_plus"
-                                android:tint="?attr/homeScreenHeaderTextColor" />
-
                             <androidx.appcompat.widget.AppCompatTextView
                                 android:id="@+id/tv_hero_plan_name"
                                 android:layout_width="0dp"
@@ -395,9 +375,9 @@
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="6dp"
                 android:layout_marginTop="6dp"
-                android:layout_marginEnd="4dp"
+                android:layout_marginEnd="8dp"
                 android:gravity="center_vertical"
                 android:orientation="horizontal">
 
@@ -405,8 +385,6 @@
                     android:id="@+id/search_card"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginEnd="4dp"
                     android:layout_weight="1"
                     app:cardCornerRadius="8dp"
                     app:cardElevation="4dp"
@@ -417,9 +395,9 @@
                         android:layout_height="wrap_content"
                         android:gravity="center_vertical"
                         android:orientation="horizontal"
-                        android:paddingStart="8dp"
+                        android:paddingStart="4dp"
                         android:paddingTop="8dp"
-                        android:paddingEnd="8dp"
+                        android:paddingEnd="4dp"
                         android:paddingBottom="8dp">
 
                         <androidx.appcompat.widget.AppCompatImageView
@@ -459,8 +437,8 @@
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/support_btn"
                     style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
                     android:insetLeft="0dp"
@@ -472,14 +450,14 @@
                     app:icon="@drawable/ic_person"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
-                    app:iconSize="20dp"
+                    app:iconSize="24dp"
                     app:iconTint="?attr/accentGood" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/settings_btn"
                     style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
                     android:layout_marginStart="4dp"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
@@ -493,15 +471,16 @@
                     app:icon="@drawable/ic_settings"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
-                    app:iconSize="20dp"
+                    app:iconSize="24dp"
                     app:iconTint="?attr/accentGood" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/refresh_btn"
                     style="@style/Widget.MaterialComponents.Button.Icon"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
                     android:layout_marginStart="4dp"
+                    android:layout_marginEnd="4dp"
                     android:insetTop="0dp"
                     android:insetBottom="0dp"
                     android:insetLeft="0dp"
@@ -514,7 +493,7 @@
                     app:icon="@drawable/ic_refresh"
                     app:iconGravity="textStart"
                     app:iconPadding="0dp"
-                    app:iconSize="20dp"
+                    app:iconSize="24dp"
                     app:iconTint="?attr/accentGood" />
 
             </LinearLayout>
