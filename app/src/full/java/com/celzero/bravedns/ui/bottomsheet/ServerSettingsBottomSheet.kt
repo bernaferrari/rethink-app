@@ -56,11 +56,10 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
         private const val ARG_PROXY_STOPPED = "proxy_stopped"
 
         /**
-         * Available port choices shown in the port-selection dialog.
-         * Index 0 → AUTO (stored as 0); other indices map 1-to-1 with [PORT_VALUES].
+         * Available port values shown in the port-selection dialog.
+         * Index 0 → random (stored as 0); other indices are literal port numbers.
          * 443, 80, 53, 123, 1194, 65142 are the most common ports which was seen from win-api
          */
-        private val PORT_LABELS = arrayOf("AUTO", "80", "443", "53", "123", "1194", "65142")
         private val PORT_VALUES = intArrayOf(0, 80, 443, 53, 123, 1194, 65142)
 
         fun newInstance(isProxyStopped: Boolean): ServerSettingsBottomSheet {
@@ -439,19 +438,24 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
 
     /**
      * Shows a [MaterialAlertDialogBuilder] single-choice dialog for selecting
-     * the connection port.  The current selection is pre-checked.
+     * the connection port. The current selection is pre-checked.
      */
     private fun showPortSelectionDialog() {
         if (!isAdded) return
 
+        // lbl_random string resource as updatePortValueLabel()
+        // replace 0 to "RANDOM" in the dialog list
+        val randomLabel = getString(R.string.lbl_random).trim('(', ')').uppercase()
+        val portLabels  = arrayOf(randomLabel, "80", "443", "53", "123", "1194", "65142")
+
         val currentPort = persistentState.rpnPort
         val selectedIndex = PORT_VALUES.indexOfFirst { it == currentPort }.let {
-            if (it < 0) 0 else it  // fall back to AUTO if stored value is unknown
+            if (it < 0) 0 else it  // fall back to random if stored value is unknown
         }
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.server_settings_port_dialog_title))
-            .setSingleChoiceItems(PORT_LABELS, selectedIndex) { dialog, which ->
+            .setSingleChoiceItems(portLabels, selectedIndex) { dialog, which ->
                 val newPort = PORT_VALUES[which]
                 persistentState.rpnPort = newPort
                 updatePortValueLabel(newPort)
@@ -465,7 +469,8 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     /** Updates the port display label in the port row. */
     private fun updatePortValueLabel(port: Int) {
         binding.tvPortValue.text = if (port == 0) {
-            getString(R.string.server_settings_config_mode_auto)
+            // Use lbl_random ("(random)"), strip the parentheses, and display in caps → "RANDOM"
+            getString(R.string.lbl_random).trim('(', ')').uppercase()
         } else {
             port.toString()
         }
