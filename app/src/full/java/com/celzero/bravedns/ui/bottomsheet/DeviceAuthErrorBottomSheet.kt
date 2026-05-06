@@ -104,21 +104,20 @@ class DeviceAuthErrorBottomSheet : BottomSheetDialogFragment() {
 
         // Show first 8 chars of device ID followed by "…" to indicate truncation.
         binding.tvDeviceIdPrefix.text = if (deviceIdPrefix.isNotBlank()) {
-            "$deviceIdPrefix…"
+            deviceIdPrefix
         } else {
             getString(R.string.device_auth_error_id_unavailable)
         }
     }
 
     /**
-     * Masks a CID/accountId to show only the first 12 and last 4 characters,
-     * separated by "…".
+     * Masks a CID/accountId to show only the first 12
      *
-     * Example: "abcdefghijklmnopqrstuvwx" → "abcdefghijkl…uvwx"
+     * Example: "abcdefghijklmnopqrstuvwx" → "abcdefghijkl"
      */
     private fun maskCid(id: String): String {
         if (id.length <= 16) return id
-        return "${id.take(12)}…${id.takeLast(4)}"
+        return id.take(12)
     }
 
     private fun setupButtons(accountId: String, deviceIdPrefix: String) {
@@ -143,7 +142,7 @@ class DeviceAuthErrorBottomSheet : BottomSheetDialogFragment() {
                 appendLine()
                 appendLine(getString(R.string.device_auth_error_email_body_details))
                 appendLine("  • ${getString(R.string.device_auth_error_account_id_label)}: $accountId")
-                appendLine("  • ${getString(R.string.device_auth_error_device_id_label)}: ${deviceIdPrefix}…")
+                appendLine("  • ${getString(R.string.device_auth_error_device_id_label)}: $deviceIdPrefix")
                 appendLine()
                 appendLine(getString(R.string.device_auth_error_email_body_closing))
             }

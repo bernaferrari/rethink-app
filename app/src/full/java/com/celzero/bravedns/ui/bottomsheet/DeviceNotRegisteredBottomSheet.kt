@@ -103,22 +103,19 @@ class DeviceNotRegisteredBottomSheet : BottomSheetDialogFragment() {
         binding.tvEntitlementCid.text = maskCid(entitlementCid)
             .ifBlank { getString(R.string.device_auth_error_id_unavailable) }
 
-        binding.tvDeviceIdPrefix.text = if (deviceIdPrefix.isNotBlank()) {
-            "$deviceIdPrefix…"
-        } else {
+        binding.tvDeviceIdPrefix.text = deviceIdPrefix.ifBlank {
             getString(R.string.device_auth_error_id_unavailable)
         }
     }
 
     /**
-     * Masks a CID to show only the first 12 and last 4 characters, separated by "…".
-     * For CIDs shorter than 16 characters the full value is returned unchanged.
+     * Masks a CID to show only the first 12
      *
-     * Example: "abcdefghijklmnopqrstuvwx" → "abcdefghijkl…uvwx"
+     * Example: "abcdefghijklmnopqrstuvwx" → "abcdefghijkl"
      */
     private fun maskCid(cid: String): String {
         if (cid.length <= 16) return cid
-        return "${cid.take(12)}…${cid.takeLast(4)}"
+        return cid.take(12)
     }
 
     private fun setupButtons(entitlementCid: String, deviceIdPrefix: String) {
@@ -143,7 +140,7 @@ class DeviceNotRegisteredBottomSheet : BottomSheetDialogFragment() {
                 appendLine()
                 appendLine(getString(R.string.device_not_registered_email_body_details))
                 appendLine("  • ${getString(R.string.device_not_registered_entitlement_cid_label)}: $entitlementCid")
-                appendLine("  • ${getString(R.string.device_auth_error_device_id_label)}: ${deviceIdPrefix}…")
+                appendLine("  • ${getString(R.string.device_auth_error_device_id_label)}: $deviceIdPrefix")
                 appendLine()
                 appendLine(getString(R.string.device_auth_error_email_body_closing))
             }

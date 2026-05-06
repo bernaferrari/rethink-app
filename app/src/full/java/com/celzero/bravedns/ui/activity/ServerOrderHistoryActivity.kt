@@ -223,7 +223,7 @@ class ServerOrderHistoryActivity : BaseActivity(R.layout.activity_server_order_h
     private fun buildHeroSubtitle(deviceId: String): String {
         val sub = RpnProxyManager.getSubscriptionData() ?: return ""
         var token = sub.subscriptionStatus.purchaseToken ?: ""
-        token = if (token.length > 12) token.take(12) + "…" else token.ifBlank { "" }
+        token = if (token.length > 12) token.take(12) else token.ifBlank { "" }
         val accountId = sub.subscriptionStatus.accountId.take(12).ifBlank { return token }
         val did = deviceId.take(4).ifBlank { return token }
         val id = "$accountId • $did"

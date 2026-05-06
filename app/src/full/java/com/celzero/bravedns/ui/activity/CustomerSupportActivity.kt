@@ -120,7 +120,7 @@ class CustomerSupportActivity : BaseActivity(R.layout.activity_customer_support)
 
         // Purchase token (show first 12 chars)
         var token = sub.purchaseToken ?: ""
-        token = token.length.let { if (it > 12) token.take(12) + "…" else token.ifBlank { "" } }
+        token = token.length.let { if (it > 12) token.take(12) else token.ifBlank { "" } }
         val accountId = sub.accountId.take(12).ifBlank { return }
         val deviceId = deviceId.take(4).ifBlank { return }
         val id = "$accountId • $deviceId"
