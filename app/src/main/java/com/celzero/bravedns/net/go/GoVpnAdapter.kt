@@ -46,6 +46,7 @@ import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.AUTO_SERVER_ID
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.BraveVPNService.Companion.NW_ENGINE_NOTIFICATION_ID
 import com.celzero.bravedns.service.EventLogger
@@ -56,7 +57,6 @@ import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.ui.activity.AntiCensorshipActivity
 import com.celzero.bravedns.ui.activity.AppLockActivity
-import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.Constants.Companion.ONDEVICE_BLOCKLIST_FILE_TAG
@@ -85,6 +85,7 @@ import com.celzero.firestack.backend.Proxies
 import com.celzero.firestack.backend.Proxy
 import com.celzero.firestack.backend.RDNS
 import com.celzero.firestack.backend.RouterStats
+import com.celzero.firestack.backend.Rpn
 import com.celzero.firestack.backend.RpnEntitlement
 import com.celzero.firestack.backend.RpnOps
 import com.celzero.firestack.backend.RpnProxy
@@ -748,8 +749,8 @@ class GoVpnAdapter : KoinComponent {
                     persistentState.remoteBlocklistTimestamp
                 ) ?: return
             val remoteFile =
-                blocklistFile(remoteDir.absolutePath, ONDEVICE_BLOCKLIST_FILE_TAG) ?: return
-            if (remoteFile.exists()) {
+                blocklistFile(remoteDir.absolutePath, ONDEVICE_BLOCKLIST_FILE_TAG)
+            if (remoteFile?.exists() == true) {
                 getRDNSResolver()?.setRdnsRemote(remoteFile.absolutePath)
                 Logger.i(LOG_TAG_VPN, "$TAG remote-rdns enabled")
                 logEvent(
@@ -1406,6 +1407,9 @@ class GoVpnAdapter : KoinComponent {
                     )
                     Logger.i(LOG_TAG_VPN, "$TAG resumed proxy (non-metered/ssid): $id, res: $res")
                 }
+            }
+            if (!RpnProxyManager.isRpnActive()) {
+                return
             }
             rpnConfigs.forEach {
                 val key = if (it.key.contains(AUTO_SERVER_ID, ignoreCase = true)) {
