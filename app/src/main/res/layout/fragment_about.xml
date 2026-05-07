@@ -704,7 +704,7 @@
                 android:layout_marginStart="10dp"
                 android:layout_marginEnd="10dp"
                 android:background="?android:attr/selectableItemBackground"
-                android:drawableStart="@drawable/ic_log_level"
+                android:drawableStart="@drawable/ic_proc"
                 android:drawablePadding="20dp"
                 android:gravity="start|center_vertical"
                 android:lineSpacingExtra="5dp"
