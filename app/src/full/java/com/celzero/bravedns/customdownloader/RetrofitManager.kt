@@ -16,8 +16,10 @@
 package com.celzero.bravedns.customdownloader
 
 import Logger
+import Logger.LOG_OKHTTP
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.Utilities
 import okhttp3.Dns
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
@@ -50,9 +52,16 @@ class RetrofitManager {
         }
 
         val logging = HttpLoggingInterceptor { message ->
-            if (DEBUG) Logger.vv("OKHTTP", "request: $message")
+            if (DEBUG) {
+                Logger.vv(LOG_OKHTTP, message)
+                // keep storing the logs in a separate file to avoid cluttering the main app logs,
+                // as these logs can be very verbose
+                val time = System.currentTimeMillis()
+                val userReadableTime = Utilities.convertLongToTime(time, Constants.TIME_FORMAT_4)
+                Logger.wireLog("$userReadableTime | $message")
+            }
         }.apply {
-            level = HttpLoggingInterceptor.Level.BASIC
+            level = HttpLoggingInterceptor.Level.BODY
         }
 
         fun getBlocklistBaseBuilder(isRinRActive: Boolean): Retrofit.Builder {
