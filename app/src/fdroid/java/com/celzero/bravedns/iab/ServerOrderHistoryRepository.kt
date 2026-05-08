@@ -15,8 +15,6 @@
  */
 package com.celzero.bravedns.iab
 
-import com.celzero.bravedns.service.PersistentState
-
 /**
  * Stub: purchase / order history is not available on the F-Droid build.
  *
@@ -25,7 +23,7 @@ import com.celzero.bravedns.service.PersistentState
  * errors at compile time. [fetchOrders] always returns [Result.NoCredentials].
  */
 class ServerOrderHistoryRepository(
-    @Suppress("UNUSED_PARAMETER") private val persistentState: PersistentState,
+    @Suppress("UNUSED_PARAMETER") private val billingBackendClient: BillingBackendClient,
 ) {
     sealed class Result {
         data class Success(val orders: List<ServerOrderEntry>) : Result()
