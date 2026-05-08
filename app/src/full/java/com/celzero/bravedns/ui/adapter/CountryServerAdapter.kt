@@ -190,7 +190,10 @@ class CountryServerAdapter(
                         .start()
                     bindFavouriteStar(item.copy(isFavourite = newFavourite))
                     item.isFavourite = newFavourite
-                    notifyItemChanged(bindingAdapterPosition)
+                    val position = bindingAdapterPosition
+                    if (position != RecyclerView.NO_POSITION) {
+                        notifyItemChanged(position)
+                    }
                     listener.onFavouriteToggled(item.countryCode, item.countryName,newFavourite)
                 }
 
@@ -287,12 +290,12 @@ class CountryServerAdapter(
 
             fun bind(group: ServerGroup) {
                 binding.apply {
-                    tvCityName.text = group.city.lowercase().replaceFirstChar {  it.uppercase() }
+                    tvCityName.text = group.city.capitalizeWords()
 
                     if (group.serverCount > 1) {
                         tvServerCount.visibility = View.VISIBLE
                         tvServerCount.text = itemView.context.resources.getQuantityString(
-                            com.celzero.bravedns.R.plurals.server_count,
+                            R.plurals.server_count,
                             group.serverCount,
                             group.serverCount
                         )
@@ -419,6 +422,13 @@ class CountryServerAdapter(
                     }
                 }
                 return Pair(label, attr)
+            }
+
+            private fun String.capitalizeWords(): String {
+                return split(" ")
+                    .joinToString(" ") { word ->
+                        word.lowercase().replaceFirstChar { it.uppercase() }
+                    }
             }
         }
     }

@@ -28,6 +28,7 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.databinding.BottomsheetPurchaseConflictBinding
 import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.iab.ServerApiError
+import com.celzero.bravedns.ui.activity.CustomerSupportActivity
 import com.celzero.bravedns.util.UIUtils.openUrl
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
@@ -159,8 +160,8 @@ class PurchaseConflictBottomSheet : BottomSheetDialogFragment() {
             initiateRefund(accountId, purchaseToken, sku)
         }
 
-        binding.btnManagePlay.setOnClickListener {
-            openPlayStoreSubs()
+        binding.btnContactSupport.setOnClickListener {
+            CustomerSupportActivity.start(requireContext())
         }
 
         binding.btnDismiss.setOnClickListener {
@@ -231,27 +232,10 @@ class PurchaseConflictBottomSheet : BottomSheetDialogFragment() {
 
     private fun setRefundInFlight(inFlight: Boolean) {
         binding.progressRefund.isVisible = inFlight
-        binding.btnRefund.isEnabled      = !inFlight
-        binding.btnManagePlay.isEnabled  = !inFlight
-        binding.btnDismiss.isEnabled     = !inFlight
+        binding.btnRefund.isEnabled = !inFlight
+        binding.btnContactSupport.isEnabled  = !inFlight
+        binding.btnDismiss.isEnabled = !inFlight
         isCancelable = !inFlight
-    }
-
-    private fun openPlayStoreSubs() {
-        try {
-            val productId = com.celzero.bravedns.rpnproxy.RpnProxyManager.getRpnProductId()
-            if (productId.isNotEmpty()) {
-                val link = InAppBillingHandler.PLAY_SUBS_LINK
-                    .replace("\$1", productId)
-                    .replace("\$2", requireContext().packageName)
-                openUrl(requireContext(), link)
-            } else {
-                // Fallback to generic Play subscriptions page
-                openUrl(requireContext(), "https://play.google.com/store/account/subscriptions")
-            }
-        } catch (e: Exception) {
-            Logger.w(LOG_IAB, "$TAG: failed to open Play Store: ${e.message}")
-        }
     }
 
     override fun dismiss() {

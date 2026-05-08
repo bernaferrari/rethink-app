@@ -96,7 +96,7 @@
                     android:fontFamily="sans-serif-medium"
                     android:background="@drawable/rectangle_border_background"
                     android:backgroundTint="?attr/chipBgColorPositive"
-                    android:textColor="?attr/chipTextPositive"
+                    android:textColor="?attr/primaryTextColor"
                     tools:text="Active" />
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -164,7 +164,7 @@
                 android:alpha="0.5"
                 android:maxLines="1"
                 android:ellipsize="end"
-                tools:text="Token: kgnknnfnkjdgaeop…" />
+                tools:text="Token: kgnknnfnkjdgaeop" />
 
         </LinearLayout>
 

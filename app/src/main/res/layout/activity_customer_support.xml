@@ -13,9 +13,9 @@
         android:id="@+id/app_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/bg_vpn_header_gradient"
+        android:background="@drawable/bg_glass"
         android:fitsSystemWindows="true"
-        app:elevation="0dp">
+        app:elevation="4dp">
 
         <com.google.android.material.appbar.CollapsingToolbarLayout
             android:id="@+id/collapsing_toolbar"
@@ -30,14 +30,6 @@
             app:expandedTitleMarginBottom="48dp"
             app:titleEnabled="true">
 
-            <androidx.appcompat.widget.AppCompatImageView
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:src="@drawable/ic_world_map"
-                android:scaleType="centerCrop"
-                android:alpha="0.08"
-                app:layout_collapseMode="parallax"
-                app:layout_collapseParallaxMultiplier="0.5" />
 
             <com.google.android.material.appbar.MaterialToolbar
                 android:id="@+id/toolbar"

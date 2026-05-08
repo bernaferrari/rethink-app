@@ -201,6 +201,10 @@
                             android:stepSize="1"
                             android:valueFrom="0"
                             android:valueTo="3"
+                            app:thumbColor="?attr/accentGood"
+                            app:tickColor="?accentGood"
+                            app:tickVisible="true"
+                            app:trackColorActive="?attr/accentGood"
                             app:labelBehavior="gone"
                             app:thumbRadius="10dp"
                             app:trackHeight="4dp"
@@ -262,9 +266,8 @@
                             android:layout_marginStart="4dp"
                             android:layout_marginTop="12dp"
                             android:layout_marginEnd="4dp"
-                            app:cardBackgroundColor="?attr/bottomSheetBackground"
                             app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp"
+                            app:cardElevation="2dp"
                             app:strokeWidth="0dp">
 
                             <LinearLayout
@@ -298,6 +301,8 @@
                                     android:id="@+id/dns_chip_group"
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
+                                    android:layout_gravity="center_horizontal"
+                                    android:foregroundGravity="center_horizontal"
                                     app:chipSpacingHorizontal="4dp"
                                     app:singleLine="true">
 
@@ -307,7 +312,9 @@
                                         android:layout_width="wrap_content"
                                         android:layout_height="wrap_content"
                                         android:checkable="true"
+                                        android:textColor="?attr/primaryTextColor"
                                         android:clickable="false"
+                                        app:chipBackgroundColor="?attr/chipBgColorPositive"
                                         android:focusable="false"
                                         app:checkedIconVisible="false"
                                         android:text="@string/server_settings_dns_default" />
@@ -320,6 +327,8 @@
                                         android:checkable="true"
                                         android:clickable="false"
                                         android:focusable="false"
+                                        app:chipBackgroundColor="?attr/chipBgColorPositive"
+                                        android:textColor="?attr/primaryTextColor"
                                         app:checkedIconVisible="false"
                                         android:text="@string/server_settings_dns_privacy" />
 
@@ -331,6 +340,8 @@
                                         android:checkable="true"
                                         android:clickable="false"
                                         android:focusable="false"
+                                        app:chipBackgroundColor="?attr/chipBgColorPositive"
+                                        android:textColor="?attr/primaryTextColor"
                                         app:checkedIconVisible="false"
                                         android:text="@string/server_settings_dns_family" />
 
@@ -342,6 +353,8 @@
                                         android:checkable="true"
                                         android:clickable="false"
                                         android:focusable="false"
+                                        app:chipBackgroundColor="?attr/chipBgColorPositive"
+                                        android:textColor="?attr/primaryTextColor"
                                         app:checkedIconVisible="false"
                                         android:text="@string/server_settings_dns_security" />
 

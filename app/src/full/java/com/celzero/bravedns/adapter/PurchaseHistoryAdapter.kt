@@ -16,6 +16,7 @@
 package com.celzero.bravedns.adapter
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -27,6 +28,7 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.database.SubscriptionStateHistory
 import com.celzero.bravedns.database.SubscriptionStatus
 import com.celzero.bravedns.databinding.ListItemPurchaseHistoryBinding
+import com.celzero.bravedns.util.UIUtils
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -72,15 +74,10 @@ class PurchaseHistoryAdapter(private val context: Context) :
         fun bind(entry: SubscriptionStateHistory) {
             b.tvTimestamp.text = DATE_FORMAT.format(Date(entry.timestamp))
 
-            // product name and plan-id are not available without the join; hide the view.
-            b.tvProductName.visibility = View.GONE
-
             val stateLabel = context.getString(stateStringRes(entry.toState))
             b.tvStateBadge.text = stateLabel
-            val (badgeBg, badgeFg) = stateBadgeColors(entry)
-            b.tvStateBadge.backgroundTintList =
-                ContextCompat.getColorStateList(context, badgeBg)
-            b.tvStateBadge.setTextColor(ContextCompat.getColor(context, badgeFg))
+            val badgeBg = UIUtils.fetchColor(context, stateBadgeAttrs(entry))
+            b.tvStateBadge.backgroundTintList = ColorStateList.valueOf(badgeBg)
 
             b.tvTransition.text = context.getString(
                 R.string.payment_history_transition_fmt,
@@ -99,7 +96,8 @@ class PurchaseHistoryAdapter(private val context: Context) :
 
             val (iconRes, iconTint) = stateIconAndTint(entry)
             b.ivStatusIcon.setImageResource(iconRes)
-            b.ivStatusIcon.imageTintList = ContextCompat.getColorStateList(context, iconTint)
+            val tintColor = UIUtils.fetchColor(context, iconTint)
+            b.ivStatusIcon.imageTintList = ColorStateList.valueOf(tintColor)
 
             // purchase token is not available without the JOIN; always hide.
             b.tvPurchaseToken.visibility = View.GONE
@@ -119,41 +117,41 @@ class PurchaseHistoryAdapter(private val context: Context) :
         private fun isPending(entry: SubscriptionStateHistory) =
             entry.toState == SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING.id
 
-        private fun stateBadgeColors(entry: SubscriptionStateHistory): Pair<Int, Int> = when {
-            isSuccess(entry) -> Pair(R.color.chipBackgroundColor, R.color.colorGreen_900)
-            isFailure(entry) -> Pair(R.color.chipBgNegative, R.color.colorRed_A400)
-            isPending(entry) -> Pair(R.color.chipBgNeutral, R.color.primaryText)
+        private fun stateBadgeAttrs(entry: SubscriptionStateHistory): Int = when {
+            isSuccess(entry) -> R.attr.chipBgColorPositive
+            isFailure(entry) -> R.attr.chipBgColorNegative
+            isPending(entry) -> R.attr.chipBgColorNeutral
             entry.toState == SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id ->
-                Pair(R.color.chipTextNegative, R.color.colorAmber_900)
+                R.attr.chipBgColorNegative
             entry.toState == SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id ->
-                Pair(R.color.chipTextNeutral, R.color.primaryText)
-            else -> Pair(R.color.chipTextNeutral, R.color.colorPrimary)
+                R.attr.chipBgColorNeutral
+            else -> R.attr.chipBgColorNeutral
         }
 
         private fun stateIconAndTint(entry: SubscriptionStateHistory): Pair<Int, Int> = when {
-            isSuccess(entry) -> Pair(R.drawable.ic_check_circle, R.color.accentGood)
-            isFailure(entry) -> Pair(R.drawable.ic_stop, R.color.accentBad)
-            isPending(entry) -> Pair(R.drawable.ic_refresh, R.color.primaryText)
+            isSuccess(entry) -> Pair(R.drawable.ic_check_circle, R.attr.accentGood)
+            isFailure(entry) -> Pair(R.drawable.ic_stop, R.attr.primaryTextColor)
+            isPending(entry) -> Pair(R.drawable.ic_refresh, R.attr.primaryTextColor)
             entry.toState == SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id ->
-                Pair(R.drawable.ic_circle, R.color.accentBad)
+                Pair(R.drawable.ic_stop, R.attr.accentBad)
             entry.toState == SubscriptionStatus.SubscriptionState.STATE_EXPIRED.id ->
-                Pair(R.drawable.ic_idle_timeout, R.color.primaryText)
-            else -> Pair(R.drawable.ic_info, R.color.primaryText)
+                Pair(R.drawable.ic_idle_timeout, R.attr.primaryTextColor)
+            else -> Pair(R.drawable.ic_info, R.attr.primaryTextColor)
         }
     }
 
     private fun stateStringRes(stateId: Int): Int {
         return when (SubscriptionStatus.SubscriptionState.fromId(stateId)) {
             SubscriptionStatus.SubscriptionState.STATE_ACTIVE -> R.string.lbl_active
-            SubscriptionStatus.SubscriptionState.STATE_CANCELLED -> R.string.status_cancelled
-            SubscriptionStatus.SubscriptionState.STATE_EXPIRED -> R.string.status_expired
+            SubscriptionStatus.SubscriptionState.STATE_CANCELLED -> R.string.lbl_cancelled
+            SubscriptionStatus.SubscriptionState.STATE_EXPIRED -> R.string.lbl_expired
             SubscriptionStatus.SubscriptionState.STATE_REVOKED -> R.string.status_revoked
             SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING -> R.string.payment_history_state_pending
             SubscriptionStatus.SubscriptionState.STATE_PURCHASED -> R.string.rpn_purchased_state
             SubscriptionStatus.SubscriptionState.STATE_PURCHASE_FAILED -> R.string.ping_status_failed
-            SubscriptionStatus.SubscriptionState.STATE_GRACE -> R.string.status_grace_period
+            SubscriptionStatus.SubscriptionState.STATE_GRACE -> R.string.lbl_grace_period
             SubscriptionStatus.SubscriptionState.STATE_ON_HOLD -> R.string.server_selection_sub_on_hold
-            SubscriptionStatus.SubscriptionState.STATE_PAUSED -> R.string.status_paused
+            SubscriptionStatus.SubscriptionState.STATE_PAUSED -> R.string.lbl_paused
             else -> R.string.network_log_app_name_unknown
         }
     }

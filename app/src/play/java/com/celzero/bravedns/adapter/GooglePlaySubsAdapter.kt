@@ -149,7 +149,7 @@ class GooglePlaySubsAdapter(
             val isInApp = prod.productType == ProductType.INAPP
 
             // Plan Duration label
-            val durationMonths = getInAppDurationMonths(prod.productId)
+            val durationMonths = getInAppDurationMonths(prod.planId)
             binding.planDuration.text = if (isInApp && durationMonths > 0) {
                 formatDurationLabel(durationMonths, planTitle)
             } else {

@@ -138,6 +138,8 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
             b.productTypeToggle.isVisible = false
             // Show the extend-mode banner so the user knows they are adding more access time.
             b.extendModeBanner.isVisible = true
+            // hide the connection info card since it's not relevant in extend mode
+            b.connectionInfoCard.visibility = View.GONE
         }
     }
 
@@ -194,13 +196,26 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
         }
     }
 
+    private fun syncScrollBottomPaddingWithCta() {
+        if (!isAdded) return
+        val ctaHeight = b.ctaContainer.height
+        if (ctaHeight <= 0) return
+        val scrollContent = b.scrollView.getChildAt(0) ?: return
+        scrollContent.setPadding(
+            scrollContent.paddingLeft,
+            scrollContent.paddingTop,
+            scrollContent.paddingRight,
+            ctaHeight
+        )
+    }
+
     private fun setupProductTypeToggle() {
         // In extend mode pre-select ONE_TIME and hide the SUBS tab so the
         // user focuses on one-time purchase options only.
         val initialType = if (viewModel.extendMode) {
             RethinkPlusViewModel.ProductTypeFilter.ONE_TIME
         } else {
-            RethinkPlusViewModel.ProductTypeFilter.SUBSCRIPTION
+            RethinkPlusViewModel.ProductTypeFilter.ONE_TIME
         }
         updateToggleState(initialType)
 
@@ -408,6 +423,8 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
         b.scrollView.isVisible = true
         b.ctaContainer.isVisible = true
 
+        b.ctaContainer.post { syncScrollBottomPaddingWithCta() }
+
         Logger.i(LOG_TAG_UI, "$TAG: Ready: ${products.size} products, resubscribe=$isResubscribe")
 
         availabilityData?.let { showConnectionInfo(it) }
@@ -568,6 +585,7 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus_premium),
                     // transition from Active), so purchaseFlowActive would never be set by the
                     // state change observer. Set it manually so the Active callback shows Success.
                     if (viewModel.extendMode) viewModel.markPurchaseFlowActive()
+                    Logger.vv(Logger.LOG_IAB, "$TAG: Initiating one-time purchase for productId=$productId, planId=$planId, extendMode=${viewModel.extendMode}")
                     InAppBillingHandler.purchaseOneTime(requireActivity(), productId, planId, forceExtend = viewModel.extendMode)
                 }
             }

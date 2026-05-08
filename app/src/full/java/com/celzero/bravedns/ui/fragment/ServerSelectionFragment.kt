@@ -54,7 +54,7 @@ import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.activity.FragmentHostActivity
 import com.celzero.bravedns.ui.adapter.CountryServerAdapter
 import com.celzero.bravedns.ui.adapter.VpnServerAdapter
-import com.celzero.bravedns.ui.bottomsheet.ResubscribeBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.ManageRpnPurchaseBtmSht
 import com.celzero.bravedns.ui.bottomsheet.ServerRemovalNotificationBottomSheet
 import com.celzero.bravedns.ui.bottomsheet.ServerSettingsBottomSheet
 import com.celzero.bravedns.util.SnackbarHelper
@@ -595,9 +595,15 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
             InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> "One-Time 2 years"
             InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> "One-Time 5 years"
             InAppBillingHandler.SUBS_PRODUCT_YEARLY -> "Subscription Yearly"
-            else -> getString(R.string.ping_server_name)
+            InAppBillingHandler.SUBS_PRODUCT_MONTHLY -> "Subscription Monthly"
+            else -> ""
         }
-        b.tvHeroPlanName.text = planLabel
+        if (planLabel.isEmpty()) {
+            b.tvHeroPlanName.visibility = View.GONE
+        } else {
+            b.tvHeroPlanName.visibility = View.VISIBLE
+            b.tvHeroPlanName.text = planLabel
+        }
         val accountId = sub.accountId.take(12)
         // Clear while we fetch the real device ID from SecureIdentityStore on IO.
         b.tvHeroAccountId.text = accountId.ifEmpty { "" }
@@ -706,8 +712,15 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         if (!isAdded) return
 
         b.locationContent.visibility = View.VISIBLE
-        b.tvCurrentCountry.text = countryName
-        b.tvCurrentLocation.text = location
+        b.tvCurrentCountry.text = countryName.capitalizeWords()
+        b.tvCurrentLocation.text = location.capitalizeWords()
+    }
+
+    private fun String.capitalizeWords(): String {
+        return split(" ")
+            .joinToString(" ") { word ->
+                word.lowercase().replaceFirstChar { it.uppercase() }
+            }
     }
 
     private fun animateHeaderEntry() {
@@ -1649,16 +1662,16 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
      */
     private fun observeSubscription() {
         // Show shimmer banner while data hasn't arrived yet
-        b.shimmerSubscriptionBanner.isVisible = true
+        b.shimmerSubscriptionBanner.visibility = View.VISIBLE
         b.shimmerSubscriptionBanner.startShimmer()
-        b.subscriptionBanner.isVisible = false
+        b.subscriptionBanner.visibility = View.GONE
 
         lifecycleScope.launch {
             subscriptionStatusDao.observeCurrentSubscription().collectLatest { sub ->
                 if (!isAdded) return@collectLatest
                 uiCtx {
                     b.shimmerSubscriptionBanner.stopShimmer()
-                    b.shimmerSubscriptionBanner.isVisible = false
+                    b.shimmerSubscriptionBanner.visibility = View.GONE
                     updateSubscriptionBanner(sub)
                     maybeShowResubscribePrompt(sub)
                 }
@@ -1671,7 +1684,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
      */
     private fun updateSubscriptionBanner(sub: SubscriptionStatus?) {
         if (sub == null || sub.purchaseToken.isEmpty()) {
-            b.subscriptionBanner.isVisible = false
+            b.subscriptionBanner.visibility = View.GONE
             return
         }
 
@@ -1715,7 +1728,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
             // Date row needed but expiry not yet known
             b.tvExpiryDate.text = "-"
             b.tvExpiryLabel.text = if (isOneTime)
-                getString(R.string.server_selection_sub_expires_on)
+                getString(R.string.lbl_expires_on)
             else
                 getString(R.string.server_selection_sub_ends_on)
             b.tvDaysRemaining.isVisible = false
@@ -1725,11 +1738,11 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
 
             val expiryLabelRes = when {
                 isEffectivelyExpired -> R.string.server_selection_sub_expired_on
-                isOneTime            -> R.string.server_selection_sub_expires_on
+                isOneTime -> R.string.lbl_expires_on
                 statusState == SubscriptionStatus.SubscriptionState.STATE_CANCELLED ||
                 statusState == SubscriptionStatus.SubscriptionState.STATE_GRACE ->
                     R.string.server_selection_sub_ends_on
-                else                 -> R.string.server_selection_sub_ends_on
+                else -> R.string.server_selection_sub_ends_on
             }
             b.tvExpiryLabel.text = getString(expiryLabelRes)
             b.tvExpiryDate.text  = dateStr
@@ -1759,7 +1772,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         // Animate banner in if it was previously hidden
         if (!b.subscriptionBanner.isVisible) {
             b.subscriptionBanner.alpha = 0f
-            b.subscriptionBanner.isVisible = true
+            b.subscriptionBanner.visibility = View.VISIBLE
             b.subscriptionBanner.animate()
                 .alpha(1f).setDuration(300)
                 .setInterpolator(AccelerateDecelerateInterpolator())
@@ -1795,13 +1808,9 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         resubscribePromptShown = true
         Logger.i(LOG_TAG_UI, "$TAG.maybeShowResubscribePrompt: showing resubscribe prompt for productId=${purchaseDetail.productId}, planId=${purchaseDetail.planId}")
 
-        val planDisplayName = purchaseDetail.productTitle.ifEmpty { purchaseDetail.productId }
         try {
-            ResubscribeBottomSheet.newInstance(
-                productId       = purchaseDetail.productId,
-                planId          = purchaseDetail.planId,
-                planDisplayName = planDisplayName
-            ).show(childFragmentManager, "resubscribe")
+            ManageRpnPurchaseBtmSht.newInstance()
+                .show(childFragmentManager, "resubscribe")
         } catch (e: Exception) {
             Logger.e(LOG_TAG_UI, "$TAG.maybeShowResubscribePrompt: error showing sheet: ${e.message}", e)
             resubscribePromptShown = false  // allow retry on next emission

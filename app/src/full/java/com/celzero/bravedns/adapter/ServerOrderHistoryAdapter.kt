@@ -127,17 +127,17 @@ class ServerOrderHistoryAdapter(private val context: Context) :
                         R.attr.chipTextPositive
                     )
                     ServerOrderEntry.STATE_CANCELLED -> Triple(
-                        context.getString(R.string.status_cancelled),
+                        context.getString(R.string.lbl_cancelled),
                         R.color.chipBgNegative,
                         R.attr.chipTextNegative
                     )
                     ServerOrderEntry.STATE_EXPIRED -> Triple(
-                        context.getString(R.string.status_expired),
+                        context.getString(R.string.lbl_expired),
                         R.color.chipBgNeutral,
                         R.attr.chipTextNeutral
                     )
                     ServerOrderEntry.STATE_PAUSED -> Triple(
-                        context.getString(R.string.status_paused),
+                        context.getString(R.string.lbl_paused),
                         R.color.chipBgNeutral,
                         R.attr.chipTextNeutral
                     )

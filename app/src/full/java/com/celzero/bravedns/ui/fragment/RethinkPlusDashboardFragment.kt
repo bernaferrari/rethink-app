@@ -33,14 +33,20 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.database.SubscriptionStatus
 import com.celzero.bravedns.database.SubscriptionStatusDao
 import com.celzero.bravedns.databinding.ActivityRethinkPlusDashboardBinding
+import com.celzero.bravedns.iab.DeviceNotRegisteredNotifier
 import com.celzero.bravedns.iab.InAppBillingHandler
+import com.celzero.bravedns.iab.PurchaseConflictNotifier
+import com.celzero.bravedns.iab.ServerApiError
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import com.celzero.bravedns.ui.activity.CustomerSupportActivity
 import com.celzero.bravedns.ui.activity.FragmentHostActivity
 import com.celzero.bravedns.ui.activity.PingTestActivity
-import com.celzero.bravedns.ui.activity.PurchaseHistoryActivity
 import com.celzero.bravedns.ui.activity.ServerOrderHistoryActivity
+import com.celzero.bravedns.ui.bottomsheet.DeviceAuthErrorBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.DeviceNotRegisteredBottomSheet
+import com.celzero.bravedns.ui.bottomsheet.ManageRpnPurchaseBtmSht
+import com.celzero.bravedns.ui.bottomsheet.PurchaseConflictBottomSheet
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -59,6 +65,7 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
         private const val TAG = "RPNDashFrag"
         /** Show "expiring soon" banner when fewer than this many days remain for an INAPP purchase. */
         private const val EXPIRING_SOON_THRESHOLD_DAYS = 30L
+        private const val ONE_DAY_MS = 24 * 60 * 60 * 1000L
     }
 
     private fun safeNavigate(actionId: Int) {
@@ -73,11 +80,16 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         if (!isAdded) return
-        setupToolbar()
+        initView()
         setupClickListeners()
-        loadSubscriptionBanner()
+        setupServerErrorObserver()
         observeSubscriptionState()
         applyScrollPadding()
+    }
+
+    private fun initView() {
+        setupToolbar()
+        loadSubscriptionBanner()
     }
 
     private fun applyScrollPadding() {
@@ -125,7 +137,7 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
         val fmt = SimpleDateFormat("MMM d, yyyy", Locale.getDefault())
         // Purchase token (show first 12 chars)
         var token = sub?.purchaseToken.orEmpty()
-        token = token.length.let { if (it > 12) token.take(12) + "…" else token.ifBlank { "" } }
+        token = token.length.let { if (it > 12) token.take(12) else token.ifBlank { "" } }
 
         // Hero subtitle: "RPN Standard · 74b4c00217"
         val accountId = sub?.accountId?.take(12).orEmpty()
@@ -167,43 +179,81 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
         b.renewButton.isVisible = !state.hasValidSubscription
 
         // Expiring-soon banner - only for active INAPP purchases within 30 days of expiry
-        updateExpiringBanner(sub, state)
+        updateExpiringBanner(subscriptionData, state)
     }
 
     /**
-     * Shows a "your access expires in N days" banner when an INAPP purchase is within
-     * 30 days of its access-window end.  Clicking the banner navigates to the purchase
-     * flow so the user can buy again.
+     * Shows a renewal banner when an INAPP purchase is expiring within 30 days.
      *
-     * Silently no-ops when the current product is a subscription (auto-renews) or when
-     * expiry information is unavailable.
+     * The banner is shown only for one-time (INAPP) purchases, subscriptions auto-renew
+     * so they never need a manual renewal prompt. The threshold is 30 days to give users
+     * enough time to repurchase before losing access.
      */
     private fun updateExpiringBanner(
-        sub: SubscriptionStatus?,
+        subscriptionData: SubscriptionStateMachineV2.SubscriptionData?,
         state: SubscriptionStateMachineV2.SubscriptionState
     ) {
         try {
-            val isInApp = sub != null && isInAppProduct(sub.productId, sub.planId)
+            val sub = subscriptionData?.subscriptionStatus ?: return
+            val isInApp = isInAppProduct(sub.productId, sub.planId)
+
+            // Only show for active INAPP purchases
             if (!isInApp || !state.hasValidSubscription) {
                 b.expiringBannerCard.isVisible = false
                 return
             }
-            val remainingDays = InAppBillingHandler.getRemainingDaysForInApp() ?: run {
-                b.expiringBannerCard.isVisible = false
-                return
-            }
-            val isExpiringSoon = remainingDays in 0..EXPIRING_SOON_THRESHOLD_DAYS
-            b.expiringBannerCard.isVisible = isExpiringSoon
-            if (isExpiringSoon) {
-                b.tvExpiringBanner.text = getString(R.string.inapp_expiry_soon, remainingDays.coerceAtLeast(0L))
-                // Clicking the banner takes the user directly to the purchase flow
-                b.expiringBannerCard.setOnClickListener {
-                    safeNavigate(R.id.action_rethinkPlusDashboard_to_rethinkPlus)
+
+            val billingExpiry = sub.billingExpiry
+            if (billingExpiry > 0L && billingExpiry != Long.MAX_VALUE) {
+                val days = (billingExpiry - System.currentTimeMillis()) / ONE_DAY_MS
+                if (days in 0..EXPIRING_SOON_THRESHOLD_DAYS) {
+                    b.expiringBannerCard.isVisible = true
+                    b.tvExpiringBanner.text = getString(R.string.inapp_expiry_soon, days.coerceAtLeast(0L))
+                    b.btnExtendAccess.setOnClickListener { navigateToOneTimePurchase() }
                 }
-                Logger.i(LOG_TAG_UI, "$TAG expiring banner shown: remainingDays=$remainingDays")
+            }
+
+            io {
+                val remainingDays = InAppBillingHandler.getRemainingDaysForInAppSuspend()
+                uiCtx {
+                    if (remainingDays == null) {
+                        Logger.w(LOG_TAG_UI, "$TAG could not fetch remaining days for INAPP expiry banner")
+                        return@uiCtx
+                    }
+                    val isExpiringSoon = remainingDays in 0..EXPIRING_SOON_THRESHOLD_DAYS
+                    b.expiringBannerCard.isVisible = isExpiringSoon || true
+                    if (isExpiringSoon || true) {
+                        val days = remainingDays.coerceAtLeast(0L)
+                        b.tvExpiringBanner.text = getString(R.string.inapp_expiry_soon, days)
+                        b.btnExtendAccess.setOnClickListener { navigateToOneTimePurchase() }
+                        Logger.i(LOG_TAG_UI, "$TAG expiring banner shown: remainingDays=$remainingDays")
+                    }
+                }
             }
         } catch (e: Exception) {
             Logger.w(LOG_TAG_UI, "$TAG updateExpiringBanner error (non-fatal): ${e.message}")
+        }
+    }
+
+    /**
+     * Navigates to [RethinkPlusFragment] in **extend mode**: ONE_TIME tab is pre-selected and the
+     * "already subscribed" guard is bypassed so the user can purchase an additional one-time plan
+     * while their current one-time access is still active but expiring soon.
+     */
+    private fun navigateToOneTimePurchase() {
+        try {
+            val intent = FragmentHostActivity.createIntent(
+                context = requireContext(),
+                fragmentClass = RethinkPlusFragment::class.java,
+                args = Bundle().apply {
+                    putString("ARG_KEY", "Launch_Rethink_Plus_Extend")
+                    putBoolean("arg_extend_mode", true)
+                }
+            )
+            startActivity(intent)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_UI, "$TAG error navigating to one-time purchase: ${e.message}", e)
+            showToastUiCentered(requireContext(), getString(R.string.error_loading_manage_subscription), Toast.LENGTH_SHORT)
         }
     }
 
@@ -212,6 +262,14 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
         if (subscriptionData == null) return ""
 
         val productId = subscriptionData.purchaseDetail?.productId.orEmpty()
+        val planId = subscriptionData.purchaseDetail?.planId.orEmpty()
+        Logger.vv("TEST", "resolvePlanName: productId=$productId, planId=$planId")
+        when (planId) {
+            InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> return getString(R.string.plan_2yr)
+            InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> return getString(R.string.plan_5yr)
+            InAppBillingHandler.SUBS_PRODUCT_YEARLY -> return getString(R.string.billing_yearly)
+            InAppBillingHandler.SUBS_PRODUCT_MONTHLY -> return getString(R.string.monthly_plan)
+        }
         return when (productId) {
             InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> getString(R.string.plan_2yr)
             InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> getString(R.string.plan_5yr)
@@ -245,6 +303,53 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
         }
     }
 
+    private fun setupServerErrorObserver() {
+        InAppBillingHandler.serverApiErrorLiveData.observe(viewLifecycleOwner) { error ->
+            error ?: return@observe
+            InAppBillingHandler.serverApiErrorLiveData.value = null
+            when (error) {
+                is ServerApiError.Conflict409 -> showConflictBottomSheet(error)
+                is ServerApiError.Unauthorized401 -> showDeviceAuthErrorBottomSheet(error)
+                is ServerApiError.DeviceNotRegistered -> showDeviceNotRegisteredBottomSheet(error)
+                is ServerApiError.GenericError -> showToastUiCentered(requireContext(), error.message, Toast.LENGTH_LONG)
+                is ServerApiError.NetworkError -> showToastUiCentered(
+                    requireContext(),
+                    error.message ?: getString(R.string.subscription_action_failed),
+                    Toast.LENGTH_LONG
+                )
+                is ServerApiError.None -> { /* no-op */ }
+            }
+        }
+    }
+
+    private fun showDeviceNotRegisteredBottomSheet(error: ServerApiError.DeviceNotRegistered) {
+        if (!isAdded || isStateSaved) return
+        DeviceNotRegisteredNotifier.cancel(requireContext())
+        DeviceNotRegisteredBottomSheet.newInstance(error).show(childFragmentManager, "deviceNotRegistered")
+    }
+
+    private fun showDeviceAuthErrorBottomSheet(error: ServerApiError.Unauthorized401) {
+        if (!isAdded || isStateSaved) return
+        DeviceAuthErrorBottomSheet.newInstance(error).show(childFragmentManager, "deviceAuthError401")
+    }
+
+    private fun showConflictBottomSheet(error: ServerApiError.Conflict409) {
+        if (!isAdded || isStateSaved) return
+        if (childFragmentManager.findFragmentByTag("conflict409") != null) {
+            Logger.d(LOG_TAG_UI, "$TAG: conflict409 sheet already visible, skipping duplicate")
+            return
+        }
+        PurchaseConflictNotifier.cancel(requireContext())
+        val sheet = PurchaseConflictBottomSheet.newInstance(error)
+        sheet.onRefundResult = { success, _ ->
+            if (success) {
+                viewLifecycleOwner.lifecycleScope.launch(Dispatchers.Main) { initView() }
+            }
+        }
+        sheet.show(childFragmentManager, "conflict409")
+    }
+
+
     private fun handleStateChange(state: SubscriptionStateMachineV2.SubscriptionState) {
         when (state) {
             is SubscriptionStateMachineV2.SubscriptionState.Active,
@@ -273,7 +378,6 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
             startActivity(Intent(requireContext(), PingTestActivity::class.java))
         }
         b.manageSubsRl.setOnClickListener { managePlayStoreSubs() }
-        b.paymentHistoryRl.setOnClickListener { openBillingHistory() }
         b.serverOrderHistoryRl.setOnClickListener { openServerOrderHistory() }
         b.reportIssueRl.setOnClickListener { CustomerSupportActivity.start(requireContext()) }
         b.renewButton.setOnClickListener {
@@ -282,23 +386,9 @@ class RethinkPlusDashboardFragment : Fragment(R.layout.activity_rethink_plus_das
     }
 
     private fun managePlayStoreSubs() {
-        val args = Bundle().apply { putString("ARG_KEY", "Launch_Manage_Subscriptions") }
-        startActivity(
-            FragmentHostActivity.createIntent(
-                context = requireContext(),
-                fragmentClass = ManagePurchaseFragment::class.java,
-                args = args
-            )
-        )
-    }
-
-    private fun openBillingHistory() {
-        try {
-            startActivity(Intent(requireContext(), PurchaseHistoryActivity::class.java))
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_UI, "$TAG openBillingHistory error: ${e.message}", e)
-            showToastUiCentered(requireContext(), getString(R.string.payment_history_open_error), Toast.LENGTH_SHORT)
-        }
+        if (!isAdded || isStateSaved) return
+        if (childFragmentManager.findFragmentByTag("manageRpnPurchase") != null) return
+        ManageRpnPurchaseBtmSht.newInstance().show(childFragmentManager, "manageRpnPurchase")
     }
 
     private fun openServerOrderHistory() {

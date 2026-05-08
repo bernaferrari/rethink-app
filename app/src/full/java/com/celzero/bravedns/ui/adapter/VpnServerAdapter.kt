@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.ui.adapter
 
+import Logger
 import Logger.LOG_TAG_UI
 import android.content.Context
 import android.content.Intent
@@ -22,7 +23,6 @@ import android.text.format.DateUtils
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.findViewTreeLifecycleOwner
@@ -34,11 +34,11 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CountryConfig
 import com.celzero.bravedns.databinding.ListItemVpnServerBinding
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.AUTO_SERVER_ID
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.ui.activity.RpnConfigDetailActivity
-import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.Utilities
@@ -214,7 +214,7 @@ class VpnServerAdapter(
 
             if (group.key.equals(AUTO_SERVER_ID, ignoreCase = true)) {
                 b.infoIcon.visibility = View.GONE
-                // AUTO server: show the vector globe icon, hide the emoji text view
+                // AUTO server: show the vector ic_rpn_auto, hide the emoji text view
                 b.tvFlag.text = ""
                 b.ivFlagImage.visibility = View.VISIBLE
             } else {
@@ -226,15 +226,19 @@ class VpnServerAdapter(
 
             val locationText = if (group.serverCount > 1) {
                 val cities = group.servers.map { it.serverLocation }.distinct()
-                val cityText = if (cities.size <= 2) cities.joinToString(", ").lowercase().replaceFirstChar(Char::titlecase)
-                else "${cities.first().lowercase().replaceFirstChar(Char::titlecase)} +${cities.size - 1} more"
+                val cityText = if (cities.size <= 2) cities.joinToString(", ").capitalizeWords()
+                else "${cities.first().capitalizeWords()} +${cities.size - 1} more"
                 "$cityText • ${group.countryCode}"
             } else {
-                ctx.getString(
-                    R.string.hero_plan_and_account,
-                    group.cityName.lowercase().replaceFirstChar(Char::titlecase),
-                    group.countryCode
-                )
+                if (group.cityName.equals(group.countryCode, true)) {
+                    group.cityName.capitalizeWords()
+                } else {
+                    ctx.getString(
+                        R.string.hero_plan_and_account,
+                        group.cityName.capitalizeWords(),
+                        group.countryCode
+                    )
+                }
             }
             b.tvCountryName.text = locationText
 
@@ -569,7 +573,7 @@ class VpnServerAdapter(
                     ctx.getString(R.string.status_waiting) + " ($errMsg)"
                 else
                     ctx.getString(R.string.status_waiting)
-                return base.replaceFirstChar(Char::titlecase)
+                return base.capitalizeWords()
             }
             if (status == UIUtils.ProxyStatus.TPU) {
                 return ctx.getString(UIUtils.getProxyStatusStringRes(status.id))
@@ -689,6 +693,13 @@ class VpnServerAdapter(
             intent.putExtra(RpnConfigDetailActivity.INTENT_EXTRA_FROM_SERVER_SELECTION, true)
             intent.putExtra(RpnConfigDetailActivity.INTENT_EXTRA_CONFIG_KEY, server.key)
             ctx.startActivity(intent)
+        }
+
+        private fun String.capitalizeWords(): String {
+            return split(" ")
+                .joinToString(" ") { word ->
+                    word.lowercase().replaceFirstChar { it.uppercase() }
+                }
         }
     }
 }
