@@ -757,7 +757,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         if (parentFragmentManager.findFragmentByTag("ServerSettings") != null) return
         val sheet = ServerSettingsBottomSheet.newInstance(isProxyStopped)
         sheet.setOnSettingsChangedListener(object : ServerSettingsBottomSheet.OnSettingsChangedListener {
-            override fun onDnsModeChanged(mode: RpnProxyManager.DnsMode) {
+            override fun onDnsModeChanged(tunTypes: String) {
                 io { VpnController.onRpnDnsChange() }
             }
             override fun onConfigChanged() {
