@@ -2416,22 +2416,19 @@ class GoVpnAdapter : KoinComponent {
         // a user configurable screen allowing users to choose custom blocklists.
         // The selected configuration will then be reflected in the DNS URL used here.
         // or a screen to choose multiple user-added dns as well.
-        val dnses = RpnProxyManager.DnsMode.setFromCsv(persistentState.rpnDnsTunTypes)
-        dnses.forEach {
-            addRpnProxyDns(id, it.url)
-        }
+        addRpnProxyDns(id)
     }
 
-    private suspend fun addRpnProxyDns(id: String, url: String) {
+    private suspend fun addRpnProxyDns(id: String) {
         Logger.v(LOG_TAG_VPN, "$TAG addDnsProxyTransport, id: $id")
         try {
             val p = getProxies()?.getProxy(id)
             if (p == null) {
-                Logger.w(LOG_TAG_VPN, "$TAG wireguard proxy not found for id: $id")
+                Logger.w(LOG_TAG_VPN, "$TAG rpn proxy not found for id: $id")
                 return
             }
             Intra.addProxyDNS(tunnel, p)
-            val type = RpnProxyManager.DnsMode.fromUrl(url).tunType
+            val type = persistentState.rpnDnsTunTypes
             logEvent(
                 Severity.LOW,
                 "rpn dns($id) added",
@@ -2441,8 +2438,8 @@ class GoVpnAdapter : KoinComponent {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns proxy failure", e)
             logEvent(
                 Severity.HIGH,
-                "rpn dns53($id) error",
-                "error adding dot transport for url: $url, reason: ${e.message}"
+                "rpn dns($id) error",
+                "error adding rpn dns, reason: ${e.message}"
             )
         }
         Logger.v(LOG_TAG_VPN, "$TAG rpn addDnsProxyTransport done")
@@ -2665,20 +2662,9 @@ class GoVpnAdapter : KoinComponent {
         }
 
         try {
+            // update win will fetch the new dns config from persistent state and apply it to the
+            // win proxy
             updateWin()
-            val win = tunnel.proxies.rpn().win()
-            addRpnDns(win.id())
-            Logger.i(LOG_TAG_PROXY, "$TAG rpn dns change, id: ${win.id()}")
-
-            val kids = win.kids()
-            if (kids.isNullOrEmpty()) return
-
-            val kidsList = kids.split(",")
-            Logger.i(LOG_TAG_PROXY, "$TAG rpn dns change, kids: $kids")
-            kidsList.forEach {
-                val id = win.get(it).id()
-                addRpnDns(id)
-            }
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$TAG err on rpn dns change: ${e.message}")
         }
