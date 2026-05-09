@@ -2393,9 +2393,11 @@ class GoVpnAdapter : KoinComponent {
 
     private fun constructRpnOps(): RpnOps {
         val rpnOps = RpnOps()
+        val dnsConfig = persistentState.rpnDnsTunTypes
+        rpnOps.setDNSConfig(dnsConfig)
         // no need to check for config in AUTO mode
         if (!persistentState.rpnConfigHandlingManual) {
-            Logger.v(LOG_TAG_PROXY, "$TAG, using default RpnOps config")
+            Logger.v(LOG_TAG_PROXY, "$TAG, using default RpnOps config: $rpnOps")
             return rpnOps
         }
 
@@ -2404,8 +2406,6 @@ class GoVpnAdapter : KoinComponent {
         rpnOps.setPermaCreds(false)
         rpnOps.setRotateCreds(persistentState.rpnAlwaysChangeIdentity)
         rpnOps.setPort(persistentState.rpnPort)
-        val dnsConfig = RpnProxyManager.DnsMode.fromUrl(persistentState.rpnDnsUrl).tunType
-        rpnOps.setDNSConfig(dnsConfig)
         Logger.v(LOG_TAG_PROXY, "$TAG, using custom RpnOps config: $rpnOps")
         return rpnOps
     }
@@ -2416,7 +2416,10 @@ class GoVpnAdapter : KoinComponent {
         // a user configurable screen allowing users to choose custom blocklists.
         // The selected configuration will then be reflected in the DNS URL used here.
         // or a screen to choose multiple user-added dns as well.
-        addRpnProxyDns(id, persistentState.rpnDnsUrl)
+        val dnses = RpnProxyManager.DnsMode.setFromCsv(persistentState.rpnDnsTunTypes)
+        dnses.forEach {
+            addRpnProxyDns(id, it.url)
+        }
     }
 
     private suspend fun addRpnProxyDns(id: String, url: String) {
@@ -2663,7 +2666,7 @@ class GoVpnAdapter : KoinComponent {
 
         try {
             updateWin()
-            /*val win = tunnel.proxies.rpn().win()
+            val win = tunnel.proxies.rpn().win()
             addRpnDns(win.id())
             Logger.i(LOG_TAG_PROXY, "$TAG rpn dns change, id: ${win.id()}")
 
@@ -2675,7 +2678,7 @@ class GoVpnAdapter : KoinComponent {
             kidsList.forEach {
                 val id = win.get(it).id()
                 addRpnDns(id)
-            }*/
+            }
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$TAG err on rpn dns change: ${e.message}")
         }

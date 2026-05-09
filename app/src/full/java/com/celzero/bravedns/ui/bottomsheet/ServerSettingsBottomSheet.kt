@@ -23,7 +23,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
-import com.google.android.material.slider.Slider
 import androidx.core.view.WindowInsetsControllerCompat
 import com.celzero.bravedns.R
 import com.celzero.bravedns.databinding.BottomsheetServerSettingsBinding
@@ -76,8 +75,12 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
      * background dispatcher so the operation survives bottom-sheet dismissal.
      */
     interface OnSettingsChangedListener {
-        /** Fired immediately each time the user picks a new DNS filter mode. */
-        fun onDnsModeChanged(mode: RpnProxyManager.DnsMode)
+        /**
+         * Fired immediately each time the user changes the DNS filter selection.
+         * [tunTypes] is a comma-separated string of [RpnProxyManager.DnsMode.tunType] values
+         * representing all currently active filters (e.g. `"privacy,family"`).
+         */
+        fun onDnsModeChanged(tunTypes: String)
         /**
          * Fired once when the sheet is dismissed (Done tap or swipe-away), but
          * **only** if at least one of the four configuration values changed since
@@ -96,11 +99,10 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     }
 
     /**
-     * Tracks the last [RpnProxyManager.DnsMode] emitted to the listener so we can
-     * guard against emitting the same mode twice (e.g. slider snapping back) and
-     * so the slider listener can correctly detect a real change.
+     * Tracks the last comma-separated tunType string emitted to the listener so we can
+     * guard against spurious re-emissions when checkboxes are programmatically initialised.
      */
-    private var lastEmittedDnsMode: RpnProxyManager.DnsMode = RpnProxyManager.DnsMode.DEFAULT
+    private var lastEmittedTunTypes: String = RpnProxyManager.DnsMode.DEFAULT.tunType
 
     // Used by hasConfigChanged() to decide whether to fire onConfigChanged().
     private var snapshotConfigManual: Boolean = false
@@ -182,30 +184,26 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     }
 
     /**
-     * Sets up the DNS filter section using a discrete [Slider] (positions 0–3) instead of
-     * a flat radio group.  Each position is *inclusive* of all positions below it:
+     * Sets up the DNS filter section using four independent [AppCompatCheckBox] rows.
+     * Any combination of Default / Privacy / Family / Security may be selected.
      *
-     *   0 → DEFAULT  — no filtering
-     *   1 → ANTI_AD  — Default + ad/tracker blocking
-     *   2 → PARENTAL — Default + Privacy + family-safe filtering
-     *   3 → SECURITY — all of the above + malware/phishing protection
+     * State is persisted in two [PersistentState] fields:
+     * - [PersistentState.rpnDnsTunTypes]: CSV of active [RpnProxyManager.DnsMode.tunType] values
      *
-     * The summary card (level name + description + breadcrumb chips) updates live as the
-     * user drags the slider.  The change listener only persists and notifies once the user
-     * releases on a *new* position.
+     * [OnSettingsChangedListener.onDnsModeChanged] is fired on every real change with the
+     * updated CSV string so the caller can propagate the change to the tunnel.
      */
     private fun setupDnsSection() {
-        val currentMode = RpnProxyManager.DnsMode.fromUrl(persistentState.rpnDnsUrl)
-        lastEmittedDnsMode = currentMode
+        // restore initial selection
+        val activeModes = getActiveModesFromState()
+        lastEmittedTunTypes = RpnProxyManager.DnsMode.tunTypesFromSet(activeModes)
 
-        // Initialise slider without triggering the change listener.
-        binding.dnsSlider.value = currentMode.id.toFloat()
-        // Sync summary card instantly (no cross-fade on first load).
-        updateDnsLevelUi(currentMode.id, animate = false)
+        // Initialise checkboxes without triggering listeners (listeners are registered below).
+        setCheckboxesQuietly(activeModes)
 
         val splitEnabled = persistentState.splitDns
         binding.splitDnsBanner.visibility = if (splitEnabled) View.GONE else View.VISIBLE
-        setDnsSliderEnabled(splitEnabled && !isProxyStopped)
+        setDnsCheckboxesEnabled(splitEnabled && !isProxyStopped)
 
         binding.splitDnsEnableBtn.setOnClickListener {
             persistentState.splitDns = true
@@ -216,112 +214,124 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
                     if (isAdded) {
                         binding.splitDnsBanner.visibility = View.GONE
                         binding.splitDnsBanner.alpha = 1f
-                        setDnsSliderEnabled(!isProxyStopped)
+                        setDnsCheckboxesEnabled(!isProxyStopped)
                     }
                 }
                 .start()
         }
 
-        binding.dnsSlider.addOnChangeListener { _, value, fromUser ->
-            // Ignore programmatic updates during initialisation.
-            if (!fromUser) return@addOnChangeListener
-            // Respect disabled state guards (split-DNS off, proxy stopped).
-            if (!persistentState.splitDns || isProxyStopped) return@addOnChangeListener
+        val rows = listOf(
+            binding.dnsRowDefault  to binding.cbDnsDefault,
+            binding.dnsRowPrivacy  to binding.cbDnsPrivacy,
+            binding.dnsRowFamily   to binding.cbDnsFamily,
+            binding.dnsRowSecurity to binding.cbDnsSecurity,
+        )
 
-            val position = value.toInt()
-            val newMode = RpnProxyManager.DnsMode.fromId(position)
-
-            // Update summary card with a subtle cross-fade.
-            updateDnsLevelUi(position, animate = true)
-
-            // Only persist + notify on an actual mode change.
-            if (newMode == lastEmittedDnsMode) return@addOnChangeListener
-            lastEmittedDnsMode = newMode
-            persistentState.rpnDnsUrl = newMode.url
-            listener?.onDnsModeChanged(newMode)
-            Logger.i(LOG_TAG_UI, "$TAG: DNS mode → $newMode")
+        rows.forEach { (row, checkbox) ->
+            row.setOnClickListener {
+                if (!persistentState.splitDns || isProxyStopped) return@setOnClickListener
+                checkbox.isChecked = !checkbox.isChecked
+            }
         }
+
+        val changeListener = { _: android.widget.CompoundButton, _: Boolean ->
+            if (persistentState.splitDns && !isProxyStopped) {
+                onDnsCheckboxChanged()
+            }
+        }
+        binding.cbDnsDefault .setOnCheckedChangeListener(changeListener)
+        binding.cbDnsPrivacy .setOnCheckedChangeListener(changeListener)
+        binding.cbDnsFamily  .setOnCheckedChangeListener(changeListener)
+        binding.cbDnsSecurity.setOnCheckedChangeListener(changeListener)
     }
 
     /**
-     * Updates every DNS level indicator element to reflect [position]:
-     * - Level name = the label for [position] (e.g. "Family").
-     * - Description = "Includes Default, Privacy, Family"  all levels up to and including
-     * - Tick labels: active labels are fully opaque; inactive ones are dimmed.
+     * Called whenever any DNS checkbox state changes.
+     * Derives the new active set, enforces the "at least one selected" invariant,
+     * persists both [PersistentState.rpnDnsTunTypes]
+     * and fires [OnSettingsChangedListener.onDnsModeChanged] only on a real change.
      */
-    private fun updateDnsLevelUi(position: Int, animate: Boolean) {
-        // Ordered list of short level names, reusing existing string resources.
-        val levelNames = listOf(
-            getString(R.string.server_settings_dns_default),
-            getString(R.string.server_settings_dns_privacy),
-            getString(R.string.server_settings_dns_family),
-            getString(R.string.server_settings_dns_security)
-        )
+    private fun onDnsCheckboxChanged() {
+        val selected = buildSelectedModes()
 
-        val levelName = levelNames[position]
-        // "Includes Default" / "Includes Default, Privacy" / etc.
-        val activeNames = levelNames.take(position + 1).joinToString(", ")
-        val levelDesc   = getString(R.string.server_settings_dns_desc_includes, activeNames)
-
-        if (animate) {
-            val fadeDuration = 100L
-            // Cross-fade level name
-            binding.tvDnsLevelName.animate().alpha(0f).setDuration(fadeDuration)
-                .setInterpolator(AccelerateDecelerateInterpolator())
-                .withEndAction {
-                    if (isAdded) {
-                        binding.tvDnsLevelName.text = levelName
-                        binding.tvDnsLevelName.animate().alpha(1f).setDuration(fadeDuration)
-                            .setInterpolator(AccelerateDecelerateInterpolator()).start()
-                    }
-                }.start()
-            // Cross-fade description
-            binding.tvDnsLevelDesc.animate().alpha(0f).setDuration(fadeDuration)
-                .setInterpolator(AccelerateDecelerateInterpolator())
-                .withEndAction {
-                    if (isAdded) {
-                        binding.tvDnsLevelDesc.text = levelDesc
-                        binding.tvDnsLevelDesc.animate().alpha(1f).setDuration(fadeDuration)
-                            .setInterpolator(AccelerateDecelerateInterpolator()).start()
-                    }
-                }.start()
-        } else {
-            binding.tvDnsLevelName.text = levelName
-            binding.tvDnsLevelDesc.text = levelDesc
+        // Enforce at least one selection — silently re-check Default if everything is cleared.
+        val effective: Set<RpnProxyManager.DnsMode> = selected.ifEmpty {
+            // Re-check Default without triggering the listener again.
+            binding.cbDnsDefault.setOnCheckedChangeListener(null)
+            binding.cbDnsDefault.isChecked = true
+            binding.cbDnsDefault.setOnCheckedChangeListener { _, _ ->
+                if (persistentState.splitDns && !isProxyStopped) onDnsCheckboxChanged()
+            }
+            setOf(RpnProxyManager.DnsMode.DEFAULT)
         }
 
-        // chips: checked (filled bg) + full alpha for active; dimmed for inactive.
-        val chips = listOf(
-            binding.chipDnsDefault,
-            binding.chipDnsPrivacy,
-            binding.chipDnsFamily,
-            binding.chipDnsSecurity
-        )
-        chips.forEachIndexed { index, chip ->
-            val isActive = index <= position
-            chip.isChecked = isActive
-            chip.alpha = if (isActive) 1f else 0.38f
-        }
+        val newTunTypes = RpnProxyManager.DnsMode.tunTypesFromSet(effective)
 
-        // Tick labels: full alpha for active; dimmed for inactive.
-        val tickLabels = listOf(
-            binding.tvDnsLabelDefault,
-            binding.tvDnsLabelPrivacy,
-            binding.tvDnsLabelFamily,
-            binding.tvDnsLabelSecurity
-        )
-        tickLabels.forEachIndexed { index, label ->
-            label.alpha = if (index <= position) 1f else 0.38f
-        }
+        // Guard against spurious re-emissions during programmatic initialisation.
+        if (newTunTypes == lastEmittedTunTypes) return
+        lastEmittedTunTypes = newTunTypes
+
+        // Persist: CSV tunTypes for the filter; primary URL for GoVpnAdapter DNS routing.
+        persistentState.rpnDnsTunTypes = newTunTypes
+
+        listener?.onDnsModeChanged(newTunTypes)
+        Logger.i(LOG_TAG_UI, "$TAG: DNS filter → $newTunTypes")
     }
 
     /**
-     * Enables or disables the entire DNS slider section (slider + summary card).
+     * Reads the current checkbox states and returns the corresponding [RpnProxyManager.DnsMode] set.
+     */
+    private fun buildSelectedModes(): Set<RpnProxyManager.DnsMode> {
+        val result = mutableSetOf<RpnProxyManager.DnsMode>()
+        if (binding.cbDnsDefault .isChecked) result += RpnProxyManager.DnsMode.DEFAULT
+        if (binding.cbDnsPrivacy .isChecked) result += RpnProxyManager.DnsMode.ANTI_AD
+        if (binding.cbDnsFamily  .isChecked) result += RpnProxyManager.DnsMode.PARENTAL
+        if (binding.cbDnsSecurity.isChecked) result += RpnProxyManager.DnsMode.SECURITY
+        return result
+    }
+
+    /**
+     * Sets all four checkboxes to match [modes] **without** triggering their change-listeners
+     * (used during initialisation to avoid spurious emissions).
+     */
+    private fun setCheckboxesQuietly(modes: Set<RpnProxyManager.DnsMode>) {
+        binding.cbDnsDefault .setOnCheckedChangeListener(null)
+        binding.cbDnsPrivacy .setOnCheckedChangeListener(null)
+        binding.cbDnsFamily  .setOnCheckedChangeListener(null)
+        binding.cbDnsSecurity.setOnCheckedChangeListener(null)
+
+        binding.cbDnsDefault .isChecked = RpnProxyManager.DnsMode.DEFAULT  in modes
+        binding.cbDnsPrivacy .isChecked = RpnProxyManager.DnsMode.ANTI_AD  in modes
+        binding.cbDnsFamily  .isChecked = RpnProxyManager.DnsMode.PARENTAL in modes
+        binding.cbDnsSecurity.isChecked = RpnProxyManager.DnsMode.SECURITY in modes
+        // Listeners are wired in setupDnsSection() after this call.
+    }
+
+    /**
+     * Resolves the active [RpnProxyManager.DnsMode] set from [PersistentState].
+     *
+     */
+    private fun getActiveModesFromState(): Set<RpnProxyManager.DnsMode> {
+        return RpnProxyManager.DnsMode.setFromCsv(persistentState.rpnDnsTunTypes)
+    }
+
+    /**
+     * Enables or disables all four DNS checkbox rows.
      * The container alpha provides a clear disabled affordance without hiding controls.
      */
-    private fun setDnsSliderEnabled(enabled: Boolean) {
-        binding.dnsSliderContainer.alpha = if (enabled) 1f else 0.38f
-        binding.dnsSlider.isEnabled = enabled
+    private fun setDnsCheckboxesEnabled(enabled: Boolean) {
+        binding.dnsCheckboxContainer.alpha = if (enabled) 1f else 0.38f
+        listOf(
+            binding.dnsRowDefault, binding.dnsRowPrivacy,
+            binding.dnsRowFamily,  binding.dnsRowSecurity,
+        ).forEach {
+            it.isClickable = enabled
+            it.isFocusable  = enabled
+        }
+        listOf(
+            binding.cbDnsDefault, binding.cbDnsPrivacy,
+            binding.cbDnsFamily,  binding.cbDnsSecurity,
+        ).forEach { it.isEnabled = enabled }
     }
 
     private fun setupConfigHandlingSection() {

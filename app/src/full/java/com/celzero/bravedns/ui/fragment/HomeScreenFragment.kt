@@ -57,6 +57,7 @@ import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.databinding.FragmentHomeScreenBinding
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.AUTO_SERVER_ID
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.DnsLogTracker
@@ -84,7 +85,6 @@ import com.celzero.bravedns.ui.activity.PauseActivity
 import com.celzero.bravedns.ui.activity.ProxySettingsActivity
 import com.celzero.bravedns.ui.activity.WgMainActivity
 import com.celzero.bravedns.ui.bottomsheet.HomeScreenSettingBottomSheet
-import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
 import com.celzero.bravedns.ui.tour.GuidedTourManager
 import com.celzero.bravedns.ui.tour.TourOverlayController
 import com.celzero.bravedns.util.Constants
