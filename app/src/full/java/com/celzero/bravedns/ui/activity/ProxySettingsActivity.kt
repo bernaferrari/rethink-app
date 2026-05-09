@@ -449,7 +449,7 @@ class ProxySettingsActivity : BaseActivity(R.layout.fragment_proxy_configure) {
                 io {
                     val selectedCCs = RpnProxyManager.getSelectedCCs()
                     val desc = if (selectedCCs.isNotEmpty()) {
-                        val countryList = selectedCCs.take(3).joinToString(", ")
+                        val countryList = selectedCCs.take(3).joinToString(", ").capitalizeWords()
                         getString(R.string.two_argument_dot, getString(R.string.lbl_active), countryList)
                     } else {
                         getString(R.string.two_argument_dot, getString(R.string.lbl_active), getString(R.string.rpn_title))
@@ -1163,6 +1163,13 @@ class ProxySettingsActivity : BaseActivity(R.layout.fragment_proxy_configure) {
             modifiedDataTime = 0L,
             latency = 0
         )
+    }
+
+    private fun String.capitalizeWords(): String {
+        return split(" ")
+            .joinToString(" ") { word ->
+                word.lowercase().replaceFirstChar { it.uppercase() }
+            }
     }
 
     private fun logEvent(msg: String, details: String) {
