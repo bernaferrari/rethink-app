@@ -218,7 +218,7 @@ internal constructor(
             refreshNonApps(trackedApps, installedApps)
             // must be called after updateExistingPackagesIfNeeded
             // packages to add and delete are calculated based on proxy mapping
-            refreshProxyMapping(trackedApps, packagesToAdd, packagesToUpdate, packagesToTombstone, packagesToDelete, action == ACTION_REFRESH_RESTORE)
+            refreshProxyMapping(trackedApps, packagesToAdd, packagesToUpdate, packagesToDelete, action == ACTION_REFRESH_RESTORE)
             // must be called after updateExistingPackagesIfNeeded
             refreshIPRules(packagesToUpdate)
             // must be called after updateExistingPackagesIfNeeded
@@ -516,7 +516,6 @@ internal constructor(
         trackedApps: Set<FirewallManager.AppInfoTuple>,
         packageToAdd: Set<FirewallManager.AppInfoTuple>,
         packagesToUpdate: Set<FirewallManager.AppInfoTuple>,
-        packagesToTombstone: Set<FirewallManager.AppInfoTuple>,
         packagesToDelete: Set<FirewallManager.AppInfoTuple>,
         restore: Boolean = false
     ) {
@@ -532,12 +531,16 @@ internal constructor(
         // remove the apps from proxy mapping which are not tracked by app info repository
         // this will just sync the proxy mapping with the app info repository
         val pxm = ProxyManager.trackedApps()
-        val tombstoneApps = findPackagesToTombstone(pxm, trackedApps, !restore && canTombstone)
+
+        val currentFwApps = FirewallManager.getAllApps()
+
+        val tombstoneApps = findPackagesToTombstone(pxm, currentFwApps, !restore && canTombstone)
         // apps which are tombstone, but not yet deleted will be deleted now
-        val del = findPackagesToDelete(pxm, trackedApps, restore || !canTombstone)
-        val update = findPackagesToUpdate(pxm, trackedApps, restore)
+        val del = findPackagesToDelete(pxm, currentFwApps, restore || !canTombstone)
+        // Compare proxy state against current state so uid changes are detected correctly.
+        val update = findPackagesToUpdate(pxm, currentFwApps, restore)
         val add =
-            findPackagesToAdd(pxm, trackedApps).map {
+            findPackagesToAdd(pxm, currentFwApps).map {
                 val appInfo = FirewallManager.getAppInfoByPackage(it.packageName)
                 if (appInfo == null) {
                     Logger.w(LOG_TAG_APP_DB, "invalid app info for ${it.packageName}")
@@ -552,12 +555,20 @@ internal constructor(
 
         ProxyManager.deleteApps(del)
         ProxyManager.addApps(add)
+        // updateApps resolves any pre-existing proxy/FW uid discrepancies using current FW state
         ProxyManager.updateApps(update)
 
-        // proceed to actual add/update/delete based on the package manager's installed apps
-
-        packagesToTombstone.forEach {
-            ProxyManager.tombstoneApp(it.uid)
+        tombstoneApps.forEach { stale ->
+            val uidReused = currentFwApps.any { fw -> fw.uid == stale.uid && fw.packageName != stale.packageName }
+            if (uidReused) {
+                // The uid now belongs to a different app, just remove the stale proxy entry
+                // for the old packageName; do not use tombstoneApp(uid) or it will make the
+                // new app that happens to share the same uid.
+                Logger.w(LOG_TAG_APP_DB, "proxy tombstone: uid ${stale.uid} reused, deleting stale entry for ${stale.packageName}")
+                ProxyManager.deleteApp(stale.uid, stale.packageName)
+            } else {
+                ProxyManager.tombstoneApp(stale.uid)
+            }
         }
 
         packagesToDelete.forEach {
@@ -567,11 +578,14 @@ internal constructor(
             } else {
                 ProxyManager.deleteAppIfNeeded(it.uid, it.packageName)
             }
-
         }
 
+        // packagesToUpdate entries carry the old uid (captured before updateExistingPackagesIfNeeded).
+        // Look up the new uid from FirewallManager before calling updateApp so the proxy
+        // mapping is updated to the correct uid and not accidentally reverted to the old one.
         packagesToUpdate.forEach {
-            ProxyManager.updateApp(it.uid, it.packageName)
+            val newInfo = FirewallManager.getAppInfoByPackage(it.packageName) ?: return@forEach
+            ProxyManager.updateApp(newInfo.uid, it.packageName)
         }
 
         packageToAdd.forEach {
@@ -583,7 +597,7 @@ internal constructor(
 
         Logger.i(
             LOG_TAG_APP_DB,
-            "refreshing proxy mapping, size: ${pxm.size}, trackedApps: ${trackedApps.size}"
+            "refreshing proxy mapping, size: ${pxm.size}, trackedApps: ${trackedApps.size}, currentFwApps: ${currentFwApps.size}"
         )
     }
 
