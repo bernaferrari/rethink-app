@@ -128,21 +128,6 @@ interface SubscriptionStatusDao {
     )
     suspend fun markExpiredSubscriptions(currentTime: Long): Int
 
-    @Query(
-        """
-        DELETE FROM SubscriptionStatus 
-        WHERE status = 3 
-        AND lastUpdatedTs < :cutoffTime
-    """
-    )
-    suspend fun deleteExpiredOlderThan(cutoffTime: Long): Int
-
-    @Query("DELETE FROM SubscriptionStatus WHERE status = :status")
-    suspend fun deleteByStatus(status: Int): Int
-
-    @Query("DELETE FROM SubscriptionStatus WHERE lastUpdatedTs < :cutoffTime")
-    suspend fun deleteOlderThan(cutoffTime: Long): Int
-
     // Reactive queries with Flow
     @Query("SELECT * FROM SubscriptionStatus ORDER BY lastUpdatedTs DESC LIMIT 1")
     fun observeCurrentSubscription(): Flow<SubscriptionStatus?>
@@ -196,19 +181,6 @@ interface SubscriptionStatusDao {
         ORDER BY billingExpiry ASC
     """)
     suspend fun getExpiredGracePeriodSubscriptions(currentTime: Long): List<SubscriptionStatus>
-
-    // Batch operations
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(subscriptions: List<SubscriptionStatus>): List<Long>
-
-    @Update
-    suspend fun updateAll(subscriptions: List<SubscriptionStatus>): Int
-
-    @Delete
-    suspend fun deleteAll(subscriptions: List<SubscriptionStatus>): Int
-
-    @Query("DELETE FROM SubscriptionStatus")
-    suspend fun deleteAllSubscriptions(): Int
 
     // Complex state transition queries
     @Query(

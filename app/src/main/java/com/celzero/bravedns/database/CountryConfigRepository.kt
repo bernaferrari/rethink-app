@@ -18,21 +18,13 @@ package com.celzero.bravedns.database
 import Logger
 import Logger.LOG_TAG_PROXY
 import androidx.room.Transaction
-import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.AUTO_SERVER_ID
 import kotlinx.coroutines.flow.Flow
 
 class CountryConfigRepository(private val countryConfigDAO: CountryConfigDAO) {
 
     companion object {
         private const val TAG = "CountryConfigRepo"
-    }
-
-    suspend fun getConfig(cc: String): CountryConfig? {
-        return countryConfigDAO.getConfig(cc)
-    }
-
-    fun getConfigFlow(cc: String): Flow<CountryConfig?> {
-        return countryConfigDAO.getConfigFlow(cc)
     }
 
     suspend fun getAllConfigs(): List<CountryConfig> {
@@ -131,10 +123,6 @@ class CountryConfigRepository(private val countryConfigDAO: CountryConfigDAO) {
     suspend fun updateSsids(cc: String, ssids: String) {
         countryConfigDAO.updateSsids(cc, ssids)
         Logger.d(LOG_TAG_PROXY, "$TAG.updateSsids: $cc, ssids length=${ssids.length}")
-    }
-
-    suspend fun getSsidEnabledConfigs(): List<CountryConfig> {
-        return countryConfigDAO.getSsidEnabledConfigs()
     }
 
     suspend fun incrementSelectionCount(cc: String) {

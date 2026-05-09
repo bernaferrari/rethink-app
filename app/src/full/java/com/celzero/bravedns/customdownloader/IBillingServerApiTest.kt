@@ -148,7 +148,7 @@ interface IBillingServerApiTest {
     ): Response<JsonObject?>?
 
     /*
-      * Acknowledge a purchase (test path).
+      * Acknowledge a purchase (test path). POST
       * URL shape: /g/ack?sku=xxx&purchaseToken=xxx&test=<value>
       *
       * Headers:
@@ -160,6 +160,26 @@ interface IBillingServerApiTest {
      */
     @POST("/g/ack")
     suspend fun acknowledgePurchase(
+        @Header("x-rethink-app-cid") accountId: String,
+        @Header("x-rethink-app-did") deviceId: String,
+        @Query("sku") sku: String,
+        @Query("purchaseToken") purchaseToken: String,
+        @Query("test") test: String
+    ): Response<JsonObject?>?
+
+    /*
+      * Query entitlement for a purchase (test path). GET
+      * URL shape: /g/ack?sku=xxx&purchaseToken=xxx&test=<value>
+      *
+      * Headers:
+      *   x-rethink-app-cid: <account id>
+      *   x-rethink-app-did: <device id>
+      *
+      * `test` is required and must be the non-null string returned by
+      * [RpnProxyManager.getIsTestEntitlement].
+     */
+    @GET("/g/ack")
+    suspend fun queryEntitlement(
         @Header("x-rethink-app-cid") accountId: String,
         @Header("x-rethink-app-did") deviceId: String,
         @Query("sku") sku: String,
@@ -191,7 +211,11 @@ interface IBillingServerApiTest {
 
     /*
       * Fetch purchase/order history from the server (test path).
-      * URL shape: /g/tx?cid=xxx&purchaseToken=xxx&test=<value>[&tot=n][&active]
+      * URL shape: /g/tx?purchaseToken=xxx&test=<value>[&tot=n][&active]
+      *
+      * Headers:
+      *   x-rethink-app-cid: <account id>
+      *   x-rethink-app-did: <device id>
       *
       * `test` is required and must be the non-null string returned by
       * [RpnProxyManager.getIsTestEntitlement].
@@ -200,7 +224,8 @@ interface IBillingServerApiTest {
      */
     @GET("/g/tx")
     suspend fun getPurchaseHistory(
-        @Query("cid") accountId: String,
+        @Header("x-rethink-app-cid") accountId: String,
+        @Header("x-rethink-app-did") deviceId: String,
         @Query("purchaseToken") purchaseToken: String,
         @Query("test") test: String,
         @Query("tot") total: Int? = null,

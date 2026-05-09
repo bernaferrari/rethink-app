@@ -245,7 +245,7 @@ internal class OneTimePurchaseProcessor(
             payload = purchase.developerPayload,
             expiryTime = expiryTime,
             status = purchase.purchaseState.toSubscriptionStatusId(),
-            windowDays = resolveRevokeDays(productId),
+            windowDays = resolveRevokeDays(planId),
             orderId = purchase.orderId.orEmpty()
         )
 

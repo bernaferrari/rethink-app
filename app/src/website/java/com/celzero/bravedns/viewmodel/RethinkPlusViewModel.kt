@@ -65,7 +65,7 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
     private var allProducts: List<ProductDetail> = emptyList()
 
     // Product type selection
-    private val _selectedProductType = MutableStateFlow(ProductTypeFilter.SUBSCRIPTION)
+    private val _selectedProductType = MutableStateFlow(ProductTypeFilter.ONE_TIME)
     val selectedProductType: StateFlow<ProductTypeFilter> = _selectedProductType.asStateFlow()
 
     // Filtered products based on type
@@ -100,7 +100,7 @@ class RethinkPlusViewModel(application: Application) : AndroidViewModel(applicat
     @Volatile private var billingInitCalled = false
 
     /**
-     * When true, the user entered this screen to **extend** an existing active one-time purchase
+     * When true, the user entered this screen to an existing active one-time purchase
      * (e.g. the expiry banner button in ManagePurchaseFragment). In this mode:
      * - The "already subscribed" guard is bypassed so the user can buy again.
      * - The ONE_TIME tab is pre-selected.

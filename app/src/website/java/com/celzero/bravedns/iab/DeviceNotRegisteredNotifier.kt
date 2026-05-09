@@ -64,7 +64,7 @@ object DeviceNotRegisteredNotifier {
     fun notify(context: Context, error: ServerApiError.DeviceNotRegistered, theme: Int) {
         try {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE)
-                    as? NotificationManager ?: run {
+                as? NotificationManager ?: run {
                 Logger.e(LOG_IAB, "$TAG: NotificationManager unavailable")
                 return
             }
@@ -119,7 +119,7 @@ object DeviceNotRegisteredNotifier {
             )
 
             Logger.i(LOG_IAB, "$TAG: device-not-registered notification posted " +
-                    "(entitlementCid=${error.entitlementCid.take(8)})")
+                "(entitlementCid=${error.entitlementCid.take(8)})")
         } catch (e: Exception) {
             Logger.e(LOG_IAB, "$TAG: failed to post notification: ${e.message}", e)
         }

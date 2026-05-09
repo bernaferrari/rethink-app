@@ -77,7 +77,7 @@ object PurchaseConflictNotifier {
     fun notify(context: Context, error: ServerApiError.Conflict409, theme: Int) {
         try {
             val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE)
-                    as? NotificationManager ?: run {
+                as? NotificationManager ?: run {
                 Logger.e(LOG_IAB, "$TAG: NotificationManager unavailable")
                 return
             }
@@ -163,3 +163,4 @@ object PurchaseConflictNotifier {
     const val EXTRA_PURCHASE_TOKEN = "conflict_purchase_token"
     const val EXTRA_SKU            = "conflict_sku"
 }
+

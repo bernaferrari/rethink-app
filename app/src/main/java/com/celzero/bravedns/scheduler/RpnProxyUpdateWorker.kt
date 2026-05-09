@@ -152,6 +152,17 @@ class RpnProxyUpdateWorker(
                 when {
                     updated == null -> {
                         // null → tunnel failure (VpnController.updateWin returned null).
+                        // If a 409 conflict is currently active the failure is waiting for
+                        // user action, not a transient network error – stop retrying so we
+                        // don't spam further notifications.
+                        if (InAppBillingHandler.serverApiErrorLiveData.value is ServerApiError.Conflict409) {
+                            Logger.e(
+                                LOG_TAG_PROXY,
+                                "$TAG; doWork: WIN proxy update failed due to active 409 conflict; " +
+                                "marking FAILED (not retrying) on attempt $attempt"
+                            )
+                            return@withContext Result.failure()
+                        }
                         // Retry up to MAX_RETRIES; WorkManager applies exponential back-off.
                         Logger.w(
                             LOG_TAG_PROXY,

@@ -21,6 +21,7 @@ import android.content.Context
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.android.billingclient.api.BillingClient
+import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.iab.InAppBillingHandler.isListenerRegistered
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.PersistentState
@@ -344,14 +345,6 @@ class SubscriptionCheckWorker(
     private suspend fun resolveEntitlementExpiry(purchase: PurchaseDetail): Long? {
         val mname = "resolveEntitlementExpiry"
 
-        // billingExpiry from server ack
-        val billingExpiry = purchase.expiryTime
-        if (billingExpiry > 0L && billingExpiry != Long.MAX_VALUE) {
-            Logger.d(LOG_IAB, "$TAG; $mname: using billingExpiry = $billingExpiry " +
-                "for token=${purchase.purchaseToken.take(8)}")
-            return billingExpiry
-        }
-
         // GoVpnAdapter.getEntitlementDetails via VpnController (tunnel fallback)
         // RpnEntitlement.expiry() returns an ISO 8601 String (e.g. "2025-08-11T00:00:00.000Z").
         // Convert to epoch-millis via Instant.parse, same approach as RpnProxyManager.getExpiryFromPayload.
@@ -394,19 +387,42 @@ class SubscriptionCheckWorker(
             if (accountId.isNotEmpty() && purchase.purchaseToken.isNotEmpty()) {
                 Logger.d(LOG_IAB, "$TAG; $mname: tunnel unavailable, querying server entitlement " +
                     "for token=${purchase.purchaseToken.take(8)}")
-                val updated = billingBackendClient.queryEntitlement(
+                when (val result = billingBackendClient.queryEntitlement(
                     accountId, deviceId, purchase, purchase.purchaseToken
-                )
-                if (updated.payload.isNotEmpty()) {
-                    Logger.i(LOG_IAB, "$TAG; $mname: server entitlement received, storing " +
-                        "for token=${purchase.purchaseToken.take(8)}")
-                    RpnProxyManager.storeWinEntitlement(updated.payload)
-                }
-                val serverExpiry = updated.expiryTime
-                if (serverExpiry > 0L && serverExpiry != Long.MAX_VALUE) {
-                    Logger.d(LOG_IAB, "$TAG; $mname: using server-queried expiry=$serverExpiry " +
-                        "for token=${purchase.purchaseToken.take(8)}")
-                    return serverExpiry
+                )) {
+                    is QueryEntitlementResult.Success -> {
+                        val updated = result.purchase
+                        if (updated.payload.isNotEmpty()) {
+                            Logger.i(LOG_IAB, "$TAG; $mname: server entitlement received, storing " +
+                                "for token=${purchase.purchaseToken.take(8)}")
+                            RpnProxyManager.storeWinEntitlement(updated.payload)
+                        }
+                        val serverExpiry = updated.expiryTime
+                        if (serverExpiry > 0L && serverExpiry != Long.MAX_VALUE) {
+                            Logger.d(LOG_IAB, "$TAG; $mname: using server-queried expiry=$serverExpiry " +
+                                "for token=${purchase.purchaseToken.take(8)}")
+                            return serverExpiry
+                        }
+                    }
+                    is QueryEntitlementResult.Unauthorized -> {
+                        Logger.e(LOG_IAB, "$TAG; $mname: 401 on entitlement query; posting auth error to UI")
+                        withContext(Dispatchers.Main) {
+                            val error = ServerApiError.Unauthorized401(
+                                operation      = ServerApiError.Operation.ACKNOWLEDGE,
+                                accountId      = accountId,
+                                deviceIdPrefix = deviceId.take(6)
+                            )
+                            InAppBillingHandler.serverApiErrorLiveData.value = error
+                        }
+                    }
+                    is QueryEntitlementResult.Conflict -> {
+                        Logger.w(LOG_IAB, "$TAG; $mname: 409 conflict on entitlement query " +
+                            "for token=${purchase.purchaseToken.take(8)}; skipping expiry resolution")
+                    }
+                    is QueryEntitlementResult.Failure -> {
+                        Logger.w(LOG_IAB, "$TAG; $mname: server entitlement query returned failure " +
+                            "for token=${purchase.purchaseToken.take(8)}")
+                    }
                 }
             } else {
                 Logger.w(LOG_IAB, "$TAG; $mname: accountId or purchaseToken empty, skipping server query")
