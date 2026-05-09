@@ -615,7 +615,7 @@ object InAppBillingHandler : KoinComponent {
                                 // get the expiry from the tunnel
                                 val payloadBytes = updatedDetail.payload.toByteArray()
                                 val entitlement = VpnController.getEntitlementDetails(payloadBytes, deviceId)
-                                val expiryIso = "2028-05-09T05:01:46.547Z"//entitlement?.expiry() ?: ""
+                                val expiryIso = entitlement?.expiry() ?: ""
                                 // 2028-05-09T05:01:46.547Z, sample
                                 val tunnelExpiry: Long = if (expiryIso.isNotEmpty()) {
                                     try {
