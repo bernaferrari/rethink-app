@@ -1303,7 +1303,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
         }
     }
 
-    private fun convertPurchaseDetailToSubscriptionStatus(
+    private suspend fun convertPurchaseDetailToSubscriptionStatus(
         purchaseDetail: PurchaseDetail,
         subscriptionId: Long
     ): SubscriptionStatus {

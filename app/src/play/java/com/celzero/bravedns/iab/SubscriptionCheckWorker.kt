@@ -24,6 +24,8 @@ import com.android.billingclient.api.BillingClient
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.iab.InAppBillingHandler.isListenerRegistered
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.extractWsObject
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.getExpiryFromPayload
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import kotlinx.coroutines.Dispatchers
@@ -244,10 +246,7 @@ class SubscriptionCheckWorker(
      *
      * 1. [PurchaseDetail.productType] == ProductType.INAPP (one-time purchase)
      * 2. Purchase exists locally
-     * 3. Server entitlement is expired:
-     *    - Primary source: `billingExpiry` from the server ack response
-     *    - Fallback source: `ws.expiry` from [RpnProxyManager.getExpiryFromPayload]
-     *    - Last resort: GoVpnAdapter.getEntitlementDetails (tunnel, if VPN active)
+     * 3. Server entitlement is expired
      *
      * ### Idempotency
      * The server `/g/con` endpoint is idempotent: calling it for an already-consumed
@@ -349,29 +348,16 @@ class SubscriptionCheckWorker(
         // RpnEntitlement.expiry() returns an ISO 8601 String (e.g. "2025-08-11T00:00:00.000Z").
         // Convert to epoch-millis via Instant.parse, same approach as RpnProxyManager.getExpiryFromPayload.
         try {
-            val winEntitlement = RpnProxyManager.getWinEntitlement()
-            val entitlement = VpnController.getEntitlementDetails(winEntitlement, billingBackendClient.getDeviceId())
-            if (entitlement != null) {
-                val expiryIso = entitlement.expiry()
-                val tunnelExpiry: Long = if (!expiryIso.isNullOrEmpty()) {
-                    try {
-                        java.time.Instant.parse(expiryIso).toEpochMilli()
-                    } catch (parseEx: Exception) {
-                        Logger.w(LOG_IAB, "$TAG; $mname: expiry parse failed for '$expiryIso': ${parseEx.message}")
-                        0L
-                    }
-                } else {
-                    0L
-                }
+            val tunnelExpiry = getExpiryFromPayload(purchase.payload)
+            if (tunnelExpiry != null) {
                 if (tunnelExpiry > 0L) {
                     Logger.d(LOG_IAB, "$TAG; $mname: using tunnel entitlement expiry" +
-                        " iso='$expiryIso', epochMs=$tunnelExpiry" +
-                        " for token=${purchase.purchaseToken.take(8)}")
+                            " epochMs=$tunnelExpiry" +
+                            " for token=${purchase.purchaseToken.take(8)}")
                     return tunnelExpiry
                 }
             } else {
-                Logger.d(LOG_IAB, "$TAG; $mname: tunnel entitlement null for token=${purchase.purchaseToken 
-                    .take(8)} , retry entitlement from server")
+                Logger.d(LOG_IAB, "$TAG; $mname: tunnel entitlement expiry unavailable from payload")
             }
         } catch (e: Exception) {
             Logger.w(LOG_IAB, "$TAG; $mname: tunnel entitlement unavailable: ${e.message}")

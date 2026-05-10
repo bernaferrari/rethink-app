@@ -43,6 +43,8 @@ import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.database.SubscriptionStatus
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.extractWsObject
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.getExpiryFromPayload
 import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
@@ -611,25 +613,10 @@ object InAppBillingHandler : KoinComponent {
                                     serverConfirmedValidTokens.add(sub.purchaseToken)
                                     continue
                                 }
-                                // Validate the server-returned payload via VpnController to
-                                // get the expiry from the tunnel
-                                val payloadBytes = updatedDetail.payload.toByteArray()
-                                val entitlement = VpnController.getEntitlementDetails(payloadBytes, deviceId)
-                                val expiryIso = entitlement?.expiry() ?: ""
-                                // 2028-05-09T05:01:46.547Z, sample
-                                val tunnelExpiry: Long = if (expiryIso.isNotEmpty()) {
-                                    try {
-                                        java.time.Instant.parse(expiryIso).toEpochMilli()
-                                    } catch (parseEx: Exception) {
-                                        logd(mname, "expiry parse failed for token=${sub.purchaseToken.take(8)} expiry=$expiryIso: ${parseEx.message}")
-                                        0L
-                                    }
-                                } else {
-                                    0L
-                                }
-                                logd(mname, "server entitlement for token=${sub.purchaseToken.take(8)}: expiry=$expiryIso, tunnelExpiry=$tunnelExpiry, now=$now, payload: ${updatedDetail.payload}")
-                                if (entitlement != null && tunnelExpiry > now) {
-                                    logd(mname, "INAPP token=${sub.purchaseToken.take(8)} server-confirmed valid (expiry=$expiryIso); skipping expire")
+                                val tunnelExpiry: Long = getExpiryFromPayload(updatedDetail.payload) ?: 0L
+                                logd(mname, "server entitlement for token=${sub.purchaseToken.take(8)}: tunExp: $tunnelExpiry, did=${deviceId.take(8)}, now=$now, payload: ${updatedDetail.payload}")
+                                if (tunnelExpiry > now) {
+                                    logd(mname, "INAPP token=${sub.purchaseToken.take(8)} server-confirmed valid (expiry=$tunnelExpiry); skipping expire")
                                     serverConfirmedValidTokens.add(sub.purchaseToken)
                                 } else {
                                     logd(mname, "INAPP token=${sub.purchaseToken.take(8)} is not valid per server (tunnelExpiry=$tunnelExpiry, now=$now); will expire")
@@ -901,25 +888,12 @@ object InAppBillingHandler : KoinComponent {
 
     private suspend fun validatePayloadAndFetchIfRequired(purchaseDtl: PurchaseDetail): PurchaseDetail {
         val mname = this::validatePayloadAndFetchIfRequired.name
-        val payloadByteArray = purchaseDtl.payload.toByteArray()
-        val entitlement = VpnController.getEntitlementDetails(payloadByteArray, getObfuscatedDeviceId())
-
-        val expiryIso = entitlement?.expiry() ?: ""
         val now = System.currentTimeMillis()
-        val tunnelExpiry: Long = if (expiryIso.isNotEmpty()) {
-            try {
-                java.time.Instant.parse(expiryIso).toEpochMilli()
-            } catch (parseEx: Exception) {
-                log(mname, "expiry parse failed for $expiryIso: ${parseEx.message}")
-                0L
-            }
-        } else {
-            0L
-        }
-        if (entitlement != null && tunnelExpiry > now) {
+        val tunnelExpiry: Long? = getExpiryFromPayload(purchaseDtl.payload)
+        if (tunnelExpiry != null && tunnelExpiry > now) {
             return purchaseDtl
         }
-
+        Logger.i(mname, "Payload validation failed or expired for token=${purchaseDtl.purchaseToken.take(8)}; fetching updated entitlement from server")
         return queryEntitlementFromServer(getObfuscatedAccountId(), getObfuscatedDeviceId(), purchaseDtl)
     }
 

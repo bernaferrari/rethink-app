@@ -410,25 +410,28 @@ object RpnProxyManager : KoinComponent {
         }
     }
 
-    fun getSessionTokenFromPayload(payload: String): String {
+    suspend fun getSessionTokenFromPayload(payload: String): String {
         // "developerPayload":"{\"ws\":{\"cid\":\"aa95f04efcb19a54c7605a02e5dd0b435906b993d12bec031a60f3f1272f4f0e\",\"sessiontoken\":\"22695:4:1752256088:524537c17**c146ba3404af:023f958b6c194**fe6885d3e57322\",\"expiry\":\"2025-08-11T00:00:00.000Z\",\"status\":\"valid\"}}"
         try {
             val ws = extractWsObject(payload) ?: return ""
-            val sessionToken = ws.optString("sessiontoken", "")
-            Logger.i(LOG_TAG_PROXY, "$TAG; session token parsed from payload? ${sessionToken.isNotEmpty()}")
-            return sessionToken
+            val ent = VpnController.getEntitlementDetails(ws, billingBackendClient.getDeviceId())
+            val sessionToken = ent?.token()
+            Logger.i(LOG_TAG_PROXY, "$TAG; session token parsed from payload? ${sessionToken?.isNotEmpty()}")
+            return sessionToken ?: ""
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$TAG; error parsing session token from payload($payload): ${e.message}", e)
         }
         return ""
     }
 
-    fun getExpiryFromPayload(payload: String): Long? {
+    suspend fun getExpiryFromPayload(payload: String): Long? {
         if (payload.isEmpty()) return null
         try {
             val ws = extractWsObject(payload) ?: return null
-            val expiryStr = ws.optString("expiry", "")
-            if (expiryStr.isEmpty()) return null
+            val ent = VpnController.getEntitlementDetails(ws, billingBackendClient.getDeviceId())
+            val expiryStr = ent?.expiry()
+            if (expiryStr.isNullOrEmpty()) return null
+            // 2028-05-09T05:01:46.547Z, sample
             val timestamp: Long = Instant.parse(expiryStr).toEpochMilli()
             Logger.i(LOG_TAG_PROXY, "$TAG; expiry parsed from payload: $timestamp")
             return timestamp
@@ -685,27 +688,27 @@ object RpnProxyManager : KoinComponent {
      * Both shapes are handled: try top-level "ws" first; if absent, look inside
      * "developerPayload" for a nested "ws".
      */
-    fun extractWsObject(payload: String): JSONObject? {
+    fun extractWsObject(payload: String): ByteArray? {
         if (payload.isEmpty()) return null
         return try {
             val json = JSONObject(payload)
 
             // Shape 2: "ws" is top-level (already-extracted developerPayload).
             val ws = json.optJSONObject("ws")
-            if (ws != null) return ws
+            if (ws != null) return ws.toString().toByteArray()
 
             // Shape 1: "ws" is embedded inside the "developerPayload" string value.
             val devPayloadStr = json.optString("developerPayload", "")
             if (devPayloadStr.isNotEmpty()) {
                 val devPayloadJson = JSONObject(devPayloadStr)
                 val wsFromDev = devPayloadJson.optJSONObject("ws")
-                if (wsFromDev != null) return wsFromDev
+                if (wsFromDev != null) return wsFromDev.toString().toByteArray()
             }
 
             Logger.w(LOG_TAG_PROXY, "$TAG; extractWsObject: ws not found in payload")
             null
         } catch (e: Exception) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; extractWsObject: failed to parse payload: ${e.message}")
+            Logger.w(LOG_TAG_PROXY, "$TAG; extractWsObject: failed to parse payload ($payload): ${e.message}")
             null
         }
     }
@@ -1329,11 +1332,12 @@ object RpnProxyManager : KoinComponent {
      * `sessiontoken` inside the `ws` block is considered unusable, the caller must obtain
      * a fresh entitlement from the server before proceeding.
      */
-    private fun isPayloadUsable(payload: String): Boolean {
+    private suspend fun isPayloadUsable(payload: String): Boolean {
         if (payload.isEmpty()) return false
         return try {
             val ws = extractWsObject(payload) ?: return false
-            val sessionToken = ws.optString("sessiontoken", "")
+            val ent = VpnController.getEntitlementDetails(ws, billingBackendClient.getDeviceId())
+            val sessionToken = ent?.token() ?: ""
             val isUsable = sessionToken.isNotEmpty()
             if (!isUsable) Logger.d(LOG_TAG_PROXY, "$TAG; isPayloadUsable: ws found but sessiontoken is empty")
             isUsable
