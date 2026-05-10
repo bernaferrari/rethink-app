@@ -204,7 +204,7 @@ internal class SubscriptionPurchaseProcessor(
             payload            = purchase.developerPayload,
             expiryTime         = expiryTime,
             status             = purchase.purchaseState.toSubscriptionStatusId(),
-            windowDays         = resolveRevokeDays(planId, productId),
+            windowDays         = resolveRevokeDays(planId),
             orderId            = purchase.orderId ?: ""
         )
 
@@ -350,15 +350,12 @@ internal class SubscriptionPurchaseProcessor(
     }
 
     /** Maps a SUBS plan/product id to its revoke-window in days. */
-    private fun resolveRevokeDays(planId: String, productId: String): Int {
-        // Standard subscription: 3-day revoke window
-        return when {
-            planId.equals(InAppBillingHandler.SUBS_PRODUCT_YEARLY, ignoreCase = true) ->
-                InAppBillingHandler.REVOKE_WINDOW_SUBS_YEARLY_DAYS
-            productId.equals(InAppBillingHandler.STD_PRODUCT_ID, ignoreCase = true) ->
-                InAppBillingHandler.REVOKE_WINDOW_SUBS_MONTHLY_DAYS
-            else -> InAppBillingHandler.REVOKE_WINDOW_SUBS_MONTHLY_DAYS
-        }
+    private fun resolveRevokeDays(productId: String)= when (productId)  {
+        InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> InAppBillingHandler.REVOKE_WINDOW_ONE_TIME_2YRS_DAYS
+        InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> InAppBillingHandler.REVOKE_WINDOW_ONE_TIME_5YRS_DAYS
+        InAppBillingHandler.ONE_TIME_PRODUCT_ID -> InAppBillingHandler.REVOKE_WINDOW_SUBS_MONTHLY_DAYS
+        InAppBillingHandler.ONE_TIME_TEST_PRODUCT_ID -> InAppBillingHandler.REVOKE_WINDOW_SUBS_MONTHLY_DAYS
+        else -> InAppBillingHandler.REVOKE_WINDOW_SUBS_MONTHLY_DAYS
     }
 
     private fun Int.toSubscriptionStatusId(): Int = when (this) {
