@@ -180,6 +180,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.collections.firstOrNull
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.abs
 import kotlin.math.min
@@ -211,6 +212,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     private val bind6Dispatcher by lazy { Daemons.ioDispatcher("bind6", Unit, vpnScope) }
     private val protectDispatcher by lazy { Daemons.ioDispatcher("protect", Unit, vpnScope) }
     private val proxyAddedDispatcher by lazy { Daemons.ioDispatcher("pxycallback", Unit, vpnScope) }
+    private val upstreamQueryDispatcher by lazy { Daemons.ioDispatcher("upstreamQ", DNSOpts(), vpnScope) }
 
     private val wgProxyPingController by lazy { WgProxyPingController(vpnScope) }
 
@@ -265,7 +267,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
 
         // subscription check interval in milliseconds 1 hour
         // TODO: increase it to 6 hours?
-        private const val PLUS_CHECK_INTERVAL = 1 * 60 * 60 * 1000L
+        private const val PLUS_CHECK_INTERVAL = 6 * 60 * 60 * 1000L
 
         private const val DATA_STALL_THRESHOLD_MS = 30 * 1000L // 30 seconds
 
@@ -4645,10 +4647,79 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         // no-op
     }
 
-    override fun onUpstreamAnswer(smm: DNSSummary?, ipcsv: String?): DNSOpts? {
-        // no-op
+    override fun onUpstreamAnswer(smm: DNSSummary?, ipcsv: String?): DNSOpts = go2kt(upstreamQueryDispatcher) {
+        if (smm == null) {
+            Logger.i(LOG_TAG_VPN, "onUpstreamAnswer: received null summary for upstream answer")
+            return@go2kt DNSOpts()
+        }
+
+        val uidInt = try {
+            if (smm.uid == Backend.UidSelf) {
+                rethinkUid
+            } else {
+                smm.uid.toInt()
+            }
+        } catch (e: NumberFormatException) {
+            Logger.e(LOG_TAG_VPN, "onUpstreamAnswer: invalid uid ${smm.uid}, error: ${e.message}")
+            return@go2kt DNSOpts()
+        }
+        val userId = FirewallManager.userId(uidInt)
+        val srcIp = smm.server
+        val srcPort = 53
+        // taking the first ip from the rdata, can have multiple ips
+        // TODO: need to handle multiple ips in rdata in case of A/AAAA records,
+        // currently taking the first one for firewall decision
+        val realDestIp = smm.rData.split(",").firstOrNull().orEmpty()
+        val dstPort = 53
+        val protocol = 17 // UDP
+        val blocklists = smm.blocklists
+        val connId = ""
+        val isSplApp = isSpecialApp(uidInt)
+        val domain = smm.qName
+        val anyRealIpBlocked = false
+        val connType =
+            if (isConnectionMetered(realDestIp)) {
+                ConnectionTracker.ConnType.METERED
+            } else {
+                ConnectionTracker.ConnType.UNMETERED
+            }
+
+        val rinr = persistentState.routeRethinkInRethink
+        val connInfo = createConnTrackerMetaData(
+            uidInt,
+            userId,
+            srcIp,
+            srcPort,
+            realDestIp,
+            dstPort,
+            protocol,
+            proxyDetails = "", // set later
+            blocklists.orEmpty(),
+            domain,
+            connId,
+            connType
+        )
+        logd("onUpstreamAnswer: connInfo: $connInfo, domain: $domain, anyRealIpBlocked: $anyRealIpBlocked, isSplApp: $isSplApp, rinr: $rinr")
+        /**
+         * connInfo: ConnTrackerMetaData,
+         *         domains: String?,
+         *         anyRealIpBlocked: Boolean = false,
+         *         isSplApp: Boolean,
+         *         rinr: Boolean
+         */
+        val rule = firewall(connInfo, domain, anyRealIpBlocked, isSplApp, rinr)
+        val blocked = FirewallRuleset.ground(rule)
+        if (blocked) {
+            logd("onUpstreamAnswer: blocked by firewall, rule: $rule, connInfo: $connInfo")
+            return@go2kt DNSOpts().apply {
+                tidcsv = Backend.BlockAll
+                pidcsv = Backend.Base
+                noblock = false
+            }
+        }
+
         if (DEBUG) logd("onUpstreamAnswer: $smm, ipcsv: $ipcsv")
-        return null
+        return@go2kt DNSOpts()
     }
 
     override fun svcRoute(
@@ -5560,14 +5631,13 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     }
 
     private suspend fun initiatePlusSubscriptionCheckIfRequired() {
-        // consider enableWarp as the flag to check the plus subscription
         if (!RpnProxyManager.isRpnEnabled()) {
             Logger.i(LOG_TAG_VPN, "initiatePlusSubscriptionCheckIfRequired(rpn): plus not enabled")
             return
         }
         // initiate the check once in 4 hours, store last check time in local variable
         val currentTime = System.currentTimeMillis()
-        val checkTimeMs = if (DEBUG) 1 * 60 * 1000L else PLUS_CHECK_INTERVAL
+        val checkTimeMs = PLUS_CHECK_INTERVAL
         if (currentTime - lastSubscriptionCheckTime < checkTimeMs) {
             Logger.v(LOG_TAG_VPN, "initiatePlusSubscriptionCheckIfRequired(rpn): check not required, currentTime: $currentTime, lastCheckTime: $lastSubscriptionCheckTime")
             return
@@ -5776,7 +5846,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         return vpnAdapter?.removeHop(src) ?: Pair(false, "vpn not active")
     }
 
-    suspend fun getRpnProps(type: RpnProxyManager.RpnType): Pair<RpnProxyManager.RpnProps?, String?> {
+    suspend fun getRpnProps(type: RpnType): Pair<RpnProxyManager.RpnProps?, String?> {
         return vpnAdapter?.getRpnProps(type) ?: Pair(null, null)
     }
 
