@@ -52,12 +52,12 @@
                     android:paddingEnd="20dp"
                     android:paddingBottom="16dp">
 
-                    <!-- Country name — packed chain, shifted upward via bias -->
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/config_name_text"
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="12dp"
+                        android:layout_marginTop="20dp"
                         android:ellipsize="end"
                         android:maxLines="1"
                         android:gravity="center_vertical"
@@ -72,7 +72,6 @@
                         app:layout_constraintVertical_bias="0.30"
                         tools:text="Germany" />
 
-                    <!-- City — chain bottom now anchors to identity row -->
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/tv_hero_city"
                         android:layout_width="0dp"
@@ -90,7 +89,6 @@
                         app:layout_constraintBottom_toTopOf="@id/row_hero_rxtx"
                         tools:text="Frankfurt" />
 
-                    <!-- Flag emoji -->
                     <com.google.android.material.textview.MaterialTextView
                         android:id="@+id/tv_hero_flag"
                         android:layout_width="48dp"
@@ -101,7 +99,6 @@
                         app:layout_constraintBottom_toBottomOf="@id/tv_hero_city"
                         tools:text="🇩🇪" />
 
-                    <!-- Refresh chip — top-right, above stats chip -->
                     <com.google.android.material.chip.Chip
                         android:id="@+id/config_id_text"
                         android:layout_width="wrap_content"
@@ -135,7 +132,6 @@
                         tools:text="1 Gbps · 35% · Normal"
                         tools:visibility="visible" />
 
-                    <!-- Rx / Tx compact row — sits just above the identity text -->
                     <LinearLayout
                         android:id="@+id/row_hero_rxtx"
                         android:layout_width="0dp"
@@ -298,7 +294,6 @@
                                 android:textStyle="bold"
                                 tools:text="Active" />
 
-                            <!-- Dot separator between status and active-since time -->
                             <com.google.android.material.textview.MaterialTextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
@@ -315,7 +310,6 @@
                                 tools:text="42 min ago" />
                         </LinearLayout>
 
-                        <!-- Divider hidden — row_who is moved to hero banner -->
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="0.5dp"
@@ -323,7 +317,6 @@
                             android:background="?attr/divider"
                             android:visibility="gone" />
 
-                        <!-- Identity row moved to hero banner; keep IDs here as gone stubs -->
                         <LinearLayout
                             android:id="@+id/row_who"
                             android:layout_width="match_parent"
@@ -491,7 +484,6 @@
                             </FrameLayout>
                         </LinearLayout>
 
-                        <!-- Divider hidden: row_rx/row_tx moved to hero banner -->
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="0.5dp"
@@ -499,14 +491,12 @@
                             android:background="?attr/divider"
                             android:visibility="gone" />
 
-                        <!-- row_rx stub: value_rx is now in row_hero_rxtx in hero banner -->
                         <LinearLayout
                             android:id="@+id/row_rx"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:visibility="gone">
 
-                            <!-- label_rx stub for ViewBinding -->
                             <com.google.android.material.textview.MaterialTextView
                                 android:id="@+id/label_rx"
                                 android:layout_width="wrap_content"
@@ -514,7 +504,6 @@
                                 android:visibility="gone" />
                         </LinearLayout>
 
-                        <!-- Divider hidden: row_tx gone -->
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="0.5dp"
@@ -522,14 +511,12 @@
                             android:background="?attr/divider"
                             android:visibility="gone" />
 
-                        <!-- row_tx stub: value_tx is now in row_hero_rxtx in hero banner -->
                         <LinearLayout
                             android:id="@+id/row_tx"
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
                             android:visibility="gone">
 
-                            <!-- label_tx stub for ViewBinding -->
                             <com.google.android.material.textview.MaterialTextView
                                 android:id="@+id/label_tx"
                                 android:layout_width="wrap_content"
@@ -537,7 +524,6 @@
                                 android:visibility="gone" />
                         </LinearLayout>
 
-                        <!-- Divider hidden: row_last_ok merged into row_status -->
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="0.5dp"
@@ -545,7 +531,6 @@
                             android:background="?attr/divider"
                             android:visibility="gone" />
 
-                        <!-- Divider before row_last_ok -->
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="0.5dp"
@@ -579,7 +564,6 @@
                                 tools:text="2 min ago" />
                         </LinearLayout>
 
-                        <!-- Divider hidden: row_since moved into row_status -->
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="0.5dp"
@@ -587,7 +571,6 @@
                             android:background="?attr/divider"
                             android:visibility="gone" />
 
-                        <!-- row_since stub: value_since is now inside row_status -->
                         <LinearLayout
                             android:id="@+id/row_since"
                             android:layout_width="match_parent"
@@ -605,7 +588,6 @@
                                 android:textSize="13sp" />
                         </LinearLayout>
 
-                        <!-- Divider hidden: row_load moved to hero chip -->
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="0.5dp"
@@ -613,7 +595,6 @@
                             android:background="?attr/divider"
                             android:visibility="gone" />
 
-                        <!-- row_load stub: shown in chip_hero_stats in hero banner -->
                         <LinearLayout
                             android:id="@+id/row_load"
                             android:layout_width="match_parent"
@@ -639,7 +620,6 @@
                                 tools:text="1 Gbps" />
                         </LinearLayout>
 
-                        <!-- Divider hidden: row_health moved to hero chip -->
                         <View
                             android:layout_width="match_parent"
                             android:layout_height="0.5dp"
@@ -647,7 +627,6 @@
                             android:background="?attr/divider"
                             android:visibility="gone" />
 
-                        <!-- row_health stub: shown in chip_hero_stats in hero banner -->
                         <LinearLayout
                             android:id="@+id/row_health"
                             android:layout_width="match_parent"
