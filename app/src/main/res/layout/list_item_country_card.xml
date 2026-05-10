@@ -72,6 +72,15 @@
 
             </LinearLayout>
 
+            <androidx.appcompat.widget.AppCompatImageButton
+                android:id="@+id/iv_favourite"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:padding="8dp"
+                android:layout_marginStart="4dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/ic_star_outline" />
+
             <androidx.appcompat.widget.AppCompatImageView
                 android:id="@+id/iv_expand_arrow"
                 android:layout_width="24dp"
@@ -79,6 +88,7 @@
                 android:src="@drawable/ic_expand_more_24"
                 android:tint="?attr/primaryLightColorText"
                 android:layout_marginStart="8dp" />
+
 
         </LinearLayout>
 

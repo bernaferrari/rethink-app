@@ -100,7 +100,6 @@ object RethinkBlocklistManager : KoinComponent {
         }
     }
 
-    // TODO: move this strings to strings.xml
     val PARENTAL_CONTROL =
         RethinkBlockType(
             PARENTAL_CONTROL_TAG,

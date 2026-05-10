@@ -257,15 +257,7 @@ class WgIncludeAppsDialog(
     }
 
     private fun refreshPagingAdapter() {
-        // Changing the filter causes the ViewModel to emit new PagingData; the host
-        // observer (collectLatest / submitData) picks it up automatically.
-        // Do NOT call notifyDataSetChanged() on a PagingDataAdapter, it manages all
-        // its own notifications via DiffUtil, and an external notify corrupts internal
-        // position tracking, causing IndexOutOfBoundsException in RecyclerView layout.
         viewModel.setFilter(searchText, filterType, proxyId)
-        // If the filter params are unchanged, call refresh() to invalidate the current
-        // PagingSource so the adapter still reloads fresh data from the database.
-        (adapter as? com.celzero.bravedns.adapter.WgIncludeAppsAdapter)?.refresh()
     }
 
     private fun clearSearch() {

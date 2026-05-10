@@ -16,16 +16,27 @@
 package com.celzero.bravedns.customdownloader
 
 import Logger
+import Logger.LOG_OKHTTP
+import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.Utilities
 import okhttp3.Dns
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.dnsoverhttps.DnsOverHttps
+import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import java.net.InetAddress
 import java.util.concurrent.TimeUnit
 
 class RetrofitManager {
+
+    init {
+        // enable the OkHttp's logging only in debug mode for testing
+        if (DEBUG) OkHttpDebugLogging.enableHttp2()
+        if (DEBUG) OkHttpDebugLogging.enableTaskRunner()
+    }
 
     companion object {
         private const val CONNECT_TIMEOUT_MINUTES = 1L
@@ -40,15 +51,28 @@ class RetrofitManager {
             FALLBACK_DNS
         }
 
+        val logging = HttpLoggingInterceptor { message ->
+            if (DEBUG) {
+                Logger.vv(LOG_OKHTTP, message)
+                // keep storing the logs in a separate file to avoid cluttering the main app logs,
+                // as these logs can be very verbose
+                val time = System.currentTimeMillis()
+                val userReadableTime = Utilities.convertLongToTime(time, Constants.TIME_FORMAT_4)
+                Logger.wireLog("$userReadableTime | $message")
+            }
+        }.apply {
+            level = HttpLoggingInterceptor.Level.BODY
+        }
+
         fun getBlocklistBaseBuilder(isRinRActive: Boolean): Retrofit.Builder {
             return Retrofit.Builder()
                 .baseUrl(Constants.DOWNLOAD_BASE_URL)
                 .client(okHttpClient(isRinRActive))
         }
 
-        fun getTcpProxyBaseBuilder(isRinRActive: Boolean): Retrofit.Builder {
+        fun getRpnBaseBuilder(isRinRActive: Boolean): Retrofit.Builder {
             return Retrofit.Builder()
-                .baseUrl(Constants.TCP_PROXY_BASE_URL)
+                .baseUrl(Constants.RPN_BASE_URL)
                 .client(okHttpClient(isRinRActive))
         }
 
@@ -64,6 +88,7 @@ class RetrofitManager {
             b.readTimeout(READ_TIMEOUT_MINUTES, TimeUnit.MINUTES)
             b.writeTimeout(WRITE_TIMEOUT_MINUTES, TimeUnit.MINUTES)
             b.retryOnConnectionFailure(true)
+            if (DEBUG) b.addInterceptor(logging)
             // If unset, the system-wide default DNS will be used.
             // no need to add custom dns if rinr is not active, as the connections will be routed
             // through the default dns
@@ -75,7 +100,7 @@ class RetrofitManager {
 
         // As of now, quad9 is used as default dns in okhttp client.
         private fun customDns(bootstrapClient: OkHttpClient): Dns? {
-            enumValues<OkHttpDnsType>().forEach { it ->
+            enumValues<OkHttpDnsType>().forEach {
                 try {
                     when (it) {
                         OkHttpDnsType.DEFAULT -> {

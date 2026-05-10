@@ -18,9 +18,10 @@ package com.celzero.bravedns.ui.activity
 import Logger
 import Logger.LOG_TAG_UI
 import android.content.Context
+import android.content.Intent
 import android.content.res.Configuration
 import android.os.Bundle
-import com.celzero.bravedns.ui.BaseActivity
+import android.widget.Toast
 import androidx.core.view.WindowInsetsControllerCompat
 import androidx.core.view.isVisible
 import androidx.lifecycle.Lifecycle
@@ -34,8 +35,10 @@ import com.celzero.bravedns.databinding.ActivityServerOrderHistoryBinding
 import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.BaseActivity
 import com.celzero.bravedns.util.Themes
 import com.celzero.bravedns.util.Utilities.isAtleastQ
+import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import com.celzero.bravedns.util.handleFrostEffectIfNeeded
 import com.celzero.bravedns.viewmodel.ServerOrderHistoryViewModel
 import com.facebook.shimmer.Shimmer
@@ -82,6 +85,7 @@ class ServerOrderHistoryActivity : BaseActivity(R.layout.activity_server_order_h
 
         setupToolbar()
         setupRecyclerView()
+        setupClickListeners()
         startShimmer()
         observeUiState()
         loadHeroSubtitle()
@@ -114,6 +118,22 @@ class ServerOrderHistoryActivity : BaseActivity(R.layout.activity_server_order_h
                 .also { it.isItemPrefetchEnabled = true }
             adapter = this@ServerOrderHistoryActivity.adapter
             setHasFixedSize(true)
+        }
+    }
+
+    private fun setupClickListeners() {
+        b.chipPaymentHistory.setOnClickListener {
+            openBillingHistory()
+        }
+    }
+
+
+    private fun openBillingHistory() {
+        try {
+            startActivity(Intent(this, PurchaseHistoryActivity::class.java))
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_UI, "$TAG open PurchaseHistoryActivity error: ${e.message}", e)
+            showToastUiCentered(this, getString(R.string.payment_history_open_error), Toast.LENGTH_SHORT)
         }
     }
 
@@ -223,7 +243,7 @@ class ServerOrderHistoryActivity : BaseActivity(R.layout.activity_server_order_h
     private fun buildHeroSubtitle(deviceId: String): String {
         val sub = RpnProxyManager.getSubscriptionData() ?: return ""
         var token = sub.subscriptionStatus.purchaseToken ?: ""
-        token = if (token.length > 12) token.take(12) + "…" else token.ifBlank { "" }
+        token = if (token.length > 12) token.take(12) else token.ifBlank { "" }
         val accountId = sub.subscriptionStatus.accountId.take(12).ifBlank { return token }
         val did = deviceId.take(4).ifBlank { return token }
         val id = "$accountId • $did"

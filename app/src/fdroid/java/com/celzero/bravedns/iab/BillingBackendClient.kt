@@ -78,5 +78,12 @@ class BillingBackendClient(
     fun buildDeviceMeta(prodId: String = ""): JsonObject = JsonObject()
 
     fun buildCustomerMeta(): JsonObject = JsonObject()
+
+    suspend fun fetchPurchaseHistory(
+        @Suppress("UNUSED_PARAMETER") accountId: String,
+        @Suppress("UNUSED_PARAMETER") deviceId: String,
+        @Suppress("UNUSED_PARAMETER") purchaseToken: String,
+        @Suppress("UNUSED_PARAMETER") total: Int,
+    ): FetchOrdersRawResult = FetchOrdersRawResult.NoCredentials
 }
 

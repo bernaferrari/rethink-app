@@ -116,7 +116,7 @@ interface IBillingServerApi {
     ): Response<JsonObject?>?
 
     /*
-      * Acknowledge a purchase.
+      * Acknowledge a purchase. POST
       * URL shape: /g/ack?sku=xxx&purchaseToken=xxx
       *
       * Headers:
@@ -125,6 +125,22 @@ interface IBillingServerApi {
      */
     @POST("/g/ack")
     suspend fun acknowledgePurchase(
+        @Header("x-rethink-app-cid") accountId: String,
+        @Header("x-rethink-app-did") deviceId: String,
+        @Query("sku") sku: String,
+        @Query("purchaseToken") purchaseToken: String,
+    ): Response<JsonObject?>?
+
+    /*
+      * Query the entitlement status of a purchase. GET
+      * URL shape: /g/ack?sku=xxx&purchaseToken=xxx
+      *
+      * Headers:
+      *   x-rethink-app-cid: <account id>
+      *   x-rethink-app-did: <device id>
+     */
+    @GET("/g/ack")
+    suspend fun queryEntitlement(
         @Header("x-rethink-app-cid") accountId: String,
         @Header("x-rethink-app-did") deviceId: String,
         @Query("sku") sku: String,
@@ -168,7 +184,6 @@ interface IBillingServerApi {
         @Header("x-rethink-app-did") deviceId: String,
         @Query("purchaseToken") purchaseToken: String,
         @Query("tot") total: Int? = null,
-        @Query("test") test: String? = null,
         @Query("active") active: String? = null
     ): Response<JsonObject?>?
 }

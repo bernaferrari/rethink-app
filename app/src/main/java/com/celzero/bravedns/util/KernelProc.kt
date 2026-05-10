@@ -41,63 +41,6 @@ object KernelProc {
 
     fun getStatus(forceRefresh: Boolean = false): String = readProcText(STATUS_PATH, title = "Status", forceRefresh = forceRefresh)
 
-    /**
-     * Lists all threads in /proc/self/task, resolving the human-readable thread name and
-     * current kernel state for each by reading /proc/self/task/<tid>/status.
-     *
-     * Both `Name:` and `State:` are extracted in a single sequential pass through the
-     * file so only one read is needed per thread.
-     *
-     * Output format (one line per thread):
-     *   <tid>  [<thread-name>]  <state>
-     *
-     * Example:
-     *   8912  [main]           S (sleeping)
-     *   8917  [RethinkDns]     R (running)
-     *   8931  [binder:8912_1]  S (sleeping)
-     *
-     * Falls back gracefully: if the status file disappears (short-lived thread) only the
-     * tid is shown; if only one field is missing it is omitted from that thread's line.
-     */
-    fun getTask(): String {
-        return runCatching {
-            val dir = File(TASK_DIR)
-            if (!dir.exists()) return@runCatching "Task: missing"
-            val tidDirs = dir.listFiles()
-                ?.filter { it.isDirectory }
-                ?.sortedBy { it.name.toIntOrNull() ?: Int.MAX_VALUE }
-                ?: emptyList()
-            if (tidDirs.isEmpty()) return@runCatching "Task: empty"
-
-            val lines = tidDirs.joinToString(separator = "\n") { tidDir ->
-                val tid = tidDir.name
-
-                var name: String? = null
-                var state: String? = null
-                runCatching {
-                    File(tidDir, "status").useLines { seq ->
-                        for (line in seq) {
-                            when {
-                                name == null && line.startsWith("Name:") ->
-                                    name = line.removePrefix("Name:").trim()
-                                state == null && line.startsWith("State:") ->
-                                    // "State:\tS (sleeping)"  →  "S (sleeping)"
-                                    state = line.removePrefix("State:").trim()
-                            }
-                            if (name != null && state != null) break
-                        }
-                    }
-                }
-
-                buildString {
-                    append(tid)
-                    if (name != null) append("  [$name]")
-                    if (state != null) append("  $state")
-                }
-            }
-            "Task\n$lines"
-        }.getOrElse { err -> "Task: error: ${err.message ?: err::class.java.simpleName}" }
-    }
     fun getSmaps(forceRefresh: Boolean = false): String = readProcText(SMAPS_ROLLUP_PATH, title = "SMAPS ROLLUP", forceRefresh = forceRefresh)
 
     /**
@@ -201,7 +144,7 @@ object KernelProc {
                     nrVoluntarySwitches = schedFields["nr_voluntary_switches"] ?: 0L,
                     schedRaw = schedRaw
                 )
-            }
+            }.sortedByDescending { it.runningNs }
         }.getOrElse { emptyList() }
     }
 

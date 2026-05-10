@@ -16,7 +16,6 @@
         android:background="?attr/background"
         android:padding="16dp">
 
-        <!-- Flag/Icon -->
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/server_flag"
             android:layout_width="40dp"
@@ -27,7 +26,6 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="🇺🇸" />
 
-        <!-- Server Name -->
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/server_name"
             android:layout_width="0dp"
@@ -43,7 +41,6 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:text="USA - New York" />
 
-        <!-- Server Location -->
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/server_location"
             android:layout_width="0dp"
@@ -60,7 +57,6 @@
             app:layout_constraintTop_toBottomOf="@id/server_name"
             tools:text="New York, United States" />
 
-        <!-- Removal Badge -->
         <com.google.android.material.chip.Chip
             android:id="@+id/removal_badge"
             android:layout_width="wrap_content"

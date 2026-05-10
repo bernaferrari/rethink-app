@@ -19,8 +19,6 @@ import Logger
 import Logger.LOG_TAG_UI
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
-import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
-import com.celzero.firestack.backend.IPMetadata
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.drawable.Drawable
@@ -34,6 +32,7 @@ import android.view.animation.LinearInterpolator
 import android.view.animation.OvershootInterpolator
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.withRotation
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.isVisible
@@ -43,25 +42,27 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import by.kirich1409.viewbindingdelegate.viewBinding
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CountryConfig
+import com.celzero.bravedns.database.CountryConfigRepository
 import com.celzero.bravedns.database.SubscriptionStatus
 import com.celzero.bravedns.database.SubscriptionStatusDao
 import com.celzero.bravedns.databinding.FragmentServerSelectionBinding
 import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.AUTO_SERVER_ID
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.activity.FragmentHostActivity
 import com.celzero.bravedns.ui.adapter.CountryServerAdapter
 import com.celzero.bravedns.ui.adapter.VpnServerAdapter
-import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.bottomsheet.ManageRpnPurchaseBtmSht
 import com.celzero.bravedns.ui.bottomsheet.ServerRemovalNotificationBottomSheet
 import com.celzero.bravedns.ui.bottomsheet.ServerSettingsBottomSheet
-import com.celzero.bravedns.ui.bottomsheet.ResubscribeBottomSheet
 import com.celzero.bravedns.util.SnackbarHelper
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.firestack.backend.Backend
 import com.google.android.material.appbar.CollapsingToolbarLayout
+import com.google.android.material.chip.Chip
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.progressindicator.LinearProgressIndicator
 import kotlinx.coroutines.Dispatchers
@@ -70,13 +71,11 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.withTimeoutOrNull
 import org.koin.android.ext.android.inject
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.concurrent.TimeUnit
-import androidx.core.graphics.withRotation
 
 /**
  * Fragment for selecting VPN servers from a list.
@@ -86,6 +85,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
     CountryServerAdapter.CitySelectionListener {
 
     private val subscriptionStatusDao by inject<SubscriptionStatusDao>()
+    private val countryConfigRepository by inject<CountryConfigRepository>()
     private val b by viewBinding(FragmentServerSelectionBinding::bind)
 
     private lateinit var serverAdapter: CountryServerAdapter
@@ -96,7 +96,6 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
     private val selectedServers = mutableListOf<CountryConfig>()
 
     private var statusUpdateJob: Job? = null
-    private var heroIpUpdateInFlight = false
 
     /** Job driving the registration / server-list polling loop. */
     private var serverLoadingJob: Job? = null
@@ -144,8 +143,6 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
 
     companion object {
         private const val TAG = "ServerSelectionFragment"
-        const val AUTO_SERVER_ID   = "AUTO"
-        const val AUTO_COUNTRY_CODE = "AUTO"
 
         /**
          * Maximum number of NON-AUTO servers the user can select simultaneously.
@@ -187,6 +184,8 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         // automatically re-dispatch insets after the fragment view is attached.
         ViewCompat.requestApplyInsets(b.root)
 
+        applyScrollPadding()
+
         setupNavigationButtons()
         setupSearchBar()
         setupHeaderUI()
@@ -215,6 +214,17 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         }
 
         animateHeaderEntry()
+    }
+
+    private fun applyScrollPadding() {
+        b.serversScrollView.post {
+            b.serversScrollView.setPadding(
+                b.serversScrollView.paddingLeft,
+                0,
+                b.serversScrollView.paddingRight,
+                b.serversScrollView.paddingBottom
+            )
+        }
     }
 
     private fun setupRpnState() {
@@ -331,6 +341,28 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
                         LOG_TAG_UI,
                         "$TAG.onResume: refreshed ${refreshedServers.size} servers, nothing removed"
                     )
+                    // Sync isFavourite from the freshly-loaded (DB-backed) server list into the
+                    // in-memory allServers.  Without this, any favourite toggled during a previous
+                    // visit to the screen would be invisible after navigating away and back because
+                    // allServers is never reloaded when no servers are removed.
+                    uiCtx {
+                        if (!isAdded || isLoading) return@uiCtx
+                        val freshById = refreshedServers.associateBy { it.id }
+                        var anyChanged = false
+                        allServers.forEach { config ->
+                            freshById[config.id]?.let { fresh ->
+                                if (config.isFavourite != fresh.isFavourite) {
+                                    config.isFavourite = fresh.isFavourite
+                                    anyChanged = true
+                                }
+                            }
+                        }
+                        // Only rebuild the list when something actually changed to avoid an
+                        // unnecessary DiffUtil pass on every resume.
+                        if (anyChanged) {
+                            serverAdapter.updateCountries(buildCountries(unselectedServers))
+                        }
+                    }
                 }
             }
         }
@@ -392,7 +424,6 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
             b.shimmerHeader.isVisible = true
             b.shimmerHeader.startShimmer()
             b.locationContent.isVisible = false
-            b.heroIpRow.isVisible = false
 
             // hide real list and hint cards
             b.shimmerServerList.isVisible = true
@@ -401,6 +432,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
             b.emptySelectionCard.isVisible = false
             b.selectedServersCard.isVisible = false
             b.emptyStateLayout.isVisible = false
+            b.frequentCountriesSection.isVisible = false
         } else {
             // Stop and hide header shimmer, reveal real content
             b.shimmerHeader.stopShimmer()
@@ -514,6 +546,8 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
                 if (pendingTunnelKeys.isNotEmpty()) startTunnelWatchJob(pendingTunnelKeys)
                 b.rvServers.post { b.rvServers.requestLayout() }
                 b.rvSelectedServers.post { b.rvSelectedServers.requestLayout() }
+                // Show frequently-selected countries as quick-pick chips
+                if (!isProxyStopped) loadAndShowFrequentChips()
             }
             Logger.v(LOG_TAG_UI, "$TAG.initServers: complete")
         }
@@ -543,7 +577,6 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
                 delay(3_000)
                 if (isAdded && !isLoading) {
                     updateConnectionStatusOnly()
-                    updateHeroIpRow()
                 }
             }
         }
@@ -562,9 +595,15 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
             InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> "One-Time 2 years"
             InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> "One-Time 5 years"
             InAppBillingHandler.SUBS_PRODUCT_YEARLY -> "Subscription Yearly"
-            else -> getString(R.string.ping_server_name)
+            InAppBillingHandler.SUBS_PRODUCT_MONTHLY -> "Subscription Monthly"
+            else -> ""
         }
-        b.tvHeroPlanName.text = planLabel
+        if (planLabel.isEmpty()) {
+            b.tvHeroPlanName.visibility = View.GONE
+        } else {
+            b.tvHeroPlanName.visibility = View.VISIBLE
+            b.tvHeroPlanName.text = planLabel
+        }
         val accountId = sub.accountId.take(12)
         // Clear while we fetch the real device ID from SecureIdentityStore on IO.
         b.tvHeroAccountId.text = accountId.ifEmpty { "" }
@@ -609,18 +648,16 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         when {
             selectedServers.isEmpty() -> {
                 updateCurrentLocation(
-                    flag = "🌐",
                     countryName = if (isWinRegistered) AUTO_SERVER_ID else getString(R.string.vpn_status_disconnected),
-                    location = if (isWinRegistered) getString(R.string.server_selection_tap_to_select)
-                               else getString(R.string.server_selection_tap_to_select)
+                    location = ""
                 )
             }
             selectedServers.size == 1 -> {
                 val s = selectedServers.first()
                 if (s.id.equals(AUTO_SERVER_ID, ignoreCase = true)) {
-                    updateCurrentLocation("🌐", AUTO_SERVER_ID, getString(R.string.server_selection_tap_to_select))
+                    updateCurrentLocation(AUTO_SERVER_ID, "")
                 } else {
-                    updateCurrentLocation(s.flagEmoji, s.countryName, s.serverLocation)
+                    updateCurrentLocation(s.countryName, s.serverLocation)
                 }
             }
             else -> {
@@ -636,7 +673,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
                     .distinct()
                     .take(2)
                     .joinToString(", ")
-                updateCurrentLocation("🌐", namesText, locationText)
+                updateCurrentLocation(namesText, locationText)
             }
         }
     }
@@ -671,138 +708,19 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         }
     }
 
-    private fun updateCurrentLocation(flag: String, countryName: String, location: String) {
+    private fun updateCurrentLocation(countryName: String, location: String) {
         if (!isAdded) return
 
         b.locationContent.visibility = View.VISIBLE
-        b.tvCurrentCountryFlag.text = flag
-        b.tvCurrentCountry.text = countryName
-        b.tvCurrentLocation.text = location
-        updateHeroIpRow()
+        b.tvCurrentCountry.text = countryName.capitalizeWords()
+        b.tvCurrentLocation.text = location.capitalizeWords()
     }
 
-    /**
-     * Refreshes the hero-card IP section for **all** selected RPN servers.
-     *
-     * The [heroIpUpdateInFlight] flag prevents overlapping coroutines from the 3 s
-     * [statusUpdateJob] ticker and explicit calls from [updateCurrentLocation].
-     */
-    private fun updateHeroIpRow() {
-        if (!isAdded || isLoading || heroIpUpdateInFlight) return
-        heroIpUpdateInFlight = true
-
-        val snapshot = selectedServers.toList()
-        if (snapshot.isEmpty()) {
-            heroIpUpdateInFlight = false
-            b.heroIpRow.isVisible = false
-            return
-        }
-        io {
-            try {
-                val entries = buildHeroIpEntries(snapshot)
-                uiCtx {
-                    heroIpUpdateInFlight = false
-                    if (!isAdded) return@uiCtx
-                    applyHeroIpEntries(entries)
-                }
-            } catch (t: Throwable) {
-                Logger.w(LOG_TAG_UI, "$TAG.updateHeroIpRow: ${t.message}")
-                uiCtx { heroIpUpdateInFlight = false }
+    private fun String.capitalizeWords(): String {
+        return split(" ")
+            .joinToString(" ") { word ->
+                word.lowercase().replaceFirstChar { it.uppercase() }
             }
-        }
-    }
-
-    /**
-     * Collects IP metadata for every server in [servers] (deduplicated by key).
-     * Returns one [Triple]<flag, ip, ispLabel> per server that has a non-blank IPv4.
-     */
-    private suspend fun buildHeroIpEntries(
-        servers: List<CountryConfig>
-    ): List<Triple<String, String, String>> {
-        return servers
-            .distinctBy { it.key }
-            .mapNotNull { server ->
-                val pair = fetchIpMetaForKey(server) ?: return@mapNotNull null
-                val ip4  = pair.first
-                if (ip4?.ip.isNullOrEmpty()) return@mapNotNull null
-                Triple(server.flagEmoji, ip4.ip, buildHeroIspLabel(ip4))
-            }
-    }
-
-    private suspend fun fetchIpMetaForKey(server: CountryConfig): Pair<IPMetadata?, IPMetadata?>? {
-        val key    = server.key
-        val isAuto = server.id.equals(AUTO_SERVER_ID, ignoreCase = true)
-        return withContext(Dispatchers.IO) {
-            try {
-                val pid   = if (isAuto) VpnController.getWinProxyId() ?: (Backend.RpnWin + "**")
-                            else Backend.RpnWin + key
-                val since       = VpnController.getProxyStats(pid)?.since ?: 0L
-                val cachedSince = RpnProxyManager.getCachedSinceTs(key)
-                val cached      = RpnProxyManager.getCachedIpMeta(key)
-
-                if (since > 0L && since == cachedSince && cached != null) {
-                    if (DEBUG) Logger.d(LOG_TAG_UI, "$TAG.fetchIpMetaForKey[$key]: cache hit, since=$since")
-                    return@withContext cached
-                }
-
-                if (DEBUG) Logger.d(
-                    LOG_TAG_UI,
-                    "$TAG.fetchIpMetaForKey[$key]: live fetch, since=$since cachedSince=$cachedSince"
-                )
-                // GoVpnAdapter handles AUTO and regular keys centrally; pass key as-is.
-                val client = withTimeoutOrNull(5_000L) {
-                    runCatching { VpnController.getRpnClientInfoById(key) }.getOrNull()
-                }
-                val ip4 = runCatching { client?.iP4() }.getOrNull()
-                val ip6 = runCatching { client?.iP6() }.getOrNull()
-                // Seed the Manager cache so RpnConfigDetailActivity also benefits.
-                RpnProxyManager.updateIpMeta(key, since, ip4, ip6)
-                Pair(ip4, ip6)
-            } catch (t: Throwable) {
-                Logger.w(LOG_TAG_UI, "$TAG.fetchIpMetaForKey[$key]: ${t.message}")
-                // Degrade gracefully: serve stale cache rather than hiding the row.
-                RpnProxyManager.getCachedIpMeta(key)
-            }
-        }
-    }
-
-    private fun buildHeroIspLabel(ip4: IPMetadata): String {
-        val city = ip4.city?.takeIf { it.isNotEmpty() }
-        val org  = ip4.asnOrg?.takeIf { it.isNotEmpty() }
-        return when {
-            city != null && org != null -> "$city · $org"
-            org  != null -> org
-            city != null -> city
-            else -> ""
-        }
-    }
-
-    private fun applyHeroIpEntries(entries: List<Triple<String, String, String>>) {
-        if (!isAdded) return
-        b.heroIpContainer.removeAllViews()
-        if (entries.isEmpty()) {
-            b.heroIpRow.isVisible = false
-            return
-        }
-        b.heroIpRow.isVisible = true
-        entries.forEach { (flag, ip, isp) ->
-            val row = layoutInflater.inflate(
-                R.layout.list_item_hero_server_ip, b.heroIpContainer, false
-            )
-            row.findViewById<android.widget.TextView>(R.id.tv_hero_ip_flag).text    = flag
-            row.findViewById<android.widget.TextView>(R.id.tv_hero_ip_address).text = ip
-            val sepView = row.findViewById<android.widget.TextView>(R.id.tv_hero_ip_separator)
-            val ispView = row.findViewById<android.widget.TextView>(R.id.tv_hero_ip_isp)
-            if (isp.isNotEmpty()) {
-                sepView.visibility = View.VISIBLE
-                ispView.visibility = View.VISIBLE
-                ispView.text = isp
-            } else {
-                sepView.visibility = View.GONE
-                ispView.visibility = View.GONE
-            }
-            b.heroIpContainer.addView(row)
-        }
     }
 
     private fun animateHeaderEntry() {
@@ -839,7 +757,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         if (parentFragmentManager.findFragmentByTag("ServerSettings") != null) return
         val sheet = ServerSettingsBottomSheet.newInstance(isProxyStopped)
         sheet.setOnSettingsChangedListener(object : ServerSettingsBottomSheet.OnSettingsChangedListener {
-            override fun onDnsModeChanged(mode: RpnProxyManager.DnsMode) {
+            override fun onDnsModeChanged(tunTypes: String) {
                 io { VpnController.onRpnDnsChange() }
             }
             override fun onConfigChanged() {
@@ -1115,6 +1033,9 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
 
         b.serverCountLayout.isVisible = false
 
+        // Hide frequent chips while proxy is stopped
+        b.frequentCountriesSection.isVisible = false
+
         // FAB: switch to "Start" (green VPN icon)
         applyFabStoppedState()
     }
@@ -1249,6 +1170,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
 
         b.selectedServersCard.isVisible = false
         b.emptySelectionCard.isVisible = false
+        b.frequentCountriesSection.isVisible = false
 
         // Animate the container sliding up from below
         b.errorStateContainer.visibility = View.VISIBLE
@@ -1362,6 +1284,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         // as a defensive measure so it can never appear as a selectable country row
         // even if initServers() has a bug that leaves it in unselectedServers.
         return servers
+            .asSequence()
             .filter { !it.id.equals(AUTO_SERVER_ID, ignoreCase = true) }
             .groupBy { it.cc }
             .map { (cc, list) ->
@@ -1371,9 +1294,11 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
                     val leastLoad = if (grouped.all { it.load > 0 }) grouped.minOfOrNull { it.load } ?: 0 else 0
                     val bestLink  = if (grouped.all { it.link > 0 }) grouped.maxOfOrNull { it.link } ?: 0 else 0
                     CountryServerAdapter.ServerGroup(key, grouped, rep.serverLocation, leastLoad, bestLink, grouped.any { it.isEnabled })
-                }.sortedBy { it.city.lowercase() }
-                CountryServerAdapter.CountryItem(cc, sample.countryName, sample.flagEmoji, groups)
-            }.sortedBy { it.countryName.lowercase() }
+                }.sortedBy { it.city.lowercase()     }
+
+                CountryServerAdapter.CountryItem(cc, sample.countryName, sample.flagEmoji, groups, list.any { it.isFavourite })
+            }.sortedBy { it.countryName.lowercase()  }.sortedBy { !it.isFavourite }
+            .toList()
     }
 
     private fun buildSelectedServerGroups(servers: List<CountryConfig>): List<VpnServerAdapter.ServerGroup> {
@@ -1435,6 +1360,19 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
                 return
             }
 
+            // Move the server immediately to the selected list with a "Connecting…"
+            // indicator so the user sees instant feedback while the backend IO runs.
+            val grouped = allServers.filter { it.key == server.key }
+            val best = grouped.minByOrNull { it.load } ?: server
+            grouped.forEach { it.isActive = true }
+            if (!selectedServers.any { it.key == best.key }) {
+                selectedServers.add(best)
+            }
+            unselectedServers.removeAll { it.key == server.key }
+            // Mark this key as "loading" so the adapter item shows "Connecting…" pulse.
+            selectedAdapter.addLoadingTunnelKey(server.key)
+            refreshAfterSelectionChange()
+
             io {
                 val res = RpnProxyManager.enableWinServer(server.key)
                 uiCtx {
@@ -1442,18 +1380,27 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
 
                     if (!res.first) {
                         showToast("Failed to add ${server.countryName}: ${res.second}")
+                        // Revert the optimistic changes.
+                        selectedServers.removeAll { it.key == server.key }
+                        grouped.forEach { it.isActive = false }
+                        grouped.filter { s -> !unselectedServers.any { it.key == s.key } }
+                               .forEach { unselectedServers.add(it) }
+                        selectedAdapter.clearLoadingTunnelKey(server.key)
+                        refreshAfterSelectionChange()
                         return@uiCtx
                     }
-                    val grouped = allServers.filter { it.key == server.key }
-                    val best = grouped.minByOrNull { it.load } ?: server
-                    grouped.forEach { it.isActive = true }
-                    Logger.v(LOG_TAG_UI, "$TAG.onServerSelected: best: $best, grouped: $grouped")
-                    if (!selectedServers.any { it.key == best.key }) {
-                        selectedServers.add(best)
-                    }
 
-                    unselectedServers.removeAll { it.key == server.key }
-                    refreshAfterSelectionChange()
+                    // clear the "Connecting…" indicator.
+                    selectedAdapter.clearLoadingTunnelKey(server.key)
+                    Logger.v(LOG_TAG_UI, "$TAG.onServerSelected: best: $best, grouped: $grouped")
+
+                    // Record the selection for frequent-country tracking and refresh chips.
+                    io {
+                        countryConfigRepository.incrementSelectionCount(server.cc)
+                        uiCtx {
+                            if (isAdded && !isProxyStopped) loadAndShowFrequentChips()
+                        }
+                    }
                 }
             }
         } else {
@@ -1502,6 +1449,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         updateAllServersCount()
         updateSelectedSectionVisibility()
         updateVpnStatus()
+        if (!isProxyStopped) loadAndShowFrequentChips()
     }
 
     override fun onCitySelected(server: CountryConfig, isEnabled: Boolean) {
@@ -1521,6 +1469,29 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
      */
     override fun onProxyStoppedItemTapped() {
         showToast(getString(R.string.server_settings_proxy_stopped))
+    }
+
+    override fun onFavouriteToggled(countryCode: String, countryName: String, isFavourite: Boolean) {
+        // Mutate the in-memory CountryConfig objects immediately so every subsequent
+        // call to buildCountries() reads the correct isFavourite value.  Without this
+        // the star icon reverts the next time refreshAfterSelectionChange() is called
+        // (e.g. when the user selects another server).
+        allServers.filter { it.cc == countryCode }
+                  .forEach { it.isFavourite = isFavourite }
+
+        // Persist to DB on a background thread.
+        io {
+            countryConfigRepository.updateFavourite(countryCode, isFavourite)
+        }
+
+        val txt = if (isFavourite) getString(R.string.server_favourite_added, countryName)
+        else getString(R.string.server_favourite_removed, countryName)
+        showToast(txt)
+
+        // Rebuild the unselected list so DiffUtil re-binds the affected row with the
+        // correct star state.  unselectedServers shares the same CountryConfig object
+        // references as allServers, so they're already updated above.
+        serverAdapter.updateCountries(buildCountries(unselectedServers))
     }
 
     override fun onServerGroupRemoved(group: VpnServerAdapter.ServerGroup) {
@@ -1569,21 +1540,138 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
     }
 
     /**
+     * Fetches the top-frequently-selected country codes on IO, then binds chips on the
+     * main thread.
+     *
+     * **Frequent and favourite are independent concepts.**  Whether a country is starred
+     * has no bearing on whether it appears here — only the selection count matters.
+     * Countries already present in [selectedServers] are excluded.
+     */
+    private fun loadAndShowFrequentChips() {
+        if (!isAdded) return
+        io {
+            val topCcs = try {
+                countryConfigRepository.getTopFrequentCcs(limit = 5)
+            } catch (e: Exception) {
+                Logger.w(LOG_TAG_UI, "$TAG.loadAndShowFrequentChips: getTopFrequentCcs error: ${e.message}")
+                emptyList()
+            }
+            uiCtx {
+                if (!isAdded) return@uiCtx
+                populateFrequentChips(topCcs)
+            }
+        }
+    }
+
+    /**
+     * Clears and repopulates the frequent chip group from the top-frequently-selected
+     * country codes.
+     *
+     * Only the selection count determines membership — favourite state is irrelevant so
+     * un-starring a country never removes it from the strip.  Countries already in
+     * [selectedServers] are excluded.  The whole section is hidden when no chips remain.
+     */
+    private fun populateFrequentChips(topCcs: List<String>) {
+        if (!isAdded) return
+        val chipGroup = b.frequentChipGroup
+        chipGroup.removeAllViews()
+
+        val selectedCcs = selectedServers.map { it.cc }.toSet()
+
+        var visibleCount = 0
+        for (cc in topCcs) {
+            if (cc in selectedCcs) continue
+            val rep = allServers.firstOrNull { it.cc == cc && it.id != AUTO_SERVER_ID } ?: continue
+            chipGroup.addView(buildFrequentChip(rep))
+            visibleCount++
+        }
+
+        val show = visibleCount > 0
+        if (show && !b.frequentCountriesSection.isVisible) {
+            // Animate the strip sliding in from below.
+            b.frequentCountriesSection.alpha = 0f
+            b.frequentCountriesSection.translationY = 12f
+            b.frequentCountriesSection.isVisible = true
+            b.frequentCountriesSection.animate()
+                .alpha(1f)
+                .translationY(0f)
+                .setDuration(250)
+                .setInterpolator(AccelerateDecelerateInterpolator())
+                .start()
+        } else if (!show) {
+            b.frequentCountriesSection.isVisible = false
+        }
+        // If already visible and chips changed, no animation needed — the chip group
+        // was just rebuilt in-place (removeAllViews + addView) which is already fast.
+    }
+
+    /**
+     * Creates a styled [Chip] for a quick-pick [server].
+     *
+     * Chips represent the top-frequently-selected countries only.  Whether the country
+     * is starred (favourite) has no effect on chip appearance — the star is managed
+     * exclusively by the full country list in [CountryServerAdapter].
+     */
+    private fun buildFrequentChip(server: CountryConfig): Chip {
+        val density = resources.displayMetrics.density
+
+        val chip = Chip(requireContext())
+        chip.text = getString(R.string.two_argument_space, server.flagEmoji, server.countryName)
+        chip.isClickable = true
+        chip.isCheckable = false
+        chip.isCloseIconVisible = false
+
+        // Background: subtle positive tint.
+        val bgColor = UIUtils.fetchColor(requireContext(), R.attr.chipBgColorPositive)
+        chip.chipBackgroundColor = android.content.res.ColorStateList.valueOf(bgColor)
+
+        val textColor = UIUtils.fetchColor(requireContext(), R.attr.primaryTextColor)
+        chip.setTextColor(textColor)
+        chip.textSize = 13f
+
+        // Stroke: green accent at 35 % opacity.
+        chip.chipStrokeWidth = 1f * density
+        val strokeBaseColor = UIUtils.fetchColor(requireContext(), R.attr.accentGood)
+        chip.chipStrokeColor = android.content.res.ColorStateList.valueOf(
+            Color.argb(
+                (255 * 0.35f).toInt(),
+                Color.red(strokeBaseColor),
+                Color.green(strokeBaseColor),
+                Color.blue(strokeBaseColor)
+            )
+        )
+
+        // Compact but accessible sizing.
+        chip.chipMinHeight = 36f * density
+        chip.chipStartPadding = 12f * density
+        chip.chipEndPadding = 12f * density
+
+        chip.setOnClickListener {
+            if (isProxyStopped) {
+                showToast(getString(R.string.server_settings_proxy_stopped))
+                return@setOnClickListener
+            }
+            onServerSelected(server, isEnabled = true)
+        }
+        return chip
+    }
+
+    /**
      * Observes [SubscriptionStatusDao.observeCurrentSubscription] via a Room Flow so the
      * banner always reflects the live DB value
      */
     private fun observeSubscription() {
         // Show shimmer banner while data hasn't arrived yet
-        b.shimmerSubscriptionBanner.isVisible = true
+        b.shimmerSubscriptionBanner.visibility = View.VISIBLE
         b.shimmerSubscriptionBanner.startShimmer()
-        b.subscriptionBanner.isVisible = false
+        b.subscriptionBanner.visibility = View.GONE
 
         lifecycleScope.launch {
             subscriptionStatusDao.observeCurrentSubscription().collectLatest { sub ->
                 if (!isAdded) return@collectLatest
                 uiCtx {
                     b.shimmerSubscriptionBanner.stopShimmer()
-                    b.shimmerSubscriptionBanner.isVisible = false
+                    b.shimmerSubscriptionBanner.visibility = View.GONE
                     updateSubscriptionBanner(sub)
                     maybeShowResubscribePrompt(sub)
                 }
@@ -1596,7 +1684,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
      */
     private fun updateSubscriptionBanner(sub: SubscriptionStatus?) {
         if (sub == null || sub.purchaseToken.isEmpty()) {
-            b.subscriptionBanner.isVisible = false
+            b.subscriptionBanner.visibility = View.GONE
             return
         }
 
@@ -1640,7 +1728,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
             // Date row needed but expiry not yet known
             b.tvExpiryDate.text = "-"
             b.tvExpiryLabel.text = if (isOneTime)
-                getString(R.string.server_selection_sub_expires_on)
+                getString(R.string.lbl_expires_on)
             else
                 getString(R.string.server_selection_sub_ends_on)
             b.tvDaysRemaining.isVisible = false
@@ -1650,11 +1738,11 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
 
             val expiryLabelRes = when {
                 isEffectivelyExpired -> R.string.server_selection_sub_expired_on
-                isOneTime            -> R.string.server_selection_sub_expires_on
+                isOneTime -> R.string.lbl_expires_on
                 statusState == SubscriptionStatus.SubscriptionState.STATE_CANCELLED ||
                 statusState == SubscriptionStatus.SubscriptionState.STATE_GRACE ->
                     R.string.server_selection_sub_ends_on
-                else                 -> R.string.server_selection_sub_ends_on
+                else -> R.string.server_selection_sub_ends_on
             }
             b.tvExpiryLabel.text = getString(expiryLabelRes)
             b.tvExpiryDate.text  = dateStr
@@ -1684,7 +1772,7 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         // Animate banner in if it was previously hidden
         if (!b.subscriptionBanner.isVisible) {
             b.subscriptionBanner.alpha = 0f
-            b.subscriptionBanner.isVisible = true
+            b.subscriptionBanner.visibility = View.VISIBLE
             b.subscriptionBanner.animate()
                 .alpha(1f).setDuration(300)
                 .setInterpolator(AccelerateDecelerateInterpolator())
@@ -1720,13 +1808,9 @@ class ServerSelectionFragment : Fragment(R.layout.fragment_server_selection),
         resubscribePromptShown = true
         Logger.i(LOG_TAG_UI, "$TAG.maybeShowResubscribePrompt: showing resubscribe prompt for productId=${purchaseDetail.productId}, planId=${purchaseDetail.planId}")
 
-        val planDisplayName = purchaseDetail.productTitle.ifEmpty { purchaseDetail.productId }
         try {
-            ResubscribeBottomSheet.newInstance(
-                productId       = purchaseDetail.productId,
-                planId          = purchaseDetail.planId,
-                planDisplayName = planDisplayName
-            ).show(childFragmentManager, "resubscribe")
+            ManageRpnPurchaseBtmSht.newInstance()
+                .show(childFragmentManager, "resubscribe")
         } catch (e: Exception) {
             Logger.e(LOG_TAG_UI, "$TAG.maybeShowResubscribePrompt: error showing sheet: ${e.message}", e)
             resubscribePromptShown = false  // allow retry on next emission

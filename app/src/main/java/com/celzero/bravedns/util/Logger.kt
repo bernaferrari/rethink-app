@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import android.app.Application
 import android.util.Log
 import com.celzero.bravedns.database.ConsoleLog
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.VpnController
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
+import java.io.File
 
 object Logger : KoinComponent {
     private val persistentState by inject<PersistentState>()
+    private val application by inject<Application>()
 
     private var _logLevel: Long? = null
     private var logLevel: Long
@@ -64,6 +67,11 @@ object Logger : KoinComponent {
     const val LOG_IAB = "InAppBilling"
     const val LOG_FIREBASE = "FirebaseErrorReporting"
     const val LOG_TAG_APP = "ExceptionHandler"
+    const val LOG_OKHTTP = "OkHttp"
+
+    const val WIRELOG_FILE_NAME = "wirelogs.txt"
+    const val WIRELOG_MAX_SIZE_BYTES = 5 * 1024 * 1024L // 5 MB
+    const val WIRELOG_FOLDER_NAME = "logs"
 
     // github.com/celzero/firestack/blob/bce8de917f/intra/log/logger.go#L76
     enum class LoggerLevel(val id: Long) {
@@ -216,6 +224,22 @@ object Logger : KoinComponent {
     fun goLog3(message: String, type: LoggerLevel) {
         // no need to log the go logs, add it to the database
         dbWrite(LOG_GO_LOGGER_SM, message, type)
+    }
+
+    fun wireLog(message: String) {
+        try {
+            val logsDir = File(application.filesDir, WIRELOG_FOLDER_NAME).apply {
+                if (!exists()) mkdirs()
+            }
+
+            val logFile = File(logsDir, WIRELOG_FILE_NAME)
+
+            if (logFile.exists() && logFile.length() > WIRELOG_MAX_SIZE_BYTES) {
+                logFile.delete()
+            }
+
+            logFile.appendText("$message\n")
+        } catch (_: Exception) { }
     }
 
     fun log(tag: String, msg: String, type: LoggerLevel, e: Exception? = null) {

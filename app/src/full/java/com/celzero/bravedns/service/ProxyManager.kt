@@ -232,21 +232,24 @@ object ProxyManager : KoinComponent {
     }
 
     suspend fun updateApp(uid: Int, packageName: String) {
-        if (pamSet.any { it.uid == uid && it.packageName == packageName }) {
-            Logger.i(LOG_TAG_PROXY, "App already exists in proxy mapping: $packageName")
+        // update the uid for the app in the database and the cache
+        val m = pamSet.filter { it.packageName == packageName }.toSet()
+        if (m.isEmpty()) {
+            Logger.e(LOG_TAG_PROXY, "updateApp: map not found for $packageName")
             return
         }
-        // update the uid for the app in the database and the cache
-        // assuming pamSet will always be synced with the database
-        val m = pamSet.filter { it.packageName == packageName }.toSet()
-        if (m.isNotEmpty()) {
-            val n = m.map { ProxyAppMapTuple(uid, packageName, it.proxyId) }
-            pamSet.removeAll(m)
-            pamSet.addAll(n)
-            db.updateUidForApp(uid, packageName)
-        } else {
-            Logger.e(LOG_TAG_PROXY, "updateApp: map not found for uid $uid")
-        }
+
+        // check if all entries already have the correct uid
+        if (m.all { it.uid == uid }) return
+
+        db.deleteAppByPkgName(packageName)
+
+        // Sync the in-memory cache: replace all old-uid tuples with new-uid tuples.
+        val newTuples = m.map { ProxyAppMapTuple(uid, packageName, it.proxyId) }.toSet()
+        pamSet.removeAll(m)
+        pamSet.addAll(newTuples)
+
+        Logger.i(LOG_TAG_PROXY, "updateApp: uid=$uid pkg=$packageName")
     }
 
     suspend fun purgeDupsBeforeRefresh() {
@@ -346,10 +349,14 @@ object ProxyManager : KoinComponent {
             Logger.w(LOG_TAG_PROXY, "no change in uid, not tombstoning: $oldUid")
             return
         }
+        val entries = pamSet.filter { it.uid == oldUid }
+        entries.forEach { tuple ->
+            db.deleteMapping(newUid, tuple.packageName, tuple.proxyId)
+        }
         db.tombstoneApp(oldUid, newUid)
         // reload the cache
         load()
-        Logger.i(LOG_TAG_PROXY, "tombstoning app for mapping: $oldUid, $newUid")
+        Logger.i(LOG_TAG_PROXY, "tombstoning app for mapping: $oldUid, $newUid, entries: ${entries.size}")
     }
 
     fun isAnyAppSelected(proxyId: String): Boolean {

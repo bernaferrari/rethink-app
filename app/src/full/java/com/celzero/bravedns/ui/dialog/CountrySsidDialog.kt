@@ -40,8 +40,7 @@ import com.celzero.bravedns.util.Utilities
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
 /**
- * Premium SSID Dialog for Country-based VPN configurations
- * Features modern Material 3 design with smooth animations
+ * SSID Dialog for Country-based VPN configurations
  */
 class CountrySsidDialog(
     private val activity: Activity,
@@ -281,7 +280,7 @@ class CountrySsidDialog(
     private fun showDeleteConfirmation(ssidItem: SsidItem) {
         val builder = MaterialAlertDialogBuilder(context, R.style.App_Dialog_NoDim)
         builder.setTitle(context.getString(R.string.wg_ssid_delete_title))
-        builder.setMessage(context.getString(R.string.wg_ssid_delete_message, ssidItem.name))
+        builder.setMessage(context.getString(R.string.bug_report_delete_confirmation, ssidItem.name))
         builder.setCancelable(true)
         builder.setPositiveButton(context.getString(R.string.lbl_delete)) { dialog, _ ->
             val position = ssidItems.indexOf(ssidItem)

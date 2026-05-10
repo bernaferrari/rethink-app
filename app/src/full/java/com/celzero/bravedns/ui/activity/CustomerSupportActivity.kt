@@ -120,24 +120,11 @@ class CustomerSupportActivity : BaseActivity(R.layout.activity_customer_support)
 
         // Purchase token (show first 12 chars)
         var token = sub.purchaseToken ?: ""
-        token = token.length.let { if (it > 12) token.take(12) + "…" else token.ifBlank { "" } }
+        token = token.length.let { if (it > 12) token.take(12) else token.ifBlank { "" } }
         val accountId = sub.accountId.take(12).ifBlank { return }
         val deviceId = deviceId.take(4).ifBlank { return }
         val id = "$accountId • $deviceId"
         b.tvHeroSubtitle.text = if (token.isNotEmpty()) "$token \u00B7 $id" else id
-    }
-
-    private fun resolvePlanName(subscriptionData: SubscriptionStateMachineV2.SubscriptionData?): String {
-        if (subscriptionData == null) return ""
-
-        val productId = subscriptionData.purchaseDetail?.productId.orEmpty()
-        return when (productId) {
-            InAppBillingHandler.ONE_TIME_PRODUCT_2YRS -> getString(R.string.plan_2yr)
-            InAppBillingHandler.ONE_TIME_PRODUCT_5YRS -> getString(R.string.plan_5yr)
-            InAppBillingHandler.SUBS_PRODUCT_YEARLY -> getString(R.string.billing_yearly)
-            InAppBillingHandler.SUBS_PRODUCT_MONTHLY -> getString(R.string.monthly_plan)
-            else -> subscriptionData.purchaseDetail?.productTitle?.ifEmpty { productId } ?: productId
-        }
     }
 
     /**

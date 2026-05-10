@@ -205,7 +205,7 @@ class DnsBlocklistBottomSheet : BottomSheetDialogFragment() {
 
         if (log.appName.isNotEmpty() && log.packageName.isNotEmpty()) {
             b.dnsAppNameHeader.visibility = View.VISIBLE
-            b.dnsAppName.text = log.appName
+            b.dnsAppName.text = requireContext().getString(R.string.two_argument_parenthesis, log.appName, log.uid.toString())
             b.dnsAppIcon.setImageDrawable(getIcon(requireContext(), log.packageName, log.appName))
             return
         }
@@ -225,13 +225,13 @@ class DnsBlocklistBottomSheet : BottomSheetDialogFragment() {
                 if (appCount >= 1) {
                     b.dnsAppName.text =
                         if (appCount >= 2) {
-                            getString(
+                            requireContext().getString(R.string.two_argument_parenthesis, getString(
                                 R.string.ctbs_app_other_apps,
                                 appNames[0],
                                 appCount.minus(1).toString()
-                            )
+                            ), log.uid.toString())
                         } else {
-                            appNames[0]
+                            requireContext().getString(R.string.two_argument_parenthesis, appNames[0], log.uid.toString())
                         }
                     if (pkgName == null) return@uiCtx
                     b.dnsAppIcon.setImageDrawable(

@@ -82,6 +82,12 @@
     <string name="lbl_odoh" translatable="false">ODoH</string>
     <string name="lbl_cache" translatable="true">Cache</string>
     <string name="lbl_status" translatable="true">Status</string>
+    <string name="lbl_plan" translatable="true">Plan</string>
+    <string name="lbl_expires_on" translatable="true">Expires on</string>
+    <string name="lbl_cancelled" translatable="true">Cancelled</string>
+    <string name="lbl_expired" translatable="true">Expired</string>
+    <string name="lbl_grace_period" translatable="true">Grace Period</string>
+    <string name="lbl_paused" translatable="true">Paused</string>
     <string name="lbl_remove" translatable="true">Remove</string>
     <string name="lbl_last" translatable="true">Last</string>
     <string name="lbl_dot_abbr" translatable="false">DNS-over-TLS</string>
@@ -120,6 +126,7 @@
     <string name="lbl_action" translatable="true">Action</string>
     <string name="lbl_connect" translatable="true">Connect</string>
     <string name="lbl_criteria" translatable="true">Criteria</string>
+    <string name="lbl_all_apps" translatable="false">All Apps</string>
 
     <string name="memory_notification_text">Rethink is experiencing low memory. System actions may be limited.</string>
 
@@ -132,6 +139,7 @@
     <string name="two_argument_colon" translatable="false">%1$s: %2$s</string>
     <string name="two_argument" translatable="false">%1$s / %2$s</string>
     <string name="two_argument_dot" translatable="false">%1$s · %2$s</string>
+    <string name="two_argument_parenthesis" translatable="false">%1$s (%2$s)</string>
     <string name="three_argument" translatable="false">%1$s %2$s %3$s</string>
     <string name="three_argument_colon" translatable="false">%1$s:%2$s:%3$s</string>
     <string name="symbol_heavy" translatable="false">🐘</string>
@@ -823,7 +831,7 @@
     <!-- Bug Report Files Bottom Sheet -->
     <string name="bug_report_files_desc" translatable="false">Select the files you want to include in the bug report email</string>
     <string name="bug_report_deselect_all" translatable="false">Deselect All</string>
-    <string name="bug_report_no_files_selected" translatable="false">Please select at least one file</string>
+    <string name="bug_report_no_files_selected" translatable="false">Select at least one file</string>
     <string name="bug_report_creating_zip" translatable="false">Creating archive…</string>
     <string name="bug_report_file_not_found" translatable="false">File not found</string>
     <string name="bug_report_error_opening_file" translatable="false">Cannot open this file type</string>
@@ -1368,13 +1376,6 @@
     <string name="ci_block" translatable="true">Block</string>
     <string name="ci_bypass_universal" translatable="true">Bypass Universal</string>
     <string name="ci_trust_rule" translatable="true">Trust</string>
-    <string name="ci_no_rule_desc" translatable="false">Traffic is not affected by this rule</string>
-    <string name="ci_block_desc" translatable="false">Block all traffic to/from this IP</string>
-    <string name="ci_trust_rule_desc" translatable="false">Bypass firewall rules for this app</string>
-    <string name="ci_bypass_universal_desc" translatable="false">Bypass universal firewall rules</string>
-    <string name="cd_no_rule_desc" translatable="false">DNS resolution is not affected</string>
-    <string name="cd_block_desc" translatable="false">Block DNS resolution for this domain</string>
-    <string name="cd_trust_rule_desc" translatable="false">Always allow DNS resolution</string>
     <string name="ci_delete" translatable="true">delete</string>
     <string name="ci_desc" translatable="false">%1$s %2$s</string>
     <string name="ci_ip_label" translatable="false">%1$s: %2$s</string>
@@ -1906,9 +1907,6 @@
     <string name="alert_actions_ip_domain_blocked" translatable="true">View</string>
     <string name="alert_solution_ip_domain_blocked" translatable="true">Rethink is blocking a connection</string>-->
 
-    <!-- alert_type_error is needed by fragment_rethink_plus_premium even though the alert block above is commented out -->
-    <string name="alert_type_error" translatable="false">Error</string>
-
     <string name="title_database_dump" translatable="true">Database</string>
     <string name="copied_clipboard" translatable="true">Copied</string>
 
@@ -1966,7 +1964,6 @@
     <string name="bubble_time_hours_ago" translatable="false">%d hr ago</string>
 
     <string name="bubble_allowed_title" translatable="false">Temporarily Allowed Apps</string>
-    <string name="bubble_loading" translatable="false">Loading…</string>
     <string name="settings_locale_dialog_default" translatable="true">System default</string>
 
     <string name="settings_allow_incoming_wg_packets" translatable="true">WireGuard P2P</string>
@@ -1994,10 +1991,8 @@
     <!-- Event Logs -->
     <string name="event_logs_title" translatable="false">Event Logs</string>
     <string name="event_logs_subtitle" translatable="false">View internal system &amp; debug events</string>
-    <string name="event_details" translatable="false">Details</string>
     <string name="no_events_recorded" translatable="false">No events recorded yet</string>
     <string name="no_events_desc" translatable="false">Event logs will appear here once the app starts recording system activities</string>
-    <string name="total_events_count" translatable="false">Total Events: %1$d</string>
     <string name="delete_all_events" translatable="false">Delete All Events</string>
     <string name="delete_all_events_confirmation" translatable="false">Are you sure you want to delete all event logs? This action cannot be undone.</string>
 
@@ -2020,27 +2015,19 @@
     <string name="vpn_not_active_dialog_title" translatable="false">VPN not active</string>
     <string name="vpn_not_active_dialog_desc" translatable="false">Rethink is not started. Please start to use this feature.</string>
 
-    <string name="err_amz_creation_toast" translatable="false">Error creating Amnezia config</string>
-    <string name="err_se_creation_toast" translatable="false">Error registering SE to tunnel</string>
-
     <string name="ping_strength_title" translatable="false">Strength</string>
 
-    <string name="rethink_plus_title" translatable="false">RPN</string>
+    <string name="rpn_title" translatable="false">RPN</string>
 
-    <string name="rethink_plus_troubleshoot_title" translatable="false">troubleshoot</string>
+    <string name="rpn_troubleshoot_title" translatable="false">troubleshoot</string>
 
-    <string name="rethink_plus_perform_test" translatable="false">Perform test</string>
-    <string name="rethink_plus_test_desc" translatable="false">Test your connection to RPN proxies.</string>
+    <string name="rpn_perform_test" translatable="false">Perform test</string>
+    <string name="rpn_test_desc" translatable="false">Test your connection to RPN proxies.</string>
 
-    <string name="rethink_plus_report_issue" translatable="false">Report issue</string>
-    <string name="rethink_plus_report_desc" translatable="false">Report an issue with RPN.</string>
+    <string name="rpn_report_issue" translatable="false">Report issue</string>
+    <string name="rpn_report_desc" translatable="false">Report an issue with RPN.</string>
 
-    <string name="rpn_availablity" translatable="false">RPN availability</string>
-
-    <string name="r_plus_subs_congrats" translatable="false">Congratulations!</string>
-    <string name="r_plus_subs_congrats_desc" translatable="false">You are now subscribed to RPN.</string>
-
-    <string name="payment_history_title" translatable="false">Payment History</string>
+    <string name="payment_history_title" translatable="false">Device Order History</string>
 
     <string name="manage_purchase_title" translatable="false">Manage Purchase</string>
 
@@ -2053,33 +2040,27 @@
     <!-- Resubscribe bottom sheet -->
     <string name="resubscribe_sheet_title" translatable="false">Resubscribe to Your Plan</string>
     <string name="resubscribe_sheet_description" translatable="false">Your subscription is canceled but still active. Resubscribe now to keep uninterrupted access, you won\'t be charged until your current period ends.</string>
-    <string name="resubscribe_sheet_plan_label" translatable="false">Current plan</string>
-    <string name="resubscribe_btn_confirm" translatable="false">Resubscribe</string>
     <string name="resubscribe_btn_not_now" translatable="false">Not Now</string>
     <string name="resubscribe_error" translatable="false">Failed to launch resubscription. Please try again.</string>
 
-    <string name="fallback_rplus_toast" translatable="false">Rethink Plus is active, fallback dns is not supported</string>
+    <string name="fallback_rpn_toast" translatable="false">RPN is active, fallback dns is not supported</string>
 
     <string name="error_loading_manage_subscription" translatable="false">Error loading purchase details</string>
 
-    <string name="rethink_plus_not_available" translatable="false">RPN is not available for your device.\n reason: %1$s</string>
+    <string name="rpn_not_available" translatable="false">RPN is not available for your device.\n reason: %1$s</string>
 
     <string name="payment_processing" translatable="false">Payment processing</string>
     <string name="payment_processing_desc" translatable="false">Your payment is being processed. You’ll get access once it completes.</string>
 
-    <string name="rethink_plus_not_available_desc" translatable="false">There seems to be an issue with RPN availability on your device. Please try again later or contact support.</string>
+    <string name="rpn_not_available_desc" translatable="false">There seems to be an issue with RPN availability on your device. Please try again later or contact support.</string>
 
     <!-- F-Droid build: RPN coming soon -->
-    <string name="rethink_plus_fdroid_coming_soon" translatable="false">RPN Coming Soon</string>
-    <string name="rethink_plus_fdroid_coming_soon_desc" translatable="false">RPN is not yet available on the F-Droid build. Stay tuned for updates!</string>
+    <string name="rpn_fdroid_coming_soon" translatable="false">RPN Coming Soon</string>
+    <string name="rpn_fdroid_coming_soon_desc" translatable="false">RPN is not yet available on the F-Droid build. Stay tuned for updates!</string>
 
-    <!-- Website build: requires Google Play Services -->
-    <string name="rethink_plus_no_play_services" translatable="false">RPN Not Available</string>
-    <string name="rethink_plus_no_play_services_desc" translatable="false">RPN requires Google Play Services which is not available on this device.</string>
+    <string name="rethink_terms" translatable="false">By subscribing to RPN you agree to the &lt;a href="https://rethinkdns.com/terms"&gt;Rethink Terms of Service&lt;/a&gt; and &lt;a href="https://rethinkdns.com/privacy"&gt;Privacy Policy&lt;/a&gt;. Powered by Windscribe</string>
 
-    <string name="rethink_terms" translatable="false">By subscribing to Rethink Plus you agree to the &lt;a href="https://rethinkdns.com/terms"&gt;Rethink Terms of Service&lt;/a&gt; and &lt;a href="https://rethinkdns.com/privacy"&gt;Privacy Policy&lt;/a&gt;. Powered by Windscribe</string>
-
-    <!-- Premium Subscription UI Strings -->
+    <!-- Subscription UI Strings -->
     <string name="premium_subtitle" translatable="false">Enhanced privacy, speed, and security</string>
     <string name="choose_plan" translatable="false">Choose Your Plan</string>
     <string name="choose_plan_subtitle" translatable="false">Select the plan that works best for you</string>
@@ -2108,7 +2089,6 @@
     <string name="continue_text" translatable="false">Continue</string>
     <string name="close" translatable="false">Close</string>
     <string name="retry" translatable="false">Retry</string>
-    <string name="error_title" translatable="false">Error</string>
     <string name="error_message" translatable="false">Unable to load plans</string>
 
     <!-- Server Selection Screen -->
@@ -2150,17 +2130,10 @@
 
     <string name="loading" translatable="false">Loading…</string>
     <string name="server_selection_tap_to_select" translatable="false">Start RPN to proceed</string>
-    <string name="server_selection_current_location" translatable="false">Current Location</string>
 
-    <string name="vpn_status_connected" translatable="false">Connected</string>
     <string name="vpn_status_disconnected" translatable="false">Disconnected</string>
 
-    <string name="server_location_format" translatable="false">%1$s • %2$s</string>
-
     <string name="server_upload_label" translatable="false">Upload</string>
-    <string name="server_download_label" translatable="false">Download</string>
-
-    <string name="server_selection_selected_count">%1$s / %2$s</string>
 
     <plurals name="server_count">
         <item quantity="one">%1$d server</item>
@@ -2170,9 +2143,7 @@
     <!-- Server Removal Notification -->
     <string name="server_removal_title" translatable="false">Server Location Removed</string>
     <string name="server_removal_subtitle" translatable="false">This location is no longer available</string>
-    <string name="server_removal_understand" translatable="false">I Understand</string>
     <string name="server_removed" translatable="false">Removed</string>
-    <string name="notification_icon" translatable="false">Notification Icon</string>
 
     <!-- Country SSID Dialog -->
     <string name="country_ssid_dialog_title" translatable="false">WiFi Settings for %1$s</string>
@@ -2189,12 +2160,6 @@
     <string name="wg_peer_edit_keepalive_title" translatable="false">Edit Peer Keepalive</string>
     <string name="wg_peer_edit_keepalive_desc" translatable="false">Modify the persistent keepalive interval for this peer. This determines how often keepalive packets are sent to maintain the connection.</string>
 
-    <!-- Server WireGuard Config Detail -->
-
-    <!-- Country Configuration -->
-
-    <!-- Actions -->
-
     <!-- Peer Count -->
     <plurals name="peer_count">
         <item quantity="one">%d peer</item>
@@ -2204,20 +2169,15 @@
     <string name="hint_seconds" translatable="false">Seconds</string>
 
     <!-- Settings -->
-    <string name="settings_title" translatable="false">Settings</string>
-    <string name="lockdown_desc" translatable="false">Force all traffic through this server</string>
 
-    <!-- Premium UI -->
     <string name="lbl_quick_actions" translatable="false">Quick Actions</string>
 
     <string name="subscription_processing_timeout" translatable="false">Purchase processing is taking longer than expected. Please check your internet connection and try again.</string>
 
     <!-- Customer Support Activity -->
-    <string name="support_section_subscription" translatable="false">YOUR PURCHASE</string>
     <string name="support_section_describe" translatable="false">DESCRIBE YOUR ISSUE</string>
     <string name="support_section_attachments" translatable="false">DIAGNOSTIC DATA</string>
     <string name="support_sub_plan_label" translatable="false">Plan</string>
-    <string name="support_sub_purchase_date_label" translatable="false">Purchased</string>
     <string name="support_sub_token_label" translatable="false">Token (abbr.)</string>
     <string name="support_sub_no_subscription" translatable="false">No active purchase</string>
     <string name="support_issue_category_label" translatable="false">What is your issue about?</string>
@@ -2246,9 +2206,7 @@
     <!-- Dashboard subscription banner labels -->
     <string name="dashboard_activated_label" translatable="false">Activated</string>
     <string name="dashboard_expiry_label" translatable="false">Expires</string>
-    <string name="dashboard_section_actions" translatable="false">QUICK ACTIONS</string>
     <string name="manage_subscription_desc" translatable="false">Cancel, revoke or manage your plan</string>
-    <string name="payment_history_desc" translatable="false">View all your past transactions</string>
 
     <!-- Manage Subscription loading overlay -->
     <string name="manage_sub_loading" translatable="false">Please wait…</string>
@@ -2259,9 +2217,6 @@
 
     <!-- Privacy Exposure Warning Card -->
     <string name="privacy_exposed_title" translatable="false">Your online presence is exposed</string>
-    <string name="your_ip_label" translatable="false">IP:</string>
-    <string name="location_label" translatable="false">Location:</string>
-    <string name="isp_label" translatable="false">ISP:</string>
     <string name="privacy_protection_cta" translatable="false">Secure with RPN to protect your privacy</string>
 
     <string name="billing_error_recoverable" translatable="false">A temporary error occurred. Please try again.</string>
@@ -2280,8 +2235,9 @@
     <string name="server_settings_dns_filter_subtitle" translatable="false">Server-side DNS filtering</string>
     <string name="server_settings_dns_default" translatable="false">Default</string>
     <string name="server_settings_dns_privacy" translatable="false">Privacy</string>
-    <string name="server_settings_dns_parental" translatable="false">Parental Control</string>
+    <string name="server_settings_dns_family" translatable="false">Family</string>
     <string name="server_settings_dns_security" translatable="false">Security</string>
+    <string name="server_settings_dns_desc_includes" translatable="false">Includes %1$s</string>
     <string name="server_settings_actions_section" translatable="false">Actions</string>
     <string name="server_settings_refresh_servers" translatable="false">Refresh Servers</string>
     <string name="server_settings_stop_proxies" translatable="false">Stop RPN</string>
@@ -2307,36 +2263,28 @@
     <string name="server_settings_identity_desc" translatable="false">Request a new server identity on each connection attempt</string>
     <string name="server_settings_port_title" translatable="false">Connection Port</string>
     <string name="server_settings_port_desc" translatable="false">Port used for tunnel server connections</string>
-    <string name="server_settings_port_auto" translatable="false">AUTO</string>
     <string name="server_settings_permanent_config_title" translatable="false">Permanent Configuration</string>
     <string name="server_settings_permanent_config_desc" translatable="false">Keep the same server configuration across reconnections</string>
     <string name="server_settings_port_dialog_title" translatable="false">Select Connection Port</string>
-    <string name="lbl_done" translatable="false">Done</string>
     <string name="server_selection_sub_expires_today" translatable="false">Expires today</string>
     <string name="server_selection_sub_managed_by_play" translatable="false">Managed by Google Play</string>
     <string name="server_selection_auto_always_on" translatable="false">AUTO is always connected and cannot be removed</string>
     <string name="server_selection_remove_title" translatable="false">Remove Server</string>
     <string name="server_selection_remove_message" translatable="false">Remove %1$s (%2$s) from your server list?</string>
+    <string name="server_selection_frequent_label" translatable="false">Frequent</string>
+    <string name="server_selection_frequent_add_hint" translatable="false">Tap to quickly add a recently used country</string>
+    <string name="server_favourite_added" translatable="false">%1$s added to favourites</string>
+    <string name="server_favourite_removed" translatable="false">%1$s removed from favourites</string>
     <string name="lbl_not_available_short" translatable="false">N/A</string>
 
-    <!-- Server speed tier labels -->
-    <string name="server_speed_very_fast" translatable="false">Very Fast</string>
-    <string name="server_speed_fast"      translatable="false">Fast</string>
-    <string name="server_speed_good"      translatable="false">Good</string>
-    <string name="server_speed_moderate"  translatable="false">Moderate</string>
-    <string name="server_speed_slow"      translatable="false">Slow</string>
-
     <!-- Server load tier labels -->
-    <string name="server_load_light"      translatable="false">Light</string>
-    <string name="server_load_normal"     translatable="false">Normal</string>
-    <string name="server_load_busy"       translatable="false">Busy</string>
-    <string name="server_load_very_busy"  translatable="false">Very Busy</string>
+    <string name="server_load_light" translatable="false">Light</string>
+    <string name="server_load_normal" translatable="false">Normal</string>
+    <string name="server_load_busy" translatable="false">Busy</string>
+    <string name="server_load_very_busy" translatable="false">Very Busy</string>
     <string name="server_load_overloaded" translatable="false">Overloaded</string>
 
     <!-- Manage Subscription Strings -->
-    <string name="status_expired" translatable="false">Expired</string>
-    <string name="status_cancelled" translatable="false">Cancelled</string>
-    <string name="status_grace_period" translatable="false">Grace Period</string>
     <string name="current_plan" translatable="false">Current Plan</string>
     <string name="subscription_price" translatable="false">Price</string>
     <string name="plan_includes" translatable="false">Your plan includes</string>
@@ -2349,38 +2297,20 @@
     <string name="confirm_cancel_message" translatable="false">Are you sure you want to cancel your purchase? You will lose access to premium features at the end of the current period.</string>
     <string name="confirm_revoke_title" translatable="false">Revoke Purchase?</string>
     <string name="confirm_revoke_message" translatable="false">Are you sure you want to revoke your purchase? This action will immediately cancel your purchase and refund your payment. You will lose access to premium features right away.</string>
-    <string name="subscription_cancelled_success" translatable="false">Purchase cancelled successfully</string>
+    <string name="subscription_cancelled_success" translatable="false">Purchase canceled successfully</string>
     <string name="subscription_revoked_success" translatable="false">Purchase revoked successfully</string>
     <string name="subscription_action_failed" translatable="false">Failed to process request. Please try again.</string>
-    <string name="no_valid_subscription" translatable="false">No valid purchase found</string>
-    <string name="no_active_subscription" translatable="false">No active purchase found</string>
-    <string name="subscription_not_active" translatable="false">Purchase is not active</string>
     <string name="purchase_detail_unavailable" translatable="false">Purchase details are not available</string>
 
     <!-- ManageSubscriptionFragment strings -->
-    <string name="subscription_features_unavailable" translatable="false">No features available</string>
-    <string name="status_active_description" translatable="false">Your purchase is active</string>
-    <string name="status_cancelled_description" translatable="false">Your purchase has been cancelled. You can continue using it until the end of the current period</string>
-    <string name="status_expired_description" translatable="false">Your purchase has expired. Please renew to continue using premium features</string>
     <string name="status_revoked" translatable="false">Revoked</string>
     <string name="status_revoked_description" translatable="false">Your purchase has been revoked and access has been removed immediately</string>
-    <string name="status_on_hold" translatable="false">Payment Required</string>
-    <string name="status_on_hold_description" translatable="false">Your payment is failing. Update your payment method to restore access</string>
-    <string name="status_paused" translatable="false">Paused</string>
-    <string name="status_paused_description" translatable="false">Your purchase is paused. Resume to continue using premium features</string>
-    <string name="label_access_until" translatable="false">Access Until</string>
     <string name="expired_on" translatable="false">Expired On</string>
-    <string name="feature_unlimited_bandwidth" translatable="false">Unlimited Bandwidth</string>
-    <string name="feature_all_servers" translatable="false">Access to All Servers</string>
-    <string name="feature_ad_free" translatable="false">Ad-Free Experience</string>
-    <string name="feature_priority_support" translatable="false">Priority Support</string>
-    <string name="feature_multi_device" translatable="false">Multi-Device Support</string>
     <string name="billing_yearly" translatable="false">Yearly</string>
     <string name="billing_cycle" translatable="false">Billing Cycle</string>
     <!-- Generic plan duration labels (no billing-type qualifier) -->
     <string name="plan_2yr" translatable="false">2-Year</string>
     <string name="plan_5yr" translatable="false">5-Year</string>
-    <string name="plan_name_placeholder" translatable="false">No plan</string>
     <string name="revoke_subscription_note" translatable="false">Revoke purchase for a full refund</string>
     <string name="cancel_subscription_note_future" translatable="false">Cancels renewal. Access continues until end of current period</string>
 
@@ -2405,13 +2335,11 @@
     <string name="ping_reach_subtitle" translatable="false">Check if a specific IP address or domain is reachable through the RPN proxy.</string>
     <string name="ping_reach_hint" translatable="false">Enter IP or domain (e.g. 8.8.8.8, example.com)</string>
     <string name="ping_reach_button" translatable="false">Check Reachability</string>
-    <string name="ping_reach_checking" translatable="false">Checking…</string>
     <string name="ping_reach_reachable" translatable="false">Reachable</string>
     <string name="ping_reach_unreachable" translatable="false">Unreachable</string>
     <string name="ping_reach_rpn_disabled" translatable="false">Reachability test requires an active RPN proxy. Enable RPN to use this feature.</string>
     <string name="ping_reach_empty_input" translatable="false">Please enter an IP address or domain name.</string>
     <string name="ping_reach_no_proxy" translatable="false">No active RPN proxy found. Please ensure RPN is configured and active.</string>
-    <string name="ping_reach_result_prefix" translatable="false">Result for</string>
 
     <!-- Purchase History Screen -->
     <string name="payment_history_summary_title" translatable="false">All Transactions</string>
@@ -2425,9 +2353,6 @@
     <string name="payment_history_token_fmt" translatable="false">Token: %1$s</string>
     <string name="payment_history_state_revoked" translatable="false">Revoked</string>
     <string name="payment_history_state_pending" translatable="false">Pending</string>
-    <string name="payment_history_state_purchased" translatable="false">Purchased</string>
-    <string name="payment_history_state_paused" translatable="false">Paused</string>
-    <string name="payment_history_state_unknown" translatable="false">Unknown</string>
 
     <!-- ServerOrderHistoryActivity, server-side purchase order history -->
     <string name="server_order_title" translatable="false">Order History</string>
@@ -2447,17 +2372,14 @@
     <!-- ProxySettingsActivity RPN section -->
     <string name="proxy_rpn_heading" translatable="false">Rethink Proxy Network</string>
     <string name="proxy_rpn_desc_inactive" translatable="false">Subscribe to route traffic through Rethink servers</string>
-    <string name="proxy_rpn_desc_active" translatable="false">Active · %1$s</string>
 
     <!-- ServerWgConfigDetailActivity live stats card -->
     <string name="lbl_server_stats" translatable="false">Live Stats</string>
     <string name="lbl_last_handshake" translatable="false">Last Handshake</string>
     <string name="lbl_active_since" translatable="false">Active Since</string>
-    <string name="lbl_health_bandwidth" translatable="false">Health · Bandwidth</string>
+    <string name="lbl_load" translatable="false">Load</string>
+    <string name="lbl_bandwidth" translatable="false">Bandwidth</string>
     <string name="lbl_errors" translatable="false">Errors</string>
-    <string name="lbl_endpoint" translatable="false">Endpoint</string>
-    <string name="lbl_ipv4" translatable="false">IPv4</string>
-    <string name="lbl_ipv6" translatable="false">IPv6</string>
     <string name="lbl_client_ipv4" translatable="false">Client IPv4</string>
     <string name="lbl_client_ipv6" translatable="false">Client IPv6</string>
     <string name="lbl_never" translatable="false">Never</string>
@@ -2477,8 +2399,6 @@
 
     <!-- RethinkPlusDashboardFragment hero banner -->
     <string name="hero_plan_and_account" translatable="false">%1$s • %2$s</string>
-    <string name="plan_rpn_standard" translatable="false">RPN Standard</string>
-    <string name="plan_rpn_one_time" translatable="false">RPN One-Time</string>
     <string name="placeholder_dash" translatable="false">\u2014</string>
 
     <!-- RethinkPlusFragment connection info -->
@@ -2488,22 +2408,10 @@
     <!-- Separator / utility -->
     <string name="lbl_separator_dot" translatable="false">\u2022</string>
 
-    <string name="rethink_plus_purchased_state" translatable="true">Purchased</string>
+    <string name="rpn_purchased_state" translatable="true">Purchased</string>
 
     <!-- ManageSubscriptionFragment no-subscription empty state -->
-    <string name="manage_sub_no_sub_title" translatable="false">No Active Purchase</string>
-    <string name="manage_sub_no_sub_desc" translatable="false">Unlock private, fast routing through Rethink Proxy Network. Choose a plan and get started in seconds.</string>
-    <string name="manage_sub_no_sub_feature_1" translatable="false">🌐  Global proxy servers in 50+ locations</string>
-    <string name="manage_sub_no_sub_feature_2" translatable="false">⚡  High-speed, low-latency routing</string>
-    <string name="manage_sub_no_sub_feature_3" translatable="false">🔒  End-to-end encrypted connections</string>
-    <string name="manage_sub_no_sub_feature_4" translatable="false">📵  Ad-free and tracker-free browsing</string>
-    <string name="manage_sub_no_sub_cta" translatable="false">Explore Plans</string>
-    <string name="manage_sub_no_sub_restore_hint" translatable="false">Already purchased? Tap below to restore.</string>
-    <string name="manage_sub_no_sub_restore_btn" translatable="false">Restore Purchase</string>
     <string name="manage_sub_no_sub_hero_subtitle" translatable="false">Start your RPN journey</string>
-    <string name="manage_sub_restoring" translatable="false">Restoring purchase…</string>
-    <string name="manage_sub_restore_done" translatable="false">Purchase restored successfully</string>
-    <string name="manage_sub_restore_none" translatable="false">No previous purchase found</string>
     <string name="progress_step_validating" translatable="false">Validating purchase</string>
     <string name="progress_step_contacting_server" translatable="false">Contacting server</string>
     <string name="progress_step_updating" translatable="false">Updating local state</string>
@@ -2544,7 +2452,6 @@
     <string name="conflict_btn_manage_play" translatable="false">Manage on Google Play</string>
     <string name="conflict_btn_ok" translatable="false">OK</string>
 
-    <string name="conflict_detail_endpoint" translatable="false">Endpoint</string>
     <string name="conflict_detail_http_code" translatable="false">HTTP Code</string>
 
     <string name="conflict_refunding" translatable="false">Requesting refund…</string>
@@ -2573,7 +2480,7 @@
 
     <!-- Device Not Registered bottom sheet -->
     <string name="device_not_registered_title" translatable="false">Device Not Registered</string>
-    <string name="device_not_registered_badge" translatable="false">CID Mismatch</string>
+    <string name="device_not_registered_badge" translatable="false">Account ID Mismatch</string>
     <string name="device_not_registered_desc" translatable="false">Your device could not be registered under the account linked to your active subscription. The account ID from Google Play (shown below) could not be resolved to a device on our server. Please contact support with the details below.</string>
     <string name="device_not_registered_entitlement_cid_label" translatable="false">Subscription Account ID (Google Play)</string>
     <string name="device_not_registered_master_badge" translatable="false">master</string>
@@ -2581,11 +2488,6 @@
     <string name="device_not_registered_what_this_means_desc" translatable="false">Your subscription is active on Google Play but your device could not be linked to it on the Rethink server. This can happen after restoring from a backup or switching devices. Our support team can resolve this quickly once you provide the account details above.</string>
     <string name="device_not_registered_email_subject" translatable="false">Device Not Registered: Rethink DNS</string>
     <string name="device_not_registered_email_body_details" translatable="false">I have an active subscription but my device cannot be registered. The account details are:</string>
-
-    <!-- Contact Support row in ManagePurchaseFragment -->
-    <string name="contact_support_subtitle" translatable="false">Having trouble with your account or device registration? We\'re here to help.</string>
-    <string name="contact_support_email_subject" translatable="false">Subscription Support: Rethink DNS</string>
-    <string name="contact_support_email_body" translatable="false">Hello Rethink Support,\n\nI need help with my subscription or account.</string>
 
     <!-- Device-not-registered system notification -->
     <string name="device_not_registered_notif_title" translatable="false">Device Not Registered</string>
@@ -2630,10 +2532,10 @@
         <item quantity="other">%d Years</item>
     </plurals>
 
-    <!-- Rethink+ premium step -->
-    <string name="tour_step_rethink_plus_title" translatable="false">RPN Premium</string>
-    <string name="tour_step_rethink_plus_desc" translatable="false">Unlock advanced privacy features with RPN: hide your real IP with rotating exits, access anti-censorship servers, and route traffic through private proxy networks for total control.</string>
-    <!-- Label shown in the golden premium badge strip inside the tooltip card -->
+    <!-- Rethink+ step -->
+    <string name="tour_step_rpn_title" translatable="false">RPN</string>
+    <string name="tour_step_rpn_desc" translatable="false">Unlock advanced privacy features with RPN: hide your real IP with rotating exits, access anti-censorship servers, and route traffic through private proxy networks for total control.</string>
+    <!-- Label shown in the golden badge strip inside the tooltip card -->
     <string name="tour_premium_badge_label" translatable="false">Premium Feature</string>
 
 </resources>

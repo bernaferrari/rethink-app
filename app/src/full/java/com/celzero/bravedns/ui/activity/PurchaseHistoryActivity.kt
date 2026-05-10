@@ -220,7 +220,7 @@ class PurchaseHistoryActivity : BaseActivity(R.layout.activity_purchase_history)
         val sub = RpnProxyManager.getSubscriptionData() ?: return ""
         // Purchase token (show first 12 chars)
         var token = sub.subscriptionStatus.purchaseToken ?: ""
-        token = token.length.let { if (it > 12) token.take(12) + "…" else token.ifBlank { "" } }
+        token = token.length.let { if (it > 12) token.take(12) else token.ifBlank { "" } }
         val accountId = sub.subscriptionStatus.accountId.take(12).ifBlank { return token }
         val deviceId = deviceId.take(4).ifBlank { return token }
         val id = "$accountId • $deviceId"

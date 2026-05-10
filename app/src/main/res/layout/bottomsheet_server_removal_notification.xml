@@ -7,7 +7,6 @@
     android:background="@android:color/transparent"
     android:paddingBottom="16dp">
 
-    <!-- Premium Card Container -->
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/notification_card"
         android:layout_width="0dp"
@@ -28,7 +27,6 @@
             android:background="?attr/colorSurface"
             android:padding="24dp">
 
-            <!-- Icon Container with Premium Gradient Background -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/icon_container"
                 android:layout_width="64dp"
@@ -49,7 +47,6 @@
                         android:layout_width="32dp"
                         android:layout_height="32dp"
                         android:layout_gravity="center"
-                        android:contentDescription="@string/notification_icon"
                         android:src="@drawable/ic_info_white"
                         android:tint="@android:color/white"
                         tools:ignore="UseAppTint" />
@@ -58,7 +55,6 @@
 
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Title -->
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/notification_title"
                 android:layout_width="0dp"
@@ -73,7 +69,6 @@
                 app:layout_constraintStart_toEndOf="@id/icon_container"
                 app:layout_constraintTop_toTopOf="@id/icon_container" />
 
-            <!-- Subtitle -->
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/notification_subtitle"
                 android:layout_width="0dp"
@@ -88,7 +83,6 @@
                 app:layout_constraintStart_toEndOf="@id/icon_container"
                 app:layout_constraintTop_toBottomOf="@id/notification_title" />
 
-            <!-- Divider -->
             <View
                 android:id="@+id/divider"
                 android:layout_width="0dp"
@@ -100,7 +94,6 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/icon_container" />
 
-            <!-- Server List Container with Elegant Scrolling -->
             <androidx.core.widget.NestedScrollView
                 android:id="@+id/server_list_scroll"
                 android:layout_width="0dp"
@@ -122,14 +115,13 @@
 
             </androidx.core.widget.NestedScrollView>
 
-            <!-- Action Button -->
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btn_understand"
                 android:layout_width="0dp"
                 android:layout_height="56dp"
                 android:layout_marginTop="24dp"
                 android:letterSpacing="0.02"
-                android:text="@string/server_removal_understand"
+                android:text="@string/ada_noapp_dialog_positive"
                 android:textAllCaps="false"
                 android:textSize="15sp"
                 android:textStyle="bold"

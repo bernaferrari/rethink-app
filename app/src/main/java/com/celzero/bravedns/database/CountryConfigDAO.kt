@@ -160,4 +160,22 @@ interface CountryConfigDAO {
 
     @Query("SELECT * FROM CountryConfig WHERE ssidBased = 1 AND isEnabled = 1")
     fun getSsidEnabledConfigsFlow(): Flow<List<CountryConfig>>
+
+    @Query("UPDATE CountryConfig SET selectionCount = selectionCount + 1 WHERE cc = :cc AND id != 'AUTO'")
+    suspend fun incrementSelectionCount(cc: String)
+
+    @Query("UPDATE CountryConfig SET isFavourite = :value WHERE cc = :cc")
+    suspend fun updateFavouriteByCountryCode(cc: String, value: Boolean)
+
+    @Query("SELECT * FROM CountryConfig WHERE isFavourite = 1 AND isActive = 1")
+    suspend fun getFavouriteConfigs(): List<CountryConfig>
+
+    @Query(
+        "SELECT cc FROM CountryConfig " +
+        "WHERE id != 'AUTO' AND isActive = 1 AND selectionCount > 0 " +
+        "GROUP BY cc " +
+        "ORDER BY MAX(selectionCount) DESC " +
+        "LIMIT :limit"
+    )
+    suspend fun getTopFrequentCcs(limit: Int): List<String>
 }

@@ -67,6 +67,7 @@ import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.ui.activity.FragmentHostActivity
 import com.celzero.bravedns.ui.bottomsheet.BugReportFilesBottomSheet
+import com.celzero.bravedns.ui.fragment.RethinkPlusDashboardFragment
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.celzero.bravedns.util.Constants.Companion.RETHINKDNS_SPONSOR_LINK
 import com.celzero.bravedns.util.Constants.Companion.TIME_FORMAT_4
@@ -163,10 +164,8 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
 
         if (DEBUG) {
             b.aboutFlightRecord.visibility = View.VISIBLE
-            b.aboutCrash.visibility = View.VISIBLE
         } else {
             b.aboutFlightRecord.visibility = View.GONE
-            b.aboutCrash.visibility = View.GONE
         }
 
         b.fhsTitleRethink.setOnClickListener(this)
@@ -203,7 +202,6 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
         b.tokenTextView.setOnClickListener(this)
         b.aboutFlightRecord.setOnClickListener(this)
         b.aboutEventLogs.setOnClickListener(this)
-        b.aboutCrash.setOnClickListener(this)
 
         val gestureDetector = GestureDetector(
             requireContext(),
@@ -298,12 +296,11 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
     }
 
     private fun openRpnDashboardScreen() {
-        val args = Bundle().apply { putString("ARG_KEY", "Launch_Rethink_Support_Dashboard") }
         startActivity(
             FragmentHostActivity.createIntent(
                 context = requireContext(),
-                fragmentClass = ManagePurchaseFragment::class.java,
-                args = args
+                fragmentClass = RethinkPlusDashboardFragment::class.java,
+                args = Bundle()
             )
         )
     }
@@ -450,9 +447,6 @@ class AboutFragment : Fragment(R.layout.fragment_about), View.OnClickListener, K
             }
             b.aboutEventLogs -> {
                 openEventLogs()
-            }
-            b.aboutCrash -> {
-                if (DEBUG) Intra.crash(500L)
             }
         }
     }

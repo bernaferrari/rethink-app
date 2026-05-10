@@ -78,6 +78,7 @@
                 android:textStyle="bold"
                 android:fontFamily="sans-serif-medium"
                 android:maxLines="1"
+                android:ellipsize="end"
                 tools:text="₹1,700" />
 
             <androidx.appcompat.widget.AppCompatTextView

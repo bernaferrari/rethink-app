@@ -258,7 +258,7 @@ class WgConfigDetailActivity : BaseActivity(R.layout.activity_wg_detail) {
             b.applicationsBtnX.isEnabled = false
             b.applicationsBtnX.alpha = 0.5f
             b.mobileSsidSettingsCard.visibility = View.GONE
-            b.appsLabel.text = "All apps"
+            b.appsLabel.text = getString(R.string.lbl_all_apps)
         } else {
             // invalid wireguard type, finish the activity
             finish()
@@ -278,7 +278,7 @@ class WgConfigDetailActivity : BaseActivity(R.layout.activity_wg_detail) {
             if (mapping.isCatchAll) {
                 b.applicationsBtnX.isEnabled = false
                 b.applicationsBtnX.alpha = 0.5f
-                b.appsLabel.text = "All apps"
+                b.appsLabel.text = getString(R.string.lbl_all_apps)
             }
             b.lockdownCheck.isChecked = mapping.isLockdown
             b.useMobileCheck.isChecked = mapping.useOnlyOnMetered
@@ -514,7 +514,7 @@ class WgConfigDetailActivity : BaseActivity(R.layout.activity_wg_detail) {
             } else {
                 b.appsLabel.setTextColor(fetchColor(this, R.attr.accentGood))
             }
-            b.appsLabel.text = "Apps ($it)"
+            b.appsLabel.text = getString(R.string.two_argument_parenthesis, getString(R.string.apps_info_title), it)
         }
     }
 
@@ -752,7 +752,7 @@ class WgConfigDetailActivity : BaseActivity(R.layout.activity_wg_detail) {
                 b.applicationsBtnX.isEnabled = !enabled
                 b.applicationsBtnX.alpha = if (enabled) 0.5f else 1.0f
                 if (enabled) {
-                    b.appsLabel.text = "All apps"
+                    b.appsLabel.text = getString(R.string.lbl_all_apps)
                 } else {
                     handleAppsCount()
                 }

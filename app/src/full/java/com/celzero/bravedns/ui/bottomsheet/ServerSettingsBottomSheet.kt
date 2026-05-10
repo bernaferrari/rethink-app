@@ -55,11 +55,10 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
         private const val ARG_PROXY_STOPPED = "proxy_stopped"
 
         /**
-         * Available port choices shown in the port-selection dialog.
-         * Index 0 → AUTO (stored as 0); other indices map 1-to-1 with [PORT_VALUES].
+         * Available port values shown in the port-selection dialog.
+         * Index 0 → random (stored as 0); other indices are literal port numbers.
          * 443, 80, 53, 123, 1194, 65142 are the most common ports which was seen from win-api
          */
-        private val PORT_LABELS = arrayOf("AUTO", "80", "443", "53", "123", "1194", "65142")
         private val PORT_VALUES = intArrayOf(0, 80, 443, 53, 123, 1194, 65142)
 
         fun newInstance(isProxyStopped: Boolean): ServerSettingsBottomSheet {
@@ -76,8 +75,12 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
      * background dispatcher so the operation survives bottom-sheet dismissal.
      */
     interface OnSettingsChangedListener {
-        /** Fired immediately each time the user picks a new DNS filter mode. */
-        fun onDnsModeChanged(mode: RpnProxyManager.DnsMode)
+        /**
+         * Fired immediately each time the user changes the DNS filter selection.
+         * [tunTypes] is a comma-separated string of [RpnProxyManager.DnsMode.tunType] values
+         * representing all currently active filters (e.g. `"privacy,family"`).
+         */
+        fun onDnsModeChanged(tunTypes: String)
         /**
          * Fired once when the sheet is dismissed (Done tap or swipe-away), but
          * **only** if at least one of the four configuration values changed since
@@ -94,6 +97,12 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     fun setOnSettingsChangedListener(l: OnSettingsChangedListener) {
         listener = l
     }
+
+    /**
+     * Tracks the last comma-separated tunType string emitted to the listener so we can
+     * guard against spurious re-emissions when checkboxes are programmatically initialised.
+     */
+    private var lastEmittedTunTypes: String = RpnProxyManager.DnsMode.DEFAULT.tunType
 
     // Used by hasConfigChanged() to decide whether to fire onConfigChanged().
     private var snapshotConfigManual: Boolean = false
@@ -175,22 +184,26 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     }
 
     /**
-     * Sets up the DNS filter section - mirrors the former inline DNS dialog that lived
-     * in ServerSelectionFragment, now unified into this settings sheet.
+     * Sets up the DNS filter section using four independent [AppCompatCheckBox] rows.
+     * Any combination of Default / Privacy / Family / Security may be selected.
+     *
+     * State is persisted in two [PersistentState] fields:
+     * - [PersistentState.rpnDnsTunTypes]: CSV of active [RpnProxyManager.DnsMode.tunType] values
+     *
+     * [OnSettingsChangedListener.onDnsModeChanged] is fired on every real change with the
+     * updated CSV string so the caller can propagate the change to the tunnel.
      */
     private fun setupDnsSection() {
-        val currentMode = RpnProxyManager.DnsMode.fromUrl(persistentState.rpnDnsUrl)
-        val radioId = when (currentMode) {
-            RpnProxyManager.DnsMode.DEFAULT -> R.id.rb_dns_default
-            RpnProxyManager.DnsMode.ANTI_AD -> R.id.rb_dns_anti_ad
-            RpnProxyManager.DnsMode.PARENTAL -> R.id.rb_dns_parental
-            RpnProxyManager.DnsMode.SECURITY -> R.id.rb_dns_security
-        }
-        binding.dnsRadioGroup.check(radioId)
+        // restore initial selection
+        val activeModes = getActiveModesFromState()
+        lastEmittedTunTypes = RpnProxyManager.DnsMode.tunTypesFromSet(activeModes)
+
+        // Initialise checkboxes without triggering listeners (listeners are registered below).
+        setCheckboxesQuietly(activeModes)
 
         val splitEnabled = persistentState.splitDns
         binding.splitDnsBanner.visibility = if (splitEnabled) View.GONE else View.VISIBLE
-        setDnsRadioGroupEnabled(splitEnabled && !isProxyStopped)
+        setDnsCheckboxesEnabled(splitEnabled && !isProxyStopped)
 
         binding.splitDnsEnableBtn.setOnClickListener {
             persistentState.splitDns = true
@@ -201,33 +214,124 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
                     if (isAdded) {
                         binding.splitDnsBanner.visibility = View.GONE
                         binding.splitDnsBanner.alpha = 1f
-                        setDnsRadioGroupEnabled(!isProxyStopped)
+                        setDnsCheckboxesEnabled(!isProxyStopped)
                     }
                 }
                 .start()
         }
 
-        binding.dnsRadioGroup.setOnCheckedChangeListener { _, checkedId ->
-            if (!persistentState.splitDns || isProxyStopped) return@setOnCheckedChangeListener
-            val newMode = when (checkedId) {
-                R.id.rb_dns_default  -> RpnProxyManager.DnsMode.DEFAULT
-                R.id.rb_dns_anti_ad -> RpnProxyManager.DnsMode.ANTI_AD
-                R.id.rb_dns_parental -> RpnProxyManager.DnsMode.PARENTAL
-                R.id.rb_dns_security -> RpnProxyManager.DnsMode.SECURITY
-                else -> return@setOnCheckedChangeListener
+        val rows = listOf(
+            binding.dnsRowDefault  to binding.cbDnsDefault,
+            binding.dnsRowPrivacy  to binding.cbDnsPrivacy,
+            binding.dnsRowFamily   to binding.cbDnsFamily,
+            binding.dnsRowSecurity to binding.cbDnsSecurity,
+        )
+
+        rows.forEach { (row, checkbox) ->
+            row.setOnClickListener {
+                if (!persistentState.splitDns || isProxyStopped) return@setOnClickListener
+                checkbox.isChecked = !checkbox.isChecked
             }
-            if (newMode == currentMode) return@setOnCheckedChangeListener
-            persistentState.rpnDnsUrl = newMode.url
-            listener?.onDnsModeChanged(newMode)
-            Logger.i(LOG_TAG_UI, "$TAG: DNS mode → $newMode")
         }
+
+        val changeListener = { _: android.widget.CompoundButton, _: Boolean ->
+            if (persistentState.splitDns && !isProxyStopped) {
+                onDnsCheckboxChanged()
+            }
+        }
+        binding.cbDnsDefault .setOnCheckedChangeListener(changeListener)
+        binding.cbDnsPrivacy .setOnCheckedChangeListener(changeListener)
+        binding.cbDnsFamily  .setOnCheckedChangeListener(changeListener)
+        binding.cbDnsSecurity.setOnCheckedChangeListener(changeListener)
     }
 
-    private fun setDnsRadioGroupEnabled(enabled: Boolean) {
-        binding.dnsRadioGroup.alpha = if (enabled) 1f else 0.38f
-        for (i in 0 until binding.dnsRadioGroup.childCount) {
-            binding.dnsRadioGroup.getChildAt(i).isEnabled = enabled
+    /**
+     * Called whenever any DNS checkbox state changes.
+     * Derives the new active set, enforces the "at least one selected" invariant,
+     * persists both [PersistentState.rpnDnsTunTypes]
+     * and fires [OnSettingsChangedListener.onDnsModeChanged] only on a real change.
+     */
+    private fun onDnsCheckboxChanged() {
+        val selected = buildSelectedModes()
+
+        // Enforce at least one selection — silently re-check Default if everything is cleared.
+        val effective: Set<RpnProxyManager.DnsMode> = selected.ifEmpty {
+            // Re-check Default without triggering the listener again.
+            binding.cbDnsDefault.setOnCheckedChangeListener(null)
+            binding.cbDnsDefault.isChecked = true
+            binding.cbDnsDefault.setOnCheckedChangeListener { _, _ ->
+                if (persistentState.splitDns && !isProxyStopped) onDnsCheckboxChanged()
+            }
+            setOf(RpnProxyManager.DnsMode.DEFAULT)
         }
+
+        val newTunTypes = RpnProxyManager.DnsMode.tunTypesFromSet(effective)
+
+        // Guard against spurious re-emissions during programmatic initialisation.
+        if (newTunTypes == lastEmittedTunTypes) return
+        lastEmittedTunTypes = newTunTypes
+
+        // Persist: CSV tunTypes for the filter; primary URL for GoVpnAdapter DNS routing.
+        persistentState.rpnDnsTunTypes = newTunTypes
+
+        listener?.onDnsModeChanged(newTunTypes)
+        Logger.i(LOG_TAG_UI, "$TAG: DNS filter → $newTunTypes")
+    }
+
+    /**
+     * Reads the current checkbox states and returns the corresponding [RpnProxyManager.DnsMode] set.
+     */
+    private fun buildSelectedModes(): Set<RpnProxyManager.DnsMode> {
+        val result = mutableSetOf<RpnProxyManager.DnsMode>()
+        if (binding.cbDnsDefault .isChecked) result += RpnProxyManager.DnsMode.DEFAULT
+        if (binding.cbDnsPrivacy .isChecked) result += RpnProxyManager.DnsMode.ANTI_AD
+        if (binding.cbDnsFamily  .isChecked) result += RpnProxyManager.DnsMode.PARENTAL
+        if (binding.cbDnsSecurity.isChecked) result += RpnProxyManager.DnsMode.SECURITY
+        return result
+    }
+
+    /**
+     * Sets all four checkboxes to match [modes] **without** triggering their change-listeners
+     * (used during initialisation to avoid spurious emissions).
+     */
+    private fun setCheckboxesQuietly(modes: Set<RpnProxyManager.DnsMode>) {
+        binding.cbDnsDefault .setOnCheckedChangeListener(null)
+        binding.cbDnsPrivacy .setOnCheckedChangeListener(null)
+        binding.cbDnsFamily  .setOnCheckedChangeListener(null)
+        binding.cbDnsSecurity.setOnCheckedChangeListener(null)
+
+        binding.cbDnsDefault .isChecked = RpnProxyManager.DnsMode.DEFAULT  in modes
+        binding.cbDnsPrivacy .isChecked = RpnProxyManager.DnsMode.ANTI_AD  in modes
+        binding.cbDnsFamily  .isChecked = RpnProxyManager.DnsMode.PARENTAL in modes
+        binding.cbDnsSecurity.isChecked = RpnProxyManager.DnsMode.SECURITY in modes
+        // Listeners are wired in setupDnsSection() after this call.
+    }
+
+    /**
+     * Resolves the active [RpnProxyManager.DnsMode] set from [PersistentState].
+     *
+     */
+    private fun getActiveModesFromState(): Set<RpnProxyManager.DnsMode> {
+        return RpnProxyManager.DnsMode.setFromCsv(persistentState.rpnDnsTunTypes)
+    }
+
+    /**
+     * Enables or disables all four DNS checkbox rows.
+     * The container alpha provides a clear disabled affordance without hiding controls.
+     */
+    private fun setDnsCheckboxesEnabled(enabled: Boolean) {
+        binding.dnsCheckboxContainer.alpha = if (enabled) 1f else 0.38f
+        listOf(
+            binding.dnsRowDefault, binding.dnsRowPrivacy,
+            binding.dnsRowFamily,  binding.dnsRowSecurity,
+        ).forEach {
+            it.isClickable = enabled
+            it.isFocusable  = enabled
+        }
+        listOf(
+            binding.cbDnsDefault, binding.cbDnsPrivacy,
+            binding.cbDnsFamily,  binding.cbDnsSecurity,
+        ).forEach { it.isEnabled = enabled }
     }
 
     private fun setupConfigHandlingSection() {
@@ -344,19 +448,24 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
 
     /**
      * Shows a [MaterialAlertDialogBuilder] single-choice dialog for selecting
-     * the connection port.  The current selection is pre-checked.
+     * the connection port. The current selection is pre-checked.
      */
     private fun showPortSelectionDialog() {
         if (!isAdded) return
 
+        // lbl_random string resource as updatePortValueLabel()
+        // replace 0 to "RANDOM" in the dialog list
+        val randomLabel = getString(R.string.lbl_random).trim('(', ')').uppercase()
+        val portLabels  = arrayOf(randomLabel, "80", "443", "53", "123", "1194", "65142")
+
         val currentPort = persistentState.rpnPort
         val selectedIndex = PORT_VALUES.indexOfFirst { it == currentPort }.let {
-            if (it < 0) 0 else it  // fall back to AUTO if stored value is unknown
+            if (it < 0) 0 else it  // fall back to random if stored value is unknown
         }
 
         MaterialAlertDialogBuilder(requireContext())
             .setTitle(getString(R.string.server_settings_port_dialog_title))
-            .setSingleChoiceItems(PORT_LABELS, selectedIndex) { dialog, which ->
+            .setSingleChoiceItems(portLabels, selectedIndex) { dialog, which ->
                 val newPort = PORT_VALUES[which]
                 persistentState.rpnPort = newPort
                 updatePortValueLabel(newPort)
@@ -370,7 +479,8 @@ class ServerSettingsBottomSheet : BottomSheetDialogFragment() {
     /** Updates the port display label in the port row. */
     private fun updatePortValueLabel(port: Int) {
         binding.tvPortValue.text = if (port == 0) {
-            getString(R.string.server_settings_port_auto)
+            // Use lbl_random ("(random)"), strip the parentheses, and display in caps → "RANDOM"
+            getString(R.string.lbl_random).trim('(', ')').uppercase()
         } else {
             port.toString()
         }

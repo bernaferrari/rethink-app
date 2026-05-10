@@ -31,16 +31,22 @@ import com.celzero.bravedns.database.SubscriptionStatus
 import com.celzero.bravedns.database.SubscriptionStatusRepository
 import com.celzero.bravedns.iab.BillingBackendClient
 import com.celzero.bravedns.iab.InAppBillingHandler
-import com.celzero.bravedns.iab.InAppBillingHandler.ONE_TIME_PRODUCT_ID
 import com.celzero.bravedns.iab.PurchaseDetail
-import com.celzero.bravedns.iab.SubscriptionCheckWorker
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.activateRpn
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.deactivateRpn
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.enableWinServer
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.ensureAutoServerExists
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.fetchAndConstructWinLocations
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.registerProxy
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.serverRemovedEvent
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.stopProxy
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.syncWinServers
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.updateWinConfigState
 import com.celzero.bravedns.service.EncryptedFileManager
 import com.celzero.bravedns.service.EncryptionException
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_COUNTRY_CODE
-import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.RPN_PROXY_FOLDER_NAME
 import com.celzero.bravedns.util.UIUtils
@@ -84,6 +90,8 @@ object RpnProxyManager : KoinComponent {
     private const val WIN_ENTITLEMENT_FILE_NAME = "win_response.json"
     private const val WIN_STATE_FILE_NAME = "win_state.json"
     const val MAX_WIN_SERVERS = 5
+    const val AUTO_SERVER_ID   = "AUTO"
+    const val AUTO_COUNTRY_CODE = "AUTO"
 
     private var winConfig: ByteArray? = null
     // In-memory cache for WIN servers (CountryConfig as unified model).
@@ -189,12 +197,16 @@ object RpnProxyManager : KoinComponent {
 
     /**
      * Server-side DNS filter options. [id] is stable (persisted); do not reorder.
+     *
+     * The Go tun SetDNSConfig accepts a CSV of filter presets:
+     *   "family", "security", "privacy", "default"
+     * Use [tunTypesFromSet] to build the CSV for a multi-select combination and
+     * [setFromCsv] to restore a persisted CSV back to a [Set] of modes.
      */
     enum class DnsMode(val id: Int, val url: String, val tunType: String) {
         // presets from go-tun, see below
         // SetDNSConfig sets the DNS filter preset configuration. v is a csv of filter presets:
-        // "family", "security", "social", "privacy", "all", "none", "default". "none" and
-        // "default" are aliases that disable all filters. Leave it empty for no-op.
+        // "family", "security", "social", "privacy", "default".
         DEFAULT(0,  DEFAULT_DNS, "default"),
         ANTI_AD(1,  AD_FILTER_DNS, "privacy"),
         PARENTAL(2, PARENTAL_FILTER_DNS, "family"),
@@ -203,6 +215,33 @@ object RpnProxyManager : KoinComponent {
         companion object {
             fun fromId(id: Int): DnsMode  = entries.firstOrNull { it.id == id }  ?: DEFAULT
             fun fromUrl(url: String): DnsMode = entries.firstOrNull { it.url == url } ?: DEFAULT
+
+            /**
+             * Parses a comma-separated string of [DnsMode.tunType] values (e.g.`"privacy,family"`)
+             * back into a [Set] of [DnsMode] entries. Unknown tokens are silently ignored.
+             * Returns a set containing [DEFAULT] if [csv] is blank or yields no valid entries.
+             */
+            fun setFromCsv(csv: String): Set<DnsMode> {
+                if (csv.isBlank()) return setOf(DEFAULT)
+                val result = csv.split(',')
+                    .mapNotNull { token -> entries.firstOrNull { it.tunType == token.trim() } }
+                    .toSet()
+                return result.ifEmpty { setOf(DEFAULT) }
+            }
+
+            /**
+             * Converts a [Set] of [DnsMode] entries to a comma-separated string of their
+             * [tunType] values suitable for [PersistentState.rpnDnsTunTypes] and for passing
+             * to the Go tunnels SetDNSConfig.
+             *
+             * The entries are sorted by [id] so the string is deterministic.
+             *
+             * An empty [modes] set is treated as [DEFAULT].
+             */
+            fun tunTypesFromSet(modes: Set<DnsMode>): String {
+                val effective = modes.ifEmpty { setOf(DEFAULT) }
+                return effective.sortedBy { it.id }.joinToString(",") { it.tunType }
+            }
         }
     }
 
@@ -245,13 +284,14 @@ object RpnProxyManager : KoinComponent {
 
         // no need to check the state, as user can manually deactivate RPN
         persistentState.rpnState = RpnState.DISABLED.id
+        serverKeyMeta.clear()
     }
 
     /**
      * Stops proxying by setting the RPN mode to [RpnMode.NONE].
      *
      * This is a soft-stop: the RPN remains in [RpnState.ENABLED] so it can be
-     * restarted without re-authentication.  Use [deactivateRpn] for a full
+     * restarted without re-authentication. Use [deactivateRpn] for a full
      * tear-down when the subscription is revoked.
      */
     suspend fun stopProxy() {
@@ -285,6 +325,7 @@ object RpnProxyManager : KoinComponent {
         setRpnMode(RpnMode.ANTI_CENSORSHIP)
         setRpnState(RpnState.ENABLED)
         VpnController.handleRpnProxies()
+        serverKeyMeta.clear()
         Logger.i(LOG_TAG_PROXY, "$TAG; startProxy: proxy routing started (mode=ANTI_CENSORSHIP)")
     }
 
@@ -369,25 +410,28 @@ object RpnProxyManager : KoinComponent {
         }
     }
 
-    fun getSessionTokenFromPayload(payload: String): String {
+    suspend fun getSessionTokenFromPayload(payload: String): String {
         // "developerPayload":"{\"ws\":{\"cid\":\"aa95f04efcb19a54c7605a02e5dd0b435906b993d12bec031a60f3f1272f4f0e\",\"sessiontoken\":\"22695:4:1752256088:524537c17**c146ba3404af:023f958b6c194**fe6885d3e57322\",\"expiry\":\"2025-08-11T00:00:00.000Z\",\"status\":\"valid\"}}"
         try {
             val ws = extractWsObject(payload) ?: return ""
-            val sessionToken = ws.optString("sessiontoken", "")
-            Logger.i(LOG_TAG_PROXY, "$TAG; session token parsed from payload? ${sessionToken.isNotEmpty()}")
-            return sessionToken
+            val ent = VpnController.getEntitlementDetails(ws, billingBackendClient.getDeviceId())
+            val sessionToken = ent?.token()
+            Logger.i(LOG_TAG_PROXY, "$TAG; session token parsed from payload? ${sessionToken?.isNotEmpty()}")
+            return sessionToken ?: ""
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$TAG; error parsing session token from payload($payload): ${e.message}", e)
         }
         return ""
     }
 
-    fun getExpiryFromPayload(payload: String): Long? {
+    suspend fun getExpiryFromPayload(payload: String): Long? {
         if (payload.isEmpty()) return null
         try {
             val ws = extractWsObject(payload) ?: return null
-            val expiryStr = ws.optString("expiry", "")
-            if (expiryStr.isEmpty()) return null
+            val ent = VpnController.getEntitlementDetails(ws, billingBackendClient.getDeviceId())
+            val expiryStr = ent?.expiry()
+            if (expiryStr.isNullOrEmpty()) return null
+            // 2028-05-09T05:01:46.547Z, sample
             val timestamp: Long = Instant.parse(expiryStr).toEpochMilli()
             Logger.i(LOG_TAG_PROXY, "$TAG; expiry parsed from payload: $timestamp")
             return timestamp
@@ -402,13 +446,8 @@ object RpnProxyManager : KoinComponent {
             val entitlement = VpnController.getEntitlementDetails(getWinEntitlement(), billingBackendClient.getDeviceId())
             // RpnEntitlement.test() returns Boolean: true = test, false = production
             if (entitlement == null) {
-                Logger.d(LOG_TAG_PROXY, "$TAG; getIsTestEntitlement: null entitlement, querying server for refresh")
-                // refresh entitlement from server
-                if (retryAttempt >= 3) {
-                    return persistentState.appTestMode
-                }
-                refreshEntitlementFromServer()
-                return getIsTestEntitlement(retryAttempt + 1)
+                Logger.d(LOG_TAG_PROXY, "$TAG; getIsTestEntitlement: null entitlement, querying server for refresh, attempt: $retryAttempt")
+                return persistentState.appTestMode
             }
             entitlement.test()
         } catch (e: Exception) {
@@ -450,56 +489,6 @@ object RpnProxyManager : KoinComponent {
             Logger.i(LOG_IAB, "$TAG; $mname: consume succeeded for token=${purchase.purchaseToken.take(8)}")
         } else {
             Logger.w(LOG_IAB, "$TAG; $mname: consume failed for token=${purchase.purchaseToken.take(8)} (will retry next cycle)")
-        }
-    }
-
-    /**
-     * Queries the billing server for a fresh entitlement and stores it locally.
-     *
-     * Uses [BillingBackendClient.queryEntitlement] directly (same as the server-ack path
-     * used elsewhere in the codebase).
-     */
-    suspend fun refreshEntitlementFromServer() {
-        val mname = "refreshEntitlementFromServer"
-        try {
-            val sub = subscriptionStatusRepository.getCurrentSubscription()
-            val accountId     = sub?.accountId.orEmpty()
-            val purchaseToken = sub?.purchaseToken.orEmpty()
-            if (accountId.isEmpty() || purchaseToken.isEmpty()) {
-                Logger.w(LOG_TAG_PROXY, "$TAG; $mname: accountId or purchaseToken empty, skipping")
-                return
-            }
-            val deviceId = billingBackendClient.getDeviceId(accountId)
-            val purchase = PurchaseDetail(
-                productId        = sub?.productId.orEmpty(),
-                planId           = sub?.planId.orEmpty(),
-                productTitle     = sub?.productTitle.orEmpty(),
-                planTitle        = sub?.productTitle.orEmpty(),
-                state            = sub?.state ?: 0,
-                purchaseToken    = purchaseToken,
-                productType      = if ((sub?.productId.orEmpty()).contains("onetime", ignoreCase = true)) "inapp" else "subs",
-                purchaseTime     = "",
-                purchaseTimeMillis = sub?.purchaseTime ?: 0L,
-                isAutoRenewing   = false,
-                accountId        = accountId,
-                // Store only the sentinel
-                deviceId         = if (deviceId.isNotBlank()) SubscriptionStatus.DEVICE_ID_INDICATOR else "",
-                payload          = "",
-                expiryTime       = sub?.billingExpiry ?: 0L,
-                status           = sub?.status ?: 0,
-                windowDays       = sub?.windowDays ?: 0,
-                orderId          = sub?.orderId.orEmpty()
-            )
-            Logger.d(LOG_TAG_PROXY, "$TAG; $mname: querying server entitlement for accLen=${accountId.length}")
-            val updated = billingBackendClient.queryEntitlement(accountId, deviceId, purchase, purchaseToken)
-            if (updated.payload.isNotEmpty()) {
-                Logger.i(LOG_TAG_PROXY, "$TAG; $mname: server entitlement received, storing")
-                storeWinEntitlement(updated.payload)
-            } else {
-                Logger.w(LOG_TAG_PROXY, "$TAG; $mname: server entitlement returned empty payload")
-            }
-        } catch (e: Exception) {
-            Logger.e(LOG_TAG_PROXY, "$TAG; $mname: error querying server entitlement: ${e.message}", e)
         }
     }
 
@@ -699,27 +688,27 @@ object RpnProxyManager : KoinComponent {
      * Both shapes are handled: try top-level "ws" first; if absent, look inside
      * "developerPayload" for a nested "ws".
      */
-    fun extractWsObject(payload: String): JSONObject? {
+    fun extractWsObject(payload: String): ByteArray? {
         if (payload.isEmpty()) return null
         return try {
             val json = JSONObject(payload)
 
             // Shape 2: "ws" is top-level (already-extracted developerPayload).
             val ws = json.optJSONObject("ws")
-            if (ws != null) return ws
+            if (ws != null) return ws.toString().toByteArray()
 
             // Shape 1: "ws" is embedded inside the "developerPayload" string value.
             val devPayloadStr = json.optString("developerPayload", "")
             if (devPayloadStr.isNotEmpty()) {
                 val devPayloadJson = JSONObject(devPayloadStr)
                 val wsFromDev = devPayloadJson.optJSONObject("ws")
-                if (wsFromDev != null) return wsFromDev
+                if (wsFromDev != null) return wsFromDev.toString().toByteArray()
             }
 
             Logger.w(LOG_TAG_PROXY, "$TAG; extractWsObject: ws not found in payload")
             null
         } catch (e: Exception) {
-            Logger.w(LOG_TAG_PROXY, "$TAG; extractWsObject: failed to parse payload: ${e.message}")
+            Logger.w(LOG_TAG_PROXY, "$TAG; extractWsObject: failed to parse payload ($payload): ${e.message}")
             null
         }
     }
@@ -1343,11 +1332,12 @@ object RpnProxyManager : KoinComponent {
      * `sessiontoken` inside the `ws` block is considered unusable, the caller must obtain
      * a fresh entitlement from the server before proceeding.
      */
-    private fun isPayloadUsable(payload: String): Boolean {
+    private suspend fun isPayloadUsable(payload: String): Boolean {
         if (payload.isEmpty()) return false
         return try {
             val ws = extractWsObject(payload) ?: return false
-            val sessionToken = ws.optString("sessiontoken", "")
+            val ent = VpnController.getEntitlementDetails(ws, billingBackendClient.getDeviceId())
+            val sessionToken = ent?.token() ?: ""
             val isUsable = sessionToken.isNotEmpty()
             if (!isUsable) Logger.d(LOG_TAG_PROXY, "$TAG; isPayloadUsable: ws found but sessiontoken is empty")
             isUsable
@@ -1789,6 +1779,7 @@ object RpnProxyManager : KoinComponent {
 
          val winProps = winPropsResult.first
          if (winProps == null) {
+             registerProxy(RpnType.WIN)
              Logger.w(LOG_TAG_PROXY, "$TAG; err; win props is null")
              return Pair(emptySet(), emptyList())
          }
@@ -2342,7 +2333,12 @@ object RpnProxyManager : KoinComponent {
              val removedServers = existingServers.filter { removedSelectedIds.contains(it.id) && it.id != AUTO_SERVER_ID }
 
              Logger.i(LOG_TAG_PROXY, "$TAG; refreshWinServers: refreshed ${newServers.size} servers, ${removedServers.size} selected servers removed")
-             return Pair(newServers.toList(), removedServers)
+             // Return the cache populated by syncWinServers (read from DB) instead of the
+             // freshly-constructed API objects.  API objects are built with default field values
+             // (e.g. isFavourite = false), so returning them would silently clear every country's
+             // favourite flag in the in-memory allServers list inside ServerSelectionFragment.
+             val freshList = winCacheMutex.withLock { winServersCache.toList() }
+             return Pair(freshList, removedServers)
          } catch (e: Exception) {
              Logger.e(LOG_TAG_PROXY, "$TAG; refreshWinServers: error - ${e.message}", e)
              return Pair(emptyList(), emptyList())

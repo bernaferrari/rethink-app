@@ -24,12 +24,11 @@ import android.content.res.Configuration
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.os.Bundle
 import android.provider.Settings
-import com.celzero.bravedns.ui.BaseActivity
 import androidx.core.net.toUri
 import androidx.core.view.WindowInsetsControllerCompat
 import com.celzero.bravedns.R
-import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.iab.DeviceNotRegisteredNotifier
+import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.iab.PurchaseConflictNotifier
 import com.celzero.bravedns.iab.ServerApiError
 import com.celzero.bravedns.service.PersistentState
@@ -42,7 +41,7 @@ import com.celzero.bravedns.ui.activity.FragmentHostActivity
 import com.celzero.bravedns.ui.activity.MiscSettingsActivity.BioMetricType
 import com.celzero.bravedns.ui.activity.PauseActivity
 import com.celzero.bravedns.ui.activity.WgMainActivity
-import com.celzero.bravedns.ui.fragment.ManagePurchaseFragment
+import com.celzero.bravedns.ui.fragment.RethinkPlusDashboardFragment
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE
@@ -176,11 +175,10 @@ class NotificationHandlerActivity: BaseActivity() {
     /**
      * Rebuilds the [ServerApiError.Conflict409] from the notification intent extras,
      * re-posts it to [InAppBillingHandler.serverApiErrorLiveData], cancels the notification,
-     * then opens [ManagePurchaseFragment] via [FragmentHostActivity].
+     * then opens [RethinkPlusDashboardFragment]
      *
-     * [ManagePurchaseFragment.setupServerErrorObserver] observes the LiveData and will
-     * immediately show [PurchaseConflictBottomSheet] the same path used when the app is
-     * already in the foreground.
+     * [RethinkPlusDashboardFragment.setupServerErrorObserver] observes the LiveData and will
+     * immediately show [com.celzero.bravedns.ui.bottomsheet.PurchaseConflictBottomSheet]
      */
     private fun launchPurchaseConflictAndFinish(intent: Intent) {
         try {
@@ -209,8 +207,9 @@ class NotificationHandlerActivity: BaseActivity() {
             Logger.i(LOG_TAG_UI, "launchPurchaseConflictAndFinish: re-posted conflict409, op=$operation")
 
             val hostIntent = FragmentHostActivity.createIntent(
-                context       = this,
-                fragmentClass = ManagePurchaseFragment::class.java
+                context = this,
+                fragmentClass = RethinkPlusDashboardFragment::class.java,
+                args = Bundle()
             ).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }
@@ -225,20 +224,20 @@ class NotificationHandlerActivity: BaseActivity() {
     /**
      * Rebuilds [ServerApiError.DeviceNotRegistered] from the notification intent extras,
      * re-posts it to [InAppBillingHandler.serverApiErrorLiveData], cancels the notification,
-     * then opens [ManagePurchaseFragment] via [FragmentHostActivity].
+     * then opens [RethinkPlusDashboardFragment]
      *
-     * [ManagePurchaseFragment.setupServerErrorObserver] will immediately show
-     * [DeviceNotRegisteredBottomSheet] the same path used when the fragment is on screen.
+     * [RethinkPlusDashboardFragment.setupServerErrorObserver] will immediately show
+     * [com.celzero.bravedns.ui.bottomsheet.DeviceNotRegisteredBottomSheet]
      */
     private fun launchDeviceNotRegisteredAndFinish(intent: Intent) {
         try {
             val error = ServerApiError.DeviceNotRegistered(
                 entitlementCid = intent.getStringExtra(DeviceNotRegisteredNotifier.EXTRA_ENTITLEMENT_CID) ?: "",
-                storedCid      = intent.getStringExtra(DeviceNotRegisteredNotifier.EXTRA_STORED_CID)       ?: "",
+                storedCid = intent.getStringExtra(DeviceNotRegisteredNotifier.EXTRA_STORED_CID)       ?: "",
                 deviceIdPrefix = intent.getStringExtra(DeviceNotRegisteredNotifier.EXTRA_DEVICE_ID_PREFIX) ?: ""
             )
 
-            // Re-post to LiveData on main thread so ManagePurchaseFragment's observer
+            // Re-post to LiveData on main thread so ManageRpnPurchaseBtmSht's observer
             // picks it up and shows DeviceNotRegisteredBottomSheet automatically.
             InAppBillingHandler.serverApiErrorLiveData.value = error
 
@@ -247,8 +246,9 @@ class NotificationHandlerActivity: BaseActivity() {
             Logger.i(LOG_TAG_UI, "launchDeviceNotRegisteredAndFinish: re-posted DeviceNotRegistered error")
 
             val hostIntent = FragmentHostActivity.createIntent(
-                context       = this,
-                fragmentClass = ManagePurchaseFragment::class.java
+                context = this,
+                fragmentClass = RethinkPlusDashboardFragment::class.java,
+                args = Bundle()
             ).apply {
                 flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             }

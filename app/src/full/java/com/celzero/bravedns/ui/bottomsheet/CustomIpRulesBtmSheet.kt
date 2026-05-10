@@ -36,10 +36,13 @@ import com.celzero.bravedns.util.Themes.Companion.getBottomsheetCurrentTheme
 import com.celzero.bravedns.util.UIUtils.fetchColor
 import com.celzero.bravedns.util.UIUtils.fetchToggleBtnColors
 import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.util.Utilities.getCountryCode
+import com.celzero.bravedns.util.Utilities.getFlag
 import com.celzero.bravedns.util.Utilities.isAtleastQ
 import com.celzero.bravedns.util.useTransparentNoDimBackground
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import inet.ipaddr.IPAddressString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -129,11 +132,15 @@ class CustomIpRulesBtmSheet :
         io {
             if (uid == UID_EVERYBODY) {
                 b.customIpAppNameTv.text = getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)
+                b.customIpAppIconCv.visibility = View.GONE
+                updateFlagIfAvailable(ci)
             } else {
                 val appNames = FirewallManager.getAppNamesByUid(ci.uid)
                 val appName = getAppName(ci.uid, appNames)
                 val appInfo = FirewallManager.getAppInfoByUid(ci.uid)
                 uiCtx {
+                    b.customIpAppIconCv.visibility = View.VISIBLE
+                    b.customIpFlagTv.visibility = View.GONE
                     b.customIpAppNameTv.text = appName
                     displayIcon(
                         Utilities.getIcon(
@@ -152,6 +159,19 @@ class CustomIpRulesBtmSheet :
         showBypassUi(uid)
         updateToggleGroup(rules)
         updateStatusUi(rules, ci.modifiedDateTime)
+    }
+
+    private fun updateFlagIfAvailable(ip: CustomIp) {
+        if (ip.wildcard) return
+
+        val inetAddr = try {
+            IPAddressString(ip.ipAddress).hostAddress.toInetAddress()
+        } catch (_: Exception) {
+            null // invalid ip
+        }
+
+        b.customIpFlagTv.visibility = View.VISIBLE
+        b.customIpFlagTv.text = getFlag(getCountryCode(inetAddr, requireContext()))
     }
 
     private fun getAppName(uid: Int, appNames: List<String>): String {

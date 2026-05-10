@@ -244,11 +244,6 @@ class WgIncludeAppsAdapter(
                     removeProxyFromApp(mapping.uid, mapping.packageName, proxyId)
                     Logger.i(LOG_TAG_PROXY, "Removed app: ${mapping.uid}, $proxyId, $proxyName")
                 }
-                // Refresh the adapter to reload data from the database
-                uiCtx {
-                    // Force a refresh to get updated data from database
-                    this@WgIncludeAppsAdapter.refresh()
-                }
             }
         }
 
@@ -302,10 +297,6 @@ class WgIncludeAppsAdapter(
                                     removeProxyFromApp(appInfo.uid, appInfo.packageName, proxyId)
                                 }
                             }
-                        }
-                        // Refresh the adapter to reload data from the database
-                        uiCtx {
-                            this@WgIncludeAppsAdapter.refresh()
                         }
                     }
                 }

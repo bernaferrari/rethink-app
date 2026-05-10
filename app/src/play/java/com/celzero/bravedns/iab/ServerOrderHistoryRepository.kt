@@ -17,16 +17,10 @@ package com.celzero.bravedns.iab
 
 import Logger
 import Logger.LOG_TAG_UI
-import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
-import com.celzero.bravedns.customdownloader.IBillingServerApi
-import com.celzero.bravedns.customdownloader.RetrofitManager
-import com.celzero.bravedns.customdownloader.SafeResponseConverterFactory
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
-import com.celzero.bravedns.service.PersistentState
 import com.google.api.client.json.gson.GsonFactory
 import com.google.api.services.androidpublisher.model.ProductPurchaseV2
 import com.google.api.services.androidpublisher.model.SubscriptionPurchaseV2
-import retrofit2.converter.gson.GsonConverterFactory
 import java.time.Instant
 
 /**
@@ -57,7 +51,7 @@ import java.time.Instant
  * ```
  * Reference: https://developer.android.com/google/play/developer-api
  */
-class ServerOrderHistoryRepository(private val persistentState: PersistentState) {
+class ServerOrderHistoryRepository(private val billingBackendClient: BillingBackendClient) {
 
     companion object {
         private const val TAG = "ServerOrderRepo"
@@ -92,46 +86,31 @@ class ServerOrderHistoryRepository(private val persistentState: PersistentState)
                 Logger.w(LOG_TAG_UI, "$TAG $mname: no purchase detail available")
                 return Result.NoCredentials
             }
-            val accountId     = purchase.accountId
-            val deviceId      = InAppBillingHandler.getObfuscatedDeviceId()
+            val accountId = purchase.accountId
+            val deviceId = InAppBillingHandler.getObfuscatedDeviceId()
             val purchaseToken = purchase.purchaseToken
             if (accountId.isBlank() || purchaseToken.isBlank()) {
                 Logger.w(LOG_TAG_UI, "$TAG $mname: accountId or purchaseToken blank")
                 return Result.NoCredentials
             }
 
-            val isTest    = RpnProxyManager.getIsTestEntitlement()
-            val testParam: String? = if (isTest) "" else null
-
-            val api       = buildApi()
-            val response  = api.getPurchaseHistory(
-                accountId     = accountId,
-                deviceId      = deviceId,
+            when (val raw = billingBackendClient.fetchPurchaseHistory(
+                accountId = accountId,
+                deviceId = deviceId,
                 purchaseToken = purchaseToken,
-                total         = MAX_ORDERS,
-                test          = testParam,
-            )
-
-            if (response == null) {
-                Logger.w(LOG_TAG_UI, "$TAG $mname: null response")
-                return Result.Error("Empty response from server")
+                total = MAX_ORDERS,
+            )) {
+                is FetchOrdersRawResult.Success -> {
+                    val orders = mapTxBody(raw.body)
+                    Logger.i(LOG_TAG_UI, "$TAG $mname: parsed ${orders.size} orders")
+                    Result.Success(orders)
+                }
+                is FetchOrdersRawResult.Error -> {
+                    Logger.w(LOG_TAG_UI, "$TAG $mname: ${raw.message}")
+                    Result.Error(raw.message)
+                }
+                is FetchOrdersRawResult.NoCredentials -> Result.NoCredentials
             }
-            if (!response.isSuccessful) {
-                val code = response.code()
-                Logger.w(LOG_TAG_UI, "$TAG $mname: HTTP $code, ${response.errorBody()?.string()}")
-                return Result.Error("Server returned HTTP $code")
-            }
-            val body = response.body()
-            if (body == null) {
-                Logger.w(LOG_TAG_UI, "$TAG $mname: null body")
-                return Result.Error("No data returned from server")
-            }
-
-            if (DEBUG) Logger.vv(LOG_TAG_UI, "$TAG $mname: body=$body")
-
-            val orders = mapTxBody(body)
-            Logger.i(LOG_TAG_UI, "$TAG $mname: parsed ${orders.size} orders")
-            Result.Success(orders)
         } catch (e: Exception) {
             Logger.e(LOG_TAG_UI, "$TAG $mname: exception: ${e.message}", e)
             Result.Error(e.localizedMessage ?: "Unknown error")
@@ -170,33 +149,12 @@ class ServerOrderHistoryRepository(private val persistentState: PersistentState)
         // Server field is all-lowercase "purchasetoken"
         val token = row.get("purchasetoken")?.asString?.takeIf { it.isNotBlank() }
             ?: return null
-        val cid   = row.get("cid")?.asString ?: ""
+        val cid = row.get("cid")?.asString ?: ""
         // mtime is an ISO-8601 string, e.g. "2026-04-13T22:15:15.976Z"
         val mtime = isoToMillis(row.get("mtime")?.asString)
-        val meta  = row.getAsJsonObject("meta")
+        val meta = row.getAsJsonObject("meta") ?: return null
 
-        if (meta == null) {
-            // Minimal entry when the server omits meta (should not happen normally)
-            return ServerOrderEntry(
-                purchaseToken     = token,
-                cid               = row.get("cid")?.asString ?: "",
-                sku               = "",
-                mtime             = mtime,
-                kind              = "",
-                isSubscription    = false,
-                orderId           = null,
-                startTimeMs       = 0L,
-                expiryTimeMs      = 0L,
-                purchaseTimeMs    = mtime,
-                subscriptionState = null,
-                purchaseState     = null,
-                autoRenewEnabled  = false,
-                isTestPurchase    = false,
-                productId         = "",
-            )
-        }
-
-        val kind    = meta.get("kind")?.asString ?: ""
+        val kind = meta.get("kind")?.asString ?: ""
         // meta.toString() re-serialises the already-parsed Gson JsonObject back to
         // a JSON string so that GsonFactory can deserialise it into the typed model.
         val metaJson = meta.toString()
@@ -237,30 +195,30 @@ class ServerOrderHistoryRepository(private val persistentState: PersistentState)
         // mapped to the legacy Int in ServerOrderEntry (0=purchased, 1=cancelled, 2=pending).
         val purchaseState: Int? = when (meta.purchaseStateContext?.purchaseState) {
             "PURCHASED" -> 0
-            "PENDING"   -> 2
+            "PENDING" -> 2
             "CANCELLED" -> 1
-            else        -> null
+            else -> null
         }
 
         // testPurchaseContext is non-null when this is a sandbox / test purchase
         val isTest = meta.testPurchaseContext != null
 
         return ServerOrderEntry(
-            purchaseToken     = token,
-            cid               = cid,
-            sku               = productId,
-            mtime             = mtime,
-            kind              = meta.kind ?: "",
-            isSubscription    = false,
-            orderId           = meta.orderId,
-            startTimeMs       = purchaseMs,
-            expiryTimeMs      = 0L,
-            purchaseTimeMs    = purchaseMs,
+            purchaseToken = token,
+            cid = cid,
+            sku = productId,
+            mtime = mtime,
+            kind = meta.kind ?: "",
+            isSubscription = false,
+            orderId = meta.orderId,
+            startTimeMs = purchaseMs,
+            expiryTimeMs = 0L,
+            purchaseTimeMs = purchaseMs,
             subscriptionState = null,
-            purchaseState     = purchaseState,
-            autoRenewEnabled  = false,
-            isTestPurchase    = isTest,
-            productId         = productId,
+            purchaseState = purchaseState,
+            autoRenewEnabled = false,
+            isTestPurchase = isTest,
+            productId = productId,
         )
     }
 
@@ -284,31 +242,30 @@ class ServerOrderHistoryRepository(private val persistentState: PersistentState)
         mtime: Long,
         meta: SubscriptionPurchaseV2,
     ): ServerOrderEntry {
-        val orderId    = meta.latestOrderId
-        val startTime  = isoToMillis(meta.startTime)
-        val lineItem   = meta.lineItems?.firstOrNull()
-        val productId  = lineItem?.productId ?: ""
+        val orderId = meta.latestOrderId
+        val startTime = isoToMillis(meta.startTime)
+        val lineItem = meta.lineItems?.firstOrNull()
+        val productId = lineItem?.productId ?: ""
         val expiryTime = isoToMillis(lineItem?.expiryTime)
-        val autoRenew  = lineItem?.autoRenewingPlan?.autoRenewEnabled ?: false
-        // testPurchase is an empty object `{}` for sandbox subscriptions, absent otherwise
-        val isTest     = meta.testPurchase != null
+        val autoRenew = lineItem?.autoRenewingPlan?.autoRenewEnabled ?: false
+        val isTest = meta.testPurchase != null
 
         return ServerOrderEntry(
-            purchaseToken     = token,
-            cid               = cid,
-            sku               = productId,
-            mtime             = mtime,
-            kind              = ServerOrderEntry.KIND_SUBSCRIPTION,
-            isSubscription    = true,
-            orderId           = orderId,
-            startTimeMs       = startTime,
-            expiryTimeMs      = expiryTime,
-            purchaseTimeMs    = startTime,
+            purchaseToken = token,
+            cid = cid,
+            sku = productId,
+            mtime = mtime,
+            kind = ServerOrderEntry.KIND_SUBSCRIPTION,
+            isSubscription = true,
+            orderId = orderId,
+            startTimeMs = startTime,
+            expiryTimeMs = expiryTime,
+            purchaseTimeMs = startTime,
             subscriptionState = meta.subscriptionState,
-            purchaseState     = null,
-            autoRenewEnabled  = autoRenew,
-            isTestPurchase    = isTest,
-            productId         = productId,
+            purchaseState = null,
+            autoRenewEnabled = autoRenew,
+            isTestPurchase = isTest,
+            productId = productId,
         )
     }
 
@@ -319,15 +276,6 @@ class ServerOrderHistoryRepository(private val persistentState: PersistentState)
         } catch (_: Exception) {
             0L
         }
-    }
-
-    private fun buildApi(): IBillingServerApi {
-        return RetrofitManager
-            .getTcpProxyBaseBuilder(persistentState.routeRethinkInRethink)
-            .addConverterFactory(SafeResponseConverterFactory())
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-            .create(IBillingServerApi::class.java)
     }
 }
 

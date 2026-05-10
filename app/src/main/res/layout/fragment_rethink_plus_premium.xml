@@ -21,7 +21,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:paddingBottom="250dp">
+            android:paddingBottom="200dp">
 
             <LinearLayout
                 android:id="@+id/hero_banner"
@@ -40,8 +40,8 @@
                     android:gravity="center_vertical">
 
                     <androidx.appcompat.widget.AppCompatImageView
-                        android:layout_width="28dp"
-                        android:layout_height="28dp"
+                        android:layout_width="24dp"
+                        android:layout_height="24dp"
                         android:src="@drawable/ic_rethink_plus_sparkle"
                         android:layout_marginEnd="8dp"
                         android:alpha="0.85" />
@@ -52,7 +52,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:alpha="0.85"
-                        android:text="@string/rethink_plus_title" />
+                        android:text="@string/rpn_title" />
                 </LinearLayout>
 
                 <androidx.appcompat.widget.AppCompatTextView
@@ -580,7 +580,7 @@
             android:id="@+id/error_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@string/alert_type_error"
+            android:text="@string/firewall_rule_block_app_exception"
             android:textAlignment="center"
             android:textColor="?attr/primaryTextColor"
             android:textSize="20sp"

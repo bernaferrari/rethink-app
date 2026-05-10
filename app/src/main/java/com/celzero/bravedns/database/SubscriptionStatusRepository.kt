@@ -65,20 +65,6 @@ class SubscriptionStatusRepository(private val subscriptionStatusDAO: Subscripti
         }
     }
 
-    suspend fun update(subscriptionStatus: SubscriptionStatus): Int {
-        return mutex.withLock {
-            try {
-                Logger.d(LOG_IAB, "$TAG Updating subscription: ${subscriptionStatus.productId}")
-                val result = subscriptionStatusDAO.update(subscriptionStatus)
-                Logger.d(LOG_IAB, "$TAG Update result: $result")
-                result
-            } catch (e: Exception) {
-                Logger.e(LOG_IAB, "$TAG Error updating subscription: ${e.message}", e)
-                throw e
-            }
-        }
-    }
-
     suspend fun insert(subscriptionStatus: SubscriptionStatus): Long {
         return mutex.withLock {
             try {
@@ -109,7 +95,7 @@ class SubscriptionStatusRepository(private val subscriptionStatusDAO: Subscripti
             Logger.d(LOG_IAB, "$TAG Current subscription: ${subscription?.productId}")
             subscription
         } catch (e: Exception) {
-            Logger.e(LOG_IAB, "$TAG Error getting current subscription: ${e.message}", e)
+            Logger.e(LOG_IAB, "$TAG err getting current subscription: ${e.message}", e)
             null
         }
     }
@@ -221,23 +207,6 @@ class SubscriptionStatusRepository(private val subscriptionStatusDAO: Subscripti
                 result
             } catch (e: Exception) {
                 Logger.e(LOG_IAB, "$TAG Error marking expired subscriptions: ${e.message}", e)
-                throw e
-            }
-        }
-    }
-
-    /**
-     * Delete expired subscriptions older than cutoff time
-     */
-    suspend fun deleteExpiredOlderThan(cutoffTime: Long): Int {
-        return mutex.withLock {
-            try {
-                Logger.d(LOG_IAB, "$TAG Deleting expired subscriptions older than: $cutoffTime")
-                val result = subscriptionStatusDAO.deleteExpiredOlderThan(cutoffTime)
-                Logger.d(LOG_IAB, "$TAG Deleted $result expired subscriptions")
-                result
-            } catch (e: Exception) {
-                Logger.e(LOG_IAB, "$TAG Error deleting expired subscriptions: ${e.message}", e)
                 throw e
             }
         }
@@ -361,23 +330,6 @@ class SubscriptionStatusRepository(private val subscriptionStatusDAO: Subscripti
                 result
             } catch (e: Exception) {
                 Logger.e(LOG_IAB, "$TAG Error deleting subscription: ${e.message}", e)
-                throw e
-            }
-        }
-    }
-
-    /**
-     * Delete all subscriptions
-     */
-    suspend fun deleteAll(): Int {
-        return mutex.withLock {
-            try {
-                Logger.w(LOG_IAB, "$TAG Deleting all subscriptions")
-                val result = subscriptionStatusDAO.deleteAllSubscriptions()
-                Logger.w(LOG_IAB, "$TAG Deleted all subscriptions: $result")
-                result
-            } catch (e: Exception) {
-                Logger.e(LOG_IAB, "$TAG Error deleting all subscriptions: ${e.message}", e)
                 throw e
             }
         }

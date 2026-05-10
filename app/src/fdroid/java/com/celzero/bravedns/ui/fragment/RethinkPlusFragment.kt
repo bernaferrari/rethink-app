@@ -49,7 +49,7 @@ class RethinkPlusFragment : Fragment(R.layout.fragment_rethink_plus) {
 
         // Re-use the not-available layout to surface the coming-soon message.
         b.notAvailableLayout.isVisible    = true
-        b.titleUnavailable.setText(R.string.rethink_plus_fdroid_coming_soon)
-        b.descUnavailable.setText(R.string.rethink_plus_fdroid_coming_soon_desc)
+        b.titleUnavailable.setText(R.string.rpn_fdroid_coming_soon)
+        b.descUnavailable.setText(R.string.rpn_fdroid_coming_soon_desc)
     }
 }

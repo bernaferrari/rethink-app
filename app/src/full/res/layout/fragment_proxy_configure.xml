@@ -45,7 +45,7 @@
                 android:fontFamily="sans-serif-smallcaps"
                 android:lineSpacingExtra="5dp"
                 android:padding="5dp"
-                android:text="@string/rethink_plus_title"
+                android:text="@string/rpn_title"
                 android:textColor="?attr/accentGood"
                 android:textSize="@dimen/extra_large_font_text_view"
                 android:textStyle="bold" />

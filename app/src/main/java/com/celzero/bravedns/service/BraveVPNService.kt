@@ -138,7 +138,6 @@ import com.celzero.firestack.backend.NetStat
 import com.celzero.firestack.backend.Proxy
 import com.celzero.firestack.backend.RDNS
 import com.celzero.firestack.backend.RouterStats
-import com.celzero.firestack.backend.Rpn
 import com.celzero.firestack.backend.RpnEntitlement
 import com.celzero.firestack.backend.RpnProxy
 import com.celzero.firestack.backend.ServerSummary
@@ -168,6 +167,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import okhttp3.internal.concurrent.TaskRunner
 import org.koin.android.ext.android.inject
 import java.io.IOException
 import java.net.InetAddress
@@ -180,6 +180,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import kotlin.collections.firstOrNull
 import kotlin.coroutines.cancellation.CancellationException
 import kotlin.math.abs
 import kotlin.math.min
@@ -211,6 +212,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     private val bind6Dispatcher by lazy { Daemons.ioDispatcher("bind6", Unit, vpnScope) }
     private val protectDispatcher by lazy { Daemons.ioDispatcher("protect", Unit, vpnScope) }
     private val proxyAddedDispatcher by lazy { Daemons.ioDispatcher("pxycallback", Unit, vpnScope) }
+    private val upstreamQueryDispatcher by lazy { Daemons.ioDispatcher("upstreamQ", DNSOpts(), vpnScope) }
 
     private val wgProxyPingController by lazy { WgProxyPingController(vpnScope) }
 
@@ -265,7 +267,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
 
         // subscription check interval in milliseconds 1 hour
         // TODO: increase it to 6 hours?
-        private const val PLUS_CHECK_INTERVAL = 1 * 60 * 60 * 1000L
+        private const val PLUS_CHECK_INTERVAL = 6 * 60 * 60 * 1000L
 
         private const val DATA_STALL_THRESHOLD_MS = 30 * 1000L // 30 seconds
 
@@ -4339,7 +4341,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             Logger.v(LOG_TAG_VPN, "(onQuery)wg ids($wgIds), rpn id($rpnId) found for uid: $uid")
             val rpnOrWgOrDefaultTid = if (wgIds.isEmpty() && rpnId.isEmpty()) {
                 Logger.d(LOG_TAG_VPN, "(onQuery-pid)no wg/rpn found, return $defaultTid")
-                defaultTid
+                if (persistentState.wgGlobalLockdown) Backend.BlockAll else defaultTid
             } else {
                 val wgRpnIds = (rpnId + wgIds).joinToString(",")
                 Logger.d(LOG_TAG_VPN, "(onQuery-pid)wg/rpn ids($wgRpnIds) found for uid: $uid")
@@ -4498,7 +4500,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             )
             if (ids.isEmpty() && rpnIds.isEmpty()) {
                 Logger.d(LOG_TAG_VPN, "(onQuery-pid)no wg found, return $defaultProxy")
-                defaultProxy
+                if (persistentState.wgGlobalLockdown) Backend.BlockAll else defaultProxy
             } else {
                 Logger.d(LOG_TAG_VPN, "(onQuery-pid)wg ids($ids) found for uid: $uid")
                 (rpnIds + ids).joinToString(",")
@@ -4511,7 +4513,33 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             Logger.i(LOG_TAG_VPN, "received null summary for dns")
             return
         }
-        logd("onResponse: $summary")
+        logd("onResponse: ${summary}, rethinkUid: $rethinkUid")
+        Logger.vv(
+            LOG_TAG_VPN,
+            "onResponse obj: " +
+                    "id: ${summary.id}, " +
+                    "type: ${summary.type}, " +
+                    "uid: ${summary.uid}, " +
+                    "lat: ${summary.latency}, " +
+                    "qname: ${summary.qName}, " +
+                    "qtype: ${summary.qType}, " +
+                    "targets: ${summary.targets}, " +
+                    "cached: ${summary.cached}, " +
+                    "rdata: ${summary.rData}, " +
+                    "rcode: ${summary.rCode}, " +
+                    "rttl: ${summary.rTtl}, " +
+                    "server: ${summary.server}, " +
+                    "pid: ${summary.pid}, " +
+                    "rpid: ${summary.rpid}, " +
+                    "status: ${summary.status}, " +
+                    "blocklists: ${summary.blocklists}, " +
+                    "blockedTarget: ${summary.blockedTarget}, " +
+                    "upstreamBlocks: ${summary.upstreamBlocks}, " +
+                    "do: ${summary.`do`}, " +
+                    "ad: ${summary.ad}, " +
+                    "msg: ${summary.msg}, " +
+                    "region: ${summary.region}"
+        )
         if (!DEBUG) {
             // not expected to have fixed id in the summary on production builds
             if (summary.id.contains(Backend.Fixed)) {
@@ -4619,10 +4647,79 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         // no-op
     }
 
-    override fun onUpstreamAnswer(smm: DNSSummary?, ipcsv: String?): DNSOpts? {
-        // no-op
+    override fun onUpstreamAnswer(smm: DNSSummary?, ipcsv: String?): DNSOpts = go2kt(upstreamQueryDispatcher) {
+        if (smm == null) {
+            Logger.i(LOG_TAG_VPN, "onUpstreamAnswer: received null summary for upstream answer")
+            return@go2kt DNSOpts()
+        }
+
+        val uidInt = try {
+            if (smm.uid == Backend.UidSelf) {
+                rethinkUid
+            } else {
+                smm.uid.toInt()
+            }
+        } catch (e: NumberFormatException) {
+            Logger.e(LOG_TAG_VPN, "onUpstreamAnswer: invalid uid ${smm.uid}, error: ${e.message}")
+            return@go2kt DNSOpts()
+        }
+        val userId = FirewallManager.userId(uidInt)
+        val srcIp = smm.server
+        val srcPort = 53
+        // taking the first ip from the rdata, can have multiple ips
+        // TODO: need to handle multiple ips in rdata in case of A/AAAA records,
+        // currently taking the first one for firewall decision
+        val realDestIp = smm.rData.split(",").firstOrNull().orEmpty()
+        val dstPort = 53
+        val protocol = 17 // UDP
+        val blocklists = smm.blocklists
+        val connId = ""
+        val isSplApp = isSpecialApp(uidInt)
+        val domain = smm.qName
+        val anyRealIpBlocked = false
+        val connType =
+            if (isConnectionMetered(realDestIp)) {
+                ConnectionTracker.ConnType.METERED
+            } else {
+                ConnectionTracker.ConnType.UNMETERED
+            }
+
+        val rinr = persistentState.routeRethinkInRethink
+        val connInfo = createConnTrackerMetaData(
+            uidInt,
+            userId,
+            srcIp,
+            srcPort,
+            realDestIp,
+            dstPort,
+            protocol,
+            proxyDetails = "", // set later
+            blocklists.orEmpty(),
+            domain,
+            connId,
+            connType
+        )
+        logd("onUpstreamAnswer: connInfo: $connInfo, domain: $domain, anyRealIpBlocked: $anyRealIpBlocked, isSplApp: $isSplApp, rinr: $rinr")
+        /**
+         * connInfo: ConnTrackerMetaData,
+         *         domains: String?,
+         *         anyRealIpBlocked: Boolean = false,
+         *         isSplApp: Boolean,
+         *         rinr: Boolean
+         */
+        val rule = firewall(connInfo, domain, anyRealIpBlocked, isSplApp, rinr)
+        val blocked = FirewallRuleset.ground(rule)
+        if (blocked) {
+            logd("onUpstreamAnswer: blocked by firewall, rule: $rule, connInfo: $connInfo")
+            return@go2kt DNSOpts().apply {
+                tidcsv = Backend.BlockAll
+                pidcsv = Backend.Base
+                noblock = false
+            }
+        }
+
         if (DEBUG) logd("onUpstreamAnswer: $smm, ipcsv: $ipcsv")
-        return null
+        return@go2kt DNSOpts()
     }
 
     override fun svcRoute(
@@ -5246,7 +5343,8 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             return persistAndConstructFlowResponse(connTracker, pid, connId, uid)
         }
 
-        if (FirewallManager.isAppExcludedFromProxy(uid)) {
+        val isGlobalLockdown = persistentState.wgGlobalLockdown && (appConfig.isProxyEnabled() || RpnProxyManager.isRpnActive())
+        if (FirewallManager.isAppExcludedFromProxy(uid) && !isGlobalLockdown) {
             logd("flow/inflow: app is excluded from proxy, returning Ipn.Base, $connId, $uid")
             if (connTracker.blockedByRule == FirewallRuleset.RULE0.id) {
                 connTracker.blockedByRule = FirewallRuleset.RULE15.id
@@ -5380,6 +5478,12 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
             return persistAndConstructFlowResponse(connTracker, id, connId, uid)
         }
         logd("flow/inflow: no proxies, $baseOrExit, $connId, $uid")
+        if (isGlobalLockdown) {
+            Logger.vv(LOG_TAG_VPN, "flow/inflow: global lockdown is active, block the traffic for $connId, $uid")
+            connTracker.isBlocked = true
+            connTracker.blockedByRule = FirewallRuleset.RULE17.id
+            return persistAndConstructFlowResponse(connTracker, Backend.Block, connId, uid)
+        }
         return persistAndConstructFlowResponse(connTracker, baseOrExit, connId, uid)
     }
 
@@ -5465,7 +5569,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         uid: Int
     ): Mark {
 
-        // added for testing, remove it later
+        // see if this needs to be called every time when flow/inflow is called
         if (RpnProxyManager.isRpnActive()) {
             io("PlusTest") { initiatePlusSubscriptionCheckIfRequired() }
         }
@@ -5527,14 +5631,13 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
     }
 
     private suspend fun initiatePlusSubscriptionCheckIfRequired() {
-        // consider enableWarp as the flag to check the plus subscription
         if (!RpnProxyManager.isRpnEnabled()) {
             Logger.i(LOG_TAG_VPN, "initiatePlusSubscriptionCheckIfRequired(rpn): plus not enabled")
             return
         }
         // initiate the check once in 4 hours, store last check time in local variable
         val currentTime = System.currentTimeMillis()
-        val checkTimeMs = if (DEBUG) 1 * 60 * 1000L else PLUS_CHECK_INTERVAL
+        val checkTimeMs = PLUS_CHECK_INTERVAL
         if (currentTime - lastSubscriptionCheckTime < checkTimeMs) {
             Logger.v(LOG_TAG_VPN, "initiatePlusSubscriptionCheckIfRequired(rpn): check not required, currentTime: $currentTime, lastCheckTime: $lastSubscriptionCheckTime")
             return
@@ -5743,7 +5846,7 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         return vpnAdapter?.removeHop(src) ?: Pair(false, "vpn not active")
     }
 
-    suspend fun getRpnProps(type: RpnProxyManager.RpnType): Pair<RpnProxyManager.RpnProps?, String?> {
+    suspend fun getRpnProps(type: RpnType): Pair<RpnProxyManager.RpnProps?, String?> {
         return vpnAdapter?.getRpnProps(type) ?: Pair(null, null)
     }
 
@@ -5917,43 +6020,54 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge,
         }
     }
 
-    //
+    // initiate ping for wg or rpn proxies if smart persistent keepalive is enabled,
+    // this will initiate the ping if the proxy is not already running and is one of the following:
+    // 1. one-wg proxy
+    // 2. catch-all proxy
+    // 3. hop proxy
     suspend fun handleWgOrRpnProxiesToPing(proxyId: String) {
-        if (proxyId.startsWith(Backend.RpnWin)) {
-            val config = RpnProxyManager.getCountryConfigByKey(proxyId.removePrefix(Backend.RpnWin))
-            if (config == null) {
-                Logger.w(LOG_TAG_VPN, "handleWgOrRpnProxiesToPing: config is null for $proxyId")
-                return
-            }
-            if (!config.catchAll) {
-                wgProxyPingController.startPing(proxyId, false)
-            } else {
-                if (!wgProxyPingController.isRunning(proxyId)) {
-                    wgProxyPingController.startPing(proxyId, true)
-                } else {
-                    if (DEBUG) Logger.vv(LOG_TAG_VPN, "handleWgOrRpnProxiesToPing: no need to initiate ping as it is taken care during screen lock/unlock")
+        val continuous: Boolean = when {
+            proxyId.startsWith(Backend.RpnWin) -> {
+                val config = RpnProxyManager.getCountryConfigByKey(
+                    proxyId.removePrefix(Backend.RpnWin)
+                ) ?: run {
+                    Logger.w(LOG_TAG_VPN, "config is null for $proxyId")
+                    return
                 }
+
+                config.catchAll
             }
-        } else if (proxyId.startsWith(ID_WG_BASE)) {
-            val config = try {
-                WireguardManager.getConfigFilesById(proxyId.removePrefix(ID_WG_BASE).toInt())
-            } catch (_: Exception) {
-                null
-            }
-            if (config == null) {
-                Logger.w(LOG_TAG_VPN, "handleWgOrRpnProxiesToPing: config is null for $proxyId")
-                return
-            }
-            val isPartOfHop = WgHopManager.isWgEitherHopOrSrc(config.id)
-            if (config.isCatchAll || config.oneWireGuard || isPartOfHop) {
-                if (!wgProxyPingController.isRunning(proxyId)) {
-                    wgProxyPingController.startPing(proxyId, true)
-                } else {
-                    if (DEBUG) Logger.vv(LOG_TAG_VPN, "handleWgOrRpnProxiesToPing: no need to initiate ping as it is taken care during screen lock/unlock")
+
+            proxyId.startsWith(ID_WG_BASE) -> {
+                val config = try {
+                    WireguardManager.getConfigFilesById(
+                        proxyId.removePrefix(ID_WG_BASE).toInt()
+                    )
+                } catch (_: Exception) {
+                    null
+                } ?: run {
+                    Logger.w(LOG_TAG_VPN, "config is null for $proxyId")
+                    return
                 }
-            } else {
-                wgProxyPingController.startPing(proxyId, false)
+
+                val isPartOfHop = WgHopManager.isWgEitherHopOrSrc(config.id)
+                config.isCatchAll || config.oneWireGuard || isPartOfHop
             }
+
+            else -> return
+        }
+
+        if (continuous) {
+            if (!wgProxyPingController.isRunning(proxyId)) {
+                wgProxyPingController.startPing(proxyId, true)
+            } else if (DEBUG) {
+                Logger.vv(
+                    LOG_TAG_VPN,
+                    "handleWgOrRpnProxiesToPing: already handled during screen lock/unlock"
+                )
+            }
+        } else {
+            wgProxyPingController.startPing(proxyId, false)
         }
     }
 

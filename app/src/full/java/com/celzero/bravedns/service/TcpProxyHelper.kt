@@ -141,7 +141,7 @@ object TcpProxyHelper : KoinComponent {
         var works = false
         try {
             val retrofit =
-                RetrofitManager.getTcpProxyBaseBuilder(persistentState.routeRethinkInRethink)
+                RetrofitManager.getRpnBaseBuilder(persistentState.routeRethinkInRethink)
                     .addConverterFactory(GsonConverterFactory.create())
                     .build()
             val retrofitInterface = retrofit.create(IBillingServerApi::class.java)

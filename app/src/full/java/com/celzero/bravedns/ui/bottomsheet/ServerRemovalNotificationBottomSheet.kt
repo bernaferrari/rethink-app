@@ -39,7 +39,7 @@ import org.koin.android.ext.android.inject
 import kotlin.getValue
 
 /**
- * Premium bottom sheet notification for informing users about removed server locations
+ * Bottom sheet notification for informing users about removed server locations
  * Features:
  * - Elegant Material Design 3 UI
  * - Smooth animations

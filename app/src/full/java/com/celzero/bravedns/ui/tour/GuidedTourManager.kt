@@ -70,8 +70,8 @@ object GuidedTourManager {
         ),
         TourStep(
             targetViewId   = R.id.rethinkPlus,
-            titleRes       = R.string.tour_step_rethink_plus_title,
-            descRes        = R.string.tour_step_rethink_plus_desc,
+            titleRes       = R.string.tour_step_rpn_title,
+            descRes        = R.string.tour_step_rpn_desc,
             tooltipSide    = TooltipSide.ABOVE,
             spotlightShape = SpotlightShape.CIRCLE,
             isPremium      = true,

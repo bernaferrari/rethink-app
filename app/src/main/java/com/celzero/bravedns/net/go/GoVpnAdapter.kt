@@ -46,6 +46,7 @@ import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.net.doh.Transaction
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.AUTO_SERVER_ID
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.BraveVPNService.Companion.NW_ENGINE_NOTIFICATION_ID
 import com.celzero.bravedns.service.EventLogger
@@ -56,7 +57,6 @@ import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.ui.activity.AntiCensorshipActivity
 import com.celzero.bravedns.ui.activity.AppLockActivity
-import com.celzero.bravedns.ui.fragment.ServerSelectionFragment.Companion.AUTO_SERVER_ID
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.MAX_ENDPOINT
 import com.celzero.bravedns.util.Constants.Companion.ONDEVICE_BLOCKLIST_FILE_TAG
@@ -85,6 +85,7 @@ import com.celzero.firestack.backend.Proxies
 import com.celzero.firestack.backend.Proxy
 import com.celzero.firestack.backend.RDNS
 import com.celzero.firestack.backend.RouterStats
+import com.celzero.firestack.backend.Rpn
 import com.celzero.firestack.backend.RpnEntitlement
 import com.celzero.firestack.backend.RpnOps
 import com.celzero.firestack.backend.RpnProxy
@@ -748,8 +749,8 @@ class GoVpnAdapter : KoinComponent {
                     persistentState.remoteBlocklistTimestamp
                 ) ?: return
             val remoteFile =
-                blocklistFile(remoteDir.absolutePath, ONDEVICE_BLOCKLIST_FILE_TAG) ?: return
-            if (remoteFile.exists()) {
+                blocklistFile(remoteDir.absolutePath, ONDEVICE_BLOCKLIST_FILE_TAG)
+            if (remoteFile?.exists() == true) {
                 getRDNSResolver()?.setRdnsRemote(remoteFile.absolutePath)
                 Logger.i(LOG_TAG_VPN, "$TAG remote-rdns enabled")
                 logEvent(
@@ -1406,6 +1407,9 @@ class GoVpnAdapter : KoinComponent {
                     )
                     Logger.i(LOG_TAG_VPN, "$TAG resumed proxy (non-metered/ssid): $id, res: $res")
                 }
+            }
+            if (!RpnProxyManager.isRpnActive()) {
+                return
             }
             rpnConfigs.forEach {
                 val key = if (it.key.contains(AUTO_SERVER_ID, ignoreCase = true)) {
@@ -2389,9 +2393,11 @@ class GoVpnAdapter : KoinComponent {
 
     private fun constructRpnOps(): RpnOps {
         val rpnOps = RpnOps()
+        val dnsConfig = persistentState.rpnDnsTunTypes
+        rpnOps.setDNSConfig(dnsConfig)
         // no need to check for config in AUTO mode
         if (!persistentState.rpnConfigHandlingManual) {
-            Logger.v(LOG_TAG_PROXY, "$TAG, using default RpnOps config")
+            Logger.v(LOG_TAG_PROXY, "$TAG, using default RpnOps config: $rpnOps")
             return rpnOps
         }
 
@@ -2400,8 +2406,6 @@ class GoVpnAdapter : KoinComponent {
         rpnOps.setPermaCreds(false)
         rpnOps.setRotateCreds(persistentState.rpnAlwaysChangeIdentity)
         rpnOps.setPort(persistentState.rpnPort)
-        val dnsConfig = RpnProxyManager.DnsMode.fromUrl(persistentState.rpnDnsUrl).tunType
-        rpnOps.setDNSConfig(dnsConfig)
         Logger.v(LOG_TAG_PROXY, "$TAG, using custom RpnOps config: $rpnOps")
         return rpnOps
     }
@@ -2412,19 +2416,19 @@ class GoVpnAdapter : KoinComponent {
         // a user configurable screen allowing users to choose custom blocklists.
         // The selected configuration will then be reflected in the DNS URL used here.
         // or a screen to choose multiple user-added dns as well.
-        addRpnProxyDns(id, persistentState.rpnDnsUrl)
+        addRpnProxyDns(id)
     }
 
-    private suspend fun addRpnProxyDns(id: String, url: String) {
+    private suspend fun addRpnProxyDns(id: String) {
         Logger.v(LOG_TAG_VPN, "$TAG addDnsProxyTransport, id: $id")
         try {
             val p = getProxies()?.getProxy(id)
             if (p == null) {
-                Logger.w(LOG_TAG_VPN, "$TAG wireguard proxy not found for id: $id")
+                Logger.w(LOG_TAG_VPN, "$TAG rpn proxy not found for id: $id")
                 return
             }
             Intra.addProxyDNS(tunnel, p)
-            val type = RpnProxyManager.DnsMode.fromUrl(url).tunType
+            val type = persistentState.rpnDnsTunTypes
             logEvent(
                 Severity.LOW,
                 "rpn dns($id) added",
@@ -2434,8 +2438,8 @@ class GoVpnAdapter : KoinComponent {
             Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns proxy failure", e)
             logEvent(
                 Severity.HIGH,
-                "rpn dns53($id) error",
-                "error adding dot transport for url: $url, reason: ${e.message}"
+                "rpn dns($id) error",
+                "error adding rpn dns, reason: ${e.message}"
             )
         }
         Logger.v(LOG_TAG_VPN, "$TAG rpn addDnsProxyTransport done")
@@ -2658,20 +2662,9 @@ class GoVpnAdapter : KoinComponent {
         }
 
         try {
+            // update win will fetch the new dns config from persistent state and apply it to the
+            // win proxy
             updateWin()
-            /*val win = tunnel.proxies.rpn().win()
-            addRpnDns(win.id())
-            Logger.i(LOG_TAG_PROXY, "$TAG rpn dns change, id: ${win.id()}")
-
-            val kids = win.kids()
-            if (kids.isNullOrEmpty()) return
-
-            val kidsList = kids.split(",")
-            Logger.i(LOG_TAG_PROXY, "$TAG rpn dns change, kids: $kids")
-            kidsList.forEach {
-                val id = win.get(it).id()
-                addRpnDns(id)
-            }*/
         } catch (e: Exception) {
             Logger.e(LOG_TAG_PROXY, "$TAG err on rpn dns change: ${e.message}")
         }

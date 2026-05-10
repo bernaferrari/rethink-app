@@ -171,10 +171,6 @@
         <activity
             android:name=".ui.activity.PingTestActivity"
             android:finishOnTaskLaunch="true" />
-        <!--<activity android:name=".ui.activity.RpnCountriesActivity"
-            android:finishOnTaskLaunch="true" />
-        <activity android:name=".ui.activity.RpnAvailabilityCheckActivity"
-            android:finishOnTaskLaunch="true" />-->
         <activity android:name=".ui.activity.FragmentHostActivity"
             android:finishOnTaskLaunch="true" />
         <activity android:name=".ui.activity.RpnWinProxyDetailsActivity"

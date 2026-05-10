@@ -43,6 +43,8 @@ import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
 import com.celzero.bravedns.database.SubscriptionStatus
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.extractWsObject
+import com.celzero.bravedns.rpnproxy.RpnProxyManager.getExpiryFromPayload
 import com.celzero.bravedns.rpnproxy.SubscriptionStateMachineV2
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.service.PersistentState
@@ -522,7 +524,7 @@ object InAppBillingHandler : KoinComponent {
         purchasesList: List<Purchase>?,
         queriedProductType: String? = null
     ) {
-        val mname = "handlePurchase"
+        val mname = this::handlePurchase.name
         // play may deliver the same purchase twice in one callback
         val normalized = purchasesList?.distinctBy { it.purchaseToken } ?: emptyList()
         logd(mname, "processing ${normalized.size} play purchases (prdType=$queriedProductType)")
@@ -543,10 +545,10 @@ object InAppBillingHandler : KoinComponent {
                 }
                 logd(mname, "SUBS query returned empty, threshold reached ($consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD), reconcile...")
 
-                // reset so repeated polls don't re-fire the heavy reconcile path every iteration.
+                // reset so repeated polls don't re-fire the reconcile path every iteration.
                 consecutiveEmptyQueries = 0
                 subscriptionStateMachine.reconcileWithPlayBilling(
-                    purchases          = emptyList<Purchase>(),
+                    purchases = emptyList(),
                     queriedProductType = queriedProductType
                 )
             } else {
@@ -557,7 +559,7 @@ object InAppBillingHandler : KoinComponent {
                     return
                 }
                 logd(mname, "INAPP query returned empty, threshold reached ($consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD), expire old purchases...")
-                // Reset so repeated polls don't re-fire the expiry path every iteration.
+
                 consecutiveEmptyQueries = 0
 
                 // Before expiring, confirm from the server that no active INAPP purchase
@@ -611,29 +613,16 @@ object InAppBillingHandler : KoinComponent {
                                     serverConfirmedValidTokens.add(sub.purchaseToken)
                                     continue
                                 }
-                                // Validate the server-returned payload via VpnController to
-                                // get the authoritative expiry from the in-memory tunnel state.
-                                val payloadBytes = updatedDetail.payload.toByteArray()
-                                val entitlement = VpnController.getEntitlementDetails(payloadBytes, deviceId)
-                                val expiryIso = entitlement?.expiry() ?: ""
-                                val tunnelExpiry: Long = if (expiryIso.isNotEmpty()) {
-                                    try {
-                                        java.time.Instant.parse(expiryIso).toEpochMilli()
-                                    } catch (parseEx: Exception) {
-                                        logd(mname, "expiry parse failed for token=${sub.purchaseToken.take(8)} expiry=$expiryIso: ${parseEx.message}")
-                                        0L
-                                    }
-                                } else {
-                                    0L
-                                }
-                                if (entitlement != null && tunnelExpiry > now) {
-                                    logd(mname, "INAPP token=${sub.purchaseToken.take(8)} server-confirmed valid (expiry=$expiryIso); skipping expire")
+                                val tunnelExpiry: Long = getExpiryFromPayload(updatedDetail.payload) ?: 0L
+                                logd(mname, "server entitlement for token=${sub.purchaseToken.take(8)}: tunExp: $tunnelExpiry, did=${deviceId.take(8)}, now=$now, payload: ${updatedDetail.payload}")
+                                if (tunnelExpiry > now) {
+                                    logd(mname, "INAPP token=${sub.purchaseToken.take(8)} server-confirmed valid (expiry=$tunnelExpiry); skipping expire")
                                     serverConfirmedValidTokens.add(sub.purchaseToken)
                                 } else {
-                                    logd(mname, "INAPP token=${sub.purchaseToken.take(8)} not valid per server (tunnelExpiry=$tunnelExpiry, now=$now); will expire")
+                                    logd(mname, "INAPP token=${sub.purchaseToken.take(8)} is not valid per server (tunnelExpiry=$tunnelExpiry, now=$now); will expire")
                                 }
-                            } catch (rowEx: Exception) {
-                                loge(mname, "unexpected error checking INAPP entitlement for id=${sub.id}: ${rowEx.message}", rowEx)
+                            } catch (e: Exception) {
+                                loge(mname, "unexpected error checking INAPP entitlement for id=${sub.id}: ${e.message}", e)
                                 // Fail-safe: unexpected error → preserve the token.
                                 serverConfirmedValidTokens.add(sub.purchaseToken)
                             }
@@ -675,7 +664,7 @@ object InAppBillingHandler : KoinComponent {
                     )
                 } else {
                     logd(mname, "PurchasePending is for a different product type than $queriedProductType " +
-                            "(pendingProduct=$pendingProductId), skipping failure")
+                        "(pendingProduct=$pendingProductId), skipping failure")
                 }
             }
             return
@@ -803,8 +792,8 @@ object InAppBillingHandler : KoinComponent {
             consecutiveEmptyQueries++
             if (consecutiveEmptyQueries >= EMPTY_QUERY_THRESHOLD) {
                 logd(mname, "No SUBS in purchase list despite SUBS query;" +
-                        "threshold reached ($consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD), " +
-                        "expiring stale SUBS DB rows")
+                    "threshold reached ($consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD), " +
+                    "expiring stale SUBS DB rows")
                 try {
                     subscriptionStateMachine.reconcileWithPlayBilling(
                         purchases          = emptyList<Purchase>(),
@@ -815,7 +804,7 @@ object InAppBillingHandler : KoinComponent {
                 }
             } else {
                 logd(mname, "No SUBS in purchase list despite SUBS query;" +
-                        "ignoring (consecutive=$consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD)")
+                    "ignoring (consecutive=$consecutiveEmptyQueries/$EMPTY_QUERY_THRESHOLD)")
             }
         }
 
@@ -849,12 +838,10 @@ object InAppBillingHandler : KoinComponent {
 
         val getProductTypeFn: (Purchase) -> String = { p -> getProductType(p) }
 
-        val getDeviceIdFn: suspend () -> String = { billingBackendClient.getDeviceId() }
+        val getDeviceIdFn: suspend () -> String = { getObfuscatedDeviceId() }
 
         val onInAppAckSuccessFn: suspend (Purchase) -> Unit = { purchase ->
             // accountId for an existing purchase always comes from the play purchase.
-            // PipKeyManager.getAccountToken() is only used when generating the id BEFORE a new
-            // purchase flow (in launchFlow)
             val accountId = purchase.accountIdentifiers?.obfuscatedAccountId
             if (accountId.isNullOrBlank()) {
                 loge("onInAppAckSuccess", "obfuscatedAccountId missing from INAPP purchase ${purchase.purchaseToken.take(8)}; skipping registerDevice")
@@ -901,25 +888,12 @@ object InAppBillingHandler : KoinComponent {
 
     private suspend fun validatePayloadAndFetchIfRequired(purchaseDtl: PurchaseDetail): PurchaseDetail {
         val mname = this::validatePayloadAndFetchIfRequired.name
-        val payloadByteArray = purchaseDtl.payload.toByteArray()
-        val entitlement = VpnController.getEntitlementDetails(payloadByteArray, getObfuscatedDeviceId())
-
-        val expiryIso = entitlement?.expiry() ?: ""
         val now = System.currentTimeMillis()
-        val tunnelExpiry: Long = if (expiryIso.isNotEmpty()) {
-            try {
-                java.time.Instant.parse(expiryIso).toEpochMilli()
-            } catch (parseEx: Exception) {
-                log(mname, "expiry parse failed for $expiryIso: ${parseEx.message}")
-                0L
-            }
-        } else {
-            0L
-        }
-        if (entitlement != null && tunnelExpiry > now) {
+        val tunnelExpiry: Long? = getExpiryFromPayload(purchaseDtl.payload)
+        if (tunnelExpiry != null && tunnelExpiry > now) {
             return purchaseDtl
         }
-
+        Logger.i(mname, "Payload validation failed or expired for token=${purchaseDtl.purchaseToken.take(8)}; fetching updated entitlement from server")
         return queryEntitlementFromServer(getObfuscatedAccountId(), getObfuscatedDeviceId(), purchaseDtl)
     }
 
@@ -935,9 +909,29 @@ object InAppBillingHandler : KoinComponent {
             return
         }
 
-        // this takes care of retrieving device id from the server and storing in the
-        // encrypted file
-        billingBackendClient.getDeviceId(cid)
+        // CID has changed (or DID is missing): re-register this device under the new CID.
+        // Call createOrRegisterDid() directly so we can inspect the error code and surface
+        // 401/409 to the UI — getDeviceId(cid) obscures the error by falling through to the
+        // (now stale) stored DID.
+        logd(mname, "reconciling did for new cid=${cid.take(8)}")
+        val didResult = billingBackendClient.createOrRegisterDid(cid)
+        when {
+            didResult.isSuccess -> {
+                logd(mname, "reconcile succeeded; persisting new (cid, did)")
+                secureIdentityStore.save(cid, didResult.deviceId)
+            }
+            didResult.errorCode == 401 -> {
+                loge(mname, "401 unauthorized on device re-registration for cid=${cid.take(8)}; surfacing auth error")
+                handleUnauthorized401(ServerApiError.Operation.DEVICE, cid, "")
+            }
+            didResult.errorCode == 409 -> {
+                loge(mname, "409 conflict on device re-registration for cid=${cid.take(8)}; surfacing conflict error")
+                handleConflict409(ServerApiError.Operation.DEVICE, cid, "", "", "", "Conflict: 409")
+            }
+            else -> {
+                loge(mname, "device re-registration failed (code=${didResult.errorCode}) for cid=${cid.take(8)}; non-fatal")
+            }
+        }
     }
 
 
@@ -1336,7 +1330,7 @@ object InAppBillingHandler : KoinComponent {
             }
             else -> {
                 loge(mname, "unknown productId=$productId, defaulting to SUBS; " +
-                        "add this product ID to resolveProductTypeFromKnownIds()")
+                    "add this product ID to resolveProductTypeFromKnownIds()")
                 ProductType.SUBS // by default assume as subs; should not happen
             }
         }
@@ -1353,7 +1347,7 @@ object InAppBillingHandler : KoinComponent {
     fun fetchPurchases(productType: List<String>) {
         billingScope.launch {
             val mname = "fetchPurchases"
-            logv(mname, "Fetching purchases for types: $productType")
+            logv(mname, "fetching purchases for types: $productType")
             // determine product types to be fetched
             val hasInApp = productType.any { it == ProductType.INAPP }
             val hasSubs = productType.any { it == ProductType.SUBS }
@@ -1367,42 +1361,42 @@ object InAppBillingHandler : KoinComponent {
                 hasInApp -> queryPurchases(ProductType.INAPP, false)
                 hasSubs -> queryPurchases(ProductType.SUBS, false)
                 else -> {
-                    loge(mname, "No valid product types provided for fetching purchases")
+                    loge(mname, "invalid product type for purchases fetch, $productType")
                     return@launch
                 }
             }
-            logv(mname, "Purchases fetch complete")
+            logv(mname, "purchases fetch complete")
         }
     }
 
-    private fun queryPurchases(productType: String, hasBoth: Boolean) {
+    private fun queryPurchases(pt: String, hasBoth: Boolean) {
         val mname = this::queryPurchases.name
-        log(mname, "Querying purchases for type: $productType, hasBoth: $hasBoth")
+        log(mname, "querying purchases for type: $pt, hasBoth: $hasBoth")
 
-        val queryPurchasesParams = QueryPurchasesParams.newBuilder().setProductType(productType).build()
+        val queryPurchasesParams = QueryPurchasesParams.newBuilder().setProductType(pt).build()
 
-        billingClient.queryPurchasesAsync(queryPurchasesParams) { billingResult, purchases ->
-            log(mname, "Query result for $productType: code: ${billingResult.responseCode}, purchases: ${purchases.size}")
+        billingClient.queryPurchasesAsync(queryPurchasesParams) { result, purchases ->
+            log(mname, "query result for $pt: code: ${result.responseCode}, purchases: ${purchases.size}")
             if (DEBUG) {
                 purchases.forEachIndexed { index, purchase ->
-                    log(mname, "Purchase ($index): $purchase")
+                    log(mname, "purchase ($index): $purchase")
                 }
             }
-            if (BillingResponse(billingResult.responseCode).isOk) {
+            if (BillingResponse(result.responseCode).isOk) {
                 billingScope.launch {
                     try {
-                        logv(mname, "Processing($productType) ${purchases.size} purchases")
-                        handlePurchase(purchases, productType)
+                        logv(mname, "processing($pt) ${purchases.size} purchases")
+                        handlePurchase(purchases, pt)
                     } catch (e: Exception) {
-                        loge(mname, "err processing($productType) purchases: ${e.message}", e)
+                        loge(mname, "err processing($pt) purchases: ${e.message}", e)
                     }
                 }
             } else {
-                loge(mname, "Failed to query purchases for $productType: ${billingResult.responseCode}")
+                loge(mname, "err in query purchases response $pt: ${result.responseCode}, ${result.debugMessage}")
             }
 
             // query SUBS if we were querying INAPP and hasBoth is true
-            if (productType == ProductType.INAPP && hasBoth) {
+            if (pt == ProductType.INAPP && hasBoth) {
                 queryPurchases(ProductType.SUBS, false)
             }
         }
@@ -1410,10 +1404,10 @@ object InAppBillingHandler : KoinComponent {
 
     suspend fun queryProductDetailsWithTimeout(timeout: Long = 10_000) {
         val mname = this::queryProductDetailsWithTimeout.name
-        logv(mname, "Querying product details with timeout: ${timeout}ms")
+        logv(mname, "querying product details with timeout: ${timeout}ms")
 
         if (productDetails.isNotEmpty()) {
-            logd(mname, "Product details cached (${productDetails.size} items), notifying listener")
+            logd(mname, "product details cached (${productDetails.size} items), notifying listener")
             val cached = productDetails.toList()
             withContext(Dispatchers.Main) {
                 productDetailsLiveData.value = cached
@@ -1427,7 +1421,7 @@ object InAppBillingHandler : KoinComponent {
         }
 
         if (result == null) {
-            loge(mname, "Product details query timed out after ${timeout}ms")
+            loge(mname, "product details query timed out after ${timeout}ms")
             withContext(Dispatchers.Main) {
                 billingListener?.productResult(false, emptyList())
             }
@@ -1454,7 +1448,7 @@ object InAppBillingHandler : KoinComponent {
                 )
             ).build()
 
-        logd(mname, "Launching INAPP product query")
+        logd(mname, "launching INAPP product query")
         billingClient.queryProductDetailsAsync(inAppParams) { br, result ->
             logd(mname, "INAPP result: code=${br.responseCode}, items=${result.productDetailsList.size}")
             if (br.responseCode == BillingResponseCode.OK) {
@@ -1475,7 +1469,7 @@ object InAppBillingHandler : KoinComponent {
                 )
             ).build()
 
-        logd(mname, "Launching SUBS product query")
+        logd(mname, "launching SUBS product query")
         billingClient.queryProductDetailsAsync(subsParams) { br, result ->
             logd(mname, "SUBS result: code=${br.responseCode}, items=${result.productDetailsList.size}")
             if (br.responseCode == BillingResponseCode.OK) {
@@ -1495,7 +1489,7 @@ object InAppBillingHandler : KoinComponent {
 
 
         val merged = productDetails.toList()
-        logd(mname, "Product query complete: ${merged.size} total products (inApp=${inAppList.size}, subs=${subsList.size})")
+        logd(mname, "product query complete: ${merged.size} total products (inApp=${inAppList.size}, subs=${subsList.size})")
         withContext(Dispatchers.Main) {
             productDetailsLiveData.postValue(merged)
             billingListener?.productResult(merged.isNotEmpty(), merged)
@@ -1503,15 +1497,17 @@ object InAppBillingHandler : KoinComponent {
     }
 
 
-    private fun processProductList(productDetailsList: List<ProductDetails>) {
+    private fun processProductList(pds: List<ProductDetails>) {
         val mname = this::processProductList.name
-        val queryProductDetail = arrayListOf<QueryProductDetail>()
-        logd(mname, "product details size: ${productDetailsList.size}, $productDetailsList")
-        productDetailsList.forEach { pd ->
-            logd(mname, "product details: $pd")
+        val queryProductDetails = arrayListOf<QueryProductDetail>()
+        logd(mname, "product details size: ${pds.size}, $pds")
+        pds.forEach { pd ->
+            logd(mname, "product detail: $pd")
 
             when (pd.productType) {
                 ProductType.INAPP -> {
+                    // no need to handle oneTimePurchaseOfferDetails as the list will have all
+                    // the available offers for the in-app product
                     val offers = pd.oneTimePurchaseOfferDetailsList.orEmpty()
                     if (offers.isEmpty()) {
                         loge(mname, "INAPP product has no one-time offers: ${pd.productId}")
@@ -1542,7 +1538,7 @@ object InAppBillingHandler : KoinComponent {
                             pricingDetails = listOf(pricingPhase)
                         )
                         this.productDetails.add(productDetail)
-                        queryProductDetail.add(QueryProductDetail(productDetail, pd, null, offer))
+                        queryProductDetails.add(QueryProductDetail(productDetail, pd, null, offer))
                     }
                 }
 
@@ -1614,7 +1610,7 @@ object InAppBillingHandler : KoinComponent {
                                 this.productDetails.add(productDetail)
                             }
                             if (!isExistInStore) {
-                                queryProductDetail.add(QueryProductDetail(productDetail, pd, offer, null))
+                                queryProductDetails.add(QueryProductDetail(productDetail, pd, offer, null))
                             }
                             logd(
                                 mname,
@@ -1626,15 +1622,20 @@ object InAppBillingHandler : KoinComponent {
             }
         }
 
-        storeProductDetails.addAll(queryProductDetail)
-        log(mname, "Processed product details list: ${storeProductDetails.size} items")
+        storeProductDetails.addAll(queryProductDetails)
+        log(mname, "processed product details list: ${storeProductDetails.size} items")
 
-        storeProductDetails.forEach {
-            log(mname, "storeProductDetails item: ${it.productDetail.productId}, ${it.productDetail.planId}, ${it.productDetail.pricingDetails}" )
-        }
+        if (DEBUG) {
+            storeProductDetails.forEach {
+                log(
+                    mname,
+                    "storeProductDetails item: ${it.productDetail.productId}, ${it.productDetail.planId}, ${it.productDetail.pricingDetails}"
+                )
+            }
 
-        productDetails.forEach {
-            log(mname, "productDetails item: ${it.productId}, ${it.planId}, ${it.pricingDetails}" )
+            productDetails.forEach {
+                log(mname, "productDetails item: ${it.productId}, ${it.planId}, ${it.pricingDetails}" )
+            }
         }
 
         // remove duplicates from storeProductDetails and productDetails
@@ -1664,14 +1665,12 @@ object InAppBillingHandler : KoinComponent {
 
         // check if we can make a purchase through state machine
         // forceResubscribe bypasses the state check when the user explicitly resubscribes from
-        // the ResubscribeBottomSheet while the subscription is still Active (cancelled but not
+        // the ResubscribeBottomSheet while the subscription is still Active (canceled but not
         // yet expired). Active has no PurchaseInitiated transition, so startPurchase() is also
-        // skipped: the result comes back via PaymentSuccessful which Active→Active handles.
+        // skipped, the result comes back via PaymentSuccessful which Active→Active handles.
         if (!forceResubscribe && !subscriptionStateMachine.canMakePurchase()) {
             val currentState = subscriptionStateMachine.getCurrentState()
-            loge(mname, "Cannot make purchase - current state: ${currentState.name}")
-
-            loge(mname, "Cannot make purchase in current state: ${currentState.name}")
+            loge(mname, "cannot make purchase, current state: ${currentState.name}")
             billingListener?.purchasesResult(false, emptyList())
             return
         }
@@ -1683,44 +1682,44 @@ object InAppBillingHandler : KoinComponent {
             try {
                 subscriptionStateMachine.startPurchase()
             } catch (e: Exception) {
-                loge(mname, "Error starting purchase in state machine: ${e.message}", e)
+                loge(mname, "err starting purchase in state machine: ${e.message}", e)
                 billingListener?.purchasesResult(false, emptyList())
                 return
             }
         }
 
-        log(mname, "Looking for product: $productId, plan: $planId")
-        var queryProductDetail = storeProductDetails.find {
+        log(mname, "looking for product: $productId, plan: $planId")
+        var pd = storeProductDetails.find {
             it.productDetail.productId == productId &&
-                    it.productDetail.planId == planId &&
-                    it.productDetail.productType == ProductType.SUBS
+            it.productDetail.planId == planId &&
+            it.productDetail.productType == ProductType.SUBS
         }
 
         // storeProductDetails may be empty when purchaseSubs is reached without the RethinkPlus
         // screen having been opened first (e.g. directly from ResubscribeBottomSheet on a cold
         // start). Fetch product details on-demand and retry the lookup once before giving up.
-        if (queryProductDetail == null) {
-            log(mname, "Product not found in cache (size=${storeProductDetails.size}), fetching on-demand and retrying")
+        if (pd == null) {
+            log(mname, "product not found in cache (size=${storeProductDetails.size}), fetching on-demand and retrying")
             try {
                 withTimeoutOrNull(10_000) { queryProductDetails() }
             } catch (e: Exception) {
-                loge(mname, "On-demand product details fetch failed: ${e.message}", e)
+                loge(mname, "on-demand product details fetch failed: ${e.message}", e)
             }
-            queryProductDetail = storeProductDetails.find {
+            pd = storeProductDetails.find {
                 it.productDetail.productId == productId &&
-                        it.productDetail.planId == planId &&
-                        it.productDetail.productType == ProductType.SUBS
+                it.productDetail.planId == planId &&
+                it.productDetail.productType == ProductType.SUBS
             }
         }
 
-        if (queryProductDetail == null) {
+        if (pd == null) {
             val errorMsg = "No product details found for productId: $productId, planId: $planId"
             loge(mname, errorMsg)
 
             try {
                 subscriptionStateMachine.purchaseFailed(errorMsg, null)
             } catch (e: Exception) {
-                loge(mname, "Error notifying state machine: ${e.message}", e)
+                loge(mname, "err notifying state machine: ${e.message}", e)
             }
 
             billingListener?.purchasesResult(false, emptyList())
@@ -1730,8 +1729,8 @@ object InAppBillingHandler : KoinComponent {
         try {
             launchFlow(
                 activity = activity,
-                queryProductDetail.productDetails,
-                offerToken = queryProductDetail.offerDetails?.offerToken
+                pd.productDetails,
+                offerToken = pd.offerDetails?.offerToken
             )
         } catch (e: Exception) {
             val errorMsg = "Failed to launch purchase flow: ${e.message}"
@@ -1740,7 +1739,7 @@ object InAppBillingHandler : KoinComponent {
             try {
                 subscriptionStateMachine.purchaseFailed(errorMsg, null)
             } catch (stateMachineError: Exception) {
-                loge(mname, "Error notifying state machine: ${stateMachineError.message}", stateMachineError)
+                loge(mname, "err notifying state machine: ${stateMachineError.message}", stateMachineError)
             }
 
             billingListener?.purchasesResult(false, emptyList())
@@ -1750,11 +1749,11 @@ object InAppBillingHandler : KoinComponent {
     suspend fun purchaseOneTime(activity: Activity, productId: String, planId: String, forceExtend: Boolean = false) {
         val mname = this::purchaseOneTime.name
 
-        log(mname, "Looking for one-time product: $productId, plan: $planId, forceExtend=$forceExtend")
+        log(mname, "init one-time purchase product: $productId, plan: $planId, forceExtend=$forceExtend")
 
         if (!forceExtend && !subscriptionStateMachine.canMakePurchase()) {
             val currentState = subscriptionStateMachine.getCurrentState()
-            loge(mname, "Cannot make one-time purchase in state: ${currentState.name}")
+            loge(mname, "cannot make one-time purchase in state: ${currentState.name}")
             billingListener?.purchasesResult(false, emptyList())
             return
         }
@@ -1766,7 +1765,7 @@ object InAppBillingHandler : KoinComponent {
             try {
                 subscriptionStateMachine.startPurchase()
             } catch (e: Exception) {
-                loge(mname, "Error starting one-time purchase in state machine: ${e.message}", e)
+                loge(mname, "err starting one-time purchase in state machine: ${e.message}", e)
                 billingListener?.purchasesResult(false, emptyList())
                 return
             }
@@ -1774,7 +1773,8 @@ object InAppBillingHandler : KoinComponent {
 
         val queryProductDetail = storeProductDetails.find {
             it.productDetail.productId == productId &&
-                    it.productDetail.productType == ProductType.INAPP
+                    it.productDetail.productType == ProductType.INAPP &&
+                    it.productDetail.planId == planId
         }
 
         if (queryProductDetail == null) {
@@ -1788,7 +1788,7 @@ object InAppBillingHandler : KoinComponent {
         try {
             val offerToken = queryProductDetail.oneTimeOfferDetails?.offerToken
             launchFlow(activity = activity, pds = queryProductDetail.productDetails, offerToken = offerToken)
-            logv(mname, "One-time purchase flow launched for productId: $productId, offerToken: $offerToken")
+            logv(mname, "one-time purchase flow launched for productId: $productId, offerToken: $offerToken")
         } catch (e: Exception) {
             val errorMsg = "Failed to launch one-time purchase flow: ${e.message}"
             loge(mname, errorMsg, e)
@@ -1805,7 +1805,7 @@ object InAppBillingHandler : KoinComponent {
         val mname = this::launchFlow.name
 
         if (pds == null) {
-            loge(mname, "No product details available, cannot launch purchase flow")
+            loge(mname, "no product details available, cannot launch purchase flow")
             try {
                 subscriptionStateMachine.purchaseFailed("No product details found", null)
             } catch (e: Exception) {
@@ -1815,7 +1815,7 @@ object InAppBillingHandler : KoinComponent {
             return
         }
 
-        logd(mname, "Launching purchase flow for: ${pds.title}, ${pds.productId}, offerToken: $offerToken, ${pds.productType}, ${pds.oneTimePurchaseOfferDetailsList}")
+        logd(mname, "launching purchase flow for: ${pds.title}, ${pds.productId}, offerToken: $offerToken, ${pds.productType}, ${pds.oneTimePurchaseOfferDetailsList}")
 
         // Ensure server-driven accountId + deviceId are available BEFORE launching the
         // billing flow. fetchOrEnsureCustomerIds() calls /customer when IDs are absent,
@@ -1867,7 +1867,7 @@ object InAppBillingHandler : KoinComponent {
         billingListener?.purchasesResult(isSuccess, emptyList())
 
         if (!isSuccess) {
-            loge(mname, "Failed to launch billing flow: ${billingResult.responseCode}")
+            loge(mname, "err launch billing flow: ${billingResult.responseCode}")
             transactionErrorLiveData.postValue(billingResult)
         }
     }
@@ -1875,29 +1875,65 @@ object InAppBillingHandler : KoinComponent {
     /**
      * Returns the obfuscated **account** ID to embed in [BillingFlowParams].
      *
-     * Resolution order (delegated to [BillingBackendClient.getAccountId]):
-     * 1. In-memory cache
-     * 2. [SecureIdentityStore] (AES-encrypted file)
-     * 3. `d/acc` API call
+     * Resolution order (via [BillingBackendClient.resolveIdentity]):
+     * 1. [SecureIdentityStore] (AES-encrypted file) — fast path, no network call.
+     * 2. `POST /d/acc` + `POST /d/reg` — when store is empty or stale.
      *
+     * On HTTP 401 / 409 from the server the corresponding [ServerApiError] is posted to
+     * [serverApiErrorLiveData] so the UI can surface it immediately.
      * Returns blank if all sources fail; callers must guard against a blank return.
      */
     suspend fun getObfuscatedAccountId(): String {
-        return billingBackendClient.getAccountId()
+        val mname = this::getObfuscatedAccountId.name
+        return when (val result = billingBackendClient.resolveIdentity()) {
+            is RefreshIdentityResult.Success      -> result.cid
+            is RefreshIdentityResult.Unauthorized -> {
+                loge(mname, "401 unauthorized on account ID resolution; surfacing auth error")
+                handleUnauthorized401(ServerApiError.Operation.CUSTOMER, "", "")
+                ""
+            }
+            is RefreshIdentityResult.Conflict     -> {
+                loge(mname, "409 conflict on account ID resolution; surfacing conflict error")
+                handleConflict409(ServerApiError.Operation.CUSTOMER, "", "", "", "", null)
+                ""
+            }
+            is RefreshIdentityResult.Failure      -> {
+                loge(mname, "account ID resolution failed (transient)")
+                ""
+            }
+        }
     }
 
     /**
      * Returns the obfuscated **device** ID used for device registration.
      *
-     * Resolution order (delegated to [BillingBackendClient.getDeviceId]):
-     * 1. In-memory cache
-     * 2. [SecureIdentityStore] (AES-encrypted file)
-     * 3. `d/reg` API call
+     * Resolution order (via [BillingBackendClient.resolveIdentity]):
+     * 1. [SecureIdentityStore] (AES-encrypted file) — fast path, no network call.
+     * 2. `POST /d/acc` + `POST /d/reg` — when store is empty or stale.
      *
+     * On HTTP 401 / 409 from the server the corresponding [ServerApiError] is posted to
+     * [serverApiErrorLiveData] so the UI can surface it immediately.
      * Returns blank if all sources fail; callers must guard against a blank return.
      */
     suspend fun getObfuscatedDeviceId(): String {
-        return billingBackendClient.getDeviceId()
+        val mname = this::getObfuscatedDeviceId.name
+        return when (val result = billingBackendClient.resolveIdentity()) {
+            is RefreshIdentityResult.Success -> result.did
+            is RefreshIdentityResult.Unauthorized -> {
+                loge(mname, "401 unauthorized on device ID resolution; surfacing auth error")
+                handleUnauthorized401(ServerApiError.Operation.CUSTOMER, "", "")
+                ""
+            }
+            is RefreshIdentityResult.Conflict -> {
+                loge(mname, "409 conflict on device ID resolution; surfacing conflict error")
+                handleConflict409(ServerApiError.Operation.CUSTOMER, "", "", "", "", null)
+                ""
+            }
+            is RefreshIdentityResult.Failure -> {
+                loge(mname, "device ID resolution failed (transient)")
+                ""
+            }
+        }
     }
 
     /**
@@ -1919,7 +1955,26 @@ object InAppBillingHandler : KoinComponent {
     private suspend fun fetchOrEnsureCustomerIds(): Pair<String, String> {
         val mname = "fetchOrEnsureCustomerIds"
         logd(mname, "resolving identity via BillingServerRepository")
-        return billingBackendClient.resolveIdentity()
+        return when (val result = billingBackendClient.resolveIdentity()) {
+            is RefreshIdentityResult.Success -> {
+                logd(mname, "identity resolved (cidLen=${result.cid.length}, didLen=${result.did.length})")
+                Pair(result.cid, result.did)
+            }
+            is RefreshIdentityResult.Unauthorized -> {
+                loge(mname, "401 unauthorized from identity resolution; surfacing auth error")
+                handleUnauthorized401(ServerApiError.Operation.CUSTOMER, "", "")
+                Pair("", "")
+            }
+            is RefreshIdentityResult.Conflict -> {
+                loge(mname, "409 conflict from identity resolution; surfacing conflict error")
+                handleConflict409(ServerApiError.Operation.CUSTOMER, "", "", "", "", null)
+                Pair("", "")
+            }
+            is RefreshIdentityResult.Failure -> {
+                loge(mname, "identity resolution failed (transient)")
+                Pair("", "")
+            }
+        }
     }
 
     /**
@@ -2001,10 +2056,14 @@ object InAppBillingHandler : KoinComponent {
             sku           = sku
         )
         withContext(Dispatchers.Main) {
+            // Guard: if a Conflict409 is already the current live value, don't post another
+            // notification.  Retries can call handleConflict409 multiple times and each
+            // would otherwise fire a new notification once the user dismisses the first one.
+            val alreadyConflictActive = serverApiErrorLiveData.value is ServerApiError.Conflict409
             serverApiErrorLiveData.value = error
             // If no UI is observing the LiveData right now, also post a notification so
             // the user is alerted even when the app is backgrounded.
-            if (!serverApiErrorLiveData.hasActiveObservers()) {
+            if (!alreadyConflictActive && !serverApiErrorLiveData.hasActiveObservers()) {
                 val ctx = appContext
                 if (ctx != null) {
                     logd("handleConflict409", "posting conflict notification")
@@ -2012,6 +2071,8 @@ object InAppBillingHandler : KoinComponent {
                 } else {
                     loge("handleConflict409", "appContext null; cannot post conflict notification")
                 }
+            } else if (alreadyConflictActive) {
+                logd("handleConflict409", "conflict already active, skipping duplicate notification")
             }
         }
         loge("handleConflict409", "409 on ${operation.endpoint}: $serverMsg")
@@ -2183,37 +2244,38 @@ object InAppBillingHandler : KoinComponent {
      * called immediately after this function from [startStateObserver].
      */
     private fun handleStateChange(state: SubscriptionStateMachineV2.SubscriptionState) {
+        val mname = this::handleStateChange.name
         when (state) {
             is SubscriptionStateMachineV2.SubscriptionState.Active ->
-                logd("handleStateChange", "Subscription is active")
+                logd(mname, "subscription is active")
 
             is SubscriptionStateMachineV2.SubscriptionState.Grace ->
-                logd("handleStateChange", "Subscription in grace period; still valid but payment failing")
+                logd(mname, "subscription in grace period; still valid but payment failing")
 
             is SubscriptionStateMachineV2.SubscriptionState.Cancelled ->
-                logd("handleStateChange", "Subscription cancelled; still valid until billing expiry")
+                logd(mname, "subscription cancelled; still valid until billing expiry")
 
             is SubscriptionStateMachineV2.SubscriptionState.Expired ->
-                logd("handleStateChange", "Subscription expired")
+                logd(mname, "subscription expired")
 
             is SubscriptionStateMachineV2.SubscriptionState.Revoked ->
-                loge("handleStateChange", "Subscription revoked")
+                loge(mname, "subscription revoked")
 
             is SubscriptionStateMachineV2.SubscriptionState.Error ->
-                loge("handleStateChange", "State machine entered error state; Play will re-confirm on next query")
+                loge(mname, "state machine entered error state; Play will re-confirm on next query")
 
             is SubscriptionStateMachineV2.SubscriptionState.OnHold ->
-                logd("handleStateChange", "Subscription on hold; payment pending")
+                logd(mname, "subscription on hold; payment pending")
 
             is SubscriptionStateMachineV2.SubscriptionState.Paused ->
-                logd("handleStateChange", "Subscription paused")
+                logd(mname, "subscription paused")
 
             is SubscriptionStateMachineV2.SubscriptionState.PurchasePending,
             is SubscriptionStateMachineV2.SubscriptionState.PurchaseInitiated ->
-                logd("handleStateChange", "Purchase in progress: ${state.name}")
+                logd(mname, "purchase in progress: ${state.name}")
 
             else ->
-                logd("handleStateChange", "State changed to: ${state.name}")
+                logd(mname, "state changed to: ${state.name}")
         }
     }
 
@@ -2255,6 +2317,11 @@ object InAppBillingHandler : KoinComponent {
         logd(mname, "delegating to BillingServerRepository, productId=$productId, accLen=${accountId.length}")
         connectionMutex.withLock {
             val (success, msg) = billingBackendClient.cancelPurchase(accountId, deviceId, productId, purchaseToken)
+            if (!success && msg.startsWith("Unauthorized")) {
+                loge(mname, "cancelOneTimePurchase 401; surfacing auth error")
+                handleUnauthorized401(ServerApiError.Operation.CANCEL, accountId, deviceId)
+                return@withLock Pair(false, msg)
+            }
             if (!success && msg.startsWith("Conflict")) {
                 return@withLock handleConflict409(ServerApiError.Operation.CANCEL, accountId, deviceId, purchaseToken, productId, msg)
             }
@@ -2300,6 +2367,11 @@ object InAppBillingHandler : KoinComponent {
         logd(mname, "delegating to BillingServerRepository, productId=$productId, accLen=${accountId.length}")
         connectionMutex.withLock {
             val (success, msg) = billingBackendClient.revokePurchase(accountId, deviceId, productId, purchaseToken)
+            if (!success && msg.startsWith("Unauthorized")) {
+                loge(mname, "revokeOneTimePurchase 401; surfacing auth error")
+                handleUnauthorized401(ServerApiError.Operation.REVOKE, accountId, deviceId)
+                return@withLock Pair(false, msg)
+            }
             if (!success && msg.startsWith("Conflict")) {
                 return@withLock handleConflict409(ServerApiError.Operation.REVOKE, accountId, deviceId, purchaseToken, productId, msg)
             }
@@ -2363,16 +2435,31 @@ object InAppBillingHandler : KoinComponent {
      * INAPP subscriptions. Use this from coroutines for accurate results in the extend-flow.
      */
     suspend fun getRemainingDaysForInAppSuspend(): Long? {
-        val sub = subscriptionStateMachine.getSubscriptionData()?.subscriptionStatus ?: return null
+        val mname = "getRemainingDaysForInAppSuspend"
+        val sub = subscriptionStateMachine.getSubscriptionData()?.subscriptionStatus
+        if (sub == null) {
+            loge(mname, "no subscription data available in state machine; cannot calculate remaining days for INAPP")
+            return null
+        }
         val isInApp = sub.productId.contains("onetime", ignoreCase = true) ||
                 sub.productId.contains("inapp", ignoreCase = true) ||
                 sub.productId == ONE_TIME_TEST_PRODUCT_ID ||
                 sub.productId == ONE_TIME_PRODUCT_2YRS ||
                 sub.productId == ONE_TIME_PRODUCT_5YRS ||
                 sub.productId == ONE_TIME_PRODUCT_ID
-        if (!isInApp) return null
-        val effectiveExpiry = subscriptionStateMachine.getEffectiveInAppExpiryMs() ?: return null
-        if (effectiveExpiry <= 0L || effectiveExpiry == Long.MAX_VALUE) return null
+        if (!isInApp) {
+            loge(mname, "Current subscription is not an INAPP product; cannot calculate remaining days for INAPP")
+            return null
+        }
+        val effectiveExpiry = subscriptionStateMachine.getEffectiveInAppExpiryMs()
+        if (effectiveExpiry == null) {
+            loge(mname, "Effective INAPP expiry is null; cannot calculate remaining days")
+            return null
+        }
+        if (effectiveExpiry <= 0L || effectiveExpiry == Long.MAX_VALUE) {
+            loge(mname, "Effective INAPP expiry is invalid (expiry=$effectiveExpiry); cannot calculate remaining days")
+            return null
+        }
         val nowMs = System.currentTimeMillis()
         return (effectiveExpiry - nowMs) / (24L * 60 * 60 * 1000)
     }
@@ -2383,6 +2470,11 @@ object InAppBillingHandler : KoinComponent {
             logd(mname, "delegating to BillingServerRepository, accLen=${accountId.length}")
             connectionMutex.withLock {
                 val (success, msg) = billingBackendClient.cancelPurchase(accountId, deviceId, sku, purchaseToken)
+                if (!success && msg.startsWith("Unauthorized")) {
+                    loge(mname, "cancelPlaySubscription 401; surfacing auth error")
+                    handleUnauthorized401(ServerApiError.Operation.CANCEL, accountId, deviceId)
+                    return@withLock Pair(false, msg)
+                }
                 if (!success && msg.startsWith("Conflict")) {
                     return@withLock handleConflict409(ServerApiError.Operation.CANCEL, accountId, deviceId, purchaseToken, sku, msg)
                 }
@@ -2397,10 +2489,10 @@ object InAppBillingHandler : KoinComponent {
                 fetchPurchases(listOf(ProductType.SUBS, ProductType.INAPP))
                 try {
                     subscriptionStateMachine.userCancelled()
-                    logd(mname, "Subscription cancelled successfully")
+                    logd(mname, "subscription cancelled successfully")
                     Pair(true, "Subscription cancelled successfully")
                 } catch (e: Exception) {
-                    loge(mname, "State machine update failed: ${e.message}", e)
+                    loge(mname, "state machine update failed: ${e.message}", e)
                     logEvent(EventType.PROXY_ERROR, Severity.HIGH, "cancelPlaySubscription", "State machine update failed: ${e.message}")
                     Pair(false, "Cancelled on server but state sync failed")
                 }
@@ -2413,6 +2505,11 @@ object InAppBillingHandler : KoinComponent {
             logd(mname, "delegating to BillingServerRepository, accLen=${accountId.length}")
             connectionMutex.withLock {
                 val (success, msg) = billingBackendClient.revokePurchase(accountId, deviceId, sku, purchaseToken)
+                if (!success && msg.startsWith("Unauthorized")) {
+                    loge(mname, "revokeSubscription 401; surfacing auth error")
+                    handleUnauthorized401(ServerApiError.Operation.REVOKE, accountId, deviceId)
+                    return@withLock Pair(false, msg)
+                }
                 if (!success && msg.startsWith("Conflict")) {
                     return@withLock handleConflict409(ServerApiError.Operation.REVOKE, accountId, deviceId, purchaseToken, sku, msg)
                 }
@@ -2445,7 +2542,25 @@ object InAppBillingHandler : KoinComponent {
             return purchase
         }
 
-        return billingBackendClient.queryEntitlement(accountId, deviceId, purchase, pt)
+        return when (val result = billingBackendClient.queryEntitlement(accountId, deviceId, purchase, pt)) {
+            is QueryEntitlementResult.Success -> result.purchase
+            is QueryEntitlementResult.Unauthorized -> {
+                loge(mname, "queryEntitlement 401 unauthorized for token=${pt.take(8)}; surfacing auth error")
+                handleUnauthorized401(ServerApiError.Operation.ACKNOWLEDGE, result.accountId, result.deviceId)
+                // Fail-safe: preserve the original purchase so the token is not expired.
+                purchase
+            }
+            is QueryEntitlementResult.Conflict -> {
+                loge(mname, "queryEntitlement 409 conflict for token=${pt.take(8)}")
+                handleConflict409(
+                    ServerApiError.Operation.ACKNOWLEDGE, accountId, deviceId,
+                    pt, skuForType(purchase.productType), "Conflict: 409"
+                )
+                // Fail-safe: preserve the original purchase so the token is not expired.
+                purchase
+            }
+            is QueryEntitlementResult.Failure -> result.purchase
+        }
     }
 
     suspend fun acknowledgePurchaseFromServer(
@@ -2457,8 +2572,12 @@ object InAppBillingHandler : KoinComponent {
         val mname = "acknowledgePurchaseFromServer"
         logd(mname, "delegating to BillingServerRepository, accLen=${accountId.length}")
         val (success, payload) = billingBackendClient.acknowledgePurchase(accountId, deviceId, purchaseToken, productType)
+        if (!success && payload.startsWith("Unauthorized")) {
+            loge(mname, "acknowledgePurchaseFromServer 401: acc=${accountId.take(8)}, prod=$productType, token=${purchaseToken.take(8)}")
+            handleUnauthorized401(ServerApiError.Operation.ACKNOWLEDGE, accountId, deviceId)
+        }
         if (!success && payload.startsWith("Conflict")) {
-            loge(mname, "acknowledgePurchaseFromServer failed: acc: ${accountId.take(8)}, prod: $productType, token: ${purchaseToken.take(8)}")
+            loge(mname, "acknowledgePurchaseFromServer 409: acc=${accountId.take(8)}, prod=$productType, token=${purchaseToken.take(8)}")
             handleConflict409(
                 ServerApiError.Operation.ACKNOWLEDGE, accountId, deviceId,
                 purchaseToken, skuForType(productType), payload

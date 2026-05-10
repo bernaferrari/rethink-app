@@ -1218,20 +1218,22 @@ class SubscriptionStateMachineV2 : KoinComponent {
             val activeStatuses = listOf(
                 SubscriptionStatus.SubscriptionState.STATE_ACTIVE.id,
                 SubscriptionStatus.SubscriptionState.STATE_PURCHASED.id,
-                SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING.id
+                SubscriptionStatus.SubscriptionState.STATE_ACK_PENDING.id,
+                SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id
             )
             val rows = subscriptionDb.getSubscriptionsByStates(activeStatuses)
             val inAppRows = rows.filter { sub ->
                 sub.productId.contains("onetime", ignoreCase = true) ||
                 sub.productId.contains("inapp",   ignoreCase = true) ||
                 sub.productId == ONE_TIME_TEST_PRODUCT_ID             ||
-                sub.productId == ONE_TIME_PRODUCT_2YRS                ||
-                sub.productId == ONE_TIME_PRODUCT_5YRS                ||
+                sub.planId == ONE_TIME_PRODUCT_2YRS                ||
+                sub.planId == ONE_TIME_PRODUCT_5YRS                ||
                 sub.productId == ONE_TIME_PRODUCT_ID
             }
             val maxExpiry = inAppRows
                 .filter { it.billingExpiry > 0L && it.billingExpiry != Long.MAX_VALUE }
                 .maxOfOrNull { it.billingExpiry }
+            Logger.vv(LOG_IAB, "$TAG: getEffectiveInAppExpiryMs: maxExpiry=$maxExpiry from ${inAppRows.size} active INAPP row(s)")
             maxExpiry
         } catch (e: Exception) {
             Logger.e(LOG_IAB, "$TAG: getEffectiveInAppExpiryMs: ${e.message}", e)
@@ -1301,7 +1303,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
         }
     }
 
-    private fun convertPurchaseDetailToSubscriptionStatus(
+    private suspend fun convertPurchaseDetailToSubscriptionStatus(
         purchaseDetail: PurchaseDetail,
         subscriptionId: Long
     ): SubscriptionStatus {
@@ -1494,7 +1496,7 @@ class SubscriptionStateMachineV2 : KoinComponent {
      */
     private suspend fun handlePaymentSuccessful(purchaseDetail: PurchaseDetail) {
         try {
-            Logger.i(LOG_IAB, "$TAG: handlePaymentSuccessful: ${purchaseDetail.productId}, token=${purchaseDetail.purchaseToken.take(8)}")
+            Logger.i(LOG_IAB, "$TAG: handlePaymentSuccessful: ${purchaseDetail.productId}, token=${purchaseDetail.purchaseToken.take(8)}, planId=${purchaseDetail.planId}, productTitle=${purchaseDetail.productTitle}")
 
             val existingByToken = subscriptionDb.getByPurchaseToken(purchaseDetail.purchaseToken)
             val existingLatest  = if (existingByToken == null) subscriptionDb.getCurrentSubscription() else null
