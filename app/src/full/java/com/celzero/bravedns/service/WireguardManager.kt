@@ -38,6 +38,7 @@ import com.celzero.firestack.backend.RouterStats
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.File
@@ -856,7 +857,7 @@ object WireguardManager : KoinComponent {
         return "wg$id.conf"
     }
 
-    fun deleteConfig(id: Int) {
+    suspend fun deleteConfig(id: Int) {
         val cf = mappings.find { it.id == id }
         Logger.i(LOG_TAG_PROXY, "deleteConfig start: $id, ${cf?.name}, ${cf?.configPath}")
 
@@ -867,7 +868,7 @@ object WireguardManager : KoinComponent {
             disableConfig(cf)
         }
 
-        io {
+        withContext(Dispatchers.IO) {
             val fileName = getConfigFileName(id)
             val file = File(getConfigFilePath(), fileName)
             if (file.exists()) {
@@ -880,6 +881,13 @@ object WireguardManager : KoinComponent {
             mappings.remove(mappings.find { it.id == id })
             if (config != null) configs.remove(config)
             WgHopManager.handleWgDelete(id)
+        }
+    }
+
+    suspend fun deleteAllConfigs() {
+        val allIds = configs.map { it.getId() }
+        allIds.forEach { id ->
+            deleteConfig(id)
         }
     }
 
