@@ -153,7 +153,8 @@ fun ConsoleLogScreen(
                                     Logger.uiLogLevel = index.toLong()
                                     GoVpnAdapter.setLogLevel(
                                         persistentState.goLoggerLevel.toInt(),
-                                        Logger.uiLogLevel.toInt()
+                                        Logger.uiLogLevel.toInt(),
+                                        persistentState.includeFileTrace
                                     )
                                     viewModel.setLogLevel(index.toLong())
                                     if (index < Logger.LoggerLevel.ERROR.id) {

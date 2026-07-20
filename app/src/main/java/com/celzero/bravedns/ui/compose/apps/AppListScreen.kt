@@ -62,14 +62,14 @@ fun AppListScreen(
     val refreshCompleteText = stringResource(R.string.refresh_complete)
     val bypassDnsText = stringResource(R.string.bypass_dns_firewall)
     val bypassDnsTooltipText = stringResource(R.string.bypass_dns_firewall_tooltip, bypassDnsText)
-    
+
     // State
     var queryText by remember { mutableStateOf("") }
     var selectedFirewallFilter by remember { mutableStateOf(FirewallFilter.ALL) }
     var isRefreshing by remember { mutableStateOf(false) }
     var currentFilters by remember { mutableStateOf(defaultAppFilters()) }
     val latestFilters by remember { derivedStateOf { currentFilters } }
-    
+
     // Bulk action states
     var bulkWifi by remember { mutableStateOf(false) }
     var bulkMobile by remember { mutableStateOf(false) }
@@ -143,11 +143,11 @@ fun AppListScreen(
             }
         }
     }
-    
+
     fun logEvent(details: String) {
         eventLogger.log(EventType.FW_RULE_MODIFIED, Severity.LOW, "App list, bulk change", EventSource.UI, false, details)
     }
-    
+
     fun updateBulkRules(type: BlockType) {
         scope.launch(Dispatchers.IO) {
             when (type) {

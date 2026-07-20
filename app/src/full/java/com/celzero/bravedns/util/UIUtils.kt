@@ -69,7 +69,7 @@ object UIUtils {
     }
 
 
-    fun getDnsStatusStringRes(status: Long?): Int {
+    fun getDnsStatusStringRes(status: Int?): Int {
         if (status == null) return R.string.failed_using_default
 
         return when (Transaction.Status.fromId(status)) {
@@ -103,7 +103,7 @@ object UIUtils {
         }
     }
 
-    fun getProxyStatusStringRes(statusId: Long?): Int {
+    fun getProxyStatusStringRes(statusId: Int?): Int {
         return when (statusId) {
             Backend.TUP -> {
                 R.string.lbl_starting
@@ -132,7 +132,7 @@ object UIUtils {
         }
     }
 
-    enum class ProxyStatus(val id: Long) {
+    enum class ProxyStatus(val id: Int) {
         TOK(Backend.TOK),
         TUP(Backend.TUP),
         TZZ(Backend.TZZ),
@@ -627,10 +627,9 @@ object UIUtils {
         val nic = stat.nic()?.toString()
         val rdnsInfo = stat.rdnsinfo()?.toString()
         val nicInfo = stat.nicinfo()?.toString()
-        val go = stat.go()?.toString()
         val tun = stat.tun()?.toString()
 
-        var stats = nic + nicInfo + tun + fwd + ip + icmp + tcp + udp + rdnsInfo + go
+        var stats = nic + nicInfo + tun + fwd + ip + icmp + tcp + udp + rdnsInfo
         stats = stats.replace("{", "\n")
         stats = stats.replace("}", "\n\n")
         stats = stats.replace(",", "\n")

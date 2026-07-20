@@ -43,8 +43,8 @@ import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import java.io.ByteArrayInputStream
 import java.io.File
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.CopyOnWriteArraySet
 
 object WireguardManager : KoinComponent {
@@ -124,7 +124,7 @@ object WireguardManager : KoinComponent {
             }
             val config = try {
                 val bytes = WireguardConfigFileManager.read(File(path))
-                Config.parse(ByteArrayInputStream(bytes))
+                Config.parse(bytes.toString(StandardCharsets.UTF_8))
             } catch (e: Exception) {
                 Logger.e(LOG_TAG_PROXY, "Config parse failure for wg config: $path", e)
                 continue
@@ -1138,7 +1138,15 @@ object WireguardManager : KoinComponent {
         }
     }
 
-    data class WgStats(val routerStats: RouterStats?, val mtu: Long?, val status: Int?, val ip4: Boolean?, val ip6: Boolean?, val clientV4: IPMetadata?, val clientV6: IPMetadata?)
+    data class WgStats(
+        val routerStats: RouterStats?,
+        val mtu: Long?,
+        val status: Int?,
+        val ip4: Boolean?,
+        val ip6: Boolean?,
+        val clientV4: IPMetadata? = null,
+        val clientV6: IPMetadata? = null
+    )
     suspend fun stats(): String {
         val sb = StringBuilder()
         mappings.filter { it.isActive }.forEach {

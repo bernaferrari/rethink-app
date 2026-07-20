@@ -30,6 +30,11 @@ import java.io.InputStream
 import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets
 
+sealed class EncryptionException(message: String, cause: Throwable) : Exception(message, cause) {
+    class ReadFailed(cause: Throwable) : EncryptionException("Encrypted file read failed", cause)
+    class WriteFailed(cause: Throwable) : EncryptionException("Encrypted file write failed", cause)
+}
+
 object EncryptedFileManager {
     // Although you can define your own key generation parameter specification, it's
     // recommended that you use the value specified here.
@@ -86,18 +91,11 @@ object EncryptedFileManager {
     }
 
     fun read(ctx: Context, file: File): String {
-        var content = ""
-        try {
-            val bytes = readByteArray(ctx, file)
-            content = bytes.toString(Charset.defaultCharset())
-        } catch (e: Exception) {
-            Logger.w(Logger.LOG_TAG_PROXY, "err encrypted file Read: ${e.message}")
-        }
-        return content
+        return readByteArray(ctx, file).toString(Charset.defaultCharset())
     }
 
+    @Throws(EncryptionException::class)
     fun readByteArray(ctx: Context, file: File): ByteArray {
-        var content = ByteArray(0)
         try {
             val masterKey =
                 MasterKey.Builder(ctx.applicationContext)
@@ -112,13 +110,11 @@ object EncryptedFileManager {
                     )
                     .build()
 
-            encryptedFile.openFileInput().use {
-                content = it.readBytes()
-            }
+            return encryptedFile.openFileInput().use { it.readBytes() }
         } catch (e: Exception) {
             Logger.w(Logger.LOG_TAG_PROXY, "Encrypted File Read: ${e.message}")
+            throw EncryptionException.ReadFailed(e)
         }
-        return content
     }
 
     fun writeWireguardConfig(ctx: Context, cfg: String, fileName: String): Boolean {
@@ -170,14 +166,7 @@ object EncryptedFileManager {
     }
 
     fun write(ctx: Context, data: String, file: File): Boolean {
-        try {
-            val d = data.toByteArray(StandardCharsets.UTF_8)
-            write(ctx, d, file)
-            return true
-        } catch (e: Exception) {
-            Logger.w(Logger.LOG_TAG_PROXY, "err encrypted file write: ${e.message}")
-        }
-        return false
+        return write(ctx, data.toByteArray(StandardCharsets.UTF_8), file)
     }
 
 
@@ -209,7 +198,7 @@ object EncryptedFileManager {
             return true
         } catch (e: Exception) {
             Logger.w(Logger.LOG_TAG_PROXY, "err writing into file ${file.path}, ${e.message}")
+            throw EncryptionException.WriteFailed(e)
         }
-        return false
     }
 }

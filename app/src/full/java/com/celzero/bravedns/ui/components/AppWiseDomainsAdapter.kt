@@ -137,7 +137,7 @@ private fun DomainProgress(conn: AppConnection, uid: Int, refresh: Int) {
                 MaterialTheme.colorScheme.error
             DomainRulesManager.Status.TRUST ->
                 MaterialTheme.colorScheme.tertiary
-        }    // In many Compose use cases, 100 or 1.0f is used directly.    // For now, let's keep it simple or implement a similar logic if required.    
+        }    // In many Compose use cases, 100 or 1.0f is used directly.    // For now, let's keep it simple or implement a similar logic if required.
     var p = calculatePercentage(conn.count.toDouble())
     if (p == 0) {
         p = 5

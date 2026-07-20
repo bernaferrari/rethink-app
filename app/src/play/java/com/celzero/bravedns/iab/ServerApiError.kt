@@ -26,9 +26,8 @@ package com.celzero.bravedns.iab
  * ### 409 Conflict
  * HTTP 409 means the server state conflicts with the requested operation
  * e.g. a subscription was already canceled, a purchase was already consumed,
- * or a device was already registered. The caller should surface the
- * PurchaseConflictBottomSheet which offers a Refund action and a link to
- * Google Play subscription management.
+ * or a device was already registered. The caller should surface the Compose
+ * purchase-management recovery UI, including refund and store-management actions.
  */
 sealed class ServerApiError {
 
@@ -48,7 +47,7 @@ sealed class ServerApiError {
      * @param purchaseToken The purchase token involved.
      * @param sku The product SKU involved.
      * Note: deviceId is intentionally absent, it must never leave [SecureIdentityStore].
-     * The PurchaseConflictBottomSheet fetches the real ID fresh via
+     * The purchase-management flow fetches the real ID fresh via
      * [InAppBillingHandler.getObfuscatedDeviceId] when the user initiates a refund.
      */
     data class Conflict409(
@@ -116,7 +115,7 @@ sealed class ServerApiError {
 
     /**
      * The specific ITcpProxy operation that produced a 409.
-     * Used by [PurchaseConflictBottomSheet] to customise title, description,
+     * Used by the Compose purchase-management UI to customise title, description,
      * and whether to show the Refund button.
      */
     enum class Operation(val endpoint: String) {
@@ -142,4 +141,3 @@ sealed class ServerApiError {
             get() = this == CANCEL || this == REVOKE || this == CONSUME || this == DEVICE || this == ACKNOWLEDGE
     }
 }
-

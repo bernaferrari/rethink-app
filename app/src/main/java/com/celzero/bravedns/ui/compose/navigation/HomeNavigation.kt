@@ -113,6 +113,7 @@ import com.celzero.bravedns.ui.compose.wireguard.WgType
 import com.celzero.bravedns.ui.compose.rpn.RpnAvailabilityScreen
 import com.celzero.bravedns.ui.compose.rpn.RpnCountriesScreen
 import com.celzero.bravedns.ui.compose.rpn.RpnWinProxyDetailsScreen
+import com.celzero.bravedns.ui.compose.rpn.RpnAccountScreen
 import com.celzero.bravedns.ui.compose.logs.DomainConnectionsInputType
 import com.celzero.bravedns.ui.compose.logs.DomainConnectionsScreen
 import com.celzero.bravedns.ui.compose.statistics.DetailedStatisticsScreen
@@ -163,6 +164,9 @@ import com.celzero.bravedns.viewmodel.DnsCryptEndpointViewModel
 import com.celzero.bravedns.viewmodel.DnsCryptRelayEndpointViewModel
 import com.celzero.bravedns.viewmodel.ODoHEndpointViewModel
 import com.celzero.bravedns.viewmodel.CheckoutViewModel
+import com.celzero.bravedns.viewmodel.ManagePurchaseViewModel
+import com.celzero.bravedns.viewmodel.PurchaseHistoryViewModel
+import com.celzero.bravedns.viewmodel.ServerOrderHistoryViewModel
 import com.celzero.bravedns.ui.compose.logs.AppWiseDomainLogsScreen
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
 import com.celzero.bravedns.ui.compose.wireguard.WgMainScreen
@@ -244,6 +248,7 @@ sealed interface HomeNavRequest {
     data object UniversalFirewallSettings : HomeNavRequest
     data class AppWiseDomainLogs(val uid: Int) : HomeNavRequest
     data object Checkout : HomeNavRequest
+    data object RpnAccount : HomeNavRequest
     data object WgMain : HomeNavRequest
     data object Database : HomeNavRequest
 }
@@ -363,6 +368,9 @@ fun HomeScreenRoot(
     wgConfigViewModel: WgConfigViewModel,
     // Checkout dependencies
     checkoutViewModel: CheckoutViewModel?,
+    managePurchaseViewModel: ManagePurchaseViewModel,
+    purchaseHistoryViewModel: PurchaseHistoryViewModel,
+    serverOrderHistoryViewModel: ServerOrderHistoryViewModel,
     onNavigateToProxy: () -> Unit,
     // WgMain callbacks
     onWgCreateClick: () -> Unit,
@@ -539,6 +547,10 @@ fun HomeScreenRoot(
 
             HomeNavRequest.Checkout -> {
                 navController.navigate(HomeRoute.Checkout)
+            }
+
+            HomeNavRequest.RpnAccount -> {
+                navController.navigate(HomeRoute.RpnAccount)
             }
 
             HomeNavRequest.WgMain -> {
@@ -734,7 +746,10 @@ fun HomeScreenRoot(
                 AlertsScreen(onBackClick = { navController.popBackStack() })
             }
             composable<HomeRoute.RpnCountries> {
-                RpnCountriesScreen(onBackClick = { navController.popBackStack() })
+                RpnCountriesScreen(
+                    onBackClick = { navController.popBackStack() },
+                    onServerDetails = { navController.navigate(HomeRoute.RpnWinProxyDetails(it)) }
+                )
             }
             composable<HomeRoute.RpnAvailability> {
                 RpnAvailabilityScreen(onBackClick = { navController.popBackStack() })
@@ -1164,7 +1179,7 @@ fun HomeScreenRoot(
                 } else {
                     val paymentStatus by currentCheckoutViewModel.paymentStatus.collectAsStateWithLifecycle()
                     val workInfoList by currentCheckoutViewModel.paymentWorkInfo
-                        
+
                         .collectAsStateWithLifecycle(initialValue = emptyList())
 
                     LaunchedEffect(workInfoList) {
@@ -1175,9 +1190,18 @@ fun HomeScreenRoot(
                         paymentStatus = paymentStatus,
                         onStartPayment = { currentCheckoutViewModel.startPayment() },
                         onNavigateToProxy = onNavigateToProxy,
+                        onManageAccount = { navController.navigate(HomeRoute.RpnAccount) },
                         onBackClick = { navController.popBackStack() }
                     )
                 }
+            }
+            composable<HomeRoute.RpnAccount> {
+                RpnAccountScreen(
+                    manageViewModel = managePurchaseViewModel,
+                    historyViewModel = purchaseHistoryViewModel,
+                    ordersViewModel = serverOrderHistoryViewModel,
+                    onBackClick = { navController.popBackStack() },
+                )
             }
             composable<HomeRoute.AppWiseDomainLogs> { entry ->
                 val args = entry.toRoute<HomeRoute.AppWiseDomainLogs>()

@@ -439,7 +439,7 @@ suspend fun computeStatusUi(
     )
 }
 
-private fun isDnsError(statusId: Long?): Boolean {
+private fun isDnsError(statusId: Int?): Boolean {
     if (statusId == null) return true
     val s = Transaction.Status.fromId(statusId)
     return s == Transaction.Status.BAD_QUERY ||

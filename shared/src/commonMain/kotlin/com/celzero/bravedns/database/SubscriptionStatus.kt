@@ -26,7 +26,9 @@ class SubscriptionStatus {
     var id: Int = 0
     var accountId: String = ""
 
+    var deviceId: String = ""
     var purchaseToken: String = ""
+    var orderId: String = ""
     var productId: String = ""
     var planId: String = ""
     var sessionToken: String = ""
@@ -37,8 +39,12 @@ class SubscriptionStatus {
     var billingExpiry: Long = 0L
     // "developerPayload":"{\"ws\":{\"cid\":\"aa95f04efcb19a54c7605a02e5dd0b435906b993d12bec031a60f3f1272f4f0e\",\"sessiontoken\":\"22695:4:1752256088:524537c17ba103463ba1d330efaf05c146ba3404af:023f958b6c1949568f55078e3c58fe6885d3e57322\",\"expiry\":\"2025-08-11T00:00:00.000Z\",\"status\":\"valid\"}}"
     var developerPayload: String = ""
-    var status: Int = -1
+    var status: Int = SubscriptionState.STATE_INITIAL.id
+    var windowDays: Int = DEFAULT_REVOKE_WINDOW_DAYS
     var lastUpdatedTs: Long = currentTimeMillis()
+    var previousProductId: String = ""
+    var previousPurchaseToken: String = ""
+    var replacedAt: Long = 0L
 
     fun isExpired(): Boolean {
         return currentTimeMillis() > billingExpiry
@@ -59,13 +65,24 @@ class SubscriptionStatus {
     fun isValidState(): Boolean {
         return status in listOf(
             SubscriptionState.STATE_ACTIVE.id,
-            SubscriptionState.STATE_CANCELLED.id
+            SubscriptionState.STATE_CANCELLED.id,
+            SubscriptionState.STATE_EXPIRED.id,
+            SubscriptionState.STATE_GRACE.id,
+            SubscriptionState.STATE_ON_HOLD.id,
+            SubscriptionState.STATE_PAUSED.id,
+            SubscriptionState.STATE_PURCHASED.id,
+            SubscriptionState.STATE_ACK_PENDING.id
         )
     }
 
     fun gracePeriodMillis(): Long {
-        println("SubscriptionStatus: " +  "HSFragment gracePeriodMillis: accountExpiry: $accountExpiry, billingExpiry: $billingExpiry")
         return accountExpiry - billingExpiry
+    }
+
+    companion object {
+        const val DEVICE_ID_INDICATOR = "pip/identity.json"
+        const val DEFAULT_REVOKE_WINDOW_DAYS = 3
+        fun hasDeviceId(value: String): Boolean = value == DEVICE_ID_INDICATOR
     }
 
     enum class SubscriptionState(val id: Int) {
@@ -77,7 +94,10 @@ class SubscriptionStatus {
         STATE_PURCHASED(5),
         STATE_ACK_PENDING(6),
         STATE_REVOKED(7),
-        STATE_PURCHASE_FAILED(8);
+        STATE_PURCHASE_FAILED(8),
+        STATE_GRACE(9),
+        STATE_ON_HOLD(10),
+        STATE_PAUSED(11);
 
         companion object {
             fun fromId(id: Int): SubscriptionState {

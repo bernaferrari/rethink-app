@@ -20,4 +20,3 @@ data class LogAppCount(
     val packageName: String,
     val count: Int
 )
-

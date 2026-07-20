@@ -62,6 +62,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
+import com.celzero.bravedns.service.BlockFreeDnsMode
 import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.cardPositionFor
@@ -223,6 +224,7 @@ fun DnsSettingsScreen(
     onProxyDnsChange: (Boolean) -> Unit,
     onUndelegatedDomainsChange: (Boolean) -> Unit,
     onFallbackChange: (Boolean) -> Unit,
+    onBlockFreeDnsModeChange: (BlockFreeDnsMode) -> Unit,
     onPreventLeaksChange: (Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -479,6 +481,31 @@ fun DnsSettingsScreen(
                             )
                         }
                     )
+                }
+            }
+
+            item {
+                SectionHeader(title = stringResource(id = R.string.block_free_dns_mode_title))
+                RethinkListGroup {
+                    BlockFreeDnsMode.entries.forEachIndexed { index, mode ->
+                        val title = when (mode) {
+                            BlockFreeDnsMode.AUTO -> stringResource(R.string.bfdm_option_auto_label)
+                            BlockFreeDnsMode.GLOBAL -> stringResource(R.string.bfdm_option_global_label)
+                            BlockFreeDnsMode.FALLBACK -> stringResource(R.string.bfdm_option_fallback_label)
+                        }
+                        val description = when (mode) {
+                            BlockFreeDnsMode.AUTO -> stringResource(R.string.bfdm_option_auto_desc)
+                            BlockFreeDnsMode.GLOBAL -> stringResource(R.string.bfdm_option_global_desc)
+                            BlockFreeDnsMode.FALLBACK -> stringResource(R.string.bfdm_option_fallback_desc)
+                        }
+                        RethinkRadioListItem(
+                            title = title,
+                            description = description,
+                            selected = uiState.blockFreeDnsMode == mode,
+                            position = cardPositionFor(index, BlockFreeDnsMode.entries.lastIndex),
+                            onSelect = { onBlockFreeDnsModeChange(mode) }
+                        )
+                    }
                 }
             }
 

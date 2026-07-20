@@ -15,6 +15,7 @@
  */
 package com.celzero.bravedns.database
 
+import androidx.paging.PagingSource
 import androidx.room3.Dao
 import androidx.room3.Insert
 import androidx.room3.Query
@@ -34,6 +35,23 @@ interface SubscriptionStateHistoryDao {
     @Query("SELECT * FROM SubscriptionStateHistory ORDER BY timestamp DESC LIMIT :limit")
     suspend fun getRecentHistory(limit: Int = 100): List<SubscriptionStateHistory>
 
+    @Query("""
+        SELECT * FROM SubscriptionStateHistory
+        WHERE fromState != toState
+          AND fromState NOT IN (-1, 4)
+          AND toState NOT IN (0, 4)
+        ORDER BY timestamp DESC
+    """)
+    fun observeHistoryPaged(): PagingSource<Int, SubscriptionStateHistory>
+
+    @Query("""
+        SELECT COUNT(*) FROM SubscriptionStateHistory
+        WHERE fromState != toState
+          AND fromState NOT IN (-1, 4)
+          AND toState NOT IN (0, 4)
+    """)
+    suspend fun getMeaningfulCount(): Int
+
     @Query("DELETE FROM SubscriptionStateHistory WHERE timestamp < :cutoffTime")
     suspend fun deleteOldHistory(cutoffTime: Long): Int
 
@@ -41,9 +59,9 @@ interface SubscriptionStateHistoryDao {
     suspend fun getTransitionCount(subscriptionId: Int): Int
 
     @Query("""
-        SELECT fromState, toState, COUNT(*) as count 
-        FROM SubscriptionStateHistory 
-        GROUP BY fromState, toState 
+        SELECT fromState, toState, COUNT(*) as count
+        FROM SubscriptionStateHistory
+        GROUP BY fromState, toState
         ORDER BY count DESC
     """)
     suspend fun getTransitionStatistics(): List<TransitionStatistic>

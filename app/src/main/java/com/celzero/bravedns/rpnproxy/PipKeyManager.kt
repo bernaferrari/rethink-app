@@ -22,13 +22,17 @@ import android.content.Context
 import com.celzero.bravedns.network.TcpProxyApi
 import com.celzero.bravedns.service.EncryptedFileManager
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.viewmodel.SubscriptionUiState
 import com.celzero.bravedns.util.Utilities.togb
 import com.celzero.bravedns.util.Utilities.togs
 import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.firestack.backend.Backend
 import com.celzero.firestack.backend.PipMsg
+import com.celzero.firestack.backend.asGostr
+import com.celzero.firestack.backend.s
 import com.celzero.bravedns.util.JsonHelper
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.SerializationException
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
@@ -86,13 +90,29 @@ object PipKeyManager : KoinComponent {
 
     private var isRethinkPlusAvailableForDevice: Boolean? = null
     private var recentFailureError = ""
+    private var availabilityData: SubscriptionUiState.Available? = null
 
     @Serializable
     data class ApiResponse(
         val minvcode: String,
         val pubkey: String,
         val status: String,
+        val vcode: String = "",
+        @SerialName("cansell") val canSell: Boolean = false,
+        val ip: String = "",
+        val country: String = "",
+        val asorg: String = "",
+        val city: String = "",
+        val colo: String = "",
+        val region: String = "",
+        val postalcode: String = "",
+        val addrs: List<String> = emptyList(),
     )
+
+    suspend fun checkRpnAvailability(context: Context): Pair<Boolean, String> =
+        publicKeyUsable(context, shouldPersistResult = false)
+
+    fun getAvailabilityData(): SubscriptionUiState.Available? = availabilityData
 
     suspend fun getKeyState(context: Context): KeyState? {
         // Load the key state from encrypted storage
@@ -203,6 +223,19 @@ object PipKeyManager : KoinComponent {
             works = apiResponse.status == STATUS_OK
             val minVersionCode = apiResponse.minvcode.toIntOrNull()
             val publicKey = apiResponse.pubkey
+            availabilityData = SubscriptionUiState.Available(
+                vcode = apiResponse.vcode,
+                minVcode = apiResponse.minvcode,
+                canSell = apiResponse.canSell,
+                ip = apiResponse.ip,
+                country = apiResponse.country,
+                asorg = apiResponse.asorg,
+                city = apiResponse.city,
+                colo = apiResponse.colo,
+                region = apiResponse.region,
+                postalCode = apiResponse.postalcode,
+                addr = apiResponse.addrs.joinToString(", "),
+            )
 
             if (minVersionCode == null || minVersionCode > persistentState.appVersion) {
                 Logger.w(
@@ -430,7 +463,7 @@ object PipKeyManager : KoinComponent {
             var id = pipMsg.opaque().s
             if (id.isNullOrEmpty()) {
                 Logger.w(LOG_TAG_PROXY, "$TAG key state ID is null or empty, fetching message")
-                id = fetchPipMsg(context)?.opaque()?.s
+                id = fetchPipMsg(context)?.opaque()?.s.orEmpty()
             }
             if (id.isNullOrEmpty()) {
                 Logger.w(LOG_TAG_PROXY, "$TAG key state ID is still null or empty after fetching message")

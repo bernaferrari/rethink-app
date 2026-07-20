@@ -43,5 +43,8 @@ fun buildAppDatabaseJvm(dbFile: File? = null): AppDatabase {
         .addMigrations(AppDatabase.MIGRATION_24_25)
         .addMigrations(AppDatabase.MIGRATION_25_26)
         .addMigrations(AppDatabase.MIGRATION_26_27)
+        .addMigrations(AppDatabase.MIGRATION_27_28)
+        .addMigrations(AppDatabase.MIGRATION_28_29)
+        .addMigrations(AppDatabase.MIGRATION_29_30)
         .build()
 }

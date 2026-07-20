@@ -111,7 +111,7 @@ fun PingTestScreen(
             val warp = VpnController.isProxyReachable(Backend.RpnWin, csv)
             val amz = VpnController.isProxyReachable(Backend.RpnWin, csv)
             val win = VpnController.isProxyReachable(Backend.RpnWin, csv)
-            val se = VpnController.isProxyReachable(Backend.RpnSE, csv)
+            val se = VpnController.isRpnReachable(csv)
             val w64 = VpnController.isProxyReachable(Backend.Rpn64, csv)
             Logger.d(TAG, "$TAG proxies reachable: $warp, $amz $win, $se, $w64")
 

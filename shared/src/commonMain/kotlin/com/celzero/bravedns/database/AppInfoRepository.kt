@@ -182,4 +182,8 @@ class AppInfoRepository(private val appInfoDAO: AppInfoDAO) {
         // (Requires a DAO query; if not present, keep this as best-effort per-uid in worker.)
         return appInfoDAO.clearAllExpiredTempAllows(now, currentTimeMillis())
     }
+
+    suspend fun deleteAll() {
+        appInfoDAO.deleteAll()
+    }
 }

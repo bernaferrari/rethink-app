@@ -65,7 +65,7 @@ class UnderlyingNetworkManager(
 
     fun initialize() {
         connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        
+
         if (isAtleastS()) {
             registerNetworkCallback()
         }
@@ -73,7 +73,7 @@ class UnderlyingNetworkManager(
 
     private fun registerNetworkCallback() {
         val cm = connectivityManager ?: return
-        
+
         val request = NetworkRequest.Builder()
             .addCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
             .addCapability(NetworkCapabilities.NET_CAPABILITY_NOT_RESTRICTED)
@@ -120,7 +120,7 @@ class UnderlyingNetworkManager(
 
     private fun updateCapabilities(network: Network) {
         val cm = connectivityManager ?: return
-        
+
         try {
             val caps = if (isAtleastO()) {
                 cm.getNetworkCapabilities(network)
@@ -139,11 +139,11 @@ class UnderlyingNetworkManager(
                 }
 
                 linkProperties?.let { lp ->
-                    val has4 = lp.linkAddresses.any { 
-                        it.address.hostAddress?.contains(":") == false 
+                    val has4 = lp.linkAddresses.any {
+                        it.address.hostAddress?.contains(":") == false
                     }
-                    val has6 = lp.linkAddresses.any { 
-                        it.address.hostAddress?.contains(":") == true 
+                    val has6 = lp.linkAddresses.any {
+                        it.address.hostAddress?.contains(":") == true
                     }
                     _hasIpv4.value = has4
                     _hasIpv6.value = has6

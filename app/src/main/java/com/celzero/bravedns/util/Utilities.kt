@@ -928,11 +928,8 @@ object Utilities {
      *
      * @return a [Gostr] containing the string value, or an empty [Gostr] if the input is `null` or empty.
      */
-    fun String?.togs(): Gostr? {
-        if (this.isNullOrEmpty()) {
-            return Backend.strOf("")
-        }
-        return Backend.strOf(this)
+    fun String?.togs(): Gostr {
+        return this ?: ""
     }
 
     /**
@@ -946,7 +943,7 @@ object Utilities {
         if (this == null) {
             return null
         }
-        return this.s
+        return this
     }
 
     /**
@@ -956,11 +953,8 @@ object Utilities {
      *
      * @return a [Gobyte] containing the bytes, or an empty [Gobyte] if the input is `null`.
      */
-    fun ByteArray?.togb(): Gobyte? {
-        if (this == null) {
-            return Backend.bytesOf(byteArrayOf())
-        }
-        return Backend.bytesOf(this)
+    fun ByteArray?.togb(): Gobyte {
+        return this ?: byteArrayOf()
     }
 
     /**
@@ -975,7 +969,7 @@ object Utilities {
             return null
         }
 
-        return this.v()
+        return this
     }
 
 }

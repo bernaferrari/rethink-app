@@ -43,5 +43,8 @@ interface WgHopMapDao {
 
     @Query("select * from WgHopMap") fun getAll(): List<WgHopMap>
 
+    @Query("select * from WgHopMap where src like :prefix || '%'")
+    fun getAllByPrefix(prefix: String): List<WgHopMap>
+
     @Query("delete from WgHopMap") fun deleteAll()
 }

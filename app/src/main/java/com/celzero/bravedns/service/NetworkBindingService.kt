@@ -41,7 +41,7 @@ class NetworkBindingService(
 ) {
     companion object {
         private const val TAG = "NetworkBinding"
-        
+
         // Route IPv4 in IPv6 only networks?
         private const val ROUTE4IN6 = true
     }
@@ -77,12 +77,12 @@ class NetworkBindingService(
         return withContext(ioDispatcher) {
             var v4Net = underlyingNetworks?.ipv4Net
             val isAuto = InternetProtocol.isAuto(persistentState.internetProtocolType)
-            
+
             // Fall back to IPv6 net if IPv4 is empty and auto mode
             if (ROUTE4IN6 && isAuto && v4Net.isNullOrEmpty()) {
                 v4Net = underlyingNetworks?.ipv6Net
             }
-            
+
             bindAny(who, addrPort, fid, v4Net ?: emptyList())
         }
     }
@@ -110,11 +110,11 @@ class NetworkBindingService(
 
             val rinr = persistentState.routeRethinkInRethink
             logd("protect: $who, fd: $fd, rinr? $rinr")
-            
+
             if (rinr && shouldSkipForRethinkInRethink(who)) {
                 return@withContext
             }
-            
+
             vpnService.protect(fd.toInt())
         }
     }
@@ -161,7 +161,7 @@ class NetworkBindingService(
         val currentNetworks = underlyingNetworks
 
         logd("bind: who: $who, addr: $addrPort, fd: $fid, rinr? $rinr")
-        
+
         if (rinr && shouldSkipForRethinkInRethink(who)) {
             return true
         }
@@ -246,7 +246,7 @@ class NetworkBindingService(
 
         // Simplified check - assume rethink is not bypassed from proxy
         val isRethinkBypassedFromProxy = false
-        
+
         if (!isRethinkBypassedFromProxy) {
             if (!ProxyManager.isAnyUserSetProxy(who) && who != com.celzero.firestack.backend.Backend.Exit) {
                 Logger.vv(LOG_TAG_VPN, "$TAG rinr, bypassed rethink, who: $who")

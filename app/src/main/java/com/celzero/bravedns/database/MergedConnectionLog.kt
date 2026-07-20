@@ -15,7 +15,7 @@ limitations under the License.
 */
 package com.celzero.bravedns.database
 
-import androidx.room.ColumnInfo
+import androidx.room3.ColumnInfo
 
 /**
  * Read-only POJO used to display both ConnectionTracker and RethinkLog rows in a single list.

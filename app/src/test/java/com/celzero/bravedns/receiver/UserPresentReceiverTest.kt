@@ -24,11 +24,16 @@ import io.mockk.mockk
 import org.junit.Before
 import org.junit.Test
 import org.junit.Assert.*
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
 
 /**
  * Unit tests for UserPresentReceiver
  * Tests the screen unlock event handling
  */
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [35])
 class UserPresentReceiverTest {
 
     private lateinit var receiver: UserPresentReceiver

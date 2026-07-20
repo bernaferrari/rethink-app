@@ -52,12 +52,6 @@
             android:name="android.app.appfunctions.app_metadata"
             android:resource="@xml/app_metadata" />
 
-        <activity
-            android:name=".ui.PrepareVpnActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-
         <service
             android:name=".service.BraveVPNService"
             android:exported="true"

@@ -26,7 +26,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Checkbox
+import androidx.compose.material3.Switch
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -39,12 +39,22 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.util.Utilities.getFlag
 
 @Composable
-fun CountryRow(conf: String, isSelected: Boolean) {
+fun CountryRow(
+    conf: String,
+    isSelected: Boolean,
+    name: String = conf,
+    city: String = "",
+    enabled: Boolean = true,
+    onToggle: ((Boolean) -> Unit)? = null,
+    onClick: (() -> Unit)? = null
+) {
     val flag = getFlag(conf)
     val strokeColor = getStrokeColorForStatus(isSelected)
 
     Card(
         modifier = Modifier.fillMaxWidth(),
+        onClick = { onClick?.invoke() },
+        enabled = enabled,
         shape = CardDefaults.shape,
         colors = CardDefaults.cardColors(),
                 border =
@@ -69,8 +79,15 @@ fun CountryRow(conf: String, isSelected: Boolean) {
                         style = MaterialTheme.typography.headlineSmall
                     )
                     Text(
-                        text = conf,
+                        text = name,
                         style = MaterialTheme.typography.titleMedium
+                    )
+                }
+                if (city.isNotBlank()) {
+                    Text(
+                        text = city,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 if (isSelected) {
@@ -97,7 +114,11 @@ fun CountryRow(conf: String, isSelected: Boolean) {
                 }
             }
             Spacer(modifier = Modifier.padding(end = 8.dp))
-            Checkbox(checked = isSelected, onCheckedChange = null, enabled = false)
+            Switch(
+                checked = isSelected,
+                onCheckedChange = onToggle,
+                enabled = enabled && onToggle != null
+            )
         }
     }
 }

@@ -60,6 +60,9 @@ interface RethinkDnsEndpointDao {
     @Query("select * from RethinkDnsEndpoint order by isActive desc")
     fun getAllRethinkEndpoints(): PagingSource<Int, RethinkDnsEndpoint>
 
+    @Query("select * from RethinkDnsEndpoint where uid = $MISSING_UID order by isActive desc")
+    suspend fun getAllForBlockFree(): List<RethinkDnsEndpoint>
+
     @Query("select isActive from RethinkDnsEndpoint where uid = :uid")
     suspend fun isAppWiseDnsEnabled(uid: Int): Boolean?
 

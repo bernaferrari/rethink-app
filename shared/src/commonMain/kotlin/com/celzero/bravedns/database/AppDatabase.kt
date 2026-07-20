@@ -43,10 +43,11 @@ expect object AppDatabaseConstructor : RoomDatabaseConstructor<AppDatabase> {
         ODoHEndpoint::class,
         RpnProxy::class,
         WgHopMap::class,
+        CountryConfig::class,
         SubscriptionStatus::class,
         SubscriptionStateHistory::class
     ],
-    version = 27,
+    version = 30,
     exportSchema = true
 )
 @ColumnTypeConverters(Converters::class)
@@ -1069,6 +1070,115 @@ abstract class AppDatabase : RoomDatabase() {
                 }
             }
 
+        internal val MIGRATION_27_28: Migration =
+            object : Migration(27, 28) {
+                override suspend fun migrate(connection: SQLiteConnection) {
+                    try {
+                        connection.execSQL("ALTER TABLE AppInfo ADD COLUMN modifiedTs INTEGER NOT NULL DEFAULT 0")
+                    } catch (_: Exception) {
+                        // The KMP branch already added this column in migration 26 -> 27.
+                    }
+                    connection.execSQL(
+                        """
+                        CREATE TABLE IF NOT EXISTS CountryConfig (
+                            cc TEXT PRIMARY KEY NOT NULL,
+                            catchAll INTEGER NOT NULL DEFAULT 0,
+                            lockdown INTEGER NOT NULL DEFAULT 0,
+                            mobileOnly INTEGER NOT NULL DEFAULT 0,
+                            ssidBased INTEGER NOT NULL DEFAULT 0,
+                            lastModified INTEGER NOT NULL DEFAULT 0,
+                            enabled INTEGER NOT NULL DEFAULT 1,
+                            priority INTEGER NOT NULL DEFAULT 0
+                        )
+                        """.trimIndent()
+                    )
+                }
+            }
+
+        internal val MIGRATION_28_29: Migration =
+            object : Migration(28, 29) {
+                override suspend fun migrate(connection: SQLiteConnection) {
+                    try {
+                        connection.execSQL("ALTER TABLE AppInfo ADD COLUMN tempAllowEnabled INTEGER NOT NULL DEFAULT 0")
+                    } catch (_: Exception) {}
+                    try {
+                        connection.execSQL("ALTER TABLE AppInfo ADD COLUMN tempAllowExpiryTime INTEGER NOT NULL DEFAULT 0")
+                    } catch (_: Exception) {}
+
+                    connection.execSQL("DROP INDEX IF EXISTS index_RpnWinServers_countryCode")
+                    connection.execSQL("DROP INDEX IF EXISTS index_RpnWinServers_isActive")
+                    connection.execSQL("DROP TABLE IF EXISTS RpnWinServers")
+                    connection.execSQL("DROP TABLE IF EXISTS CountryConfig")
+                    connection.execSQL(
+                        """
+                        CREATE TABLE CountryConfig (
+                            id TEXT PRIMARY KEY NOT NULL,
+                            cc TEXT NOT NULL,
+                            name TEXT NOT NULL DEFAULT '',
+                            address TEXT NOT NULL DEFAULT '',
+                            city TEXT NOT NULL DEFAULT '',
+                            key TEXT NOT NULL DEFAULT '',
+                            load INTEGER NOT NULL DEFAULT 0,
+                            link INTEGER NOT NULL DEFAULT 0,
+                            count INTEGER NOT NULL DEFAULT 0,
+                            isActive INTEGER NOT NULL DEFAULT 1,
+                            catchAll INTEGER NOT NULL DEFAULT 0,
+                            lockdown INTEGER NOT NULL DEFAULT 0,
+                            mobileOnly INTEGER NOT NULL DEFAULT 0,
+                            ssidBased INTEGER NOT NULL DEFAULT 0,
+                            priority INTEGER NOT NULL DEFAULT 0,
+                            ssids TEXT NOT NULL DEFAULT '',
+                            lastModified INTEGER NOT NULL DEFAULT 0,
+                            isEnabled INTEGER NOT NULL DEFAULT 1,
+                            premium INTEGER NOT NULL DEFAULT 0
+                        )
+                        """.trimIndent()
+                    )
+                    connection.execSQL("CREATE INDEX IF NOT EXISTS index_CountryConfig_cc ON CountryConfig(cc)")
+                    connection.execSQL("CREATE INDEX IF NOT EXISTS index_CountryConfig_isActive ON CountryConfig(isActive)")
+
+                    val subscriptionColumns = listOf(
+                        "previousProductId TEXT NOT NULL DEFAULT ''",
+                        "previousPurchaseToken TEXT NOT NULL DEFAULT ''",
+                        "replacedAt INTEGER NOT NULL DEFAULT 0",
+                        "windowDays INTEGER NOT NULL DEFAULT 0",
+                        "orderId TEXT NOT NULL DEFAULT ''",
+                        "deviceId TEXT NOT NULL DEFAULT ''"
+                    )
+                    subscriptionColumns.forEach { column ->
+                        try {
+                            connection.execSQL("ALTER TABLE SubscriptionStatus ADD COLUMN $column")
+                        } catch (_: Exception) {}
+                    }
+                    connection.execSQL(
+                        "UPDATE SubscriptionStatus SET deviceId = 'pip/identity.json' " +
+                            "WHERE deviceId != '' AND deviceId != 'pip/identity.json'"
+                    )
+                    try {
+                        connection.execSQL("ALTER TABLE WgConfigFiles ADD COLUMN isLockdown INTEGER NOT NULL DEFAULT 0")
+                    } catch (_: Exception) {}
+                }
+            }
+
+        internal val MIGRATION_29_30: Migration =
+            object : Migration(29, 30) {
+                override suspend fun migrate(connection: SQLiteConnection) {
+                    try {
+                        connection.execSQL("ALTER TABLE DNSLogs ADD COLUMN isEch INTEGER NOT NULL DEFAULT 0")
+                    } catch (_: Exception) {}
+                    try {
+                        connection.execSQL("ALTER TABLE CountryConfig ADD COLUMN selectionCount INTEGER NOT NULL DEFAULT 0")
+                    } catch (_: Exception) {}
+                    try {
+                        connection.execSQL("ALTER TABLE CountryConfig ADD COLUMN isFavourite INTEGER NOT NULL DEFAULT 0")
+                    } catch (_: Exception) {}
+                    connection.execSQL("CREATE INDEX IF NOT EXISTS index_CountryConfig_isFavourite ON CountryConfig(isFavourite)")
+                    try {
+                        connection.execSQL("ALTER TABLE CountryConfig ADD COLUMN hopEnabled INTEGER NOT NULL DEFAULT 0")
+                    } catch (_: Exception) {}
+                }
+            }
+
         // ref: stackoverflow.com/a/57204285
         internal fun doesColumnExistInTable(
             connection: SQLiteConnection,
@@ -1127,6 +1237,8 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun wgHopMapDao(): WgHopMapDao
 
+    abstract fun countryConfigDao(): CountryConfigDAO
+
     abstract fun subscriptionStatusDao(): SubscriptionStatusDao
 
     abstract fun subscriptionStateHistoryDao(): SubscriptionStateHistoryDao
@@ -1173,6 +1285,8 @@ abstract class AppDatabase : RoomDatabase() {
     fun rpnProxyRepository() = RpnProxyRepository(rpnProxyDao())
 
     fun wgHopMapRepository() = WgHopMapRepository(wgHopMapDao())
+
+    fun countryConfigRepository() = CountryConfigRepository(countryConfigDao())
 
     fun subscriptionStatusRepository() = SubscriptionStatusRepository(subscriptionStatusDao())
 

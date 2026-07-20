@@ -70,10 +70,10 @@ class VpnConnectionHandler(
         rethinkUid: Int
     ): VpnService.Builder {
         var builder = vpnService.Builder()
-        
+
         val networks = getUnderlyingNetworkArray(underlyingNetworks)
         builder.setUnderlyingNetworks(networks)
-        
+
         if (!isVpnLockdown && !Utilities.isPlayStoreFlavour() && canAllowBypass()) {
             Logger.i(LOG_TAG_VPN, "$TAG allow apps to bypass vpn on-demand")
             builder = builder.allowBypass()
@@ -115,7 +115,7 @@ class VpnConnectionHandler(
         customLanMode: Boolean
     ): VpnService.Builder {
         builder.setMtu(mtu)
-        
+
         val ipType = persistentState.internetProtocolType
 
         when (ipType) {
@@ -136,7 +136,7 @@ class VpnConnectionHandler(
 
     private fun configureIPv4(builder: VpnService.Builder, customLanMode: Boolean) {
         val fakeDns = LanIp.DNS.make(IPV4_TEMPLATE)
-        
+
         if (customLanMode) {
             val customDns = persistentState.customLanDnsIpv4.split("/").firstOrNull() ?: ""
             if (customDns.isNotEmpty()) {
@@ -155,7 +155,7 @@ class VpnConnectionHandler(
 
     private fun configureIPv6(builder: VpnService.Builder, customLanMode: Boolean) {
         val fakeDns = LanIp.DNS.make(IPV6_TEMPLATE)
-        
+
         if (customLanMode) {
             val customDns = persistentState.customLanDnsIpv6.split("/").firstOrNull() ?: ""
             if (customDns.isNotEmpty()) {
@@ -202,11 +202,11 @@ class VpnConnectionHandler(
         networks: NetworkBindingService.UnderlyingNetworks?
     ): Array<android.net.Network>? {
         if (networks == null) return null
-        
+
         val allNetworks = mutableListOf<android.net.Network>()
         allNetworks.addAll(networks.ipv4Net.map { it.network })
         allNetworks.addAll(networks.ipv6Net.map { it.network })
-        
+
         return if (allNetworks.isEmpty()) null else allNetworks.toTypedArray()
     }
 

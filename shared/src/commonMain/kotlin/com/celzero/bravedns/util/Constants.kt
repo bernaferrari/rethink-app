@@ -27,6 +27,8 @@ class Constants {
 
         // rethink base url for tcp proxy
         const val TCP_PROXY_BASE_URL = "https://redir.nile.workers.dev"
+        const val RPN_BASE_URL = "https://svc.rethinkdns.com/"
+        const val RPN_FALLBACK_URL = "https://redir.nile.workers.dev/"
 
         // base url for ipinfo download
         const val IP_INFO_BASE_URL = "https://dl.rethinkdns.com/ip/"
@@ -194,6 +196,7 @@ class Constants {
         const val FLAVOR_FDROID = "fdroid"
         const val FLAVOR_WEBSITE = "website"
         const val FLAVOR_HEADLESS = "headless"
+        const val BUILD_TYPE_ALPHA = "alpha"
 
         // Various notification action constants used part of NotificationCompat.Action
         const val NOTIFICATION_ACTION = "NOTIFICATION_VALUE"
@@ -205,6 +208,9 @@ class Constants {
         const val NOTIF_ACTION_RULES_FAILURE = "RETHINK_RULES_RELOAD" // load rules failure
         const val NOTIF_ACTION_NEW_APP_ALLOW = "NEW_APP_ALLOW" // allow network access for new apps
         const val NOTIF_ACTION_NEW_APP_DENY = "NEW_APP_DENY" // deny network access for new apps
+        const val NOTIF_ACTION_DB_CORRUPTED_CLEAR = "DB_CORRUPTED_CLEAR"
+        const val NOTIF_ACTION_DB_CORRUPTED_DISMISS = "DB_CORRUPTED_DISMISS"
+        const val NOTIF_ACTION_RETHINK_BLOCK_DISMISS = "RETHINK_BLOCK_DISMISS"
 
         // various notification intent extra name/values used part of notification's pending-intent
         const val NOTIF_INTENT_EXTRA_ACCESSIBILITY_NAME =
@@ -216,6 +222,20 @@ class Constants {
             "NEW_APP_INSTALL_NOTIFY" // new app install value
         const val NOTIF_WG_PERMISSION_NAME = "WG_PERMISSION" // wireguard permission name
         const val NOTIF_WG_PERMISSION_VALUE = "WG_PERMISSION_NOTIFY" // wireguard permission
+
+        const val NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME = "IAB_CONFLICT"
+        const val NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE = "IAB_CONFLICT_409"
+        const val NOTIF_ID_IAB_CONFLICT = 0x409
+        const val NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_NAME =
+            "IAB_DEVICE_NOT_REGISTERED"
+        const val NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_VALUE =
+            "IAB_DEVICE_NOT_REGISTERED_NOTIFY"
+        const val NOTIF_ID_IAB_DEVICE_NOT_REGISTERED = 0x410
+        const val NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_NAME = "IAB_DEVICE_AUTH_ERROR"
+        const val NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_VALUE = "IAB_DEVICE_AUTH_ERROR_401"
+        const val NOTIF_ID_IAB_DEVICE_AUTH_ERROR = 0x401
+
+        const val NOTIF_ID_RETHINK_BLOCK = 0x411
 
         // new app install intent extra name for uid. see RefreshDatabase#makeNewAppVpnIntent()
         const val NOTIF_INTENT_EXTRA_APP_UID = "NEW_APP_UID"
@@ -254,6 +274,7 @@ class Constants {
 
         // default live data page size used by recycler views
         const val PAGING_PAGE_SIZE = 30
+        const val LIVEDATA_PAGE_SIZE = PAGING_PAGE_SIZE
 
         // To initiate / reset the timestamp in milliseconds
         const val INIT_TIME_MS = 0L
@@ -299,6 +320,8 @@ class Constants {
                 DefaultDnsServer(3, "Cloudflare", "https://cloudflare-dns.com/dns-query", "DoH"),
                 DefaultDnsServer(4, "Quad9", "https://dns.quad9.net/dns-query", "DoH")
             )
+
+        const val BLOCK_FREE_DNS_ZERO = "https://zero.rethinkdns.com/dns-query"
 
         // pcap folder name
         const val PCAP_FOLDER_NAME = "Rethink"

@@ -39,6 +39,9 @@ interface DnsProxyEndpointDAO {
     @Query("select * from DNSProxyEndpoint order by isSelected desc")
     fun dnsProxyEndpointsPagingSource(): PagingSource<Int, DnsProxyEndpoint>
 
+    @Query("select * from DNSProxyEndpoint order by isSelected desc")
+    suspend fun getAll(): List<DnsProxyEndpoint>
+
     @Query("select * from DNSProxyEndpoint where proxyName like :query order by isSelected desc")
     fun dnsProxyEndpointsPagingSource(query: String): PagingSource<Int, DnsProxyEndpoint>
 

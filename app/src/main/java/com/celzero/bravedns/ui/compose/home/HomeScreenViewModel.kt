@@ -24,7 +24,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import android.content.Context
 import com.celzero.bravedns.service.BraveVPNService
-import com.celzero.bravedns.service.DnsLogTracker
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.ProxyStateManager
 import com.celzero.bravedns.service.WireguardManager
@@ -187,7 +186,7 @@ class HomeScreenViewModel(
     fun syncDnsStatus() {
         viewModelScope.launch {
             val vpnState = VpnController.state()
-            val isEch = vpnState.serverName?.contains(DnsLogTracker.ECH, true) == true
+            val isEch = vpnState.isEch
             var isFailing = false
             var statusString = "Protected"
 

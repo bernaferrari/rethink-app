@@ -26,6 +26,7 @@ import android.content.Intent
 import android.content.pm.ApplicationInfo
 import android.content.pm.PackageInfo
 import android.content.pm.PackageManager
+import android.database.sqlite.SQLiteConstraintException
 import android.net.VpnService
 import android.os.Build
 import android.os.SystemClock
@@ -81,6 +82,7 @@ internal constructor(
         private const val NOTIF_BATCH_NEW_APPS_THRESHOLD = 5
         private val FULL_REFRESH_INTERVAL = TimeUnit.MINUTES.toMillis(1L)
         private const val NOTIF_ID_LOAD_RULES_FAIL = 103
+        const val NOTIF_ID_DB_CORRUPTION = 104
         private const val NOBODY = Constants.INVALID_UID
         private const val ACTION_BASE = 0
         const val ACTION_REFRESH_RESTORE = ACTION_BASE + 1
@@ -222,6 +224,9 @@ internal constructor(
             refreshDomainRules(packagesToUpdate)
             restoreWireGuardProfilesIfNeeded(action == ACTION_REFRESH_RESTORE)
             Logger.i(LOG_TAG_APP_DB, "refresh done")
+        } catch (e: SQLiteConstraintException) {
+            Logger.crash(LOG_TAG_APP_DB, "database constraint violation during refresh", e)
+            showDatabaseCorruptionNotification()
         } catch (e: RuntimeException) {
             Logger.crash(LOG_TAG_APP_DB, e.message ?: "refresh err", e)
             throw e
@@ -229,6 +234,55 @@ internal constructor(
             notifyEmptyFirewallRulesIfNeeded()
             a.cb()
         }
+    }
+
+    private fun showDatabaseCorruptionNotification() {
+        val notificationManager =
+            ctx.getSystemService(VpnService.NOTIFICATION_SERVICE) as NotificationManager
+        val clearIntent =
+            makeVpnIntent(NOTIF_ID_DB_CORRUPTION, Constants.NOTIF_ACTION_DB_CORRUPTED_CLEAR)
+        val dismissIntent =
+            makeVpnIntent(NOTIF_ID_DB_CORRUPTION + 1, Constants.NOTIF_ACTION_DB_CORRUPTED_DISMISS)
+
+        val builder = NotificationCompat.Builder(ctx, NOTIF_CHANNEL_ID_FIREWALL_ALERTS)
+        if (isAtleastO()) {
+            val channel = NotificationChannel(
+                NOTIF_CHANNEL_ID_FIREWALL_ALERTS,
+                ctx.getString(R.string.notif_channel_firewall_alerts),
+                NotificationManager.IMPORTANCE_HIGH
+            )
+            channel.description = ctx.getString(R.string.notif_channel_desc_firewall_alerts)
+            notificationManager.createNotificationChannel(channel)
+        }
+
+        builder
+            .setSmallIcon(R.drawable.ic_notification_icon)
+            .setContentTitle(ctx.getString(R.string.db_corruption_notif_title))
+            .setContentText(ctx.getString(R.string.db_corruption_notif_desc))
+            .setStyle(
+                NotificationCompat.BigTextStyle()
+                    .bigText(ctx.getString(R.string.db_corruption_notif_desc))
+            )
+            .setAutoCancel(true)
+            .addAction(0, ctx.getString(R.string.db_corruption_action_clear), clearIntent)
+            .addAction(0, ctx.getString(R.string.db_corruption_action_dismiss), dismissIntent)
+
+        notificationManager.notify(
+            NOTIF_CHANNEL_ID_FIREWALL_ALERTS,
+            NOTIF_ID_DB_CORRUPTION,
+            builder.build()
+        )
+    }
+
+    suspend fun clearCoreTablesAndRebuild() {
+        Logger.i(LOG_TAG_APP_DB, "clearCoreTablesAndRebuild: clearing app and proxy mappings")
+        try {
+            FirewallManager.clearAllApps()
+            ProxyManager.clear()
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_APP_DB, "clearCoreTablesAndRebuild: failed to clear tables", e)
+        }
+        refresh(ACTION_REFRESH_FORCE)
     }
 
     private fun findPackagesToAdd(

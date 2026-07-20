@@ -26,7 +26,6 @@ import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
-import com.celzero.bravedns.ui.PrepareVpnActivity
 import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.BioMetricType
 import com.celzero.bravedns.util.Utilities
@@ -121,12 +120,7 @@ class BraveTileService : TileService(), KoinComponent {
             VpnController.start(this)
         } else {
             // open the app to handle the VPN start or stop
-            val intent =
-                if (Utilities.isHeadlessFlavour()) {
-                    Intent(this, PrepareVpnActivity::class.java)
-                } else {
-                    Intent(this, HomeScreenActivity::class.java)
-                }
+            val intent = Intent(this, HomeScreenActivity::class.java)
             val pendingIntent = PendingIntent.getActivity(this, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             try {

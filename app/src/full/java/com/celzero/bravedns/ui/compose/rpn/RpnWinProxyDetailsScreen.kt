@@ -34,6 +34,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +53,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.database.CountryConfig
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.service.ProxyManager
@@ -61,6 +63,7 @@ import com.celzero.bravedns.util.Utilities
 import Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -83,7 +86,9 @@ fun RpnWinProxyDetailsScreen(
     var proxyLatencyMs by remember { mutableStateOf<Int?>(null) }
     var proxyLastConnectedMs by remember { mutableStateOf<Long?>(null) }
     var isProxyActive by remember { mutableStateOf(false) }
+    var serverConfig by remember { mutableStateOf<CountryConfig?>(null) }
     var showNoProxyFoundDialog by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(countryCode) {
         if (countryCode.isEmpty()) {
@@ -112,6 +117,12 @@ fun RpnWinProxyDetailsScreen(
         proxyLatencyMs = loaded.second?.latencyMs
         proxyLastConnectedMs = loaded.second?.lastConnectedMs
         isProxyActive = loaded.second?.isActive == true
+        serverConfig = withContext(Dispatchers.IO) {
+            RpnProxyManager.getWinServers().firstOrNull {
+                it.cc.equals(countryCode, ignoreCase = true) ||
+                    it.key.equals(countryCode, ignoreCase = true)
+            }
+        }
         showNoProxyFoundDialog = loaded.third
     }
 
@@ -149,6 +160,35 @@ fun RpnWinProxyDetailsScreen(
                 proxyLastConnectedMs = proxyLastConnectedMs,
                 isProxyActive = isProxyActive
             )
+            serverConfig?.let { config ->
+                ServerOptionsSection(
+                    config = config,
+                    onHopChanged = { enabled ->
+                        serverConfig = config.copy(hopEnabled = enabled)
+                        scope.launch(Dispatchers.IO) {
+                            RpnProxyManager.setHopForWinServer(config.key, enabled)
+                        }
+                    },
+                    onCatchAllChanged = { enabled ->
+                        serverConfig = config.copy(catchAll = enabled)
+                        scope.launch(Dispatchers.IO) {
+                            RpnProxyManager.setCatchAllForWinServer(config.key, enabled)
+                        }
+                    },
+                    onLockdownChanged = { enabled ->
+                        serverConfig = config.copy(lockdown = enabled)
+                        scope.launch(Dispatchers.IO) {
+                            RpnProxyManager.setLockdownForWinServer(config.key, enabled)
+                        }
+                    },
+                    onMobileOnlyChanged = { enabled ->
+                        serverConfig = config.copy(mobileOnly = enabled)
+                        scope.launch(Dispatchers.IO) {
+                            RpnProxyManager.setMobileOnlyForWinServer(config.key, enabled)
+                        }
+                    },
+                )
+            }
             Spacer(modifier = Modifier.height(16.dp))
             ActionButton(onClick = {
                 Utilities.showToastUiCentered(
@@ -158,6 +198,59 @@ fun RpnWinProxyDetailsScreen(
                 )
             }, label = selectAppsLabel)
         }
+    }
+}
+
+@Composable
+private fun ServerOptionsSection(
+    config: CountryConfig,
+    onHopChanged: (Boolean) -> Unit,
+    onCatchAllChanged: (Boolean) -> Unit,
+    onLockdownChanged: (Boolean) -> Unit,
+    onMobileOnlyChanged: (Boolean) -> Unit,
+) {
+    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
+        Text(
+            text = stringResource(R.string.rpn_server_options_title),
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold,
+        )
+        ServerOptionRow(
+            label = stringResource(R.string.rpn_server_hop),
+            checked = config.hopEnabled,
+            onCheckedChange = onHopChanged,
+        )
+        ServerOptionRow(
+            label = stringResource(R.string.rpn_server_catch_all),
+            checked = config.catchAll,
+            onCheckedChange = onCatchAllChanged,
+        )
+        ServerOptionRow(
+            label = stringResource(R.string.rpn_server_lockdown),
+            checked = config.lockdown,
+            onCheckedChange = onLockdownChanged,
+        )
+        ServerOptionRow(
+            label = stringResource(R.string.rpn_server_mobile_only),
+            checked = config.mobileOnly,
+            onCheckedChange = onMobileOnlyChanged,
+        )
+    }
+}
+
+@Composable
+private fun ServerOptionRow(
+    label: String,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+) {
+    Row(
+        Modifier.fillMaxWidth().padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween,
+    ) {
+        Text(label, modifier = Modifier.weight(1f))
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 

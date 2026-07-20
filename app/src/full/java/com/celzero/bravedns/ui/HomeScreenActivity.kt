@@ -276,6 +276,9 @@ class HomeScreenActivity : ComponentActivity() {
     private val checkoutViewModel: CheckoutViewModel? by lazy {
         runCatching { get<CheckoutViewModel>() }.getOrNull()
     }
+    private val managePurchaseViewModel by viewModel<com.celzero.bravedns.viewmodel.ManagePurchaseViewModel>()
+    private val purchaseHistoryViewModel by viewModel<com.celzero.bravedns.viewmodel.PurchaseHistoryViewModel>()
+    private val serverOrderHistoryViewModel by viewModel<com.celzero.bravedns.viewmodel.ServerOrderHistoryViewModel>()
     private val wgConfigViewModel by viewModel<com.celzero.bravedns.viewmodel.WgConfigViewModel>()
 
 
@@ -619,6 +622,9 @@ class HomeScreenActivity : ComponentActivity() {
                         wgConfigViewModel = wgConfigViewModel,
                         // Checkout dependencies
                         checkoutViewModel = checkoutViewModel,
+                        managePurchaseViewModel = managePurchaseViewModel,
+                        purchaseHistoryViewModel = purchaseHistoryViewModel,
+                        serverOrderHistoryViewModel = serverOrderHistoryViewModel,
                         onNavigateToProxy = { homeNavRequest = HomeNavRequest.ProxySettings },
                         // WgMain callbacks
                         onWgCreateClick = {
@@ -803,6 +809,17 @@ class HomeScreenActivity : ComponentActivity() {
         if (Constants.NOTIF_WG_PERMISSION_VALUE == wg) {
             homeNavRequest = HomeNavRequest.WgMain
             return
+        }
+
+        val hasRpnAccountAlert =
+            intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME) ==
+                Constants.NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE ||
+                intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_NAME) ==
+                Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_VALUE ||
+                intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_NAME) ==
+                Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_VALUE
+        if (hasRpnAccountAlert) {
+            homeNavRequest = HomeNavRequest.RpnAccount
         }
     }
 

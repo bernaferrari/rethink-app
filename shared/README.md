@@ -23,7 +23,7 @@ AGP **android KMP library** + `js()`/`wasmJs()` in **one** Gradle module fails c
 
 ## WireGuard
 
-Common in `:shared`: `Config` / `Peer` / `WgInterface` / `Attribute` / `WgKeyHandle`.  
+Common in `:shared`: `Config` / `Peer` / `WgInterface` / `Attribute` / `WgKeyHandle`.
 App: `ConfigIo` for streams; Firestack only via `toFirestackKey()` on Android.
 
 ## Demo commands

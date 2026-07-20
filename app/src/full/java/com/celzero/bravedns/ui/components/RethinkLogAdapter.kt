@@ -250,8 +250,13 @@ private fun hintColor(context: Context, log: RethinkLog): Color? {
 
 data class LogSummary(val dataUsage: String, val duration: String, val delay: String, val showSummary: Boolean)
 
+@Composable
 private fun summaryInfo(context: Context, log: RethinkLog): LogSummary {
     val connType = ConnectionTracker.ConnType.get(log.connType)
+    var hasCid by remember(log.connId, log.uid) { mutableStateOf(false) }
+    LaunchedEffect(log.connId, log.uid) {
+        hasCid = VpnController.hasCid(log.connId, log.uid)
+    }
     var dataUsage = ""
     var delay = ""
     var duration = ""
@@ -259,7 +264,7 @@ private fun summaryInfo(context: Context, log: RethinkLog): LogSummary {
 
     if (log.duration == 0 && log.downloadBytes == 0L && log.uploadBytes == 0L && log.message.isEmpty()) {
         var hasMinSummary = false
-        if (VpnController.hasCid(log.connId, log.uid)) {
+        if (hasCid) {
             dataUsage = context.getString(R.string.lbl_active)
             duration = context.getString(R.string.symbol_green_circle)
             hasMinSummary = true

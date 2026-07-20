@@ -31,6 +31,7 @@ import com.celzero.bravedns.service.ServiceModule
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.OrbotHelper
 import com.celzero.bravedns.viewmodel.ViewModelModule
+import com.celzero.bravedns.viewmodel.FullViewModelModule
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.module.Module
 import org.koin.dsl.module
@@ -67,6 +68,7 @@ val AppModules: List<Module> by lazy {
         add(rootModule)
         addAll(DatabaseModule.modules)
         addAll(ViewModelModule.modules)
+        add(FullViewModelModule.module)
         addAll(DataModule.modules)
         addAll(ServiceModule.modules)
         addAll(stateMachineModules)

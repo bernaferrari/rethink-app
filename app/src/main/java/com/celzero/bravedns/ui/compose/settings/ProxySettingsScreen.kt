@@ -244,7 +244,7 @@ fun ProxySettingsScreen(
     val wireguardStatusWaitingText = stringResource(R.string.status_waiting)
     val wireguardVersionTemplate = stringResource(R.string.about_version_install_source)
     val wireguardIpLabelTemplate = stringResource(R.string.ci_ip_label)
-    val proxyStatusLabelById = mutableMapOf<Long, String>().apply {
+    val proxyStatusLabelById = mutableMapOf<Int, String>().apply {
         for (status in UIUtils.ProxyStatus.entries) {
             put(
                 status.id,
@@ -291,7 +291,7 @@ fun ProxySettingsScreen(
     val orbotAppCount =
         if (mappingViewModel != null) {
             mappingViewModel.getAppCountById(ProxyManager.ID_ORBOT_BASE)
-                
+
                 .collectAsState(initial = 0)
                 .value
         } else {
@@ -1959,7 +1959,7 @@ private suspend fun buildProxyScreenState(
     orbotStatusArgDns: String,
     orbotStatusArgProxy: String,
     defaultWireguardDescription: String,
-    statusTextById: Map<Long, String>,
+    statusTextById: Map<Int, String>,
     statusFailingText: String,
     statusWaitingText: String,
     wireguardVersionTemplate: String,
@@ -2103,7 +2103,7 @@ private suspend fun formatOrbotDescription(
 
 private suspend fun formatWireguardDescription(
     defaultDescription: String,
-    statusTextById: Map<Long, String>,
+    statusTextById: Map<Int, String>,
     statusWaitingText: String,
     statusFailingText: String,
     wireguardVersionTemplate: String,
@@ -2150,7 +2150,7 @@ private suspend fun formatWireguardDescription(
     return details.toString().trimEnd()
 }
 
-private fun isDnsError(statusId: Long?): Boolean {
+private fun isDnsError(statusId: Int?): Boolean {
     if (statusId == null) return true
 
     val s = Transaction.Status.fromId(statusId)
@@ -2164,9 +2164,9 @@ private fun isDnsError(statusId: Long?): Boolean {
 }
 
 private fun getProxyStatusText(
-    statusPair: Pair<Long?, String>,
+    statusPair: Pair<Int?, String>,
     stats: RouterStats?,
-    statusTextById: Map<Long, String>,
+    statusTextById: Map<Int, String>,
     statusWaitingText: String,
     statusFailingText: String,
     wireguardVersionTemplate: String
