@@ -22,21 +22,15 @@ import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.database.IpInfo
 import com.celzero.bravedns.database.IpInfoRepository
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.UNSPECIFIED_IP_IPV4
 import com.celzero.bravedns.util.Constants.Companion.UNSPECIFIED_IP_IPV6
-import com.google.gson.Gson
-import com.google.gson.JsonObject
-import com.google.gson.JsonSyntaxException
+import com.celzero.bravedns.util.JsonHelper
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.json.JsonObject
 import inet.ipaddr.IPAddressString
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
-import okhttp3.OkHttpClient
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.ConcurrentHashMap
+import com.celzero.bravedns.network.IpInfoApi
 import kotlin.math.pow
 
 object IpInfoDownloader: KoinComponent {
@@ -45,53 +39,10 @@ object IpInfoDownloader: KoinComponent {
     private val db by inject<IpInfoRepository>()
 
     private const val TAG = "IpInfoDownloader"
-    @Volatile private var retryAfterTimestamp = 0L
-    @Volatile private var retryAttemptCount = 0
+    private var retryAfterTimestamp = 0L
+    private var retryAttemptCount = 0
     private const val HTTP_TOO_MANY_REQUEST_CODE = 429
     private const val COOL_DOWN_PERIOD_MILLIS: Long = 1 * 60 * 60 * 1000 // 1 hour
-    private const val SECONDS_PER_MINUTE = 60
-    private const val MILLIS_PER_SECOND = 1000
-
-    // Max concurrent IP-info HTTP requests; keeps thread count bounded.
-    private const val MAX_CONCURRENT_DOWNLOADS = 3
-    private val downloadSemaphore = Semaphore(MAX_CONCURRENT_DOWNLOADS)
-
-    // IPs whose download is currently in-flight; prevents duplicate concurrent fetches
-    // for the same IP driven by rapid onSocketClosed() callbacks.
-    private val inFlightIps: MutableSet<String> = ConcurrentHashMap.newKeySet()
-
-    private data class HttpClientEntry(
-        val client: OkHttpClient,
-        val isRinRActive: Boolean
-    )
-
-    private data class RetrofitCacheEntry(
-        val retrofit: Retrofit,
-        val isRinRActive: Boolean
-    )
-
-    @Volatile private var httpClientCache: HttpClientEntry? = null
-    @Volatile private var retrofitCache: RetrofitCacheEntry? = null
-
-    private fun getOrCreateHttpClient(isRinRActive: Boolean): OkHttpClient {
-        val cached = httpClientCache
-        if (cached != null && cached.isRinRActive == isRinRActive) return cached.client
-        val newClient = RetrofitManager.okHttpClient(isRinRActive)
-        httpClientCache = HttpClientEntry(newClient, isRinRActive)
-        return newClient
-    }
-
-    private fun getOrCreateRetrofit(httpClient: OkHttpClient, isRinRActive: Boolean): Retrofit {
-        val cached = retrofitCache
-        if (cached != null && cached.isRinRActive == isRinRActive) return cached.retrofit
-        val newRetrofit = Retrofit.Builder()
-            .baseUrl(Constants.IP_INFO_BASE_URL)
-            .client(httpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
-        retrofitCache = RetrofitCacheEntry(newRetrofit, isRinRActive)
-        return newRetrofit
-    }
 
     suspend fun fetchIpInfoIfRequired(ipToLookup: String) {
         if (!persistentState.downloadIpInfo) {
@@ -105,30 +56,16 @@ object IpInfoDownloader: KoinComponent {
             return
         }
 
-        // Deduplicate: if another coroutine is already fetching this IP, bail out.
-        if (!inFlightIps.add(ipToLookup)) {
-            Logger.vv(LOG_TAG_DOWNLOAD, "$TAG; already in-flight, skip download for $ipToLookup")
+        // check in database whether the ip info is already downloaded
+        val ipInfo = db.getIpInfo(ipToLookup)
+        if (ipInfo != null) {
+            Logger.vv(LOG_TAG_DOWNLOAD, "$TAG; already available, skip download")
             return
         }
 
-        try {
-            // check in database whether the ip info is already downloaded
-            val ipInfo = db.getIpInfo(ipToLookup)
-            if (ipInfo != null) {
-                Logger.vv(LOG_TAG_DOWNLOAD, "$TAG; already available, skip download")
-                return
-            }
-
-            Logger.vv(LOG_TAG_DOWNLOAD, "$TAG; not present, proceed download...")
-            // Semaphore limits the total number of concurrent HTTP downloads so that
-            // OkHttp's dispatcher cannot spin up unbounded threads from rapid socket-close events.
-            downloadSemaphore.withPermit {
-                val downloadSuccessful = performIpInfoDownload(ipToLookup)
-                Logger.d(LOG_TAG_DOWNLOAD, "$TAG; download complete, success? $downloadSuccessful")
-            }
-        } finally {
-            inFlightIps.remove(ipToLookup)
-        }
+        Logger.vv(LOG_TAG_DOWNLOAD, "$TAG; not present, proceed download...")
+        val downloadSuccessful = performIpInfoDownload(ipToLookup)
+        Logger.d(LOG_TAG_DOWNLOAD, "$TAG; download complete, success? $downloadSuccessful")
     }
 
     private fun isLanIp(ipAddress: String): Boolean? {
@@ -144,26 +81,15 @@ object IpInfoDownloader: KoinComponent {
 
 
     private suspend fun performIpInfoDownload(ipToLookup: String): Boolean {
-        if (DEBUG) OkHttpDebugLogging.enableHttp2()
-        if (DEBUG) OkHttpDebugLogging.enableTaskRunner()
-
         if (System.currentTimeMillis() < retryAfterTimestamp) {
             val remainingTime = retryAfterTimestamp - System.currentTimeMillis()
             Logger.i(LOG_TAG_DOWNLOAD, "$TAG; too many req, no attempt to download for $remainingTime")
             return false
         }
 
-        // Reuse cached OkHttpClient and Retrofit instances rather than creating new
-        // ones (and their thread pools) on every call. A fresh client per call was
-        // the root cause of pthread OOM errors.
-        val isRinRActive = persistentState.routeRethinkInRethink
-        val httpClient = getOrCreateHttpClient(isRinRActive)
-        val retrofitInstance = getOrCreateRetrofit(httpClient, isRinRActive)
-
-        val ipInfoDownloadApi = retrofitInstance.create(IIpInfoDownload::class.java)
-
         return try {
-            val downloadResponse = ipInfoDownloadApi.downloadIpInfo(ipToLookup)
+            val downloadResponse =
+                IpInfoApi.downloadIpInfo(persistentState.routeRethinkInRethink, ipToLookup)
             // in case if the response error is 429 do not send requests for next 5 minutes
             // if the response is 429 for second time, then exponentially increase the break time
             if (downloadResponse == null) {
@@ -172,7 +98,7 @@ object IpInfoDownloader: KoinComponent {
             }
 
             if (downloadResponse.isSuccessful) {
-                val jsonResponse = downloadResponse.body()
+                val jsonResponse = downloadResponse.body
                 if (jsonResponse == null) {
                     Logger.i(LOG_TAG_DOWNLOAD, "$TAG; download failed: response body is null")
                     return false
@@ -186,19 +112,19 @@ object IpInfoDownloader: KoinComponent {
                 Logger.i(LOG_TAG_DOWNLOAD, "$TAG; download successful: $jsonResponse")
                 true
             } else {
-                if (downloadResponse.code() == HTTP_TOO_MANY_REQUEST_CODE) {
-                    Logger.i(LOG_TAG_DOWNLOAD, "$TAG; download failed: ${downloadResponse.code()} ${downloadResponse.message()}")
+                if (downloadResponse.code == HTTP_TOO_MANY_REQUEST_CODE) {
+                    Logger.i(LOG_TAG_DOWNLOAD, "$TAG; download failed: ${downloadResponse.code} ${downloadResponse.message}")
                     var coolDownPeriodMillis: Long = COOL_DOWN_PERIOD_MILLIS
                     if (retryAttemptCount > 1) {
                         Logger.i(LOG_TAG_DOWNLOAD, "$TAG; download failed: too many attempts")
                         // increase the break time exponentially
-                        coolDownPeriodMillis = (2.0.pow(retryAttemptCount.toDouble()) * SECONDS_PER_MINUTE * MILLIS_PER_SECOND).toLong()
+                        coolDownPeriodMillis = (2.0.pow(retryAttemptCount.toDouble()) * 60 * 1000).toLong()
                     }
                     retryAfterTimestamp = System.currentTimeMillis() + coolDownPeriodMillis
                     retryAttemptCount++
                 }
 
-                Logger.i(LOG_TAG_DOWNLOAD, "$TAG; download failed: ${downloadResponse.code()} ${downloadResponse.message()}")
+                Logger.i(LOG_TAG_DOWNLOAD, "$TAG; download failed: ${downloadResponse.code} ${downloadResponse.message}")
                 false
             }
         } catch (e: Exception) {
@@ -209,11 +135,10 @@ object IpInfoDownloader: KoinComponent {
 
     private fun parseIpInfoFromJson(ipInfoJson: JsonObject): IpInfo? {
         try {
-            val ipInfoJsonString = ipInfoJson.toString()
-            val ipInfo = Gson().fromJson(ipInfoJsonString, IpInfo::class.java)
+            val ipInfo = JsonHelper.json.decodeFromJsonElement(IpInfo.serializer(), ipInfoJson)
             ipInfo.createdTs = System.currentTimeMillis()
             return ipInfo
-        } catch (e: JsonSyntaxException) {
+        } catch (e: SerializationException) {
             Logger.w(LOG_TAG_DOWNLOAD, "$TAG; err parsing ip info: ${e.message}")
         } catch (e: Exception) {
             Logger.w(LOG_TAG_DOWNLOAD, "$TAG; err parsing ip info: ${e.message}")

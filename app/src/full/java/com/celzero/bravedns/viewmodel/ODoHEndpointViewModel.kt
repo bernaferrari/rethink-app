@@ -19,14 +19,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
+import com.celzero.bravedns.database.ODoHEndpoint
 import com.celzero.bravedns.database.ODoHEndpointDAO
-import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
+import com.celzero.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
+import kotlinx.coroutines.flow.Flow
 
 class ODoHEndpointViewModel(private val endpointDao: ODoHEndpointDAO) : ViewModel() {
-    val dohEndpointList =
-        Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) { endpointDao.getODoHEndpointLiveData() }
-            .liveData
+    val dohEndpointList: Flow<PagingData<ODoHEndpoint>> =
+        Pager(PagingConfig(PAGING_PAGE_SIZE)) { endpointDao.oDoHEndpointsPagingSource() }
+            .flow
             .cachedIn(viewModelScope)
 }

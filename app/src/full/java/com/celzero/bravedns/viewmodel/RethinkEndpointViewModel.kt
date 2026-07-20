@@ -15,49 +15,49 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
+import com.celzero.bravedns.database.RethinkDnsEndpoint
 import com.celzero.bravedns.database.RethinkDnsEndpointDao
 import com.celzero.bravedns.util.Constants
-import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
+import com.celzero.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 class RethinkEndpointViewModel(private val rethinkDnsEndpointDao: RethinkDnsEndpointDao) :
     ViewModel() {
 
-    private val list: MutableLiveData<String> = MutableLiveData()
+    private var list: MutableStateFlow<String> = MutableStateFlow("")
     private var uid: Int = Constants.MISSING_UID
 
-    init {
-        list.value = ""
-    }
-
-    val rethinkEndpointList =
-        list.switchMap { input: String ->
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val rethinkEndpointList: Flow<PagingData<RethinkDnsEndpoint>> =
+        list.flatMapLatest { input: String ->
             if (uid == Constants.MISSING_UID) {
                 if (input.isBlank()) {
-                    Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
+                    Pager(PagingConfig(PAGING_PAGE_SIZE)) {
                             rethinkDnsEndpointDao.getRethinkEndpoints()
                         }
-                        .liveData
+                        .flow
                         .cachedIn(viewModelScope)
                 } else {
-                    Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
+                    Pager(PagingConfig(PAGING_PAGE_SIZE)) {
                             rethinkDnsEndpointDao.getRethinkEndpointsByName("%$input%")
                         }
-                        .liveData
+                        .flow
                         .cachedIn(viewModelScope)
                 }
             } else {
-                Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
+                Pager(PagingConfig(PAGING_PAGE_SIZE)) {
                         rethinkDnsEndpointDao.getAllRethinkEndpoints()
                     }
-                    .liveData
+                    .flow
                     .cachedIn(viewModelScope)
             }
         }

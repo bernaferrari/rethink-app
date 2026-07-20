@@ -17,46 +17,43 @@
 package com.celzero.bravedns.service
 
 import Logger
+import Logger.LOG_TAG_UI
 import Logger.LOG_TAG_VPN
 import android.content.Context
 import android.content.Intent
 import android.net.Network
 import android.os.SystemClock
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.ConsoleLog
-import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Utilities
-import com.celzero.firestack.backend.Client
 import com.celzero.firestack.backend.DNSTransport
 import com.celzero.firestack.backend.NetStat
-import com.celzero.firestack.backend.Proxy
 import com.celzero.firestack.backend.RDNS
 import com.celzero.firestack.backend.RouterStats
-import com.celzero.firestack.backend.RpnEntitlement
-import com.celzero.firestack.backend.RpnServers
 import com.celzero.firestack.intra.Controller
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.channels.consumeEach
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.net.Socket
+import kotlin.coroutines.cancellation.CancellationException
 
 object VpnController : KoinComponent {
 
-    @Volatile private var braveVpnService: BraveVPNService? = null
+    private var braveVpnService: BraveVPNService? = null
     private var connectionState: BraveVPNService.State? = null
+    private var lastConnectedServerName: String? = null
     private val persistentState by inject<PersistentState>()
     private var states: Channel<BraveVPNService.State?>? = null
-    @Volatile private var protocol: Pair<Boolean, Boolean> = Pair(false, false)
+    private var protocol: Pair<Boolean, Boolean> = Pair(false, false)
     private const val URL4 = "IPv4"
     private const val URL6 = "IPv6"
 
@@ -64,25 +61,30 @@ object VpnController : KoinComponent {
     var externalScope: CoroutineScope? = null
         private set
 
-    @Volatile private var vpnStartElapsedTime: Long = SystemClock.elapsedRealtime()
+    private var vpnStartElapsedTime: Long = SystemClock.elapsedRealtime()
 
-    // FIXME: Publish VpnState through this live-data to relieve direct access
+    // FIXME: Publish VpnState through this state-flow to relieve direct access
     // into VpnController's state(), isOn(), hasTunnel() etc.
-    var connectionStatus: MutableLiveData<BraveVPNService.State?> = MutableLiveData()
+    var connectionStatus: MutableStateFlow<BraveVPNService.State?> = MutableStateFlow(null)
 
-    @Volatile private var isLastConnectionEch: Boolean = false
+    @Throws(CloneNotSupportedException::class)
+    fun clone(): Any? {
+        throw CloneNotSupportedException()
+    }
 
     // TODO: make clients listen on create, start, stop, destroy from vpn-service
     fun onVpnCreated(b: BraveVPNService) {
         braveVpnService = b
-        externalScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-        states = Channel(Channel.CONFLATED) // drop unconsumed states
+        val scope = CoroutineScope(Dispatchers.IO)
+        externalScope = scope
+        val stateChannel = Channel<BraveVPNService.State?>(Channel.CONFLATED) // drop unconsumed states
+        states = stateChannel
 
         // store app start time, used in HomeScreenBottomSheet
         vpnStartElapsedTime = SystemClock.elapsedRealtime()
 
-        externalScope!!.launch {
-            states!!.consumeEach { state ->
+        scope.launch {
+            stateChannel.consumeEach { state ->
                 // transition from paused connection state only on NEW/NULL
                 when (state) {
                     null -> {
@@ -104,24 +106,20 @@ object VpnController : KoinComponent {
 
     fun onVpnDestroyed() {
         braveVpnService = null
-        try {
-            states?.cancel()
-        } catch (_: Exception) {}
-        states = null
+        states?.cancel()
         vpnStartElapsedTime = SystemClock.elapsedRealtime()
         try {
+            // externalScope?.coroutineContext?.get(Job)?.cancel("VPNController - onVpnDestroyed")
             externalScope?.cancel("VPNController - onVpnDestroyed")
-        } catch (_: Exception) {}
-        externalScope = null
+        } catch (_: IllegalStateException) {} catch (
+            _: CancellationException) {} catch (_: Exception) {}
     }
 
     @Suppress("DEPRECATION")
     fun uptimeMs(): Long {
-        val b = braveVpnService
-        val start = vpnStartElapsedTime
-        val t = SystemClock.elapsedRealtime() - start
+        val t = SystemClock.elapsedRealtime() - vpnStartElapsedTime
 
-        return if (b?.hasTunnel() == true) {
+        return if (isOn()) {
             t
         } else {
             -1L * t
@@ -129,33 +127,32 @@ object VpnController : KoinComponent {
     }
 
     fun onConnectionStateChanged(state: BraveVPNService.State?) {
-        val s = states
-        externalScope?.launch { s?.send(state) }
+        externalScope?.launch { states?.send(state) }
     }
 
-    fun onEchUpdate(isEch: Boolean) {
-        isLastConnectionEch = isEch
+    fun onServerNameUpdated(name: String?) {
+        lastConnectedServerName = name
     }
 
     private fun updateState(state: BraveVPNService.State?) {
         connectionState = state
-        connectionStatus.postValue(state)
+        connectionStatus.value = state
     }
 
     fun start(context: Context, autoAttempt: Boolean = false) {
-        val b = braveVpnService
         // if the tunnel has the go-adapter then there's nothing to do
-        if (b?.hasTunnel() == true) {
+        if (hasTunnel()) {
             Logger.w(LOG_TAG_VPN, "braveVPNService is already on, resending vpn enabled state")
             return
         }
+        Logger.d("TEST", "vpn start: ${braveVpnService != null}, reboot: $autoAttempt")
         // below check is to avoid multiple calls to start the vpn when always-on is enabled
         // case: after a device reboot, vpn?.isAlwaysOnEnabled() may return false even though
         // always-on is actually enabled; this causes the VPN to start twice and fails doing so.
         // one approach is to store the always-on state in persistent state and check it here.
         // another is to check whether the vpn is already running.
         // todo: see whether changing the persistent state is really necessary.
-        if (b != null && autoAttempt) {
+        if (braveVpnService != null && autoAttempt) {
             Logger.i(LOG_TAG_VPN, "vpn service already running, no need to start")
             return
         }
@@ -176,21 +173,18 @@ object VpnController : KoinComponent {
         }
     }
 
-    fun stop(reason: String, context: Context, userInitiated: Boolean = true) {
+    fun stop(reason: String, context: Context) {
         Logger.i(LOG_TAG_VPN, "VPN Controller stop with context: $context")
         connectionState = null
         onConnectionStateChanged(null)
-        braveVpnService?.signalStopService(reason, userInitiated)
+        braveVpnService?.signalStopService(reason, userInitiated = true)
     }
 
     @Suppress("DEPRECATION")
     fun state(): VpnState {
         val requested: Boolean = persistentState.getVpnEnabled()
-        val b = braveVpnService
-        val cs = connectionState
-        val ech = isLastConnectionEch
-        val on = b?.hasTunnel() == true
-        return VpnState(requested, on, cs, ech)
+        val on = isOn()
+        return VpnState(requested, on, connectionState, lastConnectedServerName)
     }
 
     @Deprecated(message = "use hasTunnel() instead", replaceWith = ReplaceWith("hasTunnel()"))
@@ -207,9 +201,8 @@ object VpnController : KoinComponent {
     }
 
     fun hasStarted(): Boolean {
-        val cs = connectionState
-        return cs == BraveVPNService.State.WORKING ||
-            cs == BraveVPNService.State.FAILING
+        return connectionState == BraveVPNService.State.WORKING ||
+            connectionState == BraveVPNService.State.FAILING
     }
 
     fun isAppPaused(): Boolean {
@@ -238,8 +231,8 @@ object VpnController : KoinComponent {
         }
     }
 
-    fun getPauseCountDownObserver(): MutableLiveData<Long>? {
-        return braveVpnService?.getPauseCountDownObserver()
+    fun pauseCountDownFlow(): StateFlow<Long>? {
+        return braveVpnService?.pauseCountDownFlow()
     }
 
     fun increasePauseDuration(durationMs: Long) {
@@ -250,7 +243,7 @@ object VpnController : KoinComponent {
         braveVpnService?.decreasePauseDuration(durationMs)
     }
 
-    suspend fun getProxyStatusById(id: String): Pair<Int?, String> {
+    suspend fun getProxyStatusById(id: String): Pair<Long?, String> {
         return braveVpnService?.getProxyStatusById(id) ?: Pair(null, "vpn service not available")
     }
 
@@ -260,14 +253,6 @@ object VpnController : KoinComponent {
 
     suspend fun getWireGuardStats(id: String): WireguardManager.WgStats? {
         return braveVpnService?.getWireGuardStats(id)
-    }
-
-    suspend fun getRpnStats(id: String): RpnProxyManager.RpnStats? {
-        return braveVpnService?.getRpnStats(id)
-    }
-
-    suspend fun getRpnAddlInfo(id: String): RpnProxyManager.ActiveRpnAddlInfo? {
-        return braveVpnService?.getRpnAddlInfo(id)
     }
 
     suspend fun getSupportedIpVersion(id: String): Pair<Boolean, Boolean> {
@@ -282,14 +267,13 @@ object VpnController : KoinComponent {
         return braveVpnService?.p50(id) ?: -1L
     }
 
-    fun getRegionLiveData(): LiveData<String> {
-        return braveVpnService?.getRegionLiveData() ?: MutableLiveData()
+    fun getRegionFlow(): StateFlow<String> {
+        return braveVpnService?.getRegionFlow() ?: MutableStateFlow("")
     }
 
     fun protocols(): String {
-        val p = protocol
-        val ipv4 = p.first
-        val ipv6 = p.second
+        val ipv4 = protocol.first
+        val ipv6 = protocol.second
         return if (ipv4 && ipv6) {
             "$URL4, $URL6"
         } else if (ipv6) {
@@ -307,15 +291,13 @@ object VpnController : KoinComponent {
     }
 
     fun updateProtocol(proto: Pair<Boolean, Boolean>) {
-        val finalProto =
-            if (!proto.first && !proto.second) {
-                val failOpen = !persistentState.stallOnNoNetwork
-                Logger.i(LOG_TAG_VPN, "both v4 and v6 false, setting $failOpen")
-                Pair(failOpen, failOpen)
-            } else {
-                proto
-            }
-        protocol = finalProto
+        if (!proto.first && !proto.second) {
+            val failOpen = !persistentState.stallOnNoNetwork
+            Logger.i(LOG_TAG_VPN, "both v4 and v6 false, setting $failOpen")
+            protocol = Pair(failOpen, failOpen)
+            return
+        }
+        protocol = proto
     }
 
     fun mtu(): Int {
@@ -323,31 +305,29 @@ object VpnController : KoinComponent {
     }
 
     fun underlyingSsid(): String? {
-        val b = braveVpnService ?: return ""
-        return b.underlyingNetworks?.activeSsid ?: b.underlyingNetworks?.ipv4Net?.firstOrNull { !it.ssid.isNullOrEmpty() }?.ssid ?: b.underlyingNetworks?.ipv6Net?.firstOrNull { !it.ssid.isNullOrEmpty() }?.ssid.orEmpty()
+        return braveVpnService?.underlyingNetworks?.activeSsid ?: braveVpnService?.underlyingNetworks?.ipv4Net?.firstOrNull { !it.ssid.isNullOrEmpty() }?.ssid ?: braveVpnService?.underlyingNetworks?.ipv6Net?.firstOrNull { !it.ssid.isNullOrEmpty() }?.ssid ?: ""
     }
 
     fun netType(): String {
         // using firewall_status_unknown from strings.xml as a place holder to show network
         // type as Unknown.
-        val b = braveVpnService
-        var t = b?.getString(R.string.firewall_status_unknown) ?: ""
-        if (b == null) {
+        var t = braveVpnService?.getString(R.string.firewall_status_unknown) ?: ""
+        if (braveVpnService == null) {
             return t
         }
 
         t =
-            if (b.underlyingNetworks?.isActiveNetworkMetered == true) {
-                b.getString(R.string.ada_app_metered).toString()
+            if (braveVpnService?.underlyingNetworks?.isActiveNetworkMetered == true) {
+                braveVpnService?.getString(R.string.ada_app_metered).toString()
             } else {
                 // the network type is shown as unmetered even when rethink cannot determine
                 // the underlying network / no underlying network
-                b.getString(R.string.ada_app_unmetered).toString()
+                braveVpnService?.getString(R.string.ada_app_unmetered).toString()
             }
         return t
     }
 
-    suspend fun hasCid(cid: String, uid: Int): Boolean {
+    fun hasCid(cid: String, uid: Int): Boolean {
         return braveVpnService?.hasCid(cid, uid) ?: false
     }
 
@@ -371,7 +351,7 @@ object VpnController : KoinComponent {
         braveVpnService?.closeConnectionsByUidDomain(uid, ipAddress, reason)
     }
 
-    suspend fun getDnsStatus(id: String): Int? {
+    suspend fun getDnsStatus(id: String): Long? {
         return braveVpnService?.getDnsStatus(id)
     }
 
@@ -392,10 +372,10 @@ object VpnController : KoinComponent {
     }
 
     suspend fun getSystemDns(): String {
-        return braveVpnService?.getSystemDns().orEmpty()
+        return braveVpnService?.getSystemDns() ?: ""
     }
 
-    suspend fun getNetStat(): NetStat? {
+    fun getNetStat(): NetStat? {
         return braveVpnService?.getNetStat()
     }
 
@@ -403,52 +383,27 @@ object VpnController : KoinComponent {
         braveVpnService?.writeConsoleLog(log)
     }
 
-    suspend fun registerAndFetchWinConfig(prevBytes: ByteArray?, deviceId: String): ByteArray? {
-        return braveVpnService?.registerAndFetchWinIfNeeded(prevBytes, deviceId)
+    suspend fun isProxyReachable(proxyId: String, ippcsv: String): Boolean {
+        return braveVpnService?.isProxyReachable(proxyId, ippcsv) ?: false
     }
 
-    /** Ask the tunnel to refresh the WIN proxy state and return the updated bytes. */
-    suspend fun updateWin(): ByteArray? {
-        return braveVpnService?.updateWin()
-    }
-
-    suspend fun onRpnOptsChange() {
-        braveVpnService?.onRpnOptsChange()
-    }
-
-    suspend fun getWinExpiryTs(): Long? {
-        return braveVpnService?.getWinExpiryTs()
-    }
-
-    suspend fun isWinRegistered(): Boolean {
-        return braveVpnService?.isWinRegistered() ?: false
-    }
-
-    suspend fun unregisterWin(): Boolean {
-        return braveVpnService?.unregisterWin() ?: false
-    }
-
-    suspend fun handleRpnProxies() {
-        return braveVpnService?.handleRpnProxies() ?: Unit
+    suspend fun registerAndFetchWinConfig(prevBytes: ByteArray?): ByteArray? {
+        return braveVpnService?.registerAndFetchWinIfNeeded(prevBytes)
     }
 
     suspend fun createWgHop(origin: String, hop: String): Pair<Boolean, String> {
         return (braveVpnService?.createWgHop(origin, hop) ?: Pair(false, "vpn service not available"))
     }
 
-    suspend fun testRpnProxy(): Boolean {
-        return braveVpnService?.testRpnProxy() == true
-    }
-
-    suspend fun isRpnReachable(csv: String): Boolean {
-        return braveVpnService?.isRpnReachable(csv) == true
+    suspend fun testRpnProxy(proxyId: String): Boolean {
+        return braveVpnService?.testRpnProxy(proxyId) == true
     }
 
     suspend fun testHop(src: String, hop: String): Pair<Boolean, String?> {
         return braveVpnService?.testHop(src, hop) ?: Pair(false, "vpn service not available")
     }
 
-    suspend fun hopStatus(src: String, hop: String): Pair<Int?, String> {
+    suspend fun hopStatus(src: String, hop: String): Pair<Long?, String> {
         return braveVpnService?.hopStatus(src, hop) ?: Pair(null, "vpn service not available")
     }
 
@@ -456,46 +411,10 @@ object VpnController : KoinComponent {
         return braveVpnService?.removeHop(src) ?: Pair(false, "vpn service not available")
     }
 
-    suspend fun getRpnProps(type: RpnProxyManager.RpnType): Pair<RpnProxyManager.RpnProps?, String?> {
+    /*suspend fun getRpnProps(type: RpnProxyManager.RpnType): Pair<RpnProxyManager.RpnProps?, String?> {
         return braveVpnService?.getRpnProps(type) ?: Pair(null, null)
     }
-
-    suspend fun getRpnLocations(type: RpnProxyManager.RpnType): Pair<RpnServers?, String?> {
-        return braveVpnService?.getRpnLocations(type) ?: Pair(null, null)
-    }
-
-    suspend fun addNewWinServer(key: String): Pair<Boolean, String> {
-        return braveVpnService?.addNewWinServer(key) ?: Pair(false, "vpn service not available")
-    }
-
-    suspend fun handleRpnHop(key: String, configChanged: Boolean): Pair<Boolean, String> {
-        return braveVpnService?.handleRpnHop(key, configChanged) ?: Pair(false, "vpn service not available")
-    }
-
-    suspend fun removeWinServer(key: String): Pair<Boolean, String> {
-        return braveVpnService?.removeWinServer(key) ?: Pair(false, "vpn service not available")
-    }
-
-    suspend fun refreshRpnProxy(id: String): Boolean {
-        return braveVpnService?.refreshRpnProxy(id) ?: false
-    }
-
-    suspend fun stopRpnProxy(): Boolean {
-        return braveVpnService?.stopRpnProxy() ?: false
-    }
-
-    suspend fun reconnectRpnProxy(id: String): Boolean {
-        return braveVpnService?.reconnectRpnProxy(id) ?: false
-    }
-
-    suspend fun getRpnClientInfoById(id: String): Client? {
-        return braveVpnService?.getRpnClientInfoById(id)
-    }
-
-    suspend fun getWgClientInfoById(id: String): Client? {
-        return braveVpnService?.getWgClientInfoById(id)
-    }
-
+*/
     suspend fun vpnStats(): String? {
         return braveVpnService?.vpnStats()
     }
@@ -532,36 +451,7 @@ object VpnController : KoinComponent {
         braveVpnService?.screenUnlock()
     }
 
-    suspend fun initiateWgPing(proxyId: String) {
-        braveVpnService?.initiateWgPing(proxyId)
-    }
-
-    suspend fun initiateRpnPing(proxyId: String) {
-        braveVpnService?.initiateRpnPing(proxyId)
-    }
-
-    fun screenLock() {
-        braveVpnService?.screenLock()
-    }
-
-
-    suspend fun getWinByKey(key: String): Proxy? {
-        return braveVpnService?.getWinByKey(key)
-    }
-
-    suspend fun getWinIdentifier(): String? {
-        return braveVpnService?.getWinIdentifier()
-    }
-
-    suspend fun getWinProxyId(): String? {
-        return braveVpnService?.getWinProxyId()
-    }
-
-    suspend fun crashTun(type: Long) {
-        braveVpnService?.crashTun(type)
-    }
-
-    suspend fun getEntitlementDetails(prevBytes: ByteArray?, deviceId: String): RpnEntitlement? {
-        return braveVpnService?.getEntitlementDetails(prevBytes, deviceId)
+    suspend fun performFlightRecording() {
+        braveVpnService?.performFlightRecording()
     }
 }

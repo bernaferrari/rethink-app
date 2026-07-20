@@ -15,24 +15,28 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
+import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.database.StatsSummaryDao
 import com.celzero.bravedns.util.Constants
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 
 class DomainConnectionsViewModel(private val statsDao: StatsSummaryDao) : ViewModel() {
-    private val domains: MutableLiveData<String> = MutableLiveData()
-    private val asn: MutableLiveData<String> = MutableLiveData()
-    private val flag: MutableLiveData<String> = MutableLiveData()
-    private val ip: MutableLiveData<String> = MutableLiveData()
+    private var domains: MutableStateFlow<String> = MutableStateFlow("")
+    private var asn: MutableStateFlow<String> = MutableStateFlow("")
+    private var flag: MutableStateFlow<String> = MutableStateFlow("")
+    private var ip: MutableStateFlow<String> = MutableStateFlow("")
     private var timeCategory: TimeCategory = TimeCategory.ONE_HOUR
-    private val startTime: MutableLiveData<Long> = MutableLiveData()
+    private var startTime: MutableStateFlow<Long> = MutableStateFlow(0L)
     private var isBlocked: Boolean = false
 
     companion object {
@@ -54,29 +58,25 @@ class DomainConnectionsViewModel(private val statsDao: StatsSummaryDao) : ViewMo
     init {
         // set from and to time to current and 1 hr before
         startTime.value = System.currentTimeMillis() - ONE_HOUR_MILLIS
-        domains.postValue("")
-        asn.postValue("")
-        flag.postValue("")
-        ip.postValue("")
     }
 
     fun setDomain(domain: String, isBlocked: Boolean) {
         this.isBlocked = isBlocked
-        domains.postValue(domain)
+        domains.value = domain
     }
 
     fun setFlag(flag: String) {
-        this.flag.postValue(flag)
+        this.flag.value = flag
     }
 
     fun setAsn(asn: String, isBlocked: Boolean) {
         this.isBlocked = isBlocked
-        this.asn.postValue(asn)
+        this.asn.value = asn
     }
 
     fun setIp(ip: String, isBlocked: Boolean) {
         this.isBlocked = isBlocked
-        this.ip.postValue(ip)
+        this.ip.value = ip
     }
 
     fun timeCategoryChanged(tc: TimeCategory) {
@@ -98,43 +98,43 @@ class DomainConnectionsViewModel(private val statsDao: StatsSummaryDao) : ViewMo
         ip.value = ""
     }
 
-    val domainConnectionList = domains.switchMap { input ->
-        fetchDomainConnections(input)
-    }
-
-    val flagConnectionList = flag.switchMap { input ->
-        fetchFlagConnections(input)
-    }
-
-    val asnConnectionList = asn.switchMap { input ->
-        fetchAsnConnections(input)
-    }
-
-    val ipConnectionList = ip.switchMap { input ->
-        fetchIpConnections(input)
-    }
-
-    private fun fetchDomainConnections(input: String) =
-        Pager(PagingConfig(pageSize = Constants.LIVEDATA_PAGE_SIZE)) {
-            statsDao.getDomainDetails(input, startTime.value!!, isBlocked)
-        }.liveData.cachedIn(viewModelScope)
-
-    private fun fetchFlagConnections(input: String) =
-        Pager(PagingConfig(pageSize = Constants.LIVEDATA_PAGE_SIZE)) {
-            statsDao.getFlagDetails(input, startTime.value!!)
-        }.liveData.cachedIn(viewModelScope)
-
-    private fun fetchAsnConnections(input: String) =
-        Pager(PagingConfig(pageSize = Constants.LIVEDATA_PAGE_SIZE)) {
-            if (isBlocked) {
-                statsDao.getAsnBlockedDetails(input, startTime.value!!)
-            } else {
-                statsDao.getAsnDetails(input, startTime.value!!)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val domainConnectionList: Flow<PagingData<AppConnection>> =
+        combine(domains, startTime) { input, start -> input to start }
+            .flatMapLatest { (input, start) ->
+                Pager(PagingConfig(pageSize = Constants.PAGING_PAGE_SIZE)) {
+                    statsDao.getDomainDetails(input, start, isBlocked)
+                }.flow.cachedIn(viewModelScope)
             }
-        }.liveData.cachedIn(viewModelScope)
 
-    private fun fetchIpConnections(input: String) =
-        Pager(PagingConfig(pageSize = Constants.LIVEDATA_PAGE_SIZE)) {
-            statsDao.getIpDetails(input, startTime.value!!, isBlocked)
-        }.liveData.cachedIn(viewModelScope)
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val flagConnectionList: Flow<PagingData<AppConnection>> =
+        combine(flag, startTime) { input, start -> input to start }
+            .flatMapLatest { (input, start) ->
+                Pager(PagingConfig(pageSize = Constants.PAGING_PAGE_SIZE)) {
+                    statsDao.getFlagDetails(input, start)
+                }.flow.cachedIn(viewModelScope)
+            }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val asnConnectionList: Flow<PagingData<AppConnection>> =
+        combine(asn, startTime) { input, start -> input to start }
+            .flatMapLatest { (input, start) ->
+                Pager(PagingConfig(pageSize = Constants.PAGING_PAGE_SIZE)) {
+                    if (isBlocked) {
+                        statsDao.getAsnBlockedDetails(input, start)
+                    } else {
+                        statsDao.getAsnDetails(input, start)
+                    }
+                }.flow.cachedIn(viewModelScope)
+            }
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val ipConnectionList: Flow<PagingData<AppConnection>> =
+        combine(ip, startTime) { input, start -> input to start }
+            .flatMapLatest { (input, start) ->
+                Pager(PagingConfig(pageSize = Constants.PAGING_PAGE_SIZE)) {
+                    statsDao.getIpDetails(input, start, isBlocked)
+                }.flow.cachedIn(viewModelScope)
+            }
 }

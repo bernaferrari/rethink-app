@@ -23,8 +23,8 @@ import android.app.DownloadManager
 import android.content.Context
 import android.net.Uri
 import android.os.SystemClock
-import androidx.lifecycle.MutableLiveData
 import androidx.work.BackoffPolicy
+import kotlinx.coroutines.flow.MutableStateFlow
 import androidx.work.Data
 import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.WorkManager
@@ -42,7 +42,6 @@ import com.celzero.bravedns.service.RethinkBlocklistManager.DownloadType
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.celzero.bravedns.util.Constants.Companion.ONDEVICE_BLOCKLISTS_ADM
 import com.celzero.bravedns.util.Utilities
-import com.celzero.bravedns.util.Utilities.hasLocalBlocklists
 import java.util.concurrent.TimeUnit
 
 /**
@@ -60,37 +59,29 @@ class AppDownloadManager(
 
     // live data to initiate the download, contains time stamp if the download is required,
     // else will have
-    val downloadRequired: MutableLiveData<DownloadManagerStatus> = MutableLiveData()
+    val downloadRequired: MutableStateFlow<DownloadManagerStatus> =
+        MutableStateFlow(DownloadManagerStatus.NOT_STARTED)
 
     // various download status used as part of Work manager.
     enum class DownloadManagerStatus(val id: Int) {
-        NOT_AVAILABLE(STATUS_NOT_AVAILABLE),
-        NOT_STARTED(STATUS_NOT_STARTED),
-        FAILURE(STATUS_FAILURE),
-        NOT_REQUIRED(STATUS_NOT_REQUIRED),
-        IN_PROGRESS(STATUS_IN_PROGRESS),
-        STARTED(STATUS_STARTED),
-        SUCCESS(STATUS_SUCCESS)
+        NOT_AVAILABLE(-5),
+        NOT_STARTED(-4),
+        FAILURE(-3),
+        NOT_REQUIRED(-2),
+        IN_PROGRESS(-1),
+        STARTED(0),
+        SUCCESS(1)
     }
 
     companion object {
         private const val INVALID_DOWNLOAD_ID = -1L
-
-        // Download status constants
-        private const val STATUS_NOT_AVAILABLE = -5
-        private const val STATUS_NOT_STARTED = -4
-        private const val STATUS_FAILURE = -3
-        private const val STATUS_NOT_REQUIRED = -2
-        private const val STATUS_IN_PROGRESS = -1
-        private const val STATUS_STARTED = 0
-        private const val STATUS_SUCCESS = 1
 
         // WorkManager delay constant
         private const val WORK_INITIAL_DELAY_SECONDS = 10L
     }
 
     suspend fun isDownloadRequired(type: DownloadType) {
-        downloadRequired.postValue(DownloadManagerStatus.IN_PROGRESS)
+        downloadRequired.value = DownloadManagerStatus.IN_PROGRESS
         val ts = getCurrentBlocklistTimestamp(type)
         val response = checkBlocklistUpdate(ts, persistentState.appVersion, retryCount = 0, persistentState.routeRethinkInRethink)
         // if received response for update is null
@@ -99,7 +90,7 @@ class AppDownloadManager(
                 LOG_TAG_DNS,
                 "blocklist update is check response is null for ${type.name}, ts: $ts, app version: ${persistentState.appVersion}"
             )
-            downloadRequired.postValue(DownloadManagerStatus.FAILURE)
+            downloadRequired.value = DownloadManagerStatus.FAILURE
             return
         }
 
@@ -107,7 +98,7 @@ class AppDownloadManager(
         // in this case, we need to prompt user stating that the update for blocklist
         // is available but not suitable for the current version of the app
         if (!response.update && ts < response.timestamp) {
-            downloadRequired.postValue(DownloadManagerStatus.NOT_AVAILABLE)
+            downloadRequired.value = DownloadManagerStatus.NOT_AVAILABLE
             return
         }
 
@@ -118,12 +109,12 @@ class AppDownloadManager(
         )
 
         if (updatableTs == INIT_TIME_MS) {
-            downloadRequired.postValue(DownloadManagerStatus.FAILURE)
+            downloadRequired.value = DownloadManagerStatus.FAILURE
         } else if (updatableTs > ts) {
             setUpdatableTimestamp(updatableTs, type)
-            downloadRequired.postValue(DownloadManagerStatus.SUCCESS)
+            downloadRequired.value = DownloadManagerStatus.SUCCESS
         } else {
-            downloadRequired.postValue(DownloadManagerStatus.NOT_REQUIRED)
+            downloadRequired.value = DownloadManagerStatus.NOT_REQUIRED
         }
     }
 
@@ -228,10 +219,9 @@ class AppDownloadManager(
         }
 
         val updatableTs = getDownloadableTimestamp(response)
-        val isBlocklistAvailable = hasLocalBlocklists(context, updatableTs)
 
         // no need to proceed if the current and received timestamp is same
-        if (updatableTs <= currentTs && isBlocklistAvailable && !isRedownload) {
+        if (updatableTs <= currentTs && !isRedownload) {
             Logger.i(
                 LOG_TAG_DNS,
                 "local blocklist update not required, current ts: $currentTs, updatable ts: $updatableTs"
@@ -295,17 +285,11 @@ class AppDownloadManager(
         // if received response for update is null
         if (response == null) {
             Logger.w(LOG_TAG_DNS, "remote blocklist update check is null")
-            downloadRequired.postValue(DownloadManagerStatus.FAILURE)
+            downloadRequired.value = DownloadManagerStatus.FAILURE
             return false
         }
 
         val updatableTs = getDownloadableTimestamp(response)
-
-        // Guard: an INIT_TIME_MS (0) timestamp means the server returned an unexpected version.
-        if (updatableTs == INIT_TIME_MS) {
-            Logger.w(LOG_TAG_DNS, "remote blocklist: updatableTs is (0), aborting download")
-            return false
-        }
 
         if (updatableTs <= currentTs && !isRedownload) {
             Logger.i(

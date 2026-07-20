@@ -15,32 +15,32 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
+import com.celzero.bravedns.database.RemoteBlocklistPacksMap
 import com.celzero.bravedns.database.RemoteBlocklistPacksMapDao
 import com.celzero.bravedns.util.Constants
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 class RemoteBlocklistPacksMapViewModel(
     private val remoteBlocklistPacksMapDao: RemoteBlocklistPacksMapDao
 ) : ViewModel() {
-    private val filter: MutableLiveData<String> = MutableLiveData()
+    private var filter: MutableStateFlow<String> = MutableStateFlow("")
 
-    init {
-        filter.value = ""
-    }
-
-    val simpleTags =
-        filter.switchMap {
-            Pager(PagingConfig(Constants.LIVEDATA_PAGE_SIZE)) {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val simpleTags: Flow<PagingData<RemoteBlocklistPacksMap>> =
+        filter.flatMapLatest {
+            Pager(PagingConfig(Constants.PAGING_PAGE_SIZE)) {
                     remoteBlocklistPacksMapDao.getTags()
                 }
-                .liveData
+                .flow
                 .cachedIn(viewModelScope)
         }
 }

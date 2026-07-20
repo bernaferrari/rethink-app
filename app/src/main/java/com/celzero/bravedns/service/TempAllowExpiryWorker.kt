@@ -51,7 +51,9 @@ class TempAllowExpiryWorker(
 
         fun scheduleNext(context: Context) {
             val now = System.currentTimeMillis()
-            val next = runCatching { db.getNearestTempAllowExpiryBlocking(now) }.getOrNull()
+            val next = runCatching {
+                kotlinx.coroutines.runBlocking { db.getNearestTempAllowExpiryBlocking(now) }
+            }.getOrNull()
 
             // If nothing is scheduled anymore, cancel the existing work.
             if (next == null) {

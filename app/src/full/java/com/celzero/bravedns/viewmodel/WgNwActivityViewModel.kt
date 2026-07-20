@@ -15,26 +15,27 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.data.DataUsageSummary
 import com.celzero.bravedns.database.ConnectionTracker
 import com.celzero.bravedns.database.ConnectionTrackerDAO
-import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
+import com.celzero.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
 
 class WgNwActivityViewModel(private val dao: ConnectionTrackerDAO) : ViewModel() {
 
-    private val startTime: MutableLiveData<Long> = MutableLiveData<Long>()
-    private val networkActivity: MutableLiveData<String> = MutableLiveData()
+    private var startTime: MutableStateFlow<Long> = MutableStateFlow(0L)
+    private var networkActivity: MutableStateFlow<String> = MutableStateFlow("")
 
     private var wgId: String = ""
     private var timeCategory: TimeCategory = TimeCategory.ONE_HOUR
@@ -48,7 +49,6 @@ class WgNwActivityViewModel(private val dao: ConnectionTrackerDAO) : ViewModel()
     init {
         // set from and to time to current and 1 hr before
         startTime.value = System.currentTimeMillis() - ONE_HOUR_MILLIS
-        networkActivity.value = ""
     }
 
     enum class TimeCategory(val value: Int) {
@@ -64,9 +64,9 @@ class WgNwActivityViewModel(private val dao: ConnectionTrackerDAO) : ViewModel()
     private val pagingConfig: PagingConfig = PagingConfig(
         enablePlaceholders = true,
         prefetchDistance = 3,
-        initialLoadSize = LIVEDATA_PAGE_SIZE * 2,
-        maxSize = LIVEDATA_PAGE_SIZE * 3,
-        pageSize = LIVEDATA_PAGE_SIZE * 2,
+        initialLoadSize = PAGING_PAGE_SIZE * 2,
+        maxSize = PAGING_PAGE_SIZE * 3,
+        pageSize = PAGING_PAGE_SIZE * 2,
         jumpThreshold = 5
     )
 
@@ -93,16 +93,17 @@ class WgNwActivityViewModel(private val dao: ConnectionTrackerDAO) : ViewModel()
         this.wgId = "%$wgId%"
     }
 
-    val wgAppNwActivity: LiveData<PagingData<AppConnection>> = networkActivity.switchMap { _ ->
-        Pager(pagingConfig) {
-            val to = startTime.value ?: 0L
-            dao.getWgAppNetworkActivity(wgId, to)
-        }.liveData.cachedIn(viewModelScope)
-    }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val wgAppNwActivity: Flow<PagingData<AppConnection>> =
+        combine(networkActivity, startTime) { _, start -> start }
+            .flatMapLatest { start ->
+                Pager(pagingConfig) {
+                    dao.getWgAppNetworkActivity(wgId, start)
+                }.flow.cachedIn(viewModelScope)
+            }
 
-    fun totalUsage(wgId: String): DataUsageSummary {
-        val to = startTime.value ?: 0L
+    suspend fun totalUsage(wgId: String): DataUsageSummary {
+        val to = startTime.value
         return dao.getTotalUsagesByWgId(to, ConnectionTracker.ConnType.METERED.value, wgId)
     }
 }
-

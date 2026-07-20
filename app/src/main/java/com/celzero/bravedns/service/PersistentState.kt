@@ -16,35 +16,40 @@
 package com.celzero.bravedns.service
 
 import android.content.Context
+import android.os.Handler
+import kotlinx.coroutines.flow.SharedFlow
 import android.os.Looper
-import androidx.lifecycle.MutableLiveData
+import android.widget.Toast
+import com.celzero.bravedns.datastore.SyncPreferencesStore
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.DnsCryptRelayEndpoint
-import com.celzero.bravedns.rpnproxy.RpnProxyManager
-import com.celzero.bravedns.ui.activity.AntiCensorshipActivity
-import com.celzero.bravedns.ui.bottomsheet.BlockFreeDnsModeBottomSheet
+import com.celzero.bravedns.ui.compose.settings.DialStrategies
+import com.celzero.bravedns.ui.compose.settings.RetryStrategies
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.celzero.bravedns.util.Constants.Companion.INVALID_PORT
-import com.celzero.bravedns.util.FirebaseErrorReporting
 import com.celzero.bravedns.util.InternetProtocol
 import com.celzero.bravedns.util.PcapMode
 import com.celzero.bravedns.util.ResourceRecordTypes
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastR
-import hu.autsoft.krate.SimpleKrate
-import hu.autsoft.krate.booleanPref
-import hu.autsoft.krate.default.withDefault
-import hu.autsoft.krate.intPref
-import hu.autsoft.krate.longPref
-import hu.autsoft.krate.stringPref
 import org.koin.core.component.KoinComponent
 
-class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
+class PersistentState(context: Context) : KoinComponent {
+    private val appContext = context.applicationContext
+    private val store = SyncPreferencesStore(appContext)
+    private val defaultDnsName = appContext.getString(R.string.default_dns_name)
+
+    fun preferenceKeyChanges(): SharedFlow<String> = store.preferenceKeyChanges
+
     companion object {
         const val BRAVE_MODE = "brave_mode"
         const val BACKGROUND_MODE = "background_mode"
+        const val ALLOW_BYPASS = "allow_bypass"
         const val LOCAL_BLOCK_LIST = "enable_local_list"
         const val LOCAL_BLOCK_LIST_STAMP = "local_block_list_stamp"
         const val LOCAL_BLOCK_LIST_UPDATE = "local_block_list_downloaded_time"
@@ -81,6 +86,7 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
         const val TUN_NETWORK_POLICY = "tun_network_handling_policy"
         const val USE_MAX_MTU = "use_max_mtu"
         const val SET_VPN_BUILDER_TO_METERED = "set_vpn_builder_to_metered"
+        const val PANIC_RANDOM = "panic_random"
 
         // SE Proxy for Anti-Censorship
         const val AUTO_PROXY_ENABLED = "auto_proxy_enabled"
@@ -89,393 +95,343 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
         const val CUSTOM_LAN_MODE_IPS_CHANGED = "custom_lan_mode_ip_changed"
 
         const val FIREWALL_BUBBLE = "pref_firewall_bubble_enabled"
-
-        // RPN server-side DNS mode (0=Default, 1=AntiAd, 2=Parental, 3=Security)
-        const val RPN_DNS_URL = "rpn_dns_mode"
-
-        // CSV of DnsMode.tunType values selected in the multi-select DNS filter UI
-        // e.g. "default", "privacy,family", "privacy,family,security"
-        const val RPN_DNS_TUN_TYPES = "rpn_dns_tun_types"
-
-        const val ADV_SETTINGS_FORCE_PT_MODE = "adv_setting_force_pt_mode"
-
-        // Guided tour version bump this constant to re-show the tour after major UI changes.
-        // Any stored version lower than this will cause the tour to re-trigger.
-        // v2: added Rethink+ premium nav-item step (step 6) + fixed tour button text contrast.
-        const val GUIDED_TOUR_CURRENT_VERSION = 2
-
-        const val FLOOD_WIREGUARD = "flood_wireguard"
-
-        const val SOCKET_BUFFER_SIZE_BYTES = "socket_buffer_size_bytes"
-
-        const val INCLUDE_FILE_TRACE = "include_file_trace"
-
-        const val GO_MAX_MEMORY = "go_max_memory"
     }
 
     // when vpn is started by the user, this is set to true; set to false when user stops
     // the vpn. In case vpn crashes, this value remains true, which is expected.
-    private var _vpnEnabled by booleanPref("enabled").withDefault<Boolean>(false)
+    private var _vpnEnabled by store.boolean("enabled", false)
 
     // OOBE (out-of-the-box experience) screens are shown if the user
     // launches the app for the very first time (after install or post clear-data)
-    var firstTimeLaunch by booleanPref("is_first_time_launch").withDefault<Boolean>(true)
+    var firstTimeLaunch by store.boolean("is_first_time_launch", true)
 
     // One among AppConfig.BraveMode enum; 2's default, which is BraveMode.DNS_FIREWAL
-    var braveMode by intPref("brave_mode").withDefault<Int>(AppConfig.BraveMode.DNS_FIREWALL.mode)
+    var braveMode by store.int("brave_mode", AppConfig.BraveMode.DNS_FIREWALL.mode)
 
     // enable / disable logging dns and tcp/udp connections to db
-    var logsEnabled by booleanPref("local_logs").withDefault<Boolean>(true)
+    var logsEnabled by store.boolean("local_logs", true)
 
     // the last-set app version; useful to detect an update where the current
     // app version is going to be greater than the one stored, and so, update flow
     // can be triggered accordingly, if any,
-    var appVersion by intPref("app_version").withDefault<Int>(0)
+    var appVersion by store.int("app_version", 0)
 
     // Last known time when app update checks were done (successful?)
-    var lastAppUpdateCheck by longPref("app_update_last_check").withDefault<Long>(0)
+    var lastAppUpdateCheck by store.long("app_update_last_check", 0)
 
     // total blocklists set by the user for RethinkDNS+ (server-side dns blocking)
-    private var numberOfRemoteBlocklists by intPref("remote_block_list_count").withDefault<Int>(0)
+    private var numberOfRemoteBlocklists by store.int("remote_block_list_count", 0)
 
     // total blocklists set by the user (on-device dns blocking)
-    var numberOfLocalBlocklists by intPref("local_block_list_count").withDefault<Int>(0)
+    var numberOfLocalBlocklists by store.int("local_block_list_count", 0)
 
     // whether all udp connection except dns must be dropped
-    private var _udpBlocked by
-        booleanPref("block_udp_traffic_other_than_dns").withDefault<Boolean>(false)
+    private var _udpBlocked by store.boolean("block_udp_traffic_other_than_dns", false)
 
     // user chosen blocklists stored custom dictionary indexed in base64
-    var localBlocklistStamp by
-        stringPref("local_block_list_stamp")
-            .withDefault<String>("")
+    var localBlocklistStamp by store.string("local_block_list_stamp", if (Utilities.isHeadlessFlavour()) "1:YAYBACABEDAgAA==" else "")
 
     // whether to drop packets when the source app originating the reqs couldn't be determined
-    private var _blockUnknownConnections by
-        booleanPref("block_unknown_connections").withDefault<Boolean>(false)
+    private var _blockUnknownConnections by store.boolean("block_unknown_connections", false)
 
     // whether user has enable on-device blocklists
-    var blocklistEnabled by
-        booleanPref("enable_local_list").withDefault<Boolean>(false)
+    var blocklistEnabled by store.boolean("enable_local_list", Utilities.isHeadlessFlavour())
 
     // the version (which is a unix timestamp) of the current rethinkdns+ remote blocklist files
-    var remoteBlocklistTimestamp by
-        longPref("remote_block_list_downloaded_time").withDefault<Long>(INIT_TIME_MS)
+    var remoteBlocklistTimestamp by store.long("remote_block_list_downloaded_time", INIT_TIME_MS)
 
     // the version (which is a unix timestamp) of the current on-device blocklist files
-    var localBlocklistTimestamp by longPref("local_block_list_downloaded_time").withDefault<Long>(0)
+    var localBlocklistTimestamp by store.long("local_block_list_downloaded_time", 0)
 
     // user set http proxy port
-    var httpProxyPort by intPref("http_proxy_port").withDefault<Int>(INVALID_PORT)
+    var httpProxyPort by store.int("http_proxy_port", INVALID_PORT)
 
     // user set http proxy ip / hostname
-    var httpProxyHostAddress by
-        stringPref("http_proxy_ipaddress").withDefault<String>("http://127.0.0.1:8118")
+    var httpProxyHostAddress by store.string("http_proxy_ipaddress", "http://127.0.0.1:8118")
 
     // whether apps subject to the RethinkDNS VPN tunnel can bypass the tunnel on-demand
     // default: false
-    var allowBypass by booleanPref("allow_bypass").withDefault<Boolean>(false)
+    var allowBypass by store.boolean("allow_bypass", false)
 
     // user set among AppConfig.DnsType enum; RETHINK_REMOTE is default which is Rethink-DoH
-    var dnsType by
-        intPref("dns_type")
-            .withDefault<Int>(AppConfig.DnsType.RETHINK_REMOTE.type)
+    var dnsType by store.int("dns_type", if (!Utilities.isHeadlessFlavour()) AppConfig.DnsType.RETHINK_REMOTE.type
+                else AppConfig.DnsType.SYSTEM_DNS.type)
 
     // whether the app must attempt to startup on reboot if it was running before shutdown
-    var prefAutoStartBootUp by booleanPref("auto_start_on_boot").withDefault<Boolean>(true)
+    var prefAutoStartBootUp by store.boolean("auto_start_on_boot", true)
 
     // user set preference whether firewall should block all connections when device is locked
-    private var _blockWhenDeviceLocked by booleanPref("screen_state").withDefault<Boolean>(false)
+    private var _blockWhenDeviceLocked by store.boolean("screen_state", false)
 
     // whether to block connections from apps not in the foreground
-    private var _blockAppWhenBackground by
-        booleanPref("background_mode").withDefault<Boolean>(false)
+    private var _blockAppWhenBackground by store.boolean("background_mode", false)
 
     // whether to check for app updates once-a-week (on website / play-store builds)
-    var checkForAppUpdate by booleanPref("check_for_app_update").withDefault<Boolean>(true)
+    var checkForAppUpdate by store.boolean("check_for_app_update", true)
 
     // last connected dns label name and url
-    var connectedDnsName by
-        stringPref("connected_dns_name")
-            .withDefault<String>(context.getString(R.string.default_dns_name))
+    var connectedDnsName by store.string("connected_dns_name", defaultDnsName)
 
     // the current light/dark theme; 0's the default which is "Set by System"
-    var theme by intPref("app_theme").withDefault<Int>(0)
+    var theme by store.int("app_theme", 0)
+
+    // selected accent/color preset for compose theme, 0 = auto (legacy behavior)
+    var themeColorPreset by store.int("app_theme_color_preset", 0)
 
     // user selected notification action type, ref: Constants#NOTIFICATION_ACTION_STOP
-    var notificationActionType by intPref("notification_action").withDefault<Int>(0)
+    var notificationActionType by store.int("notification_action", 0)
 
     // add all networks (say, both wifi / mobile) with internet capability to the vpn tunnel
-    var useMultipleNetworks by booleanPref("add_all_networks_to_vpn").withDefault<Boolean>(false)
+    var useMultipleNetworks by store.boolean("add_all_networks_to_vpn", false)
 
     // user selected proxy type (e.g., http, socks5)
-    var proxyType by
-        stringPref("proxy_proxytype").withDefault<String>(AppConfig.ProxyType.NONE.name)
+    var proxyType by store.string("proxy_proxytype", AppConfig.ProxyType.NONE.name)
 
     // user selected proxy provider, as of now two providers (custom, orbot)
-    var proxyProvider by
-        stringPref("proxy_proxyprovider").withDefault<String>(AppConfig.ProxyProvider.NONE.name)
+    var proxyProvider by store.string("proxy_proxyprovider", AppConfig.ProxyProvider.NONE.name)
 
     // the last collected app exit info's timestamp
-    var lastAppExitInfoTimestamp by longPref("prev_trace_timestamp").withDefault<Long>(INIT_TIME_MS)
+    var lastAppExitInfoTimestamp by store.long("prev_trace_timestamp", INIT_TIME_MS)
 
     // fetch fav icons for domains in dns request
-    var fetchFavIcon by
-        booleanPref("fav_icon_enabled").withDefault<Boolean>(!Utilities.isFdroidFlavour())
+    var fetchFavIcon by store.boolean("fav_icon_enabled", !Utilities.isFdroidFlavour())
 
     // whether to show "what's new" chip on the homescreen, usually
     // shown after a update and until the user dismisses it
-    var showWhatsNewChip by booleanPref("show_whats_new_chip").withDefault<Boolean>(true)
+    var showWhatsNewChip by store.boolean("show_whats_new_chip", true)
 
     // block dns which are not resolved by app
-    private var _disallowDnsBypass by booleanPref("disallow_dns_bypass").withDefault<Boolean>(false)
+    private var _disallowDnsBypass by store.boolean("disallow_dns_bypass", false)
 
     // trap all packets on port 53 to be sent to a dns endpoint or just the packets sent to vpn's
     // dns-ip
-    var preventDnsLeaks by booleanPref("prevent_dns_leaks").withDefault<Boolean>(true)
+    var preventDnsLeaks by store.boolean("prevent_dns_leaks", true)
 
     // block all newly installed apps
-    private var _blockNewlyInstalledApp by booleanPref("block_new_app").withDefault<Boolean>(false)
+    private var _blockNewlyInstalledApp by store.boolean("block_new_app", false)
 
     // user setting to use custom download manager or android's default download manager
     // default: true, i.e., use in-build download manager, as we see lot of failures with
     // android's download manager because of the blocking nature of the app
-    var useCustomDownloadManager by
-        booleanPref("use_custom_download_managet").withDefault<Boolean>(true)
+    var useCustomDownloadManager by store.boolean("use_custom_download_managet", true)
 
     // custom download manager's last generated id
-    var customDownloaderLastGeneratedId by
-        longPref("custom_downloader_last_generated_id").withDefault<Long>(0)
+    var customDownloaderLastGeneratedId by store.long("custom_downloader_last_generated_id", 0)
 
     // android download manager's active download ids (comma-separated)
-    var androidDownloadManagerIds by
-        stringPref("android_download_manager_ids").withDefault<String>("")
+    var androidDownloadManagerIds by store.string("android_download_manager_ids", "")
 
     // local timestamp for which the update is available
-    var newestLocalBlocklistTimestamp by
-        longPref("local_blocklist_update_ts").withDefault<Long>(INIT_TIME_MS)
+    var newestLocalBlocklistTimestamp by store.long("local_blocklist_update_ts", INIT_TIME_MS)
 
     // remote timestamp for which the update is available
-    var newestRemoteBlocklistTimestamp by
-        longPref("remote_blocklist_update_ts").withDefault<Long>(INIT_TIME_MS)
+    var newestRemoteBlocklistTimestamp by store.long("remote_blocklist_update_ts", INIT_TIME_MS)
 
     // auto-check for blocklist update periodically (once in a day)
-    var periodicallyCheckBlocklistUpdate by
-        booleanPref("check_blocklist_update").withDefault<Boolean>(false)
+    var periodicallyCheckBlocklistUpdate by store.boolean("check_blocklist_update", false)
 
     // user-preferred Internet Protocol type, default IPv4
-    var internetProtocolType by
-        intPref(INTERNET_PROTOCOL)
-            .withDefault<Int>(InternetProtocol.IPv4.id)
+    var internetProtocolType by store.int(
+        INTERNET_PROTOCOL,
+        if (!Utilities.isHeadlessFlavour()) InternetProtocol.IPv4.id
+        else InternetProtocol.IPv46.id,
+    )
 
     // user-preferred 6to4 protocol translation, on IPv6 mode (default: PTMODEAUTO)
-    var protocolTranslationType by booleanPref(PROTOCOL_TRANSLATION).withDefault<Boolean>(false)
+    var protocolTranslationType by store.boolean(PROTOCOL_TRANSLATION, false)
 
     // filter IPv6 compatible IPv4 address in custom ips
-    var filterIpv4inIpv6 by booleanPref("filter_ip4_ipv6").withDefault<Boolean>(true)
+    var filterIpv4inIpv6 by store.boolean("filter_ip4_ipv6", true)
 
     // universal firewall settings to block all http connections
-    private var _blockHttpConnections by
-        booleanPref("block_http_connections").withDefault<Boolean>(false)
+    private var _blockHttpConnections by store.boolean("block_http_connections", false)
 
     // universal firewall settings to block all metered connections
-    private var _blockMeteredConnections by
-        booleanPref("block_metered_connections").withDefault<Boolean>(false)
+    private var _blockMeteredConnections by store.boolean("block_metered_connections", false)
 
     // universal firewall settings to lockdown all apps
-    private var _universalLockdown by booleanPref("universal_lockdown").withDefault<Boolean>(false)
+    private var _universalLockdown by store.boolean("universal_lockdown", false)
 
     // notification permission request (Android 13 ana above)
-    var shouldRequestNotificationPermission by
-        booleanPref("notification_permission_request").withDefault<Boolean>(true)
+    var shouldRequestNotificationPermission by store.boolean("notification_permission_request", true)
 
     // make notification persistent (Android 13 and above), default false
-    var persistentNotification by booleanPref("persistent_notification").withDefault<Boolean>(false)
+    var persistentNotification by store.boolean("persistent_notification", false)
 
     // biometric authentication TODO: remove this
-    var biometricAuth by booleanPref("biometric_authentication").withDefault<Boolean>(false)
+    var biometricAuth by store.boolean("biometric_authentication", false)
 
     // bio-metric authentication type
-    var biometricAuthType by intPref("biometric_authentication_type").withDefault<Int>(0)
+    var biometricAuthType by store.int("biometric_authentication_type", 0)
 
     // enable dns alg
-    var enableDnsAlg by booleanPref("dns_alg").withDefault<Boolean>(false)
+    var enableDnsAlg by store.boolean("dns_alg", false)
 
     // default dns url
-    var defaultDnsUrl by stringPref("default_dns_query").withDefault<String>(Constants.DEFAULT_DNS_LIST[1].url)
+    var defaultDnsUrl by store.string("default_dns_query", Constants.DEFAULT_DNS_LIST[1].url)
 
     // packet capture type
-    var pcapMode by intPref("pcap_mode").withDefault<Int>(PcapMode.NONE.id)
+    var pcapMode by store.int("pcap_mode", PcapMode.NONE.id)
 
     // packet capture file path
-    var pcapFilePath by stringPref("pcap_file_path").withDefault<String>("")
+    var pcapFilePath by store.string("pcap_file_path", "")
 
     // dns caching in tunnel
-    var enableDnsCache by booleanPref("dns_cache").withDefault<Boolean>(true)
+    var enableDnsCache by store.boolean("dns_cache", true)
 
     // private ips, default false (route private ips to tunnel)
-    var privateIps by booleanPref("private_ips").withDefault<Boolean>(false)
+    var privateIps by store.boolean("private_ips", false)
 
     // biometric last auth time
-    var biometricAuthTime by longPref("biometric_auth_time").withDefault<Long>(INIT_TIME_MS)
+    var biometricAuthTime by store.long("biometric_auth_time", INIT_TIME_MS)
 
     // go logger level, default 3 -> info
-    var goLoggerLevel by longPref("go_logger_level").withDefault<Long>(3)
+    var goLoggerLevel by store.long("go_logger_level", 3)
 
     // firewall bubble feature toggle
-    var firewallBubbleEnabled by booleanPref("pref_firewall_bubble_enabled").withDefault<Boolean>(false)
+    var firewallBubbleEnabled by store.boolean("pref_firewall_bubble_enabled", false)
 
     // previous data usage check timestamp
-    var prevDataUsageCheck by longPref("prev_data_usage_check").withDefault<Long>(INIT_TIME_MS)
+    var prevDataUsageCheck by store.long("prev_data_usage_check", INIT_TIME_MS)
 
     // route rethink in rethink
-    var routeRethinkInRethink by booleanPref("route_rethink_in_rethink").withDefault<Boolean>(false)
+    var routeRethinkInRethink by store.boolean("route_rethink_in_rethink", false)
 
     // perform connectivity checks
-    var connectivityChecks by
-        booleanPref("connectivity_check").withDefault<Boolean>(Utilities.isPlayStoreFlavour())
+    var connectivityChecks by store.boolean("connectivity_check", Utilities.isPlayStoreFlavour())
 
     // proxy dns requests over proxy
-    var proxyDns by booleanPref("proxy_dns").withDefault<Boolean>(true)
+    var proxyDns by store.boolean("proxy_dns", true)
 
     // exclude apps which are configured in proxy (socks5, http, dns proxy)
-    var excludeAppsInProxy by booleanPref("exclude_apps_in_proxy").withDefault<Boolean>(true)
+    var excludeAppsInProxy by store.boolean("exclude_apps_in_proxy", true)
 
-    var pingv4Ips by stringPref("ping_ipv4_ips").withDefault<String>(Constants.ip4probes.joinToString(","))
+    var pingv4Ips by store.string("ping_ipv4_ips", Constants.ip4probes.joinToString(","))
 
-    var pingv6Ips by stringPref("ping_ipv6_ips").withDefault<String>(Constants.ip6probes.joinToString(","))
+    var pingv6Ips by store.string("ping_ipv6_ips", Constants.ip6probes.joinToString(","))
 
-    var pingv4Url by stringPref("ping_ipv4_url").withDefault<String>(Constants.urlV4probes.joinToString(","))
+    var pingv4Url by store.string("ping_ipv4_url", Constants.urlV4probes.joinToString(","))
 
-    var pingv6Url by stringPref("ping_ipv6_url").withDefault<String>(Constants.urlV6probes.joinToString(","))
+    var pingv6Url by store.string("ping_ipv6_url", Constants.urlV6probes.joinToString(","))
 
 
     // anti-censorship type (auto, split_tls, split_tcp, desync)
-    var dialStrategy by intPref("dial_strategy").withDefault<Int>(AntiCensorshipActivity.DialStrategies.SPLIT_AUTO.mode)
+    var dialStrategy by store.int("dial_strategy", DialStrategies.SPLIT_AUTO.mode)
 
     // retry strategy type (before split, after split, never)
-    var retryStrategy by intPref("retry_strategy").withDefault<Int>(AntiCensorshipActivity.RetryStrategies.RETRY_AFTER_SPLIT.mode)
+    var retryStrategy by store.int("retry_strategy", RetryStrategies.RETRY_AFTER_SPLIT.mode)
+
+    // bypass blocking in dns level, decision is made in flow() (see BraveVPNService#flow)
+    var bypassBlockInDns by store.boolean("bypass_block_in_dns", false)
 
     // randomize listen port for advanced wireguard configuration, default false
     // restart of tunnel when wireguard is enabled is required to randomize the port to work properly
     // this is not a user facing option, but a developer option
-    var randomizeListenPort by booleanPref("randomize_listen_port").withDefault<Boolean>(true)
+    var randomizeListenPort by store.boolean("randomize_listen_port", true)
 
     // endpoint independent mapping/filtering
-    var endpointIndependence by booleanPref("endpoint_independence").withDefault<Boolean>(false)
+    var endpointIndependence by store.boolean("endpoint_independence", false)
 
-    var tcpKeepAlive by booleanPref("tcp_keep_alive").withDefault<Boolean>(false)
+    var tcpKeepAlive by store.boolean("tcp_keep_alive", false)
 
     // enable split dns, default on Android R and above, as we can identify app which is sending dns
-    var splitDns by booleanPref("split_dns").withDefault<Boolean>(isAtleastR())
+    var splitDns by store.boolean("split_dns", isAtleastR())
 
     // use system dns for undelegatedDomains
-    var useSystemDnsForUndelegatedDomains by booleanPref("use_system_dns_for_undelegated_domains").withDefault<Boolean>(false)
+    var useSystemDnsForUndelegatedDomains by store.boolean("use_system_dns_for_undelegated_domains", false)
 
     // different modes the rpn proxy can function, see enum RpnMode
-    var rpnMode by intPref("rpn_mode").withDefault<Int>(1)
+    var rpnMode by store.int("rpn_mode", 1)
+
+    var rpnState by store.int(USE_RPN, 0)
 
     // current rpn state, see enum RpnState
-    var rpnState by intPref("rpn_state").withDefault<Int>(RpnProxyManager.RpnState.DISABLED.id)
+    //var rpnState by store.int("rpn_state", RpnProxyManager.RpnState.DISABLED.id)
 
-    var nwEngExperimentalFeatures by booleanPref("network_engine_experimental").withDefault<Boolean>(false)
+    // subscribe product id for the current user, empty string if not subscribed
+    var rpnProductId by store.string("rpn_product_id", "")
 
-    var dialTimeoutSec by intPref("dial_timeout_sec").withDefault<Int>(0)
+    var nwEngExperimentalFeatures by store.boolean("network_engine_experimental", false)
+
+    var dialTimeoutSec by store.int("dial_timeout_sec", 0)
 
     // treat only mobile data as metered
-    var treatOnlyMobileNetworkAsMetered by booleanPref("treat_only_mobile_nw_as_metered").withDefault<Boolean>(false)
+    var treatOnlyMobileNetworkAsMetered by store.boolean("treat_only_mobile_nw_as_metered", false)
 
-    var autoDialsParallel by booleanPref("auto_dials_parallel").withDefault<Boolean>(false)
+    var showConfettiOnRPlus by store.boolean("show_confetti_on_rplus", true)
+
+    var autoDialsParallel by store.boolean("auto_dials_parallel", false)
 
     // user setting whether to download ip info for the given ip address
-    var downloadIpInfo by booleanPref("download_ip_info").withDefault<Boolean>(Utilities.isPlayStoreFlavour())
+    var downloadIpInfo by store.boolean("download_ip_info", Utilities.isPlayStoreFlavour())
 
     // user setting to allow only added packages can trigger the app
-    var appTriggerPackages by stringPref("app_trigger_packages").withDefault<String>("")
+    var appTriggerPackages by store.string("app_trigger_packages", "")
+
+    // last key rotation time
+    var pipKeyRotationTime by store.long("pip_key_rotation_time", INIT_TIME_MS)
 
     // perform auto or manual network connectivity checks
-    var performAutoNetworkConnectivityChecks by booleanPref("perform_auto_network_connectivity_checks").withDefault<Boolean>(true)
+    var performAutoNetworkConnectivityChecks by store.boolean("perform_auto_network_connectivity_checks", true)
 
     // stall on no network
     // TODO: add routes as normal but do not send fd to netstack
     // repopulateTrackedNetworks also fails open see isAnyNwValidated
-    var stallOnNoNetwork by booleanPref("fail_open_on_no_network").withDefault<Boolean>(false)
+    var stallOnNoNetwork by store.boolean("fail_open_on_no_network", false)
 
-    var newSettings by stringPref("new_settings").withDefault<String>("")
-    var newSettingsSeen by stringPref("new_settings_seen").withDefault<String>("")
-    var appUpdateTimeTs by longPref("app_update_time_ts").withDefault<Long>(INIT_TIME_MS)
+    // last grace period reminder time, when rethinkdns+ is enabled and user is cancelled/expired
+    // this is used to show a reminder to the user to renew the subscription with grace period
+    var lastGracePeriodReminderTime by store.long("last_grace_period_reminder_time", INIT_TIME_MS)
+
+    var newSettings by store.string("new_settings", "")
+    var newSettingsSeen by store.string("new_settings_seen", "")
+    var appUpdateTimeTs by store.long("app_update_time_ts", INIT_TIME_MS)
 
     // 0 - auto, 1 - relaxed, 2 - aggressive, 3 - fixed
-    var vpnBuilderPolicy by intPref("tun_network_handling_policy").withDefault<Int>(0)
+    var vpnBuilderPolicy by store.int("tun_network_handling_policy", 0)
 
     // whether to use default dns for trusted ips and domains
-    // TODO: remove this variable as it should not be used, BlockFreeDnsMode should be used instead
-    //  to decide the dns bypass mode for trusted ips and domains
-    var useFallbackDnsToBypass by booleanPref("use_fallback_dns_to_bypass").withDefault<Boolean>(true)
-
-    // Block-free DNS: stored as "TYPE::url" e.g. "DOH::https://dns.google/dns-query"
-    // Empty string means no block-free DNS configured
-    var blockFreeDns by stringPref("block_free_dns").withDefault<String>("")
-
-    // DNS bypass mode for block-free DNS: 1=fallback, 2=global, 3=auto
-    // Default is 3 (auto) which means use dns will be decided based on other dns settings
-    var blockFreeDnsMode by intPref("block_free_dns_mode").withDefault<Int>(
-        BlockFreeDnsModeBottomSheet.BlockFreeDnsMode.AUTO.mode)
+    var useFallbackDnsToBypass by store.boolean("use_fallback_dns_to_bypass", true)
 
     // Firebase error reporting enabled (only for play and website variants)
-    var firebaseErrorReportingEnabled by booleanPref("firebase_error_reporting").withDefault<Boolean>(Utilities.isPlayStoreFlavour())
+    var firebaseErrorReportingEnabled by store.boolean("firebase_error_reporting", Utilities.isPlayStoreFlavour())
 
     // setting to enable/disable tombstone apps feature
-    var tombstoneApps by booleanPref("tombstone_apps").withDefault<Boolean>(false)
+    var tombstoneApps by store.boolean("tombstone_apps", false)
 
     // Token for Firebase userId
-    var firebaseUserToken by stringPref("firebase_user_token").withDefault("")
-    var firebaseUserTokenTimestamp by longPref("firebase_user_token_timestamp").withDefault(0L)
-
-    // Name of the last tombstone file that was successfully reported to Firebase Crashlytics.
-    // Used on app restart to skip files already uploaded and to decide which files to delete.
-    var lastReportedTombstoneFile by stringPref("last_reported_tombstone_file").withDefault("")
+    var firebaseUserToken by store.string("firebase_user_token", "")
+    var firebaseUserTokenTimestamp by store.long("firebase_user_token_timestamp", 0L)
 
     // experimental feature to use max mtu
-    var useMaxMtu by booleanPref("use_max_mtu").withDefault<Boolean>(false)
+    var useMaxMtu by store.boolean("use_max_mtu", false)
 
     // set vpn builder to metered/unmetered
-    var setVpnBuilderToMetered by booleanPref("set_vpn_builder_to_metered").withDefault<Boolean>(false)
+    var setVpnBuilderToMetered by store.boolean("set_vpn_builder_to_metered", false)
+
+    // debug settings, panic random
+    var panicRandom by store.boolean("panic_random", false)
+
+    // universal rule, block all non A & AAAA dns responses
+    private var _blockOtherDnsRecordTypes by store.boolean("block_non_ip_dns_responses", false)
 
     // global lockdown for wireguard proxy
-    var wgGlobalLockdown by booleanPref("wg_global_lockdown").withDefault<Boolean>(false)
+    var wgGlobalLockdown by store.boolean("wg_global_lockdown", false)
 
-    // smart persistent keep alive for wireguard proxy
-    var smartPersistentKeepalive by booleanPref("smart_persistent_keepalive").withDefault<Boolean>(false)
-
-    // true once the encrypted wireguard config files have been migrated to plain files
-    var wireguardPlainFileMigrationDone by booleanPref("wg_plain_file_migration_done").withDefault<Boolean>(false)
-
-    var appTestMode by booleanPref("app_test_mode").withDefault<Boolean>(false)
-
-    var advSettingForcePTMode by booleanPref("adv_setting_force_pt_mode").withDefault<Boolean>(false)
-
-    var floodWireGuard by booleanPref("flood_wireguard").withDefault(false)
-
-    var socketBufferSizeBytes by intPref("socket_buffer_size_bytes").withDefault<Int>(524288) // 512 KB (512 * 1024)
-
-    // include file trace in logs
-    var includeFileTrace by booleanPref(INCLUDE_FILE_TRACE).withDefault<Boolean>(false)
-
-    var orbotConnectionStatus: MutableLiveData<Boolean> = MutableLiveData()
-    var vpnEnabledLiveData: MutableLiveData<Boolean> = MutableLiveData()
-    var universalRulesCount: MutableLiveData<Int> = MutableLiveData()
-    private val proxyStatus: MutableLiveData<Int> = MutableLiveData()
+    val orbotConnectionStatus = MutableStateFlow(false)
+    val vpnEnabled = MutableStateFlow(false)
+    val universalRulesCount = MutableStateFlow(0)
+    private val proxyStatus = MutableStateFlow(-1)
 
     // data class to store dnscrypt relay details
     data class DnsCryptRelayDetails(val relay: DnsCryptRelayEndpoint, val added: Boolean)
 
-    var dnsCryptRelays: MutableLiveData<DnsCryptRelayDetails> = MutableLiveData()
+    val dnsCryptRelays = MutableStateFlow<DnsCryptRelayDetails?>(null)
 
-    var remoteBlocklistCount: MutableLiveData<Int> = MutableLiveData()
+    val remoteBlocklistCount = MutableStateFlow(0)
 
     fun setVpnEnabled(isOn: Boolean) {
-        vpnEnabledLiveData.postValue(isOn)
+        vpnEnabled.value = isOn
         _vpnEnabled = isOn
     }
 
@@ -485,7 +441,7 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
 
     fun setRemoteBlocklistCount(c: Int) {
         numberOfRemoteBlocklists = c
-        remoteBlocklistCount.postValue(c)
+        remoteBlocklistCount.value = c
     }
 
     fun getRemoteBlocklistCount(): Int {
@@ -505,12 +461,17 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
                 _blockAppWhenBackground,
                 _blockWhenDeviceLocked
             )
-        universalRulesCount.postValue(list.count { it })
+        universalRulesCount.value = list.count { it }
     }
 
+    private var universalRulesCountSynced = false
+
     fun getUniversalRulesCount(): Int {
-        if (universalRulesCount.value == null) setUniversalRulesCount()
-        return universalRulesCount.value ?: 0
+        if (!universalRulesCountSynced) {
+            setUniversalRulesCount()
+            universalRulesCountSynced = true
+        }
+        return universalRulesCount.value
     }
 
     fun setBlockHttpConnections(b: Boolean) {
@@ -594,12 +555,12 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
         return _blockWhenDeviceLocked
     }
 
-    fun getProxyStatus(): MutableLiveData<Int> {
+    fun getProxyStatus(): StateFlow<Int> {
         return updateProxyStatus()
     }
 
-    fun updateProxyStatus(): MutableLiveData<Int> {
-        var status =
+    fun updateProxyStatus(): StateFlow<Int> {
+        val status =
             when (AppConfig.ProxyProvider.getProxyProvider(proxyProvider)) {
                 AppConfig.ProxyProvider.WIREGUARD -> {
                     R.string.lbl_wireguard
@@ -628,45 +589,34 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
                     -1
                 }
             }
-        // work around for now to check RPN proxy as well
-        if (status == -1) {
-            if (RpnProxyManager.isRpnActive()) {
-                status = R.string.rpn_title
-            }
-        }
-        if (Looper.myLooper() == Looper.getMainLooper()) {
-            proxyStatus.value = status
-        } else {
-            proxyStatus.postValue(status)
-        }
+        proxyStatus.value = status
         return proxyStatus
     }
 
     /**
      * Enable settings which are dependent on stability program participation.
      * Currently, only Firebase error reporting is enabled here.
-     * @return true if the state was changed (i.e., it was newly enabled), false otherwise.
      */
-    fun enableStabilityDependentSettings(): Boolean {
+    fun enableStabilityDependentSettings(context: Context) {
         // Skip for fdroid flavor
         if (Utilities.isFdroidFlavour()) {
-            return false
+            return
         }
 
         // Enable Firebase error reporting for play and website variants
         if (!firebaseErrorReportingEnabled) {
             firebaseErrorReportingEnabled = true
-            FirebaseErrorReporting.setEnabled(firebaseErrorReportingEnabled)
-            return true
+            Handler(Looper.getMainLooper()).post {
+                Toast.makeText(context, context.getString(R.string.stability_program_toast), Toast.LENGTH_LONG).show()
+            }
         }
 
-        return false
+        return
     }
 
     // Allowed DNS record types (stored as comma-separated enum names)
     // Default: A, AAAA, CNAME, HTTPS, SVCB, IPSECKEY
-    internal var allowedDnsRecordTypesString by stringPref("allowed_dns_record_types")
-        .withDefault(setOf(
+    internal var allowedDnsRecordTypesString by store.string("allowed_dns_record_types", setOf(
             ResourceRecordTypes.A.name,
             ResourceRecordTypes.AAAA.name,
             ResourceRecordTypes.CNAME.name,
@@ -677,8 +627,7 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
 
     // Auto mode for DNS record types - when enabled, all record types are allowed
     // Default: true (Auto mode ON)
-    var dnsRecordTypesAutoMode by booleanPref("dns_record_types_auto_mode")
-        .withDefault(true)
+    var dnsRecordTypesAutoMode by store.boolean("dns_record_types_auto_mode", true)
 
     fun getAllowedDnsRecordTypes(): Set<String> {
         // If Auto mode is enabled, return all record types
@@ -712,60 +661,25 @@ class PersistentState(context: Context) : SimpleKrate(context), KoinComponent {
     }
 
     // SE Proxy for Anti-Censorship
-    var autoProxyEnabled by booleanPref(AUTO_PROXY_ENABLED).withDefault<Boolean>(false)
+    var autoProxyEnabled by store.boolean(AUTO_PROXY_ENABLED, false)
 
     // Custom LAN IP configuration mode: 0 = AUTO (default), 1 = MANUAL
-    var customLanIpMode by booleanPref("custom_lan_ip_mode").withDefault<Boolean>(false)
+    var customLanIpMode by store.boolean("custom_lan_ip_mode", false)
 
     // Custom LAN IPs. Store IP and prefix together as a single value (e.g., "10.111.222.1/24").
     // Empty string means: use defaults.
-    var customLanGatewayIpv4 by stringPref("custom_lan_gateway_ipv4").withDefault<String>("10.111.222.1/24")
-    var customLanGatewayIpv6 by stringPref("custom_lan_gateway_ipv6").withDefault<String>("fd66:f83a:c650::1/120")
+    var customLanGatewayIpv4 by store.string("custom_lan_gateway_ipv4", "10.111.222.1/24")
+    var customLanGatewayIpv6 by store.string("custom_lan_gateway_ipv6", "fd66:f83a:c650::1/120")
 
-    var customLanRouterIpv4 by stringPref("custom_lan_router_ipv4").withDefault<String>("10.111.222.2/32")
-    var customLanRouterIpv6 by stringPref("custom_lan_router_ipv6").withDefault<String>("fd66:f83a:c650::2/128")
+    var customLanRouterIpv4 by store.string("custom_lan_router_ipv4", "10.111.222.2/32")
+    var customLanRouterIpv6 by store.string("custom_lan_router_ipv6", "fd66:f83a:c650::2/128")
 
-    var customLanDnsIpv4 by stringPref("custom_lan_dns_ipv4").withDefault<String>("10.111.222.3/32")
-    var customLanDnsIpv6 by stringPref("custom_lan_dns_ipv6").withDefault<String>("fd66:f83a:c650::3/128")
+    var customLanDnsIpv4 by store.string("custom_lan_dns_ipv4", "10.111.222.3/32")
+    var customLanDnsIpv6 by store.string("custom_lan_dns_ipv6", "fd66:f83a:c650::3/128")
 
-    var customModeOrIpChanged by booleanPref("custom_lan_mode_ip_changed").withDefault<Boolean>(false)
+    var customModeOrIpChanged by store.boolean("custom_lan_mode_ip_changed", false)
 
-    // RPN DNS url
-    var rpnDnsUrl by stringPref(RPN_DNS_URL).withDefault<String>(RpnProxyManager.DnsMode.DEFAULT.url)
+    fun snapshotPreferences(): Map<String, Any?> = store.snapshot()
 
-    // comma-separated [RpnProxyManager.DnsMode.tunType] values for the multi-select DNS filter
-    var rpnDnsTunTypes by stringPref(RPN_DNS_TUN_TYPES).withDefault<String>(RpnProxyManager.DnsMode.PRIVACY.tunType)
-
-    // RPN configuration handling mode: false = AUTO (app decides), true = MANUAL (user decides)
-    var rpnConfigHandlingManual by booleanPref("rpn_config_handling_manual").withDefault<Boolean>(false)
-
-    // RPN always change identity on each connection: only effective when rpnConfigHandlingManual=true
-    var rpnAlwaysChangeIdentity by booleanPref("rpn_always_change_identity").withDefault<Boolean>(false)
-
-    // RPN connection port: 0=AUTO, or a specific port (80, 443, 53, 61222)
-    // Only effective when rpnConfigHandlingManual=true
-    var rpnPort by intPref("rpn_port").withDefault<Int>(0)
-
-    // RPN use permanent configuration: only effective when rpnConfigHandlingManual=true
-    var rpnUsePermanentConfig by booleanPref("rpn_use_permanent_config").withDefault<Boolean>(false)
-
-    /** Comma-separated country codes (e.g. "US,DE,FR") excluded from AUTO server selection.
-     *  Empty string = no exclusions (default). */
-    var rpnAutoExcludedCcs by stringPref("rpn_auto_excluded_ccs").withDefault<String>("")
-
-    // timestamp of the last successful /g/device registration call.
-    var deviceRegistrationTimestamp by longPref("device_registration_timestamp").withDefault<Long>(0L)
-
-    // whether the guided tour has been completed; false = show the tour
-    var guidedTourCompleted by booleanPref("guided_tour_completed").withDefault<Boolean>(false)
-
-    // the version of the guided tour that was last shown; used to re-trigger on UI changes
-    var guidedTourVersion by intPref("guided_tour_version").withDefault<Int>(0)
-
-    // maximum memory the go engine can consume in bytes (ideally value*1024*1024)
-    var goMaxMemory by longPref(GO_MAX_MEMORY).withDefault<Long>(-1L)
-
-    var blockDnsForUnknownApp by booleanPref("block_dns_for_unknown_app").withDefault<Boolean>(false)
-
-    var showRethinkBlockNotification by booleanPref("show_rethink_block_notification").withDefault<Boolean>(true)
+    fun restorePreferences(snapshot: Map<String, Any?>) = store.restore(snapshot)
 }

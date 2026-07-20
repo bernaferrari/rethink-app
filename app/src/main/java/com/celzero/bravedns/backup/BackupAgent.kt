@@ -18,11 +18,9 @@ package com.celzero.bravedns.backup
 import Logger
 import Logger.LOG_TAG_BACKUP_RESTORE
 import android.content.Context
-import android.content.SharedPreferences
 import android.net.Uri
 import android.os.SystemClock
 import androidx.core.net.toUri
-import androidx.preference.PreferenceManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.celzero.bravedns.backup.BackupHelper.Companion.BACKUP_WG_DIR
@@ -38,8 +36,7 @@ import com.celzero.bravedns.backup.BackupHelper.Companion.getFileNameFromPath
 import com.celzero.bravedns.backup.BackupHelper.Companion.getRethinkDatabase
 import com.celzero.bravedns.backup.BackupHelper.Companion.getTempDir
 import com.celzero.bravedns.backup.BackupHelper.Companion.startVpn
-import com.celzero.bravedns.database.AppDatabase
-import com.celzero.bravedns.database.LogDatabase
+import com.celzero.bravedns.service.EncryptedFileManager
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.util.Utilities
@@ -65,8 +62,6 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
 
     var filesPathToZip: MutableList<String> = ArrayList()
     private val persistentState by inject<PersistentState>()
-    private val appDatabase by inject<AppDatabase>()
-    private val logDatabase by inject<LogDatabase>()
 
     companion object {
         const val TAG = "BackupExport"
@@ -104,7 +99,7 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
                     LOG_TAG_BACKUP_RESTORE,
                     "backup process, temp file dir: ${tempDir.path}, prefs backup file: ${prefsBackupFile.path}"
                 )
-            processCompleted = saveSharedPreferencesToFile(context, prefsBackupFile)
+            processCompleted = saveSharedPreferencesToFile(prefsBackupFile)
 
             if (processCompleted) {
                 Logger.d(LOG_TAG_BACKUP_RESTORE, "shared pref backup is added to the temp dir")
@@ -115,12 +110,6 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
                 )
                 return false
             }
-
-            // checkpoint databases to flush WAL entries into the main database file
-            // so the backup includes all committed data, not just what's in the db file
-            appDatabase.checkPoint()
-            logDatabase.checkPoint()
-            Logger.i(LOG_TAG_BACKUP_RESTORE, "database checkpoint completed before backup")
 
             processCompleted = saveDatabasesToFile(tempDir.path)
 
@@ -181,15 +170,11 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
             val mappings = WireguardManager.getAllMappings()
             mappings.forEach { m ->
                 val file = File(m.configPath)
-                if (!file.exists()) {
-                    Logger.w(LOG_TAG_BACKUP_RESTORE, "wg config file missing for ${m.id}, ${m.configPath}")
-                    return@forEach
-                }
-                val content = file.readText(Charsets.UTF_8)
+                val content = EncryptedFileManager.read(context, file)
                 if (content.isNotEmpty()) {
                     val tmpWgFile = File(dir, "${m.id}.conf")
-                    tmpWgFile.writer().use { writer ->
-                        writer.write(content)
+                    tmpWgFile.writer().use {
+                        writer -> writer.write(content)
                         writer.flush()
                     }
                     filesPathToZip.add(tmpWgFile.absolutePath)
@@ -305,15 +290,14 @@ class BackupAgent(val context: Context, workerParams: WorkerParameters) :
         return path + File.separator + fileName
     }
 
-    private fun saveSharedPreferencesToFile(context: Context, prefFile: File): Boolean {
+    private fun saveSharedPreferencesToFile(prefFile: File): Boolean {
         var output: ObjectOutputStream? = null
 
         Logger.i(LOG_TAG_BACKUP_RESTORE, "begin shared pref copy, file path:${prefFile.path}")
-        val sharedPrefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(context)
 
         try {
             output = ObjectOutputStream(FileOutputStream(prefFile))
-            val allPrefs = sharedPrefs.all
+            val allPrefs = persistentState.snapshotPreferences()
             output.writeObject(allPrefs)
         } catch (e: Exception) {
             Logger.crash(LOG_TAG_BACKUP_RESTORE, "exception during shared pref backup, ${e.message}", e)

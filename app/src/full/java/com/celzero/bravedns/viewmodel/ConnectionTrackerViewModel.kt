@@ -15,32 +15,32 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
 import com.celzero.bravedns.database.ConnectionTracker
 import com.celzero.bravedns.database.ConnectionTrackerDAO
-import com.celzero.bravedns.database.MergedConnectionLog
-import com.celzero.bravedns.ui.fragment.ConnectionTrackerFragment
-import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
+import com.celzero.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.launch
-import kotlin.time.Duration.Companion.milliseconds
 
 class ConnectionTrackerViewModel(private val connectionTrackerDAO: ConnectionTrackerDAO) :
     ViewModel() {
 
-    private val _filterString = MutableLiveData<String>()
-    private val filterString: LiveData<String> = _filterString
-    private val filterRules: MutableSet<String> = mutableSetOf()
+    companion object {
+        const val PROTOCOL_FILTER_PREFIX = "P:"
+    }
+
+    private val _filterString = MutableStateFlow("")
+    private var filterRules: MutableSet<String> = mutableSetOf()
     private var filterType: TopLevelFilter = TopLevelFilter.ALL
 
     enum class TopLevelFilter(val id: Int) {
@@ -52,22 +52,20 @@ class ConnectionTrackerViewModel(private val connectionTrackerDAO: ConnectionTra
     private val pagingConfig: PagingConfig
 
     init {
-        _filterString.value = ""
         pagingConfig =
             PagingConfig(
                 enablePlaceholders = true,
                 prefetchDistance = 3,
-                initialLoadSize = LIVEDATA_PAGE_SIZE * 2,
-                maxSize = LIVEDATA_PAGE_SIZE * 3,
-                pageSize = LIVEDATA_PAGE_SIZE * 2,
+                initialLoadSize = PAGING_PAGE_SIZE * 2,
+                maxSize = PAGING_PAGE_SIZE * 3,
+                pageSize = PAGING_PAGE_SIZE * 2,
                 jumpThreshold = 5
             )
     }
 
-    val connectionTrackerList = filterString.switchMap { input -> fetchNetworkLogs(input) }
-
-    val connectionTrackerListMerged =
-        filterString.switchMap { input -> fetchMergedNetworkLogs(input) }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val connectionTrackerList: Flow<PagingData<ConnectionTracker>> =
+        _filterString.flatMapLatest { input -> fetchNetworkLogs(input) }
 
     private fun setFilterWithDebounce(searchString: String) {
         viewModelScope.launch {
@@ -79,7 +77,7 @@ class ConnectionTrackerViewModel(private val connectionTrackerDAO: ConnectionTra
     private fun debounceFilter(searchString: String) {
         debounceJob?.cancel()
         debounceJob = viewModelScope.launch {
-            delay(300.milliseconds) // 300ms debounce delay
+            delay(300) // 300ms debounce delay
             _filterString.value = searchString
         }
     }
@@ -93,9 +91,9 @@ class ConnectionTrackerViewModel(private val connectionTrackerDAO: ConnectionTra
         setFilterWithDebounce(searchString)
     }
 
-    private fun fetchNetworkLogs(input: String): LiveData<PagingData<ConnectionTracker>> {
+    private fun fetchNetworkLogs(input: String): Flow<PagingData<ConnectionTracker>> {
         // spl case: treat input with P:UDP, P:TCP, P:ICMP as protocol filter
-        val protocolPrefix = ConnectionTrackerFragment.PROTOCOL_FILTER_PREFIX.lowercase()
+        val protocolPrefix = PROTOCOL_FILTER_PREFIX.lowercase()
         val s = input.trim().lowercase()
         if (s.startsWith(protocolPrefix)) {
             val protocol = s.substringAfter(protocolPrefix)
@@ -103,13 +101,13 @@ class ConnectionTrackerViewModel(private val connectionTrackerDAO: ConnectionTra
                 Pager(pagingConfig) {
                         connectionTrackerDAO.getProtocolFilteredConnections(protocol, filterRules)
                     }
-                    .liveData
+                    .flow
                     .cachedIn(viewModelScope)
             } else {
                 Pager(pagingConfig) {
                         connectionTrackerDAO.getProtocolFilteredConnections(protocol)
                     }
-                    .liveData
+                    .flow
                     .cachedIn(viewModelScope)
             }
         }
@@ -127,130 +125,59 @@ class ConnectionTrackerViewModel(private val connectionTrackerDAO: ConnectionTra
         }
     }
 
-    private fun fetchMergedNetworkLogs(input: String): LiveData<PagingData<MergedConnectionLog>> {
-        val protocolPrefix = ConnectionTrackerFragment.PROTOCOL_FILTER_PREFIX.lowercase()
-        val s = input.trim().lowercase()
-        if (s.startsWith(protocolPrefix)) {
-            val protocol = s.substringAfter(protocolPrefix)
-            return if (filterRules.isNotEmpty()) {
-                Pager(pagingConfig) {
-                        connectionTrackerDAO.getMergedProtocolFilteredConnections(protocol, filterRules)
-                    }
-                    .liveData
-                    .cachedIn(viewModelScope)
-            } else {
-                Pager(pagingConfig) {
-                        connectionTrackerDAO.getMergedProtocolFilteredConnections(protocol)
-                    }
-                    .liveData
-                    .cachedIn(viewModelScope)
-            }
-        }
-
-        return when (filterType) {
-            TopLevelFilter.ALL -> {
-                getAllMergedNetworkLogs(input)
-            }
-            TopLevelFilter.ALLOWED -> {
-                getAllowedMergedNetworkLogs(input)
-            }
-            TopLevelFilter.BLOCKED -> {
-                getBlockedMergedNetworkLogs(input)
-            }
-        }
-    }
-
-    private fun getBlockedNetworkLogs(input: String): LiveData<PagingData<ConnectionTracker>> {
+    private fun getBlockedNetworkLogs(input: String): Flow<PagingData<ConnectionTracker>> {
         return if (filterRules.isNotEmpty()) {
             Pager(pagingConfig) {
                     if (input.isBlank())
                         connectionTrackerDAO.getBlockedConnectionsFiltered(filterRules)
                     else connectionTrackerDAO.getBlockedConnectionsFiltered("%$input%", filterRules)
                 }
-                .liveData
+                .flow
                 .cachedIn(viewModelScope)
         } else {
             Pager(pagingConfig) {
                     if (input.isBlank()) connectionTrackerDAO.getBlockedConnections()
                     else connectionTrackerDAO.getBlockedConnections("%$input%")
                 }
-                .liveData
+                .flow
                 .cachedIn(viewModelScope)
         }
     }
 
-    private fun getAllowedNetworkLogs(input: String): LiveData<PagingData<ConnectionTracker>> {
+    private fun getAllowedNetworkLogs(input: String): Flow<PagingData<ConnectionTracker>> {
         return if (filterRules.isNotEmpty()) {
             Pager(pagingConfig) {
                     if (input.isBlank())
                         connectionTrackerDAO.getAllowedConnectionsFiltered(filterRules)
                     else connectionTrackerDAO.getAllowedConnectionsFiltered("%$input%", filterRules)
                 }
-                .liveData
+                .flow
                 .cachedIn(viewModelScope)
         } else {
             Pager(pagingConfig) {
                     if (input.isBlank()) connectionTrackerDAO.getAllowedConnections()
                     else connectionTrackerDAO.getAllowedConnections("%$input%")
                 }
-                .liveData
+                .flow
                 .cachedIn(viewModelScope)
         }
     }
 
-    private fun getAllNetworkLogs(input: String): LiveData<PagingData<ConnectionTracker>> {
-        return Pager(pagingConfig) {
-                if (input.isBlank()) connectionTrackerDAO.getConnectionTrackerByName()
-                else connectionTrackerDAO.getConnectionTrackerByName("%$input%")
-            }
-            .liveData
-            .cachedIn(viewModelScope)
-    }
-
-    private fun getBlockedMergedNetworkLogs(input: String): LiveData<PagingData<MergedConnectionLog>> {
+    private fun getAllNetworkLogs(input: String): Flow<PagingData<ConnectionTracker>> {
         return if (filterRules.isNotEmpty()) {
             Pager(pagingConfig) {
-                    if (input.isBlank())
-                        connectionTrackerDAO.getMergedBlockedConnectionsFiltered(filterRules)
-                    else connectionTrackerDAO.getMergedBlockedConnectionsFiltered("%$input%", filterRules)
+                    if (input.isBlank()) connectionTrackerDAO.getConnectionsFiltered(filterRules)
+                    else connectionTrackerDAO.getConnectionsFiltered("%$input%", filterRules)
                 }
-                .liveData
+                .flow
                 .cachedIn(viewModelScope)
         } else {
             Pager(pagingConfig) {
-                    if (input.isBlank()) connectionTrackerDAO.getMergedBlockedConnections()
-                    else connectionTrackerDAO.getMergedBlockedConnections("%$input%")
+                    if (input.isBlank()) connectionTrackerDAO.getConnectionTrackerByName()
+                    else connectionTrackerDAO.getConnectionTrackerByName("%$input%")
                 }
-                .liveData
+                .flow
                 .cachedIn(viewModelScope)
         }
-    }
-
-    private fun getAllowedMergedNetworkLogs(input: String): LiveData<PagingData<MergedConnectionLog>> {
-        return if (filterRules.isNotEmpty()) {
-            Pager(pagingConfig) {
-                    if (input.isBlank())
-                        connectionTrackerDAO.getMergedAllowedConnectionsFiltered(filterRules)
-                    else connectionTrackerDAO.getMergedAllowedConnectionsFiltered("%$input%", filterRules)
-                }
-                .liveData
-                .cachedIn(viewModelScope)
-        } else {
-            Pager(pagingConfig) {
-                    if (input.isBlank()) connectionTrackerDAO.getMergedAllowedConnections()
-                    else connectionTrackerDAO.getMergedAllowedConnections("%$input%")
-                }
-                .liveData
-                .cachedIn(viewModelScope)
-        }
-    }
-
-    private fun getAllMergedNetworkLogs(input: String): LiveData<PagingData<MergedConnectionLog>> {
-        return Pager(pagingConfig) {
-                if (input.isBlank()) connectionTrackerDAO.getMergedConnectionTrackerByName()
-                else connectionTrackerDAO.getMergedConnectionTrackerByName("%$input%")
-            }
-            .liveData
-            .cachedIn(viewModelScope)
     }
 }

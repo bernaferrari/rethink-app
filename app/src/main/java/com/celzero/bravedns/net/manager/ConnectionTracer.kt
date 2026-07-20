@@ -10,12 +10,10 @@ import androidx.annotation.RequiresApi
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Protocol
 import com.celzero.bravedns.util.Utilities.isUnspecifiedIp
-import com.google.common.cache.Cache
-import com.google.common.cache.CacheBuilder
+import com.celzero.bravedns.util.ExpiringCache
 import inet.ipaddr.IPAddressString
 import java.net.InetSocketAddress
-import java.net.SocketException
-import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 class ConnectionTracer(ctx: Context) {
 
@@ -28,13 +26,14 @@ class ConnectionTracer(ctx: Context) {
     }
 
     private val cm: ConnectivityManager = ctx.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    // Cache the UID for the next 300 seconds.
-    // the UID will expire after 300 seconds of to write.
+    // Cache the UID for the next 60 seconds.
+    // the UID will expire after 60 seconds of the write.
     // Key for the cache is protocol, local, remote
-    private val uidCache: Cache<String, Int> = CacheBuilder.newBuilder()
-        .maximumSize(CACHE_BUILDER_MAX_SIZE)
-        .expireAfterWrite(Duration.ofSeconds(CACHE_BUILDER_WRITE_EXPIRE_SEC))
-        .build()
+    private val uidCache: ExpiringCache<String, Int> =
+        ExpiringCache(
+            maxSize = CACHE_BUILDER_MAX_SIZE,
+            expireAfterWriteMs = TimeUnit.SECONDS.toMillis(CACHE_BUILDER_WRITE_EXPIRE_SEC),
+        )
 
     @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun getUidQ(
@@ -104,14 +103,11 @@ class ConnectionTracer(ctx: Context) {
                 return uid
             }
         } catch (secEx: SecurityException) {
-            Logger.w(LOG_TAG_VPN, "err getUidQ: " + secEx.message)
+            Logger.e(LOG_TAG_VPN, "err getUidQ: " + secEx.message, secEx)
         } catch (ex: InterruptedException) { // InterruptedException is thrown by runBlocking
-            Logger.w(LOG_TAG_VPN, "err getUidQ: " + ex.message)
-        } catch (ex: SocketException) {
-            // socket closed or aborted while tracing, no need to log the stack trace
-            Logger.w(LOG_TAG_VPN, "err getUidQ: " + ex.message)
+            Logger.e(LOG_TAG_VPN, "err getUidQ: " + ex.message, ex)
         } catch (ex: Exception) {
-            Logger.w(LOG_TAG_VPN, "err getUidQ: " + ex.message)
+            Logger.e(LOG_TAG_VPN, "err getUidQ: " + ex.message, ex)
         }
 
         if (retryCount >= 2) return uid
@@ -174,12 +170,8 @@ class ConnectionTracer(ctx: Context) {
         // do not cache the DNS request (key: 17|10.111.222.1|10.111.222.3|53)
         if (key == DNS_KEY) return
 
-        Logger.d(LOG_TAG_VPN, "getUidQ: addUidToCache; cache put: $uid, $key")
-        try {
-            uidCache.put(key, uid)
-        } catch (t: Throwable) {
-            Logger.w(LOG_TAG_VPN, "getUidQ: err addUidToCache: " + t.message)
-        }
+        Logger.d(LOG_TAG_VPN, "getUidQ; cache put: $uid, $key")
+        uidCache.put(key, uid)
     }
 
     private fun makeCacheKey(

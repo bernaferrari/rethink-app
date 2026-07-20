@@ -42,7 +42,7 @@ import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.celzero.bravedns.service.FirewallManager.NOTIF_CHANNEL_ID_FIREWALL_ALERTS
 import com.celzero.bravedns.service.VpnBuilderPolicy.Companion.getNetworkBehaviourDuration
 import com.celzero.bravedns.service.WireguardManager.NOTIF_CHANNEL_ID_WIREGUARD_ALERTS
-import com.celzero.bravedns.ui.NotificationHandlerActivity
+import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.ConnectivityCheckHelper
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_WG_PERMISSION_NAME
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_WG_PERMISSION_VALUE
@@ -58,6 +58,7 @@ import com.celzero.bravedns.util.Utilities.isNetworkSame
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineName
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -71,7 +72,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.TimeUnit
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.time.Duration.Companion.milliseconds
 
 class ConnectionMonitor(private val context: Context, private val networkListener: NetworkListener, private val serializer: CoroutineDispatcher, private val scope: CoroutineScope) : KoinComponent, DiagnosticsManager.DiagnosticsListener {
 
@@ -448,7 +448,7 @@ class ConnectionMonitor(private val context: Context, private val networkListene
         }
 
         Logger.w(LOG_TAG_VPN, "ssid wgs: missing permissions, show notification")
-        val intent = Intent(context, NotificationHandlerActivity::class.java)
+        val intent = Intent(context, HomeScreenActivity::class.java)
         intent.putExtra(
             NOTIF_WG_PERMISSION_NAME,
             NOTIF_WG_PERMISSION_VALUE
@@ -464,7 +464,7 @@ class ConnectionMonitor(private val context: Context, private val networkListene
         var builder: NotificationCompat.Builder
         if (isAtleastO()) {
             val name: CharSequence = context.getString(R.string.notif_channel_firewall_alerts)
-            val description = context.resources.getString(R.string.notif_channel_desc_firewall_alerts)
+            val description = context.getString(R.string.notif_channel_desc_firewall_alerts)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(NOTIF_CHANNEL_ID_WIREGUARD_ALERTS, name, importance)
             channel.description = description
@@ -474,7 +474,7 @@ class ConnectionMonitor(private val context: Context, private val networkListene
             builder = NotificationCompat.Builder(context, NOTIF_CHANNEL_ID_WIREGUARD_ALERTS)
         }
 
-        val contentTitle: String = context.resources.getString(R.string.lbl_action_required)
+        val contentTitle: String = context.getString(R.string.lbl_action_required)
         val contentText: String =
             context.getString(R.string.location_enable_explanation, context.getString(R.string.lbl_ssids))
 
@@ -667,54 +667,64 @@ class ConnectionMonitor(private val context: Context, private val networkListene
      * Force updates the VPN's underlying network based on the preference. Will be initiated when
      * the VPN start is completed. Always called from the main thread
      */
-    suspend fun onVpnStart(context: Context): Boolean {
-        val isNewVpn = !::cm.isInitialized
+    suspend fun onVpnStart(context: Context): Boolean  {
+        val deferred = scope.async {
+            val isNewVpn = !::cm.isInitialized
 
-        if (!isNewVpn) {
-            Logger.w(LOG_TAG_CONNECTION, "connection monitor is already running")
-            return false
-        }
-
-        channel = Channel(Channel.CONFLATED)
-        cm = context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
-
-        val networkBehaviour = getConnectionMonitorBehaviour()
-        Logger.i(LOG_TAG_CONNECTION, "new vpn is created force update the network, policy: $networkBehaviour")
-        val success = registerCallbackBasedOnPolicy()
-
-        if (!success) {
-            networkListener.onNetworkRegistrationFailed()
-            return false
-        }
-
-        if (isAtleastR()) {
-            registerDiags(context)
-        }
-
-        scope.launch(CoroutineName("nwHdl") + serializer) {
-
-            val ips = IpsAndUrlToProbe(
-                persistentState.pingv4Ips.split(",").map { it.trim() }
-                    .filter { it.isNotEmpty() },
-                persistentState.pingv6Ips.split(",").map { it.trim() }
-                    .filter { it.isNotEmpty() },
-                persistentState.pingv4Url.split(",").map { it.trim() }
-                    .filter { it.isNotEmpty() },
-                persistentState.pingv6Url.split(",").map { it.trim() }
-                    .filter { it.isNotEmpty() }
-            )
-
-            val hdl = NetworkRequestHandler(cm, networkListener, ips, ::sendNetworkChanges)
-            sendNetworkChanges()
-            for (m in channel) {
-                hdl.handleMessage(m)
-                val duration = getNetworkBehaviourDuration(networkBehaviour)
-                delay(duration.milliseconds)
+            if (!isNewVpn) {
+                Logger.w(LOG_TAG_CONNECTION, "connection monitor is already running")
+                return@async false
             }
+
+            // initialize channel before registering
+            channel = Channel(Channel.CONFLATED)
+            cm = context.applicationContext.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            wm = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as WifiManager
+
+            val networkBehaviour = getConnectionMonitorBehaviour()
+            Logger.i(LOG_TAG_CONNECTION, "new vpn is created force update the network, policy: $networkBehaviour")
+            val success = registerCallbackBasedOnPolicy()
+
+            if (!success) {
+                networkListener.onNetworkRegistrationFailed()
+                return@async false
+            }
+
+            // register for diagnostics manager if the android version is R or above
+            if (isAtleastR()) {
+                registerDiags(context)
+            }
+
+            scope.launch(CoroutineName("nwHdl") + serializer) {
+
+                // Filter out empty strings from probe IPs to avoid unnecessary probe attempts
+                val ips = IpsAndUrlToProbe(
+                    persistentState.pingv4Ips.split(",").map { it.trim() }
+                        .filter { it.isNotEmpty() },
+                    persistentState.pingv6Ips.split(",").map { it.trim() }
+                        .filter { it.isNotEmpty() },
+                    persistentState.pingv4Url.split(",").map { it.trim() }
+                        .filter { it.isNotEmpty() },
+                    persistentState.pingv6Url.split(",").map { it.trim() }
+                        .filter { it.isNotEmpty() }
+                )
+
+                val hdl = NetworkRequestHandler(cm, networkListener, ips, ::sendNetworkChanges)
+                sendNetworkChanges()
+                for (m in channel) {
+                    // process the message in a coroutine context
+                    val deferred = async { hdl.handleMessage(m) }
+                    deferred.await()
+                    // add a delay to avoid processing multiple network changes in quick succession
+                    val duration = getNetworkBehaviourDuration(networkBehaviour)
+                    delay(duration)
+                }
+            }
+
+            return@async isNewVpn
         }
 
-        return isNewVpn
+        return deferred.await()
     }
 
     private fun registerCallbackBasedOnPolicy(): Boolean {
@@ -1134,7 +1144,7 @@ class ConnectionMonitor(private val context: Context, private val networkListene
                         (it.isDefaultRoute && it.destination.address is Inet6Address)
 
                     has4 = hasDefaultRoute4
-                    has6 = hasDefaultRoute6
+                    has4 = hasDefaultRoute6
 
                     /*Logger.v(
                         LOG_TAG_CONNECTION,

@@ -1,3 +1,5 @@
+package com.celzero.bravedns.iab;
+
 /*
  * Copyright (C) 2021 Google Inc. All rights reserved.
  *
@@ -13,7 +15,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.celzero.bravedns.iab;
 
 import android.text.TextUtils;
 import android.util.Base64;
@@ -104,7 +105,6 @@ class Security {
         try {
             signatureBytes = Base64.decode(signature, Base64.DEFAULT);
         } catch (IllegalArgumentException e) {
-            Log.w(TAG, "Base64 decoding failed.");
             return false;
         }
         try {
@@ -112,7 +112,6 @@ class Security {
             signatureAlgorithm.initVerify(publicKey);
             signatureAlgorithm.update(signedData.getBytes(StandardCharsets.UTF_8));
             if (!signatureAlgorithm.verify(signatureBytes)) {
-                Log.w(TAG, "Signature verification failed...");
                 return false;
             }
             return true;
@@ -120,9 +119,7 @@ class Security {
             // "RSA" is guaranteed to be available.
             throw new RuntimeException(e);
         } catch (InvalidKeyException e) {
-            Log.e(TAG, "Invalid key specification.");
         } catch (SignatureException e) {
-            Log.e(TAG, "Signature exception.");
         }
         return false;
     }

@@ -15,32 +15,29 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
 import com.celzero.bravedns.database.CustomIp
 import com.celzero.bravedns.database.CustomIpDao
-import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
+import com.celzero.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
 import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 class CustomIpViewModel(private val customIpDao: CustomIpDao) : ViewModel() {
 
-    private val filteredList: MutableLiveData<String> = MutableLiveData()
+    private var filteredList: MutableStateFlow<String> = MutableStateFlow("")
     private var uid: Int = UID_EVERYBODY
 
-    init {
-        filteredList.value = ""
-    }
-
-    val customIpDetails =
-        filteredList.switchMap { input ->
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val customIpDetails: Flow<PagingData<CustomIp>> =
+        filteredList.flatMapLatest { input ->
             if (uid != UID_EVERYBODY) {
                 getAppWise(uid, input)
             } else {
@@ -48,50 +45,52 @@ class CustomIpViewModel(private val customIpDao: CustomIpDao) : ViewModel() {
             }
         }
 
-    val allIpRules = filteredList.switchMap { input -> getAllRules(input) }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val allIpRules: Flow<PagingData<CustomIp>> =
+        filteredList.flatMapLatest { input -> getAllRules(input) }
 
-    fun ipRulesCount(uid: Int): LiveData<Int> {
+    fun ipRulesCount(uid: Int): Flow<Int> {
         return customIpDao.getAppWiseIpRulesCount(uid)
     }
 
-    fun allIpRulesCount(): LiveData<Int> {
+    fun allIpRulesCount(): Flow<Int> {
         return customIpDao.getIpRulesCountInt()
     }
 
-    private fun getAllRules(query: String): LiveData<PagingData<CustomIp>> {
-        return Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
+    private fun getAllRules(query: String): Flow<PagingData<CustomIp>> {
+        return Pager(PagingConfig(PAGING_PAGE_SIZE)) {
                 customIpDao.getAllCustomIpRules("%$query%")
             }
-            .liveData
+            .flow
             .cachedIn(viewModelScope)
     }
 
-    private fun getAppWise(uid: Int, input: String?): LiveData<PagingData<CustomIp>> {
+    private fun getAppWise(uid: Int, input: String?): Flow<PagingData<CustomIp>> {
         return if (input.isNullOrBlank()) {
-            Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) { customIpDao.getAppWiseCustomIp(uid) }
-                .liveData
+            Pager(PagingConfig(PAGING_PAGE_SIZE)) { customIpDao.getAppWiseCustomIp(uid) }
+                .flow
                 .cachedIn(viewModelScope)
         } else {
-            Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
+            Pager(PagingConfig(PAGING_PAGE_SIZE)) {
                     customIpDao.getAppWiseCustomIp("%$input%", uid)
                 }
-                .liveData
+                .flow
                 .cachedIn(viewModelScope)
         }
     }
 
-    private fun getUniversal(input: String?): LiveData<PagingData<CustomIp>> {
+    private fun getUniversal(input: String?): Flow<PagingData<CustomIp>> {
         return if (input.isNullOrBlank()) {
-            Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
-                    customIpDao.getUnivBlockedConnectionsLiveData()
+            Pager(PagingConfig(PAGING_PAGE_SIZE)) {
+                    customIpDao.univBlockedConnectionsPagingSource()
                 }
-                .liveData
+                .flow
                 .cachedIn(viewModelScope)
         } else {
-            Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
+            Pager(PagingConfig(PAGING_PAGE_SIZE)) {
                     customIpDao.getUnivBlockedConnectionsByIP("%$input%")
                 }
-                .liveData
+                .flow
                 .cachedIn(viewModelScope)
         }
     }

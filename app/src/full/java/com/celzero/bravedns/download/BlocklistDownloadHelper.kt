@@ -18,16 +18,15 @@ package com.celzero.bravedns.download
 import Logger
 import Logger.LOG_TAG_DOWNLOAD
 import android.content.Context
-import com.celzero.bravedns.customdownloader.IBlocklistDownload
-import com.celzero.bravedns.customdownloader.RetrofitManager
+import com.celzero.bravedns.network.BlocklistApi
 import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.util.Constants
+import com.celzero.bravedns.util.JsonHelper
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.celzero.bravedns.util.Utilities.blocklistCanonicalPath
 import com.celzero.bravedns.util.Utilities.deleteRecursive
-import org.json.JSONException
-import org.json.JSONObject
-import retrofit2.converter.gson.GsonConverterFactory
+import kotlinx.serialization.json.JsonObject
+
 import java.io.File
 
 class BlocklistDownloadHelper {
@@ -85,50 +84,27 @@ class BlocklistDownloadHelper {
             timestamp: Long,
             type: RethinkBlocklistManager.DownloadType
         ) {
-            if (type != RethinkBlocklistManager.DownloadType.LOCAL) {
-                // Remote blocklists do not use the Android Download Manager temp path.
-                logw(
-                    "deleteOldFiles called for non-local type (${type.name}); skipping",
-                    IllegalArgumentException("deleteOldFiles for non-local type")
-                )
-                return
-            }
-            val path = Constants.ONDEVICE_BLOCKLIST_DOWNLOAD_PATH
+            val path =
+                if (type == RethinkBlocklistManager.DownloadType.LOCAL) {
+                    Constants.ONDEVICE_BLOCKLIST_DOWNLOAD_PATH
+                } else {
+                    Constants.ONDEVICE_BLOCKLIST_DOWNLOAD_PATH
+                }
             val dir = File(context.getExternalFilesDir(null).toString() + path + timestamp)
             logd("deleteOldFiles, File : ${dir.path}, ${dir.isDirectory}")
             deleteRecursive(dir)
         }
 
         fun deleteBlocklistResidue(context: Context, which: String, timestamp: Long) {
-            // skip delete anything if timestamp is invalid
-            if (timestamp == INIT_TIME_MS) {
-                logw(
-                    "deleteBlocklistResidue called with timestamp=0 for $which; aborting",
-                    IllegalArgumentException("timestamp must not be 0")
-                )
-                return
-            }
             val dir = File(blocklistCanonicalPath(context, which))
             if (!dir.exists()) return
 
-            val activeName = timestamp.toString()
-            val tempName = (-1L * timestamp).toString()
             dir.listFiles()?.forEach {
-                when (it.name) {
-                    // preserve the active blocklist dir for the current timestamp
-                    activeName -> {
-                        logd("delete blocklist residue for $which, keeping active: ${it.name}")
-                    }
-                    // delete the temp dir (named with negative timestamp) used during download
-                    tempName -> {
-                        logd("delete blocklist residue for $which, deleting temp: ${it.name}")
-                        deleteRecursive(it)
-                    }
-                    // delete any other residue dir from prior downloads
-                    else -> {
-                        logd("delete blocklist residue for $which, deleting: ${it.name}")
-                        deleteRecursive(it)
-                    }
+            logd("delete blocklist list residue for $which, dir: ${it.name}"
+                )
+                // delete all the dir other than current timestamp dir
+                if (it.name != timestamp.toString()) {
+                    deleteRecursive(it)
                 }
             }
         }
@@ -159,23 +135,18 @@ class BlocklistDownloadHelper {
             isRinRActive: Boolean
         ): BlocklistUpdateServerResponse? {
             try {
-                val retrofit =
-                    RetrofitManager.getBlocklistBaseBuilder(isRinRActive)
-                        .addConverterFactory(GsonConverterFactory.create())
-                        .build()
-                val retrofitInterface = retrofit.create(IBlocklistDownload::class.java)
                 logi("downloadAvailabilityCheck: ${Constants.ONDEVICE_BLOCKLIST_UPDATE_CHECK_QUERYPART_1}, ${Constants.ONDEVICE_BLOCKLIST_UPDATE_CHECK_QUERYPART_2}, $vcode, $timestamp")
                 val response =
-                    retrofitInterface.downloadAvailabilityCheck(
+                    BlocklistApi.downloadAvailabilityCheck(
+                        isRinRActive,
                         Constants.ONDEVICE_BLOCKLIST_UPDATE_CHECK_QUERYPART_1,
                         Constants.ONDEVICE_BLOCKLIST_UPDATE_CHECK_QUERYPART_2,
                         timestamp,
-                        vcode
+                        vcode,
                     )
                 logi("downloadAvailabilityCheck: $response, $retryCount, $vcode, $timestamp")
                 if (response?.isSuccessful == true) {
-                    val r = response.body()?.toString()?.let { JSONObject(it) }
-                    return processCheckDownloadResponse(r)
+                    return processCheckDownloadResponse(response.body)
                 }
             } catch (ex: Exception) {
                 logw("exception in checkBlocklistUpdate: ${ex.message}", ex)
@@ -195,23 +166,23 @@ class BlocklistDownloadHelper {
         }
 
         private fun processCheckDownloadResponse(
-            response: JSONObject?
+            response: JsonObject?,
         ): BlocklistUpdateServerResponse? {
             if (response == null) return null
 
-            try {
-                val version = response.optInt(Constants.JSON_VERSION, 0)
+            return try {
+                val version = JsonHelper.getInt(response, Constants.JSON_VERSION)
                 logd("client onResponse for refresh blocklist files:  $version")
 
-                val hasUpdate = response.optBoolean(Constants.JSON_UPDATE, false)
-                val timestamp = response.optLong(Constants.JSON_LATEST, INIT_TIME_MS)
+                val hasUpdate = JsonHelper.getBoolean(response, Constants.JSON_UPDATE)
+                val timestamp = JsonHelper.getLong(response, Constants.JSON_LATEST, INIT_TIME_MS)
                 logi("response for blocklist update check: version: $version, update? $hasUpdate, timestamp: $timestamp")
 
-                return BlocklistUpdateServerResponse(version, hasUpdate, timestamp)
-            } catch (e: JSONException) {
+                BlocklistUpdateServerResponse(version, hasUpdate, timestamp)
+            } catch (e: Exception) {
                 logw("err parsing the response: ${e.message}", e)
+                null
             }
-            return null
         }
 
         fun getDownloadableTimestamp(response: BlocklistUpdateServerResponse): Long {

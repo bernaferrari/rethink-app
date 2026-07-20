@@ -15,40 +15,40 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
+import com.celzero.bravedns.database.DnsCryptRelayEndpoint
 import com.celzero.bravedns.database.DnsCryptRelayEndpointDAO
-import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
+import com.celzero.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 class DnsCryptRelayEndpointViewModel(
     private val dnsCryptRelayEndpointDAO: DnsCryptRelayEndpointDAO
 ) : ViewModel() {
 
-    private var filteredList: MutableLiveData<String> = MutableLiveData()
+    private var filteredList: MutableStateFlow<String> = MutableStateFlow("")
 
-    init {
-        filteredList.value = ""
-    }
-
-    val dnsCryptRelayEndpointList =
-        filteredList.switchMap { input ->
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val dnsCryptRelayEndpointList: Flow<PagingData<DnsCryptRelayEndpoint>> =
+        filteredList.flatMapLatest { input ->
             if (input.isBlank()) {
-                Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
-                        dnsCryptRelayEndpointDAO.getDnsCryptRelayEndpointLiveData()
+                Pager(PagingConfig(PAGING_PAGE_SIZE)) {
+                        dnsCryptRelayEndpointDAO.dnsCryptRelayEndpointsPagingSource()
                     }
-                    .liveData
+                    .flow
                     .cachedIn(viewModelScope)
             } else {
-                Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
-                        dnsCryptRelayEndpointDAO.getDnsCryptRelayEndpointLiveDataByName("%$input%")
+                Pager(PagingConfig(PAGING_PAGE_SIZE)) {
+                        dnsCryptRelayEndpointDAO.dnsCryptRelayEndpointsPagingSource("%$input%")
                     }
-                    .liveData
+                    .flow
                     .cachedIn(viewModelScope)
             }
         }

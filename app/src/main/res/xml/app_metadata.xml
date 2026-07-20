@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<AppFunctionAppMetadata xmlns:appfn="http://schemas.android.com/apk/androidx.appfunctions"
+    appfn:description="RethinkDNS provides DNS firewall and VPN protection for Android devices.
+Operational Patterns:
+- Call getVpnStatus before startVpn, stopVpn, pauseVpn, or resumeVpn to check current state.
+- Confirm with the user before calling stopVpn because it removes network protection.
+Constraints:
+- VPN permission must be granted before startVpn can succeed."
+    appfn:displayDescription="@string/appfunctions_display_description" />

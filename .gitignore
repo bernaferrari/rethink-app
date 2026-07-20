@@ -26,9 +26,12 @@ app/src/headless/assets
 /platform-tools
 /platforms
 /tools
-/.kotlin/sessions
+/.kotlin/
 app/google-services.json
-/app/release
 app/fdroidFull/release
 app/playFull/release
 app/websiteFull/release
+
+# KMP / web module build outputs
+shared/build/
+web-build/build/

@@ -21,14 +21,14 @@ import android.content.Context
 import android.os.SystemClock
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.celzero.bravedns.customdownloader.IBillingServerApi
-import com.celzero.bravedns.customdownloader.RetrofitManager
+
+import com.celzero.bravedns.network.TcpProxyApi
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.TcpProxyHelper
-import org.json.JSONObject
+import com.celzero.bravedns.util.JsonHelper
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import retrofit2.converter.gson.GsonConverterFactory
+
 import java.util.concurrent.TimeUnit
 
 class PaymentWorker(val context: Context, workerParameters: WorkerParameters) :
@@ -86,22 +86,21 @@ class PaymentWorker(val context: Context, workerParameters: WorkerParameters) :
     ): TcpProxyHelper.PaymentStatus {
         var paymentStatus = TcpProxyHelper.PaymentStatus.INITIATED
         try {
-            val retrofit =
-                RetrofitManager.getRpnBaseBuilder(persistentState.routeRethinkInRethink)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build()
-            val retrofitInterface = retrofit.create(IBillingServerApi::class.java)
-            // TODO: no need of this fn now
-            val response = retrofitInterface.acknowledgePurchase(referenceId, "", "", purchaseToken, persistentState.appVersion.toString())
+            val response =
+                TcpProxyApi.checkForPaymentAcknowledgement(
+                    persistentState.routeRethinkInRethink,
+                    referenceId,
+                    purchaseToken,
+                )
             Logger.d(
                 Logger.LOG_IAB,
-                "getPaymentStatusFromServer: ${response?.headers()}, ${response?.message()}, ${response?.raw()?.request?.url}"
+                "getPaymentStatusFromServer: ${response.message}, ${response.requestUrl}",
             )
 
-            if (response?.isSuccessful == true) {
-                val jsonObject = JSONObject(response.body().toString())
-                val status = jsonObject.optString(JSON_STATUS, "")
-                val paymentStatusString = jsonObject.optString(JSON_PAYMENT_STATUS, "")
+            if (response.isSuccessful) {
+                val jsonObject = response.body!!
+                val status = JsonHelper.getString(jsonObject, JSON_STATUS)
+                val paymentStatusString = JsonHelper.getString(jsonObject, JSON_PAYMENT_STATUS)
                 paymentStatus =
                     TcpProxyHelper.PaymentStatus.entries.find { it.name == paymentStatusString }
                         ?: TcpProxyHelper.PaymentStatus.NOT_PAID
@@ -116,7 +115,7 @@ class PaymentWorker(val context: Context, workerParameters: WorkerParameters) :
             } else {
                 Logger.w(
                     Logger.LOG_IAB,
-                    "unsuccessful response for ${response?.raw()?.request?.url}"
+                    "unsuccessful response for ${response.requestUrl}"
                 )
             }
         } catch (e: Exception) {
