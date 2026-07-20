@@ -875,6 +875,33 @@ object RpnProxyManager : KoinComponent {
         }
     }
 
+    data class WinProxyDetails(
+        val countryCode: String,
+        val name: String,
+        val address: String,
+        val who: String,
+        val latencyMs: Int?,
+        val lastConnectedMs: Long?,
+        val isActive: Boolean
+    )
+
+    suspend fun getWinProxyDetails(countryCode: String): WinProxyDetails? {
+        val normalized = countryCode.trim().uppercase()
+        if (normalized.isBlank()) return null
+        val server = getWinServers().firstOrNull { it.cc.equals(normalized, ignoreCase = true) }
+            ?: return null
+        val row = db.getProxyById(WIN_ID)
+        return WinProxyDetails(
+            countryCode = server.cc,
+            name = server.name.ifBlank { server.city.ifBlank { WIN_NAME } },
+            address = server.address,
+            who = "",
+            latencyMs = row?.latency?.takeIf { it > 0 },
+            lastConnectedMs = row?.lastRefreshTime?.takeIf { it > 0L },
+            isActive = row?.isActive ?: server.isActive
+        )
+    }
+
     private fun getTime(time: Long): String {
         return  Utilities.convertLongToTime(time, Constants.TIME_FORMAT_4)
     }

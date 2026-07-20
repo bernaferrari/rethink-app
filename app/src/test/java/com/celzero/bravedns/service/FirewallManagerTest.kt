@@ -373,7 +373,7 @@ class FirewallManagerTest : KoinTest {
     @Test
     fun testLoad_withApps() = runBlocking {
         // Since dependency injection isn't working properly, test the manual setup
-        val result = FirewallManager.GlobalVariable.appInfos.size()
+        val result = FirewallManager.GlobalVariable.appInfos.values().size
         assertTrue("Expected test data to be loaded", result > 0)
 
         // Verify apps are accessible through FirewallManager methods
@@ -388,7 +388,7 @@ class FirewallManagerTest : KoinTest {
         clearFirewallManagerState()
 
         // Test with empty data
-        val result = FirewallManager.GlobalVariable.appInfos.size()
+        val result = FirewallManager.GlobalVariable.appInfos.values().size
         assertEquals(0, result)
 
         // Verify no apps are loaded

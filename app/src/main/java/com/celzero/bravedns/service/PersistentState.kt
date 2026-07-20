@@ -27,6 +27,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.DnsCryptRelayEndpoint
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.ui.compose.settings.DialStrategies
 import com.celzero.bravedns.ui.compose.settings.RetryStrategies
 import com.celzero.bravedns.util.Constants
@@ -287,6 +288,16 @@ class PersistentState(context: Context) : KoinComponent {
 
     // go logger level, default 3 -> info
     var goLoggerLevel by store.long("go_logger_level", 3)
+    var includeFileTrace by store.boolean("include_file_trace", false)
+
+    var appTestMode by store.boolean("app_test_mode", false)
+
+    var blockFreeDns by store.string("block_free_dns", "")
+
+    var blockFreeDnsMode by store.int("block_free_dns_mode", BlockFreeDnsMode.AUTO.mode)
+    var floodWireGuard by store.boolean("flood_wireguard", false)
+    var socketBufferSizeBytes by store.int("socket_buffer_size_bytes", 524288)
+    var goMaxMemory by store.long("go_max_memory", -1L)
 
     // firewall bubble feature toggle
     var firewallBubbleEnabled by store.boolean("pref_firewall_bubble_enabled", false)
@@ -350,6 +361,14 @@ class PersistentState(context: Context) : KoinComponent {
 
     // subscribe product id for the current user, empty string if not subscribed
     var rpnProductId by store.string("rpn_product_id", "")
+    var rpnDnsTunTypes by store.string(
+        "rpn_dns_tun_types",
+        RpnProxyManager.DnsMode.PRIVACY.tunType
+    )
+    var rpnAutoExcludedCcs by store.string("rpn_auto_excluded_ccs", "")
+    var rpnConfigHandlingManual by store.boolean("rpn_config_handling_manual", false)
+    var rpnAlwaysChangeIdentity by store.boolean("rpn_always_change_identity", false)
+    var rpnPort by store.int("rpn_port", 0)
 
     var nwEngExperimentalFeatures by store.boolean("network_engine_experimental", false)
 
@@ -403,6 +422,9 @@ class PersistentState(context: Context) : KoinComponent {
     var firebaseUserToken by store.string("firebase_user_token", "")
     var firebaseUserTokenTimestamp by store.long("firebase_user_token_timestamp", 0L)
 
+    // Tombstone reporting is resumable across process restarts.
+    var lastReportedTombstoneFile by store.string("last_reported_tombstone_file", "")
+
     // experimental feature to use max mtu
     var useMaxMtu by store.boolean("use_max_mtu", false)
 
@@ -417,6 +439,13 @@ class PersistentState(context: Context) : KoinComponent {
 
     // global lockdown for wireguard proxy
     var wgGlobalLockdown by store.boolean("wg_global_lockdown", false)
+
+    // True after encrypted WireGuard profiles have been migrated to plain config files.
+    var wireguardPlainFileMigrationDone by store.boolean("wg_plain_file_migration_done", false)
+
+    // Last successful RPN device registration and notification state.
+    var deviceRegistrationTimestamp by store.long("device_registration_timestamp", 0L)
+    var showRethinkBlockNotification by store.boolean("show_rethink_block_notification", true)
 
     val orbotConnectionStatus = MutableStateFlow(false)
     val vpnEnabled = MutableStateFlow(false)

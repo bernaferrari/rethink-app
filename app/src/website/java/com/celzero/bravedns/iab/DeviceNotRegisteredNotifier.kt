@@ -27,7 +27,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.celzero.bravedns.R
 import com.celzero.bravedns.iab.DeviceNotRegisteredNotifier.NOTIF_CHANNEL_ID_RPN_ALERTS
-import com.celzero.bravedns.ui.NotificationHandlerActivity
+import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_ID_IAB_DEVICE_NOT_REGISTERED
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_NAME
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_VALUE
@@ -39,8 +39,8 @@ import com.celzero.bravedns.util.Utilities
  * the authoritative CID (from the entitlement payload or purchase) could not be
  * linked to a DID on the Rethink server.
  *
- * Tapping the notification launches [NotificationHandlerActivity] which trampolines
- * to [ManagePurchaseFragment].
+ * Tapping the notification launches [HomeScreenActivity], which opens the Compose
+ * RPN account screen and restores the server error details.
  *
  * ### Channel
  * Uses [NOTIF_CHANNEL_ID_RPN_ALERTS]
@@ -49,7 +49,7 @@ object DeviceNotRegisteredNotifier {
 
     private const val TAG = "DeviceNotRegisteredNotifier"
 
-    // intent used by NotificationHandlerActivity to rebuild the error.
+    // Intent used by HomeScreenActivity to rebuild the error.
     const val EXTRA_ENTITLEMENT_CID = "dnr_entitlement_cid"
     const val EXTRA_STORED_CID = "dnr_stored_cid"
     const val EXTRA_DEVICE_ID_PREFIX = "dnr_device_id_prefix"
@@ -70,7 +70,7 @@ object DeviceNotRegisteredNotifier {
                 return
             }
 
-            val tapIntent = Intent(context, NotificationHandlerActivity::class.java).apply {
+            val tapIntent = Intent(context, HomeScreenActivity::class.java).apply {
                 putExtra(NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_NAME,
                     NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_VALUE)
                 putExtra(EXTRA_ENTITLEMENT_CID,  error.entitlementCid)

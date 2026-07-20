@@ -35,12 +35,12 @@ interface WgConfigFilesDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE) fun insert(wgConfigFiles: WgConfigFiles): Long
 
     @Query(
-        "select * from WgConfigFiles order by isActive desc"
+        "select * from WgConfigFiles order by isActive desc, name collate nocase asc"
     )
     fun wgConfigsPagingSource(): PagingSource<Int, WgConfigFiles>
 
     @Query(
-        "select * from WgConfigFiles order by isActive desc"
+        "select * from WgConfigFiles order by isActive desc, name collate nocase asc"
     )
     suspend fun getWgConfigs(): List<WgConfigFiles>
 
@@ -60,6 +60,9 @@ interface WgConfigFilesDAO {
 
     @Query("update WgConfigFiles set isCatchAll = :isCatchAll, oneWireGuard = 0 where id = :id")
     suspend fun updateCatchAllConfig(id: Int, isCatchAll: Boolean)
+
+    @Query("update WgConfigFiles set isLockdown = :isLockdown where id = :id")
+    suspend fun updateLockdownConfig(id: Int, isLockdown: Boolean)
 
     @Query("update WgConfigFiles set useOnlyOnMetered = :isMobile where id = :id")
     suspend fun updateMobileConfig(id: Int, isMobile: Boolean)

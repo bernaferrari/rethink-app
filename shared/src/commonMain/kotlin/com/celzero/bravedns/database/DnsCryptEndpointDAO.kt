@@ -37,6 +37,9 @@ interface DnsCryptEndpointDAO {
     @Query("select * from DNSCryptEndpoint order by isSelected desc")
     fun dnsCryptEndpointsPagingSource(): PagingSource<Int, DnsCryptEndpoint>
 
+    @Query("select * from DNSCryptEndpoint order by isSelected desc")
+    suspend fun getAll(): List<DnsCryptEndpoint>
+
     @Transaction
     @Query(
         "select * from DNSCryptEndpoint where dnsCryptURL like :query or dnsCryptName like :query order by isSelected desc"

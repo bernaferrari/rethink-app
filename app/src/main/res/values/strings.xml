@@ -2204,4 +2204,46 @@
     <string name="rpn_proxy_placeholder_latency" translatable="true">37 ms</string>
     <string name="rpn_proxy_placeholder_last_connected" translatable="true">2 min ago</string>
     <string name="checkout_unavailable_desc" translatable="true">Checkout is unavailable in this build.</string>
+    <string name="db_corruption_notif_title" translatable="false">Database Error</string>
+    <string name="db_corruption_notif_desc" translatable="false">The app database appears to be corrupted. Rebuilding it restores functionality but may reset some app settings.</string>
+    <string name="db_corruption_action_clear" translatable="false">Clear &amp; Rebuild</string>
+    <string name="db_corruption_action_dismiss" translatable="false">Dismiss</string>
+    <string name="block_free_dns_mode_title">Trusted DNS bypass</string>
+    <string name="bfdm_option_auto_label">Automatic</string>
+    <string name="bfdm_option_auto_desc">Avoid DNS leaks when split DNS or leak prevention is enabled; otherwise use the network resolver.</string>
+    <string name="bfdm_option_global_label">Use configured DNS</string>
+    <string name="bfdm_option_global_desc">Resolve trusted domains with your currently configured DNS.</string>
+    <string name="bfdm_option_fallback_label">Use fallback DNS</string>
+    <string name="bfdm_option_fallback_desc">Resolve trusted domains with the network fallback resolver.</string>
+    <string name="notif_channel_rpn" translatable="false">RPN alerts</string>
+    <string name="notif_channel_desc_rpn" translatable="false">Important RPN account and purchase alerts</string>
+    <string name="conflict_notif_title" translatable="false">Action required: purchase conflict</string>
+    <string name="conflict_notif_body" translatable="false">A server conflict was detected with your purchase. Tap to review it.</string>
+    <string name="device_auth_error_title" translatable="false">Device authorization failed</string>
+    <string name="device_auth_error_notif_body" translatable="false">Your device could not be authorized by the Rethink server. Tap to review it.</string>
+    <string name="device_not_registered_title" translatable="false">Device not registered</string>
+    <string name="device_not_registered_notif_body" translatable="false">Your device could not be linked to your active subscription. Tap to review it.</string>
+    <string name="rpn_account_title">RPN account</string>
+    <string name="rpn_account_manage_tab">Manage</string>
+    <string name="rpn_account_history_tab">History</string>
+    <string name="rpn_account_orders_tab">Orders</string>
+    <string name="rpn_account_manage_heading">Subscription controls</string>
+    <string name="rpn_account_manage_desc">Manage the subscription linked to this device, inspect its state history, or contact support.</string>
+    <string name="rpn_account_cancel">Cancel renewal</string>
+    <string name="rpn_account_revoke">Revoke and request refund</string>
+    <string name="rpn_account_cancel_confirm">Stop renewal for this subscription? Access remains governed by the store and current entitlement.</string>
+    <string name="rpn_account_revoke_confirm">Revoke this purchase and request a refund? This can remove access immediately.</string>
+    <string name="rpn_account_support">Contact support</string>
+    <string name="rpn_support_subject" translatable="false">RPN account support</string>
+    <string name="rpn_account_no_history">No meaningful subscription changes have been recorded.</string>
+    <string name="rpn_account_no_orders">No server order history is available for this account.</string>
+    <string name="rpn_account_retry">Retry</string>
+    <string name="rpn_account_open">Manage RPN account</string>
+    <string name="rpn_server_options_title">Server routing</string>
+    <string name="rpn_server_hop">Use as a hop</string>
+    <string name="rpn_server_catch_all">Route all apps</string>
+    <string name="rpn_server_lockdown">Lock down on failure</string>
+    <string name="rpn_server_mobile_only">Use only on mobile data</string>
+    <string name="config_delete_all_dialog_desc">Are you sure you want to delete all WireGuard VPN configurations? This cannot be undone.</string>
+    <string name="config_delete_all_dialog_title">Delete all</string>
 </resources>

@@ -36,6 +36,10 @@ class WgHopMapRepository(private val dao: WgHopMapDao) {
         return dao.getAll()
     }
 
+    suspend fun getAllByPrefix(prefix: String): List<WgHopMap> {
+        return dao.getAllByPrefix(prefix)
+    }
+
     suspend fun getBySrc(src: String): WgHopMap? {
         return dao.getBySrc(src)
     }

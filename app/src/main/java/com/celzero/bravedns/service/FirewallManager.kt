@@ -696,6 +696,13 @@ object FirewallManager : KoinComponent {
         return apps.size
     }
 
+    suspend fun clearAllApps() {
+        db.deleteAll()
+        mutex.withLock { appInfos.clear() }
+        foregroundUids.clear()
+        publishAppList()
+    }
+
     fun untrackForegroundApps() {
         Logger.i(
             LOG_TAG_FIREWALL,

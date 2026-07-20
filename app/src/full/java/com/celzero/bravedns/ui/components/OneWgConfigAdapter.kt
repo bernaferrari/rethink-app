@@ -395,7 +395,7 @@ suspend fun computeOneWgStatusUi(
     )
 }
 
-private fun isOneWgDnsError(statusId: Long?): Boolean {
+private fun isOneWgDnsError(statusId: Int?): Boolean {
     if (statusId == null) return true
     val s = Transaction.Status.fromId(statusId)
     return s == Transaction.Status.BAD_QUERY ||

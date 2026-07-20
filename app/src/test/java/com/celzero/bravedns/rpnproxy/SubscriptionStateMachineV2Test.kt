@@ -328,10 +328,11 @@ class SubscriptionStateMachineV2Test : KoinTest {
     }
 
     @Test
-    fun `paymentSuccessful guard bypassed when isAutoRenewing=true within 5 min window (genuine resubscription)`() = runBlocking {
+    fun `paymentSuccessful guard preserves same-token cancellation while Play propagates`() = runBlocking {
         val machine = createMachine()
         val token   = "tok-resubscribe"
-        // isAutoRenewing=true: Play has re-enabled auto-renewal — genuine resubscription
+        // Play may still report auto-renewing for the old token while a server cancellation
+        // propagates. The local guard must win during that window.
         val pd      = makePurchaseDetail(STD_PRODUCT, purchaseToken = token, isAutoRenewing = true)
 
         // DB row shows CANCELLED just 1 minute ago — within the 5-minute guard window
@@ -345,13 +346,8 @@ class SubscriptionStateMachineV2Test : KoinTest {
         machine.paymentSuccessful(pd)
         delay(100)
 
-        // Guard bypassed for isAutoRenewing=true — DB must be updated to ACTIVE
-        coVerify(atLeast = 1) {
-            mockRepository.upsert(match {
-                it.status == SubscriptionStatus.SubscriptionState.STATE_ACTIVE.id
-            })
-        }
-        assertEquals(SubscriptionStateMachineV2.SubscriptionState.Active, machine.getCurrentState())
+        coVerify(exactly = 0) { mockRepository.upsert(any()) }
+        assertEquals(SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id, existing.status)
     }
 
     @Test
@@ -1066,22 +1062,23 @@ class SubscriptionStateMachineV2Test : KoinTest {
     @Test
     fun `paymentSuccessful resubscription updates CANCELLED to ACTIVE`() = runBlocking {
         val machine = createMachine()
-        val token   = "tok-resub"
-        val sub     = makeActiveSub(purchaseToken = token).also {
+        val oldToken = "tok-old"
+        val newToken = "tok-resub"
+        val sub     = makeActiveSub(purchaseToken = oldToken).also {
             it.status = SubscriptionStatus.SubscriptionState.STATE_CANCELLED.id
         }
-        coEvery { mockRepository.getByPurchaseToken(token) } returns sub
+        coEvery { mockRepository.getByPurchaseToken(newToken) } returns null
         coEvery { mockRepository.getCurrentSubscription() }  returns sub
 
         // Play now says isAutoRenewing = true (resubscribed)
-        val pd = makePurchaseDetail(STD_PRODUCT, purchaseToken = token, isAutoRenewing = true)
+        val pd = makePurchaseDetail(STD_PRODUCT, purchaseToken = newToken, isAutoRenewing = true)
         machine.paymentSuccessful(pd)
         delay(100)
 
         assertEquals(SubscriptionStateMachineV2.SubscriptionState.Active, machine.getCurrentState())
         coVerify {
             mockRepository.upsert(match {
-                it.purchaseToken == token && it.status == SubscriptionStatus.SubscriptionState.STATE_ACTIVE.id
+                it.purchaseToken == newToken && it.status == SubscriptionStatus.SubscriptionState.STATE_ACTIVE.id
             })
         }
     }
@@ -1428,7 +1425,6 @@ class SubscriptionStateMachineV2Test : KoinTest {
         sub.status = SubscriptionStatus.SubscriptionState.STATE_ACTIVE.id
     }
 }
-
 
 
 

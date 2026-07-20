@@ -27,6 +27,6 @@ import org.koin.dsl.module
 object BillingModule {
     val billingModules: Module = module {
         single { BillingBackendClient(get()) }
+        single { ServerOrderHistoryRepository(get()) }
     }
 }
-

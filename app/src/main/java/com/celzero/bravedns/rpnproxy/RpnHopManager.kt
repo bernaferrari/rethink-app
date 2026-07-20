@@ -34,7 +34,7 @@ object RpnHopManager: KoinComponent {
             return maps.size
         }
         maps.clear()
-        maps = CopyOnWriteArrayList(db.getAllRpn())
+        maps = CopyOnWriteArrayList(db.getAllByPrefix(ID_RPN))
         printMaps()
         Logger.i(LOG_TAG_PROXY, "$TAG load complete: ${maps.size}")
         return maps.size

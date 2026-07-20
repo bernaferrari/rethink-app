@@ -409,6 +409,20 @@ object ProxyManager : KoinComponent {
         return pamSet.any { it.proxyId == proxyId }
     }
 
+    fun getProxyIdsForApp(uid: Int): Set<String> {
+        return pamSet.asSequence()
+            .filter { it.uid == uid && it.proxyId.isNotEmpty() }
+            .map { it.proxyId }
+            .toSet()
+    }
+
+    fun getProxyIdsForApp(uid: Int, packageName: String): Set<String> {
+        return pamSet.asSequence()
+            .filter { it.uid == uid && it.packageName == packageName && it.proxyId.isNotEmpty() }
+            .map { it.proxyId }
+            .toSet()
+    }
+
     private fun isValidProxyPrefix(pid: String): Boolean {
         if (pid.isEmpty() || pid == ID_NONE) return false
         return hasKnownPrefix(pid, VALID_PROXY_ID_PREFIXES)

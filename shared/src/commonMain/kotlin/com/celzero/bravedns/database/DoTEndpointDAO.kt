@@ -40,6 +40,9 @@ interface DoTEndpointDAO {
     @Query("select * from DoTEndpoint order by isSelected desc")
     fun doTEndpointsPagingSource(): PagingSource<Int, DoTEndpoint>
 
+    @Query("select * from DoTEndpoint order by isSelected desc")
+    suspend fun getAll(): List<DoTEndpoint>
+
     @Transaction
     @Query(
         "select * from DoTEndpoint where url like :query or name like :query order by isSelected desc"

@@ -27,7 +27,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.celzero.bravedns.R
 import com.celzero.bravedns.iab.DeviceNotRegisteredNotifier.NOTIF_CHANNEL_ID_RPN_ALERTS
-import com.celzero.bravedns.ui.NotificationHandlerActivity
+import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_ID_IAB_DEVICE_AUTH_ERROR
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_NAME
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_VALUE
@@ -47,7 +47,7 @@ object DeviceAuthErrorNotifier {
 
     private const val TAG = "DeviceAuthErrorNotifier"
 
-    // Intent extra keys used by NotificationHandlerActivity to rebuild the Unauthorized401 error.
+    // Intent extras used by HomeScreenActivity to rebuild the Unauthorized401 error.
     const val EXTRA_OPERATION       = "auth_error_operation"
     const val EXTRA_ACCOUNT_ID      = "auth_error_account_id"
     const val EXTRA_DEVICE_ID_PREFIX = "auth_error_device_id_prefix"
@@ -68,9 +68,8 @@ object DeviceAuthErrorNotifier {
                 return
             }
 
-            // Build the tap intent; routes through NotificationHandlerActivity so the
-            // trampoline logic (pause state, app-lock, etc.) is respected.
-            val tapIntent = Intent(context, NotificationHandlerActivity::class.java).apply {
+            // HomeScreenActivity restores the error and opens the Compose RPN account route.
+            val tapIntent = Intent(context, HomeScreenActivity::class.java).apply {
                 putExtra(NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_NAME,
                     NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_VALUE)
                 putExtra(EXTRA_OPERATION,        error.operation.name)
@@ -127,7 +126,7 @@ object DeviceAuthErrorNotifier {
 
     /**
      * Cancels any pending device-auth-error notification.
-     * Called by [NotificationHandlerActivity] after successfully handling the 401 so the
+     * Called after [HomeScreenActivity] handles the 401 so the
      * notification is cleared from the tray.
      */
     fun cancel(context: Context) {
@@ -140,4 +139,3 @@ object DeviceAuthErrorNotifier {
         }
     }
 }
-

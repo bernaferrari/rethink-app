@@ -36,7 +36,7 @@ class SubscriptionStatusRepository(private val subscriptionStatusDAO: Subscripti
     suspend fun upsert(subscriptionStatus: SubscriptionStatus): Long {
         return mutex.withLock {
             try {
-                println("IAB: " + 
+                println("IAB: " +
                     "$TAG Upserting subscription: ${subscriptionStatus.productId}, status: ${subscriptionStatus.status}"
                 )
 
@@ -98,11 +98,20 @@ class SubscriptionStatusRepository(private val subscriptionStatusDAO: Subscripti
     suspend fun getCurrentSubscription(): SubscriptionStatus? {
         return try {
             println("IAB: " +  "$TAG Getting current subscription")
-            val subscription = subscriptionStatusDAO.getCurrentSubscription()
+            val subscription = subscriptionStatusDAO.getCurrentValidSubscription()
+                ?: subscriptionStatusDAO.getCurrentSubscription()
             println("IAB: " +  "$TAG Current subscription: ${subscription?.productId}")
             subscription
         } catch (e: Exception) {
             println("IAB: " + "$TAG Error getting current subscription: ${e.message}")
+            null
+        }
+    }
+
+    suspend fun getById(id: Int): SubscriptionStatus? {
+        return try {
+            subscriptionStatusDAO.getSubscriptionById(id)
+        } catch (_: Exception) {
             null
         }
     }
@@ -188,6 +197,12 @@ class SubscriptionStatusRepository(private val subscriptionStatusDAO: Subscripti
         }
     }
 
+    suspend fun updateDeveloperPayload(id: Int, payload: String, timestamp: Long): Int {
+        return mutex.withLock {
+            subscriptionStatusDAO.updateDeveloperPayload(id, payload, timestamp)
+        }
+    }
+
     /**
      * Mark expired subscriptions
      */
@@ -230,6 +245,14 @@ class SubscriptionStatusRepository(private val subscriptionStatusDAO: Subscripti
             subscriptionStatusDAO.getValidSubscriptions()
         } catch (e: Exception) {
             println("IAB: " + "$TAG Error getting valid subscriptions: ${e.message}")
+            emptyList()
+        }
+    }
+
+    suspend fun getSubscriptionsByStates(statuses: List<Int>): List<SubscriptionStatus> {
+        return try {
+            subscriptionStatusDAO.getSubscriptionsByStates(statuses)
+        } catch (_: Exception) {
             emptyList()
         }
     }

@@ -27,7 +27,7 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.celzero.bravedns.R
 import com.celzero.bravedns.iab.DeviceNotRegisteredNotifier.NOTIF_CHANNEL_ID_RPN_ALERTS
-import com.celzero.bravedns.ui.NotificationHandlerActivity
+import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_ID_IAB_CONFLICT
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME
 import com.celzero.bravedns.util.Constants.Companion.NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE
@@ -38,17 +38,14 @@ import com.celzero.bravedns.util.Utilities
  * Posts a high-priority system notification whenever an [ITcpProxy] call returns HTTP 409
  * **and no UI observer is attached** to [InAppBillingHandler.serverApiErrorLiveData].
  *
- * This covers two scenarios where the active screen cannot show [PurchaseConflictBottomSheet]:
+ * This covers two scenarios where the active screen cannot show the purchase recovery UI:
  *  - The app is in the background (e.g., triggered by [SubscriptionCheckWorker]).
- *  - The app is in the foreground but the [ManageSubscriptionFragment] is not visible
+ *  - The app is in the foreground but the RPN account screen is not visible
  *    (e.g. the 409 comes from an [acknowledgePurchase] call while the purchase flow screen
  *    is shown instead of the manage screen).
  *
- * Tapping the notification launches [NotificationHandlerActivity] which trampolines to
- * [ManageSubscriptionFragment]. That fragment's [setupServerErrorObserver] re-posts the
- * [ServerApiError.Conflict409] from [InAppBillingHandler.serverApiErrorLiveData] so the
- * [PurchaseConflictBottomSheet] opens automatically, using the same UI path as when the
- * fragment is already on screen.
+ * Tapping the notification launches [HomeScreenActivity]. It restores the
+ * [ServerApiError.Conflict409] and opens the Compose RPN account route.
  *
  * ### Channel
  * Reuses [NOTIF_CHANNEL_ID_RPN_ALERTS] ("RPN_Alerts"): the existing high-priority
@@ -82,11 +79,10 @@ object PurchaseConflictNotifier {
                 return
             }
 
-            // Build the tap intent, routes through NotificationHandlerActivity so the
-            // trampoline logic (pause state, app-lock, etc.) is respected.
-            val tapIntent = Intent(context, NotificationHandlerActivity::class.java).apply {
+            // HomeScreenActivity restores the conflict and opens the Compose account route.
+            val tapIntent = Intent(context, HomeScreenActivity::class.java).apply {
                 putExtra(NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME, NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE)
-                // Pass the conflict details so the trampoline can re-post the LiveData event.
+                // Pass the conflict details so the activity can re-post the LiveData event.
                 putExtra(EXTRA_ENDPOINT,       error.endpoint)
                 putExtra(EXTRA_OPERATION,      error.operation.name)
                 putExtra(EXTRA_SERVER_MSG,     error.serverMessage)
@@ -140,7 +136,7 @@ object PurchaseConflictNotifier {
 
     /**
      * Cancels any pending conflict notification.
-     * Called by [ManageSubscriptionFragment] after successfully handling the 409 so the
+     * Called after the Compose account screen handles the 409 so the
      * notification is cleared from the tray.
      */
     fun cancel(context: Context) {
@@ -153,8 +149,7 @@ object PurchaseConflictNotifier {
         }
     }
 
-    // Intent extra keys: mirrors PurchaseConflictBottomSheet.Companion ARG_* keys
-    // so the trampoline can rebuild the Conflict409 without re-querying the server.
+    // Intent extras let HomeScreenActivity rebuild Conflict409 without another server query.
     const val EXTRA_ENDPOINT = "conflict_endpoint"
     const val EXTRA_OPERATION = "conflict_operation"
     const val EXTRA_SERVER_MSG = "conflict_server_msg"
@@ -162,4 +157,3 @@ object PurchaseConflictNotifier {
     const val EXTRA_PURCHASE_TOKEN = "conflict_purchase_token"
     const val EXTRA_SKU = "conflict_sku"
 }
-

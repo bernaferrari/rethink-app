@@ -594,6 +594,7 @@ fun DnsDetailScreen(
         onProxyDnsChange = { viewModel.setProxyDns(it) },
         onUndelegatedDomainsChange = { viewModel.setUseSystemDnsForUndelegatedDomains(it) },
         onFallbackChange = { viewModel.setUseFallbackDnsToBypass(it) },
+        onBlockFreeDnsModeChange = { viewModel.setBlockFreeDnsMode(it) },
         onPreventLeaksChange = { viewModel.setPreventDnsLeaksEnabled(it) }
     )
 

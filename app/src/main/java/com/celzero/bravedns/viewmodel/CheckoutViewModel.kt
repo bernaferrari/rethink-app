@@ -31,6 +31,7 @@ import com.celzero.bravedns.util.Utilities.togb
 import com.celzero.bravedns.util.Utilities.togs
 import com.celzero.bravedns.util.Utilities.tos
 import com.celzero.firestack.backend.Backend
+import com.celzero.firestack.backend.s
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -51,12 +52,12 @@ class CheckoutViewModel(val app: Application, private val persistentState: Persi
         if (TcpProxyHelper.getTcpProxyPaymentStatus().isNotPaid()) {
             handleKeys()
         }
-        
+
         // Generate random tokens/uuids for logs/tracking as done in Activity
         // UUID.randomUUID().toString().let { uuid -> Logger.d(LOG_TAG_UI, "UUID: $uuid") }
         // generateRandomHexToken(TOKEN_LENGTH).let { token -> Logger.d(LOG_TAG_UI, "Token: $token") }
         // These were just logged in Activity, maybe not needed? Keeping them for parity if they had side effects.
-        // They didn't seem to store anything? 
+        // They didn't seem to store anything?
         // "generateRandomHexToken(TOKEN_LENGTH).let { token -> Logger.d(LOG_TAG_UI, "Token: $token") }"
     }
 

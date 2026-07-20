@@ -57,7 +57,7 @@ class VpnNotificationManager(
     }
 
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-    
+
     private val _connectionState = MutableStateFlow(BraveVPNService.State.NEW)
     val connectionState: StateFlow<BraveVPNService.State> = _connectionState.asStateFlow()
 
@@ -104,9 +104,9 @@ class VpnNotificationManager(
             priority = NotificationCompat.PRIORITY_LOW
             color = ContextCompat.getColor(context, getAccentColor())
             setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
-            
+
             setContentIntent(createContentIntent())
-            
+
             setStyle(NotificationCompat.BigTextStyle().bigText(getNotificationContentText()))
         }.build()
     }

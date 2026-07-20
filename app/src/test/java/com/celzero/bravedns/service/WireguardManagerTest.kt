@@ -164,6 +164,7 @@ class WireguardManagerTest : KoinTest {
             serverResponse = "test-response",
             isActive = isActive,
             isCatchAll = isCatchAll,
+            isLockdown = false,
             oneWireGuard = oneWireGuard,
             useOnlyOnMetered = useOnlyOnMetered,
             isDeletable = isDeletable,

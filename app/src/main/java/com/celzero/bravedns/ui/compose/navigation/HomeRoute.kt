@@ -26,7 +26,7 @@ sealed interface HomeRoute {
 
     @Serializable
     data object RpnAvailability : HomeRoute
-    
+
     @Serializable
     data object Events : HomeRoute
 
@@ -41,10 +41,10 @@ sealed interface HomeRoute {
 
     @Serializable
     data class TunnelSettings(val focusKey: String = "") : HomeRoute
-    
+
     @Serializable
     data class MiscSettings(val focusKey: String = "") : HomeRoute
-    
+
     @Serializable
     data object ConsoleLogs : HomeRoute
 
@@ -81,7 +81,7 @@ sealed interface HomeRoute {
 
     @Serializable
     data class DnsDetail(val focusKey: String = "") : HomeRoute
-    
+
     @Serializable
     data class DetailedStats(val typeId: Int, val timeCategory: Int) : HomeRoute
 
@@ -98,16 +98,16 @@ sealed interface HomeRoute {
         val isBlocked: Boolean,
         val timeCategory: Int
     ) : HomeRoute
-    
+
     @Serializable
     data class AppInfo(val uid: Int) : HomeRoute
-    
+
     @Serializable
     data class WgConfigDetail(val configId: Int, val wgType: WgType) : HomeRoute
 
     @Serializable
     data class WgConfigEditor(val configId: Int, val wgType: WgType) : HomeRoute
-    
+
     // We handle ConfigureRethinkBasic carefully as it uses an enum index
     @Serializable
     data class ConfigureRethinkBasic(
@@ -134,6 +134,9 @@ sealed interface HomeRoute {
 
     @Serializable
     data object Checkout : HomeRoute
+
+    @Serializable
+    data object RpnAccount : HomeRoute
 
     @Serializable
     data object WgMain : HomeRoute

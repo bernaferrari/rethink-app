@@ -86,6 +86,7 @@ fun CheckoutScreen(
     paymentStatus: TcpProxyHelper.PaymentStatus,
     onStartPayment: () -> Unit,
     onNavigateToProxy: () -> Unit,
+    onManageAccount: () -> Unit,
     onBackClick: (() -> Unit)? = null
 ) {
     var selectedPlan by remember { mutableStateOf(CheckoutPlan.SIX_MONTH) }
@@ -126,6 +127,16 @@ fun CheckoutScreen(
                     onStartPayment = onStartPayment,
                     onNavigateToProxy = onNavigateToProxy
                 )
+            }
+            androidx.compose.material3.OutlinedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingMd)
+                    .height(50.dp),
+                onClick = onManageAccount,
+                shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
+            ) {
+                Text(stringResource(R.string.rpn_account_open))
             }
         }
     }

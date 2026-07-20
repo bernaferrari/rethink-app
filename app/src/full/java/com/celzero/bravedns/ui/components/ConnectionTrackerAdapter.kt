@@ -639,15 +639,20 @@ private data class Summary(
     val showSummary: Boolean
 )
 
+@Composable
 private fun summaryInfo(context: Context, ct: ConnectionTracker): Summary {
     val connType = ConnectionTracker.ConnType.get(ct.connType)
+    var hasCid by remember(ct.connId, ct.uid) { mutableStateOf(false) }
+    LaunchedEffect(ct.connId, ct.uid) {
+        hasCid = VpnController.hasCid(ct.connId, ct.uid)
+    }
     var dataUsage = ""
     var delay = ""
     var duration = ""
 
     if (ct.duration == 0 && ct.downloadBytes == 0L && ct.uploadBytes == 0L && ct.message.isEmpty()) {
         var hasMinSummary = false
-        if (VpnController.hasCid(ct.connId, ct.uid)) {
+        if (hasCid) {
             dataUsage = context.getString(R.string.lbl_active)
             duration = context.getString(R.string.symbol_green_circle)
             hasMinSummary = true

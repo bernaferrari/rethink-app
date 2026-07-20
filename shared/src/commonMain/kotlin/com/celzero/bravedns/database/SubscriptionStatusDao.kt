@@ -68,6 +68,9 @@ interface SubscriptionStatusDao {
     @Query("SELECT * FROM SubscriptionStatus ORDER BY lastUpdatedTs DESC LIMIT 1")
     suspend fun getCurrentSubscription(): SubscriptionStatus?
 
+    @Query("SELECT * FROM SubscriptionStatus WHERE status IN (1, 2, 5, 6, 9, 10, 11) ORDER BY lastUpdatedTs DESC LIMIT 1")
+    suspend fun getCurrentValidSubscription(): SubscriptionStatus?
+
     @Query("SELECT * FROM SubscriptionStatus ORDER BY lastUpdatedTs DESC")
     suspend fun getAllSubscriptions(): List<SubscriptionStatus>
 
@@ -101,20 +104,24 @@ interface SubscriptionStatusDao {
     @Query("UPDATE SubscriptionStatus SET accountExpiry = :expiryTime, lastUpdatedTs = :timestamp WHERE id = :id")
     suspend fun updateAccountExpiry(id: Int, expiryTime: Long, timestamp: Long): Int
 
+    @Query("UPDATE SubscriptionStatus SET developerPayload = :payload, lastUpdatedTs = :timestamp WHERE id = :id")
+    suspend fun updateDeveloperPayload(id: Int, payload: String, timestamp: Long): Int
+
     @Query(
         """
-        UPDATE SubscriptionStatus 
-        SET status = 3, lastUpdatedTs = :currentTime 
-        WHERE billingExpiry > 0 AND billingExpiry < :currentTime 
+        UPDATE SubscriptionStatus
+        SET status = 3, lastUpdatedTs = :currentTime
+        WHERE billingExpiry > 0 AND billingExpiry < :currentTime
         AND status NOT IN (3, 10)
+        AND (productId LIKE '%onetime%' OR productId LIKE '%inapp%' OR productId = 'test_product')
     """
     )
     suspend fun markExpiredSubscriptions(currentTime: Long): Int
 
     @Query(
         """
-        DELETE FROM SubscriptionStatus 
-        WHERE status = 3 
+        DELETE FROM SubscriptionStatus
+        WHERE status = 3
         AND lastUpdatedTs < :cutoffTime
     """
     )
@@ -141,39 +148,39 @@ interface SubscriptionStatusDao {
 
     // Advanced queries for analytics
     @Query("""
-        SELECT status, COUNT(*) as count 
-        FROM SubscriptionStatus 
-        GROUP BY status 
+        SELECT status, COUNT(*) as count
+        FROM SubscriptionStatus
+        GROUP BY status
         ORDER BY count DESC
     """)
     suspend fun getStatusDistribution(): List<StatusCount>
 
     @Query("""
-        SELECT productId, COUNT(*) as count 
-        FROM SubscriptionStatus 
-        GROUP BY productId 
+        SELECT productId, COUNT(*) as count
+        FROM SubscriptionStatus
+        GROUP BY productId
         ORDER BY count DESC
     """)
     suspend fun getProductDistribution(): List<ProductCount>
 
     @Query(
         """
-        SELECT * FROM SubscriptionStatus 
-        WHERE lastUpdatedTs BETWEEN :startTime AND :endTime 
+        SELECT * FROM SubscriptionStatus
+        WHERE lastUpdatedTs BETWEEN :startTime AND :endTime
         ORDER BY lastUpdatedTs DESC
     """
     )
     suspend fun getSubscriptionsInTimeRange(startTime: Long, endTime: Long): List<SubscriptionStatus>
 
     @Query("""
-        SELECT * FROM SubscriptionStatus 
-        WHERE billingExpiry > 0 AND billingExpiry BETWEEN :startTime AND :endTime 
+        SELECT * FROM SubscriptionStatus
+        WHERE billingExpiry > 0 AND billingExpiry BETWEEN :startTime AND :endTime
         ORDER BY billingExpiry ASC
     """)
     suspend fun getSubscriptionsExpiringInRange(startTime: Long, endTime: Long): List<SubscriptionStatus>
 
     @Query("""
-        SELECT * FROM SubscriptionStatus 
+        SELECT * FROM SubscriptionStatus
         WHERE status = 4
         AND billingExpiry < :currentTime
         ORDER BY billingExpiry ASC
@@ -196,8 +203,8 @@ interface SubscriptionStatusDao {
     // Complex state transition queries
     @Query(
         """
-        UPDATE SubscriptionStatus 
-        SET status = :newStatus, lastUpdatedTs = :timestamp 
+        UPDATE SubscriptionStatus
+        SET status = :newStatus, lastUpdatedTs = :timestamp
         WHERE status = :oldStatus
     """
     )
@@ -205,8 +212,8 @@ interface SubscriptionStatusDao {
 
     @Query(
         """
-        SELECT * FROM SubscriptionStatus 
-        WHERE status IN (1, 4, 5, 6)
+        SELECT * FROM SubscriptionStatus
+        WHERE status IN (1, 2, 5, 6, 9, 10, 11)
         ORDER BY lastUpdatedTs DESC
     """
     )
@@ -214,7 +221,7 @@ interface SubscriptionStatusDao {
 
     @Query(
         """
-        SELECT * FROM SubscriptionStatus 
+        SELECT * FROM SubscriptionStatus
         WHERE status IN (3, 10)
         ORDER BY lastUpdatedTs DESC
     """
@@ -223,18 +230,18 @@ interface SubscriptionStatusDao {
 
     // Duplicate detection
     @Query("""
-        SELECT purchaseToken, COUNT(*) as count 
-        FROM SubscriptionStatus 
-        GROUP BY purchaseToken 
+        SELECT purchaseToken, COUNT(*) as count
+        FROM SubscriptionStatus
+        GROUP BY purchaseToken
         HAVING count > 1
     """)
     suspend fun findDuplicateTokens(): List<TokenCount>
 
     @Query("""
-        DELETE FROM SubscriptionStatus 
+        DELETE FROM SubscriptionStatus
         WHERE id NOT IN (
-            SELECT MIN(id) 
-            FROM SubscriptionStatus 
+            SELECT MIN(id)
+            FROM SubscriptionStatus
             GROUP BY purchaseToken
         )
     """)

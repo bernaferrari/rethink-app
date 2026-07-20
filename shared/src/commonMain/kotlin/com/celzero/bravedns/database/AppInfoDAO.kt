@@ -51,6 +51,9 @@ interface AppInfoDAO {
 
     @Delete fun delete(appInfo: AppInfo)
 
+    @Query("delete from AppInfo")
+    suspend fun deleteAll()
+
     @Query("delete from AppInfo where packageName in (:packageNames)")
     suspend fun deleteByPackageName(packageNames: List<String>)
 

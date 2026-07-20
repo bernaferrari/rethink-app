@@ -66,18 +66,18 @@ class AppsStatsManager(
     }
 
     private fun updateStats(appList: Collection<AppInfo>) {
-        val blockedCount = appList.count { appInfo -> 
-            appInfo.connectionStatus != FirewallManager.ConnectionStatus.ALLOW.id 
+        val blockedCount = appList.count { appInfo ->
+            appInfo.connectionStatus != FirewallManager.ConnectionStatus.ALLOW.id
         }
-        val bypassCount = appList.count { appInfo -> 
-            appInfo.firewallStatus == FirewallManager.FirewallStatus.BYPASS_UNIVERSAL.id || 
-            appInfo.firewallStatus == FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL.id 
+        val bypassCount = appList.count { appInfo ->
+            appInfo.firewallStatus == FirewallManager.FirewallStatus.BYPASS_UNIVERSAL.id ||
+            appInfo.firewallStatus == FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL.id
         }
-        val excludedCount = appList.count { appInfo -> 
-            appInfo.firewallStatus == FirewallManager.FirewallStatus.EXCLUDE.id 
+        val excludedCount = appList.count { appInfo ->
+            appInfo.firewallStatus == FirewallManager.FirewallStatus.EXCLUDE.id
         }
-        val isolatedCount = appList.count { appInfo -> 
-            appInfo.firewallStatus == FirewallManager.FirewallStatus.ISOLATE.id 
+        val isolatedCount = appList.count { appInfo ->
+            appInfo.firewallStatus == FirewallManager.FirewallStatus.ISOLATE.id
         }
         val totalApps = appList.size
         val allowedApps = totalApps - (blockedCount + bypassCount + excludedCount + isolatedCount)

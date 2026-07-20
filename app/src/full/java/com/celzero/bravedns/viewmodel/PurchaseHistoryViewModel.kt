@@ -26,6 +26,7 @@ import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.liveData
+import kotlinx.coroutines.flow.Flow
 import com.celzero.bravedns.database.SubscriptionStateHistory
 import com.celzero.bravedns.database.SubscriptionStateHistoryDao
 import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
@@ -51,6 +52,11 @@ class PurchaseHistoryViewModel(private val historyDao: SubscriptionStateHistoryD
                 .liveData
                 .cachedIn(viewModelScope)
         }
+
+    val historyFlow: Flow<PagingData<SubscriptionStateHistory>> =
+        Pager(pagingConfig) { historyDao.observeHistoryPaged() }
+            .flow
+            .cachedIn(viewModelScope)
 
     val totalCount: LiveData<Int> = liveData {
         emit(historyDao.getMeaningfulCount())

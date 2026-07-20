@@ -200,4 +200,3 @@ class DetailedStatisticsViewModel(
             }.flow.cachedIn(viewModelScope)
         }
 }
-

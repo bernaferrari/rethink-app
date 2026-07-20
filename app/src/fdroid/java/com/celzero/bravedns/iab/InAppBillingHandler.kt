@@ -53,7 +53,7 @@ object InAppBillingHandler {
 
     const val UNACK_ESCALATION_THRESHOLD = 3
 
-    // LiveData shared by NotificationHandlerActivity / ManagePurchaseFragment
+    // LiveData observed by the Compose purchase-management flow.
     val serverApiErrorLiveData: MutableLiveData<ServerApiError?> = MutableLiveData(null)
 
     @Suppress("UNUSED_PARAMETER")
@@ -155,7 +155,6 @@ object InAppBillingHandler {
     /** Returns an empty byte array: F-Droid build has no test purchase payload. */
     fun getTestPurchasePayloadBytes(): ByteArray = ByteArray(0)
 }
-
 
 
 

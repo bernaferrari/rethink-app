@@ -57,13 +57,13 @@ class FirewallRuleEvaluator(
         private const val TAG = "FirewallEvaluator"
         private const val UID_EVERYBODY = Constants.UID_EVERYBODY
         private const val INVALID_UID = Constants.INVALID_UID
-        
+
         // Backoff configuration
         private const val BASE_WAIT_MS = 50L
     }
 
     private val rand = Random
-    
+
     private var keyguardManager: KeyguardManager? = null
 
     /**
@@ -79,7 +79,7 @@ class FirewallRuleEvaluator(
         rethinkUid: Int
     ): FirewallRuleset {
         val connId = connInfo.connId
-        
+
         try {
             // Skip firewall for Rethink app unless route-in-route is enabled
             if (connInfo.uid == rethinkUid && !rinr) {
@@ -98,7 +98,7 @@ class FirewallRuleEvaluator(
                 connInfo, domains, anyRealIpBlocked, isSplApp, rinr,
                 uid, appStatus, connectionStatus, isTempAllowed
             )
-            
+
         } catch (ex: Exception) {
             Logger.crash(LOG_TAG_VPN, "unexpected err in firewall()($connId), block anyway", ex)
             return FirewallRuleset.RULE1C
@@ -344,7 +344,7 @@ class FirewallRuleEvaluator(
     private suspend fun waitAndCheckIfUidAllowed(uid: Int): Boolean {
         var remainingWaitMs = TimeUnit.SECONDS.toMillis(10)
         var attempt = 0
-        
+
         while (remainingWaitMs > 0) {
             if (FirewallManager.hasUid(uid) && !FirewallManager.isUidFirewalled(uid)) {
                 return true
@@ -470,7 +470,7 @@ class FirewallRuleEvaluator(
         if (!persistentState.getUdpBlocked()) return false
         if (protocol != Protocol.UDP.protocolType) return false
         if (KnownPorts.isDns(port)) return false // Allow DNS
-        
+
         // For NTP, allow from system apps - simplified check
         if (KnownPorts.isNtp(port)) {
             // Assume non-system apps are blocked for NTP
@@ -481,7 +481,7 @@ class FirewallRuleEvaluator(
 
     private suspend fun blockBackgroundData(uid: Int): Boolean {
         if (!persistentState.getBlockAppWhenBackground()) return false
-        
+
         if (keyguardManager == null) {
             keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         }
@@ -491,7 +491,7 @@ class FirewallRuleEvaluator(
     private suspend fun waitAndCheckIfAppForeground(uid: Int): Boolean {
         var remainingWaitMs = TimeUnit.SECONDS.toMillis(10)
         var attempt = 0
-        
+
         while (remainingWaitMs > 0) {
             if (FirewallManager.isAppForeground(uid, keyguardManager)) {
                 return true
@@ -504,7 +504,7 @@ class FirewallRuleEvaluator(
 
     private fun deviceLocked(): Boolean {
         if (!persistentState.getBlockWhenDeviceLocked()) return false
-        
+
         if (keyguardManager == null) {
             keyguardManager = context.getSystemService(Context.KEYGUARD_SERVICE) as KeyguardManager
         }

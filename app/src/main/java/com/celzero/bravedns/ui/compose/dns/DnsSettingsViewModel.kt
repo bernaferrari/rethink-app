@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.service.BlockFreeDnsMode
 import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.util.Utilities.isAtleastR
 import kotlinx.coroutines.Dispatchers
@@ -33,6 +34,7 @@ data class DnsSettingsUiState(
     val proxyDns: Boolean = false,
     val useSystemDnsForUndelegatedDomains: Boolean = false,
     val useFallbackDnsToBypass: Boolean = false,
+    val blockFreeDnsMode: BlockFreeDnsMode = BlockFreeDnsMode.AUTO,
     val blocklistEnabled: Boolean = false,
     val numberOfLocalBlocklists: Int = 0,
     val bypassBlockInDns: Boolean = false,
@@ -55,7 +57,7 @@ class DnsSettingsViewModel(
 
     init {
         updateUiState()
-        // We might want to observe appConfig.connectedDnsFlow() 
+        // We might want to observe appConfig.connectedDnsFlow()
         // but for now we'll just pull it.
     }
 
@@ -66,7 +68,7 @@ class DnsSettingsViewModel(
             val isSystem = appConfig.isSystemDns()
             val isRethink = appConfig.isRethinkDnsConnected()
             val connectedName = persistentState.connectedDnsName
-            
+
             _uiState.update {
                 it.copy(
                     dnsType = type,
@@ -83,6 +85,7 @@ class DnsSettingsViewModel(
                     proxyDns = persistentState.proxyDns,
                     useSystemDnsForUndelegatedDomains = persistentState.useSystemDnsForUndelegatedDomains,
                     useFallbackDnsToBypass = persistentState.useFallbackDnsToBypass,
+                    blockFreeDnsMode = BlockFreeDnsMode.fromMode(persistentState.blockFreeDnsMode),
                     blocklistEnabled = persistentState.blocklistEnabled,
                     numberOfLocalBlocklists = persistentState.numberOfLocalBlocklists,
                     bypassBlockInDns = persistentState.bypassBlockInDns,
@@ -165,6 +168,11 @@ class DnsSettingsViewModel(
 
     fun setUseFallbackDnsToBypass(enabled: Boolean) {
         persistentState.useFallbackDnsToBypass = enabled
+        updateUiState()
+    }
+
+    fun setBlockFreeDnsMode(mode: BlockFreeDnsMode) {
+        persistentState.blockFreeDnsMode = mode.mode
         updateUiState()
     }
 

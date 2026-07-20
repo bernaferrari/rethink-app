@@ -90,7 +90,7 @@ fun TcpProxyMainScreen(
     val appsText = stringResource(R.string.lbl_apps)
 
     val appCount by mappingViewModel.getAppCountById(ProxyManager.ID_TCP_BASE)
-        
+
         .collectAsState(initial = 0)
     val appListSubtitleText = stringResource(R.string.add_remove_apps, appCount.toString())
 

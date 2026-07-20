@@ -150,7 +150,7 @@ fun WgConfigDetailScreen(
     val statusDisabledText =
         stringResource(id = R.string.lbl_disabled).replaceFirstChar(Char::titlecase)
     val statusWaitingText = stringResource(id = R.string.status_waiting)
-    val statusTextById = mutableMapOf<Long, String>().apply {
+    val statusTextById = mutableMapOf<Int, String>().apply {
         for (status in UIUtils.ProxyStatus.entries) {
             put(
                 status.id,
@@ -162,7 +162,7 @@ fun WgConfigDetailScreen(
 
     val appsCount by mappingViewModel
         .getAppCountById(ID_WG_BASE + configId)
-        
+
         .collectAsState(initial = 0)
 
     // Refresh config on launch
@@ -351,7 +351,7 @@ fun WgConfigDetailScreen(
             dismissText = stringResource(R.string.fapps_info_dialog_positive_btn),
             onConfirm = {
                 showInvalidConfigDialog = false
-                WireguardManager.deleteConfig(configId)
+                scope.launch { WireguardManager.deleteConfig(configId) }
             },
             onDismiss = {
                 showInvalidConfigDialog = false
@@ -689,7 +689,7 @@ private suspend fun updateStatusUi(
     onSurfaceVariantColor: Int,
     errorColor: Int,
     tertiaryColor: Int,
-    statusTextById: Map<Long, String>,
+    statusTextById: Map<Int, String>,
     statusFailingText: String,
     statusDisabledText: String,
     statusWaitingText: String,
@@ -736,7 +736,7 @@ private suspend fun updateStatusUi(
     }
 }
 
-private fun isDnsError(statusId: Long?): Boolean {
+private fun isDnsError(statusId: Int?): Boolean {
     if (statusId == null) return true
 
     val s = Transaction.Status.fromId(statusId)
@@ -750,7 +750,7 @@ private fun isDnsError(statusId: Long?): Boolean {
 }
 
 private fun getStatusText(
-    statusTextById: Map<Long, String>,
+    statusTextById: Map<Int, String>,
     statusFailingText: String,
     statusWaitingText: String,
     wireguardVersionTemplate: String,

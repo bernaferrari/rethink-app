@@ -19,7 +19,13 @@ package com.celzero.bravedns.service
  * Represents the state of the VPN connection.
  * Enhanced to provide computed properties for status evaluation.
  */
-class VpnState(requested: Boolean, on: Boolean, connectionState: BraveVPNService.State?, server: String?) {
+class VpnState(
+    requested: Boolean,
+    on: Boolean,
+    connectionState: BraveVPNService.State?,
+    server: String?,
+    isEch: Boolean = false
+) {
 
     var activationRequested = false
 
@@ -33,11 +39,14 @@ class VpnState(requested: Boolean, on: Boolean, connectionState: BraveVPNService
     // The server we are connected to, or null if we are not connected.
     var serverName: String? = null
 
+    var isEch = false
+
     init {
         this.activationRequested = requested
         this.on = on
         this.connectionState = connectionState
         this.serverName = server
+        this.isEch = isEch
     }
 
     // Computed properties for easier state evaluation

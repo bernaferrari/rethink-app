@@ -260,7 +260,7 @@ val firestackCommit = project.findProperty("firestackCommit") as? String ?: "mai
 fun firestackDependency(suffix: String = ":debug"): String {
     return when (firestackRepo) {
         "jitpack", "github" -> "com.github.celzero:firestack:$firestackCommit$suffix@aar"
-        "ossrh" -> "com.celzero:firestack:$firestackCommit$suffix@aar"
+        "ossrh" -> "com.celzero:firestack:$firestackCommit@aar"
         else -> throw GradleException("Unknown firestackRepo: $firestackRepo")
     }
 }
@@ -311,6 +311,11 @@ dependencies {
     implementation(libs.androidx.paging.compose)
     "fullImplementation"(libs.ktor.client.core)
     "fullImplementation"(libs.ktor.client.cio)
+    implementation(libs.gson)
+    "fullImplementation"(libs.retrofit)
+    "fullImplementation"(libs.retrofit.converter.gson)
+    "fullImplementation"(libs.okhttp)
+    "fullImplementation"(libs.okhttp.dnsoverhttps)
 
     implementation(libs.okio.jvm)
 
@@ -342,6 +347,7 @@ dependencies {
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
     testImplementation(libs.androidx.test.ext.junit)
+    testImplementation("androidx.arch.core:core-testing:2.2.0")
     testImplementation(libs.mockk)
     testImplementation(libs.mockk.android)
 
@@ -356,6 +362,8 @@ dependencies {
 
     "playImplementation"(libs.play.app.update)
     "playImplementation"(libs.play.app.update.ktx)
+    "playImplementation"(libs.play.billing)
+    "websiteImplementation"(libs.play.billing)
 
     implementation(libs.androidx.security.crypto)
 
