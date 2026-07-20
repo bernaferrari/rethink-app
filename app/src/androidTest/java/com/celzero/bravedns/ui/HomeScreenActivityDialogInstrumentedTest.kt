@@ -15,17 +15,13 @@
  */
 package com.celzero.bravedns.ui
 
-import androidx.appcompat.app.AlertDialog
+import android.app.AlertDialog
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
 import androidx.test.platform.app.InstrumentationRegistry
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertTrue
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -72,7 +68,7 @@ class HomeScreenActivityDialogInstrumentedTest {
         var createdDialog: AlertDialog? = null
 
         activityRule.scenario.onActivity { activity ->
-            val dialog = MaterialAlertDialogBuilder(activity)
+            val dialog = AlertDialog.Builder(activity)
             dialog.setTitle("New Update!")
             dialog.setMessage("A new version is available")
             dialog.setCancelable(false) // Modal - key test
@@ -106,7 +102,7 @@ class HomeScreenActivityDialogInstrumentedTest {
         var createdDialog: AlertDialog? = null
 
         activityRule.scenario.onActivity { activity ->
-            val dialog = MaterialAlertDialogBuilder(activity)
+            val dialog = AlertDialog.Builder(activity)
             dialog.setTitle("Up-to-date!")
             dialog.setMessage("You are already on the latest version.")
             dialog.setCancelable(true) // Dismissible
@@ -135,7 +131,7 @@ class HomeScreenActivityDialogInstrumentedTest {
         var createdDialog: AlertDialog? = null
 
         activityRule.scenario.onActivity { activity ->
-            val dialog = MaterialAlertDialogBuilder(activity)
+            val dialog = AlertDialog.Builder(activity)
             dialog.setTitle("New Update!")
             dialog.setMessage("A new version of the app is available for download from the website. Do you want to proceed?")
             dialog.setCancelable(false)
@@ -168,7 +164,7 @@ class HomeScreenActivityDialogInstrumentedTest {
         var buttonClicked = false
 
         activityRule.scenario.onActivity { activity ->
-            val dialog = MaterialAlertDialogBuilder(activity)
+            val dialog = AlertDialog.Builder(activity)
             dialog.setTitle("New Update!")
             dialog.setMessage("Update available")
             dialog.setCancelable(false)
@@ -206,7 +202,7 @@ class HomeScreenActivityDialogInstrumentedTest {
         var createdDialog: AlertDialog? = null
 
         activityRule.scenario.onActivity { activity ->
-            val dialog = MaterialAlertDialogBuilder(activity)
+            val dialog = AlertDialog.Builder(activity)
             dialog.setTitle("New Update!")
             dialog.setMessage("Update available")
             dialog.setCancelable(false) // Modal
@@ -235,7 +231,7 @@ class HomeScreenActivityDialogInstrumentedTest {
         var negativeButtonClicked = false
 
         activityRule.scenario.onActivity { activity ->
-            val dialog = MaterialAlertDialogBuilder(activity)
+            val dialog = AlertDialog.Builder(activity)
             dialog.setTitle("New Update!")
             dialog.setMessage("Update available")
             dialog.setCancelable(false)
@@ -271,7 +267,7 @@ class HomeScreenActivityDialogInstrumentedTest {
         var createdDialog: AlertDialog? = null
 
         activityRule.scenario.onActivity { activity ->
-            val dialog = MaterialAlertDialogBuilder(activity)
+            val dialog = AlertDialog.Builder(activity)
             dialog.setTitle("Something went wrong!")
             dialog.setMessage("Either our servers are down or connection could not be established.")
             dialog.setCancelable(true) // Dismissible

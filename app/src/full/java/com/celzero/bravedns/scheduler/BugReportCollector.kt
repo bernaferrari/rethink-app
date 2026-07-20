@@ -22,11 +22,9 @@ import android.app.ActivityManager
 import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
-import androidx.preference.PreferenceManager
+
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
-import com.celzero.bravedns.database.ConsoleLogRepository
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.isAtleastO
@@ -39,7 +37,6 @@ class BugReportCollector(val context: Context, workerParameters: WorkerParameter
     CoroutineWorker(context, workerParameters), KoinComponent {
 
     private val persistentState by inject<PersistentState>()
-    private val consoleLogRepo by inject<ConsoleLogRepository>()
 
     companion object {
         private const val LOGCAT_CMD = "logcat"
@@ -62,10 +59,8 @@ class BugReportCollector(val context: Context, workerParameters: WorkerParameter
         // prepare the bugreport directory and file
         val fout = prepare()
         storePrefs(fout)
-        val consoleLogFile = prepareConsoleLogFile(fout)
-        BugReportZipper.dumpConsoleLogs(consoleLogRepo, consoleLogFile)
         val ts = dumpLogsAndAppExits(fout)
-        addToZip(fout, consoleLogFile)
+        addToZip(fout)
         // Store the last exit reason time stamp
         persistentState.lastAppExitInfoTimestamp =
             persistentState.lastAppExitInfoTimestamp.coerceAtLeast(ts)
@@ -82,14 +77,7 @@ class BugReportCollector(val context: Context, workerParameters: WorkerParameter
     }
 
     private suspend fun storePrefs(file: File) {
-        // write all the shared preferences values into the file
-        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
-        BugReportZipper.dumpPrefs(prefs, file)
-    }
-
-    private fun prepareConsoleLogFile(reportFile: File): File {
-        val parent = reportFile.parentFile ?: applicationContext.filesDir
-        return BugReportZipper.consoleLogFile(parent)
+        BugReportZipper.dumpPrefs(persistentState.snapshotPreferences(), file)
     }
 
     private fun dumpLogsAndAppExits(file: File): Long {
@@ -103,7 +91,7 @@ class BugReportCollector(val context: Context, workerParameters: WorkerParameter
             return -1L
         }
 
-        val am = context.getSystemService(AppCompatActivity.ACTIVITY_SERVICE) as ActivityManager
+        val am = context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
 
         // gets all the historical process exit reasons.
         val appExitInfo = am.getHistoricalProcessExitReasons(null, 0, 0)
@@ -128,12 +116,9 @@ class BugReportCollector(val context: Context, workerParameters: WorkerParameter
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    private fun addToZip(reportFile: File, consoleLogFile: File) {
+    private fun addToZip(file: File) {
         val dir = applicationContext.filesDir
-        BugReportZipper.rezipAll(dir, reportFile)
-        if (consoleLogFile.exists() && consoleLogFile.length() > 0L) {
-            BugReportZipper.rezipAll(dir, consoleLogFile)
-        }
+        BugReportZipper.rezipAll(dir, file)
         BugReportZipper.deleteAll(dir)
     }
 

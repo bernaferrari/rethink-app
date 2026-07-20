@@ -17,38 +17,20 @@ package com.celzero.bravedns.service
 
 import android.app.KeyguardManager
 import android.content.Context
-import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.AppInfo
 import com.celzero.bravedns.database.AppInfoRepository
+import com.celzero.bravedns.database.AppInfoRepository.Companion.NO_PACKAGE_PREFIX
 import com.celzero.bravedns.util.AndroidUidConfig
 import com.celzero.bravedns.util.Constants.Companion.RETHINK_PACKAGE
-import io.mockk.Runs
-import io.mockk.clearAllMocks
-import io.mockk.coEvery
-import io.mockk.every
-import io.mockk.just
-import io.mockk.mockk
-import io.mockk.mockkObject
-import io.mockk.unmockkAll
+import com.celzero.bravedns.util.OrbotHelper
+import io.mockk.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.setMain
-import org.junit.After
-import org.junit.Assert.assertEquals
-import org.junit.Assert.assertFalse
-import org.junit.Assert.assertNotEquals
-import org.junit.Assert.assertNotNull
-import org.junit.Assert.assertNull
-import org.junit.Assert.assertTrue
-import org.junit.Assert.fail
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
+import kotlinx.coroutines.test.*
+import org.junit.*
+import org.junit.Assert.*
 import org.junit.runner.RunWith
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
@@ -57,14 +39,12 @@ import org.koin.test.KoinTest
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
+import kotlinx.coroutines.delay
 
 @ExperimentalCoroutinesApi
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [28])
 class FirewallManagerTest : KoinTest {
-
-    @get:Rule
-    val instantTaskExecutorRule = InstantTaskExecutorRule()
 
     private val testDispatcher = UnconfinedTestDispatcher()
 
@@ -259,7 +239,7 @@ class FirewallManagerTest : KoinTest {
             val appInfosField = globalVariableClass.getDeclaredField("appInfos")
             appInfosField.isAccessible = true
             @Suppress("UNCHECKED_CAST")
-            val appInfos = appInfosField.get(null) as com.google.common.collect.Multimap<Int, AppInfo>
+            val appInfos = appInfosField.get(null) as com.celzero.bravedns.util.UidMultimap<AppInfo>
             appInfos.clear()
 
             val foregroundUidsField = globalVariableClass.getDeclaredField("foregroundUids")
@@ -340,11 +320,13 @@ class FirewallManagerTest : KoinTest {
         assertTrue(FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL.bypassDnsFirewall())
         assertTrue(FirewallManager.FirewallStatus.EXCLUDE.isExclude())
         assertTrue(FirewallManager.FirewallStatus.ISOLATE.isolate())
+        assertTrue(FirewallManager.FirewallStatus.UNTRACKED.isUntracked())
 
         assertFalse(FirewallManager.FirewallStatus.NONE.bypassUniversal())
         assertFalse(FirewallManager.FirewallStatus.NONE.bypassDnsFirewall())
         assertFalse(FirewallManager.FirewallStatus.NONE.isExclude())
         assertFalse(FirewallManager.FirewallStatus.NONE.isolate())
+        assertFalse(FirewallManager.FirewallStatus.NONE.isUntracked())
     }
 
     // Test ConnectionStatus enum
@@ -416,8 +398,6 @@ class FirewallManagerTest : KoinTest {
     // Test isUidFirewalled method
     @Test
     fun testIsUidFirewalled() = runBlocking {
-        FirewallManager.load()
-
         assertFalse(FirewallManager.isUidFirewalled(testUid1)) // ALLOW status
         assertTrue(FirewallManager.isUidFirewalled(testUid2)) // BOTH status
         assertFalse(FirewallManager.isUidFirewalled(invalidUid)) // Non-existent UID
@@ -426,8 +406,6 @@ class FirewallManagerTest : KoinTest {
     // Test isUidSystemApp method
     @Test
     fun testIsUidSystemApp() = runBlocking {
-        FirewallManager.load()
-
         assertTrue(FirewallManager.isUidSystemApp(systemUid))
         assertFalse(FirewallManager.isUidSystemApp(testUid1))
         assertFalse(FirewallManager.isUidSystemApp(invalidUid))
@@ -436,8 +414,6 @@ class FirewallManagerTest : KoinTest {
     // Test getAllApps method
     @Test
     fun testGetAllApps() = runBlocking {
-        FirewallManager.load()
-
         val apps = FirewallManager.getAllApps()
         assertEquals(5, apps.size)
 
@@ -450,8 +426,6 @@ class FirewallManagerTest : KoinTest {
     // Test getAllApps with tombstoned apps
     @Test
     fun testGetAllApps_includesTombstoned() = runBlocking {
-        FirewallManager.load()
-
         val apps = FirewallManager.getAllApps()
 
         // Should include all apps including tombstoned ones
@@ -478,8 +452,6 @@ class FirewallManagerTest : KoinTest {
     // Test getAppInfoByPackage edge cases
     @Test
     fun testGetAppInfoByPackage_edgeCases() = runBlocking {
-        FirewallManager.load()
-
         // Test with empty string
         assertNull(FirewallManager.getAppInfoByPackage(""))
 
@@ -602,8 +574,6 @@ class FirewallManagerTest : KoinTest {
 
     @Test
     fun testGetAllAppNames() = runBlocking {
-        FirewallManager.load()
-
         val names = FirewallManager.getAllAppNames()
         assertTrue(names.contains("Test App 1"))
         assertTrue(names.contains("Test App 2"))
@@ -615,8 +585,6 @@ class FirewallManagerTest : KoinTest {
 
     @Test
     fun testHasUid() = runBlocking {
-        FirewallManager.load()
-
         assertTrue(FirewallManager.hasUid(testUid1))
         assertTrue(FirewallManager.hasUid(testUid2))
         assertFalse(FirewallManager.hasUid(invalidUid))
@@ -624,8 +592,6 @@ class FirewallManagerTest : KoinTest {
 
     @Test
     fun testIsTombstone() = runBlocking {
-        FirewallManager.load()
-
         assertTrue(FirewallManager.isTombstone("com.test.tombstone"))
         assertFalse(FirewallManager.isTombstone("com.test.app1"))
         assertFalse(FirewallManager.isTombstone("nonexistent.package"))
@@ -681,6 +647,12 @@ class FirewallManagerTest : KoinTest {
             FirewallManager.ConnectionStatus.ALLOW
         ))
 
+        assertEquals(R.string.untracked, FirewallManager.getLabelForStatus(
+            FirewallManager.FirewallStatus.UNTRACKED,
+            FirewallManager.ConnectionStatus.ALLOW,
+            FirewallManager.ConnectionStatus.ALLOW
+        ))
+
         assertEquals(R.string.bypass_dns_firewall, FirewallManager.getLabelForStatus(
             FirewallManager.FirewallStatus.BYPASS_DNS_FIREWALL,
             FirewallManager.ConnectionStatus.ALLOW,
@@ -691,8 +663,6 @@ class FirewallManagerTest : KoinTest {
     // Test stats method
     @Test
     fun testStats() = runBlocking {
-        FirewallManager.load()
-
         val stats = FirewallManager.stats()
         assertTrue(stats.contains("Apps"))
         assertTrue(stats.contains("Universal firewall"))
@@ -703,8 +673,8 @@ class FirewallManagerTest : KoinTest {
 
     // Test observer method
     @Test
-    fun testGetApplistObserver() {
-        val observer = FirewallManager.getApplistObserver()
+    fun testAppListFlow() {
+        val observer = FirewallManager.appListFlow()
         assertNotNull(observer)
     }
 
@@ -822,11 +792,10 @@ class FirewallManagerTest : KoinTest {
     // Test appStatus method
     @Test
     fun testAppStatus() = runBlocking {
-        FirewallManager.load()
-
         assertEquals(FirewallManager.FirewallStatus.NONE, FirewallManager.appStatus(testUid1))
         assertEquals(FirewallManager.FirewallStatus.ISOLATE, FirewallManager.appStatus(testUid2))
         assertEquals(FirewallManager.FirewallStatus.BYPASS_UNIVERSAL, FirewallManager.appStatus(systemUid))
+        assertEquals(FirewallManager.FirewallStatus.UNTRACKED, FirewallManager.appStatus(invalidUid))
     }
 
     // Test connectionStatus method

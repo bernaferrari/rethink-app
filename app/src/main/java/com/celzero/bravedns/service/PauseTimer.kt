@@ -18,8 +18,9 @@ package com.celzero.bravedns.service
 import Logger
 import Logger.LOG_TAG_UI
 import Logger.LOG_TAG_VPN
-import androidx.lifecycle.MutableLiveData
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -33,8 +34,8 @@ object PauseTimer {
     // default duration for pause state: 15mins
     val DEFAULT_PAUSE_TIME_MS = TimeUnit.MINUTES.toMillis(15)
 
-    private val countdownMs: AtomicLong = AtomicLong(DEFAULT_PAUSE_TIME_MS)
-    private val pauseCountDownTimer: MutableLiveData<Long> = MutableLiveData()
+    private var countdownMs: AtomicLong = AtomicLong(DEFAULT_PAUSE_TIME_MS)
+    private var pauseCountDownTimer: MutableStateFlow<Long> = MutableStateFlow(INIT_TIME_MS)
     private const val COUNT_DOWN_INTERVAL = 1000L
 
     // increment/decrement value to pause vpn
@@ -61,13 +62,13 @@ object PauseTimer {
 
     private fun setCountdown(c: Long): Long {
         countdownMs.set(c)
-        pauseCountDownTimer.postValue(c)
+        pauseCountDownTimer.value = c
         return c
     }
 
     private fun addCountdown(c: Long): Long {
         val r = countdownMs.getAndAdd(c)
-        pauseCountDownTimer.postValue(r)
+        pauseCountDownTimer.value = r
         return r
     }
 
@@ -83,7 +84,7 @@ object PauseTimer {
         addCountdown(-duration)
     }
 
-    fun getPauseCountDownObserver(): MutableLiveData<Long> {
+    fun pauseCountDownFlow(): StateFlow<Long> {
         return pauseCountDownTimer
     }
 

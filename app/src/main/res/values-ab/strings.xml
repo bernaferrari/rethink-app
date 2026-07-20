@@ -334,13 +334,14 @@
     <string name="hsf_blocklist_chip_text_no_data" translatable="true">RDNS+ аиаануршәала</string>
     <string name="hsf_exclude_error" translatable="true">VPN-акәыжә аусура ашьҭамла аҿы ашьҭаамбжьылара азымхыҵырҩуа</string>
     <string name="hsf_proxy_chip_removed_toast" translatable="true">Анцәахәы иахккаауа</string>
+    <string name="hsf_proxy_chip_remove_text" translatable="true">Иаххәышьәахәахәа…</string>
     <string name="hsf_packet_capture_chip_disabled_toast" translatable="true">Апаҟа ашьапынтәи еизырхымх шəыцəыцəахара</string>
     <string name="hsf_whats_new_remove_text" translatable="true">Аҟәалоит…</string>
     <string name="hsf_blocklist_updating_text" translatable="true">Активрара…</string>
     <string name="hsf_chip_appearance" translatable="true">Ашәахә: %1$s</string>
     <string name="hsf_pause_vpn_failure" translatable="true">Cannot pause: Rethink not active</string>
     <string name="dc_block_heading" translatable="true">Ашәақәа</string>
-    <string name="dc_other_dns_heading" translatable="true">ашҟа</string>
+    <string name="dc_other_dns_heading" translatable="true">Ашҟа</string>
     <string name="dc_custom_dns_radio" translatable="true">Аҧсуа DNS</string>
     <string name="dc_rethink_dns_radio" translatable="true">Риthink Ҟьшьшәааԥш</string>
     <string name="dc_entries" translatable="true">%1$s аҧызар »</string>
@@ -369,9 +370,9 @@
     <string name="about_privacy_policy" translatable="true">Апсихуақьтәи аполитика аԥхьа</string>
     <string name="about_connect" translatable="true">Аҧしшәлашь</string>
     <string name="about_sponsor_link_text" translatable="true">Абжьыра</string>
-    <string name="about_app" translatable="true">апп</string>
+    <string name="about_app" translatable="true">Апп</string>
     <string name="about_email" translatable="true">Е-маил ашәашәалоит</string>
-    <string name="about_settings" translatable="true">sistema</string>
+    <string name="about_settings" translatable="true">Sistema</string>
     <string name="about_settings_app_info" translatable="true">Апликациазын адылхъва</string>
     <string name="about_settings_vpn_profile" translatable="true">VPN Ашьапынеибамра</string>
     <string name="about_settings_notification" translatable="true">А kebijakan ашәахәаҧшқәа</string>
@@ -951,6 +952,8 @@
     <string name="settings_rinr_heading" translatable="true">Аҧсуа-аҧсуа (ашәахәы ҳәа еилахәысуа)</string>
     <string name="settings_rinr_desc_enabled" translatable="true">Rethink\'s аҧсуа иҧшьаҭақәа амҩа анелхәахтә амоуп. Уи уара уахәа лымумзаргьы, уи аукҵәа ауеит.</string>
     <string name="settings_rinr_desc_disabled" translatable="true">Ашәахара Ашәырпыла ақәымтә, аурыжьшәашьҭақәа шьақәыргылара, анаԥшьашьҭақәа адгылара, DNS анаԥшьашьҭақәа ашәырпыла ашҟа ашәырпыла ашәырпыла ашәырпыла ашәырпыла ашәырпыла ашәырпыла ашәырпыла ашәырпыла ашәырпыла ашәырпыла</string>
+    <string name="settings_rinr_dialog_title" translatable="true">Алагьба (ашәашәаҿы акәымкәа)</string>
+    <string name="settings_rinr_dialog_desc" translatable="true">Апаҟа шасырхәоит<!--settings_network_all_networks--> %1$s ашәахә. Уи аусура шәаԥхьоума?</string>
     <string name="cd_dialog_edit_title" translatable="true">Алишьадара даҟәылара аҿыцреи arra</string>
     <string name="cd_toast_edit" translatable="true">Адаптиракьыра</string>
     <string name="one_wg_apps_added" translatable="true">Апхылаққәа зегьы р маршрутизациа</string>
@@ -1012,9 +1015,11 @@
     <string name="sponser_dialog_usage_msg" translatable="true">Уры уиэит «Rethink» <b>%1$s амш</b>, урҭыр аусура аԥазалара <b>$%2$s</b>. Аразвилаз ашәшьары змоу аспонсорра узышьҭалаша ушьҭыршьымшәа?</string>
     <string name="dc_use_sys_dns_undelegated_heading" translatable="true">Ашәаҧшра ашәарҭадара аҿы дахьыжьымкәа адоменқәа рахь System DNS ахыҵхәаҧш</string>
     <string name="dc_use_sys_dns_undelegated_desc" translatable="true">Асистем DNS аиахъазлар ауеит адоменқәа рзы, еицҧаауамызқәа, мамзаргьы <i>.lan</i>, <i>.internal</i>, еиԥш.</string>
-    <string name="dc_filtering_heading" translatable="true">фильтрациа</string>
+    <string name="dc_filtering_heading" translatable="true">Фильтрациа</string>
     <string name="cd_split_dns_heading" translatable="true">Split DNS (ашәахcharт ашқәа)</string>
     <string name="cd_split_dns_desc" translatable="true">Аԥсшәа:\nАԥсоуп DNS ашәҟәы иахәаԥкны анхацәа рҟны ианызсыжьуа апрокси арҿы апрокси а DNS хылаԥшҩцәа рҟны.</string>
+    <string name="cd_treat_dns_rules_firewall_heading" translatable="true">DNS рашқәа ашәахтә рашәақәа еиԥш ишьақәымзар (аҿыц аԥышәа)</string>
+    <string name="cd_treat_dns_rules_firewall_desc" translatable="true">А DNS-шьыжьхаракы адҵәыклыхлара аихгара аамҭазы аиххалап; аҟәыжәра ашәахәы аамҭазы адҵәыклыхлара нагӡаҭахоит.</string>
     <string name="univ_firewall_rule_11" translatable="true">Уабыжьым иҟны аҧҵәаны аҿацәқәрақә зегьы рыцхраамла</string>
     <string name="firewall_rule_private_dns" translatable="true">Апачәы DNS</string>
     <string name="firewall_rule_bypass_proxy" translatable="true">ПшьэрыгъэмылIэ Апхъыжь</string>

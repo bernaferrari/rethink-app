@@ -15,25 +15,22 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.celzero.bravedns.database.ConnectionTrackerDAO
 import com.celzero.bravedns.database.DnsLogDAO
+import kotlinx.coroutines.flow.MutableStateFlow
 
 class AlertsViewModel(
     private val connectionTrackerDao: ConnectionTrackerDAO,
     private val dnsLogDao: DnsLogDAO
 ) : ViewModel() {
-    private val ipLogList: MutableLiveData<String> = MutableLiveData()
-    private val domainLogList: MutableLiveData<String> = MutableLiveData()
-    private val appLogList: MutableLiveData<String> = MutableLiveData()
-    private val fromTime: MutableLiveData<Long> = MutableLiveData()
-    private val toTime: MutableLiveData<Long> = MutableLiveData()
+    private var ipLogList: MutableStateFlow<String> = MutableStateFlow("")
+    private var domainLogList: MutableStateFlow<String> = MutableStateFlow("")
+    private var appLogList: MutableStateFlow<String> = MutableStateFlow("")
+    private var fromTime: MutableStateFlow<Long> = MutableStateFlow(0L)
+    private var toTime: MutableStateFlow<Long> = MutableStateFlow(0L)
 
     init {
-        ipLogList.postValue("")
-        domainLogList.postValue("")
-        appLogList.postValue("")
         fromTime.value = System.currentTimeMillis() - 1 * 60 * 60 * 1000L
         toTime.value = System.currentTimeMillis()
     }

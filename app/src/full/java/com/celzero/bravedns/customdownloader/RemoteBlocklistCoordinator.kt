@@ -27,10 +27,11 @@ import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.RemoteFileTagUtil
 import com.celzero.bravedns.util.Utilities
-import com.google.gson.JsonObject
+import com.celzero.bravedns.util.JsonHelper
+import kotlinx.serialization.json.JsonObject
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
-import retrofit2.converter.gson.GsonConverterFactory
+import com.celzero.bravedns.network.BlocklistApi
 import java.io.File
 import java.io.IOException
 import java.util.concurrent.CancellationException
@@ -62,32 +63,15 @@ class RemoteBlocklistCoordinator(val context: Context, workerParams: WorkerParam
             if (downloadStatus) {
                 // update the download related persistence status on download success
                 updatePersistenceOnCopySuccess(timestamp)
-                // Delete stale remote blocklist directories, keeping only the one whose
-                // timestamp matches persistentState.remoteBlocklistTimestamp
                 BlocklistDownloadHelper.deleteBlocklistResidue(
                     context,
                     Constants.REMOTE_BLOCKLIST_DOWNLOAD_FOLDER_NAME,
-                    persistentState.remoteBlocklistTimestamp
+                    timestamp
                 )
             } else {
-                // clean up the partial directory created for this failed download attempt
-                cleanupFailedRemoteDownload(timestamp)
-
-                // Only fall back to the packaged (asset) remote blocklist when there is no
-                // valid remote blocklist already installed. If the user already has a newer
-                // remote blocklist (e.g. a previously successful download), do NOT overwrite
-                // the timestamp with the older packaged value, that would orphan the good
-                // files and cause them to be swept up by the next residue-cleanup run.
-                val existingTs = persistentState.remoteBlocklistTimestamp
-                if (existingTs <= Constants.PACKAGED_REMOTE_FILETAG_TIMESTAMP) {
-                    // No valid downloaded version; restore from the bundled asset.
-                    RemoteFileTagUtil.moveFileToLocalDir(context.applicationContext, persistentState)
-                } else {
-                    Logger.i(
-                        LOG_TAG_DOWNLOAD,
-                        "Remote blocklist download failed but existing version ($existingTs) is still valid; keeping it"
-                    )
-                }
+                // reset the remote blocklist timestamp, a copy of remote blocklist is already
+                // available in asset folder (go back to that version)
+                RemoteFileTagUtil.moveFileToLocalDir(context.applicationContext, persistentState)
             }
 
             return when (downloadStatus) {
@@ -111,16 +95,12 @@ class RemoteBlocklistCoordinator(val context: Context, workerParams: WorkerParam
     private suspend fun downloadRemoteBlocklist(timestamp: Long, retryCount: Int = 0): Boolean {
         Logger.i(LOG_TAG_DOWNLOAD, "Download remote blocklist: $timestamp")
         try {
-            val retrofit =
-                RetrofitManager.getBlocklistBaseBuilder(persistentState.routeRethinkInRethink)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build()
-            val retrofitInterface = retrofit.create(IBlocklistDownload::class.java)
             val response =
-                retrofitInterface.downloadRemoteBlocklistFile(
+                BlocklistApi.downloadRemoteBlocklistFile(
+                    persistentState.routeRethinkInRethink,
                     Constants.FILETAG_TEMP_DOWNLOAD_URL,
                     persistentState.appVersion,
-                    ""
+                    "",
                 )
 
             Logger.i(
@@ -129,7 +109,7 @@ class RemoteBlocklistCoordinator(val context: Context, workerParams: WorkerParam
             )
 
             if (response?.isSuccessful == true) {
-                return saveRemoteFile(response.body(), timestamp)
+                return saveRemoteFile(response.body, timestamp)
             }
         } catch (ex: Exception) {
             Logger.e(LOG_TAG_DOWNLOAD, "err in downloadRemoteBlocklist: ${ex.message}", ex)
@@ -148,10 +128,11 @@ class RemoteBlocklistCoordinator(val context: Context, workerParams: WorkerParam
     }
 
     private suspend fun saveRemoteFile(jsonObject: JsonObject?, timestamp: Long): Boolean {
+        if (jsonObject == null) return false
         try {
             val filetag = makeFile(timestamp) ?: return false
 
-            filetag.writeText(jsonObject.toString())
+            filetag.writeText(JsonHelper.encodeObject(jsonObject))
 
             // write the file tag json file into database
             return RethinkBlocklistManager.readJson(
@@ -195,28 +176,5 @@ class RemoteBlocklistCoordinator(val context: Context, workerParams: WorkerParam
     private fun updatePersistenceOnCopySuccess(timestamp: Long) {
         persistentState.remoteBlocklistTimestamp = timestamp
         persistentState.newestRemoteBlocklistTimestamp = Constants.INIT_TIME_MS
-    }
-
-    /**
-     * Deletes the directory that was (partially) created for a failed remote blocklist download.
-     * This prevents stale / incomplete directories from accumulating in remote_blocklist/.
-     * Only removes the directory for the *new* [timestamp] that just failed, it never touches
-     * the currently-active remote blocklist directory.
-     */
-    private fun cleanupFailedRemoteDownload(timestamp: Long) {
-        if (timestamp == Constants.INIT_TIME_MS) return // nothing to clean for an invalid timestamp
-        try {
-            val failedDir =
-                Utilities.blocklistDir(context, Constants.REMOTE_BLOCKLIST_DOWNLOAD_FOLDER_NAME, timestamp)
-            if (failedDir != null && failedDir.exists()) {
-                val deleted = Utilities.deleteRecursive(failedDir)
-                Logger.i(
-                    LOG_TAG_DOWNLOAD,
-                    "cleanupFailedRemoteDownload: deleted partial dir ${failedDir.path}? $deleted"
-                )
-            }
-        } catch (e: Exception) {
-            Logger.w(LOG_TAG_DOWNLOAD, "cleanupFailedRemoteDownload: error for ts $timestamp", e)
-        }
     }
 }

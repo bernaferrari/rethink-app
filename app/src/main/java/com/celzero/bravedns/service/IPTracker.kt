@@ -115,10 +115,11 @@ internal constructor(
     }
 
     suspend fun makeSummaryWithTarget(s: ConnectionSummary): ConnectionSummary {
-        if (s.targetIp.isNullOrEmpty()) {
+        val targetIp = s.targetIp
+        if (targetIp.isNullOrEmpty()) {
             return s
         }
-        val serverAddress = convertIpV6ToIpv4IfNeeded(s.targetIp)
+        val serverAddress = convertIpV6ToIpv4IfNeeded(targetIp)
         val countryCode: String? = getCountryCode(serverAddress, ctx)
         s.flag = getFlag(countryCode)
         return s

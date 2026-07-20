@@ -51,10 +51,10 @@ object ErrorMessages {
         )
     private val PE_CLASS_MAP =
         mapOf(
-            InetAddress::class.java to R.string.parse_error_inet_address,
-            InetEndpoint::class.java to R.string.parse_error_inet_endpoint,
-            InetNetwork::class.java to R.string.parse_error_inet_network,
-            Int::class.java to R.string.parse_error_integer
+            "InetAddress" to R.string.parse_error_inet_address,
+            "InetEndpoint" to R.string.parse_error_inet_endpoint,
+            "InetNetwork" to R.string.parse_error_inet_network,
+            "Int" to R.string.parse_error_integer
         )
 
     operator fun get(context: Context, throwable: Throwable?): String {
@@ -78,24 +78,6 @@ object ErrorMessages {
                     }
                 val explanation = getBadConfigExceptionExplanation(context, rootCause)
                 context.getString(R.string.bad_config_error, reason, ctx) + explanation
-            }
-            rootCause is NullPointerException -> {
-                // Provide specific error for NPE instead of generic error
-                val message = rootCause.message
-                if (message != null && message.isNotEmpty()) {
-                    context.getString(R.string.import_error, "Invalid configuration: $message")
-                } else {
-                    context.getString(R.string.import_error, "Configuration file contains missing or invalid required fields")
-                }
-            }
-            rootCause is IllegalArgumentException -> {
-                // Handle illegal argument exceptions with their message
-                val message = rootCause.message
-                if (message != null && message.isNotEmpty()) {
-                    message
-                } else {
-                    context.getString(R.string.import_error, "Invalid configuration format")
-                }
             }
             rootCause.localizedMessage != null -> {
                 rootCause.localizedMessage!!
@@ -135,7 +117,7 @@ object ErrorMessages {
         if (bce.cause is ParseException) {
             val pe = bce.cause as ParseException?
             val type =
-                (if (PE_CLASS_MAP.containsKey(pe!!.parsingClass)) PE_CLASS_MAP[pe.parsingClass]
+                (if (PE_CLASS_MAP.containsKey(pe!!.parsingClassName)) PE_CLASS_MAP[pe.parsingClassName]
                     else R.string.parse_error_generic)
                     ?.let { context.getString(it) }
             return context.getString(R.string.parse_error_reason, type, pe.text)

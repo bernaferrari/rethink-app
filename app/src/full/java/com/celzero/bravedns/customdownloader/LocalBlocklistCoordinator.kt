@@ -30,12 +30,14 @@ import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
 import com.celzero.bravedns.R
 import com.celzero.bravedns.RethinkDnsApplication.Companion.DEBUG
-import com.celzero.bravedns.customdownloader.RetrofitManager.Companion.getBlocklistBaseBuilder
+import com.celzero.bravedns.network.BlocklistApi
+import com.celzero.bravedns.network.StreamingBody
 import com.celzero.bravedns.data.AppConfig
+import io.ktor.utils.io.jvm.javaio.toInputStream
 import com.celzero.bravedns.download.BlocklistDownloadHelper
 import com.celzero.bravedns.service.PersistentState
 import com.celzero.bravedns.service.RethinkBlocklistManager
-import com.celzero.bravedns.ui.activity.AppLockActivity
+import com.celzero.bravedns.ui.HomeScreenActivity
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.celzero.bravedns.util.Constants.Companion.LOCAL_BLOCKLIST_DOWNLOAD_FOLDER_NAME
@@ -45,7 +47,7 @@ import com.celzero.bravedns.util.Utilities.blocklistDownloadBasePath
 import com.celzero.bravedns.util.Utilities.calculateMd5
 import com.celzero.bravedns.util.Utilities.getTagValueFromJson
 import com.celzero.bravedns.util.Utilities.tempDownloadBasePath
-import okhttp3.ResponseBody
+
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 import java.io.BufferedInputStream
@@ -63,7 +65,7 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
 
     val persistentState by inject<PersistentState>()
     val appConfig by inject<AppConfig>()
-    private val downloadStatuses: ConcurrentHashMap<Long, DownloadStatus> = ConcurrentHashMap()
+    private var downloadStatuses: ConcurrentHashMap<Long, DownloadStatus> = ConcurrentHashMap()
 
     // download request status
     enum class DownloadStatus {
@@ -254,36 +256,35 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
 
     private suspend fun startFileDownload(
         context: Context,
-        urlPath: String,
-        filePath: String,
+        url: String,
+        fileName: String,
         retryCount: Int = 0
     ): Boolean {
-        // enable the OkHttp's logging only in debug mode for testing
-        if (DEBUG) OkHttpDebugLogging.enableHttp2()
-        if (DEBUG) OkHttpDebugLogging.enableTaskRunner()
-
         try {
-            // create okhttp client with base url
-            val retrofit =
-                getBlocklistBaseBuilder(persistentState.routeRethinkInRethink).build().create(IBlocklistDownload::class.java)
-            Logger.i(LOG_TAG_DOWNLOAD, "Downloading file: $filePath, urlPath: $urlPath")
-            val response = retrofit.downloadLocalBlocklistFile(urlPath, persistentState.appVersion, "")
+            Logger.i(LOG_TAG_DOWNLOAD, "Downloading file: $fileName, url: $url")
+            val response =
+                BlocklistApi.downloadLocalBlocklistFile(
+                    persistentState.routeRethinkInRethink,
+                    url,
+                    persistentState.appVersion,
+                    "",
+                )
             if (response?.isSuccessful == true) {
-                return downloadFile(context, response.body(), filePath)
+                return downloadFile(context, response.body, fileName)
             } else {
                 Logger.e(
                     LOG_TAG_DOWNLOAD,
-                    "Error in startFileDownload: ${response?.message()}, code: ${response?.code()}"
+                    "Error in startFileDownload: ${response?.message}, code: ${response?.code}",
                 )
             }
         } catch (e: Exception) {
             Logger.e(LOG_TAG_DOWNLOAD, "Error in startFileDownload: ${e.message}", e)
         }
         return if (isRetryRequired(retryCount)) {
-            Logger.i(LOG_TAG_DOWNLOAD, "retrying download($urlPath) $filePath, count: $retryCount")
-            startFileDownload(context, urlPath, filePath, retryCount + 1)
+            Logger.i(LOG_TAG_DOWNLOAD, "retrying download($url) $fileName, count: $retryCount")
+            startFileDownload(context, url, fileName, retryCount + 1)
         } else {
-            Logger.i(LOG_TAG_DOWNLOAD, "download failed for $filePath, retry: $retryCount")
+            Logger.i(LOG_TAG_DOWNLOAD, "download failed for $fileName, retry: $retryCount")
             false
         }
     }
@@ -293,7 +294,7 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
         return retryCount < MAX_RETRY_COUNT
     }
 
-    private fun downloadFile(context: Context, body: ResponseBody?, fileName: String): Boolean {
+    private fun downloadFile(context: Context, body: StreamingBody?, fileName: String): Boolean {
         if (body == null) {
             return false
         }
@@ -307,10 +308,14 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
             // below code will download the code with additional calculation of
             // file size and download percentage
             var bytesRead: Int
-            val contentLength = body.contentLength()
+            val contentLength = body.contentLength
             val expectedMB: Double = contentLength / BYTES_PER_MB
             var downloadedMB = 0.0
-            input = BufferedInputStream(body.byteStream(), BUFFERED_INPUT_STREAM_SIZE)
+            // StreamingBody carries a multiplatform ByteReadChannel; bridge to InputStream on Android.
+            input = BufferedInputStream(
+                body.channel.toInputStream(),
+                BUFFERED_INPUT_STREAM_SIZE,
+            )
             val startMs = SystemClock.elapsedRealtime()
             var progressJumpsMs = PROGRESS_UPDATE_INTERVAL_MS
             val buf = ByteArray(BYTE_BUFFER_SIZE)
@@ -451,36 +456,37 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
 
         if (Utilities.isAtleastO()) {
             val name: CharSequence = context.getString(R.string.notif_channel_download)
-            val description = context.resources.getString(R.string.notif_channed_desc_download)
+            val description = context.getString(R.string.notif_channed_desc_download)
             val importance = NotificationManager.IMPORTANCE_HIGH
             val channel = NotificationChannel(DOWNLOAD_NOTIFICATION_TAG, name, importance)
             channel.description = description
             getNotificationManager(context).createNotificationChannel(channel)
+            builder = NotificationCompat.Builder(context, DOWNLOAD_NOTIFICATION_TAG)
+            val contentText = context.getString(R.string.notif_download_content_text)
+            val contentTitle = context.getString(R.string.notif_download_content_title)
+
+            builder
+                .setSmallIcon(R.drawable.ic_notification_icon)
+                .setContentTitle(contentTitle)
+                .setContentIntent(getPendingIntent(context))
+                .setContentText(contentText)
+            builder.setProgress(NOTIFICATION_PROGRESS_MAX, 0, false)
+            builder.setStyle(NotificationCompat.BigTextStyle().bigText(contentText))
+            builder.color =
+                ContextCompat.getColor(context, UIUtils.getAccentColor(persistentState.theme))
+
+            // Secret notifications are not shown on the lock screen.  No need for this app to show
+            // there.
+            // Only available in API >= 21
+            builder.setVisibility(NotificationCompat.VISIBILITY_SECRET)
+
+            // If true, silences this instance of the notification, regardless of the sounds or
+            // vibrations set on the notification or notification channel.
+            builder.setSilent(true)
+            builder.setAutoCancel(false)
+        } else {
+            builder = NotificationCompat.Builder(context, DOWNLOAD_NOTIFICATION_TAG)
         }
-
-        builder = NotificationCompat.Builder(context, DOWNLOAD_NOTIFICATION_TAG)
-        val contentText = context.getString(R.string.notif_download_content_text)
-        val contentTitle = context.getString(R.string.notif_download_content_title)
-
-        builder
-            .setSmallIcon(R.drawable.ic_notification_icon)
-            .setContentTitle(contentTitle)
-            .setContentIntent(getPendingIntent(context))
-            .setContentText(contentText)
-        builder.setProgress(NOTIFICATION_PROGRESS_MAX, 0, false)
-        builder.setStyle(NotificationCompat.BigTextStyle().bigText(contentText))
-        builder.color =
-            ContextCompat.getColor(context, UIUtils.getAccentColor(persistentState.theme))
-
-        // Secret notifications are not shown on the lock screen.  No need for this app to show
-        // there.
-        // Only available in API >= 21
-        builder.setVisibility(NotificationCompat.VISIBILITY_SECRET)
-
-        // If true, silences this instance of the notification, regardless of the sounds or
-        // vibrations set on the notification or notification channel.
-        builder.setSilent(true)
-        builder.setAutoCancel(false)
         return builder
     }
 
@@ -491,7 +497,7 @@ class LocalBlocklistCoordinator(val context: Context, workerParams: WorkerParame
     private fun getPendingIntent(context: Context): PendingIntent {
         return Utilities.getActivityPendingIntent(
             context,
-            Intent(context, AppLockActivity::class.java),
+            Intent(context, HomeScreenActivity::class.java),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
             mutable = false
         )

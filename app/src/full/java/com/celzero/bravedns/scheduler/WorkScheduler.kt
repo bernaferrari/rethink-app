@@ -29,7 +29,7 @@ import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import com.celzero.bravedns.util.Utilities
-import com.google.common.util.concurrent.ListenableFuture
+
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
@@ -51,7 +51,7 @@ class WorkScheduler(val context: Context) {
 
         fun isWorkRunning(context: Context, tag: String): Boolean {
             val instance = WorkManager.getInstance(context)
-            val statuses: ListenableFuture<List<WorkInfo>> = instance.getWorkInfosByTag(tag)
+            val statuses = instance.getWorkInfosByTag(tag)
             Logger.i(LOG_TAG_SCHEDULER, "Job $tag already running check")
             return try {
                 var running = false
@@ -77,7 +77,7 @@ class WorkScheduler(val context: Context) {
         // It will be in either running or enqueued state.
         fun isWorkScheduled(context: Context, tag: String): Boolean {
             val instance = WorkManager.getInstance(context)
-            val statuses: ListenableFuture<List<WorkInfo>> = instance.getWorkInfosByTag(tag)
+            val statuses = instance.getWorkInfosByTag(tag)
             Logger.i(LOG_TAG_SCHEDULER, "Job $tag already scheduled check")
             return try {
                 var running = false
@@ -201,6 +201,12 @@ class WorkScheduler(val context: Context) {
                 ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
                 blocklistUpdateCheck
             )
+    }
+
+    fun cancelBlocklistUpdateCheckJob() {
+        Logger.i(LOG_TAG_SCHEDULER, "Cancel all the work related to blocklist update check")
+        WorkManager.getInstance(context.applicationContext)
+            .cancelAllWorkByTag(BLOCKLIST_UPDATE_CHECK_JOB_TAG)
     }
 
     fun scheduleDataUsageJob() {

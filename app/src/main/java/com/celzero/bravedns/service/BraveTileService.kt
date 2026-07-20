@@ -26,10 +26,17 @@ import android.os.Build
 import android.service.quicksettings.Tile
 import android.service.quicksettings.TileService
 import androidx.annotation.RequiresApi
-import androidx.lifecycle.Observer
-import com.celzero.bravedns.ui.activity.AppLockActivity
-import com.celzero.bravedns.ui.activity.MiscSettingsActivity
+import com.celzero.bravedns.ui.PrepareVpnActivity
+import com.celzero.bravedns.ui.HomeScreenActivity
+import com.celzero.bravedns.util.BioMetricType
 import com.celzero.bravedns.util.Utilities
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.inject
 
@@ -37,21 +44,11 @@ import org.koin.core.component.inject
 class BraveTileService : TileService(), KoinComponent {
 
     private val persistentState by inject<PersistentState>()
-
-    // Single stable Observer instance so addObserver/removeObserver actually
-    // match the same callback. Kotlin method references like `this::updateTile`
-    // generate a new function-reference object per `::` expression — meaning
-    // removeObserver(this::updateTile) does NOT find the observer previously
-    // registered with observeForever(this::updateTile), and the observer leaks.
-    private val tileObserver = Observer<Boolean> { enabled -> updateTile(enabled) }
+    private val tileScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+    private var vpnEnabledCollectorJob: Job? = null
 
     override fun onCreate() {
         super.onCreate()
-        try {
-            persistentState.vpnEnabledLiveData.observeForever(tileObserver)
-        } catch (e: Exception) {
-            Logger.w(Logger.LOG_TAG_UI, "Tile: err in observing VPN state", e)
-        }
     }
 
     private fun updateTile(enabled: Boolean) {
@@ -63,17 +60,35 @@ class BraveTileService : TileService(), KoinComponent {
 
     override fun onStartListening() {
         super.onStartListening()
-        // Just seed the current value; the observer is already attached in onCreate
-        // and will fire on subsequent changes. Re-registering here would either
-        // stack a second observer (leak) or be a no-op duplicate.
+        try {
+            if (vpnEnabledCollectorJob == null) {
+                vpnEnabledCollectorJob = persistentState.vpnEnabled
+                    .onEach { updateTile(it) }
+                    .launchIn(tileScope)
+            }
+        } catch (e: Exception) {
+            Logger.w(Logger.LOG_TAG_UI, "Tile: err in observing VPN state", e)
+        }
         updateTile(persistentState.getVpnEnabled())
+    }
+
+    override fun onStopListening() {
+        super.onStopListening()
+        try {
+            vpnEnabledCollectorJob?.cancel()
+            vpnEnabledCollectorJob = null
+        } catch (e: Exception) {
+            Logger.w(Logger.LOG_TAG_UI, "Tile: err in removing observer", e)
+        }
     }
 
     override fun onDestroy() {
         try {
-            persistentState.vpnEnabledLiveData.removeObserver(tileObserver)
+            vpnEnabledCollectorJob?.cancel()
+            vpnEnabledCollectorJob = null
+            tileScope.cancel()
         } catch (e: Exception) {
-            Logger.w(Logger.LOG_TAG_UI, "Tile: err in removing observer", e)
+            Logger.w(Logger.LOG_TAG_UI, "Tile: err in removing observer on destroy", e)
         }
         super.onDestroy()
     }
@@ -91,7 +106,7 @@ class BraveTileService : TileService(), KoinComponent {
         if (isAppRunningOnTv()) return false
 
         // TODO: should we check for last unlock time here?
-        MiscSettingsActivity.BioMetricType.fromValue(persistentState.biometricAuthType).let {
+        BioMetricType.fromValue(persistentState.biometricAuthType).let {
             return it.enabled()
         }
     }
@@ -106,7 +121,12 @@ class BraveTileService : TileService(), KoinComponent {
             VpnController.start(this)
         } else {
             // open the app to handle the VPN start or stop
-            val intent = Intent(this, AppLockActivity::class.java)
+            val intent =
+                if (Utilities.isHeadlessFlavour()) {
+                    Intent(this, PrepareVpnActivity::class.java)
+                } else {
+                    Intent(this, HomeScreenActivity::class.java)
+                }
             val pendingIntent = PendingIntent.getActivity(this, 0, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
             try {

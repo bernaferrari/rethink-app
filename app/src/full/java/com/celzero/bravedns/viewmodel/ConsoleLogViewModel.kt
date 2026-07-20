@@ -17,9 +17,7 @@ package com.celzero.bravedns.viewmodel
 
 import Logger
 import Logger.LOG_TAG_UI
-import androidx.lifecycle.LiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.asLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
@@ -29,34 +27,31 @@ import com.celzero.bravedns.database.ConsoleLog
 import com.celzero.bravedns.database.ConsoleLogDAO
 import com.celzero.bravedns.util.Constants
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.launch
 
 class ConsoleLogViewModel(private val dao: ConsoleLogDAO) : ViewModel() {
-
-    private data class QueryParams(
-        val filter: String = "",
-        val minLevel: Int = 0,
-        val sessionId: Long = 0L,
-    )
-
-    private val queryParams = MutableStateFlow(QueryParams())
-
-    private val pagingConfig = PagingConfig(
-        pageSize = Constants.LIVEDATA_PAGE_SIZE,
-        enablePlaceholders = false,
-        prefetchDistance = 10
-    )
+    private var filter: MutableStateFlow<String> = MutableStateFlow("")
+    private var logLevel: Long = Logger.LoggerLevel.ERROR.id
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    val logs: LiveData<PagingData<ConsoleLog>> = queryParams
-        .flatMapLatest { params ->
-            Pager(pagingConfig) {
-                dao.getLogs("%${params.filter}%", params.minLevel)
-            }.flow
-        }
-        .cachedIn(viewModelScope)
-        .asLiveData()
+    val logs: Flow<PagingData<ConsoleLog>> = filter.flatMapLatest { input -> getLogs(input) }
+
+    private fun getLogs(filter: String): Flow<PagingData<ConsoleLog>> {
+        val query = "%$filter%"
+        return Pager(pagingConfig) { dao.getLogs(query) }
+            .flow
+            .cachedIn(viewModelScope)
+    }
+
+    val pagingConfig = PagingConfig(
+        pageSize = Constants.PAGING_PAGE_SIZE,
+        enablePlaceholders = false,  // Prevents position issues
+        prefetchDistance = 10
+    )
 
     suspend fun sinceTime(): Long {
         return try {
@@ -68,14 +63,13 @@ class ConsoleLogViewModel(private val dao: ConsoleLogDAO) : ViewModel() {
     }
 
     fun setLogLevel(level: Long) {
-        queryParams.value = queryParams.value.copy(minLevel = level.toInt())
+        logLevel = level
     }
 
     fun setFilter(filter: String) {
-        queryParams.value = queryParams.value.copy(filter = filter)
-    }
-
-    fun restartLogStream() {
-        queryParams.value = queryParams.value.copy(sessionId = queryParams.value.sessionId + 1)
+        viewModelScope.launch {
+            delay(100) // Prevent rapid updates
+            this@ConsoleLogViewModel.filter.value = filter
+        }
     }
 }

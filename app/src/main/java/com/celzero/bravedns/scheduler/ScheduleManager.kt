@@ -22,7 +22,7 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
-import com.google.common.util.concurrent.ListenableFuture
+
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
@@ -37,7 +37,7 @@ class ScheduleManager(val context: Context) {
         // It will be in either running or enqueued state.
         fun isWorkScheduled(context: Context, tag: String): Boolean {
             val instance = WorkManager.getInstance(context)
-            val statuses: ListenableFuture<List<WorkInfo>> = instance.getWorkInfosByTag(tag)
+            val statuses = instance.getWorkInfosByTag(tag)
             Logger.i(LOG_TAG_SCHEDULER, "Job $tag already scheduled check")
             return try {
                 var running = false

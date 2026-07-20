@@ -15,74 +15,70 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
 import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.database.DnsLogDAO
-import com.celzero.bravedns.ui.fragment.DnsLogFragment
-import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
+import com.celzero.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
 import com.celzero.bravedns.util.ResourceRecordTypes.Companion.getHandledTypes
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
 
-    private val filteredList: MutableLiveData<String> = MutableLiveData()
-    private var filterType = DnsLogFragment.DnsLogFilter.ALL
+    private var filteredList: MutableStateFlow<String> = MutableStateFlow("")
+    private var filterType = DnsLogFilter.ALL
     private val pagingConfig: PagingConfig
     private var isWireGuardLogs = false
-    private var isRpnLogs = false
     private var wgDnsId: String = ""
-    private var rpnDnsId: String = ""
 
     init {
-        filteredList.value = ""
         pagingConfig =
             PagingConfig(
                 enablePlaceholders = true,
                 prefetchDistance = 3,
-                initialLoadSize = LIVEDATA_PAGE_SIZE * 2,
-                maxSize = LIVEDATA_PAGE_SIZE * 3,
-                pageSize = LIVEDATA_PAGE_SIZE * 2,
+                initialLoadSize = PAGING_PAGE_SIZE * 2,
+                maxSize = PAGING_PAGE_SIZE * 3,
+                pageSize = PAGING_PAGE_SIZE * 2,
                 jumpThreshold = 5
             )
     }
 
-    val dnsLogsList = filteredList.switchMap { input -> fetchDnsLogs(input) }
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val dnsLogsList: Flow<PagingData<DnsLog>> =
+        filteredList.flatMapLatest { input -> fetchDnsLogs(input) }
 
-    private fun fetchDnsLogs(filter: String): LiveData<PagingData<DnsLog>> {
+    private fun fetchDnsLogs(filter: String): Flow<PagingData<DnsLog>> {
         if (isWireGuardLogs) {
             // WireGuard DNS logs are not handled currently
             return getWgDnsLogs(wgDnsId)
-        } else if (isRpnLogs) {
-            return getRpnDnsLogs(rpnDnsId)
         }
         return when (filterType) {
-            DnsLogFragment.DnsLogFilter.ALL -> {
+            DnsLogFilter.ALL -> {
                 getAllDnsLogs(filter)
             }
-            DnsLogFragment.DnsLogFilter.ALLOWED -> {
+            DnsLogFilter.ALLOWED -> {
                 getAllowedDnsLogs(filter)
             }
-            DnsLogFragment.DnsLogFilter.BLOCKED -> {
+            DnsLogFilter.BLOCKED -> {
                 getBlockedDnsLogs(filter)
             }
-            DnsLogFragment.DnsLogFilter.MAYBE_BLOCKED -> {
+            DnsLogFilter.MAYBE_BLOCKED -> {
                 getMaybeBlockedDnsLogs(filter)
             }
-            DnsLogFragment.DnsLogFilter.UNKNOWN_RECORDS -> {
+            DnsLogFilter.UNKNOWN_RECORDS -> {
                 getUnknownRecordDnsLogs(filter)
             }
         }
     }
 
-    private fun getAllDnsLogs(filter: String): LiveData<PagingData<DnsLog>> {
+    private fun getAllDnsLogs(filter: String): Flow<PagingData<DnsLog>> {
         return Pager(pagingConfig) {
                 if (filter.isEmpty()) {
                     dnsLogDAO.getAllDnsLogs()
@@ -90,27 +86,19 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
                     dnsLogDAO.getDnsLogsByName("%$filter%")
                 }
             }
-            .liveData
+            .flow
             .cachedIn(viewModelScope)
     }
 
-    private fun getWgDnsLogs(wgId: String): LiveData<PagingData<DnsLog>> {
+    private fun getWgDnsLogs(wgId: String): Flow<PagingData<DnsLog>> {
         return Pager(pagingConfig) {
             dnsLogDAO.getDnsLogsForWireGuard(wgId)
         }
-        .liveData
+        .flow
         .cachedIn(viewModelScope)
     }
 
-    private fun getRpnDnsLogs(rpnId: String): LiveData<PagingData<DnsLog>> {
-        return Pager(pagingConfig) {
-            dnsLogDAO.getDnsLogsForRpn(rpnId)
-        }
-            .liveData
-            .cachedIn(viewModelScope)
-    }
-
-    private fun getAllowedDnsLogs(filter: String): LiveData<PagingData<DnsLog>> {
+    private fun getAllowedDnsLogs(filter: String): Flow<PagingData<DnsLog>> {
         return Pager(pagingConfig) {
                 if (filter.isEmpty()) {
                     dnsLogDAO.getAllowedDnsLogs()
@@ -118,11 +106,11 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
                     dnsLogDAO.getAllowedDnsLogsByName("%$filter%")
                 }
             }
-            .liveData
+            .flow
             .cachedIn(viewModelScope)
     }
 
-    private fun getBlockedDnsLogs(filter: String): LiveData<PagingData<DnsLog>> {
+    private fun getBlockedDnsLogs(filter: String): Flow<PagingData<DnsLog>> {
         return Pager(pagingConfig) {
                 if (filter.isEmpty()) {
                     dnsLogDAO.getBlockedDnsLogs()
@@ -130,11 +118,11 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
                     dnsLogDAO.getBlockedDnsLogsByName("%$filter%")
                 }
             }
-            .liveData
+            .flow
             .cachedIn(viewModelScope)
     }
 
-    private fun getMaybeBlockedDnsLogs(filter: String): LiveData<PagingData<DnsLog>> {
+    private fun getMaybeBlockedDnsLogs(filter: String): Flow<PagingData<DnsLog>> {
         return Pager(pagingConfig) {
                 if (filter.isEmpty()) {
                     dnsLogDAO.getMaybeBlockedDnsLogs()
@@ -142,11 +130,11 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
                     dnsLogDAO.getMaybeBlockedDnsLogsByName("%$filter%")
                 }
             }
-            .liveData
+            .flow
             .cachedIn(viewModelScope)
     }
 
-    private fun getUnknownRecordDnsLogs(filter: String): LiveData<PagingData<DnsLog>> {
+    private fun getUnknownRecordDnsLogs(filter: String): Flow<PagingData<DnsLog>> {
         val handledTypes = getHandledTypes()
         return Pager(pagingConfig) {
                 if (filter.isEmpty()) {
@@ -155,11 +143,11 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
                     dnsLogDAO.getUnknownRecordDnsLogsByName("%$filter%", handledTypes)
                 }
             }
-            .liveData
+            .flow
             .cachedIn(viewModelScope)
     }
 
-    fun setFilter(searchString: String, type: DnsLogFragment.DnsLogFilter) {
+    fun setFilter(searchString: String, type: DnsLogFilter) {
         filterType = type
 
         if (searchString.isNotBlank()) filteredList.value = searchString
@@ -172,9 +160,11 @@ class DnsLogViewModel(private val dnsLogDAO: DnsLogDAO) : ViewModel() {
         filteredList.value = filteredList.value
     }
 
-    fun setIsRpnLogs(isRLogs: Boolean, rpnId: String) {
-        isRpnLogs = isRLogs
-        rpnDnsId = "%$rpnId%"
-        filteredList.value = filteredList.value
+    enum class DnsLogFilter(val id: Int) {
+        ALL(0),
+        ALLOWED(1),
+        BLOCKED(2),
+        MAYBE_BLOCKED(3),
+        UNKNOWN_RECORDS(4)
     }
 }

@@ -15,43 +15,43 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
+import com.celzero.bravedns.database.CustomDomain
 import com.celzero.bravedns.database.CustomDomainDAO
 import com.celzero.bravedns.util.Constants
-import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
+import com.celzero.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 class CustomDomainViewModel(private val customDomainDAO: CustomDomainDAO) : ViewModel() {
 
-    private val filteredList: MutableLiveData<String> = MutableLiveData()
+    private var filteredList: MutableStateFlow<String> = MutableStateFlow("")
     private var uid: Int = Constants.UID_EVERYBODY
 
-    init {
-        filteredList.value = ""
-    }
-
-    val customDomains =
-        filteredList.switchMap { input ->
-            Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
-                    customDomainDAO.getDomainsLiveData(uid, "%$input%")
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val customDomains: Flow<PagingData<CustomDomain>> =
+        filteredList.flatMapLatest { input ->
+            Pager(PagingConfig(PAGING_PAGE_SIZE)) {
+                    customDomainDAO.domainsPagingSource(uid, "%$input%")
                 }
-                .liveData
+                .flow
                 .cachedIn(viewModelScope)
         }
 
-    val allDomainRules =
-        filteredList.switchMap { input ->
-            Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val allDomainRules: Flow<PagingData<CustomDomain>> =
+        filteredList.flatMapLatest { input ->
+            Pager(PagingConfig(PAGING_PAGE_SIZE)) {
                     customDomainDAO.getAllDomainRules("%$input%")
                 }
-                .liveData
+                .flow
                 .cachedIn(viewModelScope)
         }
 
@@ -59,11 +59,11 @@ class CustomDomainViewModel(private val customDomainDAO: CustomDomainDAO) : View
         filteredList.value = filter
     }
 
-    fun domainRulesCount(uid: Int): LiveData<Int> {
+    fun domainRulesCount(uid: Int): Flow<Int> {
         return customDomainDAO.getAppWiseDomainRulesCount(uid)
     }
 
-    fun allDomainRulesCount(): LiveData<Int> {
+    fun allDomainRulesCount(): Flow<Int> {
         return customDomainDAO.getAllDomainRulesCount()
     }
 

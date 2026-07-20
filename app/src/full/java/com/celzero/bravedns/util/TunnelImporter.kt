@@ -27,6 +27,7 @@ import android.provider.OpenableColumns
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.bravedns.wireguard.Config
+import com.celzero.bravedns.wireguard.ConfigIo
 import com.celzero.bravedns.wireguard.util.ErrorMessages
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -60,14 +61,7 @@ object TunnelImporter : KoinComponent {
                     }
                 }
                 if (name.isEmpty()) {
-                    val lastPathSegment = uri.lastPathSegment
-                    if (lastPathSegment.isNullOrEmpty()) {
-                        throw IllegalArgumentException(context.getString(R.string.illegal_filename_error, uri.toString()))
-                    }
-                    name = Uri.decode(lastPathSegment)
-                }
-                if (name.isEmpty()) {
-                    throw IllegalArgumentException(context.getString(R.string.illegal_filename_error, uri.toString()))
+                    name = Uri.decode(uri.lastPathSegment)
                 }
                 var idx = name.lastIndexOf('/')
                 if (idx >= 0) {
@@ -78,17 +72,13 @@ object TunnelImporter : KoinComponent {
                 }
                 val isZip = name.lowercase().endsWith(".zip")
                 if (name.lowercase().endsWith(".conf")) {
-                    name = name.dropLast(".conf".length)
+                    name = name.substring(0, name.length - ".conf".length)
                 } else {
                     require(isZip) { context.getString(R.string.bad_extension_error) }
                 }
 
                 if (isZip) {
-                    val inputStream =
-                        contentResolver.openInputStream(uri) ?: throw IllegalArgumentException(
-                            context.getString(R.string.import_error, "Cannot open file: $name")
-                        )
-                    ZipInputStream(inputStream).use { zip ->
+                    ZipInputStream(contentResolver.openInputStream(uri)).use { zip ->
                         val reader = BufferedReader(InputStreamReader(zip, StandardCharsets.UTF_8))
                         var entry: ZipEntry?
                         while (true) {
@@ -102,12 +92,12 @@ object TunnelImporter : KoinComponent {
                                 name = name.substring(name.lastIndexOf('/') + 1)
                             }
                             if (name.lowercase().endsWith(".conf")) {
-                                name = name.dropLast(".conf".length)
+                                name = name.substring(0, name.length - ".conf".length)
                             } else {
                                 continue
                             }
                             try {
-                                    Config.parse(reader)
+                                    ConfigIo.parse(reader)
                                 } catch (e: Throwable) {
                                     throwables.add(e)
                                     null
@@ -119,11 +109,7 @@ object TunnelImporter : KoinComponent {
                         }
                     }
                 } else {
-                    val inputStream =
-                        contentResolver.openInputStream(uri) ?: throw IllegalArgumentException(
-                            context.getString(R.string.import_error, "Cannot open file: $name")
-                        )
-                    config = Config.parse(inputStream)
+                    config = ConfigIo.parse(contentResolver.openInputStream(uri)!!)
                     WireguardManager.addConfig(config, name)
                 }
 
@@ -152,7 +138,7 @@ object TunnelImporter : KoinComponent {
             try {
                 Logger.d(LOG_TAG_PROXY, "Importing tunnel: $configText")
                 val config =
-                    Config.parse(
+                    ConfigIo.parse(
                         ByteArrayInputStream(configText.toByteArray(StandardCharsets.UTF_8))
                     )
                 WireguardManager.addConfig(config)

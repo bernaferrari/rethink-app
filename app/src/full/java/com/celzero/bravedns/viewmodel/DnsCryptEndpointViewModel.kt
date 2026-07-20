@@ -15,39 +15,39 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
+import com.celzero.bravedns.database.DnsCryptEndpoint
 import com.celzero.bravedns.database.DnsCryptEndpointDAO
-import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
+import com.celzero.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 class DnsCryptEndpointViewModel(private val dnsCryptEndpointDAO: DnsCryptEndpointDAO) :
     ViewModel() {
 
-    private val filteredList: MutableLiveData<String> = MutableLiveData()
+    private var filteredList: MutableStateFlow<String> = MutableStateFlow("")
 
-    init {
-        filteredList.value = ""
-    }
-
-    val dnsCryptEndpointList =
-        filteredList.switchMap { input ->
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val dnsCryptEndpointList: Flow<PagingData<DnsCryptEndpoint>> =
+        filteredList.flatMapLatest { input ->
             if (input.isBlank()) {
-                Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
-                        dnsCryptEndpointDAO.getDNSCryptEndpointLiveData()
+                Pager(PagingConfig(PAGING_PAGE_SIZE)) {
+                        dnsCryptEndpointDAO.dnsCryptEndpointsPagingSource()
                     }
-                    .liveData
+                    .flow
                     .cachedIn(viewModelScope)
             } else {
-                Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
-                        dnsCryptEndpointDAO.getDNSCryptEndpointLiveDataByName("%$input%")
+                Pager(PagingConfig(PAGING_PAGE_SIZE)) {
+                        dnsCryptEndpointDAO.dnsCryptEndpointsPagingSource("%$input%")
                     }
-                    .liveData
+                    .flow
                     .cachedIn(viewModelScope)
             }
         }

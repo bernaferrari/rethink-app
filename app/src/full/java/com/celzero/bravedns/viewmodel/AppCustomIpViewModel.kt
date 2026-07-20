@@ -15,46 +15,45 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
+import com.celzero.bravedns.database.CustomIp
 import com.celzero.bravedns.database.CustomIpDao
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 class AppCustomIpViewModel(private val customIpDao: CustomIpDao) : ViewModel() {
 
-    private var filteredList: MutableLiveData<String> = MutableLiveData()
+    private var filteredList: MutableStateFlow<String> = MutableStateFlow("")
     private var uid: Int = UID_EVERYBODY
 
-    init {
-        filteredList.value = ""
-    }
-
-    val customIpDetails =
-        filteredList.switchMap { input ->
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val customIpDetails: Flow<PagingData<CustomIp>> =
+        filteredList.flatMapLatest { input ->
             if (input.isNullOrBlank()) {
-                Pager(PagingConfig(Constants.LIVEDATA_PAGE_SIZE)) {
+                Pager(PagingConfig(Constants.PAGING_PAGE_SIZE)) {
                         customIpDao.getAppWiseCustomIp(uid)
                     }
-                    .liveData
+                    .flow
                     .cachedIn(viewModelScope)
             } else {
-                Pager(PagingConfig(Constants.LIVEDATA_PAGE_SIZE)) {
+                Pager(PagingConfig(Constants.PAGING_PAGE_SIZE)) {
                         customIpDao.getAppWiseCustomIp("%$input%", uid)
                     }
-                    .liveData
+                    .flow
                     .cachedIn(viewModelScope)
             }
         }
 
-    fun appWiseIpRulesCount(uid: Int): LiveData<Int> {
+    fun appWiseIpRulesCount(uid: Int): Flow<Int> {
         return customIpDao.getAppWiseIpRulesCount(uid)
     }
 

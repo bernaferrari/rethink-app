@@ -15,61 +15,61 @@
  */
 package com.celzero.bravedns.viewmodel
 
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.switchMap
 import androidx.lifecycle.viewModelScope
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import androidx.paging.PagingData
 import androidx.paging.cachedIn
-import androidx.paging.liveData
 import com.celzero.bravedns.data.FileTag
+import com.celzero.bravedns.database.RethinkRemoteFileTag
 import com.celzero.bravedns.database.RethinkRemoteFileTagDao
-import com.celzero.bravedns.ui.fragment.RethinkBlocklistFragment
-import com.celzero.bravedns.util.Constants.Companion.LIVEDATA_PAGE_SIZE
+import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
+import com.celzero.bravedns.util.Constants.Companion.PAGING_PAGE_SIZE
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.flatMapLatest
 
 class RethinkRemoteFileTagViewModel(private val rethinkRemoteDao: RethinkRemoteFileTagDao) :
     ViewModel() {
 
-    private val list: MutableLiveData<String> = MutableLiveData()
-    private var blocklistFilter: RethinkBlocklistFragment.Filters? = null
+    private var list: MutableStateFlow<String> = MutableStateFlow("")
+    private var blocklistFilter: RethinkBlocklistState.Filters? = null
 
-    init {
-        list.value = ""
-    }
-
-    val remoteFileTags =
-        list.switchMap { input: String ->
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val remoteFileTags: Flow<PagingData<RethinkRemoteFileTag>> =
+        list.flatMapLatest { input: String ->
             if (blocklistFilter != null) {
                 val query = blocklistFilter?.query ?: "%%"
                 val selected = getSelectedFilter()
                 val subg = blocklistFilter?.subGroups ?: mutableSetOf()
 
                 if (subg.isNotEmpty()) {
-                    Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
+                    Pager(PagingConfig(PAGING_PAGE_SIZE)) {
                             rethinkRemoteDao.getRemoteFileTagsSubg(query, selected, subg)
                         }
-                        .liveData
+                        .flow
                         .cachedIn(viewModelScope)
                 } else {
-                    Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
+                    Pager(PagingConfig(PAGING_PAGE_SIZE)) {
                             rethinkRemoteDao.getRemoteFileTagsWithFilter(query, selected)
                         }
-                        .liveData
+                        .flow
                         .cachedIn(viewModelScope)
                 }
             } else if (input.isBlank()) {
-                Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) { rethinkRemoteDao.getRemoteFileTags() }
-                    .liveData
+                Pager(PagingConfig(PAGING_PAGE_SIZE)) { rethinkRemoteDao.getRemoteFileTags() }
+                    .flow
                     .cachedIn(viewModelScope)
             } else {
-                Pager(PagingConfig(LIVEDATA_PAGE_SIZE)) {
+                Pager(PagingConfig(PAGING_PAGE_SIZE)) {
                         rethinkRemoteDao.getRemoteFileTagsWithFilter(
                             "%$input%",
                             getSelectedFilter()
                         )
                     }
-                    .liveData
+                    .flow
                     .cachedIn(viewModelScope)
             }
         }
@@ -77,7 +77,7 @@ class RethinkRemoteFileTagViewModel(private val rethinkRemoteDao: RethinkRemoteF
     private fun getSelectedFilter(): MutableSet<Int> {
         if (
             blocklistFilter?.filterSelected ==
-                RethinkBlocklistFragment.BlocklistSelectionFilter.SELECTED
+                RethinkBlocklistState.BlocklistSelectionFilter.SELECTED
         ) {
             return mutableSetOf(1)
         }
@@ -92,7 +92,7 @@ class RethinkRemoteFileTagViewModel(private val rethinkRemoteDao: RethinkRemoteF
         list.value = searchText
     }
 
-    fun setFilter(filter: RethinkBlocklistFragment.Filters) {
+    fun setFilter(filter: RethinkBlocklistState.Filters) {
         this.blocklistFilter = filter
         list.value = filter.query
     }

@@ -45,19 +45,14 @@ android_app {
 
     static_libs: [
         "androidx.activity_activity-ktx",
-        "androidx.appcompat_appcompat",
         "androidx.paging_paging-runtime",
         "androidx.preference_preference",
         "androidx.room_room-paging",
         "androidx.work_work-runtime-ktx",
-        "com.google.android.material_material",
         "firestack",
-        "gson",
-        "guava",
         "ipaddress",
         "koin-android",
         "koin-core",
-        "krate",
         "okio-lib",
     ],
 	
@@ -73,11 +68,6 @@ android_library_import {
 android_library_import {
     name: "koin-android",
     aars: ["app/libs/koin-android*.aar"],
-}
-
-android_library_import {
-    name: "krate",
-    aars: ["app/libs/krate*.aar"],
 }
 
 java_import {

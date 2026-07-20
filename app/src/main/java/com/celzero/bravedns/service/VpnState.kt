@@ -15,7 +15,11 @@ limitations under the License.
 */
 package com.celzero.bravedns.service
 
-class VpnState(requested: Boolean, on: Boolean, connectionState: BraveVPNService.State?, isEch: Boolean) {
+/**
+ * Represents the state of the VPN connection.
+ * Enhanced to provide computed properties for status evaluation.
+ */
+class VpnState(requested: Boolean, on: Boolean, connectionState: BraveVPNService.State?, server: String?) {
 
     var activationRequested = false
 
@@ -25,12 +29,45 @@ class VpnState(requested: Boolean, on: Boolean, connectionState: BraveVPNService
     // Whether we have a connection to a DOH server, and if so, whether the connection is ready or
     // has recently been failing.
     var connectionState: BraveVPNService.State? = null
-    var isEch: Boolean = false
+
+    // The server we are connected to, or null if we are not connected.
+    var serverName: String? = null
 
     init {
         this.activationRequested = requested
         this.on = on
         this.connectionState = connectionState
-        this.isEch = isEch
+        this.serverName = server
     }
+
+    // Computed properties for easier state evaluation
+    val isWorking: Boolean
+        get() = on && connectionState == BraveVPNService.State.WORKING
+
+    val isFailing: Boolean
+        get() = connectionState in listOf(
+            BraveVPNService.State.APP_ERROR,
+            BraveVPNService.State.DNS_ERROR,
+            BraveVPNService.State.DNS_SERVER_DOWN,
+            BraveVPNService.State.NO_INTERNET
+        )
+
+    val isNew: Boolean
+        get() = connectionState == BraveVPNService.State.NEW
+
+    val isPaused: Boolean
+        get() = connectionState == BraveVPNService.State.PAUSED
+
+    val hasValidConnection: Boolean
+        get() = on && (connectionState == BraveVPNService.State.WORKING || connectionState == BraveVPNService.State.NEW)
+
+    val statusText: String
+        get() = when {
+            isPaused -> "Paused"
+            isFailing -> "Failing"
+            isWorking -> "Protected"
+            isNew -> "Starting"
+            on -> "Connecting"
+            else -> "Disconnected"
+        }
 }

@@ -17,17 +17,14 @@ package com.celzero.bravedns
 
 import android.app.Application
 import android.content.pm.ApplicationInfo
-import com.celzero.bravedns.scheduler.EnhancedBugReport
+import androidx.appfunctions.service.AppFunctionConfiguration
+import com.celzero.bravedns.appfunctions.AppFunctionProvider
 import com.celzero.bravedns.scheduler.ScheduleManager
 import com.celzero.bravedns.scheduler.WorkScheduler
 import com.celzero.bravedns.service.AppUpdater
-import com.celzero.bravedns.service.InAppMessageProvider
-import com.celzero.bravedns.service.PlayInAppMessageProvider
 import com.celzero.bravedns.util.FirebaseErrorReporting
 import com.celzero.bravedns.util.GlobalExceptionHandler
-import com.celzero.bravedns.util.GoReportingHandler
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
@@ -36,7 +33,10 @@ import org.koin.android.ext.koin.androidLogger
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 
-class RethinkDnsApplicationPlay : Application() {
+class RethinkDnsApplicationPlay : Application(), AppFunctionConfiguration.Provider {
+
+    override val appFunctionConfiguration: AppFunctionConfiguration
+        get() = AppFunctionProvider.configuration
 
     override fun onCreate() {
         super.onCreate()
@@ -56,27 +56,16 @@ class RethinkDnsApplicationPlay : Application() {
                         // New Koin override strategy allow to override any definition by default.
                         // don't need to specify override = true anymore in module.
                         single<AppUpdater> { StoreAppUpdater(androidContext()) }
-                        // Play Billing in-app messaging
-                        single<InAppMessageProvider> { PlayInAppMessageProvider() }
                     }
                 )
             )
         }
 
-        val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
-
-        // Initialize exception handlers
+        // Initialize global exception handler
         GlobalExceptionHandler.initialize(this)
         FirebaseErrorReporting.initialize()
-        GoReportingHandler.initialize(appScope, this)
 
-        // On every app start, report any tombstone files from the previous session
-        val appCtx = this
-        appScope.launch(Dispatchers.IO) {
-             EnhancedBugReport.reportTombstonesToFirebaseOnStartup(appCtx)
-        }
-
-        appScope.launch {
+        CoroutineScope(SupervisorJob()).launch {
             scheduleJobs()
         }
     }
