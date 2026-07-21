@@ -225,6 +225,7 @@ fun DnsSettingsScreen(
     onUndelegatedDomainsChange: (Boolean) -> Unit,
     onFallbackChange: (Boolean) -> Unit,
     onBlockFreeDnsModeChange: (BlockFreeDnsMode) -> Unit,
+    onBlockFreeDnsClick: () -> Unit,
     onPreventLeaksChange: (Boolean) -> Unit
 ) {
     val listState = rememberLazyListState()
@@ -506,6 +507,7 @@ fun DnsSettingsScreen(
                             onSelect = { onBlockFreeDnsModeChange(mode) }
                         )
                     }
+                    RethinkListItem(headline = "Choose trusted DNS endpoint", supporting = "Select the resolver used for trusted-DNS bypass", position = CardPosition.Last, onClick = onBlockFreeDnsClick)
                 }
             }
 

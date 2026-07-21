@@ -379,6 +379,10 @@ class PersistentState(context: Context) : KoinComponent {
 
     var showConfettiOnRPlus by store.boolean("show_confetti_on_rplus", true)
 
+    // Compose home onboarding; increment the version when the tour content changes.
+    var guidedTourCompleted by store.boolean("guided_tour_completed", false)
+    var guidedTourVersion by store.int("guided_tour_version", 0)
+
     var autoDialsParallel by store.boolean("auto_dials_parallel", false)
 
     // user setting whether to download ip info for the given ip address

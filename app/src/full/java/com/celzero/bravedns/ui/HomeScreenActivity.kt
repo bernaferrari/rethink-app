@@ -277,6 +277,7 @@ class HomeScreenActivity : ComponentActivity() {
         runCatching { get<CheckoutViewModel>() }.getOrNull()
     }
     private val managePurchaseViewModel by viewModel<com.celzero.bravedns.viewmodel.ManagePurchaseViewModel>()
+    private val blockFreeDnsViewModel by viewModel<com.celzero.bravedns.viewmodel.BlockFreeDnsViewModel>()
     private val purchaseHistoryViewModel by viewModel<com.celzero.bravedns.viewmodel.PurchaseHistoryViewModel>()
     private val serverOrderHistoryViewModel by viewModel<com.celzero.bravedns.viewmodel.ServerOrderHistoryViewModel>()
     private val wgConfigViewModel by viewModel<com.celzero.bravedns.viewmodel.WgConfigViewModel>()
@@ -625,6 +626,7 @@ class HomeScreenActivity : ComponentActivity() {
                         managePurchaseViewModel = managePurchaseViewModel,
                         purchaseHistoryViewModel = purchaseHistoryViewModel,
                         serverOrderHistoryViewModel = serverOrderHistoryViewModel,
+                        blockFreeDnsViewModel = blockFreeDnsViewModel,
                         onNavigateToProxy = { homeNavRequest = HomeNavRequest.ProxySettings },
                         // WgMain callbacks
                         onWgCreateClick = {

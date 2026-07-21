@@ -87,6 +87,7 @@ import com.celzero.bravedns.ui.compose.configure.SettingsSearchDestination
 import com.celzero.bravedns.ui.compose.events.EventsScreen
 import com.celzero.bravedns.ui.compose.firewall.FirewallSettingsScreen
 import com.celzero.bravedns.ui.compose.home.HomeScreen
+import com.celzero.bravedns.ui.compose.home.HomeGuidedTour
 import com.celzero.bravedns.ui.compose.settings.AdvancedSettingsScreen
 import com.celzero.bravedns.ui.compose.settings.AntiCensorshipScreen
 import com.celzero.bravedns.ui.compose.settings.AppLockScreen
@@ -114,6 +115,7 @@ import com.celzero.bravedns.ui.compose.rpn.RpnAvailabilityScreen
 import com.celzero.bravedns.ui.compose.rpn.RpnCountriesScreen
 import com.celzero.bravedns.ui.compose.rpn.RpnWinProxyDetailsScreen
 import com.celzero.bravedns.ui.compose.rpn.RpnAccountScreen
+import com.celzero.bravedns.ui.compose.rpn.RpnServerSettingsScreen
 import com.celzero.bravedns.ui.compose.logs.DomainConnectionsInputType
 import com.celzero.bravedns.ui.compose.logs.DomainConnectionsScreen
 import com.celzero.bravedns.ui.compose.statistics.DetailedStatisticsScreen
@@ -139,6 +141,7 @@ import com.celzero.bravedns.ui.compose.dns.ConfigureRethinkScreenType
 import com.celzero.bravedns.ui.compose.dns.DnsDetailScreen
 import com.celzero.bravedns.ui.compose.dns.DnsListScreen
 import com.celzero.bravedns.ui.compose.dns.DnsSettingsViewModel
+import com.celzero.bravedns.ui.compose.dns.BlockFreeDnsScreen
 import com.celzero.bravedns.viewmodel.LocalBlocklistPacksMapViewModel
 import com.celzero.bravedns.viewmodel.RemoteBlocklistPacksMapViewModel
 import com.celzero.bravedns.viewmodel.RethinkEndpointViewModel
@@ -167,6 +170,7 @@ import com.celzero.bravedns.viewmodel.CheckoutViewModel
 import com.celzero.bravedns.viewmodel.ManagePurchaseViewModel
 import com.celzero.bravedns.viewmodel.PurchaseHistoryViewModel
 import com.celzero.bravedns.viewmodel.ServerOrderHistoryViewModel
+import com.celzero.bravedns.viewmodel.BlockFreeDnsViewModel
 import com.celzero.bravedns.ui.compose.logs.AppWiseDomainLogsScreen
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
 import com.celzero.bravedns.ui.compose.wireguard.WgMainScreen
@@ -371,6 +375,7 @@ fun HomeScreenRoot(
     managePurchaseViewModel: ManagePurchaseViewModel,
     purchaseHistoryViewModel: PurchaseHistoryViewModel,
     serverOrderHistoryViewModel: ServerOrderHistoryViewModel,
+    blockFreeDnsViewModel: BlockFreeDnsViewModel,
     onNavigateToProxy: () -> Unit,
     // WgMain callbacks
     onWgCreateClick: () -> Unit,
@@ -724,6 +729,9 @@ fun HomeScreenRoot(
                 }
             ) {
             composable<HomeRoute.Home> {
+                var showGuidedTour by remember {
+                    mutableStateOf(!persistentState.guidedTourCompleted || persistentState.guidedTourVersion < 1)
+                }
                 HomeScreen(
                     uiState = homeUiState,
                     onStartStopClick = onHomeStartStopClick,
@@ -734,6 +742,11 @@ fun HomeScreenRoot(
                     onAppsClick = onHomeAppsClick,
                     onSponsorClick = onHomeSponsorClick
                 )
+                if (showGuidedTour) HomeGuidedTour {
+                    persistentState.guidedTourCompleted = true
+                    persistentState.guidedTourVersion = 1
+                    showGuidedTour = false
+                }
             }
             composable<HomeRoute.Stats> {
                 SummaryStatisticsScreen(
@@ -748,8 +761,12 @@ fun HomeScreenRoot(
             composable<HomeRoute.RpnCountries> {
                 RpnCountriesScreen(
                     onBackClick = { navController.popBackStack() },
-                    onServerDetails = { navController.navigate(HomeRoute.RpnWinProxyDetails(it)) }
+                    onServerDetails = { navController.navigate(HomeRoute.RpnWinProxyDetails(it)) },
+                    onServerSettings = { navController.navigate(HomeRoute.RpnServerSettings) },
                 )
+            }
+            composable<HomeRoute.RpnServerSettings> {
+                RpnServerSettingsScreen(persistentState = persistentState, onBackClick = { navController.popBackStack() })
             }
             composable<HomeRoute.RpnAvailability> {
                 RpnAvailabilityScreen(onBackClick = { navController.popBackStack() })
@@ -924,8 +941,12 @@ fun HomeScreenRoot(
                     onCustomDnsClick = onDnsCustomDnsClick,
                     onRethinkPlusDnsClick = onDnsRethinkPlusDnsClick,
                     onLocalBlocklistConfigureClick = onDnsLocalBlocklistConfigureClick,
+                    onBlockFreeDnsClick = { navController.navigate(HomeRoute.BlockFreeDns) },
                     onBackClick = { navController.popBackStack() }
                 )
+            }
+            composable<HomeRoute.BlockFreeDns> {
+                BlockFreeDnsScreen(blockFreeDnsViewModel, persistentState) { navController.popBackStack() }
             }
             composable<HomeRoute.AppInfo> { entry ->
                 val args = entry.toRoute<HomeRoute.AppInfo>()

@@ -45,6 +45,9 @@ import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.viewmodel.ManagePurchaseViewModel
 import com.celzero.bravedns.viewmodel.PurchaseHistoryViewModel
 import com.celzero.bravedns.viewmodel.ServerOrderHistoryViewModel
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
 
@@ -61,6 +64,7 @@ fun RpnAccountScreen(
         stringResource(R.string.rpn_account_manage_tab),
         stringResource(R.string.rpn_account_history_tab),
         stringResource(R.string.rpn_account_orders_tab),
+        "Entitlement",
     )
 
     Scaffold(
@@ -84,9 +88,36 @@ fun RpnAccountScreen(
             when (selectedTab) {
                 0 -> ManagePurchaseTab(manageViewModel)
                 1 -> PurchaseHistoryTab(historyViewModel)
-                else -> ServerOrdersTab(ordersViewModel)
+                2 -> ServerOrdersTab(ordersViewModel)
+                else -> EntitlementTab()
             }
         }
+    }
+}
+
+@Composable
+private fun EntitlementTab() {
+    var details by remember { mutableStateOf<List<Pair<String, String>>?>(null) }
+    var error by remember { mutableStateOf<String?>(null) }
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        runCatching {
+            withContext(Dispatchers.IO) {
+                RpnProxyManager.getEntitlementDetails()?.let {
+                    listOf(
+                        "Status" to it.status(), "Client ID" to it.cid().take(12),
+                        "Device ID" to it.did().take(4), "Expiry" to it.expiry().toString(),
+                        "Provider" to it.providerID(), "Allow restore" to it.allowRestore().toString(),
+                    )
+                }
+            }
+        }.onSuccess { details = it }.onFailure { error = it.message ?: "Unable to load entitlement" }
+    }
+    when {
+        error != null -> EmptyAccountState(error.orEmpty())
+        details == null -> Column(Modifier.fillMaxWidth().padding(24.dp)) { CircularProgressIndicator() }
+        else -> LazyColumn(Modifier.fillMaxSize()) { items(details.orEmpty(), key = { it.first }) { (label, value) ->
+            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) { Text(label, style = MaterialTheme.typography.labelMedium); Text(value) }
+        } }
     }
 }
 

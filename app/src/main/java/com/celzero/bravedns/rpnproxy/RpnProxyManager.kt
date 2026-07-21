@@ -1181,6 +1181,21 @@ object RpnProxyManager : KoinComponent {
         return winCacheMutex.withLock { winServersCache.toList() }
     }
 
+    /** Persist a country-level favourite and keep every server in that country in sync. */
+    suspend fun setCountryFavourite(cc: String, favourite: Boolean) {
+        if (cc.isBlank()) return
+        countryConfigRepo.updateFavourite(cc, favourite)
+        winCacheMutex.withLock {
+            winServersCache.filter { it.cc.equals(cc, ignoreCase = true) }.forEach {
+                it.isFavourite = favourite
+            }
+        }
+    }
+
+    /** Most-used country codes, in descending user-selection order. */
+    suspend fun getFrequentCountryCodes(limit: Int = 5): List<String> =
+        countryConfigRepo.getTopFrequentCcs(limit)
+
     suspend fun getWinEntitlement(): ByteArray? {
         val proxy = db.getProxyById(WIN_ID) ?: return null
         val file = File(proxy.serverResPath)
