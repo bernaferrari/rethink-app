@@ -28,6 +28,12 @@ sealed interface HomeRoute {
     data object RpnAvailability : HomeRoute
 
     @Serializable
+    data object RpnServerSettings : HomeRoute
+
+    @Serializable
+    data object BlockFreeDns : HomeRoute
+
+    @Serializable
     data object Events : HomeRoute
 
     @Serializable

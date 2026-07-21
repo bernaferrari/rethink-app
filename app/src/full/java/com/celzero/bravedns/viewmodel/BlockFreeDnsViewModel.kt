@@ -30,6 +30,9 @@ import com.celzero.bravedns.database.RethinkDnsEndpointDao
 import com.celzero.bravedns.util.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 
 class BlockFreeDnsViewModel(
     private val rethinkDao: RethinkDnsEndpointDao,
@@ -49,6 +52,8 @@ class BlockFreeDnsViewModel(
 
     val filteredItems: LiveData<List<BlockFreeDnsItem>> get() = _filteredItems
     private val _filteredItems = MutableLiveData<List<BlockFreeDnsItem>>()
+    private val _filteredItemsFlow = MutableStateFlow<List<BlockFreeDnsItem>>(emptyList())
+    val filteredItemsFlow: StateFlow<List<BlockFreeDnsItem>> = _filteredItemsFlow.asStateFlow()
 
     init {
         load()
@@ -170,5 +175,6 @@ class BlockFreeDnsViewModel(
     private fun applyFilter(type: BlockFreeDnsType?, items: List<BlockFreeDnsItem>) {
         val filtered = if (type == null) items else items.filter { it.type == type }
         _filteredItems.postValue(filtered)
+        _filteredItemsFlow.value = filtered
     }
 }

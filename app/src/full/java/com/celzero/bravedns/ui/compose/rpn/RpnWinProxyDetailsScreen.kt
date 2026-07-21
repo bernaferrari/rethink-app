@@ -28,6 +28,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +37,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -54,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.database.CountryConfig
+import com.celzero.bravedns.data.SsidItem
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.service.ProxyManager
@@ -88,6 +92,7 @@ fun RpnWinProxyDetailsScreen(
     var isProxyActive by remember { mutableStateOf(false) }
     var serverConfig by remember { mutableStateOf<CountryConfig?>(null) }
     var showNoProxyFoundDialog by remember { mutableStateOf(false) }
+    var showSsidEditor by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
     LaunchedEffect(countryCode) {
@@ -187,6 +192,11 @@ fun RpnWinProxyDetailsScreen(
                             RpnProxyManager.setMobileOnlyForWinServer(config.key, enabled)
                         }
                     },
+                    onSsidChanged = { enabled ->
+                        serverConfig = config.copy(ssidBased = enabled)
+                        scope.launch(Dispatchers.IO) { RpnProxyManager.setSsidEnabledForWinServer(config.key, enabled) }
+                    },
+                    onEditSsids = { showSsidEditor = true },
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
@@ -199,6 +209,18 @@ fun RpnWinProxyDetailsScreen(
             }, label = selectAppsLabel)
         }
     }
+    if (showSsidEditor) {
+        val config = serverConfig
+        if (config != null) SsidEditorDialog(
+            initialValue = config.ssids,
+            onDismiss = { showSsidEditor = false },
+            onSave = { ssids ->
+                showSsidEditor = false
+                scope.launch(Dispatchers.IO) { RpnProxyManager.updateSsids(config.key, ssids) }
+                serverConfig = config.copy(ssids = ssids)
+            },
+        )
+    }
 }
 
 @Composable
@@ -208,6 +230,8 @@ private fun ServerOptionsSection(
     onCatchAllChanged: (Boolean) -> Unit,
     onLockdownChanged: (Boolean) -> Unit,
     onMobileOnlyChanged: (Boolean) -> Unit,
+    onSsidChanged: (Boolean) -> Unit,
+    onEditSsids: () -> Unit,
 ) {
     Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
         Text(
@@ -235,7 +259,25 @@ private fun ServerOptionsSection(
             checked = config.mobileOnly,
             onCheckedChange = onMobileOnlyChanged,
         )
+        ServerOptionRow(label = "Only on selected Wi‑Fi", checked = config.ssidBased, onCheckedChange = onSsidChanged)
+        TextButton(onClick = onEditSsids, enabled = config.ssidBased) { Text("Edit Wi‑Fi networks") }
     }
+}
+
+@Composable
+private fun SsidEditorDialog(initialValue: String, onDismiss: () -> Unit, onSave: (String) -> Unit) {
+    var value by remember(initialValue) { mutableStateOf(SsidItem.parseStorageList(initialValue).joinToString("\n") { it.name }) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Wi‑Fi networks") },
+        text = { OutlinedTextField(value = value, onValueChange = { value = it }, label = { Text("Networks, one per line") }, minLines = 3) },
+        confirmButton = { TextButton(onClick = {
+            onSave(SsidItem.toStorageList(value.lines().map(String::trim).filter(String::isNotBlank).distinct().map {
+                SsidItem(it, SsidItem.SsidType.EQUAL_WILDCARD)
+            }))
+        }) { Text("Save") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+    )
 }
 
 @Composable

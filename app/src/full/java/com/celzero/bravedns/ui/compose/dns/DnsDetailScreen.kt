@@ -123,6 +123,7 @@ fun DnsDetailScreen(
     onCustomDnsClick: () -> Unit,
     onRethinkPlusDnsClick: () -> Unit,
     onLocalBlocklistConfigureClick: () -> Unit,
+    onBlockFreeDnsClick: () -> Unit,
     onBackClick: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
@@ -595,6 +596,7 @@ fun DnsDetailScreen(
         onUndelegatedDomainsChange = { viewModel.setUseSystemDnsForUndelegatedDomains(it) },
         onFallbackChange = { viewModel.setUseFallbackDnsToBypass(it) },
         onBlockFreeDnsModeChange = { viewModel.setBlockFreeDnsMode(it) },
+        onBlockFreeDnsClick = onBlockFreeDnsClick,
         onPreventLeaksChange = { viewModel.setPreventDnsLeaksEnabled(it) }
     )
 
