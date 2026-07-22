@@ -83,6 +83,7 @@ import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBarLazyColumnScreen
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.compose.theme.cardPositionFor
+import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 import com.celzero.bravedns.util.UIUtils.formatBytes
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel
 import com.celzero.bravedns.viewmodel.SummaryStatisticsViewModel.TimeCategory
@@ -94,6 +95,7 @@ fun SummaryStatisticsScreen(
     persistentState: PersistentState,
     onSeeMoreClick: (SummaryStatisticsType) -> Unit
 ) {
+    val reduceMotion = rememberReducedMotion()
     val uiState by viewModel.uiState.collectAsState()
     val listState = rememberLazyListState()
 
@@ -141,7 +143,8 @@ fun SummaryStatisticsScreen(
                         accentColor = MaterialTheme.colorScheme.primary,
                         onSeeMoreClick = onSeeMoreClick,
                         viewModel = viewModel,
-                        refreshToken = uiState.timeCategory
+                        refreshToken = uiState.timeCategory,
+                        reduceMotion = reduceMotion,
                     )
                 }
             }
@@ -155,7 +158,8 @@ fun SummaryStatisticsScreen(
                         accentColor = MaterialTheme.colorScheme.error,
                         onSeeMoreClick = onSeeMoreClick,
                         viewModel = viewModel,
-                        refreshToken = uiState.timeCategory
+                        refreshToken = uiState.timeCategory,
+                        reduceMotion = reduceMotion,
                     )
                 }
             }
@@ -169,7 +173,8 @@ fun SummaryStatisticsScreen(
                         accentColor = MaterialTheme.colorScheme.tertiary,
                         onSeeMoreClick = onSeeMoreClick,
                         viewModel = viewModel,
-                        refreshToken = uiState.timeCategory
+                        refreshToken = uiState.timeCategory,
+                        reduceMotion = reduceMotion,
                     )
                 }
             }
@@ -184,7 +189,8 @@ fun SummaryStatisticsScreen(
                             accentColor = MaterialTheme.colorScheme.secondary,
                             onSeeMoreClick = onSeeMoreClick,
                             viewModel = viewModel,
-                            refreshToken = uiState.timeCategory
+                            refreshToken = uiState.timeCategory,
+                            reduceMotion = reduceMotion,
                         )
                     }
                 }
@@ -198,7 +204,8 @@ fun SummaryStatisticsScreen(
                             accentColor = MaterialTheme.colorScheme.error,
                             onSeeMoreClick = onSeeMoreClick,
                             viewModel = viewModel,
-                            refreshToken = uiState.timeCategory
+                            refreshToken = uiState.timeCategory,
+                            reduceMotion = reduceMotion,
                         )
                     }
                 }
@@ -212,7 +219,8 @@ fun SummaryStatisticsScreen(
                     accentColor = MaterialTheme.colorScheme.secondary,
                     onSeeMoreClick = onSeeMoreClick,
                     viewModel = viewModel,
-                    refreshToken = uiState.timeCategory
+                    refreshToken = uiState.timeCategory,
+                    reduceMotion = reduceMotion,
                 )
             }
 
@@ -224,7 +232,8 @@ fun SummaryStatisticsScreen(
                     accentColor = MaterialTheme.colorScheme.error,
                     onSeeMoreClick = onSeeMoreClick,
                     viewModel = viewModel,
-                    refreshToken = uiState.timeCategory
+                    refreshToken = uiState.timeCategory,
+                    reduceMotion = reduceMotion,
                 )
             }
 
@@ -236,7 +245,8 @@ fun SummaryStatisticsScreen(
                     accentColor = MaterialTheme.colorScheme.secondary,
                     onSeeMoreClick = onSeeMoreClick,
                     viewModel = viewModel,
-                    refreshToken = uiState.timeCategory
+                    refreshToken = uiState.timeCategory,
+                    reduceMotion = reduceMotion,
                 )
             }
 
@@ -248,7 +258,8 @@ fun SummaryStatisticsScreen(
                     accentColor = MaterialTheme.colorScheme.error,
                     onSeeMoreClick = onSeeMoreClick,
                     viewModel = viewModel,
-                    refreshToken = uiState.timeCategory
+                    refreshToken = uiState.timeCategory,
+                    reduceMotion = reduceMotion,
                 )
             }
 
@@ -261,7 +272,8 @@ fun SummaryStatisticsScreen(
                         accentColor = MaterialTheme.colorScheme.primary,
                         onSeeMoreClick = onSeeMoreClick,
                         viewModel = viewModel,
-                        refreshToken = uiState.timeCategory
+                        refreshToken = uiState.timeCategory,
+                        reduceMotion = reduceMotion,
                     )
                 }
             }
@@ -416,7 +428,8 @@ private fun SummaryStatSection(
     accentColor: Color,
     onSeeMoreClick: (SummaryStatisticsType) -> Unit,
     viewModel: SummaryStatisticsViewModel,
-    refreshToken: TimeCategory
+    refreshToken: TimeCategory,
+    reduceMotion: Boolean,
 ) {
     val isCountrySection = type == SummaryStatisticsType.MOST_CONTACTED_COUNTRIES
     val refreshState = pagingItems.loadState.refresh
@@ -590,21 +603,28 @@ private fun SummaryStatSection(
                         }
                     )
 
-                    AnimatedVisibility(
-                        visible = isExpanded && item.flag.isNotBlank(),
-                        enter = expandVertically(
-                            animationSpec = sizeSpec
-                        ),
-                        exit = shrinkVertically(
-                            animationSpec = sizeSpec
-                        )
-                    ) {
-                        CountryBreakdown(
-                            flag = item.flag,
-                            accentColor = accentColor,
-                            viewModel = viewModel,
-                            refreshToken = refreshToken
-                        )
+                    if (reduceMotion) {
+                        if (isExpanded && item.flag.isNotBlank()) {
+                            CountryBreakdown(
+                                flag = item.flag,
+                                accentColor = accentColor,
+                                viewModel = viewModel,
+                                refreshToken = refreshToken,
+                            )
+                        }
+                    } else {
+                        AnimatedVisibility(
+                            visible = isExpanded && item.flag.isNotBlank(),
+                            enter = expandVertically(animationSpec = sizeSpec),
+                            exit = shrinkVertically(animationSpec = sizeSpec),
+                        ) {
+                            CountryBreakdown(
+                                flag = item.flag,
+                                accentColor = accentColor,
+                                viewModel = viewModel,
+                                refreshToken = refreshToken,
+                            )
+                        }
                     }
                 }
 
@@ -613,14 +633,24 @@ private fun SummaryStatSection(
                 }
 
                 if (isCountrySection && extraCountryItems.isNotEmpty()) {
-                    AnimatedVisibility(
-                        visibleState = showAllVisibilityState,
-                        enter = expandVertically(animationSpec = sizeSpec),
-                        exit = shrinkVertically(animationSpec = sizeSpec)
-                    ) {
-                        Column {
-                            extraCountryItems.forEachIndexed { extraIndex, item ->
-                                renderRow(baseItems.size + extraIndex, item)
+                    if (reduceMotion) {
+                        if (showAllInlineCountries) {
+                            Column {
+                                extraCountryItems.forEachIndexed { extraIndex, item ->
+                                    renderRow(baseItems.size + extraIndex, item)
+                                }
+                            }
+                        }
+                    } else {
+                        AnimatedVisibility(
+                            visibleState = showAllVisibilityState,
+                            enter = expandVertically(animationSpec = sizeSpec),
+                            exit = shrinkVertically(animationSpec = sizeSpec),
+                        ) {
+                            Column {
+                                extraCountryItems.forEachIndexed { extraIndex, item ->
+                                    renderRow(baseItems.size + extraIndex, item)
+                                }
                             }
                         }
                     }

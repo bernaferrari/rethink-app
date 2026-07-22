@@ -18,6 +18,12 @@ package com.celzero.bravedns.ui.compose.logs
 import android.content.Context
 import android.graphics.drawable.Drawable
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -71,6 +77,7 @@ import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
+import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Utilities
@@ -315,6 +322,7 @@ internal fun AppWiseSearchHeaderRow(
 ) {
     val clearSearchContentDescription = stringResource(R.string.cd_clear_search)
     val deleteContentDescription = stringResource(R.string.lbl_delete)
+    val reduceMotion = rememberReducedMotion()
     var query by remember { mutableStateOf("") }
 
     LaunchedEffect(Unit) {
@@ -378,7 +386,11 @@ internal fun AppWiseSearchHeaderRow(
                 )
             )
 
-            AnimatedVisibility(visible = query.isNotEmpty()) {
+            AnimatedVisibility(
+                visible = query.isNotEmpty(),
+                enter = if (reduceMotion) EnterTransition.None else expandVertically() + fadeIn(),
+                exit = if (reduceMotion) ExitTransition.None else shrinkVertically() + fadeOut(),
+            ) {
                 IconButton(onClick = { query = "" }) {
                     Icon(
                         imageVector = Icons.Filled.Close,
