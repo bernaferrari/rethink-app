@@ -4,8 +4,6 @@
  */
 package com.celzero.bravedns.ui.compose.rpn
 
-import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,21 +23,25 @@ import androidx.compose.material3.PrimaryTabRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.Observer
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.SubscriptionStateHistory
+import com.celzero.bravedns.iab.InAppBillingHandler
+import com.celzero.bravedns.iab.ServerApiError
 import com.celzero.bravedns.iab.ServerOrderEntry
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.viewmodel.ManagePurchaseViewModel
@@ -60,6 +62,14 @@ fun RpnAccountScreen(
     onBackClick: () -> Unit,
 ) {
     var selectedTab by remember { mutableIntStateOf(0) }
+    var showSupport by remember { mutableStateOf(false) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    var serverError by remember { mutableStateOf(InAppBillingHandler.serverApiErrorLiveData.value) }
+    DisposableEffect(lifecycleOwner) {
+        val observer = Observer<ServerApiError?> { serverError = it }
+        InAppBillingHandler.serverApiErrorLiveData.observe(lifecycleOwner, observer)
+        onDispose { InAppBillingHandler.serverApiErrorLiveData.removeObserver(observer) }
+    }
     val tabs = listOf(
         stringResource(R.string.rpn_account_manage_tab),
         stringResource(R.string.rpn_account_history_tab),
@@ -86,12 +96,25 @@ fun RpnAccountScreen(
                 }
             }
             when (selectedTab) {
-                0 -> ManagePurchaseTab(manageViewModel)
+                0 -> ManagePurchaseTab(manageViewModel, onSupportClick = { showSupport = true })
                 1 -> PurchaseHistoryTab(historyViewModel)
                 2 -> ServerOrdersTab(ordersViewModel)
                 else -> EntitlementTab()
             }
         }
+    }
+    serverError?.let { error ->
+        ServerErrorRecoveryDialog(
+            error = error,
+            onDismiss = { InAppBillingHandler.serverApiErrorLiveData.value = null },
+            onGetHelp = {
+                InAppBillingHandler.serverApiErrorLiveData.value = null
+                showSupport = true
+            },
+        )
+    }
+    if (showSupport) {
+        RpnSupportDialog(onDismiss = { showSupport = false })
     }
 }
 
@@ -122,8 +145,7 @@ private fun EntitlementTab() {
 }
 
 @Composable
-private fun ManagePurchaseTab(viewModel: ManagePurchaseViewModel) {
-    val context = LocalContext.current
+private fun ManagePurchaseTab(viewModel: ManagePurchaseViewModel, onSupportClick: () -> Unit) {
     val state by viewModel.operationState.collectAsStateWithLifecycle()
     var confirmCancel by remember { mutableStateOf(false) }
     var confirmRevoke by remember { mutableStateOf(false) }
@@ -165,13 +187,7 @@ private fun ManagePurchaseTab(viewModel: ManagePurchaseViewModel) {
         ) { Text(stringResource(R.string.rpn_account_revoke)) }
         Button(
             modifier = Modifier.fillMaxWidth(),
-            onClick = {
-                val email = context.getString(R.string.about_mail_to)
-                val intent = Intent(Intent.ACTION_SENDTO, Uri.parse("mailto:$email")).apply {
-                    putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.rpn_support_subject))
-                }
-                runCatching { context.startActivity(intent) }
-            },
+            onClick = onSupportClick,
         ) { Text(stringResource(R.string.rpn_account_support)) }
     }
 
@@ -195,6 +211,34 @@ private fun ManagePurchaseTab(viewModel: ManagePurchaseViewModel) {
             },
         )
     }
+}
+
+@Composable
+private fun ServerErrorRecoveryDialog(
+    error: ServerApiError,
+    onDismiss: () -> Unit,
+    onGetHelp: () -> Unit,
+) {
+    val details = when (error) {
+        is ServerApiError.Conflict409 -> buildString {
+            append("The subscription service reported a conflict while ${error.operation.name.lowercase()}.")
+            error.serverMessage?.takeIf(String::isNotBlank)?.let { append("\n\n$it") }
+        }
+        is ServerApiError.Unauthorized401 ->
+            "The subscription service could not verify this device. Open support to send a diagnostic report."
+        is ServerApiError.DeviceNotRegistered ->
+            "This device is not registered with the current entitlement. Open support to send a diagnostic report."
+        is ServerApiError.GenericError -> error.message
+        is ServerApiError.NetworkError -> error.message ?: "A network error interrupted the subscription request."
+        ServerApiError.None -> return
+    }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Subscription needs attention") },
+        text = { Text(details) },
+        confirmButton = { TextButton(onClick = onGetHelp) { Text("Contact support") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } },
+    )
 }
 
 @Composable
