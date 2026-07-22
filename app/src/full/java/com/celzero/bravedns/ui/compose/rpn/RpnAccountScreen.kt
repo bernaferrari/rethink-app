@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -46,8 +47,11 @@ import com.celzero.bravedns.iab.ServerOrderEntry
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.RethinkActionListItem
+import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
+import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 import com.celzero.bravedns.viewmodel.ManagePurchaseViewModel
 import com.celzero.bravedns.viewmodel.PurchaseHistoryViewModel
 import com.celzero.bravedns.viewmodel.ServerOrderHistoryViewModel
@@ -151,9 +155,25 @@ private fun EntitlementTab() {
     when {
         error != null -> EmptyAccountState(error.orEmpty())
         details == null -> Column(Modifier.fillMaxWidth().padding(24.dp)) { CircularProgressIndicator() }
-        else -> LazyColumn(Modifier.fillMaxSize()) { items(details.orEmpty(), key = { it.first }) { (label, value) ->
-            Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) { Text(label, style = MaterialTheme.typography.labelMedium); Text(value) }
-        } }
+        else -> {
+            val currentDetails = details.orEmpty()
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+            ) {
+                item {
+                    RethinkListGroup {
+                        currentDetails.forEachIndexed { index, (label, value) ->
+                            RethinkListItem(
+                                headline = label,
+                                supporting = value,
+                                position = cardPositionFor(index, currentDetails.lastIndex),
+                            )
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
@@ -283,21 +303,23 @@ private fun PurchaseHistoryTab(viewModel: PurchaseHistoryViewModel) {
     }
     LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
         items(count = history.itemCount, key = history.itemKey { it.id }) { index ->
-            history[index]?.let { HistoryRow(it) }
+            history[index]?.let {
+                HistoryRow(
+                    item = it,
+                    position = cardPositionFor(index, history.itemCount - 1),
+                )
+            }
         }
     }
 }
 
 @Composable
-private fun HistoryRow(item: SubscriptionStateHistory) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
-        Text("${item.fromStateName} → ${item.toStateName}", fontWeight = FontWeight.Medium)
-        item.reason?.takeIf(String::isNotBlank)?.let {
-            Text(it, style = MaterialTheme.typography.bodySmall)
-        }
-        Text(formatTime(item.timestamp), style = MaterialTheme.typography.labelSmall)
-    }
-}
+private fun HistoryRow(item: SubscriptionStateHistory, position: CardPosition) =
+    RethinkListItem(
+        headline = "${item.fromStateName} → ${item.toStateName}",
+        supporting = listOfNotNull(item.reason?.takeIf(String::isNotBlank), formatTime(item.timestamp)).joinToString(" · "),
+        position = position,
+    )
 
 @Composable
 private fun ServerOrdersTab(viewModel: ServerOrderHistoryViewModel) {
@@ -314,32 +336,40 @@ private fun ServerOrdersTab(viewModel: ServerOrderHistoryViewModel) {
             }
         is ServerOrderHistoryViewModel.UiState.Success ->
             LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(current.orders, key = ServerOrderEntry::purchaseToken) { OrderRow(it) }
+                itemsIndexed(current.orders, key = { _, order -> order.purchaseToken }) { index, order ->
+                    OrderRow(
+                        item = order,
+                        position = cardPositionFor(index, current.orders.lastIndex),
+                    )
+                }
             }
     }
 }
 
 @Composable
-private fun OrderRow(item: ServerOrderEntry) {
+private fun OrderRow(item: ServerOrderEntry, position: CardPosition) {
     val state = item.subscriptionState ?: when (item.purchaseState) {
         ServerOrderEntry.PURCHASE_STATE_PURCHASED -> "PURCHASED"
         ServerOrderEntry.PURCHASE_STATE_PENDING -> "PENDING"
         else -> "UNKNOWN"
     }
-    Column(Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp)) {
-        Text(item.productId.ifBlank { item.sku }, fontWeight = FontWeight.Medium)
-        Text(state.removePrefix("SUBSCRIPTION_STATE_").replace('_', ' ').lowercase().replaceFirstChar(Char::uppercase))
-        val time = listOf(item.expiryTimeMs, item.purchaseTimeMs, item.mtime).firstOrNull { it > 0L } ?: 0L
-        if (time > 0L) Text(formatTime(time), style = MaterialTheme.typography.labelSmall)
-    }
+    val time = listOf(item.expiryTimeMs, item.purchaseTimeMs, item.mtime).firstOrNull { it > 0L } ?: 0L
+    RethinkListItem(
+        headline = item.productId.ifBlank { item.sku },
+        supporting =
+            listOfNotNull(
+                state.removePrefix("SUBSCRIPTION_STATE_").replace('_', ' ').lowercase().replaceFirstChar(Char::uppercase),
+                formatTime(time).takeIf { time > 0L },
+            ).joinToString(" · "),
+        position = position,
+    )
 }
 
 @Composable
 private fun EmptyAccountState(message: String) {
-    Text(
-        text = message,
+    CompactEmptyState(
+        message = message,
         modifier = Modifier.fillMaxWidth().padding(24.dp),
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
     )
 }
 

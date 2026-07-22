@@ -19,6 +19,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Spacer
@@ -44,6 +45,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 
 @Composable
 fun StartStopButton(
@@ -51,11 +53,12 @@ fun StartStopButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val reduceMotion = rememberReducedMotion()
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.94f else 1f,
-        animationSpec = spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium),
+        animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium),
         label = "buttonScale"
     )
 
@@ -73,7 +76,7 @@ fun StartStopButton(
     val icon = if (isPlaying) Icons.Filled.Stop else Icons.Filled.PlayArrow
     val cornerRadius by animateDpAsState(
         targetValue = if (isPlaying) Dimensions.cornerRadiusSmMd else Dimensions.buttonCornerRadius,
-        animationSpec = spring(dampingRatio = 0.72f, stiffness = Spring.StiffnessMediumLow),
+        animationSpec = if (reduceMotion) snap() else spring(dampingRatio = 0.72f, stiffness = Spring.StiffnessMediumLow),
         label = "startStopCornerRadius"
     )
 

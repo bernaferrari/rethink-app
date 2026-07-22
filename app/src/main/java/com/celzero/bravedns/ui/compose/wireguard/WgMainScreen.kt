@@ -18,6 +18,7 @@ package com.celzero.bravedns.ui.compose.wireguard
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
@@ -96,6 +97,7 @@ import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
+import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
 import kotlinx.coroutines.Dispatchers
@@ -123,6 +125,7 @@ fun WgMainScreen(
     onConfigDetailClick: (Int, WgType) -> Unit
 ) {
     val context = LocalContext.current
+    val reduceMotion = rememberReducedMotion()
     val density = LocalDensity.current
     val navBarBottomInset = with(density) { WindowInsets.navigationBars.getBottom(density).toDp() }
     val splitFabBottomPadding = navBarBottomInset + 12.dp
@@ -288,6 +291,7 @@ fun WgMainScreen(
                     .align(Alignment.BottomCenter)
                     .padding(start = 16.dp, end = 16.dp, bottom = splitFabBottomPadding),
                 expanded = isFabMenuExpanded,
+                reduceMotion = reduceMotion,
                 onExpandedChange = { isFabMenuExpanded = it },
                 onCreateClick = {
                     isFabMenuExpanded = false
@@ -455,6 +459,7 @@ private fun WireguardOverviewCard(disclaimerText: String) {
 private fun WgSplitFab(
     modifier: Modifier,
     expanded: Boolean,
+    reduceMotion: Boolean,
     onExpandedChange: (Boolean) -> Unit,
     onCreateClick: () -> Unit,
     onImportClick: () -> Unit,
@@ -509,6 +514,7 @@ private fun WgSplitFab(
                         ) {
                             val rotation by animateFloatAsState(
                                 targetValue = if (expanded) 180f else 0f,
+                                animationSpec = if (reduceMotion) snap() else androidx.compose.animation.core.tween(),
                                 label = "wgSplitArrowRotation"
                             )
                             Icon(

@@ -19,26 +19,22 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -46,7 +42,8 @@ import androidx.compose.ui.unit.dp
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.components.ConnectionRow
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.util.UIUtils.getCountryNameFromFlag
 import com.celzero.bravedns.viewmodel.DomainConnectionsViewModel
 
@@ -61,9 +58,9 @@ fun DomainConnectionsScreen(
     ip: String,
     isBlocked: Boolean,
     timeCategory: DomainConnectionsViewModel.TimeCategory,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
 ) {
-    val titleText =
+    val title =
         when (type) {
             DomainConnectionsInputType.DOMAIN -> domain
             DomainConnectionsInputType.FLAG ->
@@ -71,82 +68,43 @@ fun DomainConnectionsScreen(
             DomainConnectionsInputType.ASN -> asn
             DomainConnectionsInputType.IP -> ip
         }
-    val subtitleText = subtitleFor(timeCategory)
+    val subtitle = subtitleFor(timeCategory)
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     LaunchedEffect(type, flag, domain, asn, ip, isBlocked) {
         when (type) {
-            DomainConnectionsInputType.DOMAIN -> {
-                viewModel.setDomain(domain, isBlocked)
-            }
-            DomainConnectionsInputType.FLAG -> {
-                viewModel.setFlag(flag)
-            }
-            DomainConnectionsInputType.ASN -> {
-                viewModel.setAsn(asn, isBlocked)
-            }
-            DomainConnectionsInputType.IP -> {
-                viewModel.setIp(ip, isBlocked)
-            }
+            DomainConnectionsInputType.DOMAIN -> viewModel.setDomain(domain, isBlocked)
+            DomainConnectionsInputType.FLAG -> viewModel.setFlag(flag)
+            DomainConnectionsInputType.ASN -> viewModel.setAsn(asn, isBlocked)
+            DomainConnectionsInputType.IP -> viewModel.setIp(ip, isBlocked)
         }
     }
-
-    LaunchedEffect(timeCategory) {
-        viewModel.timeCategoryChanged(timeCategory)
-    }
+    LaunchedEffect(timeCategory) { viewModel.timeCategoryChanged(timeCategory) }
 
     Scaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            RethinkTopBar(
-                title = stringResource(id = R.string.app_name_small_case),
-                onBackClick = onBackClick
+            RethinkLargeTopBar(
+                title = title,
+                subtitle = subtitle,
+                onBackClick = onBackClick,
+                scrollBehavior = scrollBehavior,
             )
-        }
+        },
     ) { paddingValues ->
-        Column(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
-            Header(titleText, subtitleText)
-            Box(modifier = Modifier.fillMaxSize()) {
-                ConnectionsList(viewModel, type)
-                if (shouldShowEmpty(viewModel, type)) {
-                    EmptyState()
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun Header(title: String, subtitle: String) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-    ) {
-        Text(
-            text = stringResource(id = R.string.app_name_small_case),
-            style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.alpha(0.5f)
+        ConnectionsContent(
+            viewModel = viewModel,
+            type = type,
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
         )
-        Spacer(modifier = Modifier.size(6.dp))
-        Column {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.headlineSmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-        }
     }
 }
 
 @Composable
-private fun ConnectionsList(
+private fun ConnectionsContent(
     viewModel: DomainConnectionsViewModel,
-    type: DomainConnectionsInputType
+    type: DomainConnectionsInputType,
+    modifier: Modifier = Modifier,
 ) {
     val connectionFlow =
         when (type) {
@@ -156,84 +114,77 @@ private fun ConnectionsList(
             DomainConnectionsInputType.IP -> viewModel.ipConnectionList
         }
     val items = connectionFlow.collectAsLazyPagingItems()
+    val isEmpty = items.itemCount == 0 && items.loadState.append.endOfPaginationReached
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(count = items.itemCount) { index ->
-            val item = items[index] ?: return@items
-            ConnectionRow(item)
+    Box(modifier = modifier) {
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding =
+                PaddingValues(
+                    horizontal = Dimensions.screenPaddingHorizontal,
+                    vertical = Dimensions.spacingSm,
+                ),
+            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
+        ) {
+            items(count = items.itemCount) { index ->
+                val item = items[index] ?: return@items
+                ConnectionRow(item)
+            }
         }
+        if (isEmpty) ConnectionsEmptyState()
     }
 }
 
 @Composable
-private fun EmptyState() {
+private fun ConnectionsEmptyState() {
     Column(
         modifier =
             Modifier
                 .fillMaxSize()
-                .padding(24.dp),
+                .padding(Dimensions.spacingXl),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
-        Text(
-            text = stringResource(id = R.string.blocklist_update_check_failure),
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(bottom = 16.dp)
-        )
         Image(
-            painter = painterResource(id = R.drawable.illustrations_no_record),
+            painter = painterResource(R.drawable.illustrations_no_record),
             contentDescription = null,
-            modifier = Modifier.size(220.dp)
+            modifier = Modifier.size(168.dp),
+        )
+        Text(
+            text = stringResource(R.string.ada_ip_no_connection),
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(top = Dimensions.spacingLg),
         )
     }
 }
 
 @Composable
-private fun subtitleFor(timeCategory: DomainConnectionsViewModel.TimeCategory): String {
-    return when (timeCategory) {
-        DomainConnectionsViewModel.TimeCategory.ONE_HOUR -> {
+private fun subtitleFor(timeCategory: DomainConnectionsViewModel.TimeCategory): String =
+    when (timeCategory) {
+        DomainConnectionsViewModel.TimeCategory.ONE_HOUR ->
             stringResource(
-                id = R.string.three_argument,
-                stringResource(id = R.string.lbl_last),
-                stringResource(id = R.string.numeric_one),
-                stringResource(id = R.string.lbl_hour)
+                R.string.three_argument,
+                stringResource(R.string.lbl_last),
+                stringResource(R.string.numeric_one),
+                stringResource(R.string.lbl_hour),
             )
-        }
-        DomainConnectionsViewModel.TimeCategory.TWENTY_FOUR_HOUR -> {
+        DomainConnectionsViewModel.TimeCategory.TWENTY_FOUR_HOUR ->
             stringResource(
-                id = R.string.three_argument,
-                stringResource(id = R.string.lbl_last),
-                stringResource(id = R.string.numeric_twenty_four),
-                stringResource(id = R.string.lbl_hour)
+                R.string.three_argument,
+                stringResource(R.string.lbl_last),
+                stringResource(R.string.numeric_twenty_four),
+                stringResource(R.string.lbl_hour),
             )
-        }
-        DomainConnectionsViewModel.TimeCategory.SEVEN_DAYS -> {
+        DomainConnectionsViewModel.TimeCategory.SEVEN_DAYS ->
             stringResource(
-                id = R.string.three_argument,
-                stringResource(id = R.string.lbl_last),
-                stringResource(id = R.string.numeric_seven),
-                stringResource(id = R.string.lbl_day)
+                R.string.three_argument,
+                stringResource(R.string.lbl_last),
+                stringResource(R.string.numeric_seven),
+                stringResource(R.string.lbl_day),
             )
-        }
     }
-}
-
-@Composable
-private fun shouldShowEmpty(
-    viewModel: DomainConnectionsViewModel,
-    type: DomainConnectionsInputType
-): Boolean {
-    val connectionFlow =
-        when (type) {
-            DomainConnectionsInputType.DOMAIN -> viewModel.domainConnectionList
-            DomainConnectionsInputType.FLAG -> viewModel.flagConnectionList
-            DomainConnectionsInputType.ASN -> viewModel.asnConnectionList
-            DomainConnectionsInputType.IP -> viewModel.ipConnectionList
-        }
-    val items = connectionFlow.collectAsLazyPagingItems()
-    return items.itemCount == 0 && items.loadState.append.endOfPaginationReached
-}
 
 enum class DomainConnectionsInputType(val type: Int) {
     DOMAIN(0),
@@ -242,8 +193,7 @@ enum class DomainConnectionsInputType(val type: Int) {
     IP(3);
 
     companion object {
-        fun fromValue(value: Int): DomainConnectionsInputType {
-            return entries.firstOrNull { it.type == value } ?: DOMAIN
-        }
+        fun fromValue(value: Int): DomainConnectionsInputType =
+            entries.firstOrNull { it.type == value } ?: DOMAIN
     }
 }

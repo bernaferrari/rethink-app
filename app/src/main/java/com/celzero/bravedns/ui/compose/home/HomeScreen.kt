@@ -19,6 +19,7 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -70,6 +71,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.ui.compose.theme.cardPositionFor
@@ -295,6 +297,7 @@ private fun ProtectionCard(
     uiState: HomeScreenUiState,
     onStartStopClick: () -> Unit
 ) {
+    val reduceMotion = rememberReducedMotion()
     val statusColors = rememberHomeStatusIconTints()
     val iconGlyphTint = MaterialTheme.colorScheme.onPrimaryFixed.copy(alpha = 0.8f)
     val outlineVariant = MaterialTheme.colorScheme.outlineVariant
@@ -326,19 +329,19 @@ private fun ProtectionCard(
 
     val accentColor by animateColorAsState(
         targetValue = targetAccentColor,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        animationSpec = if (reduceMotion) snap() else spring(stiffness = Spring.StiffnessLow),
         label = "protectionCardAccent"
     )
 
     val containerColor by animateColorAsState(
         targetValue = targetContainerColor,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        animationSpec = if (reduceMotion) snap() else spring(stiffness = Spring.StiffnessLow),
         label = "protectionCardIconContainer"
     )
 
     val borderColor by animateColorAsState(
         targetValue = targetBorderColor,
-        animationSpec = spring(stiffness = Spring.StiffnessLow),
+        animationSpec = if (reduceMotion) snap() else spring(stiffness = Spring.StiffnessLow),
         label = "protectionCardBorder"
     )
 
@@ -346,7 +349,7 @@ private fun ProtectionCard(
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessHigh),
+        animationSpec = if (reduceMotion) snap() else spring(stiffness = Spring.StiffnessHigh),
         label = "pressScale"
     )
 

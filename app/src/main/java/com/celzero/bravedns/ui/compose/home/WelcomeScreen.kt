@@ -20,6 +20,8 @@ package com.celzero.bravedns.ui.compose.home
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.spring
@@ -75,10 +77,12 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 import kotlinx.coroutines.launch
 
 @Composable
 fun WelcomeScreen(onFinish: () -> Unit) {
+    val reduceMotion = rememberReducedMotion()
     val slides = remember {
         listOf(
             WelcomeSlide(R.drawable.ic_launcher, R.string.slide_2_title, R.string.slide_2_desc),
@@ -110,8 +114,8 @@ fun WelcomeScreen(onFinish: () -> Unit) {
             ) {
                 AnimatedVisibility(
                     visible = !isLastPage,
-                    enter = expandVertically() + fadeIn(),
-                    exit = fadeOut() + shrinkVertically()
+                    enter = if (reduceMotion) EnterTransition.None else expandVertically() + fadeIn(),
+                    exit = if (reduceMotion) ExitTransition.None else fadeOut() + shrinkVertically(),
                 ) {
                     TextButton(onClick = onFinish) {
                         Text(
