@@ -602,8 +602,8 @@ private fun AboutAppSection(
                 iconTint = quickActionIconTint,
                 iconContainerColor = telegramTint,
                 shape = RoundedCornerShape(
-                    topStart = 22.dp,
-                    topEnd = 12.dp,
+                    topStart = 24.dp,
+                    topEnd = 6.dp,
                     bottomStart = 6.dp,
                     bottomEnd = 6.dp
                 ),
@@ -618,8 +618,8 @@ private fun AboutAppSection(
                     iconTint = quickActionIconTint,
                     iconContainerColor = bugReportTint,
                     shape = RoundedCornerShape(
-                        topStart = 12.dp,
-                        topEnd = 22.dp,
+                        topStart = 6.dp,
+                        topEnd = 24.dp,
                         bottomStart = 6.dp,
                         bottomEnd = 6.dp
                     ),
@@ -640,8 +640,8 @@ private fun AboutAppSection(
                     iconTint = quickActionIconTint,
                     iconContainerColor = bugReportTint,
                     shape = RoundedCornerShape(
-                        topStart = 12.dp,
-                        topEnd = 22.dp,
+                        topStart = 6.dp,
+                        topEnd = 24.dp,
                         bottomStart = 6.dp,
                         bottomEnd = 6.dp
                     ),
@@ -699,10 +699,10 @@ private fun AboutConnectSection(
                     iconRes = R.drawable.ic_mail,
                     accentColor = accentColor,
                     shape = RoundedCornerShape(
-                        topStart = 12.dp,
-                        topEnd = 12.dp,
-                        bottomStart = 12.dp,
-                        bottomEnd = 12.dp
+                        topStart = 24.dp,
+                        topEnd = 6.dp,
+                        bottomStart = 6.dp,
+                        bottomEnd = 6.dp
                     ),
                     modifier = Modifier.weight(1f),
                     onClick = onEmailClick
@@ -712,10 +712,10 @@ private fun AboutConnectSection(
                     iconRes = R.drawable.ic_reddit,
                     accentColor = accentColor,
                     shape = RoundedCornerShape(
-                        topStart = 12.dp,
-                        topEnd = 12.dp,
-                        bottomStart = 12.dp,
-                        bottomEnd = 12.dp
+                        topStart = 6.dp,
+                        topEnd = 24.dp,
+                        bottomStart = 6.dp,
+                        bottomEnd = 6.dp
                     ),
                     modifier = Modifier.weight(1f),
                     onClick = onRedditClick
@@ -731,10 +731,10 @@ private fun AboutConnectSection(
                     iconRes = R.drawable.ic_element,
                     accentColor = accentColor,
                     shape = RoundedCornerShape(
-                        topStart = 12.dp,
-                        topEnd = 12.dp,
-                        bottomStart = 28.dp,
-                        bottomEnd = 12.dp
+                        topStart = 6.dp,
+                        topEnd = 6.dp,
+                        bottomStart = 24.dp,
+                        bottomEnd = 6.dp
                     ),
                     modifier = Modifier.weight(1f),
                     onClick = onElementClick
@@ -744,10 +744,10 @@ private fun AboutConnectSection(
                     iconRes = R.drawable.ic_mastodon,
                     accentColor = accentColor,
                     shape = RoundedCornerShape(
-                        topStart = 12.dp,
-                        topEnd = 12.dp,
-                        bottomStart = 12.dp,
-                        bottomEnd = 28.dp
+                        topStart = 6.dp,
+                        topEnd = 6.dp,
+                        bottomStart = 6.dp,
+                        bottomEnd = 24.dp
                     ),
                     modifier = Modifier.weight(1f),
                     onClick = onMastodonClick

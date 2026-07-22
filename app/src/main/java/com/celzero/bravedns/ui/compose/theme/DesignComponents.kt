@@ -20,6 +20,7 @@ package com.celzero.bravedns.ui.compose.theme
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -774,6 +775,7 @@ fun SectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    horizontalPadding: Dp = Dimensions.spacingNone,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null
 ) {
@@ -781,8 +783,8 @@ fun SectionHeader(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                start = Dimensions.screenPaddingHorizontal,
-                end = Dimensions.screenPaddingHorizontal,
+                start = horizontalPadding,
+                end = horizontalPadding,
                 top = Dimensions.spacingMd,
                 bottom = Dimensions.spacingSm
             ),
@@ -822,6 +824,7 @@ fun SectionHeaderWithSubtitle(
     title: String,
     subtitle: String? = null,
     color: Color = MaterialTheme.colorScheme.onSurfaceVariant,
+    horizontalPadding: Dp = Dimensions.spacingNone,
     actionLabel: String? = null,
     onAction: (() -> Unit)? = null
 ) {
@@ -829,8 +832,8 @@ fun SectionHeaderWithSubtitle(
         modifier = modifier
             .fillMaxWidth()
             .padding(
-                start = Dimensions.screenPaddingHorizontal,
-                end = Dimensions.screenPaddingHorizontal,
+                start = horizontalPadding,
+                end = horizontalPadding,
                 top = Dimensions.spacingMd,
                 bottom = Dimensions.spacingSm
             )
@@ -1137,20 +1140,26 @@ fun RethinkListItem(
     showTrailingChevron: Boolean = false,
     onClick: (() -> Unit)? = null
 ) {
+    val reduceMotion = rememberReducedMotion()
     val hapticFeedback = LocalHapticFeedback.current
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = if (isPressed) 0.985f else 1f,
-        animationSpec = spring(dampingRatio = 0.62f, stiffness = Spring.StiffnessMediumLow),
+        animationSpec =
+            if (reduceMotion) {
+                snap()
+            } else {
+                spring(dampingRatio = 0.62f, stiffness = Spring.StiffnessMediumLow)
+            },
         label = "listItemScale"
     )
 
     val itemShape = when (position) {
-        CardPosition.Single -> RoundedCornerShape(Dimensions.cornerRadius3xl)
+        CardPosition.Single -> RoundedCornerShape(Dimensions.cornerRadius4xl)
         CardPosition.First -> RoundedCornerShape(
-            topStart = 22.dp,
-            topEnd = 22.dp,
+            topStart = Dimensions.cornerRadius4xl,
+            topEnd = Dimensions.cornerRadius4xl,
             bottomStart = 6.dp,
             bottomEnd = 6.dp
         )
@@ -1158,8 +1167,8 @@ fun RethinkListItem(
         CardPosition.Last -> RoundedCornerShape(
             topStart = 6.dp,
             topEnd = 6.dp,
-            bottomStart = 22.dp,
-            bottomEnd = 22.dp
+            bottomStart = Dimensions.cornerRadius4xl,
+            bottomEnd = Dimensions.cornerRadius4xl
         )
 
         CardPosition.Middle -> RoundedCornerShape(Dimensions.cornerRadiusSm)
@@ -1168,7 +1177,7 @@ fun RethinkListItem(
     val contentAlpha = if (enabled) 1f else 0.5f
     val highlightAlpha by animateFloatAsState(
         targetValue = if (highlighted) 1f else 0f,
-        animationSpec = tween(durationMillis = 120),
+        animationSpec = if (reduceMotion) snap() else tween(durationMillis = 120),
         label = "listItemHighlight"
     )
     val containerColor = lerp(defaultContainerColor, highlightContainerColor, highlightAlpha)
@@ -1190,6 +1199,15 @@ fun RethinkListItem(
         Surface(
             shape = itemShape,
             color = containerColor,
+            border =
+                if (highlighted) {
+                    BorderStroke(
+                        width = Dimensions.dividerThicknessBold,
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                    )
+                } else {
+                    null
+                },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(

@@ -594,12 +594,12 @@ private fun ConfigureGrid(
         ) {
             ConfigureGridTile(
                 entry = entries[2],
-                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 28.dp, bottomEnd = 12.dp),
+                shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 24.dp, bottomEnd = 6.dp),
                 modifier = Modifier.weight(1f)
             )
             ConfigureGridTile(
                 entry = entries[3],
-                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 12.dp, bottomEnd = 28.dp),
+                shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 6.dp, bottomEnd = 24.dp),
                 modifier = Modifier.weight(1f)
             )
         }
@@ -617,12 +617,12 @@ private fun ConfigurePairGrid(
     ) {
         ConfigureGridTile(
             entry = first,
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 12.dp, bottomStart = 28.dp, bottomEnd = 12.dp),
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 6.dp, bottomStart = 24.dp, bottomEnd = 6.dp),
             modifier = Modifier.weight(1f)
         )
         ConfigureGridTile(
             entry = second,
-            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 28.dp, bottomStart = 12.dp, bottomEnd = 28.dp),
+            shape = RoundedCornerShape(topStart = 6.dp, topEnd = 24.dp, bottomStart = 6.dp, bottomEnd = 24.dp),
             modifier = Modifier.weight(1f)
         )
     }
@@ -642,7 +642,7 @@ private fun ConfigureTriadGrid(
 
         ConfigureGridTile(
             entry = entries[2],
-            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp, bottomStart = 28.dp, bottomEnd = 28.dp),
+            shape = RoundedCornerShape(topStart = 6.dp, topEnd = 6.dp, bottomStart = 24.dp, bottomEnd = 24.dp),
             modifier = Modifier.fillMaxWidth()
         )
     }
@@ -660,12 +660,12 @@ private fun ConfigureTopRowTiles(
     ) {
         ConfigureGridTile(
             entry = first,
-            shape = RoundedCornerShape(topStart = 28.dp, topEnd = 12.dp, bottomStart = 12.dp, bottomEnd = 12.dp),
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 6.dp, bottomStart = 6.dp, bottomEnd = 6.dp),
             modifier = Modifier.weight(1f)
         )
         ConfigureGridTile(
             entry = second,
-            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 28.dp, bottomStart = 12.dp, bottomEnd = 12.dp),
+            shape = RoundedCornerShape(topStart = 6.dp, topEnd = 24.dp, bottomStart = 6.dp, bottomEnd = 6.dp),
             modifier = Modifier.weight(1f)
         )
     }

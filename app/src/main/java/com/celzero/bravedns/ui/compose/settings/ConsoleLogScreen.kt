@@ -20,6 +20,7 @@ import Logger.LOG_TAG_BUG_REPORT
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -320,7 +321,9 @@ private fun ConsoleLogList(viewModel: ConsoleLogViewModel) {
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 2.dp, vertical = 2.dp)
+            .padding(horizontal = Dimensions.screenPaddingHorizontal),
+        contentPadding = PaddingValues(bottom = Dimensions.spacing3xl),
+        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
     ) {
         items(count = items.itemCount) { index ->
             val item = items[index] ?: return@items
