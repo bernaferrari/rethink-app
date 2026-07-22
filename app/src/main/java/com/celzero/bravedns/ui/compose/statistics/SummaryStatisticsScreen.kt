@@ -57,8 +57,12 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.innerShadow
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Color.Companion.Unspecified
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -66,6 +70,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.IntSize
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
@@ -336,9 +341,22 @@ private fun UsageStatPill(
     containerColor: Color,
     valueColor: Color
 ) {
+    val shape = RoundedCornerShape(Dimensions.cornerRadiusLg)
     Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(Dimensions.cornerRadiusLg),
+        modifier =
+            modifier.innerShadow(
+                shape = shape,
+                shadow =
+                    Shadow(
+                        radius = 1.5.dp,
+                        spread = 0.dp,
+                        brush = SolidColor(MaterialTheme.colorScheme.onSurface),
+                        alpha = 0.07f,
+                        offset = DpOffset(0.dp, 1.dp),
+                        blendMode = BlendMode.SrcOver,
+                    ),
+            ),
+        shape = shape,
         color = containerColor
     ) {
         Column(
