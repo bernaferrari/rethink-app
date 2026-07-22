@@ -18,7 +18,6 @@ package com.celzero.bravedns.ui.compose.rpn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -27,21 +26,19 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -52,66 +49,70 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
+import com.celzero.bravedns.database.CountryConfig
+import com.celzero.bravedns.rpnproxy.RpnProxyManager
+import com.celzero.bravedns.service.VpnController
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import Logger
 import Logger.LOG_TAG_UI
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RpnAvailabilityScreen(onBackClick: () -> Unit) {
-    var options by remember { mutableStateOf<List<String>>(emptyList()) }
     var items by remember { mutableStateOf<List<RpnAvailabilityItem>>(emptyList()) }
-    var strength by remember { mutableStateOf(0) }
-    var maxStrength by remember { mutableStateOf(0) }
+    var refreshToken by remember { mutableIntStateOf(0) }
+    var loadFailed by remember { mutableStateOf(false) }
 
-    LaunchedEffect(Unit) {
-        options = listOf("WIN-US", "WIN-UK", "WIN-IN", "WIN-DE", "WIN-CA")
-        maxStrength = options.size
-        items = options.map { RpnAvailabilityItem(it, RpnAvailabilityStatus.Loading) }
-
-        options.forEach { option ->
-            items =
-                items.map { item ->
-                    if (item.name == option) item.copy(status = RpnAvailabilityStatus.Loading)
-                    else item
+    LaunchedEffect(refreshToken) {
+        loadFailed = false
+        val selected =
+            runCatching {
+                withContext(Dispatchers.IO) {
+                    RpnProxyManager.getWinServers()
+                        .filter { it.isEnabled && !it.id.equals("AUTO", ignoreCase = true) }
+                        .sortedBy { it.name }
                 }
-            val res = withContext(Dispatchers.IO) {
-                false
+            }.getOrElse {
+                Logger.w(LOG_TAG_UI, "RpnAvailabilityScreen failed to load locations: ${it.message}")
+                loadFailed = true
+                emptyList()
             }
-            if (res) {
-                strength += 1
-                items =
-                    items.map { item ->
-                        if (item.name == option) item.copy(status = RpnAvailabilityStatus.Active)
-                        else item
-                    }
-            } else {
-                items =
-                    items.map { item ->
-                        if (item.name == option) item.copy(status = RpnAvailabilityStatus.Inactive)
-                        else item
-                    }
-            }
-            Logger.i(LOG_TAG_UI, "RpnAvailabilityScreen strength: $strength ($res)")
+        items = selected.map { it.toAvailabilityItem(RpnAvailabilityStatus.Loading) }
+
+        selected.forEach { server ->
+            val reachable =
+                withContext(Dispatchers.IO) {
+                    withTimeoutOrNull(8_000L) { VpnController.isRpnReachable(server.key) }
+                }
+            val status =
+                when (reachable) {
+                    true -> RpnAvailabilityStatus.Active
+                    false -> RpnAvailabilityStatus.Inactive
+                    null -> RpnAvailabilityStatus.Unavailable
+                }
+            items = items.map { item -> if (item.key == server.key) item.copy(status = status) else item }
+            Logger.i(LOG_TAG_UI, "RpnAvailabilityScreen server=${server.key}, reachable=$reachable")
         }
     }
 
+    val strength = items.count { it.status == RpnAvailabilityStatus.Active }
+    val maxStrength = items.size
     val progress = if (maxStrength > 0) strength.toFloat() / maxStrength else 0f
-
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             RethinkLargeTopBar(
-                title = stringResource(id = R.string.rpn_availability_title),
+                title = stringResource(R.string.rpn_availability_title),
                 onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior
+                scrollBehavior = scrollBehavior,
             )
-        }
+        },
     ) { paddingValues ->
         Column(
             modifier =
@@ -119,63 +120,83 @@ fun RpnAvailabilityScreen(onBackClick: () -> Unit) {
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
                     .padding(paddingValues),
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             androidx.compose.material3.Surface(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingSm),
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = Dimensions.screenPaddingHorizontal,
+                            vertical = Dimensions.spacingSm,
+                        ),
                 shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
-                tonalElevation = 1.dp
+                tonalElevation = 1.dp,
             ) {
                 Column(modifier = Modifier.padding(Dimensions.spacingLg)) {
                     Text(
-                        text = stringResource(id = R.string.rpn_availability_title),
-                        style = MaterialTheme.typography.titleMedium
+                        text = stringResource(R.string.rpn_availability_title),
+                        style = MaterialTheme.typography.titleMedium,
                     )
                     Text(
-                        text = stringResource(id = R.string.rpn_availability_desc),
+                        text = stringResource(R.string.rpn_availability_desc),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Dimensions.screenPaddingHorizontal, vertical = Dimensions.spacingLg)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = Dimensions.screenPaddingHorizontal,
+                            vertical = Dimensions.spacingLg,
+                        ),
             ) {
                 Spacer(modifier = Modifier.height(Dimensions.spacingSm))
                 Box(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 16.dp),
-                    contentAlignment = Alignment.Center
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 16.dp),
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator(
                         progress = { progress },
                         modifier = Modifier.size(120.dp),
-                        strokeWidth = 8.dp
+                        strokeWidth = 8.dp,
                     )
                     Text(
                         text = "$strength/$maxStrength",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
                 }
-                Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        items.forEachIndexed { index, item ->
-                            AvailabilityRow(item)
-                            if (index != items.lastIndex) {
-                                HorizontalDivider()
+                if (items.isEmpty()) {
+                    Text(
+                        text =
+                            stringResource(
+                                if (loadFailed) R.string.rpn_availability_load_failed
+                                else R.string.rpn_availability_no_selected,
+                            ),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(vertical = Dimensions.spacingMd),
+                    )
+                } else {
+                    Card(modifier = Modifier.fillMaxWidth()) {
+                        Column(modifier = Modifier.fillMaxWidth()) {
+                            items.forEachIndexed { index, item ->
+                                AvailabilityRow(item)
+                                if (index != items.lastIndex) HorizontalDivider()
                             }
                         }
                     }
                 }
+                TextButton(
+                    onClick = { refreshToken++ },
+                    modifier = Modifier.align(Alignment.End),
+                ) { Text(stringResource(R.string.rpn_availability_retry)) }
             }
         }
     }
@@ -183,52 +204,53 @@ fun RpnAvailabilityScreen(onBackClick: () -> Unit) {
 
 @Composable
 private fun AvailabilityRow(item: RpnAvailabilityItem) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+    androidx.compose.foundation.layout.Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        horizontalArrangement = Arrangement.SpaceBetween,
     ) {
-        Text(
-            text = item.name,
-            style = MaterialTheme.typography.bodyMedium
-        )
+        Text(text = item.name, style = MaterialTheme.typography.bodyMedium)
         when (item.status) {
-            RpnAvailabilityStatus.Loading -> {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp
+            RpnAvailabilityStatus.Loading ->
+                CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+            RpnAvailabilityStatus.Active ->
+                AvailabilityStatusText(R.string.lbl_active, MaterialTheme.colorScheme.primary)
+            RpnAvailabilityStatus.Inactive ->
+                AvailabilityStatusText(R.string.lbl_inactive, MaterialTheme.colorScheme.error)
+            RpnAvailabilityStatus.Unavailable ->
+                AvailabilityStatusText(
+                    R.string.rpn_availability_check_failed,
+                    MaterialTheme.colorScheme.onSurfaceVariant,
                 )
-            }
-
-            RpnAvailabilityStatus.Active -> {
-                Text(
-                    text = stringResource(id = R.string.lbl_active),
-                    color = MaterialTheme.colorScheme.primary,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-
-            RpnAvailabilityStatus.Inactive -> {
-                Text(
-                    text = stringResource(id = R.string.lbl_inactive),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
         }
     }
 }
 
+@Composable
+private fun AvailabilityStatusText(resId: Int, color: androidx.compose.ui.graphics.Color) {
+    Text(
+        text = stringResource(resId),
+        color = color,
+        style = MaterialTheme.typography.bodyMedium,
+    )
+}
+
 private data class RpnAvailabilityItem(
+    val key: String,
     val name: String,
-    val status: RpnAvailabilityStatus
+    val status: RpnAvailabilityStatus,
 )
 
 private enum class RpnAvailabilityStatus {
     Loading,
     Active,
-    Inactive
+    Inactive,
+    Unavailable,
 }
+
+private fun CountryConfig.toAvailabilityItem(status: RpnAvailabilityStatus) =
+    RpnAvailabilityItem(
+        key = key,
+        name = name.ifBlank { cc },
+        status = status,
+    )

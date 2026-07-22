@@ -16,8 +16,20 @@
 package com.celzero.bravedns.ui.compose.theme
 
 import android.animation.ValueAnimator
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 @Composable
 fun rememberReducedMotion(): Boolean {
@@ -27,10 +39,36 @@ fun rememberReducedMotion(): Boolean {
 }
 
 @Composable
-@Suppress("UNUSED_PARAMETER")
 fun RethinkAnimatedSection(
     index: Int,
     content: @Composable () -> Unit
 ) {
-    content()
+    val reduceMotion = rememberReducedMotion()
+    var entered by remember(index) { mutableStateOf(reduceMotion) }
+
+    LaunchedEffect(index, reduceMotion) {
+        if (!reduceMotion) {
+            // Keep staggered sections perceptible without making frequent settings screens feel slow.
+            delay((index.coerceIn(0, 5) * 32L))
+            entered = true
+        }
+    }
+
+    val progress by
+        animateFloatAsState(
+            targetValue = if (entered) 1f else 0f,
+            animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+            label = "rethinkSectionEntrance"
+        )
+
+    androidx.compose.foundation.layout.Box(
+        modifier =
+            Modifier
+                .alpha(if (reduceMotion) 1f else progress)
+                .graphicsLayer {
+                    translationY = if (reduceMotion) 0f else (1f - progress) * 8.dp.toPx()
+                }
+    ) {
+        content()
+    }
 }

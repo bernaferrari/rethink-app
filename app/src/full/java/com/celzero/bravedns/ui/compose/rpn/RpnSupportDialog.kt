@@ -30,6 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import com.celzero.bravedns.R
@@ -79,13 +80,19 @@ internal fun RpnSupportDialog(onDismiss: () -> Unit) {
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text("Contact Rethink Plus support", style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+                Text(stringResource(R.string.rpn_support_title), style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
                 Text(
-                    "Describe what happened. A diagnostic attachment is prepared on your device before email opens.",
+                    stringResource(R.string.rpn_support_description),
                     color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf("Payment", "Activation", "Connectivity", "Refund", "Other").forEach { item ->
+                    listOf(
+                        stringResource(R.string.rpn_support_category_payment),
+                        stringResource(R.string.rpn_support_category_activation),
+                        stringResource(R.string.rpn_support_category_connectivity),
+                        stringResource(R.string.rpn_support_category_refund),
+                        stringResource(R.string.rpn_support_category_other),
+                    ).forEach { item ->
                         RethinkFilterChip(
                             selected = category == item,
                             onClick = { category = if (category == item) null else item },
@@ -97,18 +104,18 @@ internal fun RpnSupportDialog(onDismiss: () -> Unit) {
                     modifier = Modifier.fillMaxWidth(),
                     value = description,
                     onValueChange = { description = it },
-                    label = { Text("What can we help with?") },
+                    label = { Text(stringResource(R.string.rpn_support_category_label)) },
                     minLines = 3,
                     enabled = !sending,
                 )
                 HorizontalDivider()
-                SupportToggle("Subscription status", includeStatus, !sending) { includeStatus = it }
-                SupportToggle("Recent state history", includeHistory, !sending) { includeHistory = it }
-                SupportToggle("Entitlement and device diagnostics", includeStats, !sending) { includeStats = it }
+                SupportToggle(stringResource(R.string.rpn_support_include_subscription), includeStatus, !sending) { includeStatus = it }
+                SupportToggle(stringResource(R.string.rpn_support_include_history), includeHistory, !sending) { includeHistory = it }
+                SupportToggle(stringResource(R.string.rpn_support_include_diagnostics), includeStats, !sending) { includeStats = it }
             }
         }
         RethinkBottomSheetActionRow(
-            primaryText = if (sending) "Preparing…" else "Create email",
+            primaryText = stringResource(if (sending) R.string.rpn_support_preparing else R.string.rpn_support_create_email),
             primaryEnabled = !sending && (description.isNotBlank() || category != null),
             onPrimaryClick = {
                 sending = true
@@ -128,7 +135,7 @@ internal fun RpnSupportDialog(onDismiss: () -> Unit) {
                     onDismiss()
                 }
             },
-            secondaryText = "Cancel",
+            secondaryText = stringResource(R.string.lbl_cancel),
             onSecondaryClick = onDismiss,
             secondaryEnabled = !sending,
         )
@@ -219,7 +226,7 @@ private object RpnSupportDiagnostics : KoinComponent {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "message/rfc822"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(recipient))
-            putExtra(Intent.EXTRA_SUBJECT, "Rethink Plus Support Request${category?.let { ": $it" }.orEmpty()}")
+            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.rpn_support_subject) + category?.let { ": $it" }.orEmpty())
             putExtra(Intent.EXTRA_TEXT, body)
             attachmentUri?.let { uri ->
                 putExtra(Intent.EXTRA_STREAM, uri)
@@ -227,7 +234,7 @@ private object RpnSupportDiagnostics : KoinComponent {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
         }
-        runCatching { context.startActivity(Intent.createChooser(intent, "Email Rethink support")) }
+        runCatching { context.startActivity(Intent.createChooser(intent, context.getString(R.string.rpn_support_email_chooser))) }
     }
 
     private fun addFile(zip: ZipOutputStream, file: File, name: String) {

@@ -28,7 +28,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CountryConfig
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.rpnproxy.RpnProxyManager.DnsMode
@@ -48,6 +51,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun RpnServerSettingsScreen(persistentState: PersistentState, onBackClick: () -> Unit) {
     val scope = rememberCoroutineScope()
+    val context = LocalContext.current
     var dnsModes by remember { mutableStateOf(DnsMode.setFromCsv(persistentState.rpnDnsTunTypes)) }
     var excluded by remember { mutableStateOf(persistentState.rpnAutoExcludedCcs.split(',').filter(String::isNotBlank).toSet()) }
     var countries by remember { mutableStateOf<List<CountryConfig>>(emptyList()) }
@@ -60,22 +64,22 @@ fun RpnServerSettingsScreen(persistentState: PersistentState, onBackClick: () ->
         countries = withContext(Dispatchers.IO) { RpnProxyManager.getWinServers().filter { it.cc.isNotBlank() }.distinctBy { it.cc }.sortedBy { it.name } }
     }
 
-    Scaffold(topBar = { RethinkTopBar(title = "RPN server settings", onBackClick = onBackClick) }) { padding ->
+    Scaffold(topBar = { RethinkTopBar(title = stringResource(R.string.rpn_server_settings_title), onBackClick = onBackClick) }) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
                 SectionHeaderWithSubtitle(
-                    title = "DNS filtering",
-                    subtitle = "Choose which DNS traffic RPN filters while connected.",
+                    title = stringResource(R.string.rpn_server_dns_filtering_title),
+                    subtitle = stringResource(R.string.rpn_server_dns_filtering_desc),
                 )
             }
             item {
                 RethinkListGroup {
                     DnsMode.entries.forEachIndexed { index, mode ->
                         RethinkToggleListItem(
-                            title = mode.name.lowercase().replaceFirstChar(Char::uppercase),
+                            title = dnsModeTitle(context, mode),
                             description = mode.tunType,
                             icon = Icons.Default.Security,
                             checked = mode in dnsModes,
@@ -88,39 +92,39 @@ fun RpnServerSettingsScreen(persistentState: PersistentState, onBackClick: () ->
                     }
                 }
             }
-            item { SectionHeaderWithSubtitle(title = "Configuration", subtitle = "Control how RPN chooses and refreshes locations.") }
+            item { SectionHeaderWithSubtitle(title = stringResource(R.string.rpn_server_configuration_title), subtitle = stringResource(R.string.rpn_server_configuration_desc)) }
             item {
                 RethinkListGroup {
                     RethinkToggleListItem(
-                        title = "Manual server configuration",
-                        description = "Keep location choices under your control.",
+                        title = stringResource(R.string.rpn_server_manual_configuration),
+                        description = stringResource(R.string.rpn_server_manual_configuration_desc),
                         icon = Icons.Default.Tune,
                         checked = persistentState.rpnConfigHandlingManual,
                         onCheckedChange = { persistentState.rpnConfigHandlingManual = it },
                         position = CardPosition.First,
                     )
                     RethinkToggleListItem(
-                        title = "Always change identity",
-                        description = "Use a fresh identity whenever RPN reconnects.",
+                        title = stringResource(R.string.rpn_server_change_identity),
+                        description = stringResource(R.string.rpn_server_change_identity_desc),
                         icon = Icons.Default.Security,
                         checked = persistentState.rpnAlwaysChangeIdentity,
                         onCheckedChange = { persistentState.rpnAlwaysChangeIdentity = it },
                         position = CardPosition.Middle,
                     )
                     RethinkActionListItem(
-                        title = "Automatic location exclusions",
-                        description = if (excluded.isEmpty()) "No countries excluded" else "${excluded.size} countries excluded",
+                        title = stringResource(R.string.rpn_server_auto_exclusions),
+                        description = if (excluded.isEmpty()) stringResource(R.string.rpn_server_no_exclusions) else stringResource(R.string.rpn_server_exclusions_count, excluded.size),
                         icon = Icons.Default.EditLocationAlt,
                         position = CardPosition.Last,
                         onClick = { showExcludeDialog = true },
                     )
                 }
             }
-            item { SectionHeaderWithSubtitle(title = "Maintenance", subtitle = "Refresh RPN registration and location data without affecting your subscription.") }
+            item { SectionHeaderWithSubtitle(title = stringResource(R.string.rpn_server_maintenance_title), subtitle = stringResource(R.string.rpn_server_maintenance_desc)) }
             item {
                 RethinkActionListItem(
-                    title = "Reset RPN configuration",
-                    description = "Fetch a fresh registration and server list.",
+                    title = stringResource(R.string.rpn_server_reset_configuration),
+                    description = stringResource(R.string.rpn_server_reset_configuration_desc),
                     icon = Icons.Default.RestartAlt,
                     accentColor = MaterialTheme.colorScheme.error,
                     enabled = !working,
@@ -138,17 +142,17 @@ fun RpnServerSettingsScreen(persistentState: PersistentState, onBackClick: () ->
     }
     if (showResetDialog) AlertDialog(
         onDismissRequest = { showResetDialog = false },
-        title = { Text("Reset RPN?") },
-        text = { Text("This refreshes the registration and server configuration. Your subscription remains unchanged.") },
+        title = { Text(stringResource(R.string.rpn_server_reset_confirmation_title)) },
+        text = { Text(stringResource(R.string.rpn_server_reset_confirmation_desc)) },
         confirmButton = { TextButton(onClick = {
             showResetDialog = false; working = true
             scope.launch {
                 runCatching { withContext(Dispatchers.IO) { RpnProxyManager.resetAndRefetchRpn() } }
-                    .onFailure { message = it.message ?: "RPN reset failed" }
+                    .onFailure { message = it.message ?: context.getString(R.string.rpn_server_reset_failed) }
                 working = false
             }
-        }) { Text("Reset") } },
-        dismissButton = { TextButton(onClick = { showResetDialog = false }) { Text("Cancel") } },
+        }) { Text(stringResource(R.string.rpn_server_reset_configuration)) } },
+        dismissButton = { TextButton(onClick = { showResetDialog = false }) { Text(stringResource(R.string.lbl_cancel)) } },
     )
 }
 
@@ -156,14 +160,24 @@ fun RpnServerSettingsScreen(persistentState: PersistentState, onBackClick: () ->
     var selected by remember { mutableStateOf(current) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Exclude automatic locations") },
+        title = { Text(stringResource(R.string.rpn_server_exclude_locations)) },
         text = { LazyColumn(Modifier.heightIn(max = 440.dp)) { items(countries, key = { it.cc }) { country ->
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(country.cc in selected, onCheckedChange = { selected = selected.toMutableSet().apply { if (it) add(country.cc) else remove(country.cc) } })
                 Text(country.name.ifBlank { country.cc })
             }
         } } },
-        confirmButton = { TextButton(onClick = { onSave(selected) }) { Text("Save") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        confirmButton = { TextButton(onClick = { onSave(selected) }) { Text(stringResource(R.string.lbl_save)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } },
     )
 }
+
+private fun dnsModeTitle(context: android.content.Context, mode: DnsMode): String =
+    context.getString(
+        when (mode) {
+            DnsMode.DEFAULT -> R.string.rpn_server_dns_mode_default
+            DnsMode.PRIVACY -> R.string.rpn_server_dns_mode_privacy
+            DnsMode.PARENTAL -> R.string.rpn_server_dns_mode_parental
+            DnsMode.SECURITY -> R.string.rpn_server_dns_mode_security
+        }
+    )

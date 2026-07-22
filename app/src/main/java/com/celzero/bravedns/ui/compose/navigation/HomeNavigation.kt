@@ -19,6 +19,8 @@ import android.graphics.drawable.Drawable
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
@@ -172,6 +174,7 @@ import com.celzero.bravedns.viewmodel.PurchaseHistoryViewModel
 import com.celzero.bravedns.viewmodel.ServerOrderHistoryViewModel
 import com.celzero.bravedns.viewmodel.BlockFreeDnsViewModel
 import com.celzero.bravedns.ui.compose.logs.AppWiseDomainLogsScreen
+import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
 import com.celzero.bravedns.viewmodel.WgConfigViewModel
 import com.celzero.bravedns.ui.compose.wireguard.WgMainScreen
 import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
@@ -384,6 +387,7 @@ fun HomeScreenRoot(
     appDatabase: AppDatabase
 ) {
     val navController = rememberNavController()
+    val reduceMotion = rememberReducedMotion()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentHierarchy = currentDestination?.hierarchy.orEmpty()
@@ -591,14 +595,14 @@ fun HomeScreenRoot(
         bottomBar = {
             AnimatedVisibility(
                 visible = showNavigationBar,
-                enter = slideInVertically(
+                enter = if (reduceMotion) EnterTransition.None else slideInVertically(
                     initialOffsetY = { it },
                     animationSpec = tween(
                         durationMillis = BOTTOM_BAR_ENTER_DURATION,
                         easing = FastOutSlowInEasing
                     )
                 ) + fadeIn(animationSpec = tween(durationMillis = BOTTOM_BAR_ENTER_DURATION)),
-                exit = slideOutVertically(
+                exit = if (reduceMotion) ExitTransition.None else slideOutVertically(
                     targetOffsetY = { it },
                     animationSpec = tween(
                         durationMillis = BOTTOM_BAR_EXIT_DURATION,
@@ -664,6 +668,7 @@ fun HomeScreenRoot(
                 startDestination = startDestination,
                 modifier = modifier,
                 enterTransition = {
+                    if (reduceMotion) return@NavHost EnterTransition.None
                     val topLevelTransition =
                         topLevelRoutes.contains(initialState.destination.route) &&
                             topLevelRoutes.contains(targetState.destination.route)
@@ -680,6 +685,7 @@ fun HomeScreenRoot(
                     }
                 },
                 exitTransition = {
+                    if (reduceMotion) return@NavHost ExitTransition.None
                     val topLevelTransition =
                         topLevelRoutes.contains(initialState.destination.route) &&
                             topLevelRoutes.contains(targetState.destination.route)
@@ -696,6 +702,7 @@ fun HomeScreenRoot(
                     }
                 },
                 popEnterTransition = {
+                    if (reduceMotion) return@NavHost EnterTransition.None
                     val topLevelTransition =
                         topLevelRoutes.contains(initialState.destination.route) &&
                             topLevelRoutes.contains(targetState.destination.route)
@@ -712,6 +719,7 @@ fun HomeScreenRoot(
                     }
                 },
                 popExitTransition = {
+                    if (reduceMotion) return@NavHost ExitTransition.None
                     val topLevelTransition =
                         topLevelRoutes.contains(initialState.destination.route) &&
                             topLevelRoutes.contains(targetState.destination.route)

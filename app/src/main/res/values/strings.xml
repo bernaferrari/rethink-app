@@ -64,7 +64,11 @@
     <string name="lbl_active" translatable="true">Active</string>
     <string name="lbl_inactive" translatable="true">Inactive</string>
     <string name="rpn_availability_title" translatable="true">RPN availability</string>
-    <string name="rpn_availability_desc" translatable="true">Live status of reachable RPN locations.</string>
+    <string name="rpn_availability_desc" translatable="true">Live reachability status for the RPN locations you selected.</string>
+    <string name="rpn_availability_no_selected" translatable="true">Select an RPN location first to check its availability.</string>
+    <string name="rpn_availability_load_failed" translatable="true">Couldn’t load your selected RPN locations. Try again.</string>
+    <string name="rpn_availability_check_failed" translatable="true">Couldn’t check this location</string>
+    <string name="rpn_availability_retry" translatable="true">Check again</string>
     <string name="custom_rules_desc" translatable="true">Create custom IP and domain firewall rules.</string>
     <string name="location_selector_title" translatable="true">All locations</string>
     <string name="location_selector_max" translatable="true">(Max %1$d)</string>
@@ -2227,10 +2231,25 @@
     <string name="rpn_account_manage_tab">Manage</string>
     <string name="rpn_account_history_tab">History</string>
     <string name="rpn_account_orders_tab">Orders</string>
+    <string name="rpn_account_entitlement_tab">Entitlement</string>
+    <string name="rpn_account_entitlement_status">Status</string>
+    <string name="rpn_account_entitlement_client_id">Client ID</string>
+    <string name="rpn_account_entitlement_device_id">Device ID</string>
+    <string name="rpn_account_entitlement_expiry">Expiry</string>
+    <string name="rpn_account_entitlement_provider">Provider</string>
+    <string name="rpn_account_entitlement_allow_restore">Allow restore</string>
+    <string name="rpn_account_entitlement_load_failed">Unable to load entitlement</string>
     <string name="rpn_account_manage_heading">Subscription controls</string>
     <string name="rpn_account_manage_desc">Manage the subscription linked to this device, inspect its state history, or contact support.</string>
     <string name="rpn_account_cancel">Cancel renewal</string>
     <string name="rpn_account_revoke">Revoke and request refund</string>
+    <string name="rpn_account_actions_heading">Subscription actions</string>
+    <string name="rpn_account_actions_desc">Cancellation takes effect at the end of the current billing period. Revocation starts the refund process.</string>
+    <string name="rpn_account_cancel_desc">Keep access until the current billing period ends.</string>
+    <string name="rpn_account_revoke_desc">End access now and request a refund when eligible.</string>
+    <string name="rpn_account_help_heading">Need help?</string>
+    <string name="rpn_account_help_desc">Create an email with only the diagnostics you choose to include.</string>
+    <string name="rpn_account_support_desc">Create a diagnostic support request.</string>
     <string name="rpn_account_cancel_confirm">Stop renewal for this subscription? Access remains governed by the store and current entitlement.</string>
     <string name="rpn_account_revoke_confirm">Revoke this purchase and request a refund? This can remove access immediately.</string>
     <string name="rpn_account_support">Contact support</string>
@@ -2239,11 +2258,101 @@
     <string name="rpn_account_no_orders">No server order history is available for this account.</string>
     <string name="rpn_account_retry">Retry</string>
     <string name="rpn_account_open">Manage RPN account</string>
+    <string name="rpn_account_attention_title">Subscription needs attention</string>
+    <string name="rpn_account_contact_support">Contact support</string>
+    <string name="rpn_account_conflict">The subscription service reported a conflict while %1$s.</string>
+    <string name="rpn_account_unauthorized">The subscription service could not verify this device. Open support to send a diagnostic report.</string>
+    <string name="rpn_account_device_unregistered">This device is not registered with the current entitlement. Open support to send a diagnostic report.</string>
+    <string name="rpn_account_network_error">A network error interrupted the subscription request.</string>
     <string name="rpn_server_options_title">Server routing</string>
     <string name="rpn_server_hop">Use as a hop</string>
     <string name="rpn_server_catch_all">Route all apps</string>
     <string name="rpn_server_lockdown">Lock down on failure</string>
     <string name="rpn_server_mobile_only">Use only on mobile data</string>
+    <string name="rpn_server_settings_title">RPN server settings</string>
+    <string name="rpn_server_dns_filtering_title">DNS filtering</string>
+    <string name="rpn_server_dns_filtering_desc">Choose which DNS traffic RPN filters while connected.</string>
+    <string name="rpn_server_dns_mode_default">Default</string>
+    <string name="rpn_server_dns_mode_privacy">Privacy</string>
+    <string name="rpn_server_dns_mode_parental">Family</string>
+    <string name="rpn_server_dns_mode_security">Security</string>
+    <string name="rpn_server_configuration_title">Configuration</string>
+    <string name="rpn_server_configuration_desc">Control how RPN chooses and refreshes locations.</string>
+    <string name="rpn_server_manual_configuration">Manual server configuration</string>
+    <string name="rpn_server_manual_configuration_desc">Keep location choices under your control.</string>
+    <string name="rpn_server_change_identity">Always change identity</string>
+    <string name="rpn_server_change_identity_desc">Use a fresh identity whenever RPN reconnects.</string>
+    <string name="rpn_server_auto_exclusions">Automatic location exclusions</string>
+    <string name="rpn_server_no_exclusions">No countries excluded</string>
+    <string name="rpn_server_exclusions_count">%1$d countries excluded</string>
+    <string name="rpn_server_maintenance_title">Maintenance</string>
+    <string name="rpn_server_maintenance_desc">Refresh RPN registration and location data without affecting your subscription.</string>
+    <string name="rpn_server_reset_configuration">Reset RPN configuration</string>
+    <string name="rpn_server_reset_configuration_desc">Fetch a fresh registration and server list.</string>
+    <string name="rpn_server_reset_confirmation_title">Reset RPN?</string>
+    <string name="rpn_server_reset_confirmation_desc">This refreshes the registration and server configuration. Your subscription remains unchanged.</string>
+    <string name="rpn_server_reset_failed">RPN reset failed</string>
+    <string name="rpn_server_exclude_locations">Exclude automatic locations</string>
+    <string name="rpn_countries_search">Search countries and locations</string>
+    <string name="rpn_countries_clear_search">Clear server search</string>
+    <string name="rpn_countries_settings">RPN server settings</string>
+    <string name="rpn_countries_favourites">Favourites</string>
+    <string name="rpn_countries_refresh">Refresh</string>
+    <string name="rpn_countries_refreshing">Refreshing…</string>
+    <string name="rpn_countries_resetting">Resetting…</string>
+    <string name="rpn_countries_load_failed">Unable to load RPN servers</string>
+    <string name="rpn_countries_refresh_failed">Unable to refresh servers</string>
+    <string name="rpn_countries_reset_failed">Unable to reset RPN</string>
+    <string name="rpn_countries_automatic_location">Automatic location</string>
+    <string name="rpn_countries_frequently_used">Frequently used</string>
+    <string name="rpn_countries_add_favourite">Add favourite</string>
+    <string name="rpn_countries_remove_favourite">Remove favourite</string>
+    <string name="trusted_dns_endpoint_title">Trusted DNS endpoint</string>
+    <string name="trusted_dns_endpoint_heading">Resolver for trusted traffic</string>
+    <string name="trusted_dns_endpoint_desc">This endpoint is used when traffic must bypass DNS blocking.</string>
+    <string name="trusted_dns_filter_all">All</string>
+    <string name="trusted_dns_selected">Selected trusted DNS endpoint</string>
+    <string name="trusted_dns_type_rethink">Rethink</string>
+    <string name="trusted_dns_type_doh">DoH</string>
+    <string name="trusted_dns_type_dot">DoT</string>
+    <string name="trusted_dns_type_dnscrypt">DNSCrypt</string>
+    <string name="trusted_dns_type_odoh">ODoH</string>
+    <string name="trusted_dns_type_proxy">DNS Proxy</string>
+    <string name="trusted_dns_type_system">System</string>
+    <string name="rpn_server_wifi_only">Only on selected Wi‑Fi</string>
+    <string name="rpn_server_edit_wifi">Edit Wi‑Fi networks</string>
+    <string name="rpn_server_wifi_networks_title">Wi‑Fi networks</string>
+    <string name="rpn_server_wifi_networks_hint">Networks, one per line</string>
+    <string name="rpn_support_title">Contact Rethink Plus support</string>
+    <string name="rpn_support_description">Describe what happened. A diagnostic attachment is prepared on your device before email opens.</string>
+    <string name="rpn_support_category_label">What can we help with?</string>
+    <string name="rpn_support_category_payment">Payment</string>
+    <string name="rpn_support_category_activation">Activation</string>
+    <string name="rpn_support_category_connectivity">Connectivity</string>
+    <string name="rpn_support_category_refund">Refund</string>
+    <string name="rpn_support_category_other">Other</string>
+    <string name="rpn_support_include_subscription">Subscription status</string>
+    <string name="rpn_support_include_history">Recent state history</string>
+    <string name="rpn_support_include_diagnostics">Entitlement and device diagnostics</string>
+    <string name="rpn_support_preparing">Preparing…</string>
+    <string name="rpn_support_create_email">Create email</string>
+    <string name="rpn_support_email_chooser">Email Rethink support</string>
+    <string name="home_tour_protection_title">Protection</string>
+    <string name="home_tour_protection_desc">Start or stop VPN protection from the card at the top of Home.</string>
+    <string name="home_tour_dns_title">DNS</string>
+    <string name="home_tour_dns_desc">Choose DNS, trusted-DNS bypass behavior, and blocklists from DNS settings.</string>
+    <string name="home_tour_firewall_title">Firewall</string>
+    <string name="home_tour_firewall_desc">Set universal and app-specific network rules from Firewall.</string>
+    <string name="home_tour_proxy_title">Proxy</string>
+    <string name="home_tour_proxy_desc">Configure RPN and WireGuard routing from Proxy.</string>
+    <string name="home_tour_logs_title">Logs</string>
+    <string name="home_tour_logs_desc">Inspect network and DNS activity from Logs.</string>
+    <string name="home_tour_plus_title">Rethink Plus</string>
+    <string name="home_tour_plus_desc">Manage your RPN subscription, locations, and account recovery here.</string>
+    <string name="home_tour_step">%1$d/%2$d · %3$s</string>
+    <string name="home_tour_done">Done</string>
+    <string name="home_tour_next">Next</string>
+    <string name="home_tour_skip">Skip</string>
     <string name="config_delete_all_dialog_desc">Are you sure you want to delete all WireGuard VPN configurations? This cannot be undone.</string>
     <string name="config_delete_all_dialog_title">Delete all</string>
 </resources>

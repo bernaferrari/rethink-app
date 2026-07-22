@@ -30,6 +30,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
@@ -49,6 +50,7 @@ fun RpnCountriesScreen(
     onServerDetails: (String) -> Unit = {},
     onServerSettings: () -> Unit = {},
 ) {
+    val context = LocalContext.current
     var servers by remember { mutableStateOf<List<CountryConfig>>(emptyList()) }
     var frequent by remember { mutableStateOf<Set<String>>(emptySet()) }
     var query by remember { mutableStateOf("") }
@@ -68,7 +70,7 @@ fun RpnCountriesScreen(
             servers = loaded.sortedWith(compareByDescending<CountryConfig> { it.isEnabled }
                 .thenByDescending { it.isFavourite }.thenBy { it.name }.thenBy { it.city })
             frequent = frequentCodes
-        }.onFailure { errorMessage = it.message ?: "Unable to load RPN servers" }
+        }.onFailure { errorMessage = it.message ?: context.getString(R.string.rpn_countries_load_failed) }
     }
 
     val visible = servers.filter { server ->
@@ -84,7 +86,7 @@ fun RpnCountriesScreen(
                 onBackClick = onBackClick,
                 actions = {
                     IconButton(onClick = onServerSettings) {
-                        Icon(Icons.Default.Settings, contentDescription = "RPN server settings")
+                        Icon(Icons.Default.Settings, contentDescription = stringResource(R.string.rpn_countries_settings))
                     }
                 },
             )
@@ -94,32 +96,32 @@ fun RpnCountriesScreen(
             RethinkSearchField(
                 query = query,
                 onQueryChange = { query = it },
-                placeholder = "Search countries and locations",
+                placeholder = stringResource(R.string.rpn_countries_search),
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                clearQueryContentDescription = "Clear server search",
+                clearQueryContentDescription = stringResource(R.string.rpn_countries_clear_search),
             )
             FlowRow(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                RethinkFilterChip(label = "Favourites", selected = favouritesOnly, onClick = { favouritesOnly = !favouritesOnly })
+                RethinkFilterChip(label = stringResource(R.string.rpn_countries_favourites), selected = favouritesOnly, onClick = { favouritesOnly = !favouritesOnly })
                 TextButton(enabled = busyKey == null, onClick = {
                     busyKey = "refresh"
                     scope.launch {
                         runCatching { withContext(Dispatchers.IO) { RpnProxyManager.updateWinProxy() } }
-                            .onFailure { errorMessage = it.message ?: "Unable to refresh servers" }
+                            .onFailure { errorMessage = it.message ?: context.getString(R.string.rpn_countries_refresh_failed) }
                         busyKey = null; reloadToken++
                     }
-                }) { Text(if (busyKey == "refresh") "Refreshing…" else "Refresh") }
+                }) { Text(stringResource(if (busyKey == "refresh") R.string.rpn_countries_refreshing else R.string.rpn_countries_refresh)) }
                 TextButton(enabled = busyKey == null, onClick = {
                     busyKey = "reset"
                     scope.launch {
                         runCatching { withContext(Dispatchers.IO) { RpnProxyManager.resetAndRefetchRpn() } }
-                            .onFailure { errorMessage = it.message ?: "Unable to reset RPN" }
+                            .onFailure { errorMessage = it.message ?: context.getString(R.string.rpn_countries_reset_failed) }
                         busyKey = null; reloadToken++
                     }
-                }) { Text(if (busyKey == "reset") "Resetting…" else "Reset") }
+                }) { Text(stringResource(if (busyKey == "reset") R.string.rpn_countries_resetting else R.string.rpn_server_reset_configuration)) }
             }
             if (errorMessage != null) {
                 Text(errorMessage.orEmpty(), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 8.dp))
@@ -165,13 +167,13 @@ private fun ServerRow(
     Surface(onClick = onDetails, shape = MaterialTheme.shapes.large, color = MaterialTheme.colorScheme.surfaceContainerLow) {
         Row(Modifier.fillMaxWidth().padding(14.dp), verticalAlignment = Alignment.CenterVertically) {
             Column(Modifier.weight(1f)) {
-                Text(server.name.ifBlank { if (server.id.equals("AUTO", true)) "Automatic location" else server.cc }, style = MaterialTheme.typography.titleSmall)
-                Text(listOf(server.serverLocation, if (isFrequent) "Frequently used" else null).filterNotNull().joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(server.name.ifBlank { if (server.id.equals("AUTO", true)) stringResource(R.string.rpn_countries_automatic_location) else server.cc }, style = MaterialTheme.typography.titleSmall)
+                Text(listOf(server.serverLocation, if (isFrequent) stringResource(R.string.rpn_countries_frequently_used) else null).filterNotNull().joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(enabled = enabled && server.cc.isNotBlank(), onClick = onFavourite) {
                 Icon(
                     if (server.isFavourite) Icons.Default.Star else Icons.Outlined.StarBorder,
-                    contentDescription = if (server.isFavourite) "Remove favourite" else "Add favourite",
+                    contentDescription = stringResource(if (server.isFavourite) R.string.rpn_countries_remove_favourite else R.string.rpn_countries_add_favourite),
                 )
             }
             Switch(checked = server.isEnabled, enabled = enabled, onCheckedChange = onToggle)

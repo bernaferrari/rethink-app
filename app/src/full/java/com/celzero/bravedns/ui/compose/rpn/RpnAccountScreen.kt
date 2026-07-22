@@ -29,6 +29,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
@@ -77,7 +78,7 @@ fun RpnAccountScreen(
         stringResource(R.string.rpn_account_manage_tab),
         stringResource(R.string.rpn_account_history_tab),
         stringResource(R.string.rpn_account_orders_tab),
-        "Entitlement",
+        stringResource(R.string.rpn_account_entitlement_tab),
     )
 
     Scaffold(
@@ -123,6 +124,15 @@ fun RpnAccountScreen(
 
 @Composable
 private fun EntitlementTab() {
+    val context = LocalContext.current
+    val labels = listOf(
+        stringResource(R.string.rpn_account_entitlement_status),
+        stringResource(R.string.rpn_account_entitlement_client_id),
+        stringResource(R.string.rpn_account_entitlement_device_id),
+        stringResource(R.string.rpn_account_entitlement_expiry),
+        stringResource(R.string.rpn_account_entitlement_provider),
+        stringResource(R.string.rpn_account_entitlement_allow_restore),
+    )
     var details by remember { mutableStateOf<List<Pair<String, String>>?>(null) }
     var error by remember { mutableStateOf<String?>(null) }
     androidx.compose.runtime.LaunchedEffect(Unit) {
@@ -130,13 +140,13 @@ private fun EntitlementTab() {
             withContext(Dispatchers.IO) {
                 RpnProxyManager.getEntitlementDetails()?.let {
                     listOf(
-                        "Status" to it.status(), "Client ID" to it.cid().take(12),
-                        "Device ID" to it.did().take(4), "Expiry" to it.expiry().toString(),
-                        "Provider" to it.providerID(), "Allow restore" to it.allowRestore().toString(),
+                        labels[0] to it.status(), labels[1] to it.cid().take(12),
+                        labels[2] to it.did().take(4), labels[3] to it.expiry().toString(),
+                        labels[4] to it.providerID(), labels[5] to it.allowRestore().toString(),
                     )
                 }
             }
-        }.onSuccess { details = it }.onFailure { error = it.message ?: "Unable to load entitlement" }
+        }.onSuccess { details = it }.onFailure { error = it.message ?: context.getString(R.string.rpn_account_entitlement_load_failed) }
     }
     when {
         error != null -> EmptyAccountState(error.orEmpty())
@@ -182,12 +192,12 @@ private fun ManagePurchaseTab(viewModel: ManagePurchaseViewModel, onSupportClick
                 ManagePurchaseViewModel.OperationState.Idle -> Unit
             }
         }
-        item { SectionHeaderWithSubtitle(title = "Subscription actions", subtitle = "Cancellation takes effect at the end of the current billing period. Revocation starts the refund process.") }
+        item { SectionHeaderWithSubtitle(title = stringResource(R.string.rpn_account_actions_heading), subtitle = stringResource(R.string.rpn_account_actions_desc)) }
         item {
             RethinkListGroup {
                 RethinkActionListItem(
                     title = stringResource(R.string.rpn_account_cancel),
-                    description = "Keep access until the current billing period ends.",
+                    description = stringResource(R.string.rpn_account_cancel_desc),
                     accentColor = MaterialTheme.colorScheme.error,
                     enabled = !busy,
                     position = CardPosition.First,
@@ -195,7 +205,7 @@ private fun ManagePurchaseTab(viewModel: ManagePurchaseViewModel, onSupportClick
                 )
                 RethinkActionListItem(
                     title = stringResource(R.string.rpn_account_revoke),
-                    description = "End access now and request a refund when eligible.",
+                    description = stringResource(R.string.rpn_account_revoke_desc),
                     accentColor = MaterialTheme.colorScheme.error,
                     enabled = !busy,
                     position = CardPosition.Last,
@@ -203,11 +213,11 @@ private fun ManagePurchaseTab(viewModel: ManagePurchaseViewModel, onSupportClick
                 )
             }
         }
-        item { SectionHeaderWithSubtitle(title = "Need help?", subtitle = "Create an email with only the diagnostics you choose to include.") }
+        item { SectionHeaderWithSubtitle(title = stringResource(R.string.rpn_account_help_heading), subtitle = stringResource(R.string.rpn_account_help_desc)) }
         item {
             RethinkActionListItem(
                 title = stringResource(R.string.rpn_account_support),
-                description = "Create a diagnostic support request.",
+                description = stringResource(R.string.rpn_account_support_desc),
                 position = CardPosition.Single,
                 onClick = onSupportClick,
             )
@@ -244,22 +254,22 @@ private fun ServerErrorRecoveryDialog(
 ) {
     val details = when (error) {
         is ServerApiError.Conflict409 -> buildString {
-            append("The subscription service reported a conflict while ${error.operation.name.lowercase()}.")
+            append(stringResource(R.string.rpn_account_conflict, error.operation.name.lowercase()))
             error.serverMessage?.takeIf(String::isNotBlank)?.let { append("\n\n$it") }
         }
         is ServerApiError.Unauthorized401 ->
-            "The subscription service could not verify this device. Open support to send a diagnostic report."
+            stringResource(R.string.rpn_account_unauthorized)
         is ServerApiError.DeviceNotRegistered ->
-            "This device is not registered with the current entitlement. Open support to send a diagnostic report."
+            stringResource(R.string.rpn_account_device_unregistered)
         is ServerApiError.GenericError -> error.message
-        is ServerApiError.NetworkError -> error.message ?: "A network error interrupted the subscription request."
+        is ServerApiError.NetworkError -> error.message ?: stringResource(R.string.rpn_account_network_error)
         ServerApiError.None -> return
     }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Subscription needs attention") },
+        title = { Text(stringResource(R.string.rpn_account_attention_title)) },
         text = { Text(details) },
-        confirmButton = { TextButton(onClick = onGetHelp) { Text("Contact support") } },
+        confirmButton = { TextButton(onClick = onGetHelp) { Text(stringResource(R.string.rpn_account_contact_support)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } },
     )
 }

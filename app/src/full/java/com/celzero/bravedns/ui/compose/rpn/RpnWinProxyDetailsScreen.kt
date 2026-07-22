@@ -260,8 +260,8 @@ private fun ServerOptionsSection(
             checked = config.mobileOnly,
             onCheckedChange = onMobileOnlyChanged,
         )
-        ServerOptionRow(label = "Only on selected Wi‑Fi", checked = config.ssidBased, onCheckedChange = onSsidChanged)
-        TextButton(onClick = onEditSsids, enabled = config.ssidBased) { Text("Edit Wi‑Fi networks") }
+        ServerOptionRow(label = stringResource(R.string.rpn_server_wifi_only), checked = config.ssidBased, onCheckedChange = onSsidChanged)
+        TextButton(onClick = onEditSsids, enabled = config.ssidBased) { Text(stringResource(R.string.rpn_server_edit_wifi)) }
     }
 }
 
@@ -270,14 +270,14 @@ private fun SsidEditorDialog(initialValue: String, onDismiss: () -> Unit, onSave
     var value by remember(initialValue) { mutableStateOf(SsidItem.parseStorageList(initialValue).joinToString("\n") { it.name }) }
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Wi‑Fi networks") },
-        text = { OutlinedTextField(value = value, onValueChange = { value = it }, label = { Text("Networks, one per line") }, minLines = 3) },
+        title = { Text(stringResource(R.string.rpn_server_wifi_networks_title)) },
+        text = { OutlinedTextField(value = value, onValueChange = { value = it }, label = { Text(stringResource(R.string.rpn_server_wifi_networks_hint)) }, minLines = 3) },
         confirmButton = { TextButton(onClick = {
             onSave(SsidItem.toStorageList(value.lines().map(String::trim).filter(String::isNotBlank).distinct().map {
                 SsidItem(it, SsidItem.SsidType.EQUAL_WILDCARD)
             }))
-        }) { Text("Save") } },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        }) { Text(stringResource(R.string.lbl_save)) } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } },
     )
 }
 

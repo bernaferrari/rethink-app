@@ -37,8 +37,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -72,6 +70,7 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
 import com.celzero.bravedns.util.Utilities
@@ -292,49 +291,14 @@ internal fun AppWiseTimeCategoryToggleRow(
             AppConnectionsViewModel.TimeCategory.SEVEN_DAYS to
                 stringResource(R.string.ci_desc, "7", stringResource(R.string.lbl_day))
         ).forEach { (category, label) ->
-            TimeCategoryToggleButton(
+            RethinkFilterChip(
                 label = label,
                 selected = selectedCategory == category,
                 onClick = { onCategorySelected(category) },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
+                minHeight = 44.dp,
             )
         }
-    }
-}
-
-@Composable
-private fun TimeCategoryToggleButton(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Button(
-        onClick = onClick,
-        modifier = modifier.height(36.dp),
-        contentPadding = PaddingValues(horizontal = 8.dp),
-        colors = ButtonDefaults.buttonColors(
-            containerColor =
-                if (selected) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainerHigh
-                },
-            contentColor =
-                if (selected) {
-                    MaterialTheme.colorScheme.onPrimaryContainer
-                } else {
-                    MaterialTheme.colorScheme.onSurfaceVariant
-                }
-        ),
-        shape = RoundedCornerShape(Dimensions.buttonCornerRadiusLarge)
-    ) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelSmall,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
     }
 }
 
