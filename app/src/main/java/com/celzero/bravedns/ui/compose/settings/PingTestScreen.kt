@@ -16,6 +16,7 @@
 package com.celzero.bravedns.ui.compose.settings
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.BorderStroke
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -58,7 +59,6 @@ import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.service.VpnController
 import com.celzero.firestack.backend.Backend
-import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
@@ -224,7 +224,7 @@ fun PingTestScreen(
         ) {
             item {
                 SectionHeader(title = stringResource(R.string.ping_ip_port_title))
-                RethinkListGroup {
+                PingCard {
                     Column(
                         modifier = Modifier.padding(
                             horizontal = Dimensions.cardPadding,
@@ -253,7 +253,7 @@ fun PingTestScreen(
 
             item {
                 SectionHeader(title = stringResource(R.string.ping_host_port_title))
-                RethinkListGroup {
+                PingCard {
                     Column(
                         modifier = Modifier.padding(
                             horizontal = Dimensions.cardPadding,
@@ -281,7 +281,7 @@ fun PingTestScreen(
             }
 
             item {
-                RethinkListGroup {
+                PingCard {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -308,7 +308,7 @@ fun PingTestScreen(
                 val progress = value.toFloat() / STRENGTH_MAX.toFloat()
                 item {
                     SectionHeader(title = stringResource(R.string.ping_strength_title))
-                    RethinkListGroup {
+                    PingCard {
                         Column(
                             modifier = Modifier.padding(
                                 horizontal = Dimensions.cardPadding,
@@ -338,6 +338,21 @@ fun PingTestScreen(
 }
 
 @Composable
+private fun PingCard(content: @Composable () -> Unit) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(Dimensions.cornerRadius4xl),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        border = BorderStroke(
+            Dimensions.dividerThicknessBold,
+            MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f),
+        ),
+    ) {
+        content()
+    }
+}
+
+@Composable
 private fun PingField(
     value: String,
     readOnly: Boolean,
@@ -355,6 +370,7 @@ private fun PingField(
             onValueChange = onValueChange,
             readOnly = readOnly,
             modifier = Modifier.weight(1f),
+            shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
             singleLine = true
         )
         Spacer(modifier = Modifier.width(8.dp))

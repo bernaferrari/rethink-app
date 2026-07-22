@@ -17,9 +17,16 @@ package com.celzero.bravedns.ui.compose.alerts
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.NotificationsOff
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -30,9 +37,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
-import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 
@@ -51,32 +59,55 @@ fun AlertsScreen(onBackClick: () -> Unit) {
             )
         }
     ) { paddingValues ->
-        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+        Box(
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(horizontal = Dimensions.screenPaddingHorizontal),
+            contentAlignment = Alignment.Center,
+        ) {
             Surface(
-                modifier = Modifier.padding(
-                    horizontal = Dimensions.screenPaddingHorizontal,
-                    vertical = Dimensions.spacingSm
-                ),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
+                modifier = Modifier.fillMaxWidth(),
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cornerRadius4xl),
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
-                tonalElevation = 1.dp
+                border = BorderStroke(
+                    Dimensions.dividerThicknessBold,
+                    MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f),
+                ),
             ) {
-                Column(modifier = Modifier.padding(Dimensions.spacingLg)) {
+                Column(
+                    modifier = Modifier.padding(Dimensions.spacing2xl),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd),
+                ) {
+                    Surface(
+                        modifier = Modifier.size(64.dp),
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cornerRadiusXl),
+                        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                imageVector = Icons.Filled.NotificationsOff,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
                     Text(
                         text = stringResource(id = R.string.notif_channel_firewall_alerts),
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        textAlign = TextAlign.Center,
                     )
                     Text(
                         text = stringResource(id = R.string.alerts_empty_state),
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center,
                     )
                 }
             }
-            CompactEmptyState(
-                message = stringResource(id = R.string.alerts_empty_state),
-                modifier = Modifier.align(Alignment.Center)
-            )
         }
     }
 }
