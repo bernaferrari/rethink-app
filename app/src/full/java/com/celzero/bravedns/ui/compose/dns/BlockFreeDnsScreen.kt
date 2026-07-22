@@ -15,7 +15,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.celzero.bravedns.R
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.celzero.bravedns.data.BlockFreeDnsItem
 import com.celzero.bravedns.data.BlockFreeDnsType
@@ -31,15 +33,15 @@ import com.celzero.bravedns.viewmodel.BlockFreeDnsViewModel
 @Composable
 fun BlockFreeDnsScreen(viewModel: BlockFreeDnsViewModel, persistentState: PersistentState, onBackClick: () -> Unit) {
     val items by viewModel.filteredItemsFlow.collectAsStateWithLifecycle()
-    Scaffold(topBar = { RethinkTopBar(title = "Trusted DNS endpoint", onBackClick = onBackClick) }) { padding ->
+    Scaffold(topBar = { RethinkTopBar(title = stringResource(R.string.trusted_dns_endpoint_title), onBackClick = onBackClick) }) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
             item {
                 SectionHeaderWithSubtitle(
-                    title = "Resolver for trusted traffic",
-                    subtitle = "This endpoint is used when traffic must bypass DNS blocking.",
+                    title = stringResource(R.string.trusted_dns_endpoint_heading),
+                    subtitle = stringResource(R.string.trusted_dns_endpoint_desc),
                 )
             }
             item {
@@ -47,9 +49,9 @@ fun BlockFreeDnsScreen(viewModel: BlockFreeDnsViewModel, persistentState: Persis
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
-                    RethinkFilterChip(label = "All", selected = viewModel.activeFilter == null, onClick = { viewModel.setFilter(null) })
+                    RethinkFilterChip(label = stringResource(R.string.trusted_dns_filter_all), selected = viewModel.activeFilter == null, onClick = { viewModel.setFilter(null) })
                     BlockFreeDnsType.entries.forEach { type ->
-                        RethinkFilterChip(label = type.label, selected = viewModel.activeFilter == type, onClick = { viewModel.setFilter(type) })
+                        RethinkFilterChip(label = blockFreeDnsTypeLabel(type), selected = viewModel.activeFilter == type, onClick = { viewModel.setFilter(type) })
                     }
                 }
             }
@@ -62,7 +64,7 @@ fun BlockFreeDnsScreen(viewModel: BlockFreeDnsViewModel, persistentState: Persis
                     highlighted = selected,
                     position = cardPositionFor(index, items.lastIndex),
                     trailing = if (selected) {
-                        { Icon(Icons.Default.Check, contentDescription = "Selected trusted DNS endpoint") }
+                        { Icon(Icons.Default.Check, contentDescription = stringResource(R.string.trusted_dns_selected)) }
                     } else null,
                     onClick = { persistentState.blockFreeDns = item.key },
                 )
@@ -70,3 +72,17 @@ fun BlockFreeDnsScreen(viewModel: BlockFreeDnsViewModel, persistentState: Persis
         }
     }
 }
+
+@Composable
+private fun blockFreeDnsTypeLabel(type: BlockFreeDnsType): String =
+    stringResource(
+        when (type) {
+            BlockFreeDnsType.RETHINK -> R.string.trusted_dns_type_rethink
+            BlockFreeDnsType.DOH -> R.string.trusted_dns_type_doh
+            BlockFreeDnsType.DOT -> R.string.trusted_dns_type_dot
+            BlockFreeDnsType.DNSCRYPT -> R.string.trusted_dns_type_dnscrypt
+            BlockFreeDnsType.ODOH -> R.string.trusted_dns_type_odoh
+            BlockFreeDnsType.DNS_PROXY -> R.string.trusted_dns_type_proxy
+            BlockFreeDnsType.SYSTEM -> R.string.trusted_dns_type_system
+        }
+    )
