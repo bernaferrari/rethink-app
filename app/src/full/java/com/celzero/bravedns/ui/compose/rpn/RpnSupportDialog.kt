@@ -13,16 +13,14 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,6 +38,10 @@ import com.celzero.bravedns.database.SubscriptionStatusDao
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.scheduler.BugReportZipper
 import com.celzero.bravedns.scheduler.EnhancedBugReport
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
+import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
+import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
+import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -65,21 +67,29 @@ internal fun RpnSupportDialog(onDismiss: () -> Unit) {
     var includeStats by remember { mutableStateOf(true) }
     var sending by remember { mutableStateOf(false) }
 
-    AlertDialog(
+    RethinkModalBottomSheet(
         onDismissRequest = { if (!sending) onDismiss() },
-        title = { Text("Contact Rethink Plus support") },
-        text = {
+        includeBottomSpacer = false,
+        verticalSpacing = 12.dp,
+    ) {
+        RethinkBottomSheetCard(
+            modifier = Modifier.heightIn(max = 560.dp),
+        ) {
             Column(
                 modifier = Modifier.verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
-                Text("Describe what happened. A diagnostic attachment is prepared on your device before email opens.")
+                Text("Contact Rethink Plus support", style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
+                Text(
+                    "Describe what happened. A diagnostic attachment is prepared on your device before email opens.",
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     listOf("Payment", "Activation", "Connectivity", "Refund", "Other").forEach { item ->
-                        FilterChip(
+                        RethinkFilterChip(
                             selected = category == item,
                             onClick = { category = if (category == item) null else item },
-                            label = { Text(item) },
+                            label = item,
                         )
                     }
                 }
@@ -96,32 +106,33 @@ internal fun RpnSupportDialog(onDismiss: () -> Unit) {
                 SupportToggle("Recent state history", includeHistory, !sending) { includeHistory = it }
                 SupportToggle("Entitlement and device diagnostics", includeStats, !sending) { includeStats = it }
             }
-        },
-        confirmButton = {
-            TextButton(
-                enabled = !sending && (description.isNotBlank() || category != null),
-                onClick = {
-                    sending = true
-                    scope.launch {
-                        val attachment = withContext(Dispatchers.IO) {
-                            RpnSupportDiagnostics.create(
-                                context = context,
-                                description = description.trim(),
-                                category = category,
-                                includeStatus = includeStatus,
-                                includeHistory = includeHistory,
-                                includeStats = includeStats,
-                            )
-                        }
-                        sending = false
-                        RpnSupportDiagnostics.launchEmail(context, description.trim(), category, attachment)
-                        onDismiss()
+        }
+        RethinkBottomSheetActionRow(
+            primaryText = if (sending) "Preparing…" else "Create email",
+            primaryEnabled = !sending && (description.isNotBlank() || category != null),
+            onPrimaryClick = {
+                sending = true
+                scope.launch {
+                    val attachment = withContext(Dispatchers.IO) {
+                        RpnSupportDiagnostics.create(
+                            context = context,
+                            description = description.trim(),
+                            category = category,
+                            includeStatus = includeStatus,
+                            includeHistory = includeHistory,
+                            includeStats = includeStats,
+                        )
                     }
-                },
-            ) { Text(if (sending) "Preparing…" else "Create email") }
-        },
-        dismissButton = { TextButton(enabled = !sending, onClick = onDismiss) { Text("Cancel") } },
-    )
+                    sending = false
+                    RpnSupportDiagnostics.launchEmail(context, description.trim(), category, attachment)
+                    onDismiss()
+                }
+            },
+            secondaryText = "Cancel",
+            onSecondaryClick = onDismiss,
+            secondaryEnabled = !sending,
+        )
+    }
 }
 
 @Composable

@@ -16,7 +16,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.PrimaryTabRow
@@ -44,6 +43,10 @@ import com.celzero.bravedns.iab.InAppBillingHandler
 import com.celzero.bravedns.iab.ServerApiError
 import com.celzero.bravedns.iab.ServerOrderEntry
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.CardPosition
+import com.celzero.bravedns.ui.compose.theme.RethinkActionListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
 import com.celzero.bravedns.viewmodel.ManagePurchaseViewModel
 import com.celzero.bravedns.viewmodel.PurchaseHistoryViewModel
 import com.celzero.bravedns.viewmodel.ServerOrderHistoryViewModel
@@ -151,44 +154,64 @@ private fun ManagePurchaseTab(viewModel: ManagePurchaseViewModel, onSupportClick
     var confirmRevoke by remember { mutableStateOf(false) }
     val busy = state is ManagePurchaseViewModel.OperationState.InProgress
 
-    Column(
-        Modifier.fillMaxWidth().padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(14.dp),
+    LazyColumn(
+        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text(
-            stringResource(R.string.rpn_account_manage_heading),
-            style = MaterialTheme.typography.titleLarge,
-            fontWeight = FontWeight.SemiBold,
-        )
-        Text(
-            stringResource(R.string.rpn_account_manage_desc),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        when (val current = state) {
-            is ManagePurchaseViewModel.OperationState.InProgress -> {
-                CircularProgressIndicator()
-                Text(current.step.name.replace('_', ' ').lowercase().replaceFirstChar(Char::uppercase))
-            }
-            is ManagePurchaseViewModel.OperationState.Success ->
-                Text(current.message, color = MaterialTheme.colorScheme.primary)
-            is ManagePurchaseViewModel.OperationState.Failure ->
-                Text(current.message, color = MaterialTheme.colorScheme.error)
-            ManagePurchaseViewModel.OperationState.Idle -> Unit
+        item {
+            SectionHeaderWithSubtitle(
+                title = stringResource(R.string.rpn_account_manage_heading),
+                subtitle = stringResource(R.string.rpn_account_manage_desc),
+            )
         }
-        OutlinedButton(
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !busy,
-            onClick = { confirmCancel = true },
-        ) { Text(stringResource(R.string.rpn_account_cancel)) }
-        OutlinedButton(
-            modifier = Modifier.fillMaxWidth(),
-            enabled = !busy,
-            onClick = { confirmRevoke = true },
-        ) { Text(stringResource(R.string.rpn_account_revoke)) }
-        Button(
-            modifier = Modifier.fillMaxWidth(),
-            onClick = onSupportClick,
-        ) { Text(stringResource(R.string.rpn_account_support)) }
+        item {
+            when (val current = state) {
+                is ManagePurchaseViewModel.OperationState.InProgress -> {
+                    Column(
+                        Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                    ) {
+                        CircularProgressIndicator()
+                        Text(current.step.name.replace('_', ' ').lowercase().replaceFirstChar(Char::uppercase))
+                    }
+                }
+                is ManagePurchaseViewModel.OperationState.Success ->
+                    Text(current.message, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 20.dp))
+                is ManagePurchaseViewModel.OperationState.Failure ->
+                    Text(current.message, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 20.dp))
+                ManagePurchaseViewModel.OperationState.Idle -> Unit
+            }
+        }
+        item { SectionHeaderWithSubtitle(title = "Subscription actions", subtitle = "Cancellation takes effect at the end of the current billing period. Revocation starts the refund process.") }
+        item {
+            RethinkListGroup {
+                RethinkActionListItem(
+                    title = stringResource(R.string.rpn_account_cancel),
+                    description = "Keep access until the current billing period ends.",
+                    accentColor = MaterialTheme.colorScheme.error,
+                    enabled = !busy,
+                    position = CardPosition.First,
+                    onClick = { confirmCancel = true },
+                )
+                RethinkActionListItem(
+                    title = stringResource(R.string.rpn_account_revoke),
+                    description = "End access now and request a refund when eligible.",
+                    accentColor = MaterialTheme.colorScheme.error,
+                    enabled = !busy,
+                    position = CardPosition.Last,
+                    onClick = { confirmRevoke = true },
+                )
+            }
+        }
+        item { SectionHeaderWithSubtitle(title = "Need help?", subtitle = "Create an email with only the diagnostics you choose to include.") }
+        item {
+            RethinkActionListItem(
+                title = stringResource(R.string.rpn_account_support),
+                description = "Create a diagnostic support request.",
+                position = CardPosition.Single,
+                onClick = onSupportClick,
+            )
+        }
     }
 
     if (confirmCancel || confirmRevoke) {

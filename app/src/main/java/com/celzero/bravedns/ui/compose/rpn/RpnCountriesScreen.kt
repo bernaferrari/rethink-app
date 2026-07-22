@@ -2,6 +2,7 @@ package com.celzero.bravedns.ui.compose.rpn
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,15 +10,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.StarBorder
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
@@ -38,6 +36,8 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CountryConfig
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
+import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
+import com.celzero.bravedns.ui.compose.theme.RethinkSearchField
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -91,38 +91,35 @@ fun RpnCountriesScreen(
         },
     ) { padding ->
         Column(Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
+            RethinkSearchField(
+                query = query,
+                onQueryChange = { query = it },
+                placeholder = "Search countries and locations",
                 modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
-                singleLine = true,
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
-                label = { Text("Search countries and locations") },
+                clearQueryContentDescription = "Clear server search",
             )
-            Row(
+            FlowRow(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
             ) {
-                FilterChip(selected = favouritesOnly, onClick = { favouritesOnly = !favouritesOnly }, label = { Text("Favourites") })
-                Row {
-                    TextButton(enabled = busyKey == null, onClick = {
-                        busyKey = "refresh"
-                        scope.launch {
-                            runCatching { withContext(Dispatchers.IO) { RpnProxyManager.updateWinProxy() } }
-                                .onFailure { errorMessage = it.message ?: "Unable to refresh servers" }
-                            busyKey = null; reloadToken++
-                        }
-                    }) { Text(if (busyKey == "refresh") "Refreshing…" else "Refresh") }
-                    TextButton(enabled = busyKey == null, onClick = {
-                        busyKey = "reset"
-                        scope.launch {
-                            runCatching { withContext(Dispatchers.IO) { RpnProxyManager.resetAndRefetchRpn() } }
-                                .onFailure { errorMessage = it.message ?: "Unable to reset RPN" }
-                            busyKey = null; reloadToken++
-                        }
-                    }) { Text(if (busyKey == "reset") "Resetting…" else "Reset") }
-                }
+                RethinkFilterChip(label = "Favourites", selected = favouritesOnly, onClick = { favouritesOnly = !favouritesOnly })
+                TextButton(enabled = busyKey == null, onClick = {
+                    busyKey = "refresh"
+                    scope.launch {
+                        runCatching { withContext(Dispatchers.IO) { RpnProxyManager.updateWinProxy() } }
+                            .onFailure { errorMessage = it.message ?: "Unable to refresh servers" }
+                        busyKey = null; reloadToken++
+                    }
+                }) { Text(if (busyKey == "refresh") "Refreshing…" else "Refresh") }
+                TextButton(enabled = busyKey == null, onClick = {
+                    busyKey = "reset"
+                    scope.launch {
+                        runCatching { withContext(Dispatchers.IO) { RpnProxyManager.resetAndRefetchRpn() } }
+                            .onFailure { errorMessage = it.message ?: "Unable to reset RPN" }
+                        busyKey = null; reloadToken++
+                    }
+                }) { Text(if (busyKey == "reset") "Resetting…" else "Reset") }
             }
             if (errorMessage != null) {
                 Text(errorMessage.orEmpty(), color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 8.dp))
@@ -172,7 +169,10 @@ private fun ServerRow(
                 Text(listOf(server.serverLocation, if (isFrequent) "Frequently used" else null).filterNotNull().joinToString(" · "), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             IconButton(enabled = enabled && server.cc.isNotBlank(), onClick = onFavourite) {
-                Icon(if (server.isFavourite) Icons.Default.Star else Icons.Outlined.StarBorder, contentDescription = "Favourite server")
+                Icon(
+                    if (server.isFavourite) Icons.Default.Star else Icons.Outlined.StarBorder,
+                    contentDescription = if (server.isFavourite) "Remove favourite" else "Add favourite",
+                )
             }
             Switch(checked = server.isEnabled, enabled = enabled, onCheckedChange = onToggle)
         }

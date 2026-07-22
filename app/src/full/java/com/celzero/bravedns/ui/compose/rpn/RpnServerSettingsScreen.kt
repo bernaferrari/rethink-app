@@ -5,15 +5,19 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EditLocationAlt
+import androidx.compose.material.icons.filled.RestartAlt
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -29,7 +33,13 @@ import com.celzero.bravedns.database.CountryConfig
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.rpnproxy.RpnProxyManager.DnsMode
 import com.celzero.bravedns.service.PersistentState
+import com.celzero.bravedns.ui.compose.theme.CardPosition
+import com.celzero.bravedns.ui.compose.theme.RethinkActionListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
+import com.celzero.bravedns.ui.compose.theme.RethinkToggleListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.SectionHeaderWithSubtitle
+import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -53,33 +63,72 @@ fun RpnServerSettingsScreen(persistentState: PersistentState, onBackClick: () ->
     Scaffold(topBar = { RethinkTopBar(title = "RPN server settings", onBackClick = onBackClick) }) { padding ->
         LazyColumn(
             modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            item { Text("DNS filtering", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp)) }
-            items(DnsMode.entries.toList(), key = { it.id }) { mode ->
-                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Checkbox(
-                        checked = mode in dnsModes,
-                        onCheckedChange = { checked ->
-                            dnsModes = dnsModes.toMutableSet().apply { if (checked) add(mode) else remove(mode) }
-                            persistentState.rpnDnsTunTypes = DnsMode.tunTypesFromSet(dnsModes)
-                        },
+            item {
+                SectionHeaderWithSubtitle(
+                    title = "DNS filtering",
+                    subtitle = "Choose which DNS traffic RPN filters while connected.",
+                )
+            }
+            item {
+                RethinkListGroup {
+                    DnsMode.entries.forEachIndexed { index, mode ->
+                        RethinkToggleListItem(
+                            title = mode.name.lowercase().replaceFirstChar(Char::uppercase),
+                            description = mode.tunType,
+                            icon = Icons.Default.Security,
+                            checked = mode in dnsModes,
+                            onCheckedChange = { checked ->
+                                dnsModes = dnsModes.toMutableSet().apply { if (checked) add(mode) else remove(mode) }
+                                persistentState.rpnDnsTunTypes = DnsMode.tunTypesFromSet(dnsModes)
+                            },
+                            position = cardPositionFor(index, DnsMode.entries.size - 1),
+                        )
+                    }
+                }
+            }
+            item { SectionHeaderWithSubtitle(title = "Configuration", subtitle = "Control how RPN chooses and refreshes locations.") }
+            item {
+                RethinkListGroup {
+                    RethinkToggleListItem(
+                        title = "Manual server configuration",
+                        description = "Keep location choices under your control.",
+                        icon = Icons.Default.Tune,
+                        checked = persistentState.rpnConfigHandlingManual,
+                        onCheckedChange = { persistentState.rpnConfigHandlingManual = it },
+                        position = CardPosition.First,
                     )
-                    Column { Text(mode.name.lowercase().replaceFirstChar(Char::uppercase)); Text(mode.tunType, style = MaterialTheme.typography.bodySmall) }
+                    RethinkToggleListItem(
+                        title = "Always change identity",
+                        description = "Use a fresh identity whenever RPN reconnects.",
+                        icon = Icons.Default.Security,
+                        checked = persistentState.rpnAlwaysChangeIdentity,
+                        onCheckedChange = { persistentState.rpnAlwaysChangeIdentity = it },
+                        position = CardPosition.Middle,
+                    )
+                    RethinkActionListItem(
+                        title = "Automatic location exclusions",
+                        description = if (excluded.isEmpty()) "No countries excluded" else "${excluded.size} countries excluded",
+                        icon = Icons.Default.EditLocationAlt,
+                        position = CardPosition.Last,
+                        onClick = { showExcludeDialog = true },
+                    )
                 }
             }
-            item { Text("Configuration", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(top = 12.dp)) }
-            item { SettingSwitch("Manual server configuration", persistentState.rpnConfigHandlingManual) { persistentState.rpnConfigHandlingManual = it } }
-            item { SettingSwitch("Always change identity", persistentState.rpnAlwaysChangeIdentity) { persistentState.rpnAlwaysChangeIdentity = it } }
+            item { SectionHeaderWithSubtitle(title = "Maintenance", subtitle = "Refresh RPN registration and location data without affecting your subscription.") }
             item {
-                OutlinedButton(onClick = { showExcludeDialog = true }, modifier = Modifier.fillMaxWidth()) {
-                    Text(if (excluded.isEmpty()) "Exclude countries in automatic mode" else "${excluded.size} countries excluded in automatic mode")
-                }
+                RethinkActionListItem(
+                    title = "Reset RPN configuration",
+                    description = "Fetch a fresh registration and server list.",
+                    icon = Icons.Default.RestartAlt,
+                    accentColor = MaterialTheme.colorScheme.error,
+                    enabled = !working,
+                    position = CardPosition.Single,
+                    onClick = { showResetDialog = true },
+                )
             }
-            item {
-                OutlinedButton(enabled = !working, onClick = { showResetDialog = true }, modifier = Modifier.fillMaxWidth()) { Text("Reset RPN configuration") }
-            }
-            message?.let { text -> item { Text(text, color = MaterialTheme.colorScheme.error) } }
+            message?.let { text -> item { Text(text, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(vertical = 8.dp)) } }
         }
     }
     if (showExcludeDialog) CountryExclusionDialog(countries, excluded, onDismiss = { showExcludeDialog = false }) { selected ->
@@ -103,17 +152,12 @@ fun RpnServerSettingsScreen(persistentState: PersistentState, onBackClick: () ->
     )
 }
 
-@Composable private fun SettingSwitch(label: String, value: Boolean, onChange: (Boolean) -> Unit) =
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-        Text(label, modifier = Modifier.weight(1f)); Switch(checked = value, onCheckedChange = onChange)
-    }
-
 @Composable private fun CountryExclusionDialog(countries: List<CountryConfig>, current: Set<String>, onDismiss: () -> Unit, onSave: (Set<String>) -> Unit) {
     var selected by remember { mutableStateOf(current) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Exclude automatic locations") },
-        text = { LazyColumn { items(countries, key = { it.cc }) { country ->
+        text = { LazyColumn(Modifier.heightIn(max = 440.dp)) { items(countries, key = { it.cc }) { country ->
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                 Checkbox(country.cc in selected, onCheckedChange = { selected = selected.toMutableSet().apply { if (it) add(country.cc) else remove(country.cc) } })
                 Text(country.name.ifBlank { country.cc })
