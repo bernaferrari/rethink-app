@@ -135,6 +135,8 @@ import com.celzero.bravedns.backup.BackupHelper.Companion.INTENT_RESTART_APP
 import com.celzero.bravedns.backup.BackupHelper.Companion.INTENT_SCHEME
 import com.celzero.bravedns.backup.RestoreAgent
 import com.celzero.bravedns.data.AppConfig
+import com.celzero.bravedns.iab.InAppBillingHandler
+import com.celzero.bravedns.iab.ServerApiError
 import com.celzero.bravedns.data.SummaryStatisticsType
 import com.celzero.bravedns.database.AppDatabase
 import com.celzero.bravedns.database.AppInfoRepository
@@ -821,7 +823,46 @@ class HomeScreenActivity : ComponentActivity() {
                 intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_NAME) ==
                 Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_VALUE
         if (hasRpnAccountAlert) {
+            // Notification actions outlive the process that produced them. Recreate the typed
+            // error here so the Compose account screen can offer the same recovery path as an
+            // in-process server failure.
+            InAppBillingHandler.serverApiErrorLiveData.value = notificationServerApiError(intent)
             homeNavRequest = HomeNavRequest.RpnAccount
+        }
+    }
+
+    private fun notificationServerApiError(intent: Intent): ServerApiError? {
+        fun operation(extra: String): ServerApiError.Operation =
+            intent.getStringExtra(extra)
+                ?.let { name -> ServerApiError.Operation.entries.firstOrNull { it.name == name } }
+                ?: ServerApiError.Operation.CUSTOMER
+
+        return when {
+            intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_CONFLICT_NAME) ==
+                Constants.NOTIF_INTENT_EXTRA_IAB_CONFLICT_VALUE ->
+                ServerApiError.Conflict409(
+                    endpoint = intent.getStringExtra("conflict_endpoint").orEmpty(),
+                    operation = operation("conflict_operation"),
+                    serverMessage = intent.getStringExtra("conflict_server_msg"),
+                    accountId = intent.getStringExtra("conflict_account_id").orEmpty(),
+                    purchaseToken = intent.getStringExtra("conflict_purchase_token").orEmpty(),
+                    sku = intent.getStringExtra("conflict_sku").orEmpty(),
+                )
+            intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_NAME) ==
+                Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_AUTH_ERROR_VALUE ->
+                ServerApiError.Unauthorized401(
+                    operation = operation("auth_error_operation"),
+                    accountId = intent.getStringExtra("auth_error_account_id").orEmpty(),
+                    deviceIdPrefix = intent.getStringExtra("auth_error_device_id_prefix").orEmpty(),
+                )
+            intent.getStringExtra(Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_NAME) ==
+                Constants.NOTIF_INTENT_EXTRA_IAB_DEVICE_NOT_REGISTERED_VALUE ->
+                ServerApiError.DeviceNotRegistered(
+                    entitlementCid = intent.getStringExtra("dnr_entitlement_cid").orEmpty(),
+                    storedCid = intent.getStringExtra("dnr_stored_cid").orEmpty(),
+                    deviceIdPrefix = intent.getStringExtra("dnr_device_id_prefix").orEmpty(),
+                )
+            else -> null
         }
     }
 
