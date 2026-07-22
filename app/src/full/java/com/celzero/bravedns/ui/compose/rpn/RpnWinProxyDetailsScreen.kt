@@ -144,6 +144,7 @@ fun RpnWinProxyDetailsScreen(
                 Modifier
                     .fillMaxWidth()
                     .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
         ) {
             if (showNoProxyFoundDialog) {
                 RethinkConfirmDialog(
