@@ -13,7 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
+import com.celzero.bravedns.ui.compose.theme.SharedDimensions
 
 @Composable
 fun RethinkEmptyState(
@@ -22,7 +22,12 @@ fun RethinkEmptyState(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.fillMaxWidth().padding(24.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = SharedDimensions.spacingLg,
+                vertical = SharedDimensions.spacingXl,
+            ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
@@ -31,11 +36,13 @@ fun RethinkEmptyState(
             style = MaterialTheme.typography.titleMedium,
             textAlign = TextAlign.Center,
         )
-        Text(
-            text = message,
-            style = MaterialTheme.typography.bodyMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp),
-        )
+        if (message.isNotBlank()) {
+            Text(
+                text = message,
+                style = MaterialTheme.typography.bodyMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = SharedDimensions.spacingSm),
+            )
+        }
     }
 }

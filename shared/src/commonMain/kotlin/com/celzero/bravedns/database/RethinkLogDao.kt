@@ -30,9 +30,9 @@ import com.celzero.bravedns.util.Constants.Companion.MAX_LOGS
 @Dao
 interface RethinkLogDao {
 
-    @Update fun update(log: RethinkLog)
+    @Update suspend fun update(log: RethinkLog)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insert(log: RethinkLog)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(log: RethinkLog)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertBatch(logs: List<RethinkLog>)
@@ -51,7 +51,7 @@ interface RethinkLogDao {
         message: String
     )
 
-    @Delete fun delete(log: RethinkLog)
+    @Delete suspend fun delete(log: RethinkLog)
 
     // replace order by timeStamp desc with order by id desc, as order by timeStamp desc is building
     // the query with temporary index on the table. This is causing the query to be slow.
@@ -92,11 +92,11 @@ interface RethinkLogDao {
     )
     fun getBlockedConnectionsFiltered(query: String): PagingSource<Int, RethinkLog>
 
-    @Query("delete from RethinkLog") fun clearAllData()
+    @Query("delete from RethinkLog") suspend fun clearAllData()
 
-    @Query("delete from RethinkLog where uid = :uid") fun clearLogsByUid(uid: Int)
+    @Query("delete from RethinkLog where uid = :uid") suspend fun clearLogsByUid(uid: Int)
 
-    @Query("DELETE FROM RethinkLog WHERE  timeStamp < :date") fun purgeLogsByDate(date: Long)
+    @Query("DELETE FROM RethinkLog WHERE  timeStamp < :date") suspend fun purgeLogsByDate(date: Long)
 
     @Query(
         "select * from RethinkLog where isBlocked = 0 and  (appName like :query or ipAddress like :query or dnsQuery like :query or flag like :query) order by id desc LIMIT $MAX_LOGS"

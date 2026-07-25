@@ -44,14 +44,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.width
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -403,6 +396,26 @@ fun HomeScreenRoot(
     val isWideScreen = LocalConfiguration.current.screenWidthDp >= 840
     val showNavigationRail = showBottomBar && isWideScreen
     val showNavigationBar = showBottomBar && !isWideScreen
+    val navigationItems = HomeDestination.entries.map { destination ->
+        RethinkNavigationItem(
+            id = destination.route::class.qualifiedName.orEmpty(),
+            label = stringResource(destination.labelRes),
+            selectedIcon = destination.selectedIcon,
+            unselectedIcon = destination.unselectedIcon,
+        )
+    }
+    val selectedNavigationId = navigationItems.firstOrNull { item ->
+        currentHierarchy.any { it.route == item.id }
+    }?.id
+    val navigateToTopLevel: (String) -> Unit = { routeId ->
+        HomeDestination.entries.firstOrNull { it.route::class.qualifiedName == routeId }?.let { destination ->
+            navController.navigate(destination.route) {
+                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
+                launchSingleTop = true
+                restoreState = true
+            }
+        }
+    }
 
     LaunchedEffect(homeNavRequest) {
         val request = homeNavRequest ?: return@LaunchedEffect
@@ -610,51 +623,15 @@ fun HomeScreenRoot(
                     )
                 ) + fadeOut(animationSpec = tween(durationMillis = BOTTOM_BAR_EXIT_DURATION))
             ) {
-                NavigationBar(
+                RethinkBottomNavigation(
+                    destinations = navigationItems,
+                    selectedId = selectedNavigationId,
+                    onDestinationSelected = navigateToTopLevel,
                     modifier = Modifier.fillMaxWidth(),
-                    windowInsets =
-                        WindowInsets.safeDrawing.only(
-                            WindowInsetsSides.Start + WindowInsetsSides.End + WindowInsetsSides.Bottom
-                        )
-                ) {
-                    HomeDestination.entries.forEach { destination ->
-                        val routeName = destination.route::class.qualifiedName
-                        val isSelected = currentHierarchy.any { it.route == routeName }
-                        NavigationBarItem(
-                            selected = isSelected,
-                            onClick = {
-                                navController.navigate(destination.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = {
-                                Icon(
-                                    imageVector =
-                                        if (isSelected) destination.selectedIcon else destination.unselectedIcon,
-                                    contentDescription = stringResource(id = destination.labelRes)
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = stringResource(id = destination.labelRes),
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            },
-                            alwaysShowLabel = true,
-                            colors = NavigationBarItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                selectedTextColor = MaterialTheme.colorScheme.onSurface,
-                                indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                    }
-                }
+                    windowInsets = WindowInsets.safeDrawing.only(
+                        WindowInsetsSides.Start + WindowInsetsSides.End + WindowInsetsSides.Bottom
+                    ),
+                )
             }
         }
     ) { paddingValues ->
@@ -1272,50 +1249,13 @@ fun HomeScreenRoot(
                     .padding(paddingValues)
                     .consumeWindowInsets(paddingValues)
             ) {
-                NavigationRail(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(88.dp),
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Start)
-                ) {
-                    HomeDestination.entries.forEach { destination ->
-                        val routeName = destination.route::class.qualifiedName
-                        val isSelected = currentHierarchy.any { it.route == routeName }
-                        NavigationRailItem(
-                            selected = isSelected,
-                            onClick = {
-                                navController.navigate(destination.route) {
-                                    popUpTo(navController.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            },
-                            icon = {
-                                Icon(
-                                    imageVector = if (isSelected) destination.selectedIcon else destination.unselectedIcon,
-                                    contentDescription = stringResource(id = destination.labelRes)
-                                )
-                            },
-                            label = {
-                                Text(
-                                    text = stringResource(id = destination.labelRes),
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                            },
-                            alwaysShowLabel = true,
-                            colors = NavigationRailItemDefaults.colors(
-                                selectedIconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                selectedTextColor = MaterialTheme.colorScheme.onSurface,
-                                indicatorColor = MaterialTheme.colorScheme.secondaryContainer,
-                                unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        )
-                    }
-                }
+                RethinkSideNavigation(
+                    destinations = navigationItems,
+                    selectedId = selectedNavigationId,
+                    onDestinationSelected = navigateToTopLevel,
+                    modifier = Modifier.fillMaxHeight().width(88.dp),
+                    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Start),
+                )
 
                 navHostContent(Modifier.weight(1f))
             }

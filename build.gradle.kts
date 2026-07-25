@@ -1,9 +1,11 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 plugins {
+    base
     alias(libs.plugins.android.application) apply false
     alias(libs.plugins.android.kotlin.multiplatform.library) apply false
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.koin.compiler) apply false
     alias(libs.plugins.ksp) apply false
     alias(libs.plugins.google.services) apply false
     alias(libs.plugins.firebase.crashlytics) apply false
@@ -41,21 +43,19 @@ allprojects {
     }
 }
 
-tasks.register<Delete>("clean") {
+tasks.named<Delete>("clean") {
     delete(rootProject.layout.buildDirectory)
 }
 
-// Always-on wasmJs web UI: run isolated web-build (includeBuild can hide KMP tasks; -p is reliable)
-tasks.register<Exec>("compileWebJs") {
+// Browser and Android compile the same :shared commonMain graph.
+tasks.register("compileWebJs") {
     group = "build"
-    description = "Compile Kotlin/wasmJs Compose web demo (web-build)"
-    workingDir = rootDir
-    commandLine("./gradlew", "-p", "web-build", "compileKotlinWasmJs", "--no-daemon")
+    description = "Compile Kotlin/wasmJs Compose web demo from :shared"
+    dependsOn(":shared:compileKotlinWasmJs")
 }
 
-tasks.register<Exec>("runWebDemo") {
+tasks.register("runWebDemo") {
     group = "demo"
-    description = "Run wasmJs browser development server for commonMain UI demo"
-    workingDir = rootDir
-    commandLine("./gradlew", "-p", "web-build", "wasmJsBrowserDevelopmentRun", "--no-daemon")
+    description = "Run the :shared wasmJs browser development server"
+    dependsOn(":shared:wasmJsBrowserDevelopmentRun")
 }

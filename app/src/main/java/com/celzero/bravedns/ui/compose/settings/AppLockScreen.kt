@@ -179,59 +179,18 @@ private fun AppLockContent(
     title: String,
     subtitle: String
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background),
-    ) {
-        Column(modifier = Modifier.fillMaxSize()) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                modifier = Modifier
-                    .padding(
-                        horizontal = Dimensions.screenPaddingHorizontal,
-                        vertical = Dimensions.spacingMd
-                    )
+    RethinkAppLockContent(
+        appName = appName,
+        title = title,
+        subtitle = subtitle,
+        brandMark = {
+            Image(
+                painter = painterResource(id = R.drawable.ic_launcher),
+                contentDescription = appName,
+                modifier = Modifier.size(120.dp),
             )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier
-                    .padding(horizontal = Dimensions.screenPaddingHorizontal)
-            )
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(horizontal = Dimensions.screenPaddingHorizontal),
-                contentAlignment = Alignment.Center
-            ) {
-                Surface(
-                    shape = androidx.compose.foundation.shape.RoundedCornerShape(Dimensions.cornerRadius5xl),
-                    color = MaterialTheme.colorScheme.surfaceContainerLow,
-                    tonalElevation = 1.dp
-                ) {
-                    Column(
-                        modifier = Modifier.padding(horizontal = Dimensions.spacing2xl, vertical = Dimensions.spacing2xl),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_launcher),
-                            contentDescription = appName,
-                            modifier = Modifier.size(120.dp)
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = appName,
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                    }
-                }
-            }
-        }
-    }
+        },
+    )
 }
 
 /**

@@ -16,6 +16,8 @@
 package com.celzero.bravedns.ui.components
 
 import android.content.Intent
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -24,12 +26,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.ui.HomeScreenActivity
-import com.celzero.bravedns.ui.compose.statistics.StatisticsSummaryItem
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
+import com.celzero.bravedns.ui.compose.statistics.RethinkStatisticsSummaryItem
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Utilities
 import kotlinx.coroutines.Dispatchers
@@ -107,16 +112,20 @@ fun ConnectionRow(dc: AppConnection) {
         Unit
     }
 
-    StatisticsSummaryItem(
+    RethinkStatisticsSummaryItem(
         title = title,
         subtitle = totalUsageText,
         countText = dc.count.toString(),
-        iconDrawable = icon,
         flagText = null,
         showProgress = false,
         progress = 0f,
         progressColor = Color.Transparent,
         showIndicator = true,
-        onClick = onClick
+        onClick = onClick,
+        leadingContent = {
+            rememberDrawablePainter(icon)?.let { painter ->
+                Image(painter = painter, contentDescription = null, modifier = Modifier.size(32.dp))
+            }
+        },
     )
 }

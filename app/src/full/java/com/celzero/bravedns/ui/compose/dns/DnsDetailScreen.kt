@@ -72,9 +72,6 @@ import com.celzero.bravedns.data.AppConfig.Companion.DOT_INDEX
 import com.celzero.bravedns.download.AppDownloadManager
 import com.celzero.bravedns.download.DownloadConstants
 import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.bottomsheet.RuleSheetModal
-import com.celzero.bravedns.ui.bottomsheet.RuleSheetSummaryPill
-import com.celzero.bravedns.ui.compose.theme.RethinkActionListItem
 import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
@@ -602,7 +599,7 @@ fun DnsDetailScreen(
 
     // DNS Record Types Sheet
     if (showRecordTypesSheet) {
-        DnsRecordTypesSheet(
+        AndroidDnsRecordTypesSheet(
             persistentState = persistentState,
             onDismiss = { showRecordTypesSheet = false }
         )
@@ -660,7 +657,7 @@ fun DnsDetailScreen(
 
     // Local Blocklists Sheet
     if (showLocalBlocklistsSheet) {
-        LocalBlocklistsSheet(
+        AndroidLocalBlocklistsSheet(
             headingText = headingText,
             versionText = versionText,
             canConfigure = canConfigure,
@@ -780,180 +777,6 @@ fun DnsDetailScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun DnsRecordTypesSheet(
-    persistentState: PersistentState,
-    onDismiss: () -> Unit
-) {
-    var isAutoMode by remember { mutableStateOf(persistentState.dnsRecordTypesAutoMode) }
-    val selected = remember {
-        mutableStateListOf<String>().apply {
-            addAll(getInitialRecordSelection(persistentState))
-        }
-    }
-
-    val allTypes = remember {
-        ResourceRecordTypes.entries.filter { it != ResourceRecordTypes.UNKNOWN }
-    }
-
-    val sortedTypes by remember {
-        derivedStateOf { allTypes.sortedBy { it.name } }
-    }
-    val selectedCount = if (isAutoMode) allTypes.size else selected.size
-
-    RuleSheetModal(onDismissRequest = onDismiss) {
-        RethinkBottomSheetCard(
-            modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal),
-            contentPadding = PaddingValues(Dimensions.cardPadding)
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingMd),
-                verticalAlignment = Alignment.Top
-            ) {
-                Surface(
-                    shape = MaterialTheme.shapes.medium,
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    modifier = Modifier.size(Dimensions.iconContainerMd)
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_allow_dns_records),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(Dimensions.iconSizeSm)
-                        )
-                    }
-                }
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
-                ) {
-                    Text(
-                        text = stringResource(R.string.cd_allowed_dns_record_types_heading),
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Text(
-                        text = stringResource(R.string.cd_allowed_dns_record_types_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            Row(horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)) {
-                RuleSheetSummaryPill(
-                    text = if (isAutoMode) {
-                        stringResource(R.string.settings_ip_text_ipv46)
-                    } else {
-                        stringResource(R.string.lbl_manual)
-                    }
-                )
-                RuleSheetSummaryPill(
-                    text = "${stringResource(R.string.rt_filter_parent_selected)} $selectedCount/${allTypes.size}"
-                )
-            }
-
-            RethinkTwoOptionSegmentedRow(
-                leftLabel = stringResource(R.string.settings_ip_text_ipv46),
-                rightLabel = stringResource(R.string.lbl_manual),
-                leftSelected = isAutoMode,
-                onLeftClick = {
-                    if (!isAutoMode) {
-                        isAutoMode = true
-                        persistentState.dnsRecordTypesAutoMode = true
-                    }
-                },
-                onRightClick = {
-                    if (isAutoMode) {
-                        isAutoMode = false
-                        persistentState.dnsRecordTypesAutoMode = false
-                    }
-                }
-            )
-        }
-
-        SectionHeader(title = stringResource(R.string.lbl_allowed))
-
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = Dimensions.screenPaddingHorizontal),
-            contentPadding = PaddingValues(bottom = Dimensions.spacing2xl),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
-        ) {
-            itemsIndexed(
-                items = sortedTypes,
-                key = { _, type -> type.value }
-            ) { index, type ->
-                val position = when {
-                    sortedTypes.size == 1 -> CardPosition.Single
-                    index == 0 -> CardPosition.First
-                    index == sortedTypes.lastIndex -> CardPosition.Last
-                    else -> CardPosition.Middle
-                }
-                RecordTypeRow(
-                    type = type,
-                    isAutoMode = isAutoMode,
-                    isSelected = selected.contains(type.name),
-                    position = position,
-                    onToggle = {
-                        if (isAutoMode) return@RecordTypeRow
-                        if (selected.contains(type.name)) {
-                            selected.remove(type.name)
-                        } else {
-                            selected.add(type.name)
-                        }
-                        persistentState.setAllowedDnsRecordTypes(selected.toSet())
-                    }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun RecordTypeRow(
-    type: ResourceRecordTypes,
-    isAutoMode: Boolean,
-    isSelected: Boolean,
-    position: CardPosition,
-    onToggle: () -> Unit
-) {
-    val containerColor = if (isSelected && !isAutoMode) {
-        MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.48f)
-    } else {
-        MaterialTheme.colorScheme.surfaceContainerLow
-    }
-
-    RethinkListItem(
-        headline = type.name,
-        supporting = type.desc,
-        position = position,
-        defaultContainerColor = containerColor,
-        enabled = !isAutoMode,
-        onClick = onToggle,
-        trailing = {
-            Box(
-                modifier = Modifier.width(Dimensions.touchTargetMin),
-                contentAlignment = Alignment.CenterEnd
-            ) {
-                Checkbox(
-                    checked = isSelected,
-                    onCheckedChange = { _ ->
-                        if (!isAutoMode) {
-                            onToggle()
-                        }
-                    },
-                    enabled = !isAutoMode
-                )
-            }
-        }
-    )
-}
-
 private fun getInitialRecordSelection(persistentState: PersistentState): List<String> {
     if (!persistentState.dnsRecordTypesAutoMode) {
         return persistentState.getAllowedDnsRecordTypes().toList()
@@ -971,9 +794,50 @@ private fun getInitialRecordSelection(persistentState: PersistentState): List<St
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** Android preference adapter for the shared DNS record-type sheet. */
 @Composable
-private fun LocalBlocklistsSheet(
+private fun AndroidDnsRecordTypesSheet(
+    persistentState: PersistentState,
+    onDismiss: () -> Unit,
+) {
+    var autoMode by remember { mutableStateOf(persistentState.dnsRecordTypesAutoMode) }
+    val selected = remember {
+        mutableStateListOf<String>().apply { addAll(getInitialRecordSelection(persistentState)) }
+    }
+    val types = remember {
+        ResourceRecordTypes.entries
+            .filter { it != ResourceRecordTypes.UNKNOWN }
+            .sortedBy { it.name }
+            .map { RethinkDnsRecordType(it.name, it.name, it.desc) }
+    }
+    val selectedLabel = stringResource(R.string.rt_filter_parent_selected)
+    RethinkDnsRecordTypesSheet(
+        types = types,
+        autoMode = autoMode,
+        selectedIds = selected.toSet(),
+        strings = RethinkDnsRecordTypesStrings(
+            title = stringResource(R.string.cd_allowed_dns_record_types_heading),
+            description = stringResource(R.string.cd_allowed_dns_record_types_desc),
+            auto = stringResource(R.string.settings_ip_text_ipv46),
+            manual = stringResource(R.string.lbl_manual),
+            selected = { count, total -> "$selectedLabel $count/$total" },
+            allowed = stringResource(R.string.lbl_allowed),
+        ),
+        onAutoModeChange = { enabled ->
+            autoMode = enabled
+            persistentState.dnsRecordTypesAutoMode = enabled
+        },
+        onToggle = { id ->
+            if (id in selected) selected.remove(id) else selected.add(id)
+            persistentState.setAllowedDnsRecordTypes(selected.toSet())
+        },
+        onDismiss = onDismiss,
+    )
+}
+
+/** Android side-effect adapter for the shared local-blocklist maintenance sheet. */
+@Composable
+private fun AndroidLocalBlocklistsSheet(
     headingText: String,
     versionText: String,
     canConfigure: Boolean,
@@ -994,158 +858,46 @@ private fun LocalBlocklistsSheet(
     onCheckUpdate: () -> Unit,
     onDownload: () -> Unit,
     onRedownload: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
-    RuleSheetModal(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = Dimensions.screenPaddingHorizontal,
-                    vertical = Dimensions.spacingSm
-                ),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
-        ) {
-            RethinkBottomSheetCard(contentPadding = PaddingValues(Dimensions.cardPadding)) {
-                Text(
-                    text = headingText,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                if (versionText.isNotEmpty()) {
-                    Text(
-                        text = versionText,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-
-            SectionHeader(title = stringResource(R.string.lbbs_state_header))
-            RethinkListGroup {
-                RethinkActionListItem(
-                    title = if (isBlocklistEnabled) {
-                        stringResource(R.string.lbbs_toggle_off)
-                    } else {
-                        stringResource(R.string.lbbs_toggle_on)
-                    },
-                    description = stringResource(R.string.lbbs_toggle_desc),
-                    iconRes = R.drawable.ic_local_blocklist,
-                    position = CardPosition.Single,
-                    onClick = onEnableBlocklist
-                )
-            }
-
-            SectionHeader(title = stringResource(R.string.lbbs_actions_header))
-            RethinkListGroup {
-                RethinkActionListItem(
-                    title = stringResource(R.string.lbbs_configure),
-                    iconRes = R.drawable.ic_settings,
-                    position = CardPosition.First,
-                    enabled = canConfigure,
-                    onClick = onConfigure
-                )
-                RethinkActionListItem(
-                    title = stringResource(R.string.lbbs_copy),
-                    iconRes = R.drawable.ic_copy,
-                    position = CardPosition.Middle,
-                    enabled = canCopy,
-                    onClick = onCopy
-                )
-                RethinkActionListItem(
-                    title = stringResource(R.string.lbbs_search),
-                    iconRes = R.drawable.ic_search,
-                    position = CardPosition.Last,
-                    enabled = canSearch,
-                    onClick = onSearch
-                )
-            }
-
-            SectionHeader(title = stringResource(R.string.lbbs_maintenance_header))
-            RethinkListGroup {
-                var maintenanceIndex = 0
-                val maintenanceCount =
-                    (if (showCheckDownload) 1 else 0) +
-                        (if (showDownload) 1 else 0) +
-                        (if (showRedownload) 1 else 0) +
-                        1
-
-                fun pos(): CardPosition {
-                    return when {
-                        maintenanceCount == 1 -> CardPosition.Single
-                        maintenanceIndex == 0 -> CardPosition.First
-                        maintenanceIndex == maintenanceCount - 1 -> CardPosition.Last
-                        else -> CardPosition.Middle
-                    }
-                }
-
-                if (showCheckDownload) {
-                    RethinkActionListItem(
-                        title = stringResource(R.string.lbbs_update_check),
-                        iconRes = R.drawable.ic_blocklist_update_check,
-                        position = pos(),
-                        enabled = !isChecking,
-                        trailing = if (isChecking) {
-                            {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            }
-                        } else {
-                            null
-                        },
-                        onClick = onCheckUpdate
-                    )
-                    maintenanceIndex += 1
-                }
-                if (showDownload) {
-                    RethinkActionListItem(
-                        title = stringResource(R.string.local_blocklist_download),
-                        iconRes = R.drawable.ic_update,
-                        position = pos(),
-                        enabled = !isDownloading,
-                        trailing = if (isDownloading) {
-                            {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            }
-                        } else {
-                            null
-                        },
-                        onClick = onDownload
-                    )
-                    maintenanceIndex += 1
-                }
-                if (showRedownload) {
-                    RethinkActionListItem(
-                        title = stringResource(R.string.local_blocklist_redownload),
-                        iconRes = R.drawable.ic_update,
-                        position = pos(),
-                        enabled = !isRedownloading,
-                        trailing = if (isRedownloading) {
-                            {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.size(18.dp),
-                                    strokeWidth = 2.dp
-                                )
-                            }
-                        } else {
-                            null
-                        },
-                        onClick = onRedownload
-                    )
-                    maintenanceIndex += 1
-                }
-                RethinkActionListItem(
-                    title = stringResource(R.string.lbl_delete),
-                    iconRes = R.drawable.ic_delete,
-                    position = pos(),
-                    onClick = onDelete
-                )
-            }
-        }
-    }
+    RethinkLocalBlocklistSheet(
+        state = RethinkLocalBlocklistState(
+            heading = headingText,
+            version = versionText,
+            canConfigure = canConfigure,
+            canCopy = canCopy,
+            canSearch = canSearch,
+            showCheckUpdate = showCheckDownload,
+            showDownload = showDownload,
+            showRedownload = showRedownload,
+            checking = isChecking,
+            downloading = isDownloading,
+            redownloading = isRedownloading,
+            enabled = isBlocklistEnabled,
+        ),
+        strings = RethinkLocalBlocklistStrings(
+            state = stringResource(R.string.lbbs_state_header),
+            enable = stringResource(R.string.lbbs_toggle_on),
+            disable = stringResource(R.string.lbbs_toggle_off),
+            toggleDescription = stringResource(R.string.lbbs_toggle_desc),
+            actions = stringResource(R.string.lbbs_actions_header),
+            configure = stringResource(R.string.lbbs_configure),
+            copy = stringResource(R.string.lbbs_copy),
+            search = stringResource(R.string.lbbs_search),
+            maintenance = stringResource(R.string.lbbs_maintenance_header),
+            checkUpdate = stringResource(R.string.lbbs_update_check),
+            download = stringResource(R.string.local_blocklist_download),
+            redownload = stringResource(R.string.local_blocklist_redownload),
+            delete = stringResource(R.string.lbl_delete),
+        ),
+        onDismiss = onDismiss,
+        onEnableToggle = onEnableBlocklist,
+        onConfigure = onConfigure,
+        onCopy = onCopy,
+        onSearch = onSearch,
+        onCheckUpdate = onCheckUpdate,
+        onDownload = onDownload,
+        onRedownload = onRedownload,
+        onDelete = onDelete,
+    )
 }

@@ -15,28 +15,25 @@
  */
 package com.celzero.bravedns.ui.dialog
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.celzero.bravedns.R
-import com.celzero.bravedns.ui.components.HopRow
-import com.celzero.bravedns.service.WireguardManager
-import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
-import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
+import com.celzero.bravedns.ui.components.toRethinkWireguardHopItem
+import com.celzero.bravedns.ui.components.updateWireguardHop
+import com.celzero.bravedns.ui.compose.wireguard.RethinkWireguardHopItem
+import com.celzero.bravedns.ui.compose.wireguard.RethinkWireguardHopPicker
+import com.celzero.bravedns.ui.compose.wireguard.RethinkWireguardHopPickerStrings
+import com.celzero.bravedns.ui.compose.wireguard.RethinkWireguardDialog
+import com.celzero.bravedns.ui.compose.wireguard.RethinkWireguardDialogColumn
 import com.celzero.bravedns.wireguard.Config
-import Logger
-import Logger.LOG_TAG_UI
 
 @Composable
 fun WgHopDialog(
@@ -46,41 +43,37 @@ fun WgHopDialog(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
-    WgDialog(onDismissRequest = onDismiss) {
-        val selectedHopId = remember(selectedId) { mutableStateOf(selectedId) }
-        WgDialogColumn(
-            modifier = Modifier.fillMaxSize(),
-            verticalSpacing = Dimensions.spacingSmMd
-        ) {
-            Text(
-                text = stringResource(R.string.hop_add_remove_title),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            RethinkBottomSheetCard(modifier = Modifier.weight(1f)) {
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-                ) {
-                    items(hopables) { config ->
-                        val mapping = WireguardManager.getConfigFilesById(config.getId()) ?: return@items
-                        HopRow(
-                            context = context,
-                            srcId = srcId,
-                            config = config,
-                            isActive = mapping.isActive,
-                            selectedId = selectedHopId.value,
-                            onSelectedIdChange = { selectedHopId.value = it }
-                        )
+    RethinkWireguardDialog(onDismissRequest = onDismiss) {
+        var selectedHopId by remember(selectedId) { mutableStateOf(selectedId.takeIf { it >= 0 }?.toString()) }
+        var hopItems by remember(hopables) { mutableStateOf<List<RethinkWireguardHopItem>>(emptyList()) }
+        LaunchedEffect(srcId, hopables, selectedHopId) {
+            hopItems = hopables.mapNotNull { it.toRethinkWireguardHopItem(context, srcId, selectedHopId?.toIntOrNull()) }
+        }
+        RethinkWireguardDialogColumn(modifier = Modifier.fillMaxSize()) {
+            RethinkWireguardHopPicker(
+                items = hopItems,
+                selectedId = selectedHopId,
+                strings = RethinkWireguardHopPickerStrings(
+                    title = stringResource(R.string.hop_add_remove_title),
+                    done = stringResource(R.string.ada_noapp_dialog_positive),
+                    ipv4 = stringResource(R.string.settings_ip_text_ipv4),
+                    ipv6 = stringResource(R.string.settings_ip_text_ipv6),
+                    splitTunnel = stringResource(R.string.lbl_split),
+                    amnezia = stringResource(R.string.lbl_amnezia),
+                    hopSource = stringResource(R.string.lbl_hopping),
+                    alreadyHop = stringResource(R.string.cd_dns_crypt_relay_heading),
+                ),
+                onToggle = { item, checked ->
+                    val config = hopables.firstOrNull { it.getId().toString() == item.id }
+                    if (config == null) {
+                        com.celzero.bravedns.ui.compose.wireguard.RethinkWireguardHopToggleResult(false)
+                    } else {
+                        updateWireguardHop(context, srcId, config, checked)
                     }
-                }
-            }
-            RethinkBottomSheetActionRow(
-                primaryText = stringResource(R.string.ada_noapp_dialog_positive),
-                onPrimaryClick = {
-                    Logger.d(LOG_TAG_UI, "Dismiss hop dialog")
-                    onDismiss()
-                }
+                },
+                onSelectedIdChange = { selectedHopId = it },
+                onDone = onDismiss,
+                modifier = Modifier.fillMaxSize(),
             )
         }
     }

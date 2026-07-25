@@ -32,8 +32,10 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
-import org.koin.core.context.startKoin
+import org.koin.core.annotation.KoinApplication
+import org.koin.plugin.module.dsl.startKoin
 
+@KoinApplication(modules = [RethinkFullModule::class])
 class RethinkDnsApplication : Application(), AppFunctionConfiguration.Provider {
     companion object {
         var DEBUG: Boolean = false
@@ -48,10 +50,9 @@ class RethinkDnsApplication : Application(), AppFunctionConfiguration.Provider {
             applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE ==
                     ApplicationInfo.FLAG_DEBUGGABLE
 
-        startKoin {
+        startKoin<RethinkDnsApplication> {
             if (DEBUG) androidLogger()
             androidContext(this@RethinkDnsApplication)
-            koin.loadModules(AppModules)
         }
 
         // Initialize global exception handler

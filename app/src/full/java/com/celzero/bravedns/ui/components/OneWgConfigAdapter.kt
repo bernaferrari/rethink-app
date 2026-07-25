@@ -71,6 +71,10 @@ import com.celzero.bravedns.service.WireguardManager.ERR_CODE_VPN_NOT_FULL
 import com.celzero.bravedns.service.WireguardManager.ERR_CODE_WG_INVALID
 import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
 import com.celzero.bravedns.ui.compose.wireguard.WgType
+import com.celzero.bravedns.ui.compose.wireguard.RethinkWireguardConfigCard
+import com.celzero.bravedns.ui.compose.wireguard.RethinkWireguardConfigCardState
+import com.celzero.bravedns.ui.compose.wireguard.RethinkWireguardConfigControl
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.firestack.backend.RouterStats
@@ -165,123 +169,41 @@ fun OneWgConfigRow(
         }
     }
 
-    Card(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .clickable { launchOneWgConfigDetail(context, config.id, onConfigDetailClick) },
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+    RethinkWireguardConfigCard(
+        state = RethinkWireguardConfigCardState(
+            name = config.name,
+            identifier = context.getString(R.string.single_argument_parenthesis, config.id.toString()),
+            chips =
+                if (!isChecked) emptyList()
+                else buildList {
+                    if (protocolChips.ipv4) add(context.getString(R.string.settings_ip_text_ipv4))
+                    if (protocolChips.ipv6) add(context.getString(R.string.settings_ip_text_ipv6))
+                    if (protocolChips.splitTunnel) add(context.getString(R.string.lbl_split))
+                },
+            isChecked = isChecked,
+            statusText = statusText,
+            appsText = appsText.takeIf { showAppsCount },
+            uptimeText = uptimeText.takeIf { showActiveLayout },
+            rxTxText = rxtxText.takeIf { showActiveLayout },
+            accentBorderColor = strokeColor.takeIf { strokeWidth > 0.dp },
+            accentBorderWidth = strokeWidth,
         ),
-        border = if (strokeWidth > 0.dp) {
-            BorderStroke(strokeWidth, strokeColor)
-        } else {
-            BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f))
-        }
-    ) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(14.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = config.name,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text =
-                                context.getString(
-                                    R.string.single_argument_parenthesis,
-                                    config.id.toString()
-                                ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                    }
-                    if (isChecked && protocolChips.hasAny()) {
-                        Row(
-                            modifier = Modifier.padding(top = 6.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            if (protocolChips.ipv4) {
-                                WgChip(text = stringResource(R.string.settings_ip_text_ipv4))
-                            }
-                            if (protocolChips.ipv6) {
-                                WgChip(text = context.getString(R.string.settings_ip_text_ipv6))
-                            }
-                            if (protocolChips.splitTunnel) {
-                                WgChip(text = context.getString(R.string.lbl_split))
-                            }
-                        }
-                    }
-                }
-
-                Checkbox(
-                    checked = isChecked,
-                    onCheckedChange = { checked ->
-                        if (inProgress) return@Checkbox
-                        inProgress = true
-                        scope.launch(Dispatchers.IO) {
-                            val success =
-                                if (checked) {
-                                    enableOneWgIfPossible(context, config, onDnsStatusChanged, eventLogger)
-                                } else {
-                                    disableOneWgIfPossible(context, config, onDnsStatusChanged, eventLogger)
-                                }
-                            withContext(Dispatchers.Main) {
-                                isChecked = if (checked) success else !success
-                                inProgress = false
-                            }
-                        }
-                    }
-                )
-            }
-
-            Text(
-                text = statusText,
-                style = MaterialTheme.typography.bodySmall,
-                fontStyle = FontStyle.Italic,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                modifier = Modifier.padding(top = 4.dp)
-            )
-
-            if (showAppsCount) {
-                Text(
-                    text = appsText,
-                    style = MaterialTheme.typography.bodySmall,
-                    modifier = Modifier.padding(top = 4.dp)
-                )
-            }
-
-            if (showActiveLayout) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = uptimeText,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = rxtxText,
-                        style = MaterialTheme.typography.bodySmall
-                    )
+        control = RethinkWireguardConfigControl.Checkbox,
+        onOpen = { launchOneWgConfigDetail(context, config.id, onConfigDetailClick) },
+        onCheckedChange = { checked ->
+            if (inProgress) return@RethinkWireguardConfigCard
+            inProgress = true
+            scope.launch(Dispatchers.IO) {
+                val success =
+                    if (checked) enableOneWgIfPossible(context, config, onDnsStatusChanged, eventLogger)
+                    else disableOneWgIfPossible(context, config, onDnsStatusChanged, eventLogger)
+                withContext(Dispatchers.Main) {
+                    isChecked = if (checked) success else !success
+                    inProgress = false
                 }
             }
-        }
-    }
+        },
+    )
 }
 
 suspend fun computeProtocolChips(config: WgConfigFiles): ProtocolChips {

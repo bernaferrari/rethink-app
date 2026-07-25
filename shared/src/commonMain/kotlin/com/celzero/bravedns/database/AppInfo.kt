@@ -4,6 +4,7 @@
 package com.celzero.bravedns.database
 
 import androidx.room3.Entity
+import androidx.room3.Ignore
 import com.celzero.bravedns.database.AppInfoRepository.Companion.NO_PACKAGE_PREFIX
 
 /** firewallStatus/connectionStatus ints mirror app FirewallManager ids. */
@@ -45,8 +46,9 @@ class AppInfo {
 
     constructor()
 
-    constructor(_unused: Any?) : this()
+    @Ignore constructor(_unused: Any?) : this()
 
+    @Ignore
     constructor(
         packageName: String,
         appName: String,

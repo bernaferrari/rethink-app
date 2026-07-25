@@ -26,7 +26,7 @@ import androidx.room3.Update
 @Dao
 interface TcpProxyDAO {
 
-    @Update fun update(tcpProxy: TcpProxyEndpoint)
+    @Update suspend fun update(tcpProxy: TcpProxyEndpoint)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(tcpProxyEndpoints: List<TcpProxyEndpoint>): LongArray
@@ -37,9 +37,9 @@ interface TcpProxyDAO {
     @Query("select * from TcpProxyEndpoint")
     fun tcpProxiesPagingSource(): PagingSource<Int, TcpProxyEndpoint>
 
-    @Query("select * from TcpProxyEndpoint") fun getTcpProxies(): List<TcpProxyEndpoint>
+    @Query("select * from TcpProxyEndpoint") suspend fun getTcpProxies(): List<TcpProxyEndpoint>
 
-    @Delete fun delete(tcpProxy: TcpProxyEndpoint)
+    @Delete suspend fun delete(tcpProxy: TcpProxyEndpoint)
 
-    @Query("delete from TcpProxyEndpoint where id = :id") fun deleteById(id: Int)
+    @Query("delete from TcpProxyEndpoint where id = :id") suspend fun deleteById(id: Int)
 }

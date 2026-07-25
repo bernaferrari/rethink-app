@@ -38,6 +38,7 @@ import com.celzero.bravedns.database.ConnectionTrackerDAO
 import com.celzero.bravedns.database.DnsLogDAO
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.compose.apps.AndroidAppCatalog
 import com.celzero.bravedns.ui.compose.bubble.BubbleScreen
 import com.celzero.bravedns.ui.compose.theme.RethinkTheme
 import com.celzero.bravedns.viewmodel.AllowedAppsBubbleViewModel
@@ -160,6 +161,7 @@ class BubbleActivity : ComponentActivity() {
                     connectionTrackerDAO,
                     dnsLogDAO,
                     appInfoRepository,
+                    AndroidAppCatalog,
                     last15Mins,
                     emptySet()
                 )

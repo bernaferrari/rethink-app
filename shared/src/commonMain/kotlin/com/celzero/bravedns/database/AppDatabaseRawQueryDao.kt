@@ -22,7 +22,7 @@ import androidx.room3.RoomRawQuery
 @Dao
 interface AppDatabaseRawQueryDao {
 
-    @RawQuery fun checkpoint(supportSQLiteQuery: RoomRawQuery): Int
+    @RawQuery suspend fun checkpoint(supportSQLiteQuery: RoomRawQuery): Int
 
-    @RawQuery fun vacuum(supportSQLiteQuery: RoomRawQuery): Int
+    @RawQuery suspend fun vacuum(supportSQLiteQuery: RoomRawQuery): Int
 }

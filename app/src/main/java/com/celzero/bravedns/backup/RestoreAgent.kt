@@ -190,7 +190,7 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
     }
 
     // Restore database file stored at tempDir/nameOfFileToRestore.
-    private fun restoreDatabaseFile(tempDir: File): Boolean {
+    private suspend fun restoreDatabaseFile(tempDir: File): Boolean {
         checkPoint()
 
         Logger.d(LOG_TAG_BACKUP_RESTORE, "begin restore database to temp dir: ${tempDir.path}")
@@ -308,7 +308,7 @@ class RestoreAgent(val context: Context, workerParams: WorkerParameters) :
         return pInfo?.versionCode ?: 0
     }
 
-    private fun checkPoint() {
+    private suspend fun checkPoint() {
         Logger.i(LOG_TAG_BACKUP_RESTORE, "database checkpoint() during restore process")
         appDatabase.checkPoint()
         logDatabase.checkPoint()

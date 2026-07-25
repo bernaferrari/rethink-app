@@ -4,7 +4,9 @@ package com.celzero.bravedns.ui.bottomsheet
 import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -16,6 +18,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CustomDomain
@@ -23,6 +26,18 @@ import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.EventLogger
 import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleAction
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleActionOption
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleActionSelector
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleEditorHeader
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetBottomPaddingCompact
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetDeleteAction
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetDeleteDialog
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetLayout
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetModal
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSupportingText
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleValue
 import Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -60,7 +75,7 @@ fun CustomDomainRulesSheet(
         status = rules
     }
 
-    RuleSheetModal(onDismissRequest = onDismiss) {
+    RethinkRuleSheetModal(onDismissRequest = onDismiss) {
         val appName = formatCustomRuleSheetAppName(context, customDomain.uid, appNames)
 
         val now = System.currentTimeMillis()
@@ -79,82 +94,59 @@ fun CustomDomainRulesSheet(
             }
         val statusText = stringResource(R.string.ci_desc, statusLabel, time)
         val deletedToast = stringResource(R.string.cd_toast_deleted)
-        val chipColors = rememberRuleSheetChipColors()
 
-        RuleSheetLayout(bottomPadding = RuleSheetBottomPaddingCompact) {
-            RuleSheetDeleteAction(onClick = { showDeleteDialog = true })
-
-            RuleSheetAppHeader(appName = appName, appIcon = appIcon)
-
-            RuleSheetSectionTitle(
-                text = stringResource(R.string.lbl_domain),
+        RethinkRuleSheetLayout(bottomPadding = RethinkRuleSheetBottomPaddingCompact) {
+            RethinkRuleSheetDeleteAction(
+                label = stringResource(R.string.lbl_delete),
+                onClick = { showDeleteDialog = true },
             )
 
-            RuleSheetSelectionValue(text = customDomain.domain)
+            RethinkRuleEditorHeader(
+                appName = appName,
+                appIcon = {
+                    appIcon?.let { icon ->
+                        rememberDrawablePainter(icon)?.let { painter ->
+                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(20.dp))
+                        }
+                    }
+                },
+            )
 
-            RuleSheetSupportingText(
+            RethinkRuleValue(value = customDomain.domain)
+
+            RethinkRuleSupportingText(
                 text = statusText,
             )
 
-            RuleSheetChipOptionsRow(
+            RethinkRuleActionSelector(
                 options =
                     listOf(
-                        RuleSheetChipOption(
+                        RethinkRuleActionOption(
+                            action = RethinkRuleAction.None,
                             label = stringResource(R.string.ci_no_rule),
-                            selected = status == DomainRulesManager.Status.NONE,
-                            selectedText = chipColors.neutralText,
-                            selectedContainer = chipColors.neutralBg,
-                            onClick = {
-                                updateRule(
-                                    customDomain,
-                                    DomainRulesManager.Status.NONE,
-                                    scope,
-                                    eventLogger
-                                ) { newStatus ->
-                                    status = newStatus
-                                }
-                            }
                         ),
-                        RuleSheetChipOption(
+                        RethinkRuleActionOption(
+                            action = RethinkRuleAction.Block,
                             label = stringResource(R.string.ci_block),
-                            selected = status == DomainRulesManager.Status.BLOCK,
-                            selectedText = chipColors.negativeText,
-                            selectedContainer = chipColors.negativeBg,
-                            onClick = {
-                                updateRule(
-                                    customDomain,
-                                    DomainRulesManager.Status.BLOCK,
-                                    scope,
-                                    eventLogger
-                                ) { newStatus ->
-                                    status = newStatus
-                                }
-                            }
                         ),
-                        RuleSheetChipOption(
+                        RethinkRuleActionOption(
+                            action = RethinkRuleAction.Trust,
                             label = stringResource(R.string.ci_trust_rule),
-                            selected = status == DomainRulesManager.Status.TRUST,
-                            selectedText = chipColors.positiveText,
-                            selectedContainer = chipColors.positiveBg,
-                            onClick = {
-                                updateRule(
-                                    customDomain,
-                                    DomainRulesManager.Status.TRUST,
-                                    scope,
-                                    eventLogger
-                                ) { newStatus ->
-                                    status = newStatus
-                                }
-                            }
                         )
-                    )
+                    ),
+                selectedAction = status.toRethinkRuleAction(),
+                onActionChange = { action ->
+                    updateRule(customDomain, action.toDomainRuleStatus(), scope, eventLogger) { newStatus -> status = newStatus }
+                },
             )
         }
 
         if (showDeleteDialog) {
-            RuleSheetDeleteDialog(
+            RethinkRuleSheetDeleteDialog(
                 title = stringResource(R.string.cd_remove_dialog_title),
                 message = stringResource(R.string.cd_remove_dialog_message),
+                deleteLabel = stringResource(R.string.lbl_delete),
+                cancelLabel = stringResource(R.string.lbl_cancel),
                 onDismiss = { showDeleteDialog = false },
                 onConfirm = {
                     showDeleteDialog = false
@@ -178,6 +170,18 @@ fun CustomDomainRulesSheet(
             )
         }
     }
+}
+
+private fun DomainRulesManager.Status.toRethinkRuleAction() = when (this) {
+    DomainRulesManager.Status.NONE -> RethinkRuleAction.None
+    DomainRulesManager.Status.BLOCK -> RethinkRuleAction.Block
+    DomainRulesManager.Status.TRUST -> RethinkRuleAction.Trust
+}
+
+private fun RethinkRuleAction.toDomainRuleStatus() = when (this) {
+    RethinkRuleAction.None, RethinkRuleAction.Bypass -> DomainRulesManager.Status.NONE
+    RethinkRuleAction.Block -> DomainRulesManager.Status.BLOCK
+    RethinkRuleAction.Trust -> DomainRulesManager.Status.TRUST
 }
 
 private fun updateRule(

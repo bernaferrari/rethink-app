@@ -12,6 +12,7 @@ plugins {
 
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
+    alias(libs.plugins.koin.compiler)
 }
 
 room3 {
@@ -51,9 +52,19 @@ if (!deGoogled) {
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties()
 
-val gitVersion = providers.exec {
-    commandLine("git", "describe", "--tags", "--always")
-}.standardOutput.asText.get().trim()
+// Archive deployments intentionally exclude .git. Android builds keep the descriptive Git
+// version, while the browser-only Vercel build gets a stable, non-empty version name instead.
+val gitVersion =
+    if (rootProject.file(".git").exists()) {
+        providers.exec {
+            commandLine("git", "describe", "--tags", "--always")
+        }.standardOutput.asText.get().trim()
+    } else {
+        System.getenv("VERCEL_GIT_COMMIT_SHA")
+            ?.takeIf(String::isNotBlank)
+            ?.take(12)
+            ?: "web-demo"
+    }
 
 fun getVersionCode(project: Project): Int {
     var code = 0
@@ -323,10 +334,12 @@ dependencies {
     "fullImplementation"(libs.coil.compose)
     "fullImplementation"(libs.coil.network.ktor3)
 
+    implementation(platform(libs.koin.bom))
     download(libs.koin.core)
     implementation(libs.koin.core)
     download(libs.koin.android)
     implementation(libs.koin.android)
+    implementation(libs.koin.annotations)
 
 
 

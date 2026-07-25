@@ -27,12 +27,12 @@ import androidx.room3.Update
 @Dao
 interface WgConfigFilesDAO {
 
-    @Update fun update(wgConfigFiles: WgConfigFiles)
+    @Update suspend fun update(wgConfigFiles: WgConfigFiles)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(wgConfigFiles: List<WgConfigFiles>): LongArray
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insert(wgConfigFiles: WgConfigFiles): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(wgConfigFiles: WgConfigFiles): Long
 
     @Query(
         "select * from WgConfigFiles order by isActive desc, name collate nocase asc"
@@ -49,14 +49,14 @@ interface WgConfigFilesDAO {
     @Query("select * from WgConfigFiles where id in (0, 1)")
     suspend fun getWarpSecWarpConfig(): List<WgConfigFiles>
 
-    @Query("select max(id) from WgConfigFiles") fun getLastAddedConfigId(): Int
+    @Query("select max(id) from WgConfigFiles") suspend fun getLastAddedConfigId(): Int
 
-    @Delete fun delete(wgConfigFiles: WgConfigFiles)
+    @Delete suspend fun delete(wgConfigFiles: WgConfigFiles)
 
     @Query("delete from WgConfigFiles")
     suspend fun deleteOnAppRestore(): Int
 
-    @Query("delete from WgConfigFiles where id = :id") fun deleteConfig(id: Int)
+    @Query("delete from WgConfigFiles where id = :id") suspend fun deleteConfig(id: Int)
 
     @Query("update WgConfigFiles set isCatchAll = :isCatchAll, oneWireGuard = 0 where id = :id")
     suspend fun updateCatchAllConfig(id: Int, isCatchAll: Boolean)
@@ -76,7 +76,7 @@ interface WgConfigFilesDAO {
     @Query("update WgConfigFiles set ssids = :ssids where id = :id")
     suspend fun updateSsids(id: Int, ssids: String)
 
-    @Query("select * from WgConfigFiles where id = :id") fun isConfigAdded(id: Int): WgConfigFiles?
+    @Query("select * from WgConfigFiles where id = :id") suspend fun isConfigAdded(id: Int): WgConfigFiles?
 
     @Query("select count(id) from WgConfigFiles")
     fun getConfigCount(): Flow<Int>

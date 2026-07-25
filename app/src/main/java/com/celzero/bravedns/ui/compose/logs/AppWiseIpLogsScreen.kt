@@ -93,30 +93,29 @@ fun AppWiseIpLogsScreen(
         }
     }
 
-    AppWiseLogsScaffold(
+    RethinkAppWiseLogsScaffold(
         title = appName,
         onBackClick = onBackClick
     ) { paddingValues ->
         if (showDeleteDialog) {
-            AppWiseLogsDeleteDialog(
+            RethinkAppWiseLogsDeleteDialog(
+                strings = appWiseLogsStrings(),
                 onDismiss = { showDeleteDialog = false },
                 onConfirm = { viewModel.deleteLogs(uid) }
             )
         }
 
-        AppWiseLogsScreenContent(
+        RethinkAppWiseLogsContent(
             title = appName.ifBlank { stringResource(R.string.lbl_logs) },
             searchHint = searchHint,
-            appIcon = appIcon ?: Utilities.getDefaultIcon(context),
-            showToggleGroup = true,
-            selectedCategory = selectedCategory,
-            onCategorySelected = { category ->
-                selectedCategory = category
-                viewModel.timeCategoryChanged(category, isDomain = false)
+            fallbackSearchHint = stringResource(R.string.search_universal_ips),
+            strings = appWiseLogsStrings(),
+            selectedRange = selectedCategory.toRethinkTimeRange(),
+            onRangeSelected = { range ->
+                selectedCategory = range.toAppWiseTimeCategory()
+                viewModel.timeCategoryChanged(selectedCategory, isDomain = false)
             },
-            defaultHintRes = R.string.search_universal_ips,
-            showDeleteIcon = showDeleteIcon,
-            onDeleteClick = { showDeleteDialog = true },
+            onDeleteClick = if (showDeleteIcon) ({ showDeleteDialog = true }) else null,
             onQueryChange = { query ->
                 val type =
                     if (isAsn) {
@@ -127,7 +126,8 @@ fun AppWiseIpLogsScreen(
                 viewModel.setFilter(query, type)
             },
             modifier = Modifier.fillMaxSize().padding(paddingValues),
-            queryEnabled = !isAsn
+            queryEnabled = !isAsn,
+            appIcon = { AppWiseLogsAndroidIcon(appIcon ?: Utilities.getDefaultIcon(context)) },
         ) {
             AppWiseIpList(
                 viewModel = viewModel,

@@ -16,28 +16,12 @@
 package com.celzero.bravedns.ui.components
 
 
-import android.content.Context
-import androidx.compose.foundation.clickable
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LifecycleOwner
-import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.service.IpRulesManager
-import com.celzero.bravedns.util.UIUtils
+import com.celzero.bravedns.ui.compose.logs.RethinkAppConnectionItem
+import com.celzero.bravedns.ui.compose.logs.RethinkAppConnectionRow
+import com.celzero.bravedns.ui.compose.logs.RethinkConnectionRuleState
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
 import kotlin.math.log2
@@ -61,7 +45,6 @@ fun IpRow(
     refreshToken: Int,
     onIpClick: (AppConnection) -> Unit
 ) {
-    val countText = conn.count.toString()
     val flagText =
         if (isAsn) {
             val cc = Utilities.getFlag(conn.flag)
@@ -73,58 +56,34 @@ fun IpRow(
     val secondaryText =
         if (isAsn) conn.ipAddress else conn.appOrDnsName?.let { beautifyDomainString(it) }
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clickable { onIpClick(conn) }
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(text = flagText, style = MaterialTheme.typography.titleMedium)
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = titleText.orEmpty(), style = MaterialTheme.typography.titleMedium)
-                if (!secondaryText.isNullOrEmpty()) {
-                    Text(text = secondaryText, style = MaterialTheme.typography.bodySmall)
-                }
-                if (!isAsn) {
-                    IpProgress(conn, refreshToken)
-                }
+    val ruleState =
+        if (isAsn) {
+            RethinkConnectionRuleState.None
+        } else {
+            when (IpRulesManager.getMostSpecificRuleMatch(conn.uid, conn.ipAddress)) {
+                IpRulesManager.IpRuleStatus.NONE -> RethinkConnectionRuleState.None
+                IpRulesManager.IpRuleStatus.BLOCK -> RethinkConnectionRuleState.Block
+                IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL -> RethinkConnectionRuleState.Bypass
+                IpRulesManager.IpRuleStatus.TRUST -> RethinkConnectionRuleState.Trust
             }
-            Text(text = countText, style = MaterialTheme.typography.labelLarge)
         }
-        Spacer(modifier = Modifier.fillMaxWidth())
-    }
-}
-
-@Composable
-private fun IpProgress(conn: AppConnection, refresh: Int) {
-    if (refresh == Int.MIN_VALUE) {
-        return
-    }
-    val context = LocalContext.current
-    val status = IpRulesManager.getMostSpecificRuleMatch(conn.uid, conn.ipAddress)
-    val color =
-        when (status) {
-            IpRulesManager.IpRuleStatus.NONE ->
-                MaterialTheme.colorScheme.onSurfaceVariant
-            IpRulesManager.IpRuleStatus.BLOCK ->
-                MaterialTheme.colorScheme.error
-            IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL ->
-                MaterialTheme.colorScheme.tertiary
-            IpRulesManager.IpRuleStatus.TRUST ->
-                MaterialTheme.colorScheme.tertiary
-        }    // In a paging/lazy list, this is hard to maintain without a global state.
-    // For now, using a local calculation or simplified version.
-    val p = (log2(conn.count.toDouble()) * 100).toInt()
-    val progress = if (p <= 0) 0.1f else (p / 500f).coerceAtMost(1f)
-
-    LinearProgressIndicator(
-        progress = { progress },
-        color = color,
-        trackColor = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.fillMaxWidth()
+    val activity =
+        if (isAsn || refreshToken == Int.MIN_VALUE) {
+            null
+        } else {
+            val score = (log2(conn.count.toDouble()) * 100).toInt()
+            if (score <= 0) 0.1f else (score / 500f).coerceAtMost(1f)
+        }
+    RethinkAppConnectionRow(
+        item = RethinkAppConnectionItem(
+            flag = flagText,
+            title = titleText.orEmpty(),
+            supporting = secondaryText,
+            count = conn.count.toString(),
+            ruleState = ruleState,
+            activity = activity,
+        ),
+        onClick = { onIpClick(conn) },
     )
 }
 

@@ -31,7 +31,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
 
 @Composable
@@ -45,8 +44,8 @@ fun StartStopButtonShared(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.94f else 1f,
-        animationSpec = spring(dampingRatio = 0.5f, stiffness = Spring.StiffnessMedium),
+        targetValue = if (isPressed) 0.97f else 1f,
+        animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMedium),
         label = "buttonScale",
     )
     val containerColor =
@@ -63,7 +62,6 @@ fun StartStopButtonShared(
             containerColor = containerColor,
             contentColor = contentColor,
         ),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp, pressedElevation = 6.dp),
     ) {
         Text(
             text = if (isActive) stopLabel else startLabel,
@@ -83,7 +81,6 @@ fun StatCardShared(
         modifier = modifier,
         shape = RoundedCornerShape(SharedDimensions.cardCornerRadius),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
     ) {
         Column(
             modifier = Modifier.padding(SharedDimensions.spacingLg),

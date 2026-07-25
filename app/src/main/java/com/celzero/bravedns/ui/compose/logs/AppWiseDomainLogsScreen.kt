@@ -96,34 +96,34 @@ fun AppWiseDomainLogsScreen(
 
     val items = remember(uid) { viewModel.appDomainLogs }.collectAsLazyPagingItems()
 
-    AppWiseLogsScaffold(
+    RethinkAppWiseLogsScaffold(
         title = appName,
         onBackClick = onBackClick
     ) { paddingValues ->
         if (showDeleteDialog) {
-            AppWiseLogsDeleteDialog(
+            RethinkAppWiseLogsDeleteDialog(
+                strings = appWiseLogsStrings(),
                 onDismiss = { showDeleteDialog = false },
                 onConfirm = { viewModel.deleteLogs(uid) }
             )
         }
 
-        AppWiseLogsScreenContent(
+        RethinkAppWiseLogsContent(
             title = appName.ifBlank { stringResource(R.string.lbl_logs) },
             searchHint = searchHint,
-            appIcon = appIcon ?: Utilities.getDefaultIcon(context),
-            showToggleGroup = true,
-            selectedCategory = selectedCategory,
-            onCategorySelected = { category ->
-                selectedCategory = category
-                viewModel.timeCategoryChanged(category, true)
+            fallbackSearchHint = stringResource(R.string.search_custom_domains),
+            strings = appWiseLogsStrings(),
+            selectedRange = selectedCategory.toRethinkTimeRange(),
+            onRangeSelected = { range ->
+                selectedCategory = range.toAppWiseTimeCategory()
+                viewModel.timeCategoryChanged(selectedCategory, true)
             },
-            defaultHintRes = R.string.search_custom_domains,
-            showDeleteIcon = true,
             onDeleteClick = { showDeleteDialog = true },
             onQueryChange = { query ->
                 viewModel.setFilter(query, AppConnectionsViewModel.FilterType.DOMAIN)
             },
-            modifier = Modifier.fillMaxSize().padding(paddingValues)
+            modifier = Modifier.fillMaxSize().padding(paddingValues),
+            appIcon = { AppWiseLogsAndroidIcon(appIcon ?: Utilities.getDefaultIcon(context)) },
         ) {
             AppWiseDomainList(
                 items = items,

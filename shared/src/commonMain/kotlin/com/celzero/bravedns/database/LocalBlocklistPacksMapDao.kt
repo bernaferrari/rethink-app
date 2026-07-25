@@ -24,19 +24,19 @@ import androidx.room3.Update
 
 @Dao
 interface LocalBlocklistPacksMapDao {
-    @Update fun update(map: LocalBlocklistPacksMap)
+    @Update suspend fun update(map: LocalBlocklistPacksMap)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE) fun insert(map: LocalBlocklistPacksMap)
+    @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insert(map: LocalBlocklistPacksMap)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insertReplace(map: LocalBlocklistPacksMap)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertReplace(map: LocalBlocklistPacksMap)
 
-    @Query("DELETE FROM LocalBlocklistPacksMap") fun deleteAll()
+    @Query("DELETE FROM LocalBlocklistPacksMap") suspend fun deleteAll()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(maps: List<LocalBlocklistPacksMap>): LongArray
 
     @Query(
-        "select * from LocalBlocklistPacksMap l INNER JOIN (SELECT pack, MIN(level) level FROM LocalBlocklistPacksMap where pack not in ('dead','ignore') GROUP BY pack) l1 ON l1.pack = l.pack Where l1.level = l.level ORDER BY l.`group` DESC"
+        "select l.* from LocalBlocklistPacksMap l INNER JOIN (SELECT pack, MIN(level) level FROM LocalBlocklistPacksMap where pack not in ('dead','ignore') GROUP BY pack) l1 ON l1.pack = l.pack Where l1.level = l.level ORDER BY l.`group` DESC"
     )
     fun getTags(): PagingSource<Int, LocalBlocklistPacksMap>
 }

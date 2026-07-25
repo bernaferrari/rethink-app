@@ -15,22 +15,40 @@
  */
 package com.celzero.bravedns.service
 
+import android.content.Context
+import com.celzero.bravedns.database.ConnectionTrackerRepository
+import com.celzero.bravedns.database.ConsoleLogRepository
+import com.celzero.bravedns.database.DnsLogRepository
 import com.celzero.bravedns.database.RefreshDatabase
+import com.celzero.bravedns.database.RethinkLogRepository
 import com.celzero.bravedns.iab.SecureIdentityStore
-import org.koin.android.ext.koin.androidContext
-import org.koin.dsl.module
+import com.celzero.bravedns.database.EventDao
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Provided
+import org.koin.core.annotation.Single
 
-object ServiceModule {
-    private val serviceModules = module {
-        single { PersistentState(androidContext()) }
-        single { EventLogger(get()) }
-        single { NetLogTracker(androidContext(), get(), get(), get(), get(), get()) }
-        single { RefreshDatabase(androidContext(), get(), get(), get(), get(), get()) }
-        // SecureIdentityStore: encrypted file-backed store for accountId + deviceId.
-        // Registered here (main) so both PipKeyManager (main) and BillingServerRepository
-        // (play/website) share the same singleton and never diverge on stored values.
-        single { SecureIdentityStore(androidContext()) }
-    }
+@Module
+class ServiceModule {
+    @Single fun persistentState(@Provided context: Context) = PersistentState(context)
+    @Single fun eventLogger(eventDao: EventDao) = EventLogger(eventDao)
 
-    val modules = listOf(serviceModules)
+    @Single
+    fun netLogTracker(
+        @Provided context: Context,
+        connectionTrackerRepository: ConnectionTrackerRepository,
+        rethinkLogRepository: RethinkLogRepository,
+        dnsLogRepository: DnsLogRepository,
+        consoleLogRepository: ConsoleLogRepository,
+        persistentState: PersistentState,
+    ) = NetLogTracker(
+        context,
+        connectionTrackerRepository,
+        rethinkLogRepository,
+        dnsLogRepository,
+        consoleLogRepository,
+        persistentState,
+    )
+
+    // SecureIdentityStore stays one shared singleton for every flavor's billing backend.
+    @Single fun secureIdentityStore(@Provided context: Context) = SecureIdentityStore(context)
 }

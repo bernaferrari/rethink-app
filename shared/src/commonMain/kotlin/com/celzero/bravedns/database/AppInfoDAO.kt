@@ -28,7 +28,7 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface AppInfoDAO {
 
-    @Update fun update(appInfo: AppInfo): Int
+    @Update suspend fun update(appInfo: AppInfo): Int
 
     @Query(
         "update AppInfo set firewallStatus = :firewallStatus, connectionStatus = :connectionStatus, modifiedTs = :modifiedTs where uid = :uid"
@@ -38,7 +38,7 @@ interface AppInfoDAO {
     @Query("update AppInfo set tempAllowEnabled = :enabled, tempAllowExpiryTime = :expiryTime, modifiedTs = :modifiedTs where uid = :uid")
     suspend fun updateTempAllowByUid(uid: Int, enabled: Boolean, expiryTime: Long, modifiedTs: Long)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insert(appInfo: AppInfo): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(appInfo: AppInfo): Long
 
     @Query("update AppInfo set uid = :newUid, tombstoneTs = 0, modifiedTs = :modifiedTs where uid = :oldUid and packageName = :pkg")
     suspend fun updateUid(oldUid: Int, pkg: String, newUid: Int, modifiedTs: Long): Int
@@ -49,7 +49,7 @@ interface AppInfoDAO {
     @Query("select * from AppInfo where uid = :uid limit 1")
     suspend fun getAppInfoByUid(uid: Int): AppInfo?
 
-    @Delete fun delete(appInfo: AppInfo)
+    @Delete suspend fun delete(appInfo: AppInfo)
 
     @Query("delete from AppInfo")
     suspend fun deleteAll()
@@ -66,7 +66,7 @@ interface AppInfoDAO {
     @Query("update AppInfo set uid = :newUid, tombstoneTs = :tombstoneTs, modifiedTs = :modifiedTs where uid = :oldUid")
     suspend fun tombstoneApp(oldUid: Int, newUid: Int, tombstoneTs: Long, modifiedTs: Long)
 
-    @Query("select * from AppInfo order by appCategory, uid") fun getAllAppDetails(): List<AppInfo>
+    @Query("select * from AppInfo order by appCategory, uid") suspend fun getAllAppDetails(): List<AppInfo>
     @Query("select * from AppInfo order by lower(appName), uid, packageName")
     fun getAllAppDetailsFlow(): Flow<List<AppInfo>>
 
@@ -166,7 +166,7 @@ interface AppInfoDAO {
 
     @Query("select * from AppInfo order by appCategory, uid") suspend fun getAllAppDetailsCursor(): List<AppInfo>
 
-    @Query("delete from AppInfo where uid = :uid") fun deleteByUid(uid: Int): Int
+    @Query("delete from AppInfo where uid = :uid") suspend fun deleteByUid(uid: Int): Int
 
     @Query(
         "select uid as uid, downloadBytes as downloadBytes, uploadBytes as uploadBytes from AppInfo where uid = :uid"

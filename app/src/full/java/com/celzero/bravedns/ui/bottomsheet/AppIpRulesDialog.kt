@@ -57,6 +57,16 @@ import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.firewall.RethinkDomainRuleRow
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleAction
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleEditorHeader
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleEditorStrings
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetBottomPaddingWithActions
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetLayout
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetModal
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSectionTitle
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSupportingText
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleTrustBlockRow
 import Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -99,26 +109,34 @@ fun AppIpRulesSheet(
         domainRules.putAll(statuses)
     }
 
-    RuleSheetModal(onDismissRequest = onDismiss) {
+    RethinkRuleSheetModal(onDismissRequest = onDismiss) {
         val appName = formatRuleSheetAppName(context, appNames)
-        RuleSheetLayout(bottomPadding = RuleSheetBottomPaddingWithActions) {
-            RuleSheetAppHeader(appName = appName, appIcon = appIcon)
+        val ruleStrings = RethinkRuleEditorStrings(
+            trust = stringResource(R.string.ci_trust_rule),
+            block = stringResource(R.string.ci_block),
+        )
+        RethinkRuleSheetLayout(bottomPadding = RethinkRuleSheetBottomPaddingWithActions) {
+            RethinkRuleEditorHeader(
+                appName = appName,
+                appIcon = {
+                    appIcon?.let { icon ->
+                        rememberDrawablePainter(icon)?.let { painter ->
+                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(Dimensions.iconSizeSm))
+                        }
+                    }
+                },
+            )
 
-            RuleSheetSectionTitle(
+            RethinkRuleSectionTitle(
                 text = stringResource(R.string.bsct_block_ip),
             )
 
-            RuleSheetTrustBlockRow(
+            RethinkRuleTrustBlockRow(
                 value = ipAddress,
-                isTrustSelected = ipRule == IpRulesManager.IpRuleStatus.TRUST,
-                isBlockSelected = ipRule == IpRulesManager.IpRuleStatus.BLOCK,
-                onTrustClick = {
-                    val target =
-                        if (ipRule == IpRulesManager.IpRuleStatus.TRUST) {
-                            IpRulesManager.IpRuleStatus.NONE
-                        } else {
-                            IpRulesManager.IpRuleStatus.TRUST
-                        }
+                action = ipRule.toRethinkRuleAction(),
+                strings = ruleStrings,
+                onActionChange = { action ->
+                    val target = action.toIpRuleStatus()
                     applyIpRule(
                         uid,
                         ipAddress,
@@ -128,26 +146,10 @@ fun AppIpRulesSheet(
                         onUpdated
                     ) { ipRule = it }
                 },
-                onBlockClick = {
-                    val target =
-                        if (ipRule == IpRulesManager.IpRuleStatus.BLOCK) {
-                            IpRulesManager.IpRuleStatus.NONE
-                        } else {
-                            IpRulesManager.IpRuleStatus.BLOCK
-                        }
-                    applyIpRule(
-                        uid,
-                        ipAddress,
-                        target,
-                        scope,
-                        eventLogger,
-                        onUpdated
-                    ) { ipRule = it }
-                }
             )
 
             if (domainList.isNotEmpty()) {
-                RuleSheetSectionTitle(
+                RethinkRuleSectionTitle(
                     text = stringResource(R.string.bsct_block_domain),
                 )
                 LazyColumn(
@@ -155,10 +157,12 @@ fun AppIpRulesSheet(
                 ) {
                     items(domainList, key = { it }) { domain ->
                         val status = domainRules[domain] ?: DomainRulesManager.Status.NONE
-                        DomainRuleRow(
+                        RethinkDomainRuleRow(
                             domain = domain,
-                            status = status,
-                            onUpdate = { newStatus ->
+                            action = status.toRethinkRuleAction(),
+                            strings = ruleStrings,
+                            onActionChange = { action ->
+                                val newStatus = action.toDomainRuleStatus()
                                 domainRules[domain] = newStatus
                                 applyDomainRule(domain, uid, newStatus, scope)
                             }
@@ -167,50 +171,10 @@ fun AppIpRulesSheet(
                 }
             }
 
-            RuleSheetSupportingText(
+            RethinkRuleSupportingText(
                 text = stringResource(R.string.bsac_title_desc),
             )
         }
-    }
-}
-
-@Composable
-private fun DomainRuleRow(
-    domain: String,
-    status: DomainRulesManager.Status,
-    onUpdate: (DomainRulesManager.Status) -> Unit
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = Dimensions.spacingSm),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = domain,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
-        )
-        TrustBlockToggleStrip(
-            isTrustSelected = status == DomainRulesManager.Status.TRUST,
-            isBlockSelected = status == DomainRulesManager.Status.BLOCK,
-            onTrustClick = {
-                if (status == DomainRulesManager.Status.TRUST) {
-                    onUpdate(DomainRulesManager.Status.NONE)
-                } else {
-                    onUpdate(DomainRulesManager.Status.TRUST)
-                }
-            },
-            onBlockClick = {
-                if (status == DomainRulesManager.Status.BLOCK) {
-                    onUpdate(DomainRulesManager.Status.NONE)
-                } else {
-                    onUpdate(DomainRulesManager.Status.BLOCK)
-                }
-            },
-            iconSize = Dimensions.iconSizeMd,
-            spacingBefore = Dimensions.spacingSmMd,
-            spacingBetween = Dimensions.spacingSmMd
-        )
     }
 }
 
@@ -228,6 +192,30 @@ private fun applyDomainRule(
             uid
         )
     }
+}
+
+private fun DomainRulesManager.Status.toRethinkRuleAction() = when (this) {
+    DomainRulesManager.Status.TRUST -> RethinkRuleAction.Trust
+    DomainRulesManager.Status.BLOCK -> RethinkRuleAction.Block
+    DomainRulesManager.Status.NONE -> RethinkRuleAction.None
+}
+
+private fun RethinkRuleAction.toDomainRuleStatus() = when (this) {
+    RethinkRuleAction.Trust -> DomainRulesManager.Status.TRUST
+    RethinkRuleAction.Block -> DomainRulesManager.Status.BLOCK
+    RethinkRuleAction.None, RethinkRuleAction.Bypass -> DomainRulesManager.Status.NONE
+}
+
+private fun IpRulesManager.IpRuleStatus.toRethinkRuleAction() = when (this) {
+    IpRulesManager.IpRuleStatus.TRUST -> RethinkRuleAction.Trust
+    IpRulesManager.IpRuleStatus.BLOCK -> RethinkRuleAction.Block
+    IpRulesManager.IpRuleStatus.NONE, IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL -> RethinkRuleAction.None
+}
+
+private fun RethinkRuleAction.toIpRuleStatus() = when (this) {
+    RethinkRuleAction.Trust -> IpRulesManager.IpRuleStatus.TRUST
+    RethinkRuleAction.Block -> IpRulesManager.IpRuleStatus.BLOCK
+    RethinkRuleAction.None, RethinkRuleAction.Bypass -> IpRulesManager.IpRuleStatus.NONE
 }
 
 private fun applyIpRule(

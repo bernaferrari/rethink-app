@@ -58,7 +58,7 @@ abstract class LogDatabase : RoomDatabase() {
                 }
             }
 
-        internal fun populateDatabase(connection: SQLiteConnection) {
+        internal suspend fun populateDatabase(connection: SQLiteConnection) {
             try {
                 connection.execSQL(
                     "CREATE TABLE IF NOT EXISTS 'ConnectionTracker' ('id' INTEGER NOT NULL,'appName' TEXT DEFAULT '' NOT NULL, 'uid' INTEGER NOT NULL, 'ipAddress' TEXT DEFAULT ''  NOT NULL, 'port' INTEGER NOT NULL, 'protocol' INTEGER NOT NULL,'isBlocked' INTEGER NOT NULL, 'blockedByRule' TEXT DEFAULT '' NOT NULL, 'flag' TEXT  DEFAULT '' NOT NULL, 'dnsQuery' TEXT DEFAULT '', 'timeStamp' INTEGER NOT NULL,PRIMARY KEY (id)  )"
@@ -323,7 +323,7 @@ abstract class LogDatabase : RoomDatabase() {
 
     }
 
-    fun checkPoint() {
+    suspend fun checkPoint() {
         logsDao().checkpoint(RoomRawQuery(PRAGMA))
         logsDao().vacuum(RoomRawQuery("VACUUM"))
     }

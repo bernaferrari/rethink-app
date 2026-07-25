@@ -28,17 +28,17 @@ import com.celzero.bravedns.data.FileTag
 @Dao
 interface RethinkLocalFileTagDao {
 
-    @Update fun update(fileTag: RethinkLocalFileTag): Int
+    @Update suspend fun update(fileTag: RethinkLocalFileTag): Int
 
-    @Update fun updateAll(fileTags: List<RethinkLocalFileTag>)
+    @Update suspend fun updateAll(fileTags: List<RethinkLocalFileTag>)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE) fun insert(fileTag: RethinkLocalFileTag): Long
+    @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insert(fileTag: RethinkLocalFileTag): Long
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insertReplace(fileTag: RethinkLocalFileTag)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertReplace(fileTag: RethinkLocalFileTag)
 
-    @Delete fun delete(fileTag: RethinkLocalFileTag)
+    @Delete suspend fun delete(fileTag: RethinkLocalFileTag)
 
-    @Query("delete from RethinkLocalFileTag where value = :id") fun contentDelete(id: Int): Int
+    @Query("delete from RethinkLocalFileTag where value = :id") suspend fun contentDelete(id: Int): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(fileTags: List<RethinkLocalFileTag>): LongArray
@@ -101,10 +101,10 @@ interface RethinkLocalFileTagDao {
     )
     suspend fun fileTags(): List<FileTag>
 
-    @Query("select value from RethinkLocalFileTag where isSelected = 1")
+    @Query("select value as selectedTagValue from RethinkLocalFileTag where isSelected = 1")
     suspend fun getSelectedTags(): List<Int>
 
-    @Query("delete from RethinkLocalFileTag") fun deleteAll()
+    @Query("delete from RethinkLocalFileTag") suspend fun deleteAll()
 
     @Query("select * from RethinkLocalFileTag order by `group`") suspend fun getFileTags(): List<RethinkLocalFileTag>
 }

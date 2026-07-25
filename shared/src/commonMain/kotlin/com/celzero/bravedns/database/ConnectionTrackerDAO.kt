@@ -31,7 +31,7 @@ import com.celzero.bravedns.util.Constants.Companion.MAX_LOGS
 @Dao
 interface ConnectionTrackerDAO {
 
-    @Update fun update(connectionTracker: ConnectionTracker)
+    @Update suspend fun update(connectionTracker: ConnectionTracker)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(connectionTracker: ConnectionTracker)
@@ -69,7 +69,7 @@ interface ConnectionTrackerDAO {
         flag: String
     )
 
-    @Delete fun delete(connectionTracker: ConnectionTracker)
+    @Delete suspend fun delete(connectionTracker: ConnectionTracker)
 
     // replace order by timeStamp desc with order by id desc, as order by timeStamp desc is building
     // the query with temporary index on the table. This is causing the query to be slow.
@@ -144,16 +144,16 @@ interface ConnectionTrackerDAO {
         filter: Set<String>
     ): PagingSource<Int, ConnectionTracker>
 
-    @Query("delete from ConnectionTracker") fun clearAllData()
+    @Query("delete from ConnectionTracker") suspend fun clearAllData()
 
-    @Query("delete from ConnectionTracker where uid = :uid") fun clearLogsByUid(uid: Int)
+    @Query("delete from ConnectionTracker where uid = :uid") suspend fun clearLogsByUid(uid: Int)
 
-    @Query("delete from ConnectionTracker where blockedByRule = :rule") fun clearLogsByRule(rule: String)
+    @Query("delete from ConnectionTracker where blockedByRule = :rule") suspend fun clearLogsByRule(rule: String)
 
     @Query("delete from ConnectionTracker where uid = :uid and timeStamp > :time")
     suspend fun clearLogsByTime(uid: Int, time: Long)
 
-    @Query("DELETE FROM ConnectionTracker WHERE  timeStamp < :date") fun purgeLogsByDate(date: Long)
+    @Query("DELETE FROM ConnectionTracker WHERE  timeStamp < :date") suspend fun purgeLogsByDate(date: Long)
 
     @Query(
         "select * from ConnectionTracker where isBlocked = 0 and  (appName like :query or ipAddress like :query or dnsQuery like :query or flag like :query or proxyDetails like :query or connId like :query) order by id desc LIMIT $MAX_LOGS"

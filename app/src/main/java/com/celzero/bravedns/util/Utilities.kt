@@ -52,6 +52,7 @@ import com.celzero.bravedns.database.AppInfoRepository.Companion.NO_PACKAGE_PREF
 import com.celzero.bravedns.net.doh.CountryMap
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.DnsLogTracker
+import com.celzero.bravedns.storage.appFileSystem
 import com.celzero.bravedns.util.Constants.Companion.FLAVOR_FDROID
 import com.celzero.bravedns.util.Constants.Companion.FLAVOR_HEADLESS
 import com.celzero.bravedns.util.Constants.Companion.FLAVOR_PLAY
@@ -72,10 +73,6 @@ import inet.ipaddr.HostName
 import inet.ipaddr.IPAddress
 import inet.ipaddr.IPAddressString
 import kotlinx.coroutines.launch
-import okio.HashingSink
-import okio.blackholeSink
-import okio.buffer
-import okio.source
 import java.io.File
 import java.io.IOException
 import java.io.InputStream
@@ -396,19 +393,9 @@ object Utilities {
 
     @Suppress("ReturnCount", "TooGenericExceptionCaught")
     fun copy(from: String, to: String): Boolean {
-        try {
-            val src = File(from)
-            val dest = File(to)
-
-            if (!src.isFile) return false
-
-            src.copyTo(dest, true)
-        } catch (e: Exception) { // Throws NoSuchFileException, IOException
-            Logger.e(LOG_TAG_DOWNLOAD, "err copying file ${e.message}", e)
-            return false
-        }
-
-        return true
+        val copied = appFileSystem.copy(from, to)
+        if (!copied) Logger.e(LOG_TAG_DOWNLOAD, "err copying file $from")
+        return copied
     }
 
     fun copyWithStream(readStream: InputStream, writeStream: OutputStream): Boolean {
@@ -597,22 +584,9 @@ object Utilities {
     }
 
     fun deleteRecursive(fileOrDirectory: File): Boolean {
-        try {
-            if (fileOrDirectory.isDirectory) {
-                fileOrDirectory.listFiles()?.forEach { child -> deleteRecursive(child) }
-            }
-            val isDeleted: Boolean =
-                if (isAtleastO()) {
-                    fileOrDirectory.deleteRecursively()
-                } else {
-                    fileOrDirectory.delete()
-                }
-            Logger.d(LOG_TAG_DOWNLOAD, "deleteRecursive File : ${fileOrDirectory.path}, $isDeleted")
-            return isDeleted
-        } catch (e: Exception) { // Catches SecurityException, IOException, etc.
-            Logger.w(LOG_TAG_DOWNLOAD, "err on file delete: ${e.message}", e)
-        }
-        return false
+        val deleted = appFileSystem.deleteRecursively(fileOrDirectory.path)
+        Logger.d(LOG_TAG_DOWNLOAD, "deleteRecursive File : ${fileOrDirectory.path}, $deleted")
+        return deleted
     }
 
     fun localBlocklistFileDownloadPath(ctx: Context, which: String, timestamp: Long): String {
@@ -833,21 +807,14 @@ object Utilities {
     }
 
     fun calculateMd5(filePath: String): String {
-        // HashingSink will update the md5sum with every write call and then call down
-        // to blackholeSink(), ref: https://stackoverflow.com/a/61217039
-        return File(filePath).source().buffer().use { source ->
-            HashingSink.md5(blackholeSink()).use { sink ->
-                source.readAll(sink)
-                sink.hash.hex()
-            }
-        }
+        return appFileSystem.md5Hex(filePath)
     }
 
     fun getTagValueFromJson(path: String, tag: String): String {
         var tagValue = ""
         try {
             // Read the JSON file
-            val jsonContent = File(path).readText()
+            val jsonContent = appFileSystem.readUtf8(path)
 
             val jsonObject = parseObject(jsonContent)
 

@@ -31,6 +31,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -91,6 +92,10 @@ import coil3.toBitmap
 import coil3.request.ImageRequest
 import coil3.request.SuccessResult
 import com.celzero.bravedns.R
+import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
+import com.celzero.bravedns.ui.compose.logs.RethinkLogDetail
+import com.celzero.bravedns.ui.compose.logs.RethinkLogRow
+import com.celzero.bravedns.ui.compose.logs.RethinkLogRowModel
 import com.celzero.bravedns.database.DnsLog
 import com.celzero.bravedns.image.FavIconDownloader
 import com.celzero.bravedns.image.FavIconImageLoader
@@ -104,56 +109,6 @@ import com.celzero.bravedns.util.Utilities.getIcon
 import com.celzero.firestack.backend.Backend
 import kotlin.math.roundToInt
 
-private data class DnsRowPalette(
-    val status: Color,
-    val statusContainer: Color,
-    val statusLabel: String,
-    val surfaceCollapsed: Color,
-    val surfaceExpanded: Color,
-    val surfaceSubtle: Color,
-    val line: Color,
-    val primaryText: Color,
-    val secondaryText: Color,
-    val tagBg: Color,
-    val tagText: Color,
-)
-
-@Composable
-private fun dnsRowPalette(log: DnsLog): DnsRowPalette {
-    val scheme = MaterialTheme.colorScheme
-    val allowedGreen = Color(0xFF2FB36B)
-    val statusColor = when {
-        log.isBlocked -> scheme.error
-        determineMaybeBlocked(log) -> scheme.error.copy(alpha = 0.9f)
-        else -> allowedGreen
-    }
-
-    val statusContainer = when {
-        log.isBlocked -> scheme.errorContainer.copy(alpha = 0.55f)
-        determineMaybeBlocked(log) -> scheme.errorContainer.copy(alpha = 0.48f)
-        else -> allowedGreen.copy(alpha = 0.18f)
-    }
-
-    return DnsRowPalette(
-        status = statusColor,
-        statusContainer = statusContainer,
-        statusLabel =
-            if (log.isBlocked) {
-                stringResource(R.string.lbl_blocked)
-            } else {
-                stringResource(R.string.lbl_allowed)
-            },
-        surfaceCollapsed = scheme.surfaceContainerLow,
-        surfaceExpanded = scheme.surfaceContainer,
-        surfaceSubtle = scheme.surfaceContainerHighest.copy(alpha = 0.32f),
-        line = scheme.outlineVariant.copy(alpha = 0.45f),
-        primaryText = scheme.onSurface,
-        secondaryText = scheme.onSurfaceVariant,
-        tagBg = scheme.surfaceContainerHighest.copy(alpha = 0.6f),
-        tagText = scheme.onSurfaceVariant,
-    )
-}
-
 @Composable
 fun DnsLogRow(
     log: DnsLog,
@@ -164,7 +119,6 @@ fun DnsLogRow(
     itemCount: Int = 1,
 ) {
     val context = LocalContext.current
-    val palette = dnsRowPalette(log)
     val dnsType = dnsTypeName(context, log, isRethinkDns)
     val hint = unicodeHint(context, log, isRethinkDns)
     val appLabel = log.appName.ifEmpty {
@@ -174,61 +128,6 @@ fun DnsLogRow(
     var appIcon by remember(log.packageName) { mutableStateOf<Drawable?>(null) }
     var favIcon by remember(log.queryStr) { mutableStateOf<Drawable?>(null) }
     var showFav by remember(log.queryStr, loadFavIcon) { mutableStateOf(false) }
-    var expanded by remember { mutableStateOf(false) }
-    var showDetails by remember { mutableStateOf(false) }
-
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val rowScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.988f else 1f,
-        animationSpec = spring(
-            stiffness = Spring.StiffnessMediumLow,
-            dampingRatio = Spring.DampingRatioNoBouncy
-        ),
-        label = "dnsRowScale"
-    )
-
-    val chevronAngle by animateFloatAsState(
-        targetValue = if (expanded) 90f else 0f,
-        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
-        label = "dnsChevron"
-    )
-
-    val baseCardColor = if (expanded) palette.surfaceExpanded else palette.surfaceCollapsed
-    val pressedCardColor = lerp(baseCardColor, MaterialTheme.colorScheme.primaryContainer, 0.2f)
-    val cardColor by animateColorAsState(
-        targetValue = if (isPressed) pressedCardColor else baseCardColor,
-        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
-        label = "dnsCardColor"
-    )
-
-    val shadowElevation by animateDpAsState(
-        targetValue =
-            when {
-                isPressed -> 3.dp
-                expanded -> 7.dp
-                else -> 1.dp
-            },
-        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
-        label = "dnsCardShadow"
-    )
-
-    val stripeAlpha by animateFloatAsState(
-        targetValue = if (expanded) 1f else 0.9f,
-        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
-        label = "dnsStripeAlpha"
-    )
-
-    val detailsProgress by animateFloatAsState(
-        targetValue = if (expanded) 1f else 0f,
-        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
-        label = "dnsDetailsProgress",
-        finishedListener = { value ->
-            if (value == 0f) showDetails = false
-        }
-    )
-
     LaunchedEffect(log.packageName) {
         appIcon =
             if (log.packageName.isEmpty() || log.packageName == Constants.EMPTY_PACKAGE_NAME) {
@@ -254,175 +153,44 @@ fun DnsLogRow(
         )
     }
 
-    LaunchedEffect(expanded) {
-        if (expanded) showDetails = true
+    val countryName = UIUtils.getCountryNameFromFlag(log.flag).trim()
+    val country = when {
+        countryName.isNotBlank() && countryName != "--" && log.flag.isNotBlank() -> "$countryName ${log.flag}"
+        countryName.isNotBlank() && countryName != "--" -> countryName
+        log.flag.isNotBlank() && log.flag != "--" -> log.flag
+        else -> stringResource(R.string.network_log_app_name_unknown)
     }
-
-    val cardShape = ListItemDefaults.segmentedShapes(index = index, count = itemCount)
-
-    Surface(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .scale(rowScale)
-                .clip(cardShape.shape)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = { expanded = !expanded },
-                ),
-        shape = cardShape.shape,
-        color = cardColor,
-        tonalElevation = if (expanded) 2.dp else 0.dp,
-        shadowElevation = shadowElevation,
-        border =
-            if (expanded) {
-                BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f))
-            } else {
-                null
-            },
-    ) {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Min),
-        ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(start = 26.dp, end = 12.dp, top = 12.dp, bottom = 11.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    AppIconSlot(
-                        showFav = showFav,
-                        favIcon = favIcon,
-                        appIcon = appIcon,
-                        statusColor = palette.statusContainer,
-                    )
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
-                    ) {
-                        Text(
-                            text = log.queryStr,
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp,
-                            color = palette.primaryText,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            letterSpacing = (-0.2).sp,
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = appLabel,
-                                fontSize = 11.sp,
-                                color = palette.secondaryText,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false),
-                            )
-                            DnsTypeTag(type = dnsType, bg = palette.tagBg, textColor = palette.tagText)
-                        }
-                    }
-
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
-                    ) {
-                        StatusLabel(text = palette.statusLabel, color = palette.status)
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                text = log.wallTime(),
-                                fontSize = 10.sp,
-                                color = palette.secondaryText.copy(alpha = 0.92f),
-                            )
-                            ChevronIcon(angle = chevronAngle, tint = palette.secondaryText)
-                        }
-                    }
-                }
-
-                if (showDetails) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .accordionReveal(detailsProgress),
-                    ) {
-                        DetailPanel(
-                            log = log,
-                            dnsType = dnsType,
-                            hint = hint,
-                            statusColor = palette.status,
-                            context = context,
-                            panelColor = palette.surfaceSubtle,
-                            dividerColor = palette.line,
-                            textColor = palette.secondaryText,
-                            onShowBlocklist = onShowBlocklist,
-                        )
-                    }
-                }
-            }
-
-            StatusStripe(
-                color = palette.status.copy(alpha = stripeAlpha),
-                modifier =
-                    Modifier
-                        .align(Alignment.TopStart)
-                        .fillMaxHeight()
-                        .zIndex(1f),
-            )
+    val details = buildList {
+        add(RethinkLogDetail("Transport", dnsType))
+        add(RethinkLogDetail("Country", country))
+        if (log.responseIps.isNotBlank()) add(RethinkLogDetail("Response", log.responseIps, monospace = true))
+        if (log.serverIP.isNotBlank()) add(RethinkLogDetail("Resolver", log.serverIP, monospace = true))
+        if (log.dnssecOk || log.dnssecValid) {
+            add(RethinkLogDetail("DNSSEC", if (log.dnssecOk && log.dnssecValid) "✓  Valid" else "⚠  Unverified"))
         }
+        if (hint.isNotBlank()) add(RethinkLogDetail("Flags", hint))
     }
-}
-
-private fun Modifier.accordionReveal(progress: Float): Modifier {
-    val p = progress.coerceIn(0f, 1f)
-    return this
-        .graphicsLayer { alpha = p }
-        .clipToBounds()
-        .layout { measurable, constraints ->
-            val placeable = measurable.measure(constraints)
-            val h = (placeable.height * p).roundToInt()
-            layout(placeable.width, h) {
-                if (h > 0) placeable.place(0, 0)
-            }
-        }
-}
-
-@Composable
-private fun StatusStripe(color: Color, modifier: Modifier = Modifier) {
-    Box(
-        modifier =
-            modifier
-                .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
-                .width(5.dp)
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(999.dp))
-                .background(
-                    brush =
-                        Brush.verticalGradient(
-                            colors =
-                                listOf(
-                                    color,
-                                    color.copy(alpha = 0.38f),
-                                ),
-                        ),
-                ),
+    val blocklistCount = log.blockLists.split(",").count { it.isNotBlank() }
+    RethinkLogRow(
+        model = RethinkLogRowModel(
+            id = log.id.toString(),
+            destination = log.queryStr,
+            appLabel = appLabel,
+            typeLabel = dnsType,
+            timeLabel = log.wallTime(),
+            isBlocked = log.isBlocked,
+            allowedLabel = stringResource(R.string.lbl_allowed),
+            blockedLabel = stringResource(R.string.lbl_blocked),
+            details = details,
+            icon = { statusContainer -> AppIconSlot(showFav, favIcon, appIcon, statusContainer) },
+            latencyMs = log.latency,
+            blocklistsLabel = if (blocklistCount > 0) "$blocklistCount blocklists matched" else null,
+            onBlocklistsClick = if (blocklistCount > 0) ({ onShowBlocklist(log) }) else null,
+        ),
+        index = index,
+        itemCount = itemCount,
     )
+    return
 }
 
 @Composable
@@ -459,294 +227,6 @@ private fun AppIconSlot(
         }
     }
 }
-
-@Composable
-private fun DnsTypeTag(type: String, bg: Color, textColor: Color) {
-    Box(
-        modifier =
-            Modifier
-                .clip(RoundedCornerShape(5.dp))
-                .background(bg)
-                .padding(horizontal = 6.dp, vertical = 0.dp),
-    ) {
-        Text(
-            text = type,
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Bold,
-            color = textColor,
-            letterSpacing = 0.5.sp,
-        )
-    }
-}
-
-@Composable
-private fun StatusLabel(text: String, color: Color) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Box(
-            modifier =
-                Modifier
-                    .size(5.dp)
-                    .clip(CircleShape)
-                    .background(color),
-        )
-        Text(
-            text = text,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = color,
-            letterSpacing = 0.2.sp,
-        )
-    }
-}
-
-@Composable
-private fun ChevronIcon(angle: Float, tint: Color) {
-    Icon(
-        painter = painterResource(R.drawable.ic_right_arrow_small),
-        contentDescription = null,
-        tint = tint,
-        modifier =
-            Modifier
-                .size(10.dp)
-                .rotate(angle),
-    )
-}
-
-@Composable
-private fun DetailPanel(
-    log: DnsLog,
-    dnsType: String,
-    hint: String,
-    statusColor: Color,
-    context: Context,
-    panelColor: Color,
-    dividerColor: Color,
-    textColor: Color,
-    onShowBlocklist: (DnsLog) -> Unit,
-) {
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .background(panelColor),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
-    ) {
-        HorizontalDivider(
-            color = dividerColor,
-            thickness = 0.5.dp,
-        )
-
-        Column(
-            modifier = Modifier.padding(start = 26.dp, end = 14.dp, top = 10.dp, bottom = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp),
-        ) {
-            DetailLatencyRow(latency = log.latency)
-
-            Spacer(Modifier.height(8.dp))
-
-            DetailTextRow(
-                label = "Transport",
-                value = dnsType,
-                tint = textColor,
-            )
-
-            val unknownLabel = context.getString(R.string.network_log_app_name_unknown)
-            val countryName = UIUtils.getCountryNameFromFlag(log.flag).trim()
-            val normalizedCountryName = countryName.takeUnless { it.isBlank() || it == "--" }
-            val normalizedFlag = log.flag.trim().takeUnless { it.isBlank() || it == "--" }
-            val countryDisplay =
-                when {
-                    normalizedCountryName != null && normalizedFlag != null -> "$normalizedCountryName $normalizedFlag"
-                    normalizedCountryName != null -> normalizedCountryName
-                    normalizedFlag != null -> normalizedFlag
-                    else -> unknownLabel
-                }
-            DetailTextRow(
-                label = "Country",
-                value = countryDisplay,
-                tint = textColor,
-            )
-
-            if (log.responseIps.isNotBlank()) {
-                val ips = log.responseIps.split(",").map { it.trim() }.filter { it.isNotEmpty() }
-                DetailTextRow(
-                    label = context.getString(R.string.response_ip_label).ifEmpty { "IP" },
-                    value = ips.joinToString(" · "),
-                    mono = true,
-                    tint = MaterialTheme.colorScheme.secondary,
-                )
-            }
-
-            if (log.serverIP.isNotBlank()) {
-                DetailTextRow(
-                    label = context.getString(R.string.resolver_label).ifEmpty { "Resolver" },
-                    value = log.serverIP,
-                    mono = true,
-                    tint = textColor,
-                )
-            }
-
-            if (log.dnssecOk || log.dnssecValid) {
-                val dnssecOkay = log.dnssecOk && log.dnssecValid
-                DetailTextRow(
-                    label = "DNSSEC",
-                    value = if (dnssecOkay) "✓  Valid" else "⚠  Unverified",
-                    tint = if (dnssecOkay) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
-                )
-            }
-
-            if (hint.isNotEmpty()) {
-                DetailTextRow(label = "Flags", value = hint, tint = textColor)
-            }
-
-            if (log.blockLists.isNotEmpty()) {
-                Spacer(Modifier.height(4.dp))
-                BlocklistRow(log = log, statusColor = statusColor, onShowBlocklist = onShowBlocklist)
-            }
-        }
-    }
-}
-
-@Composable
-private fun DetailLatencyRow(latency: Long) {
-    val scheme = MaterialTheme.colorScheme
-    val successGreen = Color(0xFF2FB36B)
-    val (barColor, label) =
-        when {
-            latency in 1..10 -> successGreen to "${latency}ms · fast"
-            latency in 11..50 -> scheme.tertiary to "${latency}ms · ok"
-            latency > 50 -> scheme.error to "${latency}ms · slow"
-            else -> scheme.onSurfaceVariant to "${latency}ms"
-        }
-    val fraction = (latency.toFloat() / 100f).coerceIn(0.04f, 1f)
-
-    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(
-                text = "Latency",
-                fontSize = 10.sp,
-                color = scheme.onSurfaceVariant,
-                letterSpacing = 0.4.sp,
-            )
-            Text(
-                text = label,
-                fontSize = 10.sp,
-                fontWeight = FontWeight.Medium,
-                color = barColor,
-            )
-        }
-
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(3.dp)
-                    .clip(RoundedCornerShape(2.dp))
-                    .background(scheme.outlineVariant.copy(alpha = 0.35f)),
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .fillMaxWidth(fraction)
-                        .fillMaxHeight()
-                        .clip(RoundedCornerShape(2.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(barColor.copy(alpha = 0.7f), barColor),
-                            ),
-                        ),
-            )
-        }
-    }
-}
-
-@Composable
-private fun DetailTextRow(
-    label: String,
-    value: String,
-    mono: Boolean = false,
-    tint: Color,
-) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top,
-    ) {
-        Text(
-            text = label,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            letterSpacing = 0.4.sp,
-            modifier = Modifier.widthIn(min = 64.dp),
-        )
-        Text(
-            text = value,
-            fontSize = 11.sp,
-            color = tint,
-            fontFamily = if (mono) FontFamily.Monospace else FontFamily.Default,
-            fontWeight = FontWeight.Medium,
-            textAlign = androidx.compose.ui.text.style.TextAlign.End,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
-@Composable
-private fun BlocklistRow(log: DnsLog, statusColor: Color, onShowBlocklist: (DnsLog) -> Unit) {
-    val scheme = MaterialTheme.colorScheme
-    val count = log.blockLists.split(",").filter { it.isNotEmpty() }.size
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(9.dp))
-                .background(scheme.errorContainer.copy(alpha = 0.38f))
-                .clickable(
-                    interactionSource = remember { MutableInteractionSource() },
-                    indication = ripple(color = scheme.error.copy(alpha = 0.16f)),
-                    onClick = { onShowBlocklist(log) },
-                )
-                .padding(horizontal = 10.dp, vertical = 7.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            Box(
-                modifier =
-                    Modifier
-                        .size(5.dp)
-                        .clip(CircleShape)
-                        .background(statusColor),
-            )
-            Text(
-                text = "$count blocklist${if (count != 1) "s" else ""} matched",
-                fontSize = 11.sp,
-                color = scheme.error,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
-        Icon(
-            painter = painterResource(R.drawable.ic_right_arrow_small),
-            contentDescription = null,
-            tint = scheme.error.copy(alpha = 0.65f),
-            modifier = Modifier.size(10.dp),
-        )
-    }
-}
-
-private fun determineMaybeBlocked(log: DnsLog): Boolean =
-    log.upstreamBlock || log.blockLists.isNotEmpty()
 
 private fun unicodeHint(context: Context, log: DnsLog, isRethinkDns: Boolean): String {
     var hint = ""

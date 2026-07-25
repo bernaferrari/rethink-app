@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" style="background:#1a1110;color-scheme:dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark">
+    <meta name="theme-color" content="#1a1110">
+    <base href="/">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" sizes="any">
+    <title>Re-Rethink — Private DNS and firewall for Android</title>
+    <meta name="description" content="Re-Rethink is a private, local-first DNS and firewall app for Android. Explore the Material 3 Expressive interface in your browser.">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://rethink-app-kappa.vercel.app/">
+    <link rel="author" href="https://github.com/bernaferrari/rethink-app">
+
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Re-Rethink">
+    <meta property="og:title" content="Re-Rethink — Private DNS and firewall for Android">
+    <meta property="og:description" content="A local-first Android DNS and firewall app, rebuilt with a polished Material 3 Expressive interface.">
+    <meta property="og:url" content="https://rethink-app-kappa.vercel.app/">
+    <meta property="og:image" content="https://rethink-app-kappa.vercel.app/opengraph-image.png">
+    <meta property="og:image:width" content="1280">
+    <meta property="og:image:height" content="640">
+    <meta property="og:image:alt" content="Re-Rethink private DNS and firewall">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Re-Rethink — Private DNS and firewall for Android">
+    <meta name="twitter:description" content="A local-first Android DNS and firewall app, rebuilt with a polished Material 3 Expressive interface.">
+    <meta name="twitter:image" content="https://rethink-app-kappa.vercel.app/opengraph-image.png">
+    <meta name="twitter:image:alt" content="Re-Rethink private DNS and firewall">
+    <script type="application/ld+json">
+        {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Re-Rethink",
+            "applicationCategory": "SecurityApplication",
+            "operatingSystem": "Android, Web",
+            "description": "A private, local-first Android DNS and firewall app with a Material 3 Expressive interface.",
+            "url": "https://rethink-app-kappa.vercel.app/",
+            "image": "https://rethink-app-kappa.vercel.app/opengraph-image.png",
+            "sameAs": ["https://github.com/bernaferrari/rethink-app"]
+        }
+    </script>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #1a1110;
+        }
+        #loading {
+            color: #f0deda;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 1.25rem;
+            width: 100%;
+            height: 100%;
+            background: #1a1110;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(240, 222, 218, 0.15);
+            border-top-color: #ffb4a3;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .label {
+            margin: 0;
+            font-size: 0.95rem;
+            letter-spacing: 0.02em;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+<div id="loading" role="status" aria-live="polite" aria-busy="true">
+    <div class="spinner" aria-hidden="true"></div>
+    <p class="label">Loading Re-Rethink…</p>
+</div>
+<script src="shared.js"></script>
+</body>
+</html>

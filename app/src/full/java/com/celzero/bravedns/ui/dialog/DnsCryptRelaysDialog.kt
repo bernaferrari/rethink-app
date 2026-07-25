@@ -15,16 +15,9 @@ limitations under the License.
 */
 package com.celzero.bravedns.ui.dialog
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
@@ -35,10 +28,9 @@ import com.celzero.bravedns.R
 import com.celzero.bravedns.ui.components.RelayRow
 import com.celzero.bravedns.data.AppConfig
 import com.celzero.bravedns.database.DnsCryptRelayEndpoint
-import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.dns.RethinkEndpointFeed
+import com.celzero.bravedns.ui.compose.dns.RethinkEndpointPicker
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DnsCryptRelaysDialog(
     appConfig: AppConfig,
@@ -55,7 +47,6 @@ fun DnsCryptRelaysDialog(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun DnsCryptRelaysContent(
     appConfig: AppConfig,
@@ -63,27 +54,15 @@ private fun DnsCryptRelaysContent(
     onDismiss: () -> Unit
 ) {
     val items = relays.collectAsLazyPagingItems()
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            RethinkTopBar(
-                title = stringResource(R.string.cd_dnscrypt_relay_heading),
-                onBackClick = onDismiss
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier.padding(padding)
-        ) {
-            LazyColumn(
-                modifier = Modifier.padding(horizontal = Dimensions.screenPaddingHorizontal),
-                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
-            ) {
-                items(items.itemCount) { index ->
-                    val item = items[index] ?: return@items
-                    RelayRow(item, appConfig)
-                }
-            }
-        }
-    }
+    RethinkEndpointPicker(
+        title = stringResource(R.string.cd_dnscrypt_relay_heading),
+        feed = AndroidRelayFeed(items),
+        onBackClick = onDismiss,
+        itemContent = { RelayRow(it, appConfig) },
+    )
+}
+
+private class AndroidRelayFeed(private val items: androidx.paging.compose.LazyPagingItems<DnsCryptRelayEndpoint>) : RethinkEndpointFeed<DnsCryptRelayEndpoint> {
+    override val itemCount: Int get() = items.itemCount
+    override fun get(index: Int): DnsCryptRelayEndpoint? = items[index]
 }

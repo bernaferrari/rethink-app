@@ -29,13 +29,13 @@ import com.celzero.bravedns.util.Constants
 @Dao
 interface CustomDomainDAO {
 
-    @Update fun update(customDomain: CustomDomain): Int
+    @Update suspend fun update(customDomain: CustomDomain): Int
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insert(customDomain: CustomDomain): Long
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(customDomain: CustomDomain): Long
 
-    @Delete fun delete(customDomain: CustomDomain)
+    @Delete suspend fun delete(customDomain: CustomDomain)
 
-    @Delete fun deleteAll(customDomains: List<CustomDomain>)
+    @Delete suspend fun deleteAll(customDomains: List<CustomDomain>)
 
     @Transaction
     @Query("select * from CustomDomain order by modifiedTs desc")
@@ -75,9 +75,9 @@ interface CustomDomainDAO {
     @Query("select count(*) from CustomDomain where uid != ${Constants.UID_EVERYBODY}")
     fun getAllDomainRulesCount(): Flow<Int>
 
-    @Query("delete from CustomDomain where uid = :uid") fun deleteRulesByUid(uid: Int)
+    @Query("delete from CustomDomain where uid = :uid") suspend fun deleteRulesByUid(uid: Int)
 
-    @Query("delete from CustomDomain") fun deleteAllRules()
+    @Query("delete from CustomDomain") suspend fun deleteAllRules()
 
     @Query("select * from CustomDomain where status in (1,2) order by modifiedTs desc")
     suspend fun getRulesCursor(): List<CustomDomain>

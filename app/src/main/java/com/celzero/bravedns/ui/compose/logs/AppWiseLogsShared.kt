@@ -86,26 +86,6 @@ import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 
-@Composable
-internal fun AppWiseLogsDeleteDialog(
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    RethinkConfirmDialog(
-        onDismissRequest = onDismiss,
-        title = stringResource(R.string.ada_delete_logs_dialog_title),
-        message = stringResource(R.string.ada_delete_logs_dialog_desc),
-        confirmText = stringResource(R.string.lbl_proceed),
-        dismissText = stringResource(R.string.lbl_cancel),
-        onConfirm = {
-            onDismiss()
-            onConfirm()
-        },
-        onDismiss = onDismiss,
-        isConfirmDestructive = true
-    )
-}
-
 internal data class AppWiseLogsHeader(
     val appName: String,
     val searchHint: String,
@@ -158,104 +138,6 @@ internal suspend fun resolveAppWiseLogsHeader(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-internal fun AppWiseLogsScaffold(
-    title: String,
-    onBackClick: (() -> Unit)? = null,
-    content: @Composable (paddingValues: PaddingValues) -> Unit
-) {
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            RethinkLargeTopBar(
-                title = title,
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior
-            )
-        },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { paddingValues ->
-        content(paddingValues)
-    }
-}
-
-@Composable
-internal fun AppWiseLogsScreenContent(
-    title: String,
-    searchHint: String,
-    appIcon: Drawable?,
-    showToggleGroup: Boolean,
-    selectedCategory: AppConnectionsViewModel.TimeCategory,
-    onCategorySelected: (AppConnectionsViewModel.TimeCategory) -> Unit,
-    defaultHintRes: Int,
-    showDeleteIcon: Boolean,
-    onDeleteClick: () -> Unit,
-    onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    queryEnabled: Boolean = true,
-    content: @Composable () -> Unit
-) {
-    Column(modifier = modifier.fillMaxSize()) {
-        Surface(
-            modifier =
-                Modifier.padding(
-                    horizontal = Dimensions.screenPaddingHorizontal,
-                    vertical = Dimensions.spacingSm
-                ),
-            shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-            color = MaterialTheme.colorScheme.surfaceContainerLow,
-            tonalElevation = 1.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(Dimensions.spacingLg),
-                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-                Text(
-                    text = searchHint,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        Column(
-            modifier =
-                Modifier.padding(
-                    horizontal = Dimensions.screenPaddingHorizontal,
-                    vertical = Dimensions.spacingMd
-                )
-        ) {
-            if (showToggleGroup) {
-                AppWiseTimeCategoryToggleRow(
-                    selectedCategory = selectedCategory,
-                    onCategorySelected = onCategorySelected
-                )
-                Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-            }
-
-            AppWiseSearchHeaderRow(
-                appIcon = appIcon,
-                searchHint = searchHint,
-                defaultHintRes = defaultHintRes,
-                showDeleteIcon = showDeleteIcon,
-                onDeleteClick = onDeleteClick,
-                queryEnabled = queryEnabled,
-                onQueryChange = onQueryChange
-            )
-        }
-
-        content()
-    }
-}
-
 @Composable
 internal fun <T : Any> AppWiseLogsPagedList(
     items: LazyPagingItems<T>,
@@ -279,138 +161,36 @@ internal fun <T : Any> AppWiseLogsPagedList(
 }
 
 @Composable
-internal fun AppWiseTimeCategoryToggleRow(
-    selectedCategory: AppConnectionsViewModel.TimeCategory,
-    onCategorySelected: (AppConnectionsViewModel.TimeCategory) -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = Dimensions.spacingSm),
-        horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        listOf(
-            AppConnectionsViewModel.TimeCategory.ONE_HOUR to
-                stringResource(R.string.ci_desc, "1", stringResource(R.string.lbl_hour)),
-            AppConnectionsViewModel.TimeCategory.TWENTY_FOUR_HOUR to
-                stringResource(R.string.ci_desc, "24", stringResource(R.string.lbl_hour)),
-            AppConnectionsViewModel.TimeCategory.SEVEN_DAYS to
-                stringResource(R.string.ci_desc, "7", stringResource(R.string.lbl_day))
-        ).forEach { (category, label) ->
-            RethinkFilterChip(
-                label = label,
-                selected = selectedCategory == category,
-                onClick = { onCategorySelected(category) },
-                modifier = Modifier.weight(1f),
-                minHeight = 44.dp,
-            )
-        }
-    }
+internal fun appWiseLogsStrings(): RethinkAppWiseLogsStrings = RethinkAppWiseLogsStrings(
+    clearSearch = stringResource(R.string.cd_clear_search),
+    delete = stringResource(R.string.lbl_delete),
+    deleteTitle = stringResource(R.string.ada_delete_logs_dialog_title),
+    deleteDescription = stringResource(R.string.ada_delete_logs_dialog_desc),
+    proceed = stringResource(R.string.lbl_proceed),
+    cancel = stringResource(R.string.lbl_cancel),
+    oneHour = stringResource(R.string.ci_desc, "1", stringResource(R.string.lbl_hour)),
+    twentyFourHours = stringResource(R.string.ci_desc, "24", stringResource(R.string.lbl_hour)),
+    sevenDays = stringResource(R.string.ci_desc, "7", stringResource(R.string.lbl_day)),
+)
+
+internal fun AppConnectionsViewModel.TimeCategory.toRethinkTimeRange() = when (this) {
+    AppConnectionsViewModel.TimeCategory.ONE_HOUR -> RethinkAppWiseLogTimeRange.OneHour
+    AppConnectionsViewModel.TimeCategory.TWENTY_FOUR_HOUR -> RethinkAppWiseLogTimeRange.TwentyFourHours
+    AppConnectionsViewModel.TimeCategory.SEVEN_DAYS -> RethinkAppWiseLogTimeRange.SevenDays
 }
 
-@OptIn(FlowPreview::class)
+internal fun RethinkAppWiseLogTimeRange.toAppWiseTimeCategory() = when (this) {
+    RethinkAppWiseLogTimeRange.OneHour -> AppConnectionsViewModel.TimeCategory.ONE_HOUR
+    RethinkAppWiseLogTimeRange.TwentyFourHours -> AppConnectionsViewModel.TimeCategory.TWENTY_FOUR_HOUR
+    RethinkAppWiseLogTimeRange.SevenDays -> AppConnectionsViewModel.TimeCategory.SEVEN_DAYS
+}
+
 @Composable
-internal fun AppWiseSearchHeaderRow(
-    appIcon: Drawable?,
-    searchHint: String,
-    defaultHintRes: Int,
-    showDeleteIcon: Boolean,
-    onDeleteClick: () -> Unit,
-    onQueryChange: (String) -> Unit,
-    queryEnabled: Boolean = true
-) {
-    val clearSearchContentDescription = stringResource(R.string.cd_clear_search)
-    val deleteContentDescription = stringResource(R.string.lbl_delete)
-    val reduceMotion = rememberReducedMotion()
-    var query by remember { mutableStateOf("") }
-
-    LaunchedEffect(Unit) {
-        snapshotFlow { query }
-            .debounce(500L)
-            .distinctUntilChanged()
-            .collect { value -> onQueryChange(value) }
-    }
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerHigh
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = Dimensions.spacingSm),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(Dimensions.spacingSm)
-                    .size(Dimensions.iconSizeMd)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)),
-                contentAlignment = Alignment.Center
-            ) {
-                val bitmap = remember(appIcon) { appIcon?.toBitmap(width = 48, height = 48) }
-                if (bitmap != null) {
-                    Image(
-                        bitmap = bitmap.asImageBitmap(),
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.Filled.Search,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-            }
-
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier.weight(1f),
-                singleLine = true,
-                enabled = queryEnabled,
-                placeholder = {
-                    Text(
-                        text = searchHint.ifEmpty { stringResource(defaultHintRes) },
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                },
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Color.Transparent,
-                    unfocusedBorderColor = Color.Transparent,
-                    focusedContainerColor = Color.Transparent,
-                    unfocusedContainerColor = Color.Transparent
-                )
-            )
-
-            AnimatedVisibility(
-                visible = query.isNotEmpty(),
-                enter = if (reduceMotion) EnterTransition.None else expandVertically() + fadeIn(),
-                exit = if (reduceMotion) ExitTransition.None else shrinkVertically() + fadeOut(),
-            ) {
-                IconButton(onClick = { query = "" }) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = clearSearchContentDescription,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(Dimensions.iconSizeSm)
-                    )
-                }
-            }
-
-            if (showDeleteIcon) {
-                IconButton(onClick = onDeleteClick) {
-                    Icon(
-                        imageVector = Icons.Filled.Delete,
-                        contentDescription = deleteContentDescription,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.size(Dimensions.iconSizeMd)
-                    )
-                }
-            }
-        }
+internal fun AppWiseLogsAndroidIcon(appIcon: Drawable?) {
+    val bitmap = remember(appIcon) { appIcon?.toBitmap(width = 48, height = 48) }
+    if (bitmap != null) {
+        Image(bitmap.asImageBitmap(), null, modifier = Modifier.size(20.dp))
+    } else {
+        Icon(Icons.Filled.Search, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(20.dp))
     }
 }

@@ -31,7 +31,7 @@ import com.celzero.bravedns.util.Constants.Companion.MISSING_UID
 @Dao
 interface RethinkDnsEndpointDao {
 
-    @Update fun update(rethinkDnsEndpoint: RethinkDnsEndpoint)
+    @Update suspend fun update(rethinkDnsEndpoint: RethinkDnsEndpoint)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insert(rethinkDnsEndpoint: RethinkDnsEndpoint)
@@ -44,7 +44,7 @@ interface RethinkDnsEndpointDao {
     )
     suspend fun updateEndpoint(name: String, url: String, count: Int)
 
-    @Delete fun delete(rethinkDnsEndpoint: RethinkDnsEndpoint)
+    @Delete suspend fun delete(rethinkDnsEndpoint: RethinkDnsEndpoint)
 
     @Query("update RethinkDnsEndpoint set isActive = 0 where isActive = 1 and uid = $MISSING_UID")
     suspend fun removeConnectionStatus()
@@ -78,7 +78,7 @@ interface RethinkDnsEndpointDao {
     @Query("update RethinkDnsEndpoint set isActive = 1 where uid = $MISSING_UID and name = :conn")
     suspend fun updateConnectionDefault(conn: String = RETHINK_DEFAULT)
 
-    @Query("select count(*) from RethinkDnsEndpoint") fun getCount(): Int
+    @Query("select count(*) from RethinkDnsEndpoint") suspend fun getCount(): Int
 
     @Query("select * from RethinkDnsEndpoint where name = :plus and uid = $MISSING_UID")
     suspend fun getRethinkPlusEndpoint(plus: String = RETHINK_PLUS): RethinkDnsEndpoint?
@@ -92,9 +92,9 @@ interface RethinkDnsEndpointDao {
     )
     suspend fun updatePlusBlocklistCount(count: Int, plus: String = RETHINK_PLUS)
 
-    @Query("update RethinkDnsEndpoint set url = REPLACE(url, 'sky', 'max')") fun switchToMax()
+    @Query("update RethinkDnsEndpoint set url = REPLACE(url, 'sky', 'max')") suspend fun switchToMax()
 
-    @Query("update RethinkDnsEndpoint set url = REPLACE(url, 'max', 'sky')") fun switchToSky()
+    @Query("update RethinkDnsEndpoint set url = REPLACE(url, 'max', 'sky')") suspend fun switchToSky()
 
     @Query("select * from RethinkDnsEndpoint where name = 'RDNS Default' and isCustom = 0 LIMIT 1")
     suspend fun getDefaultRethinkEndpoint(): RethinkDnsEndpoint?

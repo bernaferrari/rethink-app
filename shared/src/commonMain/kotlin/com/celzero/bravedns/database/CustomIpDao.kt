@@ -30,13 +30,13 @@ import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
 @Dao
 interface CustomIpDao {
 
-    @Update fun update(customIp: CustomIp)
+    @Update suspend fun update(customIp: CustomIp)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insert(customIp: CustomIp)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(customIp: CustomIp)
 
-    @Delete fun delete(customIp: CustomIp)
+    @Delete suspend fun delete(customIp: CustomIp)
 
-    @Delete fun deleteAll(customIp: List<CustomIp>)
+    @Delete suspend fun deleteAll(customIp: List<CustomIp>)
 
     @Transaction
     @Query("select * from CustomIp order by uid")
@@ -46,10 +46,10 @@ interface CustomIpDao {
     suspend fun getCustomIpDetail(uid: Int, ipAddress: String, port: Int): CustomIp?
 
     @Transaction
-    @Query("select uid,* from CustomIp where uid = :uid and isActive = 1")
+    @Query("select * from CustomIp where uid = :uid and isActive = 1")
     suspend fun getBlockedConnectionsByUID(uid: Int): List<CustomIp>
 
-    @Query("delete from CustomIp where uid = :uid") fun clearIpRuleByUid(uid: Int)
+    @Query("delete from CustomIp where uid = :uid") suspend fun clearIpRuleByUid(uid: Int)
 
     @Query(
         "select * from CustomIp where isActive = 1 and uid = $UID_EVERYBODY order by modifiedDateTime desc"
@@ -70,11 +70,11 @@ interface CustomIpDao {
     @Query("delete from CustomIp where ipAddress = :ipAddress and uid = :uid and port = :port")
     suspend fun deleteRule(uid: Int, ipAddress: String, port: Int): Int
 
-    @Query("delete from CustomIp where uid = :uid") fun deleteRulesByUid(uid: Int)
+    @Query("delete from CustomIp where uid = :uid") suspend fun deleteRulesByUid(uid: Int)
 
-    @Query("delete from CustomIp where uid = $UID_EVERYBODY") fun deleteAllIPRulesUniversal()
+    @Query("delete from CustomIp where uid = $UID_EVERYBODY") suspend fun deleteAllIPRulesUniversal()
 
-    @Query("select * from CustomIp where uid = :uid") fun getRulesByUid(uid: Int): List<CustomIp>
+    @Query("select * from CustomIp where uid = :uid") suspend fun getRulesByUid(uid: Int): List<CustomIp>
 
     @Query("select count(*) from CustomIp where uid = $UID_EVERYBODY and isActive = 1")
     suspend fun getBlockedConnectionsCount(): Int
@@ -120,11 +120,11 @@ interface CustomIpDao {
     """)
     suspend fun insertOrReplaceWithNewUid(oldUid: Int, newUid: Int)
 
-    @Query("delete from CustomIp where uid != $UID_EVERYBODY") fun deleteAllAppsRules()
+    @Query("delete from CustomIp where uid != $UID_EVERYBODY") suspend fun deleteAllAppsRules()
 
-    @Query("select count(*) from CustomIp") fun getRulesCount(): Int
+    @Query("select count(*) from CustomIp") suspend fun getRulesCount(): Int
 
-    @Query("select count(*) from CustomIp where proxyCC = :cc") fun getRulesCountByCC(cc: String): Int
+    @Query("select count(*) from CustomIp where proxyCC = :cc") suspend fun getRulesCountByCC(cc: String): Int
 
     @Transaction
     suspend fun tombstoneRulesByUid(oldUid: Int, newUid: Int) {

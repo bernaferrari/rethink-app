@@ -5,16 +5,20 @@
  * screens can gradually delegate portable UI (empty states, welcome/pause shells,
  * home dashboard) without pulling Android resources into commonMain.
  *
- * Full non-functional web entry: [RethinkDemoApp] in :shared commonMain (wasmJs host in web-build).
+ * Full non-functional web entry: [RethinkDemoApp] in :shared commonMain (wasmJs host in :shared).
  */
 package com.celzero.bravedns.ui.compose
 
 import androidx.compose.runtime.Composable
 import com.celzero.bravedns.ui.compose.common.RethinkEmptyState
 import com.celzero.bravedns.ui.compose.home.HomeDashboardShared
-import com.celzero.bravedns.ui.compose.home.PauseScreenShared
+import com.celzero.bravedns.ui.compose.home.RethinkPauseScreen
+import com.celzero.bravedns.ui.compose.home.RethinkPauseState
+import com.celzero.bravedns.ui.compose.home.RethinkPauseStrings
 import com.celzero.bravedns.ui.compose.home.StartStopButtonShared
-import com.celzero.bravedns.ui.compose.home.WelcomeScreenShared
+import com.celzero.bravedns.ui.compose.home.RethinkWelcomeScreen
+import com.celzero.bravedns.ui.compose.home.RethinkWelcomeContent
+import com.celzero.bravedns.ui.icons.MaterialSymbols
 import com.celzero.bravedns.ui.compose.theme.RethinkSharedTheme
 
 /** Apply shared Material3 theme (light/dark) from KMP commonMain. */
@@ -30,7 +34,15 @@ fun SharedWelcomeShell(
     subtitle: String,
     ctaLabel: String,
     onCta: () -> Unit,
-) = WelcomeScreenShared(title, subtitle, ctaLabel, onCta)
+) = RethinkWelcomeScreen(
+    content = RethinkWelcomeContent(
+        title = title,
+        description = subtitle,
+        heroIcon = MaterialSymbols.Filled.Shield,
+    ),
+    ctaLabel = ctaLabel,
+    onFinish = onCta,
+)
 
 /** Portable pause shell. */
 @Composable
@@ -39,7 +51,13 @@ fun SharedPauseShell(
     subtitle: String,
     resumeLabel: String,
     onResume: () -> Unit,
-) = PauseScreenShared(title, subtitle, resumeLabel, onResume)
+) = RethinkPauseScreen(
+    state = RethinkPauseState(timerText = subtitle),
+    strings = RethinkPauseStrings(title = title, pauseLabel = title, resume = resumeLabel),
+    onDecrease = {},
+    onIncrease = {},
+    onResume = onResume,
+)
 
 /** Portable start/stop CTA (no Icons/stringResource). */
 @Composable

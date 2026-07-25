@@ -335,7 +335,7 @@ object RethinkBlocklistManager : KoinComponent {
         withContext(Dispatchers.IO) { localFileTagRepository.clearSelectedTags() }
     }
 
-    fun cpSelectFileTag(localFileTags: RethinkLocalFileTag): Int {
+    suspend fun cpSelectFileTag(localFileTags: RethinkLocalFileTag): Int {
         io {
             val selectedTags =
                 getTagsFromStamp(persistentState.localBlocklistStamp, RethinkBlocklistType.LOCAL)

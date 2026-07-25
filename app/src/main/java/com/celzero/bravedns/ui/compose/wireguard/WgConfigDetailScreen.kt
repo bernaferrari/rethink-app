@@ -81,9 +81,7 @@ import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
 import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkActionListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
-import com.celzero.bravedns.ui.compose.theme.RethinkToggleListItem
 import com.celzero.bravedns.ui.dialog.WgAddPeerDialog
 import com.celzero.bravedns.ui.dialog.WgHopDialog
 import com.celzero.bravedns.ui.dialog.WgIncludeAppsDialog
@@ -464,220 +462,69 @@ fun WgConfigDetailScreen(
         )
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            RethinkLargeTopBar(
-                title = stringResource(R.string.lbl_wireguard),
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior
-            )
-        }
-    ) { paddingValues ->
-        if (config == null || configFiles == null) {
-            Column(
-                modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .padding(paddingValues)
-                        .padding(Dimensions.screenPaddingHorizontal),
-                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
-            ) {
-                Text(text = stringResource(id = R.string.config_invalid_desc))
-                Button(onClick = onBackClick) {
-                    Text(text = stringResource(id = R.string.fapps_info_dialog_positive_btn))
-                }
-            }
-            return@Scaffold
-        }
-
-        LazyColumn(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues),
-            contentPadding =
-                PaddingValues(
-                    start = Dimensions.screenPaddingHorizontal,
-                    end = Dimensions.screenPaddingHorizontal,
-                    bottom = Dimensions.spacing3xl
-                ),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)
-        ) {
-            item {
-                WgConfigOverviewCard(
-                    name = config?.getName().orEmpty(),
-                    status = statusText.ifEmpty {
-                        stringResource(R.string.single_argument_parenthesis, configId.toString())
-                    },
-                    statusColor = statusColor
-                )
-            }
-
-            if (wgType.isOneWg()) {
-                item {
-                    Surface(
-                        shape = RoundedCornerShape(Dimensions.cornerRadius2xl),
-                        color = MaterialTheme.colorScheme.tertiaryContainer
-                    ) {
-                        Text(
-                            text = stringResource(id = R.string.one_wg_apps_added),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onTertiaryContainer,
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp)
-                        )
-                    }
-                }
-            }
-
-            item {
-                SectionHeader(title = stringResource(id = R.string.lbl_configure))
-                RethinkListGroup {
-                    RethinkActionListItem(
-                        title = stringResource(id = R.string.lbl_add),
-                        description = stringResource(id = R.string.lbl_peer),
-                        icon = Icons.Filled.Add,
-                        position = CardPosition.First,
-                        onClick = { showAddPeerDialog = true }
-                    )
-                    RethinkActionListItem(
-                        title = stringResource(id = R.string.rt_edit_dialog_positive),
-                        description = stringResource(id = R.string.lbl_wireguard),
-                        icon = Icons.Filled.Edit,
-                        position = CardPosition.Middle,
-                        onClick = { onEditConfig(configId, wgType) }
-                    )
-                    RethinkActionListItem(
-                        title = stringResource(id = R.string.lbl_delete),
-                        description = stringResource(id = R.string.config_delete_dialog_title),
-                        icon = Icons.Filled.Delete,
-                        accentColor = MaterialTheme.colorScheme.error,
-                        position = CardPosition.Last,
-                        onClick = { showDeleteInterfaceDialog = true }
-                    )
-                }
-            }
-
-            if (wgType.isDefault()) {
-                item {
-                    SectionHeader(title = stringResource(id = R.string.lbl_apps))
-                    RethinkListGroup {
-                        RethinkActionListItem(
-                            title = stringResource(R.string.add_remove_apps, appsCount.toString()),
-                            icon = Icons.Filled.Apps,
-                            position = CardPosition.First,
-                            onClick = { openAppsDialog(config?.getName().orEmpty()) },
-                            enabled = !catchAllEnabled
-                        )
-                        RethinkActionListItem(
-                            title = stringResource(id = R.string.hop_add_remove_title),
-                            icon = Icons.AutoMirrored.Filled.ArrowForward,
-                            position = CardPosition.Last,
-                            onClick = { openHopDialog() }
-                        )
-                    }
-                }
-            }
-
-            item {
-                SectionHeader(title = stringResource(id = R.string.lbl_advanced))
-                RethinkListGroup {
-                    RethinkToggleListItem(
-                        title = stringResource(id = R.string.catch_all_wg_dialog_title),
-                        description = stringResource(id = R.string.catch_all_wg_dialog_desc),
-                        iconRes = R.drawable.ic_firewall_shield,
-                        checked = catchAllEnabled,
-                        onCheckedChange = { enabled -> updateCatchAll(enabled) },
-                        position = CardPosition.First,
-                    )
-                    RethinkToggleListItem(
-                        title = stringResource(id = R.string.wg_setting_use_on_mobile),
-                        description = stringResource(id = R.string.wg_setting_use_on_mobile_desc),
-                        iconRes = R.drawable.ic_meter_mobile_only,
-                        checked = useMobileEnabled,
-                        onCheckedChange = { enabled -> updateUseOnMobileNetwork(enabled) },
-                        position = if (SsidPermissionManager.isDeviceSupported(context)) CardPosition.Middle else CardPosition.Last,
-                    )
-                    if (SsidPermissionManager.isDeviceSupported(context)) {
-                        val ssidSubtitle =
-                            buildString {
-                                append(
-                                    stringResource(R.string.wg_setting_ssid_desc, lblSsidsText)
-                                )
-                                if (ssids.isNotEmpty()) {
-                                    append("\n")
-                                    append(ssids.joinToString { it.name })
-                                }
-                            }
-                        RethinkToggleListItem(
-                            title = stringResource(id = R.string.wg_setting_ssid_title),
-                            description = ssidSubtitle,
-                            iconRes = R.drawable.ic_firewall_wifi_on,
-                            checked = ssidEnabled,
-                            onCheckedChange = { enabled -> toggleSsid(enabled) },
-                            position = CardPosition.Middle,
-                        )
-                        RethinkActionListItem(
-                            title = stringResource(id = R.string.rt_edit_dialog_positive),
-                            description = stringResource(id = R.string.lbl_ssids),
-                            icon = Icons.Filled.Edit,
-                            position = CardPosition.Last,
-                            onClick = { openSsidDialog() }
-                        )
-                    }
-                }
-            }
-
-            item {
-                SectionHeader(title = stringResource(id = R.string.lbl_peer))
-            }
-
-            items(peers) { peer ->
+    val activeConfig = config
+    val activeConfigFiles = configFiles
+    if (activeConfig == null || activeConfigFiles == null) {
+        return
+    }
+    val ssidSupported = SsidPermissionManager.isDeviceSupported(context)
+    val ssidSummary = buildString {
+        append(stringResource(R.string.wg_setting_ssid_desc, lblSsidsText))
+        if (ssids.isNotEmpty()) append("\n${ssids.joinToString { it.name }}")
+    }
+    RethinkWireguardDetail(
+        state = RethinkWireguardDetailState(
+            name = activeConfig.getName(),
+            status = statusText.ifEmpty { stringResource(R.string.single_argument_parenthesis, configId.toString()) },
+            statusColor = statusColor?.let(::Color),
+            isOneWireguard = wgType.isOneWg(),
+            appsCount = appsCount,
+            catchAllEnabled = catchAllEnabled,
+            useMobileEnabled = useMobileEnabled,
+            ssidEnabled = ssidEnabled,
+            ssidSupported = ssidSupported,
+            ssidSummary = ssidSummary,
+        ),
+        strings = RethinkWireguardDetailStrings(
+            title = stringResource(R.string.lbl_wireguard),
+            configure = stringResource(R.string.lbl_configure),
+            addPeer = stringResource(R.string.lbl_add),
+            peer = stringResource(R.string.lbl_peer),
+            edit = stringResource(R.string.rt_edit_dialog_positive),
+            delete = stringResource(R.string.lbl_delete),
+            deleteDescription = stringResource(R.string.config_delete_dialog_title),
+            apps = stringResource(R.string.lbl_apps),
+            manageApps = { count -> context.getString(R.string.add_remove_apps, count.toString()) },
+            manageHops = stringResource(R.string.hop_add_remove_title),
+            advanced = stringResource(R.string.lbl_advanced),
+            catchAll = stringResource(R.string.catch_all_wg_dialog_title),
+            catchAllDescription = stringResource(R.string.catch_all_wg_dialog_desc),
+            useMobile = stringResource(R.string.wg_setting_use_on_mobile),
+            useMobileDescription = stringResource(R.string.wg_setting_use_on_mobile_desc),
+            ssid = stringResource(R.string.wg_setting_ssid_title),
+            editSsids = stringResource(R.string.lbl_ssids),
+            peers = stringResource(R.string.lbl_peer),
+            oneWireguardNotice = stringResource(R.string.one_wg_apps_added),
+        ),
+        onBackClick = onBackClick,
+        onAddPeer = { showAddPeerDialog = true },
+        onEdit = { onEditConfig(configId, wgType) },
+        onDelete = { showDeleteInterfaceDialog = true },
+        onManageApps = { openAppsDialog(activeConfig.getName()) },
+        onManageHops = ::openHopDialog,
+        onCatchAllChange = ::updateCatchAll,
+        onUseMobileChange = ::updateUseOnMobileNetwork,
+        onSsidChange = ::toggleSsid,
+        onEditSsids = ::openSsidDialog,
+    ) {
+        Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingMd)) {
+            peers.forEach { peer ->
                 WgPeerRow(
                     context = context,
                     configId = configId,
                     wgPeer = peer,
-                    onPeerChanged = { scope.launch { refreshConfig() } }
+                    onPeerChanged = { scope.launch { refreshConfig() } },
                 )
-            }
-        }
-    }
-}
-
-@Composable
-private fun WgConfigOverviewCard(name: String, status: String, statusColor: Int?) {
-    WgCardSurface {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            WgIconBadge()
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = name,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Text(
-                    text = status,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            if (statusColor != null) {
-                Surface(
-                    shape = RoundedCornerShape(Dimensions.cornerRadiusFull),
-                    color = Color(statusColor).copy(alpha = 0.14f)
-                ) {
-                    Text(
-                        text = status,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = Color(statusColor),
-                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp)
-                    )
-                }
             }
         }
     }

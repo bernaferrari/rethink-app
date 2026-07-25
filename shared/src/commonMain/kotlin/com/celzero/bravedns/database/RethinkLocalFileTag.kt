@@ -4,6 +4,7 @@
 package com.celzero.bravedns.database
 
 import androidx.room3.Entity
+import androidx.room3.Ignore
 import androidx.room3.PrimaryKey
 
 @Entity(tableName = "RethinkLocalFileTag")
@@ -36,6 +37,7 @@ class RethinkLocalFileTag {
 
     constructor()
 
+    @Ignore
     constructor(
         value: Int,
         uname: String,

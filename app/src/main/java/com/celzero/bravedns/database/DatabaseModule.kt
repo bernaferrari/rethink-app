@@ -3,99 +3,105 @@
  */
 package com.celzero.bravedns.database
 
+import android.content.Context
 import com.celzero.bravedns.util.Utilities
-import org.koin.android.ext.koin.androidContext
-import org.koin.dsl.module
+import com.celzero.bravedns.service.EventLogger
+import com.celzero.bravedns.service.PersistentState
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Provided
+import org.koin.core.annotation.Single
 
-object DatabaseModule {
-    private val databaseModule = module {
-        single { buildAppDatabase(androidContext()) }
-        single {
-            val ctx = androidContext()
-            buildLogDatabase(
-                ctx,
-                rethinkDnsDbPath = ctx.getDatabasePath(AppDatabase.DATABASE_NAME).toString(),
-                isFreshInstall = Utilities.isFreshInstall(ctx)
-            )
-        }
-        single { buildConsoleLogDatabase(androidContext()) }
-    }
-    private val daoModule = module {
-        single { get<AppDatabase>().appInfoDAO() }
-        single { get<AppDatabase>().dnsCryptEndpointDAO() }
-        single { get<AppDatabase>().dnsCryptRelayEndpointDAO() }
-        single { get<AppDatabase>().dnsProxyEndpointDAO() }
-        single { get<AppDatabase>().dohEndpointsDAO() }
-        single { get<AppDatabase>().proxyEndpointDAO() }
-        single { get<AppDatabase>().customDomainEndpointDAO() }
-        single { get<AppDatabase>().customIpEndpointDao() }
-        single { get<AppDatabase>().rethinkEndpointDao() }
-        single { get<AppDatabase>().rethinkLocalFileTagDao() }
-        single { get<AppDatabase>().rethinkRemoteFileTagDao() }
-        single { get<AppDatabase>().remoteBlocklistPacksMapDao() }
-        single { get<AppDatabase>().localBlocklistPacksMapDao() }
-        single { get<AppDatabase>().wgConfigFilesDAO() }
-        single { get<AppDatabase>().wgApplicationMappingDao() }
-        single { get<AppDatabase>().tcpProxyEndpointDao() }
-        single { get<AppDatabase>().dotEndpointDao() }
-        single { get<AppDatabase>().odohEndpointDao() }
-        single { get<AppDatabase>().rpnProxyDao() }
-        single { get<AppDatabase>().wgHopMapDao() }
-        single { get<AppDatabase>().subscriptionStatusDao() }
-        single { get<AppDatabase>().subscriptionStateHistoryDao()}
+/** Compiler-generated definitions for the Android Room graph and its repositories. */
+@Module
+class DatabaseModule {
+    @Single
+    fun appDatabase(@Provided context: Context): AppDatabase = buildAppDatabase(context)
 
-        single { get<LogDatabase>().connectionTrackerDAO() }
-        single { get<LogDatabase>().dnsLogDAO() }
-        single { get<LogDatabase>().rethinkConnectionLogDAO() }
-        single { get<LogDatabase>().statsSummaryDAO() }
-        single { get<LogDatabase>().ipInfoDao() }
-        single { get<LogDatabase>().eventDao() }
+    @Single
+    fun logDatabase(@Provided context: Context): LogDatabase =
+        buildLogDatabase(
+            context,
+            rethinkDnsDbPath = context.getDatabasePath(AppDatabase.DATABASE_NAME).toString(),
+            isFreshInstall = Utilities.isFreshInstall(context),
+        )
 
-        single { get<ConsoleLogDatabase>().consoleLogDAO() }
+    @Single
+    fun consoleLogDatabase(@Provided context: Context): ConsoleLogDatabase = buildConsoleLogDatabase(context)
 
-    }
-    private val repositoryModule = module {
-        single { get<AppDatabase>().appInfoRepository() }
-        single { get<AppDatabase>().dohEndpointRepository() }
-        single { get<AppDatabase>().dnsCryptEndpointRepository() }
-        single { get<AppDatabase>().dnsCryptRelayEndpointRepository() }
-        single { get<AppDatabase>().dnsProxyEndpointRepository() }
-        single { get<AppDatabase>().proxyEndpointRepository() }
-        single { get<AppDatabase>().customDomainRepository() }
-        single { get<AppDatabase>().customIpRepository() }
-        single { get<AppDatabase>().rethinkEndpointRepository() }
-        single { get<AppDatabase>().rethinkRemoteFileTagRepository() }
-        single { get<AppDatabase>().rethinkLocalFileTagRepository() }
-        single { get<AppDatabase>().remoteBlocklistPacksMapRepository() }
-        single { get<AppDatabase>().localBlocklistPacksMapRepository() }
-        single { get<AppDatabase>().wgConfigFilesRepository() }
-        single { get<AppDatabase>().wgApplicationMappingRepository() }
-        single { get<AppDatabase>().tcpProxyEndpointRepository() }
-        single { get<AppDatabase>().dotEndpointRepository() }
-        single { get<AppDatabase>().odohEndpointRepository() }
-        single { get<AppDatabase>().rpnProxyRepository() }
-        single { get<AppDatabase>().wgHopMapRepository() }
-        single { get<AppDatabase>().subscriptionStatusRepository() }
+    @Single fun appInfoDao(database: AppDatabase) = database.appInfoDAO()
+    @Single fun dnsCryptEndpointDao(database: AppDatabase) = database.dnsCryptEndpointDAO()
+    @Single fun dnsCryptRelayEndpointDao(database: AppDatabase) = database.dnsCryptRelayEndpointDAO()
+    @Single fun dnsProxyEndpointDao(database: AppDatabase) = database.dnsProxyEndpointDAO()
+    @Single fun dohEndpointDao(database: AppDatabase) = database.dohEndpointsDAO()
+    @Single fun proxyEndpointDao(database: AppDatabase) = database.proxyEndpointDAO()
+    @Single fun customDomainDao(database: AppDatabase) = database.customDomainEndpointDAO()
+    @Single fun customIpDao(database: AppDatabase) = database.customIpEndpointDao()
+    @Single fun rethinkEndpointDao(database: AppDatabase) = database.rethinkEndpointDao()
+    @Single fun rethinkLocalFileTagDao(database: AppDatabase) = database.rethinkLocalFileTagDao()
+    @Single fun rethinkRemoteFileTagDao(database: AppDatabase) = database.rethinkRemoteFileTagDao()
+    @Single fun remoteBlocklistPacksMapDao(database: AppDatabase) = database.remoteBlocklistPacksMapDao()
+    @Single fun localBlocklistPacksMapDao(database: AppDatabase) = database.localBlocklistPacksMapDao()
+    @Single fun wgConfigFilesDao(database: AppDatabase) = database.wgConfigFilesDAO()
+    @Single fun wgApplicationMappingDao(database: AppDatabase) = database.wgApplicationMappingDao()
+    @Single fun tcpProxyDao(database: AppDatabase) = database.tcpProxyEndpointDao()
+    @Single fun dotEndpointDao(database: AppDatabase) = database.dotEndpointDao()
+    @Single fun odohEndpointDao(database: AppDatabase) = database.odohEndpointDao()
+    @Single fun rpnProxyDao(database: AppDatabase) = database.rpnProxyDao()
+    @Single fun wgHopMapDao(database: AppDatabase) = database.wgHopMapDao()
+    @Single fun countryConfigDao(database: AppDatabase) = database.countryConfigDao()
+    @Single fun subscriptionStatusDao(database: AppDatabase) = database.subscriptionStatusDao()
+    @Single fun subscriptionStateHistoryDao(database: AppDatabase) = database.subscriptionStateHistoryDao()
+    @Single fun connectionTrackerDao(database: LogDatabase) = database.connectionTrackerDAO()
+    @Single fun dnsLogDao(database: LogDatabase) = database.dnsLogDAO()
+    @Single fun rethinkLogDao(database: LogDatabase) = database.rethinkConnectionLogDAO()
+    @Single fun statsSummaryDao(database: LogDatabase) = database.statsSummaryDAO()
+    @Single fun ipInfoDao(database: LogDatabase) = database.ipInfoDao()
+    @Single fun eventDao(database: LogDatabase) = database.eventDao()
+    @Single fun consoleLogDao(database: ConsoleLogDatabase) = database.consoleLogDAO()
 
-        single { get<LogDatabase>().connectionTrackerRepository() }
-        single { get<LogDatabase>().dnsLogRepository() }
-        single { get<LogDatabase>().rethinkConnectionLogRepository() }
-        single { get<LogDatabase>().ipInfoRepository() }
-        single { get<LogDatabase>().eventRepository() }
+    @Single fun appInfoRepository(database: AppDatabase) = database.appInfoRepository()
+    @Single fun dohEndpointRepository(database: AppDatabase) = database.dohEndpointRepository()
+    @Single fun dnsCryptEndpointRepository(database: AppDatabase) = database.dnsCryptEndpointRepository()
+    @Single fun dnsCryptRelayEndpointRepository(database: AppDatabase) = database.dnsCryptRelayEndpointRepository()
+    @Single fun dnsProxyEndpointRepository(database: AppDatabase) = database.dnsProxyEndpointRepository()
+    @Single fun proxyEndpointRepository(database: AppDatabase) = database.proxyEndpointRepository()
+    @Single fun customDomainRepository(database: AppDatabase) = database.customDomainRepository()
+    @Single fun customIpRepository(database: AppDatabase) = database.customIpRepository()
+    @Single fun rethinkEndpointRepository(database: AppDatabase) = database.rethinkEndpointRepository()
+    @Single fun rethinkRemoteFileTagRepository(database: AppDatabase) = database.rethinkRemoteFileTagRepository()
+    @Single fun rethinkLocalFileTagRepository(database: AppDatabase) = database.rethinkLocalFileTagRepository()
+    @Single fun remoteBlocklistPacksMapRepository(database: AppDatabase) = database.remoteBlocklistPacksMapRepository()
+    @Single fun localBlocklistPacksMapRepository(database: AppDatabase) = database.localBlocklistPacksMapRepository()
+    @Single fun wgConfigFilesRepository(database: AppDatabase) = database.wgConfigFilesRepository()
+    @Single fun wgApplicationMappingRepository(database: AppDatabase) = database.wgApplicationMappingRepository()
+    @Single fun tcpProxyRepository(database: AppDatabase) = database.tcpProxyEndpointRepository()
+    @Single fun dotEndpointRepository(database: AppDatabase) = database.dotEndpointRepository()
+    @Single fun odohEndpointRepository(database: AppDatabase) = database.odohEndpointRepository()
+    @Single fun rpnProxyRepository(database: AppDatabase) = database.rpnProxyRepository()
+    @Single fun wgHopMapRepository(database: AppDatabase) = database.wgHopMapRepository()
+    @Single fun countryConfigRepository(database: AppDatabase) = database.countryConfigRepository()
+    @Single fun subscriptionStatusRepository(database: AppDatabase) = database.subscriptionStatusRepository()
+    @Single fun connectionTrackerRepository(database: LogDatabase) = database.connectionTrackerRepository()
+    @Single fun dnsLogRepository(database: LogDatabase) = database.dnsLogRepository()
+    @Single fun rethinkLogRepository(database: LogDatabase) = database.rethinkLogRepository()
+    @Single fun ipInfoRepository(database: LogDatabase) = database.ipInfoRepository()
+    @Single fun eventRepository(database: LogDatabase) = database.eventRepository()
+    @Single fun consoleLogRepository(database: ConsoleLogDatabase) = database.consoleLogRepository()
 
-        single { get<ConsoleLogDatabase>().consoleLogRepository() }
-
-        single {
-            RefreshDatabase(
-                androidContext(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get()
-            )
-        }
-    }
-
-    val modules = listOf(databaseModule, daoModule, repositoryModule)
+    @Single
+    fun refreshDatabase(
+        @Provided context: Context,
+        connectionTrackerRepository: ConnectionTrackerRepository,
+        dnsLogRepository: DnsLogRepository,
+        rethinkLogRepository: RethinkLogRepository,
+        persistentState: PersistentState,
+        eventLogger: EventLogger,
+    ) = RefreshDatabase(
+        context,
+        connectionTrackerRepository,
+        dnsLogRepository,
+        rethinkLogRepository,
+        persistentState,
+        eventLogger,
+    )
 }
