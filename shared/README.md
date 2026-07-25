@@ -10,11 +10,16 @@
 | **:shared** `androidMain` | Firestack WG keys, DataStore prefs, CIO, DNS resolve |
 | **:shared** `jvmMain` | CIO, in-memory prefs, `JvmDemo` |
 | **:shared** `iosMain` | Optional; not a product goal |
-| **web-build** `wasmJs` (always on) | Isolated included build — `ui/compose/**` from commonMain + Compose viewport; no AGP |
+| **shared** `wasmJs` (always on) | The same `commonMain` UI and state graph as Android, hosted in a Compose viewport |
 
-## Why `web-build` is separate
+## Browser target
 
-AGP **android KMP library** + `js()`/`wasmJs()` in **one** Gradle module fails configuration (`clean` task registered twice). `includeBuild("web-build")` is always in `settings.gradle.kts`; there is **no** opt-in flag. Goal: **most UI in commonMain** so wasmJs (and future hosts) show the same shells without VPN/DNS/Room.
+`wasmJs` lives directly in `:shared`, alongside the AGP-backed Android KMP target. The root
+build applies Gradle's base lifecycle plugin before configuring its `clean` task; that resolves
+the historical duplicate-task conflict and lets Android and the browser compile the exact same
+`commonMain` graph. The goal is that nearly all visual UI stays target-neutral; platform source
+sets provide only host integration such as the Android VPN, package discovery, and filesystem
+backends.
 
 ## Room (simple KMP rule)
 
@@ -32,7 +37,7 @@ App: `ConfigIo` for streams; Firestack only via `toFirestackKey()` on Android.
 # Browser UI demo (wasmJs + commonMain Compose; always available)
 ./gradlew compileWebJs
 ./gradlew runWebDemo          # webpack/dev server when configured
-# or: ./gradlew -p web-build compileKotlinWasmJs
+# or: ./gradlew :shared:compileKotlinWasmJs
 
 # JVM stand-in
 ./gradlew :shared:runJvmDemo

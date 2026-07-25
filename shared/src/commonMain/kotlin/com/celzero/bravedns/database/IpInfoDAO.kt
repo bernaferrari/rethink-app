@@ -25,13 +25,13 @@ import androidx.room3.Update
 
 @Dao
 interface IpInfoDAO {
-    @Update fun update(ipInfo: IpInfo)
+    @Update suspend fun update(ipInfo: IpInfo)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE) fun insert(ipInfo: IpInfo)
+    @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insert(ipInfo: IpInfo)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insertReplace(ipInfo: IpInfo)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertReplace(ipInfo: IpInfo)
 
-    @Delete fun delete(ipInfo: IpInfo)
+    @Delete suspend fun delete(ipInfo: IpInfo)
 
     @Query("SELECT * FROM IpInfo WHERE ip = :ipStr")
     suspend fun getIpInfo(ipStr: String): IpInfo?

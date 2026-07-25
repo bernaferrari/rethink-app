@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1280" y2="640" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#1a1110"/>
+      <stop offset="1" stop-color="#4c2119"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0" cy="0" r="1" gradientTransform="translate(962 164) rotate(129) scale(488 624)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffb4a3" stop-opacity=".42"/>
+      <stop offset="1" stop-color="#ffb4a3" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="shield" x1="150" y1="124" x2="410" y2="434" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#ffb4a3"/>
+      <stop offset="1" stop-color="#804136"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#background)"/>
+  <rect width="1280" height="640" fill="url(#glow)"/>
+  <path d="M274 112 456 184v129c0 119-76 206-182 230C168 519 92 432 92 313V184l182-72Z" fill="url(#shield)"/>
+  <path d="m187 315 59 59 104-120" fill="none" stroke="#4c1e15" stroke-linecap="round" stroke-linejoin="round" stroke-width="43"/>
+  <text x="552" y="284" fill="#f0deda" font-family="Arial, Helvetica, sans-serif" font-size="96" font-weight="700" letter-spacing="-3">Re-Rethink</text>
+  <text x="558" y="358" fill="#e6bdb4" font-family="Arial, Helvetica, sans-serif" font-size="34" font-weight="500">Private DNS and firewall for Android</text>
+  <rect x="558" y="414" width="438" height="58" rx="29" fill="#653429"/>
+  <text x="588" y="453" fill="#ffdbd3" font-family="Arial, Helvetica, sans-serif" font-size="26" font-weight="700">Material 3 Expressive · Local first</text>
+</svg>

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- * https://www.apache.org/licenses/LICENSE-2.0
+ * http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,28 +15,6 @@
  */
 package com.celzero.bravedns.ui.compose.home
 
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -44,263 +22,81 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.celzero.bravedns.R
-import com.celzero.bravedns.database.AppInfo
 import com.celzero.bravedns.service.BraveVPNService
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.PauseTimer.PAUSE_VPN_EXTRA_MILLIS
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
-@OptIn(ExperimentalMaterial3Api::class)
+/** Android state and VPN-action adapter for [RethinkPauseScreen]. */
 @Composable
 fun PauseScreen(onFinish: () -> Unit) {
     val scope = rememberCoroutineScope()
-    val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior()
-
     val connectionState by VpnController.connectionStatus.collectAsStateWithLifecycle()
     val pauseMillis by (VpnController.pauseCountDownFlow()
         ?: kotlinx.coroutines.flow.MutableStateFlow(0L)).collectAsStateWithLifecycle()
     val appList by FirewallManager.appListFlow().collectAsStateWithLifecycle()
 
     val timerText = remember(pauseMillis) {
-        val ss = (TimeUnit.MILLISECONDS.toSeconds(pauseMillis) % 60).toString().padStart(2, '0')
-        val mm = (TimeUnit.MILLISECONDS.toMinutes(pauseMillis) % 60).toString().padStart(2, '0')
-        val hh = TimeUnit.MILLISECONDS.toHours(pauseMillis).toString().padStart(2, '0')
-        "$hh:$mm:$ss"
+        val seconds = (TimeUnit.MILLISECONDS.toSeconds(pauseMillis) % 60).toString().padStart(2, '0')
+        val minutes = (TimeUnit.MILLISECONDS.toMinutes(pauseMillis) % 60).toString().padStart(2, '0')
+        val hours = TimeUnit.MILLISECONDS.toHours(pauseMillis).toString().padStart(2, '0')
+        "$hours:$minutes:$seconds"
     }
-    val timerDesc = remember(appList) {
-        appList.count { a -> a.connectionStatus != FirewallManager.ConnectionStatus.ALLOW.id }.toString()
+    val blockedAppCount = remember(appList) {
+        appList.count { it.connectionStatus != FirewallManager.ConnectionStatus.ALLOW.id }.toString()
     }
-    var autoOp by remember { mutableStateOf(AutoOp.NONE) }
+    var autoAdjustment by remember { mutableStateOf<RethinkPauseAdjustment?>(null) }
     var longPressJob by remember { mutableStateOf<Job?>(null) }
 
     LaunchedEffect(Unit) {
         if (!VpnController.isAppPaused()) onFinish()
     }
-
     LaunchedEffect(connectionState) {
         if (connectionState != BraveVPNService.State.PAUSED) onFinish()
     }
 
-    fun handleLongPress() {
+    fun beginAutoAdjustment(adjustment: RethinkPauseAdjustment) {
+        autoAdjustment = adjustment
         if (longPressJob?.isActive == true) return
         longPressJob = scope.launch(Dispatchers.Main) {
-            while (autoOp != AutoOp.NONE) {
-                when (autoOp) {
-                    AutoOp.INCREASE -> {
-                        delay(200); VpnController.increasePauseDuration(PAUSE_VPN_EXTRA_MILLIS)
-                    }
-
-                    AutoOp.DECREASE -> {
-                        delay(200); VpnController.decreasePauseDuration(PAUSE_VPN_EXTRA_MILLIS)
-                    }
-
-                    else -> {}
+            while (autoAdjustment != null) {
+                when (autoAdjustment) {
+                    RethinkPauseAdjustment.Increase -> VpnController.increasePauseDuration(PAUSE_VPN_EXTRA_MILLIS)
+                    RethinkPauseAdjustment.Decrease -> VpnController.decreasePauseDuration(PAUSE_VPN_EXTRA_MILLIS)
+                    null -> Unit
                 }
+                delay(200)
             }
         }
     }
 
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        containerColor = MaterialTheme.colorScheme.background,
-        topBar = {
-            RethinkLargeTopBar(
-                title = stringResource(R.string.pause_text),
-                scrollBehavior = scrollBehavior
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(horizontal = Dimensions.screenPaddingHorizontal),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
-        ) {
-            Spacer(modifier = Modifier.height(Dimensions.spacingMd))
-
-            // ── Timer card ────────────────────────────────────────────────
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(Dimensions.cornerRadius5xl),
-                color = MaterialTheme.colorScheme.surfaceContainer,
-                tonalElevation = 0.dp
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 24.dp, vertical = 32.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Label chip
-                    Surface(
-                        shape = RoundedCornerShape(Dimensions.cornerRadiusPill),
-                        color = MaterialTheme.colorScheme.secondaryContainer
-                    ) {
-                        Text(
-                            text = stringResource(R.string.pause_text).uppercase(),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onSecondaryContainer,
-                            letterSpacing = androidx.compose.ui.unit.TextUnit(
-                                1.2f,
-                                androidx.compose.ui.unit.TextUnitType.Sp
-                            ),
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp)
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    // Monospace countdown timer — big, bold, beautiful
-                    Text(
-                        text = timerText,
-                        style = MaterialTheme.typography.displayLarge,
-                        fontFamily = FontFamily.Monospace,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        textAlign = TextAlign.Center
-                    )
-
-                    Spacer(modifier = Modifier.height(4.dp))
-
-                    // Blocked apps count
-                    if (timerDesc.isNotEmpty()) {
-                        Text(
-                            text = stringResource(R.string.pause_desc, timerDesc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            textAlign = TextAlign.Center
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(20.dp))
-
-                    // ── Controls ──────────────────────────────────────────
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        PauseControlButton(
-                            icon = R.drawable.ic_minus,
-                            size = 52.dp,
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            onClick = { VpnController.decreasePauseDuration(PAUSE_VPN_EXTRA_MILLIS) },
-                            onLongClick = { autoOp = AutoOp.DECREASE; handleLongPress() },
-                            onRelease = { autoOp = AutoOp.NONE }
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        // Resume button — large, prominent, error tint
-                        PauseControlButton(
-                            icon = R.drawable.ic_stop,
-                            size = 72.dp,
-                            containerColor = MaterialTheme.colorScheme.errorContainer,
-                            iconTintIsOnError = true,
-                            onClick = { VpnController.resumeApp(); onFinish() },
-                            onLongClick = {},
-                            onRelease = {}
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        PauseControlButton(
-                            icon = R.drawable.ic_plus,
-                            size = 52.dp,
-                            containerColor = MaterialTheme.colorScheme.surfaceContainerHighest,
-                            onClick = { VpnController.increasePauseDuration(PAUSE_VPN_EXTRA_MILLIS) },
-                            onLongClick = { autoOp = AutoOp.INCREASE; handleLongPress() },
-                            onRelease = { autoOp = AutoOp.NONE }
-                        )
-                    }
-                }
-            }
-
-            // Resume bottom button — full width
-            ElevatedButton(
-                onClick = { VpnController.resumeApp(); onFinish() },
-                modifier = Modifier.fillMaxWidth().height(52.dp),
-                shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
-                colors = ButtonDefaults.elevatedButtonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError
-                )
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.ic_stop),
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = stringResource(R.string.notif_dialog_pause_dialog_positive),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
+    fun resume() {
+        VpnController.resumeApp()
+        onFinish()
     }
+
+    RethinkPauseScreen(
+        state = RethinkPauseState(
+            timerText = timerText,
+            timerDescription = stringResource(R.string.pause_desc, blockedAppCount),
+        ),
+        strings = RethinkPauseStrings(
+            title = stringResource(R.string.pause_text),
+            pauseLabel = stringResource(R.string.pause_text),
+            resume = stringResource(R.string.notif_dialog_pause_dialog_positive),
+        ),
+        onDecrease = { VpnController.decreasePauseDuration(PAUSE_VPN_EXTRA_MILLIS) },
+        onIncrease = { VpnController.increasePauseDuration(PAUSE_VPN_EXTRA_MILLIS) },
+        onResume = ::resume,
+        onAutoAdjustmentStart = ::beginAutoAdjustment,
+        onAutoAdjustmentStop = { autoAdjustment = null },
+    )
 }
-
-@Composable
-private fun PauseControlButton(
-    icon: Int,
-    size: Dp,
-    containerColor: androidx.compose.ui.graphics.Color,
-    iconTintIsOnError: Boolean = false,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit,
-    onRelease: () -> Unit
-) {
-    val iconTint = if (iconTintIsOnError) MaterialTheme.colorScheme.onErrorContainer
-    else MaterialTheme.colorScheme.onSurfaceVariant
-
-    Surface(
-        modifier = Modifier.size(size),
-        shape = RoundedCornerShape(size / 3),
-        color = containerColor,
-        tonalElevation = 0.dp
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .fillMaxSize()
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onTap = { onClick() },
-                        onLongPress = { onLongClick() },
-                        onPress = { tryAwaitRelease(); onRelease() }
-                    )
-                }
-        ) {
-            Icon(
-                painter = androidx.compose.ui.res.painterResource(id = icon),
-                contentDescription = null,
-                tint = iconTint,
-                modifier = Modifier.size(size * 0.44f)
-            )
-        }
-    }
-}
-
-private enum class AutoOp { INCREASE, DECREASE, NONE }

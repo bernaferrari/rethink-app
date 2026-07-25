@@ -55,6 +55,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.celzero.bravedns.R
+import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.database.EventSource
 import com.celzero.bravedns.database.EventType
 import com.celzero.bravedns.database.Severity
@@ -70,6 +71,9 @@ import com.celzero.bravedns.service.WireguardManager.ERR_CODE_VPN_NOT_FULL
 import com.celzero.bravedns.service.WireguardManager.ERR_CODE_WG_INVALID
 import com.celzero.bravedns.service.WireguardManager.WG_UPTIME_THRESHOLD
 import com.celzero.bravedns.ui.compose.wireguard.WgType
+import com.celzero.bravedns.ui.compose.wireguard.RethinkWireguardConfigCard
+import com.celzero.bravedns.ui.compose.wireguard.RethinkWireguardConfigCardState
+import com.celzero.bravedns.ui.compose.wireguard.RethinkWireguardConfigControl
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.wireguard.WgHopManager
@@ -177,138 +181,43 @@ fun WgConfigRow(
         }
     }
 
-    Card(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp)
-                .clickable { launchConfigDetail(context, config.id, onConfigDetailClick) },
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+    RethinkWireguardConfigCard(
+        state = RethinkWireguardConfigCardState(
+            name = config.name,
+            identifier = context.getString(R.string.single_argument_parenthesis, config.id.toString()),
+            chips = buildList {
+                if (chips.ipv4) add(context.getString(R.string.settings_ip_text_ipv4))
+                if (chips.ipv6) add(context.getString(R.string.settings_ip_text_ipv6))
+                if (chips.splitTunnel) add(context.getString(R.string.lbl_split))
+                if (chips.amnezia) add(context.getString(R.string.lbl_amnezia))
+                if (chips.hopSrc) add(context.getString(R.string.lbl_hopping))
+                if (chips.hopping) add(context.getString(R.string.cd_dns_crypt_relay_heading))
+                if (chips.properties.isNotEmpty()) add(chips.properties)
+            },
+            isChecked = isChecked,
+            statusText = statusText,
+            appsText = appsText,
+            uptimeText = uptimeText.takeIf { showActiveLayout },
+            rxTxText = rxtxText.takeIf { showActiveLayout },
+            accentBorderColor = strokeColor.takeIf { strokeWidth > 0.dp },
+            accentBorderWidth = strokeWidth,
         ),
-        border = if (strokeWidth > 0.dp) {
-            BorderStroke(strokeWidth, strokeColor)
-        } else {
-            BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f))
-        }
-    ) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(14.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = config.name,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text =
-                                context.getString(
-                                    R.string.single_argument_parenthesis,
-                                    config.id.toString()
-                                ),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        )
-                    }
-                    if (chips.hasAny()) {
-                        Row(
-                            modifier = Modifier.padding(top = 6.dp),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            if (chips.ipv4) {
-                                WgChip(text = context.getString(R.string.settings_ip_text_ipv4))
-                            }
-                            if (chips.ipv6) {
-                                WgChip(text = context.getString(R.string.settings_ip_text_ipv6))
-                            }
-                            if (chips.splitTunnel) {
-                                WgChip(text = context.getString(R.string.lbl_split))
-                            }
-                            if (chips.amnezia) {
-                                WgChip(text = context.getString(R.string.lbl_amnezia))
-                            }
-                            if (chips.hopSrc) {
-                                WgChip(text = context.getString(R.string.lbl_hopping))
-                            }
-                            if (chips.hopping) {
-                                WgChip(text = context.getString(R.string.cd_dns_crypt_relay_heading))
-                            }
-                            if (chips.properties.isNotEmpty()) {
-                                WgChip(text = chips.properties)
-                            }
-                        }
-                    }
-                }
-
-                Switch(
-                    checked = isChecked,
-                    onCheckedChange = { checked ->
-                        if (inProgress) return@Switch
-                        inProgress = true
-                        scope.launch(Dispatchers.IO) {
-                            val success =
-                                if (checked) {
-                                    enableWgIfPossible(context, config, onDnsStatusChanged, eventLogger)
-                                } else {
-                                    disableWgIfPossible(context, config, onDnsStatusChanged, eventLogger)
-                                }
-                            withContext(Dispatchers.Main) {
-                                isChecked = if (checked) success else !success
-                                inProgress = false
-                            }
-                        }
-                    }
-                )
-            }
-
-            Text(
-                text = statusText,
-                style = MaterialTheme.typography.bodySmall,
-                fontStyle = FontStyle.Italic,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-                modifier = Modifier.padding(top = 4.dp)
-            )
-
-            Text(
-                text = appsText,
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-
-            if (showActiveLayout) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = uptimeText,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.weight(1f)
-                    )
-                    Text(
-                        text = rxtxText,
-                        style = MaterialTheme.typography.bodySmall
-                    )
+        control = RethinkWireguardConfigControl.Switch,
+        onOpen = { launchConfigDetail(context, config.id, onConfigDetailClick) },
+        onCheckedChange = { checked ->
+            if (inProgress) return@RethinkWireguardConfigCard
+            inProgress = true
+            scope.launch(Dispatchers.IO) {
+                val success =
+                    if (checked) enableWgIfPossible(context, config, onDnsStatusChanged, eventLogger)
+                    else disableWgIfPossible(context, config, onDnsStatusChanged, eventLogger)
+                withContext(Dispatchers.Main) {
+                    isChecked = if (checked) success else !success
+                    inProgress = false
                 }
             }
-        }
-    }
-}
-
-@Composable
-fun WgChip(text: String) {
-    AssistChip(onClick = {}, label = { Text(text = text) })
+        },
+    )
 }
 
 suspend fun computeChips(context: Context, config: WgConfigFiles): WgChips {

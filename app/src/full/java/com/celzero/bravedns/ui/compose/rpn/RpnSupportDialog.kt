@@ -39,10 +39,7 @@ import com.celzero.bravedns.database.SubscriptionStatusDao
 import com.celzero.bravedns.rpnproxy.RpnProxyManager
 import com.celzero.bravedns.scheduler.BugReportZipper
 import com.celzero.bravedns.scheduler.EnhancedBugReport
-import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
-import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
 import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
-import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -61,97 +58,49 @@ import java.util.zip.ZipOutputStream
 internal fun RpnSupportDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var description by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf<String?>(null) }
-    var includeStatus by remember { mutableStateOf(true) }
-    var includeHistory by remember { mutableStateOf(true) }
-    var includeStats by remember { mutableStateOf(true) }
     var sending by remember { mutableStateOf(false) }
 
-    RethinkModalBottomSheet(
-        onDismissRequest = { if (!sending) onDismiss() },
-        includeBottomSpacer = false,
-        verticalSpacing = 12.dp,
-    ) {
-        RethinkBottomSheetCard(
-            modifier = Modifier.heightIn(max = 560.dp),
-        ) {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-            ) {
-                Text(stringResource(R.string.rpn_support_title), style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
-                Text(
-                    stringResource(R.string.rpn_support_description),
-                    color = androidx.compose.material3.MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    listOf(
-                        stringResource(R.string.rpn_support_category_payment),
-                        stringResource(R.string.rpn_support_category_activation),
-                        stringResource(R.string.rpn_support_category_connectivity),
-                        stringResource(R.string.rpn_support_category_refund),
-                        stringResource(R.string.rpn_support_category_other),
-                    ).forEach { item ->
-                        RethinkFilterChip(
-                            selected = category == item,
-                            onClick = { category = if (category == item) null else item },
-                            label = item,
-                        )
-                    }
+    RethinkRpnSupportSheet(
+        strings = RethinkRpnSupportStrings(
+            title = stringResource(R.string.rpn_support_title),
+            description = stringResource(R.string.rpn_support_description),
+            categories = listOf(
+                stringResource(R.string.rpn_support_category_payment),
+                stringResource(R.string.rpn_support_category_activation),
+                stringResource(R.string.rpn_support_category_connectivity),
+                stringResource(R.string.rpn_support_category_refund),
+                stringResource(R.string.rpn_support_category_other),
+            ),
+            reportHint = stringResource(R.string.rpn_support_category_label),
+            includeSubscription = stringResource(R.string.rpn_support_include_subscription),
+            includeHistory = stringResource(R.string.rpn_support_include_history),
+            includeDiagnostics = stringResource(R.string.rpn_support_include_diagnostics),
+            createEmail = stringResource(R.string.rpn_support_create_email),
+            preparing = stringResource(R.string.rpn_support_preparing),
+            cancel = stringResource(R.string.lbl_cancel),
+        ),
+        sending = sending,
+        onSubmit = { report, selectedCategory, includeSubscription, includeHistory, includeDiagnostics ->
+            sending = true
+            scope.launch {
+                val attachment = withContext(Dispatchers.IO) {
+                    RpnSupportDiagnostics.create(
+                        context = context,
+                        description = report,
+                        category = selectedCategory,
+                        includeStatus = includeSubscription,
+                        includeHistory = includeHistory,
+                        includeStats = includeDiagnostics,
+                    )
                 }
-                OutlinedTextField(
-                    modifier = Modifier.fillMaxWidth(),
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text(stringResource(R.string.rpn_support_category_label)) },
-                    minLines = 3,
-                    enabled = !sending,
-                )
-                HorizontalDivider()
-                SupportToggle(stringResource(R.string.rpn_support_include_subscription), includeStatus, !sending) { includeStatus = it }
-                SupportToggle(stringResource(R.string.rpn_support_include_history), includeHistory, !sending) { includeHistory = it }
-                SupportToggle(stringResource(R.string.rpn_support_include_diagnostics), includeStats, !sending) { includeStats = it }
+                sending = false
+                RpnSupportDiagnostics.launchEmail(context, report, selectedCategory, attachment)
+                onDismiss()
             }
-        }
-        RethinkBottomSheetActionRow(
-            primaryText = stringResource(if (sending) R.string.rpn_support_preparing else R.string.rpn_support_create_email),
-            primaryEnabled = !sending && (description.isNotBlank() || category != null),
-            onPrimaryClick = {
-                sending = true
-                scope.launch {
-                    val attachment = withContext(Dispatchers.IO) {
-                        RpnSupportDiagnostics.create(
-                            context = context,
-                            description = description.trim(),
-                            category = category,
-                            includeStatus = includeStatus,
-                            includeHistory = includeHistory,
-                            includeStats = includeStats,
-                        )
-                    }
-                    sending = false
-                    RpnSupportDiagnostics.launchEmail(context, description.trim(), category, attachment)
-                    onDismiss()
-                }
-            },
-            secondaryText = stringResource(R.string.lbl_cancel),
-            onSecondaryClick = onDismiss,
-            secondaryEnabled = !sending,
-        )
-    }
-}
+        },
+        onDismiss = onDismiss,
+    )
 
-@Composable
-private fun SupportToggle(label: String, checked: Boolean, enabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(label, modifier = Modifier.weight(1f))
-        Switch(checked = checked, enabled = enabled, onCheckedChange = onCheckedChange)
-    }
 }
 
 private object RpnSupportDiagnostics : KoinComponent {

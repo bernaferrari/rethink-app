@@ -18,12 +18,10 @@ package com.celzero.bravedns.database
 import androidx.room3.Entity
 import androidx.room3.Index
 import androidx.room3.PrimaryKey
+import com.celzero.bravedns.platform.formatLogTime
 import com.celzero.bravedns.util.Constants
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
 import com.celzero.bravedns.util.Constants.Companion.INVALID_UID
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 
 @Entity(
     tableName = "DNSLogs",
@@ -77,11 +75,7 @@ class DnsLog {
 
     override fun hashCode(): Int = id.hashCode()
 
-    fun wallTime(): String {
-        val date = Date(this.time)
-        val format = SimpleDateFormat(Constants.DATE_FORMAT_PATTERN, Locale.ROOT)
-        return format.format(date)
-    }
+    fun wallTime(): String = formatLogTime(time)
 
     fun groundedQuery(): Boolean {
         return this.status != "COMPLETE" || this.response == Constants.NXDOMAIN || this.isBlocked

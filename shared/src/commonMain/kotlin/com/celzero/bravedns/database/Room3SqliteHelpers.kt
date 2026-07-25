@@ -2,7 +2,7 @@ package com.celzero.bravedns.database
 
 import androidx.sqlite.SQLiteConnection
 
-internal fun SQLiteConnection.execSQL(sql: String) {
+internal suspend fun SQLiteConnection.execSQL(sql: String) {
     val stmt = prepare(sql)
     try {
         while (stmt.step()) { }
@@ -11,7 +11,7 @@ internal fun SQLiteConnection.execSQL(sql: String) {
     }
 }
 
-internal fun SQLiteConnection.userVersion(): Int {
+internal suspend fun SQLiteConnection.userVersion(): Int {
     val stmt = prepare("PRAGMA user_version")
     try {
         return if (stmt.step()) stmt.getLong(0).toInt() else 0
@@ -20,32 +20,33 @@ internal fun SQLiteConnection.userVersion(): Int {
     }
 }
 
-private val transactionSuccess = ThreadLocal<Boolean?>()
+// Room invokes these migration helpers serially for a connection. Keying the status by the
+// connection is portable to WASM and is safer than the JVM-only ThreadLocal implementation.
+private val transactionSuccess = mutableMapOf<SQLiteConnection, Boolean>()
 
-internal fun SQLiteConnection.beginTransaction() {
-    transactionSuccess.set(false)
+internal suspend fun SQLiteConnection.beginTransaction() {
+    transactionSuccess[this] = false
     execSQL("BEGIN IMMEDIATE")
 }
 
 internal fun SQLiteConnection.setTransactionSuccessful() {
-    transactionSuccess.set(true)
+    transactionSuccess[this] = true
 }
 
-internal fun SQLiteConnection.endTransaction() {
-    val ok = transactionSuccess.get() == true
-    transactionSuccess.remove()
+internal suspend fun SQLiteConnection.endTransaction() {
+    val ok = transactionSuccess.remove(this) == true
     execSQL(if (ok) "COMMIT" else "ROLLBACK")
 }
 
-internal fun SQLiteConnection.enableWriteAheadLogging() {
+internal suspend fun SQLiteConnection.enableWriteAheadLogging() {
     execSQL("PRAGMA journal_mode=WAL")
 }
 
-internal fun SQLiteConnection.disableWriteAheadLogging() {
+internal suspend fun SQLiteConnection.disableWriteAheadLogging() {
     execSQL("PRAGMA journal_mode=DELETE")
 }
 
-internal fun SQLiteConnection.tableExists(table: String): Boolean {
+internal suspend fun SQLiteConnection.tableExists(table: String): Boolean {
     val leaf = table.substringAfterLast('.')
     val stmt = prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=? LIMIT 1")
     try {
@@ -56,7 +57,7 @@ internal fun SQLiteConnection.tableExists(table: String): Boolean {
     }
 }
 
-internal fun SQLiteConnection.doesColumnExistInTable(tableName: String, columnName: String): Boolean {
+internal suspend fun SQLiteConnection.doesColumnExistInTable(tableName: String, columnName: String): Boolean {
     val stmt = prepare("PRAGMA table_info(`$tableName`)")
     try {
         while (stmt.step()) {

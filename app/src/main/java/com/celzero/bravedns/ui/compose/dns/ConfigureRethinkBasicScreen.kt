@@ -18,12 +18,9 @@ package com.celzero.bravedns.ui.compose.dns
 import android.content.Context
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -35,22 +32,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -63,22 +51,18 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import androidx.core.text.HtmlCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import com.celzero.bravedns.util.workInfosByTagFlow
+import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import com.celzero.bravedns.R
-import com.celzero.bravedns.ui.components.LocalAdvancedBlocklistRow
-import com.celzero.bravedns.ui.components.LocalSimpleBlocklistRow
-import com.celzero.bravedns.ui.components.RemoteAdvancedBlocklistRow
-import com.celzero.bravedns.ui.components.RemoteSimpleBlocklistRow
 import com.celzero.bravedns.ui.components.RethinkEndpointRow
+import com.celzero.bravedns.ui.components.toRethinkGroup
 import com.celzero.bravedns.customdownloader.LocalBlocklistCoordinator.Companion.CUSTOM_DOWNLOAD
 import com.celzero.bravedns.customdownloader.RemoteBlocklistCoordinator
 import com.celzero.bravedns.data.AppConfig
@@ -95,12 +79,8 @@ import com.celzero.bravedns.service.RethinkBlocklistManager
 import com.celzero.bravedns.service.RethinkBlocklistManager.getStamp
 import com.celzero.bravedns.service.RethinkBlocklistManager.getTagsFromStamp
 import com.celzero.bravedns.service.VpnController
-import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetActionRow
-import com.celzero.bravedns.ui.compose.theme.RethinkBottomSheetCard
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
 import com.celzero.bravedns.ui.compose.theme.RethinkMultiActionDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkSecondaryActionStyle
 import com.celzero.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
 import com.celzero.bravedns.util.Constants
@@ -113,13 +93,13 @@ import com.celzero.bravedns.util.Utilities.getRemoteBlocklistStamp
 import com.celzero.bravedns.util.Utilities.hasLocalBlocklists
 import com.celzero.bravedns.util.Utilities.hasRemoteBlocklists
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
+import com.celzero.bravedns.util.UIUtils.openUrl
 import com.celzero.bravedns.viewmodel.LocalBlocklistPacksMapViewModel
 import com.celzero.bravedns.viewmodel.RemoteBlocklistPacksMapViewModel
 import com.celzero.bravedns.viewmodel.RethinkEndpointViewModel
 import com.celzero.bravedns.viewmodel.RethinkLocalFileTagViewModel
 import com.celzero.bravedns.viewmodel.RethinkRemoteFileTagViewModel
 import com.celzero.bravedns.ui.compose.theme.Dimensions
-import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import Logger
 import Logger.LOG_TAG_UI
@@ -181,7 +161,6 @@ fun ConfigureRethinkBasicScreen(
     var updateInProgress by remember { mutableStateOf(false) }
     var isMax by remember { mutableStateOf(false) }
     var filterLabelText by remember { mutableStateOf("") }
-    var showPlusFilterSheet by remember { mutableStateOf(false) }
     var showLockdownDialog by remember { mutableStateOf(false) }
     var lockdownDialogType by remember { mutableStateOf<RethinkBlocklistManager.RethinkBlocklistType?>(null) }
     var showApplyChangesDialog by remember { mutableStateOf(false) }
@@ -554,11 +533,9 @@ fun ConfigureRethinkBasicScreen(
                         showRemoteProgress = showRemoteProgress,
                         activeView = activeView,
                         filterLabelText = filterLabelText,
-                        showPlusFilterSheet = showPlusFilterSheet,
                         plusFilterTags = plusFilterTags,
                         onActiveViewChanged = { activeView = it },
                         onFilterLabelTextChanged = { filterLabelText = it },
-                        onShowPlusFilterSheetChanged = { showPlusFilterSheet = it },
                         onPlusFilterTagsChanged = { plusFilterTags = it },
                         onDownloadBlocklist = { downloadBlocklist(blocklistType) },
                         onCancelDownload = { cancelDownload(); onBackClick?.invoke() },
@@ -581,13 +558,6 @@ fun ConfigureRethinkBasicScreen(
         }
     }
 
-    if (showPlusFilterSheet) {
-        RethinkPlusFilterSheet(
-            fileTags = plusFilterTags,
-            filters = filters,
-            onDismiss = { showPlusFilterSheet = false }
-        )
-    }
 }
 
 @Composable
@@ -798,11 +768,9 @@ private fun RethinkBlocklistContent(
     showRemoteProgress: Boolean,
     activeView: RethinkBlocklistState.BlocklistView,
     filterLabelText: String,
-    showPlusFilterSheet: Boolean,
     plusFilterTags: List<FileTag>,
     onActiveViewChanged: (RethinkBlocklistState.BlocklistView) -> Unit,
     onFilterLabelTextChanged: (String) -> Unit,
-    onShowPlusFilterSheetChanged: (Boolean) -> Unit,
     onPlusFilterTagsChanged: (List<FileTag>) -> Unit,
     onDownloadBlocklist: () -> Unit,
     onCancelDownload: () -> Unit,
@@ -837,10 +805,15 @@ private fun RethinkBlocklistContent(
         onModifiedStampChanged(stamp)
         onProcessSelectedFileTags(stamp)
         onRefreshBlocklistAvailability()
+        onPlusFilterTagsChanged(
+            withContext(Dispatchers.IO) {
+                if (blocklistType.isLocal()) localFileTagViewModel.allFileTags() else remoteFileTagViewModel.allFileTags()
+            }
+        )
     }
 
     LaunchedEffect(filterState) {
-        val filter = filterState ?: return@LaunchedEffect
+        val filter = filterState
         if (blocklistType.isRemote()) {
             remoteFileTagViewModel.setFilter(filter)
         } else {
@@ -856,8 +829,7 @@ private fun RethinkBlocklistContent(
     }
 
     LaunchedEffect(selectedTags) {
-        val tags = selectedTags ?: emptySet<Int>()
-        val stamp = getStamp(tags, blocklistType)
+        val stamp = getStamp(selectedTags, blocklistType)
         onModifiedStampChanged(stamp)
     }
 
@@ -899,358 +871,148 @@ private fun RethinkBlocklistContent(
         }
     }
 
-    fun isRethinkStampSearch(t: String): Boolean {
-        if (!t.contains(Constants.RETHINKDNS_DOMAIN)) return false
-
-        val split = t.split("/")
-        split.forEach {
-            if (it.contains("$RETHINK_STAMP_VERSION:") && isBase64(it)) {
-                scope.launch(Dispatchers.IO) { onProcessSelectedFileTags(it) }
-                showToastUiCentered(context, "Blocklists restored", Toast.LENGTH_SHORT)
-                return true
-            }
+    fun updateFilters(change: (RethinkBlocklistState.Filters) -> Unit) {
+        val next = RethinkBlocklistState.Filters().also { copy ->
+            copy.query = filterState.query
+            copy.filterSelected = filterState.filterSelected
+            copy.subGroups.addAll(filterState.subGroups)
         }
-        return false
+        change(next)
+        filters.value = next
     }
 
-    fun addQueryToFilters(query: String) {
-        val current = filters.value
-        if (current == null) {
-            val temp = RethinkBlocklistState.Filters()
-            temp.query = formatQuery(query)
-            filters.value = temp
-            return
-        }
-        current.query = formatQuery(query)
-        filters.value = current
+    fun restoreStampIfPresent(query: String): Boolean {
+        if (!query.contains(Constants.RETHINKDNS_DOMAIN)) return false
+        val stamp = query.split("/").firstOrNull { it.contains("$RETHINK_STAMP_VERSION:") && isBase64(it) } ?: return false
+        scope.launch(Dispatchers.IO) { onProcessSelectedFileTags(stamp) }
+        showToastUiCentered(context, "Blocklists restored", Toast.LENGTH_SHORT)
+        return true
     }
 
-    fun applyFilter(tag: Any) {
-        val a = filters.value
-        when (tag) {
-            RethinkBlocklistState.BlocklistSelectionFilter.ALL.id -> {
-                a.filterSelected = RethinkBlocklistState.BlocklistSelectionFilter.ALL
-            }
-
-            RethinkBlocklistState.BlocklistSelectionFilter.SELECTED.id -> {
-                a.filterSelected = RethinkBlocklistState.BlocklistSelectionFilter.SELECTED
-            }
-        }
-        filters.value = a
-    }
-
-    fun openFilterBottomSheet() {
-        scope.launch {
-            val tags = withContext(Dispatchers.IO) {
-                if (blocklistType.isLocal()) {
-                    localFileTagViewModel.allFileTags()
-                } else {
-                    remoteFileTagViewModel.allFileTags()
-                }
-            }
-            onPlusFilterTagsChanged(tags)
-            onShowPlusFilterSheetChanged(true)
-        }
-    }
-
-    fun toggleRemoteFiletag(filetag: RethinkRemoteFileTag, selected: Boolean) {
+    fun updateBlocklistSelection(tagIds: Set<Int>, isSelected: Boolean) {
+        if (tagIds.isEmpty()) return
         scope.launch(Dispatchers.IO) {
-            filetag.isSelected = selected
-            RethinkBlocklistManager.updateFiletagRemote(filetag)
-            val list = RethinkBlocklistManager.getSelectedFileTagsRemote().toSet()
-            RethinkBlocklistState.updateFileTagList(list)
-        }
-    }
-
-    fun toggleLocalFiletag(filetag: RethinkLocalFileTag, selected: Boolean) {
-        scope.launch(Dispatchers.IO) {
-            filetag.isSelected = selected
-            RethinkBlocklistManager.updateFiletagLocal(filetag)
-            val list = RethinkBlocklistManager.getSelectedFileTagsLocal().toSet()
-            RethinkBlocklistState.updateFileTagList(list)
-        }
-    }
-
-    fun toggleLocalSimplePack(map: LocalBlocklistPacksMap, selected: Boolean) {
-        scope.launch(Dispatchers.IO) {
-            RethinkBlocklistManager.updateFiletagsLocal(map.blocklistIds.toSet(), if (selected) 1 else 0)
-            val list = RethinkBlocklistManager.getSelectedFileTagsLocal().toSet()
-            RethinkBlocklistState.updateFileTagList(list)
-        }
-    }
-
-    fun toggleRemoteSimplePack(map: RemoteBlocklistPacksMap, selected: Boolean) {
-        scope.launch(Dispatchers.IO) {
-            RethinkBlocklistManager.updateFiletagsRemote(map.blocklistIds.toSet(), if (selected) 1 else 0)
-            val list = RethinkBlocklistManager.getSelectedFileTagsRemote().toSet()
-            RethinkBlocklistState.updateFileTagList(list)
-        }
-    }
-
-    Column(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(horizontal = Dimensions.screenPaddingHorizontal),
-        verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-    ) {
-        if (showDownload) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.2f))
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text(
-                        text = stringResource(id = R.string.rt_download_desc),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    if (showRemoteProgress || isDownloading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp
-                        )
-                    }
-                    Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                        FilledTonalButton(
-                            onClick = onDownloadBlocklist,
-                            enabled = !isDownloading
-                        ) {
-                            Text(text = stringResource(id = R.string.rt_download))
-                        }
-                        TextButton(onClick = onCancelDownload) {
-                            Text(text = stringResource(id = R.string.lbl_cancel))
-                        }
-                    }
-                }
-            }
-        }
-
-        if (showConfigure) {
-            RethinkTwoOptionSegmentedRow(
-                leftLabel = stringResource(id = R.string.rt_list_simple_btn_txt),
-                rightLabel = stringResource(id = R.string.lbl_advanced),
-                leftSelected = activeView == RethinkBlocklistState.BlocklistView.PACKS,
-                onLeftClick = { onActiveViewChanged(RethinkBlocklistState.BlocklistView.PACKS) },
-                onRightClick = { onActiveViewChanged(RethinkBlocklistState.BlocklistView.ADVANCED) }
-            )
-
-            if (activeView == RethinkBlocklistState.BlocklistView.ADVANCED) {
-                OutlinedTextField(
-                    value = filterState?.query?.replace("%", "") ?: "",
-                    onValueChange = { query ->
-                        if (!isRethinkStampSearch(query)) {
-                            addQueryToFilters(query)
-                        }
-                    },
-                    label = { Text(text = stringResource(id = R.string.lbl_search)) },
-                    keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    RethinkFilterChip(
-                        label = stringResource(id = R.string.lbl_all),
-                        selected = filterState?.filterSelected == RethinkBlocklistState.BlocklistSelectionFilter.ALL,
-                        onClick = { applyFilter(RethinkBlocklistState.BlocklistSelectionFilter.ALL.id) }
-                    )
-                    RethinkFilterChip(
-                        label = stringResource(id = R.string.rt_filter_parent_selected),
-                        selected = filterState?.filterSelected == RethinkBlocklistState.BlocklistSelectionFilter.SELECTED,
-                        onClick = { applyFilter(RethinkBlocklistState.BlocklistSelectionFilter.SELECTED.id) }
-                    )
-                    Spacer(modifier = Modifier.weight(1f))
-                    IconButton(onClick = { openFilterBottomSheet() }) {
-                        Icon(
-                            imageVector = Icons.Filled.FilterList,
-                            contentDescription = stringResource(id = R.string.cd_filter)
-                        )
-                    }
-                }
-                Text(
-                    text = filterLabelText.ifEmpty { stringResource(id = R.string.rt_filter_hint) },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                if (blocklistType.isLocal()) {
-                    val advancedItems = localFileTagViewModel.localFiletags.collectAsLazyPagingItems()
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 6.dp)
-                    ) {
-                        items(count = advancedItems.itemCount) { index ->
-                            val item = advancedItems[index] ?: return@items
-                            val previous = if (index > 0) advancedItems.peek(index - 1) else null
-                            val showHeader = previous?.group != item.group
-                            LocalAdvancedBlocklistRow(
-                                filetag = item,
-                                showHeader = showHeader
-                            ) { isSelected ->
-                                toggleLocalFiletag(item, isSelected)
-                            }
-                        }
-                    }
-                } else {
-                    val advancedItems = remoteFileTagViewModel.remoteFileTags.collectAsLazyPagingItems()
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 6.dp)
-                    ) {
-                        items(count = advancedItems.itemCount) { index ->
-                            val item = advancedItems[index] ?: return@items
-                            val previous = if (index > 0) advancedItems.peek(index - 1) else null
-                            val showHeader = previous?.group != item.group
-                            RemoteAdvancedBlocklistRow(
-                                filetag = item,
-                                showHeader = showHeader
-                            ) { isSelected ->
-                                toggleRemoteFiletag(item, isSelected)
-                            }
-                        }
-                    }
-                }
+            if (blocklistType.isLocal()) {
+                RethinkBlocklistManager.updateFiletagsLocal(tagIds, if (isSelected) 1 else 0)
+                RethinkBlocklistState.updateFileTagList(RethinkBlocklistManager.getSelectedFileTagsLocal().toSet())
             } else {
-                if (blocklistType.isLocal()) {
-                    val simpleItems = localBlocklistPacksMapViewModel.simpleTags.collectAsLazyPagingItems()
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 6.dp)
-                    ) {
-                        items(count = simpleItems.itemCount) { index ->
-                            val item = simpleItems[index] ?: return@items
-                            val previous = if (index > 0) simpleItems.peek(index - 1) else null
-                            val showHeader = previous?.group != item.group
-                            val valid = !item.pack.contains(DEAD_PACK) && item.pack.isNotEmpty()
-                            if (!valid) return@items
-                            LocalSimpleBlocklistRow(
-                                map = item,
-                                showHeader = showHeader
-                            ) { isSelected ->
-                                toggleLocalSimplePack(item, isSelected)
-                            }
-                        }
-                    }
-                } else {
-                    val simpleItems = remoteBlocklistPacksMapViewModel.simpleTags.collectAsLazyPagingItems()
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(bottom = 6.dp)
-                    ) {
-                        items(count = simpleItems.itemCount) { index ->
-                            val item = simpleItems[index] ?: return@items
-                            val previous = if (index > 0) simpleItems.peek(index - 1) else null
-                            val showHeader = previous?.group != item.group
-                            val valid = !item.pack.contains(DEAD_PACK) && item.pack.isNotEmpty()
-                            if (!valid) return@items
-                            RemoteSimpleBlocklistRow(
-                                map = item,
-                                showHeader = showHeader
-                            ) { isSelected ->
-                                toggleRemoteSimplePack(item, isSelected)
-                            }
-                        }
-                    }
-                }
-            }
-
-            RethinkBottomSheetActionRow(
-                secondaryText = stringResource(id = R.string.notif_dialog_pause_dialog_negative),
-                primaryText = stringResource(id = R.string.lbl_apply),
-                onSecondaryClick = onRevertChanges,
-                onPrimaryClick = onApplyChanges,
-                secondaryStyle = RethinkSecondaryActionStyle.TEXT
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun RethinkPlusFilterSheet(
-    fileTags: List<FileTag>,
-    filters: MutableStateFlow<RethinkBlocklistState.Filters>,
-    onDismiss: () -> Unit
-) {
-    val subGroups = remember(fileTags) {
-        fileTags
-            .map { it.subg.trim() }
-            .filter { it.isNotBlank() }
-            .distinct()
-            .sorted()
-    }
-    val initialFilters = filters.value
-    var selectedSubgroups by remember { mutableStateOf(initialFilters?.subGroups?.toSet() ?: emptySet()) }
-    val selectedCount = selectedSubgroups.size
-
-    RethinkModalBottomSheet(onDismissRequest = onDismiss, includeBottomSpacer = true) {
-        RethinkBottomSheetCard(contentPadding = PaddingValues(Dimensions.cardPadding)) {
-            Text(
-                text = stringResource(R.string.bsrf_sub_group_heading),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Text(
-                text = "${stringResource(R.string.rt_filter_parent_selected)}: $selectedCount",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            FlowRow(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
-                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-            ) {
-                subGroups.forEach { label ->
-                    val selected = selectedSubgroups.contains(label)
-                    RethinkFilterChip(
-                        label = label,
-                        selected = selected,
-                        onClick = {
-                            selectedSubgroups = toggleSelection(selectedSubgroups, label)
-                        }
-                    )
-                }
+                RethinkBlocklistManager.updateFiletagsRemote(tagIds, if (isSelected) 1 else 0)
+                RethinkBlocklistState.updateFileTagList(RethinkBlocklistManager.getSelectedFileTagsRemote().toSet())
             }
         }
-
-        RethinkBottomSheetActionRow(
-            secondaryText = stringResource(R.string.bsrf_clear_filter),
-            primaryText = stringResource(R.string.lbl_apply),
-            onSecondaryClick = {
-                filters.value = RethinkBlocklistState.Filters()
-                onDismiss()
-            },
-            onPrimaryClick = {
-                val updated = initialFilters ?: RethinkBlocklistState.Filters()
-                updated.subGroups.clear()
-                updated.subGroups.addAll(selectedSubgroups)
-                filters.value = updated
-                onDismiss()
-            },
-            primaryEnabled = true,
-            secondaryStyle = RethinkSecondaryActionStyle.TEXT
-        )
     }
-}
 
-private fun toggleSelection(current: Set<String>, value: String): Set<String> {
-    return if (current.contains(value)) {
-        current - value
+    val selected = selectedTags
+    val packs: RethinkBlocklistFeed<RethinkBlocklistPack>
+    val tags: RethinkBlocklistFeed<RethinkBlocklistFileTag>
+    if (blocklistType.isLocal()) {
+        packs = AndroidBlocklistFeed(localBlocklistPacksMapViewModel.simpleTags.collectAsLazyPagingItems()) { it.toEditorPack(context, selected) }
+        tags = AndroidBlocklistFeed(localFileTagViewModel.localFiletags.collectAsLazyPagingItems()) { it.toEditorTag(context, selected) }
     } else {
-        current + value
+        packs = AndroidBlocklistFeed(remoteBlocklistPacksMapViewModel.simpleTags.collectAsLazyPagingItems()) { it.toEditorPack(context, selected) }
+        tags = AndroidBlocklistFeed(remoteFileTagViewModel.remoteFileTags.collectAsLazyPagingItems()) { it.toEditorTag(context, selected) }
     }
+    val availableSubgroups = plusFilterTags.map { it.subg.trim() }.filter { it.isNotBlank() }.distinct().sorted()
+
+    RethinkBlocklistEditor(
+        packs = packs,
+        fileTags = tags,
+        activeView = if (activeView == RethinkBlocklistState.BlocklistView.PACKS) RethinkBlocklistEditorView.Packs else RethinkBlocklistEditorView.Advanced,
+        query = filterState.query.replace("%", ""),
+        selectionFilter = if (filterState.filterSelected == RethinkBlocklistState.BlocklistSelectionFilter.SELECTED) RethinkBlocklistSelectionFilter.Selected else RethinkBlocklistSelectionFilter.All,
+        selectedSubgroups = filterState.subGroups.toSet(),
+        availableSubgroups = availableSubgroups,
+        showDownload = showDownload,
+        showEditor = showConfigure,
+        isDownloading = isDownloading || showRemoteProgress,
+        strings = RethinkBlocklistEditorStrings(
+            downloadDescription = stringResource(R.string.rt_download_desc),
+            download = stringResource(R.string.rt_download),
+            cancel = stringResource(R.string.lbl_cancel),
+            packs = stringResource(R.string.rt_list_simple_btn_txt),
+            advanced = stringResource(R.string.lbl_advanced),
+            search = stringResource(R.string.lbl_search),
+            clearSearch = stringResource(R.string.cd_clear_search),
+            all = stringResource(R.string.lbl_all),
+            selected = stringResource(R.string.rt_filter_parent_selected),
+            filter = stringResource(R.string.cd_filter),
+            filterHint = filterLabelText.ifEmpty { stringResource(R.string.rt_filter_hint) },
+            apply = stringResource(R.string.lbl_apply),
+            discard = stringResource(R.string.notif_dialog_pause_dialog_negative),
+            blocklistCount = { context.getString(R.string.rsv_blocklist_count_text, it.toString()) },
+            entries = { context.getString(R.string.dc_entries, it.toString()) },
+        ),
+        onViewChange = { onActiveViewChanged(if (it == RethinkBlocklistEditorView.Packs) RethinkBlocklistState.BlocklistView.PACKS else RethinkBlocklistState.BlocklistView.ADVANCED) },
+        onQueryChange = { query -> if (!restoreStampIfPresent(query)) updateFilters { it.query = formatQuery(query) } },
+        onSelectionFilterChange = { selection -> updateFilters { it.filterSelected = if (selection == RethinkBlocklistSelectionFilter.Selected) RethinkBlocklistState.BlocklistSelectionFilter.SELECTED else RethinkBlocklistState.BlocklistSelectionFilter.ALL } },
+        onSubgroupsChange = { groups -> updateFilters { it.subGroups.clear(); it.subGroups.addAll(groups) } },
+        onDownload = onDownloadBlocklist,
+        onCancelDownload = onCancelDownload,
+        onPackToggle = { pack, isSelected -> updateBlocklistSelection(pack.tagIds, isSelected) },
+        onFileTagToggle = { tag, isSelected -> updateBlocklistSelection(tag.tagIds, isSelected) },
+        onOpenUrl = { openUrl(context, it) },
+        onApply = onApplyChanges,
+        onDiscard = onRevertChanges,
+        modifier = modifier,
+    )
 }
+
+/** Bridges Android Paging to the target-neutral lazy editor without exposing Paging to commonMain. */
+private class AndroidBlocklistFeed<Source : Any, Ui>(
+    private val items: LazyPagingItems<Source>,
+    private val map: (Source) -> Ui?,
+) : RethinkBlocklistFeed<Ui> {
+    override val itemCount: Int get() = items.itemCount
+    override fun get(index: Int): Ui? = items[index]?.let(map)
+}
+
+private fun LocalBlocklistPacksMap.toEditorPack(context: Context, selectedTags: Set<Int>): RethinkBlocklistPack? {
+    if (pack.isBlank() || pack.contains(DEAD_PACK)) return null
+    return RethinkBlocklistPack(
+        id = "$pack:$level",
+        group = toRethinkGroup(context),
+        name = pack,
+        blocklistCount = blocklistIds.size,
+        selected = selectedTags.containsAll(blocklistIds),
+        tagIds = blocklistIds.toSet(),
+    )
+}
+
+private fun RemoteBlocklistPacksMap.toEditorPack(context: Context, selectedTags: Set<Int>): RethinkBlocklistPack? {
+    if (pack.isBlank() || pack.contains(DEAD_PACK)) return null
+    return RethinkBlocklistPack(
+        id = "$pack:$level",
+        group = toRethinkGroup(context),
+        name = pack,
+        blocklistCount = blocklistIds.size,
+        selected = selectedTags.containsAll(blocklistIds),
+        tagIds = blocklistIds.toSet(),
+    )
+}
+
+private fun RethinkLocalFileTag.toEditorTag(context: Context, selectedTags: Set<Int>) = RethinkBlocklistFileTag(
+    id = value.toString(),
+    group = toRethinkGroup(context),
+    subgroup = subg,
+    name = vname,
+    entries = entries,
+    level = level?.firstOrNull(),
+    url = url.firstOrNull(),
+    selected = value in selectedTags,
+    tagIds = setOf(value),
+)
+
+private fun RethinkRemoteFileTag.toEditorTag(context: Context, selectedTags: Set<Int>) = RethinkBlocklistFileTag(
+    id = value.toString(),
+    group = toRethinkGroup(context),
+    subgroup = subg,
+    name = vname,
+    entries = entries,
+    level = level?.firstOrNull(),
+    url = url.firstOrNull(),
+    selected = value in selectedTags,
+    tagIds = setOf(value),
+)
 
 private suspend fun updateSelectedFileTags(
     selectedTags: MutableSet<Int>,

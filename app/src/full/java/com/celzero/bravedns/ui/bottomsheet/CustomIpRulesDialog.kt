@@ -4,7 +4,9 @@ package com.celzero.bravedns.ui.bottomsheet
 import android.graphics.drawable.Drawable
 import android.text.format.DateUtils
 import android.widget.Toast
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -15,6 +17,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.R
 import com.celzero.bravedns.database.CustomIp
@@ -23,6 +26,18 @@ import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.service.IpRulesManager.IpRuleStatus
 import com.celzero.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.celzero.bravedns.util.Utilities
+import com.celzero.bravedns.ui.compose.rememberDrawablePainter
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleAction
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleActionOption
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleActionSelector
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleEditorHeader
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetBottomPaddingCompact
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetDeleteAction
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetDeleteDialog
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetLayout
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetModal
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSupportingText
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleValue
 import Logger
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,7 +73,7 @@ fun CustomIpRulesSheet(
         status = IpRuleStatus.getStatus(customIp.status)
     }
 
-    RuleSheetModal(onDismissRequest = onDismiss) {
+    RethinkRuleSheetModal(onDismissRequest = onDismiss) {
         val appName = formatCustomRuleSheetAppName(context, customIp.uid, appNames)
         val now = System.currentTimeMillis()
         val uptime = System.currentTimeMillis() - customIp.modifiedDateTime
@@ -78,84 +93,72 @@ fun CustomIpRulesSheet(
             }
         val statusText = stringResource(R.string.ci_desc, statusLabel, time)
         val deleteToast = stringResource(R.string.univ_ip_delete_individual_toast, customIp.ipAddress)
-        val chipColors = rememberRuleSheetChipColors()
 
-        RuleSheetLayout(bottomPadding = RuleSheetBottomPaddingCompact) {
-            RuleSheetDeleteAction(onClick = { showDeleteDialog = true })
+        RethinkRuleSheetLayout(bottomPadding = RethinkRuleSheetBottomPaddingCompact) {
+            RethinkRuleSheetDeleteAction(
+                label = stringResource(R.string.lbl_delete),
+                onClick = { showDeleteDialog = true },
+            )
 
-            RuleSheetAppHeader(appName = appName, appIcon = appIcon)
+            RethinkRuleEditorHeader(
+                appName = appName,
+                appIcon = {
+                    appIcon?.let { icon ->
+                        rememberDrawablePainter(icon)?.let { painter ->
+                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(20.dp))
+                        }
+                    }
+                },
+            )
 
-            RuleSheetSelectionValue(
-                text = customIp.ipAddress,
+            RethinkRuleValue(
+                value = customIp.ipAddress,
                 textStyle = androidx.compose.material3.MaterialTheme.typography.titleLarge
             )
 
-            RuleSheetSupportingText(
+            RethinkRuleSupportingText(
                 text = statusText,
             )
 
             val thirdOption =
                 if (customIp.uid == UID_EVERYBODY) {
-                    RuleSheetChipOption(
+                    RethinkRuleActionOption(
+                        action = RethinkRuleAction.Bypass,
                         label = stringResource(R.string.ci_bypass_universal),
-                        selected = status == IpRuleStatus.BYPASS_UNIVERSAL,
-                        selectedText = chipColors.positiveText,
-                        selectedContainer = chipColors.positiveBg,
-                        onClick = {
-                            updateRule(customIp, IpRuleStatus.BYPASS_UNIVERSAL, scope, eventLogger) {
-                                newStatus ->
-                                status = newStatus
-                            }
-                        }
                     )
                 } else {
-                    RuleSheetChipOption(
+                    RethinkRuleActionOption(
+                        action = RethinkRuleAction.Trust,
                         label = stringResource(R.string.ci_trust_rule),
-                        selected = status == IpRuleStatus.TRUST,
-                        selectedText = chipColors.positiveText,
-                        selectedContainer = chipColors.positiveBg,
-                        onClick = {
-                            updateRule(customIp, IpRuleStatus.TRUST, scope, eventLogger) { newStatus ->
-                                status = newStatus
-                            }
-                        }
                     )
                 }
 
-            RuleSheetChipOptionsRow(
+            RethinkRuleActionSelector(
                 options =
                     listOf(
-                        RuleSheetChipOption(
+                        RethinkRuleActionOption(
+                            action = RethinkRuleAction.None,
                             label = stringResource(R.string.ci_no_rule),
-                            selected = status == IpRuleStatus.NONE,
-                            selectedText = chipColors.neutralText,
-                            selectedContainer = chipColors.neutralBg,
-                            onClick = {
-                                updateRule(customIp, IpRuleStatus.NONE, scope, eventLogger) { newStatus ->
-                                    status = newStatus
-                                }
-                            }
                         ),
-                        RuleSheetChipOption(
+                        RethinkRuleActionOption(
+                            action = RethinkRuleAction.Block,
                             label = stringResource(R.string.ci_block),
-                            selected = status == IpRuleStatus.BLOCK,
-                            selectedText = chipColors.negativeText,
-                            selectedContainer = chipColors.negativeBg,
-                            onClick = {
-                                updateRule(customIp, IpRuleStatus.BLOCK, scope, eventLogger) { newStatus ->
-                                    status = newStatus
-                                }
-                            }
                         ),
                         thirdOption
-                    )
+                    ),
+                selectedAction = status.toRethinkRuleAction(),
+                onActionChange = { action ->
+                    updateRule(customIp, action.toIpRuleStatus(), scope, eventLogger) { newStatus -> status = newStatus }
+                },
             )
         }
 
         if (showDeleteDialog) {
-            RuleSheetDeleteDialog(
+            RethinkRuleSheetDeleteDialog(
                 title = stringResource(R.string.univ_firewall_dialog_title),
                 message = stringResource(R.string.univ_firewall_dialog_message),
+                deleteLabel = stringResource(R.string.lbl_delete),
+                cancelLabel = stringResource(R.string.lbl_cancel),
                 onDismiss = { showDeleteDialog = false },
                 onConfirm = {
                     showDeleteDialog = false
@@ -176,6 +179,20 @@ fun CustomIpRulesSheet(
             )
         }
     }
+}
+
+private fun IpRuleStatus.toRethinkRuleAction() = when (this) {
+    IpRuleStatus.NONE -> RethinkRuleAction.None
+    IpRuleStatus.BLOCK -> RethinkRuleAction.Block
+    IpRuleStatus.TRUST -> RethinkRuleAction.Trust
+    IpRuleStatus.BYPASS_UNIVERSAL -> RethinkRuleAction.Bypass
+}
+
+private fun RethinkRuleAction.toIpRuleStatus() = when (this) {
+    RethinkRuleAction.None -> IpRuleStatus.NONE
+    RethinkRuleAction.Block -> IpRuleStatus.BLOCK
+    RethinkRuleAction.Trust -> IpRuleStatus.TRUST
+    RethinkRuleAction.Bypass -> IpRuleStatus.BYPASS_UNIVERSAL
 }
 
 private fun updateRule(

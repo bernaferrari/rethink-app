@@ -19,6 +19,7 @@ import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,12 +30,11 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -62,7 +62,8 @@ import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.IpRulesManager
 import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
+import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.util.Utilities
 import Logger
 import kotlinx.coroutines.Dispatchers
@@ -131,84 +132,91 @@ fun RpnWinProxyDetailsScreen(
         showNoProxyFoundDialog = loaded.third
     }
 
-    Scaffold(
-        topBar = {
-            RethinkTopBar(
-                title = title,
-                onBackClick = onBackClick
-            )
-        }
-    ) { paddingValues ->
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-        ) {
-            if (showNoProxyFoundDialog) {
-                RethinkConfirmDialog(
-                    onDismissRequest = {},
-                    title = noProxyTitle,
-                    message = noProxyDesc,
-                    confirmText = stringResource(R.string.ada_noapp_dialog_positive),
-                    onConfirm = onBackClick
-                )
+    val fallback = stringResource(R.string.symbol_hyphen)
+    val latencyText = proxyLatencyMs?.let { stringResource(R.string.dns_query_latency, it.toString()) } ?: fallback
+    val lastConnectedMs = proxyLastConnectedMs
+    val lastConnectedText =
+        if (lastConnectedMs == null || lastConnectedMs <= 0L) fallback
+        else {
+            val minutes = ((System.currentTimeMillis() - lastConnectedMs).coerceAtLeast(0L)) / 60_000L
+            when {
+                minutes < 1L -> stringResource(R.string.bubble_time_just_now)
+                minutes < 60L -> stringResource(R.string.bubble_time_minutes_ago, minutes.toInt())
+                else -> stringResource(R.string.bubble_time_hours_ago, (minutes / 60L).toInt())
             }
-            StatsRow(appsCount, domainsCount, ipsCount)
-            Spacer(modifier = Modifier.height(12.dp))
-            DetailsSection(
-                countryCode = countryCode,
-                proxyError = proxyError,
-                proxyName = proxyName,
-                proxyWho = proxyWho,
-                proxyLatencyMs = proxyLatencyMs,
-                proxyLastConnectedMs = proxyLastConnectedMs,
-                isProxyActive = isProxyActive
-            )
-            serverConfig?.let { config ->
-                ServerOptionsSection(
-                    config = config,
-                    onHopChanged = { enabled ->
-                        serverConfig = config.copy(hopEnabled = enabled)
-                        scope.launch(Dispatchers.IO) {
-                            RpnProxyManager.setHopForWinServer(config.key, enabled)
-                        }
-                    },
-                    onCatchAllChanged = { enabled ->
-                        serverConfig = config.copy(catchAll = enabled)
-                        scope.launch(Dispatchers.IO) {
-                            RpnProxyManager.setCatchAllForWinServer(config.key, enabled)
-                        }
-                    },
-                    onLockdownChanged = { enabled ->
-                        serverConfig = config.copy(lockdown = enabled)
-                        scope.launch(Dispatchers.IO) {
-                            RpnProxyManager.setLockdownForWinServer(config.key, enabled)
-                        }
-                    },
-                    onMobileOnlyChanged = { enabled ->
-                        serverConfig = config.copy(mobileOnly = enabled)
-                        scope.launch(Dispatchers.IO) {
-                            RpnProxyManager.setMobileOnlyForWinServer(config.key, enabled)
-                        }
-                    },
-                    onSsidChanged = { enabled ->
-                        serverConfig = config.copy(ssidBased = enabled)
-                        scope.launch(Dispatchers.IO) { RpnProxyManager.setSsidEnabledForWinServer(config.key, enabled) }
-                    },
-                    onEditSsids = { showSsidEditor = true },
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
-            ActionButton(onClick = {
-                Utilities.showToastUiCentered(
-                    context,
-                    appsInfoToast,
-                    Toast.LENGTH_LONG
-                )
-            }, label = selectAppsLabel)
         }
+    val statusText = if (isProxyActive) stringResource(R.string.rpn_proxy_connected) else stringResource(R.string.lbl_disabled)
+
+    RethinkRpnWinProxyDetailsScreen(
+        state = RethinkRpnWinProxyDetailsState(
+            countryCode = countryCode,
+            appsCount = appsCount,
+            domainsCount = domainsCount,
+            ipsCount = ipsCount,
+            proxyError = proxyError,
+            proxyName = proxyName,
+            proxyWho = proxyWho,
+            proxyLatency = latencyText,
+            proxyLastConnected = lastConnectedText,
+            proxyStatus = statusText,
+            isProxyActive = isProxyActive,
+            options = serverConfig?.let {
+                RethinkRpnWinServerOptions(it.hopEnabled, it.catchAll, it.lockdown, it.mobileOnly, it.ssidBased)
+            },
+        ),
+        strings = RethinkRpnWinProxyDetailsStrings(
+            title = title,
+            fallback = fallback,
+            proxyName = stringResource(R.string.rpn_proxy_name),
+            apps = stringResource(R.string.rpn_proxy_apps),
+            domains = stringResource(R.string.rpn_proxy_domains),
+            ips = stringResource(R.string.rpn_proxy_ips),
+            who = stringResource(R.string.rpn_proxy_who),
+            error = stringResource(R.string.rpn_proxy_error),
+            latency = stringResource(R.string.rpn_proxy_latency),
+            lastConnected = stringResource(R.string.rpn_proxy_last_connected),
+            status = stringResource(R.string.rpn_proxy_status),
+            serverOptions = stringResource(R.string.rpn_server_options_title),
+            hop = stringResource(R.string.rpn_server_hop),
+            catchAll = stringResource(R.string.rpn_server_catch_all),
+            lockdown = stringResource(R.string.rpn_server_lockdown),
+            mobileOnly = stringResource(R.string.rpn_server_mobile_only),
+            wifiOnly = stringResource(R.string.rpn_server_wifi_only),
+            editWifi = stringResource(R.string.rpn_server_edit_wifi),
+            selectApps = selectAppsLabel,
+        ),
+        onBackClick = onBackClick,
+        onHopChanged = { enabled -> serverConfig?.let { config ->
+            serverConfig = config.copy(hopEnabled = enabled)
+            scope.launch(Dispatchers.IO) { RpnProxyManager.setHopForWinServer(config.key, enabled) }
+        } },
+        onCatchAllChanged = { enabled -> serverConfig?.let { config ->
+            serverConfig = config.copy(catchAll = enabled)
+            scope.launch(Dispatchers.IO) { RpnProxyManager.setCatchAllForWinServer(config.key, enabled) }
+        } },
+        onLockdownChanged = { enabled -> serverConfig?.let { config ->
+            serverConfig = config.copy(lockdown = enabled)
+            scope.launch(Dispatchers.IO) { RpnProxyManager.setLockdownForWinServer(config.key, enabled) }
+        } },
+        onMobileOnlyChanged = { enabled -> serverConfig?.let { config ->
+            serverConfig = config.copy(mobileOnly = enabled)
+            scope.launch(Dispatchers.IO) { RpnProxyManager.setMobileOnlyForWinServer(config.key, enabled) }
+        } },
+        onSsidChanged = { enabled -> serverConfig?.let { config ->
+            serverConfig = config.copy(ssidBased = enabled)
+            scope.launch(Dispatchers.IO) { RpnProxyManager.setSsidEnabledForWinServer(config.key, enabled) }
+        } },
+        onEditSsids = { showSsidEditor = true },
+        onSelectApps = { Utilities.showToastUiCentered(context, appsInfoToast, Toast.LENGTH_LONG) },
+    )
+    if (showNoProxyFoundDialog) {
+        RethinkConfirmDialog(
+            onDismissRequest = {},
+            title = noProxyTitle,
+            message = noProxyDesc,
+            confirmText = stringResource(R.string.ada_noapp_dialog_positive),
+            onConfirm = onBackClick,
+        )
     }
     if (showSsidEditor) {
         val config = serverConfig
@@ -221,47 +229,6 @@ fun RpnWinProxyDetailsScreen(
                 serverConfig = config.copy(ssids = ssids)
             },
         )
-    }
-}
-
-@Composable
-private fun ServerOptionsSection(
-    config: CountryConfig,
-    onHopChanged: (Boolean) -> Unit,
-    onCatchAllChanged: (Boolean) -> Unit,
-    onLockdownChanged: (Boolean) -> Unit,
-    onMobileOnlyChanged: (Boolean) -> Unit,
-    onSsidChanged: (Boolean) -> Unit,
-    onEditSsids: () -> Unit,
-) {
-    Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Text(
-            text = stringResource(R.string.rpn_server_options_title),
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold,
-        )
-        ServerOptionRow(
-            label = stringResource(R.string.rpn_server_hop),
-            checked = config.hopEnabled,
-            onCheckedChange = onHopChanged,
-        )
-        ServerOptionRow(
-            label = stringResource(R.string.rpn_server_catch_all),
-            checked = config.catchAll,
-            onCheckedChange = onCatchAllChanged,
-        )
-        ServerOptionRow(
-            label = stringResource(R.string.rpn_server_lockdown),
-            checked = config.lockdown,
-            onCheckedChange = onLockdownChanged,
-        )
-        ServerOptionRow(
-            label = stringResource(R.string.rpn_server_mobile_only),
-            checked = config.mobileOnly,
-            onCheckedChange = onMobileOnlyChanged,
-        )
-        ServerOptionRow(label = stringResource(R.string.rpn_server_wifi_only), checked = config.ssidBased, onCheckedChange = onSsidChanged)
-        TextButton(onClick = onEditSsids, enabled = config.ssidBased) { Text(stringResource(R.string.rpn_server_edit_wifi)) }
     }
 }
 
@@ -279,132 +246,6 @@ private fun SsidEditorDialog(initialValue: String, onDismiss: () -> Unit, onSave
         }) { Text(stringResource(R.string.lbl_save)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } },
     )
-}
-
-@Composable
-private fun ServerOptionRow(
-    label: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        Modifier.fillMaxWidth().padding(vertical = 6.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween,
-    ) {
-        Text(label, modifier = Modifier.weight(1f))
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
-    }
-}
-
-@Composable
-private fun StatsRow(appsCount: String, domainsCount: String, ipsCount: String) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        StatCard(label = stringResource(R.string.rpn_proxy_apps), value = appsCount, modifier = Modifier.weight(1f))
-        StatCard(label = stringResource(R.string.rpn_proxy_domains), value = domainsCount, modifier = Modifier.weight(1f))
-        StatCard(label = stringResource(R.string.rpn_proxy_ips), value = ipsCount, modifier = Modifier.weight(1f))
-    }
-}
-
-@Composable
-private fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        border = CardDefaults.outlinedCardBorder()
-) {
-        Column(
-            modifier = Modifier.padding(8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(text = value, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            Text(text = label, style = MaterialTheme.typography.bodySmall)
-        }
-    }
-}
-
-@Composable
-private fun DetailsSection(
-    countryCode: String,
-    proxyError: String,
-    proxyName: String,
-    proxyWho: String,
-    proxyLatencyMs: Int?,
-    proxyLastConnectedMs: Long?,
-    isProxyActive: Boolean
-) {
-    val fallback = stringResource(R.string.symbol_hyphen)
-    val latencyText = proxyLatencyMs?.let { stringResource(R.string.dns_query_latency, it.toString()) } ?: fallback
-    val lastConnectedText =
-        if (proxyLastConnectedMs == null || proxyLastConnectedMs <= 0L) {
-            fallback
-        } else {
-            val elapsedMs = (System.currentTimeMillis() - proxyLastConnectedMs).coerceAtLeast(0L)
-            val minutes = elapsedMs / 60000L
-            when {
-                minutes < 1L -> stringResource(R.string.bubble_time_just_now)
-                minutes < 60L -> stringResource(R.string.bubble_time_minutes_ago, minutes.toInt())
-                else -> stringResource(R.string.bubble_time_hours_ago, (minutes / 60L).toInt())
-            }
-        }
-    val statusText = if (isProxyActive) stringResource(R.string.rpn_proxy_connected) else stringResource(R.string.lbl_disabled)
-    val statusColor = if (isProxyActive) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.onSurfaceVariant
-
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-                .verticalScroll(rememberScrollState())
-    ) {
-        Text(
-            text = proxyName.ifBlank { stringResource(R.string.rpn_proxy_name) },
-            style = MaterialTheme.typography.headlineSmall
-        )
-        Spacer(modifier = Modifier.height(12.dp))
-        DetailRow(label = stringResource(R.string.rpn_proxy_who), value = proxyWho.ifBlank { fallback })
-        if (proxyError.isNotEmpty()) {
-            DetailRow(label = stringResource(R.string.rpn_proxy_error), value = proxyError, valueColor = MaterialTheme.colorScheme.error)
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        DetailRow(label = stringResource(R.string.rpn_proxy_country), value = countryCode.uppercase())
-        DetailRow(label = stringResource(R.string.rpn_proxy_latency), value = latencyText)
-        DetailRow(label = stringResource(R.string.rpn_proxy_last_connected), value = lastConnectedText)
-        Spacer(modifier = Modifier.height(12.dp))
-        DetailRow(label = stringResource(R.string.rpn_proxy_status), value = statusText, valueColor = statusColor)
-    }
-}
-
-@Composable
-private fun DetailRow(label: String, value: String, valueColor: Color = MaterialTheme.colorScheme.onSurface) {
-    Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 6.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(text = label, style = MaterialTheme.typography.bodyMedium)
-        Text(text = value, style = MaterialTheme.typography.bodyMedium, color = valueColor)
-    }
-}
-
-@Composable
-private fun ActionButton(onClick: () -> Unit, label: String) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 28.dp, vertical = 12.dp)
-    ) {
-        Image(
-            painter = painterResource(id = R.drawable.ic_loop_back_app),
-            contentDescription = null,
-            modifier = Modifier.size(18.dp)
-        )
-        Spacer(modifier = Modifier.size(8.dp))
-        Text(text = label)
-    }
 }
 
 private const val TAG = "RpnWinProxyDetails"

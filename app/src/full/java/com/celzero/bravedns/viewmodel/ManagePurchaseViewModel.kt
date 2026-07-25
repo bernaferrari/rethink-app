@@ -26,7 +26,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import org.koin.core.annotation.KoinViewModel
 
+@KoinViewModel
 class ManagePurchaseViewModel : ViewModel() {
 
     companion object {
@@ -189,5 +191,4 @@ class ManagePurchaseViewModel : ViewModel() {
         _operationState.value = state
     }
 }
-
 

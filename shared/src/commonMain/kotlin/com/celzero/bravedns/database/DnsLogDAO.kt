@@ -27,9 +27,9 @@ import com.celzero.bravedns.util.Constants.Companion.MAX_LOGS
 @Dao
 interface DnsLogDAO {
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insert(dnsLog: DnsLog)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(dnsLog: DnsLog)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insertBatch(dnsLogs: List<DnsLog>)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertBatch(dnsLogs: List<DnsLog>)
 
     // replace order by timeStamp desc with order by id desc, as order by timeStamp desc is building
     // the query with temporary index on the table. This is causing the query to be slow.
@@ -85,9 +85,9 @@ interface DnsLogDAO {
     )
     fun getMaybeBlockedDnsLogsByName(searchString: String): PagingSource<Int, DnsLog>
 
-    @Query("delete from DNSLogs") fun clearAllData()
+    @Query("delete from DNSLogs") suspend fun clearAllData()
 
-    @Query("delete from DNSLogs where time < :date") fun purgeDnsLogsByDate(date: Long)
+    @Query("delete from DNSLogs where time < :date") suspend fun purgeDnsLogsByDate(date: Long)
 
     @Query("select count(id) from DNSLogs") fun logsCount(): Flow<Long>
 

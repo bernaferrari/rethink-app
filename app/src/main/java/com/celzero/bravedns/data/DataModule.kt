@@ -15,29 +15,53 @@
  */
 package com.celzero.bravedns.data
 
-import org.koin.android.ext.koin.androidContext
-import org.koin.dsl.module
+import android.content.Context
+import com.celzero.bravedns.database.ConnectionTrackerRepository
+import com.celzero.bravedns.database.DnsCryptEndpointRepository
+import com.celzero.bravedns.database.DnsCryptRelayEndpointRepository
+import com.celzero.bravedns.database.DnsLogRepository
+import com.celzero.bravedns.database.DnsProxyEndpointRepository
+import com.celzero.bravedns.database.DoHEndpointRepository
+import com.celzero.bravedns.database.DoTEndpointRepository
+import com.celzero.bravedns.database.ODoHEndpointRepository
+import com.celzero.bravedns.database.ProxyEndpointRepository
+import com.celzero.bravedns.database.RethinkDnsEndpointRepository
+import com.celzero.bravedns.service.EventLogger
+import com.celzero.bravedns.service.PersistentState
+import org.koin.core.annotation.Module
+import org.koin.core.annotation.Provided
+import org.koin.core.annotation.Single
 
-object DataModule {
-    private val dataModule = module {
-        single {
-            AppConfig(
-                androidContext(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get(),
-                get()
-            )
-        }
-    }
-
-    val modules = listOf(dataModule)
+@Module
+class DataModule {
+    @Single
+    fun appConfig(
+        @Provided context: Context,
+        rethinkDnsEndpointRepository: RethinkDnsEndpointRepository,
+        dnsProxyEndpointRepository: DnsProxyEndpointRepository,
+        doHEndpointRepository: DoHEndpointRepository,
+        dnsCryptEndpointRepository: DnsCryptEndpointRepository,
+        dnsCryptRelayEndpointRepository: DnsCryptRelayEndpointRepository,
+        doTEndpointRepository: DoTEndpointRepository,
+        oDoHEndpointRepository: ODoHEndpointRepository,
+        proxyEndpointRepository: ProxyEndpointRepository,
+        persistentState: PersistentState,
+        networkLogs: ConnectionTrackerRepository,
+        dnsLogs: DnsLogRepository,
+        eventLogger: EventLogger,
+    ) = AppConfig(
+        context,
+        rethinkDnsEndpointRepository,
+        dnsProxyEndpointRepository,
+        doHEndpointRepository,
+        dnsCryptEndpointRepository,
+        dnsCryptRelayEndpointRepository,
+        doTEndpointRepository,
+        oDoHEndpointRepository,
+        proxyEndpointRepository,
+        persistentState,
+        networkLogs,
+        dnsLogs,
+        eventLogger,
+    )
 }

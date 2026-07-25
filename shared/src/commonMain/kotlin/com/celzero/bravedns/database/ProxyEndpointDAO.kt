@@ -28,11 +28,11 @@ import androidx.room3.Update
 @Dao
 interface ProxyEndpointDAO {
 
-    @Update fun update(proxyEndpoint: ProxyEndpoint)
+    @Update suspend fun update(proxyEndpoint: ProxyEndpoint)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insert(proxyEndpoint: ProxyEndpoint)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(proxyEndpoint: ProxyEndpoint)
 
-    @Delete fun delete(proxyEndpoint: ProxyEndpoint)
+    @Delete suspend fun delete(proxyEndpoint: ProxyEndpoint)
 
     @Query("select * from ProxyEndpoint where proxyMode = 1 order by isSelected desc")
     fun proxyEndpointsPagingSource(): PagingSource<Int, ProxyEndpoint>
@@ -43,7 +43,7 @@ interface ProxyEndpointDAO {
     @Query("update ProxyEndpoint set isSelected = 0 where isSelected = 1")
     suspend fun removeConnectionStatus()
 
-    @Query("select count(*) from ProxyEndpoint") fun getCount(): Int
+    @Query("select count(*) from ProxyEndpoint") suspend fun getCount(): Int
 
     @Query("select * from ProxyEndpoint where isSelected = 1")
     fun observeConnectedProxy(): Flow<ProxyEndpoint?>

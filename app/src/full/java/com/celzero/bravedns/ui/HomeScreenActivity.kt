@@ -1842,13 +1842,13 @@ class HomeScreenActivity : ComponentActivity() {
             IconButton(onClick = onShare) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_share),
-                    contentDescription = null
+                    contentDescription = getString(R.string.about_bug_report_desc)
                 )
             }
             IconButton(onClick = onDelete) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_delete),
-                    contentDescription = null,
+                    contentDescription = getString(R.string.lbl_delete),
                     tint = MaterialTheme.colorScheme.error
                 )
             }

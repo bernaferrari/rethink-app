@@ -125,7 +125,7 @@ class BlocklistProvider : ContentProvider() {
 
         Logger.i(LOG_PROVIDER, "request to insert new blocklist, parameters $values")
         val localFileTags = RethinkLocalFileTag(values)
-        val id = localFileTagRepository.contentInsert(localFileTags)
+        val id = runBlocking { localFileTagRepository.contentInsert(localFileTags) }
         context?.contentResolver?.notifyChange(uri, null)
         return ContentUris.withAppendedId(uri, id)
     }
@@ -140,7 +140,7 @@ class BlocklistProvider : ContentProvider() {
             "request to delete blocklist, parameters $uri, $selection, $selectionArgs"
         )
         val id = ContentUris.parseId(uri).toInt()
-        val count = localFileTagRepository.contentDelete(id)
+        val count = runBlocking { localFileTagRepository.contentDelete(id) }
         context?.contentResolver?.notifyChange(uri, null)
         return count
     }
@@ -180,7 +180,7 @@ class BlocklistProvider : ContentProvider() {
 
         val context = context ?: return 0
         val localFileTags = RethinkLocalFileTag(values)
-        val count = RethinkBlocklistManager.cpSelectFileTag(localFileTags)
+        val count = runBlocking { RethinkBlocklistManager.cpSelectFileTag(localFileTags) }
         context.contentResolver?.notifyChange(uri, null)
         return count
     }

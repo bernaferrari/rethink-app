@@ -1,39 +1,28 @@
-/*
- * Copyright 2023 RethinkDNS and its authors
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * https://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+/* Copyright 2026 RethinkDNS and its authors */
 package com.celzero.bravedns.ui.components
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import com.celzero.bravedns.R
 import com.celzero.bravedns.database.LocalBlocklistPacksMap
+import com.celzero.bravedns.ui.compose.dns.RethinkBlocklistGroup
+import com.celzero.bravedns.ui.compose.dns.RethinkBlocklistPack
+import com.celzero.bravedns.ui.compose.dns.RethinkBlocklistPackRow
+import com.celzero.bravedns.ui.compose.dns.RethinkBlocklistRowStrings
 import com.celzero.bravedns.ui.rethink.RethinkBlocklistState
 
+/** Android data/resource adapter for the common blocklist pack row. */
 @Composable
-fun LocalSimpleBlocklistRow(
-    map: LocalBlocklistPacksMap,
-    showHeader: Boolean,
-    onToggle: (Boolean) -> Unit
-) {
-    val selectedTags = RethinkBlocklistState.getSelectedFileTags()
-    val isSelected = selectedTags.containsAll(map.blocklistIds)
-
-    BlocklistSimpleRow(
-        group = map.group,
-        pack = map.pack,
-        blocklistCount = map.blocklistIds.size,
-        isSelected = isSelected,
-        showHeader = showHeader,
-        onToggle = onToggle
+fun LocalSimpleBlocklistRow(map: LocalBlocklistPacksMap, showHeader: Boolean, onToggle: (Boolean) -> Unit) {
+    val context = LocalContext.current
+    val group = map.toRethinkGroup(context)
+    RethinkBlocklistPackRow(
+        pack = RethinkBlocklistPack("${map.pack}:${map.level}", group, map.pack, map.blocklistIds.size, RethinkBlocklistState.getSelectedFileTags().containsAll(map.blocklistIds), map.blocklistIds.toSet()),
+        showGroupHeader = showHeader,
+        strings = RethinkBlocklistRowStrings(
+            blocklistCount = { context.getString(R.string.rsv_blocklist_count_text, it.toString()) },
+            entries = { context.getString(R.string.dc_entries, it.toString()) },
+        ),
+        onToggle = onToggle,
     )
 }

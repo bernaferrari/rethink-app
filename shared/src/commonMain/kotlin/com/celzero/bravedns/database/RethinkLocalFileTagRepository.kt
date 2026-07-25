@@ -26,15 +26,15 @@ class RethinkLocalFileTagRepository(private val rethinkLocalFileTagDao: RethinkL
         rethinkLocalFileTagDao.update(fileTag)
     }
 
-    fun contentUpdate(fileTag: RethinkLocalFileTag): Int {
+    suspend fun contentUpdate(fileTag: RethinkLocalFileTag): Int {
         return rethinkLocalFileTagDao.update(fileTag)
     }
 
-    fun contentInsert(fileTag: RethinkLocalFileTag): Long {
+    suspend fun contentInsert(fileTag: RethinkLocalFileTag): Long {
         return rethinkLocalFileTagDao.insert(fileTag)
     }
 
-    fun contentDelete(id: Int): Int {
+    suspend fun contentDelete(id: Int): Int {
         return rethinkLocalFileTagDao.contentDelete(id)
     }
 

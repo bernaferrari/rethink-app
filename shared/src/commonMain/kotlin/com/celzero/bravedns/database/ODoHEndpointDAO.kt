@@ -28,13 +28,13 @@ import androidx.room3.Update
 @Dao
 interface ODoHEndpointDAO {
 
-    @Update fun update(endpoint: ODoHEndpoint)
+    @Update suspend fun update(endpoint: ODoHEndpoint)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE) fun insert(endpoint: ODoHEndpoint)
+    @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insert(endpoint: ODoHEndpoint)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insertReplace(endpoint: ODoHEndpoint)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertReplace(endpoint: ODoHEndpoint)
 
-    @Delete fun delete(endpoint: ODoHEndpoint)
+    @Delete suspend fun delete(endpoint: ODoHEndpoint)
 
     @Transaction
     @Query("select * from ODoHEndpoint order by isSelected desc")
@@ -52,7 +52,7 @@ interface ODoHEndpointDAO {
     @Query("delete from ODoHEndpoint where modifiedDataTime < :date")
     suspend fun deleteOlderData(date: Long)
 
-    @Query("delete from ODoHEndpoint") fun clearAllData()
+    @Query("delete from ODoHEndpoint") suspend fun clearAllData()
 
     @Query("delete from ODoHEndpoint where id = :id and isCustom = 1")
     suspend fun deleteODoHEndpoint(id: Int)
@@ -64,5 +64,5 @@ interface ODoHEndpointDAO {
     @Query("select * from ODoHEndpoint where isSelected = 1")
     suspend fun getConnectedODoH(): ODoHEndpoint?
 
-    @Query("select count(*) from ODoHEndpoint") fun getCount(): Int
+    @Query("select count(*) from ODoHEndpoint") suspend fun getCount(): Int
 }

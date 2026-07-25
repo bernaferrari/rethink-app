@@ -21,7 +21,6 @@ import androidx.appfunctions.service.AppFunctionConfiguration
 import com.celzero.bravedns.appfunctions.AppFunctionProvider
 import com.celzero.bravedns.scheduler.ScheduleManager
 import com.celzero.bravedns.scheduler.WorkScheduler
-import com.celzero.bravedns.service.AppUpdater
 import com.celzero.bravedns.util.FirebaseErrorReporting
 import com.celzero.bravedns.util.GlobalExceptionHandler
 import kotlinx.coroutines.CoroutineScope
@@ -30,8 +29,7 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.get
 import org.koin.android.ext.koin.androidContext
 import org.koin.android.ext.koin.androidLogger
-import org.koin.core.context.startKoin
-import org.koin.dsl.module
+import org.koin.plugin.module.dsl.startKoin
 
 class RethinkDnsApplicationPlay : Application(), AppFunctionConfiguration.Provider {
 
@@ -46,19 +44,9 @@ class RethinkDnsApplicationPlay : Application(), AppFunctionConfiguration.Provid
                     ApplicationInfo.FLAG_DEBUGGABLE
 
 
-        startKoin {
+        startKoin<RethinkDnsApplication> {
             if (BuildConfig.DEBUG) androidLogger()
             androidContext(this@RethinkDnsApplicationPlay)
-            koin.loadModules(AppModules)
-            koin.loadModules(
-                listOf(
-                    module {
-                        // New Koin override strategy allow to override any definition by default.
-                        // don't need to specify override = true anymore in module.
-                        single<AppUpdater> { StoreAppUpdater(androidContext()) }
-                    }
-                )
-            )
         }
 
         // Initialize global exception handler

@@ -29,11 +29,11 @@ import com.celzero.bravedns.data.FileTag
 @Dao
 interface RethinkRemoteFileTagDao {
 
-    @Update fun update(fileTag: RethinkRemoteFileTag)
+    @Update suspend fun update(fileTag: RethinkRemoteFileTag)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insert(fileTag: RethinkRemoteFileTag)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(fileTag: RethinkRemoteFileTag)
 
-    @Delete fun delete(fileTag: RethinkRemoteFileTag)
+    @Delete suspend fun delete(fileTag: RethinkRemoteFileTag)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(fileTag: List<RethinkRemoteFileTag>): LongArray
@@ -97,8 +97,8 @@ interface RethinkRemoteFileTagDao {
     @Query("Update RethinkRemoteFileTag set isSelected = 0")
     suspend fun clearSelectedTags()
 
-    @Query("select value from RethinkRemoteFileTag where isSelected = 1")
+    @Query("select value as selectedTagValue from RethinkRemoteFileTag where isSelected = 1")
     suspend fun getSelectedTags(): List<Int>
 
-    @Query("delete from RethinkRemoteFileTag") fun deleteAll()
+    @Query("delete from RethinkRemoteFileTag") suspend fun deleteAll()
 }

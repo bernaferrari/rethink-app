@@ -59,6 +59,15 @@ import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.ui.compose.rememberDrawablePainter
 import com.celzero.bravedns.ui.compose.theme.Dimensions
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleAction
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleEditorHeader
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleEditorStrings
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetBottomPaddingWithActions
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetLayout
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetModal
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSectionTitle
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSupportingText
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleTrustBlockRow
 import Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -104,26 +113,34 @@ fun AppDomainRulesSheet(
             }
     }
 
-    RuleSheetModal(onDismissRequest = onDismiss) {
+    RethinkRuleSheetModal(onDismissRequest = onDismiss) {
         val appName = formatRuleSheetAppName(context, appNames)
-        RuleSheetLayout(bottomPadding = RuleSheetBottomPaddingWithActions) {
-            RuleSheetAppHeader(appName = appName, appIcon = appIcon)
+        val ruleStrings = RethinkRuleEditorStrings(
+            trust = stringResource(R.string.ci_trust_rule),
+            block = stringResource(R.string.ci_block),
+        )
+        RethinkRuleSheetLayout(bottomPadding = RethinkRuleSheetBottomPaddingWithActions) {
+            RethinkRuleEditorHeader(
+                appName = appName,
+                appIcon = {
+                    appIcon?.let { icon ->
+                        rememberDrawablePainter(icon)?.let { painter ->
+                            Image(painter = painter, contentDescription = null, modifier = Modifier.size(Dimensions.iconSizeSm))
+                        }
+                    }
+                },
+            )
 
-            RuleSheetSectionTitle(
+            RethinkRuleSectionTitle(
                 text = stringResource(R.string.bsct_block_domain),
             )
 
-            RuleSheetTrustBlockRow(
+            RethinkRuleTrustBlockRow(
                 value = domain,
-                isTrustSelected = domainRule == DomainRulesManager.Status.TRUST,
-                isBlockSelected = domainRule == DomainRulesManager.Status.BLOCK,
-                onTrustClick = {
-                    val target =
-                        if (domainRule == DomainRulesManager.Status.TRUST) {
-                            DomainRulesManager.Status.NONE
-                        } else {
-                            DomainRulesManager.Status.TRUST
-                        }
+                action = domainRule.toRethinkRuleAction(),
+                strings = ruleStrings,
+                onActionChange = { action ->
+                    val target = action.toDomainRuleStatus()
                     applyDomainRule(
                         domain,
                         uid,
@@ -133,25 +150,9 @@ fun AppDomainRulesSheet(
                         onUpdated
                     ) { domainRule = it }
                 },
-                onBlockClick = {
-                    val target =
-                        if (domainRule == DomainRulesManager.Status.BLOCK) {
-                            DomainRulesManager.Status.NONE
-                        } else {
-                            DomainRulesManager.Status.BLOCK
-                        }
-                    applyDomainRule(
-                        domain,
-                        uid,
-                        target,
-                        scope,
-                        eventLogger,
-                        onUpdated
-                    ) { domainRule = it }
-                }
             )
 
-            RuleSheetSupportingText(
+            RethinkRuleSupportingText(
                 text = stringResource(R.string.bsac_title_desc),
             )
         }
@@ -191,6 +192,18 @@ fun AppDomainRulesSheet(
     }
 }
 
+private fun DomainRulesManager.Status.toRethinkRuleAction() = when (this) {
+    DomainRulesManager.Status.TRUST -> RethinkRuleAction.Trust
+    DomainRulesManager.Status.BLOCK -> RethinkRuleAction.Block
+    DomainRulesManager.Status.NONE -> RethinkRuleAction.None
+}
+
+private fun RethinkRuleAction.toDomainRuleStatus() = when (this) {
+    RethinkRuleAction.Trust -> DomainRulesManager.Status.TRUST
+    RethinkRuleAction.Block -> DomainRulesManager.Status.BLOCK
+    RethinkRuleAction.None, RethinkRuleAction.Bypass -> DomainRulesManager.Status.NONE
+}
+
 private fun applyDomainRule(
     domain: String,
     uid: Int,
@@ -226,7 +239,7 @@ private fun WireguardListSheet(
 ) {
     val context = LocalContext.current
     var currentProxyId by remember(inputLabel, selectedProxyId) { mutableStateOf(selectedProxyId) }
-    RuleSheetModal(onDismissRequest = onDismiss) {
+    RethinkRuleSheetModal(onDismissRequest = onDismiss) {
         Column(
             modifier =
                 Modifier.fillMaxWidth()

@@ -25,7 +25,7 @@ import androidx.room3.Update
 @Dao
 interface RpnProxyDao {
 
-    @Update fun update(rpnProxy: RpnProxy): Int
+    @Update suspend fun update(rpnProxy: RpnProxy): Int
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(rpnProxies: List<RpnProxy>): LongArray
@@ -33,11 +33,11 @@ interface RpnProxyDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(rpnProxy: RpnProxy): Long
 
-    @Delete fun delete(proxy: RpnProxy)
+    @Delete suspend fun delete(proxy: RpnProxy)
 
-    @Query("delete from RpnProxy where id = :id") fun deleteById(id: Int)
+    @Query("delete from RpnProxy where id = :id") suspend fun deleteById(id: Int)
 
-    @Query("select * from RpnProxy where id = :id") fun getProxyById(id: Int): RpnProxy?
+    @Query("select * from RpnProxy where id = :id") suspend fun getProxyById(id: Int): RpnProxy?
 
-    @Query("select * from RpnProxy") fun getAllProxies(): List<RpnProxy>
+    @Query("select * from RpnProxy") suspend fun getAllProxies(): List<RpnProxy>
 }

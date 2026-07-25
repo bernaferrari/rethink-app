@@ -27,14 +27,14 @@ import androidx.room3.Update
 @Dao
 interface DnsProxyEndpointDAO {
 
-    @Update fun update(dnsProxyEndpoint: DnsProxyEndpoint)
+    @Update suspend fun update(dnsProxyEndpoint: DnsProxyEndpoint)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE) fun insert(dnsProxyEndpoint: DnsProxyEndpoint)
+    @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insert(dnsProxyEndpoint: DnsProxyEndpoint)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertWithReplace(dnsProxyEndpoint: DnsProxyEndpoint)
 
-    @Delete fun delete(dnsProxyEndpoint: DnsProxyEndpoint)
+    @Delete suspend fun delete(dnsProxyEndpoint: DnsProxyEndpoint)
 
     @Query("select * from DNSProxyEndpoint order by isSelected desc")
     fun dnsProxyEndpointsPagingSource(): PagingSource<Int, DnsProxyEndpoint>
@@ -48,7 +48,7 @@ interface DnsProxyEndpointDAO {
     @Query("delete from DNSProxyEndpoint where modifiedDataTime < :date")
     suspend fun deleteOlderData(date: Long)
 
-    @Query("delete from DNSProxyEndpoint") fun clearAllData()
+    @Query("delete from DNSProxyEndpoint") suspend fun clearAllData()
 
     @Query("delete from DNSProxyEndpoint where id = :id and isSelected = 0")
     suspend fun deleteDnsProxyEndpoint(id: Int)
@@ -56,7 +56,7 @@ interface DnsProxyEndpointDAO {
     @Query("update DNSProxyEndpoint set isSelected = 0 where isSelected = 1")
     suspend fun removeConnectionStatus()
 
-    @Query("select count(*) from DNSProxyEndpoint") fun getCount(): Int
+    @Query("select count(*) from DNSProxyEndpoint") suspend fun getCount(): Int
 
     @Query("select * from DNSProxyEndpoint where isSelected = 1")
     suspend fun getSelectedProxy(): DnsProxyEndpoint?

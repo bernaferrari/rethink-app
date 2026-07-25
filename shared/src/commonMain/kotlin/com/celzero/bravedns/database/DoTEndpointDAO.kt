@@ -28,13 +28,13 @@ import androidx.room3.Update
 @Dao
 interface DoTEndpointDAO {
 
-    @Update fun update(endpoint: DoTEndpoint)
+    @Update suspend fun update(endpoint: DoTEndpoint)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE) fun insert(endpoint: DoTEndpoint)
+    @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insert(endpoint: DoTEndpoint)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insertReplace(endpoint: DoTEndpoint)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertReplace(endpoint: DoTEndpoint)
 
-    @Delete fun delete(endpoint: DoTEndpoint)
+    @Delete suspend fun delete(endpoint: DoTEndpoint)
 
     @Transaction
     @Query("select * from DoTEndpoint order by isSelected desc")
@@ -49,11 +49,11 @@ interface DoTEndpointDAO {
     )
     fun doTEndpointsPagingSource(query: String): PagingSource<Int, DoTEndpoint>
 
-    @Query("delete from DoTEndpoint where modifiedDataTime < :date") fun deleteOlderData(date: Long)
+    @Query("delete from DoTEndpoint where modifiedDataTime < :date") suspend fun deleteOlderData(date: Long)
 
-    @Query("delete from DoTEndpoint") fun clearAllData()
+    @Query("delete from DoTEndpoint") suspend fun clearAllData()
 
-    @Query("delete from DoTEndpoint where id = :id and isCustom = 1") fun deleteDoTEndpoint(id: Int)
+    @Query("delete from DoTEndpoint where id = :id and isCustom = 1") suspend fun deleteDoTEndpoint(id: Int)
 
     @Query("update DoTEndpoint set isSelected = 0 where isSelected = 1")
     suspend fun removeConnectionStatus()
@@ -62,7 +62,7 @@ interface DoTEndpointDAO {
     @Query("select * from DoTEndpoint where isSelected = 1")
     suspend fun getConnectedDoT(): DoTEndpoint?
 
-    @Query("select count(*) from DoTEndpoint") fun getCount(): Int
+    @Query("select count(*) from DoTEndpoint") suspend fun getCount(): Int
 
     @Query("select * from DoTEndpoint where isCustom = 0")
     suspend fun getAllDefaultDoTEndpoints(): List<DoTEndpoint>

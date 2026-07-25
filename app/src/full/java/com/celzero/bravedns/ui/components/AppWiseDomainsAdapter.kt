@@ -18,29 +18,16 @@ package com.celzero.bravedns.ui.components
 
 import android.content.Context
 import android.widget.Toast
-import androidx.compose.foundation.clickable
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.LinearProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.LifecycleOwner
 import com.celzero.bravedns.R
 import com.celzero.bravedns.data.AppConnection
 import com.celzero.bravedns.service.DomainRulesManager
 import com.celzero.bravedns.service.VpnController
+import com.celzero.bravedns.ui.compose.logs.RethinkAppConnectionItem
+import com.celzero.bravedns.ui.compose.logs.RethinkAppConnectionRow
+import com.celzero.bravedns.ui.compose.logs.RethinkConnectionRuleState
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
-import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities.removeBeginningTrailingCommas
 import com.celzero.bravedns.util.Utilities.showToastUiCentered
 import kotlin.math.log2
@@ -54,7 +41,6 @@ fun DomainRow(
     refreshToken: Int,
     onIpClick: (AppConnection) -> Unit
 ) {
-    val countText = conn.count.toString()
     val (primaryText, secondaryText) =
         if (isActiveConn) {
             val ip = beautifyIpString(conn.ipAddress)
@@ -64,32 +50,33 @@ fun DomainRow(
             conn.appOrDnsName to conn.ipAddress
         }
 
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clickable { onIpClick(conn) }
-                .padding(horizontal = 8.dp, vertical = 6.dp),
-        verticalArrangement = Arrangement.spacedBy(6.dp)
-    ) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Text(text = conn.flag, style = MaterialTheme.typography.titleMedium)
-            Column(modifier = Modifier.weight(1f)) {
-                Text(text = primaryText.orEmpty(), style = MaterialTheme.typography.titleMedium)
-                if (!secondaryText.isNullOrEmpty()) {
-                    Text(text = secondaryText, style = MaterialTheme.typography.bodySmall)
-                }
-                if (!isActiveConn && !conn.appOrDnsName.isNullOrEmpty()) {
-                    DomainProgress(conn, uid, refreshToken)
-                }
+    val ruleState =
+        if (isActiveConn || conn.appOrDnsName.isNullOrEmpty()) {
+            RethinkConnectionRuleState.None
+        } else {
+            when (DomainRulesManager.status(conn.appOrDnsName.orEmpty(), uid)) {
+                DomainRulesManager.Status.NONE -> RethinkConnectionRuleState.None
+                DomainRulesManager.Status.BLOCK -> RethinkConnectionRuleState.Block
+                DomainRulesManager.Status.TRUST -> RethinkConnectionRuleState.Trust
             }
-            Text(
-                text = countText,
-                style = MaterialTheme.typography.labelLarge
-            )
         }
-        Spacer(modifier = Modifier.fillMaxWidth())
-    }
+    val activity =
+        if (isActiveConn || conn.appOrDnsName.isNullOrEmpty() || refreshToken == Int.MIN_VALUE) {
+            null
+        } else {
+            (calculatePercentage(conn.count.toDouble()).coerceAtLeast(5) / 100f)
+        }
+    RethinkAppConnectionRow(
+        item = RethinkAppConnectionItem(
+            flag = conn.flag,
+            title = primaryText.orEmpty(),
+            supporting = secondaryText,
+            count = conn.count.toString(),
+            ruleState = ruleState,
+            activity = activity,
+        ),
+        onClick = { onIpClick(conn) },
+    )
 }
 
 @Composable
@@ -119,34 +106,6 @@ fun CloseConnsDialog(
             onConfirm()
         },
         onDismiss = onDismiss
-    )
-}
-
-@Composable
-private fun DomainProgress(conn: AppConnection, uid: Int, refresh: Int) {
-    val context = LocalContext.current
-    if (refresh == Int.MIN_VALUE) {
-        return
-    }
-    val status = DomainRulesManager.status(conn.appOrDnsName.orEmpty(), uid)
-    val color =
-        when (status) {
-            DomainRulesManager.Status.NONE ->
-                MaterialTheme.colorScheme.onSurfaceVariant
-            DomainRulesManager.Status.BLOCK ->
-                MaterialTheme.colorScheme.error
-            DomainRulesManager.Status.TRUST ->
-                MaterialTheme.colorScheme.tertiary
-        }    // In many Compose use cases, 100 or 1.0f is used directly.    // For now, let's keep it simple or implement a similar logic if required.
-    var p = calculatePercentage(conn.count.toDouble())
-    if (p == 0) {
-        p = 5
-    }
-    LinearProgressIndicator(
-        progress = { p / 100f },
-        color = color,
-        trackColor = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.fillMaxWidth()
     )
 }
 

@@ -27,12 +27,12 @@ import androidx.room3.Update
 @Dao
 interface DnsCryptRelayEndpointDAO {
 
-    @Update fun update(dnsCryptRelayEndpoint: DnsCryptRelayEndpoint)
+    @Update suspend fun update(dnsCryptRelayEndpoint: DnsCryptRelayEndpoint)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(dnsCryptRelayEndpoint: DnsCryptRelayEndpoint)
 
-    @Delete fun delete(dnsCryptRelayEndpoint: DnsCryptRelayEndpoint)
+    @Delete suspend fun delete(dnsCryptRelayEndpoint: DnsCryptRelayEndpoint)
 
     @Transaction
     @Query("select * from DNSCryptRelayEndpoint order by isSelected desc")
@@ -49,7 +49,7 @@ interface DnsCryptRelayEndpointDAO {
     @Query("delete from DNSCryptRelayEndpoint where modifiedDataTime < :date")
     suspend fun deleteOlderData(date: Long)
 
-    @Query("delete from DNSCryptRelayEndpoint") fun clearAllData()
+    @Query("delete from DNSCryptRelayEndpoint") suspend fun clearAllData()
 
     @Query("delete from DNSCryptRelayEndpoint where id = :id and isCustom = 1")
     suspend fun deleteDnsCryptRelayEndpoint(id: Int)
@@ -66,5 +66,5 @@ interface DnsCryptRelayEndpointDAO {
     @Query("select * from DNSCryptRelayEndpoint where isSelected = 1")
     suspend fun getConnectedRelays(): List<DnsCryptRelayEndpoint>
 
-    @Transaction @Query("select count(*) from DNSCryptRelayEndpoint") fun getCount(): Int
+    @Transaction @Query("select count(*) from DNSCryptRelayEndpoint") suspend fun getCount(): Int
 }

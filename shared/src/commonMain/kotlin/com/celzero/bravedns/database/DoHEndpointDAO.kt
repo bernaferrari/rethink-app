@@ -28,13 +28,13 @@ import androidx.room3.Update
 @Dao
 interface DoHEndpointDAO {
 
-    @Update fun update(doHEndpoint: DoHEndpoint)
+    @Update suspend fun update(doHEndpoint: DoHEndpoint)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE) fun insert(doHEndpoint: DoHEndpoint)
+    @Insert(onConflict = OnConflictStrategy.IGNORE) suspend fun insert(doHEndpoint: DoHEndpoint)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insertReplace(doHEndpoint: DoHEndpoint)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insertReplace(doHEndpoint: DoHEndpoint)
 
-    @Delete fun delete(doHEndpoint: DoHEndpoint)
+    @Delete suspend fun delete(doHEndpoint: DoHEndpoint)
 
     @Transaction
     @Query("select * from DoHEndpoint order by isSelected desc")
@@ -49,11 +49,11 @@ interface DoHEndpointDAO {
     )
     fun doHEndpointsPagingSource(query: String): PagingSource<Int, DoHEndpoint>
 
-    @Query("delete from DoHEndpoint where modifiedDataTime < :date") fun deleteOlderData(date: Long)
+    @Query("delete from DoHEndpoint where modifiedDataTime < :date") suspend fun deleteOlderData(date: Long)
 
-    @Query("delete from DoHEndpoint") fun clearAllData()
+    @Query("delete from DoHEndpoint") suspend fun clearAllData()
 
-    @Query("delete from DoHEndpoint where id = :id and isCustom = 1") fun deleteDoHEndpoint(id: Int)
+    @Query("delete from DoHEndpoint where id = :id and isCustom = 1") suspend fun deleteDoHEndpoint(id: Int)
 
     @Query("update DoHEndpoint set isSelected = 0 where isSelected = 1")
     suspend fun removeConnectionStatus()
@@ -65,5 +65,5 @@ interface DoHEndpointDAO {
     @Query("select * from DoHEndpoint where isCustom = 0")
     suspend fun getAllDefaultDoHEndpoints(): List<DoHEndpoint>
 
-    @Query("select count(*) from DoHEndpoint") fun getCount(): Int
+    @Query("select count(*) from DoHEndpoint") suspend fun getCount(): Int
 }

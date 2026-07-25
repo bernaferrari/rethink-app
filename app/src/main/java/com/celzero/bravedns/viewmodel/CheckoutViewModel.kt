@@ -41,8 +41,11 @@ import java.io.File
 import java.math.BigInteger
 import java.security.SecureRandom
 import java.util.UUID
+import org.koin.core.annotation.KoinViewModel
+import org.koin.core.annotation.Provided
 
-class CheckoutViewModel(val app: Application, private val persistentState: PersistentState) : AndroidViewModel(app) {
+@KoinViewModel
+class CheckoutViewModel(val app: Application, @Provided private val persistentState: PersistentState) : AndroidViewModel(app) {
 
     private val _paymentStatus = MutableStateFlow(TcpProxyHelper.getTcpProxyPaymentStatus())
     val paymentStatus = _paymentStatus.asStateFlow()

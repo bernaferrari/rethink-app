@@ -4,6 +4,7 @@ Copyright 2020 RethinkDNS and its authors
 package com.celzero.bravedns.database
 
 import androidx.room3.Entity
+import androidx.room3.Ignore
 import androidx.room3.PrimaryKey
 import com.celzero.bravedns.platform.currentTimeMillis
 import com.celzero.bravedns.util.Constants.Companion.INIT_TIME_MS
@@ -31,6 +32,7 @@ class DnsProxyEndpoint {
 
     constructor()
 
+    @Ignore
     constructor(
         id: Int,
         proxyName: String,
@@ -58,6 +60,7 @@ class DnsProxyEndpoint {
     }
 
     // Secondary ctor matching ConfigureOtherDnsScreen call sites (no isSecure arg)
+    @Ignore
     constructor(
         id: Int,
         proxyName: String,

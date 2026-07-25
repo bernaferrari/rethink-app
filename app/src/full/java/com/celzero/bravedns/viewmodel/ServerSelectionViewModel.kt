@@ -30,12 +30,14 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.time.Duration.Companion.milliseconds
+import org.koin.core.annotation.KoinViewModel
 
 /**
  * ViewModel for [com.celzero.bravedns.ui.fragment.ServerSelectionFragment] and its child
  * Owns the server-refresh coroutine so that a bottom-sheet dismissal never cancels an
  * in-progress IO operation. Both views observe [refreshState] to keep their UI in sync.
  */
+@KoinViewModel
 class ServerSelectionViewModel : ViewModel() {
 
     companion object {

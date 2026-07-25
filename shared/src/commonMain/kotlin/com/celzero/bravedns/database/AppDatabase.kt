@@ -338,7 +338,7 @@ abstract class AppDatabase : RoomDatabase() {
                     insertIpv6DnsProxyEndpoint(connection)
                 }
 
-                private fun updateDnscryptStamps(connection: SQLiteConnection) {
+                private suspend fun updateDnscryptStamps(connection: SQLiteConnection) {
                     with(connection) {
                         execSQL(
                             "UPDATE DNSCryptEndpoint set dnsCryptURL='sdns://AQMAAAAAAAAAEjE0OS4xMTIuMTEyLjk6ODQ0MyBnyEe4yHWM0SAkVUO-dWdG3zTfHYTAC4xHA2jfgh2GPhkyLmRuc2NyeXB0LWNlcnQucXVhZDkubmV0' where id=5"
@@ -350,7 +350,7 @@ abstract class AppDatabase : RoomDatabase() {
                 }
 
                 // add more doh options as default
-                private fun addMoreDohToList(connection: SQLiteConnection) {
+                private suspend fun addMoreDohToList(connection: SQLiteConnection) {
                     with(connection) {
                         execSQL(
                             "INSERT OR REPLACE INTO DoHEndpoint(dohName,dohURL,dohExplanation, isSelected,isCustom,modifiedDataTime,latency) values('Google','https://dns.google/dns-query','Traditional DNS queries and replies are sent over UDP or TCP without encryption, making them subject to surveillance, spoofing, and DNS-based Internet filtering.',0,0,0,0)"
@@ -368,7 +368,7 @@ abstract class AppDatabase : RoomDatabase() {
                 }
 
                 // rename blockedConnections table to CustomIp
-                private fun modifyBlockedConnectionsTable(connection: SQLiteConnection) {
+                private suspend fun modifyBlockedConnectionsTable(connection: SQLiteConnection) {
                     with(connection) {
                         execSQL(
                             "CREATE TABLE 'CustomIp' ('uid' INTEGER NOT NULL, 'ipAddress' TEXT DEFAULT '' NOT NULL, 'port' INTEGER DEFAULT '' NOT NULL, 'protocol' TEXT DEFAULT '' NOT NULL, 'isActive' INTEGER DEFAULT 1 NOT NULL, 'status' INTEGER DEFAULT 1 NOT NULL,'ruleType' INTEGER DEFAULT 0 NOT NULL, 'wildcard' INTEGER DEFAULT 0 NOT NULL, 'modifiedDateTime' INTEGER DEFAULT 0 NOT NULL, PRIMARY KEY(uid, ipAddress, port, protocol))"
@@ -380,7 +380,7 @@ abstract class AppDatabase : RoomDatabase() {
                     }
                 }
 
-                private fun modifyAppInfoTableSchema(connection: SQLiteConnection) {
+                private suspend fun modifyAppInfoTableSchema(connection: SQLiteConnection) {
                     with(connection) {
                         execSQL(
                             "CREATE TABLE 'AppInfo_backup' ('packageInfo' TEXT PRIMARY KEY NOT NULL, 'appName' TEXT NOT NULL, 'uid' INTEGER NOT NULL, 'isSystemApp' INTEGER NOT NULL, 'firewallStatus' INTEGER NOT NULL DEFAULT 0, 'appCategory' TEXT NOT NULL, 'wifiDataUsed' INTEGER NOT NULL, 'mobileDataUsed' INTEGER NOT NULL, 'metered' INTEGER NOT NULL DEFAULT 0, 'screenOffAllowed' INTEGER NOT NULL DEFAULT 0, 'backgroundAllowed' INTEGER NOT NULL DEFAULT 0,  'isInternetAllowed' INTEGER NOT NULL, 'whiteListUniv1' INTEGER NOT NULL, 'isExcluded' INTEGER NOT NULL)"
@@ -413,7 +413,7 @@ abstract class AppDatabase : RoomDatabase() {
                 // introduce NOT NULL property for columns in the schema, alter table query cannot
                 // add the not-null to the schema, so creating a backup and recreating the table
                 // during migration.
-                private fun modifyConnectionTrackerTable(connection: SQLiteConnection) {
+                private suspend fun modifyConnectionTrackerTable(connection: SQLiteConnection) {
                     with(connection) {
                         execSQL(
                             "CREATE TABLE 'ConnectionTracker_backup' ('id' INTEGER NOT NULL,'appName' TEXT DEFAULT '' NOT NULL, 'uid' INTEGER NOT NULL, 'ipAddress' TEXT DEFAULT ''  NOT NULL, 'port' INTEGER NOT NULL, 'protocol' INTEGER NOT NULL,'isBlocked' INTEGER NOT NULL, 'blockedByRule' TEXT DEFAULT '' NOT NULL, 'flag' TEXT  DEFAULT '' NOT NULL, 'dnsQuery' TEXT DEFAULT '', 'timeStamp' INTEGER NOT NULL,PRIMARY KEY (id)  )"
@@ -434,7 +434,7 @@ abstract class AppDatabase : RoomDatabase() {
 
                 // create new table to store Rethink dns endpoint
                 // contains both the global and app specific dns endpoints
-                private fun createRethinkDnsTable(connection: SQLiteConnection) {
+                private suspend fun createRethinkDnsTable(connection: SQLiteConnection) {
                     with(connection) {
                         execSQL(
                             "CREATE TABLE 'RethinkDnsEndpoint' ('name' TEXT NOT NULL, 'url' TEXT NOT NULL, 'uid' INTEGER NOT NULL, 'desc' TEXT NOT NULL, 'isActive' INTEGER NOT NULL, 'isCustom' INTEGER NOT NULL, 'latency' INTEGER NOT NULL, 'blocklistCount' INTEGER NOT NULL DEFAULT 0,'modifiedDataTime' INTEGER NOT NULL,  PRIMARY KEY (name, url, uid))"
@@ -463,7 +463,7 @@ abstract class AppDatabase : RoomDatabase() {
                     }
                 }
 
-                private fun createRethinkFileTagTables(connection: SQLiteConnection) {
+                private suspend fun createRethinkFileTagTables(connection: SQLiteConnection) {
                     with(connection) {
                         execSQL(
                             "CREATE TABLE RethinkRemoteFileTag ('value' INTEGER NOT NULL, 'uname' TEXT NOT NULL, 'vname' TEXT NOT NULL, 'group' TEXT NOT NULL, 'subg' TEXT NOT NULL, 'url' TEXT NOT NULL, 'show' INTEGER NOT NULL, 'entries' INTEGER NOT NULL, 'simpleTagId' INTEGER NOT NULL, 'isSelected' INTEGER NOT NULL,  PRIMARY KEY (value))"
@@ -475,11 +475,11 @@ abstract class AppDatabase : RoomDatabase() {
                 }
 
                 // remove the rethink doh from the list
-                private fun removeRethinkFromDohList(connection: SQLiteConnection) {
+                private suspend fun removeRethinkFromDohList(connection: SQLiteConnection) {
                     with(connection) { execSQL("DELETE from DoHEndpoint where id in (4,5)") }
                 }
 
-                private fun insertIpv6DnsProxyEndpoint(connection: SQLiteConnection) {
+                private suspend fun insertIpv6DnsProxyEndpoint(connection: SQLiteConnection) {
                     with(connection) {
                         execSQL(
                             "INSERT OR REPLACE INTO DNSProxyEndpoint(proxyName, proxyType, proxyAppName, proxyIP, proxyPort, isSelected, isCustom, modifiedDataTime,latency) values ('Google IPv6','External','Nobody','2001:4860:4860::8888',53,0,0,0,0)"
@@ -551,7 +551,7 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 }
 
-                private fun modifyAppInfo(connection: SQLiteConnection) {
+                private suspend fun modifyAppInfo(connection: SQLiteConnection) {
                     with(connection) {
                         execSQL(
                             "CREATE TABLE 'AppInfo_backup' ('packageName' TEXT NOT NULL, 'appName' TEXT NOT NULL, 'uid' INTEGER NOT NULL, 'isSystemApp' INTEGER NOT NULL, 'firewallStatus' INTEGER NOT NULL DEFAULT 0, 'appCategory' TEXT NOT NULL, 'wifiDataUsed' INTEGER NOT NULL, 'mobileDataUsed' INTEGER NOT NULL, 'metered' INTEGER NOT NULL DEFAULT 0, 'screenOffAllowed' INTEGER NOT NULL DEFAULT 0, 'backgroundAllowed' INTEGER NOT NULL DEFAULT 0,  PRIMARY KEY(uid, packageName))"
@@ -584,7 +584,7 @@ abstract class AppDatabase : RoomDatabase() {
                     updateDnscryptStamps(connection)
                 }
 
-                private fun updateDnscryptStamps(connection: SQLiteConnection) {
+                private suspend fun updateDnscryptStamps(connection: SQLiteConnection) {
                     connection.execSQL(
                         "update DnsCryptEndpoint set dnsCryptURL = 'sdns://AQMAAAAAAAAAFDE4NS4yMjguMTY4LjE2ODo4NDQzILysMvrVQ2kXHwgy1gdQJ8MgjO7w6OmflBjcd2Bl1I8pEWNsZWFuYnJvd3Npbmcub3Jn' where dnsCryptName = 'Cleanbrowsing Family' and id = 1"
                     )
@@ -602,7 +602,7 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 }
 
-                private fun modifyRethinkDnsUrls(connection: SQLiteConnection) {
+                private suspend fun modifyRethinkDnsUrls(connection: SQLiteConnection) {
                     connection.execSQL(
                         "UPDATE RethinkDnsEndpoint set url = case when url = 'https://max.rethinkdns.com/1:EMABAADgIAA='  then 'https://max.rethinkdns.com/pec' else 'https://sky.rethinkdns.com/pec' end where name = 'RDNS Adult' and isCustom = 0"
                     )
@@ -614,7 +614,7 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 }
 
-                private fun modifyAppInfo(connection: SQLiteConnection) {
+                private suspend fun modifyAppInfo(connection: SQLiteConnection) {
                     with(connection) {
                         execSQL(
                             "CREATE TABLE 'AppInfo_backup' ('packageName' TEXT NOT NULL, 'appName' TEXT NOT NULL, 'uid' INTEGER NOT NULL, 'isSystemApp' INTEGER NOT NULL, 'firewallStatus' INTEGER NOT NULL DEFAULT 5, 'appCategory' TEXT NOT NULL, 'wifiDataUsed' INTEGER NOT NULL, 'mobileDataUsed' INTEGER NOT NULL, 'connectionStatus' INTEGER NOT NULL DEFAULT 3, 'screenOffAllowed' INTEGER NOT NULL DEFAULT 0, 'backgroundAllowed' INTEGER NOT NULL DEFAULT 0,  PRIMARY KEY(uid, packageName))"
@@ -1180,7 +1180,7 @@ abstract class AppDatabase : RoomDatabase() {
             }
 
         // ref: stackoverflow.com/a/57204285
-        internal fun doesColumnExistInTable(
+        internal suspend fun doesColumnExistInTable(
             connection: SQLiteConnection,
             tableName: String,
             columnToCheck: String
@@ -1190,7 +1190,7 @@ abstract class AppDatabase : RoomDatabase() {
     // fixme: revisit the links to remove the pragma for each table
     // https://stackoverflow.com/questions/49030258/how-to-vacuum-roomdatabase
     // https://stackoverflow.com/questions/50987119/backup-room-databas
-    fun checkPoint() {
+    suspend fun checkPoint() {
         appDatabaseRawQueries().checkpoint(RoomRawQuery(PRAGMA))
         appDatabaseRawQueries().vacuum(RoomRawQuery("VACUUM"))
     }

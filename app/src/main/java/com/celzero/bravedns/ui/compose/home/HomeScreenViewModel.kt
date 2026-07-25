@@ -28,7 +28,9 @@ import com.celzero.bravedns.service.ProxyManager
 import com.celzero.bravedns.service.ProxyStateManager
 import com.celzero.bravedns.service.WireguardManager
 import com.celzero.firestack.backend.Backend
+import org.koin.core.annotation.KoinViewModel
 
+@KoinViewModel
 class HomeScreenViewModel(
     private val persistentState: PersistentState,
     private val appConfig: AppConfig

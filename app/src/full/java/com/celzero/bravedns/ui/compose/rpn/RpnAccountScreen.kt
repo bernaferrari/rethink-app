@@ -46,7 +46,6 @@ import com.celzero.bravedns.iab.ServerApiError
 import com.celzero.bravedns.iab.ServerOrderEntry
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.ui.compose.theme.CardPosition
-import com.celzero.bravedns.ui.compose.theme.RethinkActionListItem
 import com.celzero.bravedns.ui.compose.theme.CompactEmptyState
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
@@ -85,32 +84,94 @@ fun RpnAccountScreen(
         stringResource(R.string.rpn_account_entitlement_tab),
     )
 
-    Scaffold(
-        topBar = {
-            RethinkTopBar(
-                title = stringResource(R.string.rpn_account_title),
-                onBackClick = onBackClick,
-            )
-        },
-    ) { padding ->
-        Column(Modifier.fillMaxSize().padding(padding)) {
-            PrimaryTabRow(selectedTabIndex = selectedTab) {
-                tabs.forEachIndexed { index, label ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = { Text(label) },
+    var entitlementRows by remember { mutableStateOf<List<RethinkRpnAccountEntry>>(emptyList()) }
+    var entitlementError by remember { mutableStateOf<String?>(null) }
+    var entitlementLoading by remember { mutableStateOf(true) }
+    val entitlementLabels = listOf(
+        stringResource(R.string.rpn_account_entitlement_status),
+        stringResource(R.string.rpn_account_entitlement_client_id),
+        stringResource(R.string.rpn_account_entitlement_device_id),
+        stringResource(R.string.rpn_account_entitlement_expiry),
+        stringResource(R.string.rpn_account_entitlement_provider),
+        stringResource(R.string.rpn_account_entitlement_allow_restore),
+    )
+    androidx.compose.runtime.LaunchedEffect(Unit) {
+        entitlementLoading = true
+        runCatching {
+            withContext(Dispatchers.IO) {
+                RpnProxyManager.getEntitlementDetails()?.let {
+                    listOf(
+                        RethinkRpnAccountEntry(entitlementLabels[0], it.status()),
+                        RethinkRpnAccountEntry(entitlementLabels[1], it.cid().take(12)),
+                        RethinkRpnAccountEntry(entitlementLabels[2], it.did().take(4)),
+                        RethinkRpnAccountEntry(entitlementLabels[3], it.expiry().toString()),
+                        RethinkRpnAccountEntry(entitlementLabels[4], it.providerID()),
+                        RethinkRpnAccountEntry(entitlementLabels[5], it.allowRestore().toString()),
                     )
-                }
+                }.orEmpty()
             }
-            when (selectedTab) {
-                0 -> ManagePurchaseTab(manageViewModel, onSupportClick = { showSupport = true })
-                1 -> PurchaseHistoryTab(historyViewModel)
-                2 -> ServerOrdersTab(ordersViewModel)
-                else -> EntitlementTab()
-            }
-        }
+        }.onSuccess { entitlementRows = it }.onFailure { entitlementError = it.message ?: "Unable to load entitlement." }
+        entitlementLoading = false
     }
+    val manageState by manageViewModel.operationState.collectAsStateWithLifecycle()
+    val historyItems = historyViewModel.historyFlow.collectAsLazyPagingItems()
+    val orderState by ordersViewModel.uiState.collectAsStateWithLifecycle()
+    val accountManage = when (val value = manageState) {
+        is ManagePurchaseViewModel.OperationState.InProgress -> RethinkRpnAccountOperation(busy = true, message = value.step.name.replace('_', ' ').lowercase().replaceFirstChar(Char::uppercase))
+        is ManagePurchaseViewModel.OperationState.Success -> RethinkRpnAccountOperation(message = value.message)
+        is ManagePurchaseViewModel.OperationState.Failure -> RethinkRpnAccountOperation(message = value.message, error = true)
+        ManagePurchaseViewModel.OperationState.Idle -> RethinkRpnAccountOperation()
+    }
+    val accountHistory = historyItems.itemSnapshotList.items.map { item ->
+        RethinkRpnAccountEntry(
+            title = "${item.fromStateName} → ${item.toStateName}",
+            supporting = listOfNotNull(item.reason?.takeIf(String::isNotBlank), formatTime(item.timestamp)).joinToString(" · "),
+        )
+    }
+    val accountOrders = (orderState as? ServerOrderHistoryViewModel.UiState.Success)?.orders.orEmpty().map { item ->
+        val status = item.subscriptionState ?: when (item.purchaseState) {
+            ServerOrderEntry.PURCHASE_STATE_PURCHASED -> "PURCHASED"
+            ServerOrderEntry.PURCHASE_STATE_PENDING -> "PENDING"
+            else -> "UNKNOWN"
+        }
+        val time = listOf(item.expiryTimeMs, item.purchaseTimeMs, item.mtime).firstOrNull { it > 0L } ?: 0L
+        RethinkRpnAccountEntry(
+            title = item.productId.ifBlank { item.sku },
+            supporting = listOfNotNull(status.removePrefix("SUBSCRIPTION_STATE_").replace('_', ' ').lowercase().replaceFirstChar(Char::uppercase), formatTime(time).takeIf { time > 0L }).joinToString(" · "),
+        )
+    }
+    RethinkRpnAccountScreen(
+        state = RethinkRpnAccountState(
+            entitlementLoading = entitlementLoading,
+            entitlementError = entitlementError,
+            entitlement = entitlementRows,
+            manage = accountManage,
+            historyLoading = historyItems.loadState.refresh is androidx.paging.LoadState.Loading,
+            history = accountHistory,
+            ordersLoading = orderState is ServerOrderHistoryViewModel.UiState.Loading,
+            ordersError = (orderState as? ServerOrderHistoryViewModel.UiState.Error)?.message,
+            orders = accountOrders,
+        ),
+        strings = RethinkRpnAccountStrings(
+            title = stringResource(R.string.rpn_account_title),
+            manageTab = tabs[0], historyTab = tabs[1], ordersTab = tabs[2], entitlementTab = tabs[3],
+            manageHeading = stringResource(R.string.rpn_account_manage_heading), manageDescription = stringResource(R.string.rpn_account_manage_desc),
+            actionsHeading = stringResource(R.string.rpn_account_actions_heading), actionsDescription = stringResource(R.string.rpn_account_actions_desc),
+            cancel = stringResource(R.string.rpn_account_cancel), cancelDescription = stringResource(R.string.rpn_account_cancel_desc),
+            revoke = stringResource(R.string.rpn_account_revoke), revokeDescription = stringResource(R.string.rpn_account_revoke_desc),
+            cancelConfirmation = stringResource(R.string.rpn_account_cancel_confirm), revokeConfirmation = stringResource(R.string.rpn_account_revoke_confirm),
+            proceed = stringResource(R.string.lbl_proceed), dismiss = stringResource(R.string.lbl_cancel),
+            helpHeading = stringResource(R.string.rpn_account_help_heading), helpDescription = stringResource(R.string.rpn_account_help_desc),
+            support = stringResource(R.string.rpn_account_support), supportDescription = stringResource(R.string.rpn_account_support_desc),
+            noHistory = stringResource(R.string.rpn_account_no_history), noOrders = stringResource(R.string.rpn_account_no_orders), retry = stringResource(R.string.rpn_account_retry), loading = stringResource(R.string.lbl_loading),
+        ),
+        onBackClick = onBackClick,
+        onCancelSubscription = manageViewModel::cancelSubscription,
+        onRevokeSubscription = manageViewModel::revokeSubscription,
+        onSupport = { showSupport = true },
+        onRetryOrders = ordersViewModel::reload,
+    )
+
     serverError?.let { error ->
         ServerErrorRecoveryDialog(
             error = error,
@@ -123,146 +184,6 @@ fun RpnAccountScreen(
     }
     if (showSupport) {
         RpnSupportDialog(onDismiss = { showSupport = false })
-    }
-}
-
-@Composable
-private fun EntitlementTab() {
-    val context = LocalContext.current
-    val labels = listOf(
-        stringResource(R.string.rpn_account_entitlement_status),
-        stringResource(R.string.rpn_account_entitlement_client_id),
-        stringResource(R.string.rpn_account_entitlement_device_id),
-        stringResource(R.string.rpn_account_entitlement_expiry),
-        stringResource(R.string.rpn_account_entitlement_provider),
-        stringResource(R.string.rpn_account_entitlement_allow_restore),
-    )
-    var details by remember { mutableStateOf<List<Pair<String, String>>?>(null) }
-    var error by remember { mutableStateOf<String?>(null) }
-    androidx.compose.runtime.LaunchedEffect(Unit) {
-        runCatching {
-            withContext(Dispatchers.IO) {
-                RpnProxyManager.getEntitlementDetails()?.let {
-                    listOf(
-                        labels[0] to it.status(), labels[1] to it.cid().take(12),
-                        labels[2] to it.did().take(4), labels[3] to it.expiry().toString(),
-                        labels[4] to it.providerID(), labels[5] to it.allowRestore().toString(),
-                    )
-                }
-            }
-        }.onSuccess { details = it }.onFailure { error = it.message ?: context.getString(R.string.rpn_account_entitlement_load_failed) }
-    }
-    when {
-        error != null -> EmptyAccountState(error.orEmpty())
-        details == null -> Column(Modifier.fillMaxWidth().padding(24.dp)) { CircularProgressIndicator() }
-        else -> {
-            val currentDetails = details.orEmpty()
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
-            ) {
-                item {
-                    RethinkListGroup {
-                        currentDetails.forEachIndexed { index, (label, value) ->
-                            RethinkListItem(
-                                headline = label,
-                                supporting = value,
-                                position = cardPositionFor(index, currentDetails.lastIndex),
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ManagePurchaseTab(viewModel: ManagePurchaseViewModel, onSupportClick: () -> Unit) {
-    val state by viewModel.operationState.collectAsStateWithLifecycle()
-    var confirmCancel by remember { mutableStateOf(false) }
-    var confirmRevoke by remember { mutableStateOf(false) }
-    val busy = state is ManagePurchaseViewModel.OperationState.InProgress
-
-    LazyColumn(
-        modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp),
-    ) {
-        item {
-            SectionHeaderWithSubtitle(
-                title = stringResource(R.string.rpn_account_manage_heading),
-                subtitle = stringResource(R.string.rpn_account_manage_desc),
-            )
-        }
-        item {
-            when (val current = state) {
-                is ManagePurchaseViewModel.OperationState.InProgress -> {
-                    Column(
-                        Modifier.fillMaxWidth().padding(horizontal = 20.dp, vertical = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                    ) {
-                        CircularProgressIndicator()
-                        Text(current.step.name.replace('_', ' ').lowercase().replaceFirstChar(Char::uppercase))
-                    }
-                }
-                is ManagePurchaseViewModel.OperationState.Success ->
-                    Text(current.message, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(horizontal = 20.dp))
-                is ManagePurchaseViewModel.OperationState.Failure ->
-                    Text(current.message, color = MaterialTheme.colorScheme.error, modifier = Modifier.padding(horizontal = 20.dp))
-                ManagePurchaseViewModel.OperationState.Idle -> Unit
-            }
-        }
-        item { SectionHeaderWithSubtitle(title = stringResource(R.string.rpn_account_actions_heading), subtitle = stringResource(R.string.rpn_account_actions_desc)) }
-        item {
-            RethinkListGroup {
-                RethinkActionListItem(
-                    title = stringResource(R.string.rpn_account_cancel),
-                    description = stringResource(R.string.rpn_account_cancel_desc),
-                    accentColor = MaterialTheme.colorScheme.error,
-                    enabled = !busy,
-                    position = CardPosition.First,
-                    onClick = { confirmCancel = true },
-                )
-                RethinkActionListItem(
-                    title = stringResource(R.string.rpn_account_revoke),
-                    description = stringResource(R.string.rpn_account_revoke_desc),
-                    accentColor = MaterialTheme.colorScheme.error,
-                    enabled = !busy,
-                    position = CardPosition.Last,
-                    onClick = { confirmRevoke = true },
-                )
-            }
-        }
-        item { SectionHeaderWithSubtitle(title = stringResource(R.string.rpn_account_help_heading), subtitle = stringResource(R.string.rpn_account_help_desc)) }
-        item {
-            RethinkActionListItem(
-                title = stringResource(R.string.rpn_account_support),
-                description = stringResource(R.string.rpn_account_support_desc),
-                position = CardPosition.Single,
-                onClick = onSupportClick,
-            )
-        }
-    }
-
-    if (confirmCancel || confirmRevoke) {
-        val revoke = confirmRevoke
-        AlertDialog(
-            onDismissRequest = { confirmCancel = false; confirmRevoke = false },
-            title = { Text(stringResource(if (revoke) R.string.rpn_account_revoke else R.string.rpn_account_cancel)) },
-            text = { Text(stringResource(if (revoke) R.string.rpn_account_revoke_confirm else R.string.rpn_account_cancel_confirm)) },
-            confirmButton = {
-                TextButton(onClick = {
-                    confirmCancel = false
-                    confirmRevoke = false
-                    if (revoke) viewModel.revokeSubscription() else viewModel.cancelSubscription()
-                }) { Text(stringResource(R.string.lbl_proceed)) }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirmCancel = false; confirmRevoke = false }) {
-                    Text(stringResource(R.string.lbl_cancel))
-                }
-            },
-        )
     }
 }
 
@@ -291,85 +212,6 @@ private fun ServerErrorRecoveryDialog(
         text = { Text(details) },
         confirmButton = { TextButton(onClick = onGetHelp) { Text(stringResource(R.string.rpn_account_contact_support)) } },
         dismissButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.lbl_cancel)) } },
-    )
-}
-
-@Composable
-private fun PurchaseHistoryTab(viewModel: PurchaseHistoryViewModel) {
-    val history = viewModel.historyFlow.collectAsLazyPagingItems()
-    if (history.itemCount == 0) {
-        EmptyAccountState(stringResource(R.string.rpn_account_no_history))
-        return
-    }
-    LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        items(count = history.itemCount, key = history.itemKey { it.id }) { index ->
-            history[index]?.let {
-                HistoryRow(
-                    item = it,
-                    position = cardPositionFor(index, history.itemCount - 1),
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun HistoryRow(item: SubscriptionStateHistory, position: CardPosition) =
-    RethinkListItem(
-        headline = "${item.fromStateName} → ${item.toStateName}",
-        supporting = listOfNotNull(item.reason?.takeIf(String::isNotBlank), formatTime(item.timestamp)).joinToString(" · "),
-        position = position,
-    )
-
-@Composable
-private fun ServerOrdersTab(viewModel: ServerOrderHistoryViewModel) {
-    val state by viewModel.uiState.collectAsStateWithLifecycle()
-    when (val current = state) {
-        ServerOrderHistoryViewModel.UiState.Loading ->
-            Column(Modifier.fillMaxWidth().padding(24.dp)) { CircularProgressIndicator() }
-        is ServerOrderHistoryViewModel.UiState.Empty ->
-            EmptyAccountState(stringResource(R.string.rpn_account_no_orders))
-        is ServerOrderHistoryViewModel.UiState.Error ->
-            Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Text(current.message, color = MaterialTheme.colorScheme.error)
-                Button(onClick = viewModel::reload) { Text(stringResource(R.string.rpn_account_retry)) }
-            }
-        is ServerOrderHistoryViewModel.UiState.Success ->
-            LazyColumn(Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                itemsIndexed(current.orders, key = { _, order -> order.purchaseToken }) { index, order ->
-                    OrderRow(
-                        item = order,
-                        position = cardPositionFor(index, current.orders.lastIndex),
-                    )
-                }
-            }
-    }
-}
-
-@Composable
-private fun OrderRow(item: ServerOrderEntry, position: CardPosition) {
-    val state = item.subscriptionState ?: when (item.purchaseState) {
-        ServerOrderEntry.PURCHASE_STATE_PURCHASED -> "PURCHASED"
-        ServerOrderEntry.PURCHASE_STATE_PENDING -> "PENDING"
-        else -> "UNKNOWN"
-    }
-    val time = listOf(item.expiryTimeMs, item.purchaseTimeMs, item.mtime).firstOrNull { it > 0L } ?: 0L
-    RethinkListItem(
-        headline = item.productId.ifBlank { item.sku },
-        supporting =
-            listOfNotNull(
-                state.removePrefix("SUBSCRIPTION_STATE_").replace('_', ' ').lowercase().replaceFirstChar(Char::uppercase),
-                formatTime(time).takeIf { time > 0L },
-            ).joinToString(" · "),
-        position = position,
-    )
-}
-
-@Composable
-private fun EmptyAccountState(message: String) {
-    CompactEmptyState(
-        message = message,
-        modifier = Modifier.fillMaxWidth().padding(24.dp),
     )
 }
 

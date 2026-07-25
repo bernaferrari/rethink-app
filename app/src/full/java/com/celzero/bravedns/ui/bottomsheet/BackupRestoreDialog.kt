@@ -72,6 +72,11 @@ import com.celzero.bravedns.ui.compose.theme.Dimensions
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.settings.RethinkBackupRestoreDialogCopy
+import com.celzero.bravedns.ui.compose.settings.RethinkBackupRestoreFailure
+import com.celzero.bravedns.ui.compose.settings.RethinkBackupRestoreSheet
+import com.celzero.bravedns.ui.compose.settings.RethinkBackupRestoreStrings
+import com.celzero.bravedns.ui.compose.firewall.RethinkRuleSheetModal
 import com.celzero.bravedns.util.UIUtils
 import com.celzero.bravedns.util.Utilities
 import com.celzero.bravedns.util.Utilities.delay
@@ -91,17 +96,14 @@ fun BackupRestoreSheet(
     val activity = context as? FragmentActivity ?: return
     val workManager = remember { WorkManager.getInstance(activity.applicationContext) }
     var versionText by remember { mutableStateOf("") }
-    var showBackupDialog by remember { mutableStateOf(false) }
-    var showRestoreDialog by remember { mutableStateOf(false) }
-    var showBackupFailureDialog by remember { mutableStateOf(false) }
-    var showRestoreFailureDialog by remember { mutableStateOf(false) }
+    var failure by remember { mutableStateOf<RethinkBackupRestoreFailure?>(null) }
 
     val backupLauncher =
         rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             handleBackupResult(
                 activity,
                 result,
-                onFailure = { showBackupFailureDialog = true },
+                onFailure = { failure = RethinkBackupRestoreFailure.Backup },
                 onBackup = { uri -> startBackupProcess(activity, uri, workManager) }
             )
         }
@@ -110,7 +112,7 @@ fun BackupRestoreSheet(
             handleRestoreResult(
                 activity,
                 result,
-                onFailure = { showRestoreFailureDialog = true },
+                onFailure = { failure = RethinkBackupRestoreFailure.Restore },
                 onRestore = { uri -> startRestoreProcess(activity, uri, workManager) }
             )
         }
@@ -133,7 +135,7 @@ fun BackupRestoreSheet(
                     workManager.pruneWork()
                 }
                 WorkInfo.State.CANCELLED, WorkInfo.State.FAILED -> {
-                    showBackupFailureDialog = true
+                    failure = RethinkBackupRestoreFailure.Backup
                     workManager.pruneWork()
                     workManager.cancelAllWorkByTag(BackupAgent.TAG)
                 }
@@ -160,123 +162,57 @@ fun BackupRestoreSheet(
                 WorkInfo.State.CANCELLED == workInfo.state ||
                 WorkInfo.State.FAILED == workInfo.state
             ) {
-                showRestoreFailureDialog = true
+                failure = RethinkBackupRestoreFailure.Restore
                 workManager.pruneWork()
                 workManager.cancelAllWorkByTag(RestoreAgent.TAG)
             }
         }
     }
 
-    RuleSheetModal(onDismissRequest = onDismiss) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = Dimensions.screenPaddingHorizontal)
-                    .padding(top = Dimensions.spacingXs, bottom = Dimensions.spacing3xl),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
-        ) {
-            Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)) {
-                Text(
-                    text = stringResource(R.string.brbs_title),
-                    style = MaterialTheme.typography.titleLarge
-                )
-                Text(
-                    text = stringResource(R.string.brbs_backup_restore_desc),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-
-            RethinkListGroup {
-                RethinkListItem(
-                    headline = stringResource(R.string.brbs_backup_title),
-                    supporting = stringResource(R.string.brbs_backup_desc),
-                    leadingIconPainter = painterResource(id = R.drawable.ic_backup),
-                    position = CardPosition.First,
-                    onClick = { showBackupDialog = true }
-                )
-                RethinkListItem(
-                    headline = stringResource(R.string.brbs_restore_title),
-                    supporting = stringResource(R.string.brbs_restore_desc),
-                    leadingIconPainter = painterResource(id = R.drawable.ic_restore),
-                    position = CardPosition.Last,
-                    onClick = { showRestoreDialog = true }
-                )
-            }
-
-            Surface(
-                shape = RoundedCornerShape(Dimensions.cardCornerRadius),
-                color = MaterialTheme.colorScheme.surfaceContainerHigh
-            ) {
-                Text(
-                    text = versionText,
-                    style = MaterialTheme.typography.labelMedium.copy(fontFamily = FontFamily.Monospace),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.fillMaxWidth().padding(Dimensions.spacingMd)
-                )
-            }
-        }
-
-        if (showBackupDialog) {
-            RethinkConfirmDialog(
-                onDismissRequest = { showBackupDialog = false },
-                title = stringResource(R.string.brbs_backup_dialog_title),
-                message = stringResource(R.string.brbs_backup_dialog_message),
-                confirmText = stringResource(R.string.brbs_backup_dialog_positive),
-                dismissText = stringResource(R.string.lbl_cancel),
-                onConfirm = {
-                    showBackupDialog = false
-                    backup(activity, backupLauncher)
-                },
-                onDismiss = { showBackupDialog = false }
-            )
-        }
-
-        if (showRestoreDialog) {
-            RethinkConfirmDialog(
-                onDismissRequest = { showRestoreDialog = false },
-                title = stringResource(R.string.brbs_restore_dialog_title),
-                message = stringResource(R.string.brbs_restore_dialog_message),
-                confirmText = stringResource(R.string.brbs_restore_dialog_positive),
-                dismissText = stringResource(R.string.lbl_cancel),
-                onConfirm = {
-                    showRestoreDialog = false
-                    restore(activity, restoreLauncher)
-                },
-                onDismiss = { showRestoreDialog = false }
-            )
-        }
-
-        if (showBackupFailureDialog) {
-            RethinkConfirmDialog(
-                onDismissRequest = { showBackupFailureDialog = false },
-                title = stringResource(R.string.brbs_backup_dialog_failure_title),
-                message = stringResource(R.string.brbs_backup_dialog_failure_message),
-                confirmText = stringResource(R.string.brbs_backup_dialog_failure_positive),
-                dismissText = stringResource(R.string.lbl_dismiss),
-                onConfirm = {
-                    showBackupFailureDialog = false
-                    backup(activity, backupLauncher)
-                },
-                onDismiss = { showBackupFailureDialog = false }
-            )
-        }
-
-        if (showRestoreFailureDialog) {
-            RethinkConfirmDialog(
-                onDismissRequest = { showRestoreFailureDialog = false },
-                title = stringResource(R.string.brbs_restore_dialog_failure_title),
-                message = stringResource(R.string.brbs_restore_dialog_failure_message),
-                confirmText = stringResource(R.string.brbs_restore_dialog_failure_positive),
-                dismissText = stringResource(R.string.lbl_dismiss),
-                onConfirm = {
-                    showRestoreFailureDialog = false
-                    restore(activity, restoreLauncher)
-                },
-                onDismiss = { showRestoreFailureDialog = false }
-            )
-        }
+    RethinkRuleSheetModal(onDismissRequest = onDismiss) {
+        RethinkBackupRestoreSheet(
+            versionText = versionText,
+            strings = RethinkBackupRestoreStrings(
+                title = stringResource(R.string.brbs_title),
+                description = stringResource(R.string.brbs_backup_restore_desc),
+                backupTitle = stringResource(R.string.brbs_backup_title),
+                backupDescription = stringResource(R.string.brbs_backup_desc),
+                restoreTitle = stringResource(R.string.brbs_restore_title),
+                restoreDescription = stringResource(R.string.brbs_restore_desc),
+                backupConfirmation = RethinkBackupRestoreDialogCopy(
+                    stringResource(R.string.brbs_backup_dialog_title),
+                    stringResource(R.string.brbs_backup_dialog_message),
+                    stringResource(R.string.brbs_backup_dialog_positive),
+                    stringResource(R.string.lbl_cancel),
+                ),
+                restoreConfirmation = RethinkBackupRestoreDialogCopy(
+                    stringResource(R.string.brbs_restore_dialog_title),
+                    stringResource(R.string.brbs_restore_dialog_message),
+                    stringResource(R.string.brbs_restore_dialog_positive),
+                    stringResource(R.string.lbl_cancel),
+                ),
+                backupFailure = RethinkBackupRestoreDialogCopy(
+                    stringResource(R.string.brbs_backup_dialog_failure_title),
+                    stringResource(R.string.brbs_backup_dialog_failure_message),
+                    stringResource(R.string.brbs_backup_dialog_failure_positive),
+                    stringResource(R.string.lbl_dismiss),
+                ),
+                restoreFailure = RethinkBackupRestoreDialogCopy(
+                    stringResource(R.string.brbs_restore_dialog_failure_title),
+                    stringResource(R.string.brbs_restore_dialog_failure_message),
+                    stringResource(R.string.brbs_restore_dialog_failure_positive),
+                    stringResource(R.string.lbl_dismiss),
+                ),
+            ),
+            failure = failure,
+            onBackup = { backup(activity, backupLauncher) },
+            onRestore = { restore(activity, restoreLauncher) },
+            onFailureDismiss = { failure = null },
+            modifier = Modifier.padding(
+                horizontal = Dimensions.screenPaddingHorizontal,
+                vertical = Dimensions.spacingLg,
+            ),
+        )
     }
 }
 

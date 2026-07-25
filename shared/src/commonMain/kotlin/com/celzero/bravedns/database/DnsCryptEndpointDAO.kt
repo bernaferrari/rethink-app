@@ -27,11 +27,11 @@ import androidx.room3.Update
 @Dao
 interface DnsCryptEndpointDAO {
 
-    @Update fun update(dnsCryptEndpoint: DnsCryptEndpoint)
+    @Update suspend fun update(dnsCryptEndpoint: DnsCryptEndpoint)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE) fun insert(dnsCryptEndpoint: DnsCryptEndpoint)
+    @Insert(onConflict = OnConflictStrategy.REPLACE) suspend fun insert(dnsCryptEndpoint: DnsCryptEndpoint)
 
-    @Delete fun delete(dnsCryptEndpoint: DnsCryptEndpoint)
+    @Delete suspend fun delete(dnsCryptEndpoint: DnsCryptEndpoint)
 
     @Transaction
     @Query("select * from DNSCryptEndpoint order by isSelected desc")
@@ -49,7 +49,7 @@ interface DnsCryptEndpointDAO {
     @Query("delete from DNSCryptEndpoint where modifiedDataTime < :date")
     suspend fun deleteOlderData(date: Long)
 
-    @Query("delete from DNSCryptEndpoint") fun clearAllData()
+    @Query("delete from DNSCryptEndpoint") suspend fun clearAllData()
 
     @Query("delete from DNSCryptEndpoint where id = :id and isCustom = 1")
     suspend fun deleteDNSCryptEndpoint(id: Int)
@@ -64,11 +64,11 @@ interface DnsCryptEndpointDAO {
     @Query("select count(*) from DNSCryptEndpoint where isSelected = 1")
     suspend fun getConnectedCount(): Int
 
-    @Query("select count(*) from DNSCryptEndpoint") fun getCount(): Int
+    @Query("select count(*) from DNSCryptEndpoint") suspend fun getCount(): Int
 
     @Transaction
     @Query("update DNSCryptEndpoint set isSelected = 1 where id = :liveServerID")
     suspend fun updateConnectionStatus(liveServerID: Int)
 
-    @Transaction @Query("update DNSCryptEndpoint set isSelected=0") fun updateFailingConnections()
+    @Transaction @Query("update DNSCryptEndpoint set isSelected=0") suspend fun updateFailingConnections()
 }

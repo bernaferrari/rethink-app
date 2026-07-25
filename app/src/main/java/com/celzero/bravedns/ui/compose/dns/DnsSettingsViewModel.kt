@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import org.koin.core.annotation.KoinViewModel
 
 data class DnsSettingsUiState(
     val connectedDnsName: String = "--",
@@ -46,6 +47,7 @@ data class DnsSettingsUiState(
     val isRefreshing: Boolean = false
 )
 
+@KoinViewModel
 class DnsSettingsViewModel(
     private val persistentState: PersistentState,
     private val appConfig: AppConfig,

@@ -1,6 +1,7 @@
 package com.celzero.bravedns.database
 
 import androidx.room3.Entity
+import androidx.room3.Ignore
 import com.celzero.bravedns.util.Constants
 
 @Entity(primaryKeys = ["domain", "uid"], tableName = "CustomDomain")
@@ -18,6 +19,7 @@ class CustomDomain {
 
     constructor()
 
+    @Ignore
     constructor(
         domain: String,
         uid: Int,

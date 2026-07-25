@@ -113,7 +113,6 @@ import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkMultiActionDialog
-import com.celzero.bravedns.ui.compose.theme.RethinkToggleListItem
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.Dimensions
@@ -572,225 +571,77 @@ fun ProxySettingsScreen(
         pendingFocusKey = ""
     }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-
-    Scaffold(
-        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
-        topBar = {
-            RethinkLargeTopBar(
-                title = stringResource(R.string.settings_proxy_header),
-                onBackClick = onBackClick,
-                scrollBehavior = scrollBehavior,
-                titleStartPadding = Dimensions.spacingSm,
-                actions = {
-                    if (canEnableProxy) {
-                        IconButton(
-                            onClick = { refreshWireguard() },
-                            enabled = !isRefreshing
-                        ) {
-                            if (isRefreshing) {
-                                CircularProgressIndicator(
-                                    modifier = Modifier.padding(Dimensions.spacingSm),
-                                    strokeWidth = 2.dp
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.Filled.Refresh,
-                                    contentDescription = stringResource(R.string.dc_refresh_toast)
-                                )
-                            }
-                        }
-                    }
-                }
+    RethinkProxySettingsScreen(
+        listState = listState,
+        state = RethinkProxySettingsState(
+            canEnableProxy = canEnableProxy,
+            isRefreshing = isRefreshing,
+            wireguardAvailable = onWireguardClick != null,
+            wireguardDescription = wireguardDescription,
+            socks5Enabled = socks5Enabled,
+            socks5Description = socks5Description,
+            httpEnabled = httpEnabled,
+            httpDescription = httpDescription,
+            orbotEnabled = orbotEnabled,
+            orbotConnecting = orbotConnecting,
+            orbotDescription = if (orbotConnecting) stringResource(R.string.orbot_bs_status_trying_connect) else orbotDescription,
+            orbotAppCount = if (mappingViewModel != null) orbotAppCount else null,
+        ),
+        strings = RethinkProxySettingsStrings(
+            title = stringResource(R.string.settings_proxy_header),
+            refresh = stringResource(R.string.dc_refresh_toast),
+            warning = stringResource(R.string.settings_lock_down_proxy_desc),
+            wireguard = stringResource(R.string.setup_wireguard),
+            socks5 = stringResource(R.string.settings_socks5_heading),
+            http = stringResource(R.string.settings_https_heading),
+            orbot = stringResource(R.string.orbot),
+            active = stringResource(R.string.lbl_active),
+            inactive = stringResource(R.string.lbl_inactive),
+            waiting = stringResource(R.string.status_waiting),
+            apps = stringResource(R.string.lbl_apps),
+            openApp = stringResource(R.string.settings_orbot_notification_action),
+            info = stringResource(R.string.lbl_info),
+        ),
+        activeFocusKey = activeFocusKey,
+        onBackClick = onBackClick,
+        onRefresh = ::refreshWireguard,
+        onWireguardClick = { if (!canEnableProxy) showProxyDisabledToast() else onWireguardClick?.invoke() },
+        onSocksRowClick = {
+            if (canEnableProxy && socks5Enabled) openSocksDialog()
+            else if (!socks5Enabled) tryOpenCustomProxyDialog(
+                canEnableSpecificProxy = { appConfig.canEnableSocks5Proxy() },
+                disabledError = socks5DisabledError,
+                openDialog = ::openSocksDialog,
             )
         },
-        containerColor = MaterialTheme.colorScheme.background
-    ) { padding ->
-        LazyColumn(
-            state = listState,
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding),
-            contentPadding =
-                PaddingValues(
-                    start = Dimensions.screenPaddingHorizontal,
-                    end = Dimensions.screenPaddingHorizontal,
-                    top = Dimensions.spacingMd,
-                    bottom = Dimensions.spacing3xl
-                ),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingLg)
-        ) {
-            if (!canEnableProxy) {
-                item {
-                    val warningFocused = activeFocusKey == "proxy_warning"
-                    Surface(
-                        shape = RoundedCornerShape(Dimensions.cornerRadiusXl),
-                        color =
-                            if (warningFocused) {
-                                MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.72f)
-                            } else {
-                                MaterialTheme.colorScheme.errorContainer
-                            }
-                    ) {
-                        Text(
-                            text = stringResource(R.string.settings_lock_down_proxy_desc),
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onErrorContainer,
-                            modifier =
-                                Modifier.padding(
-                                    horizontal = Dimensions.spacingMd,
-                                    vertical = Dimensions.spacingSmMd
-                                )
-                        )
-                    }
-                }
-            }
-
-            // Network Proxy (WireGuard)
-            if (onWireguardClick != null) {
-                item {
-                    SectionHeader(title = stringResource(R.string.setup_wireguard))
-                    RethinkListGroup {
-                        RethinkListItem(
-                            headline = stringResource(R.string.setup_wireguard),
-                            supporting = wireguardDescription,
-                            leadingIconPainter = painterResource(id = R.drawable.ic_wireguard_icon),
-                            position = CardPosition.Single,
-                            highlighted = activeFocusKey == "proxy_wireguard",
-                            onClick = {
-                                if (!canEnableProxy) {
-                                    showProxyDisabledToast()
-                                } else {
-                                    onWireguardClick()
-                                }
-                            }
-                        )
-                    }
-                }
-            }
-
-            // SOCKS5
-            item {
-                SectionHeader(title = stringResource(R.string.settings_socks5_heading))
-                RethinkListGroup {
-                    RethinkToggleListItem(
-                        title = stringResource(R.string.settings_socks5_heading),
-                        description = socks5Description,
-                        iconRes = R.drawable.ic_socks5,
-                        checked = socks5Enabled,
-                        position = CardPosition.Single,
-                        highlighted = activeFocusKey == "proxy_socks",
-                        onRowClick = {
-                            if (canEnableProxy && socks5Enabled) {
-                                openSocksDialog()
-                            } else if (!socks5Enabled) {
-                                tryOpenCustomProxyDialog(
-                                    canEnableSpecificProxy = { appConfig.canEnableSocks5Proxy() },
-                                    disabledError = socks5DisabledError,
-                                    openDialog = ::openSocksDialog
-                                )
-                            }
-                        },
-                        onCheckedChange = { enabled ->
-                            if (enabled) {
-                                tryOpenCustomProxyDialog(
-                                    canEnableSpecificProxy = { appConfig.canEnableSocks5Proxy() },
-                                    disabledError = socks5DisabledError,
-                                    openDialog = ::openSocksDialog
-                                )
-                            } else {
-                                disableCustomProxy(
-                                    type = AppConfig.ProxyType.SOCKS5,
-                                    logMessage = "Custom SOCKS5 disabled"
-                                )
-                            }
-                        }
-                    )
-                }
-            }
-
-            // HTTP
-            item {
-                SectionHeader(title = stringResource(R.string.settings_https_heading))
-                RethinkListGroup {
-                    RethinkToggleListItem(
-                        title = stringResource(R.string.settings_https_heading),
-                        description = httpDescription,
-                        iconRes = R.drawable.ic_http,
-                        checked = httpEnabled,
-                        position = CardPosition.Single,
-                        highlighted = activeFocusKey == "proxy_http",
-                        onRowClick = {
-                            if (canEnableProxy && httpEnabled) {
-                                openHttpDialog()
-                            } else if (!httpEnabled) {
-                                tryOpenCustomProxyDialog(
-                                    canEnableSpecificProxy = { appConfig.canEnableHttpProxy() },
-                                    disabledError = httpDisabledError,
-                                    openDialog = ::openHttpDialog
-                                )
-                            }
-                        },
-                        onCheckedChange = { enabled ->
-                            if (enabled) {
-                                tryOpenCustomProxyDialog(
-                                    canEnableSpecificProxy = { appConfig.canEnableHttpProxy() },
-                                    disabledError = httpDisabledError,
-                                    openDialog = ::openHttpDialog
-                                )
-                            } else {
-                                disableCustomProxy(
-                                    type = AppConfig.ProxyType.HTTP,
-                                    logMessage = "Custom HTTP disabled"
-                                )
-                            }
-                        }
-                    )
-                }
-            }
-
-            // Orbot
-            item {
-                SectionHeader(title = stringResource(R.string.orbot))
-                val isOrbotInteractive = canEnableProxy && !orbotConnecting
-                OrbotSettingsPanel(
-                    title = stringResource(R.string.orbot),
-                    description =
-                        if (orbotConnecting) {
-                            stringResource(R.string.orbot_bs_status_trying_connect)
-                        } else {
-                            orbotDescription
-                        },
-                    checked = orbotEnabled,
-                    connecting = orbotConnecting,
-                    enabled = isOrbotInteractive,
-                    appCount = if (mappingViewModel != null) orbotAppCount else null,
-                    highlightedKey = activeFocusKey,
-                    onMainClick = {
-                        if (isOrbotInteractive) {
-                            enableOrbotFlow()
-                        }
-                    },
-                    onCheckedChange = { checked ->
-                        if (checked) {
-                            enableOrbotFlow()
-                        } else {
-                            stopOrbotForwarding(showDialog = true)
-                        }
-                    },
-                    onAppsClick =
-                        if (mappingViewModel != null && onOpenOrbotApps != null) {
-                            { onOpenOrbotApps() }
-                        } else {
-                            null
-                        },
-                    onOpenAppClick = { orbotHelper.openOrbotApp() },
-                    onInfoClick = { showOrbotInfoDialog = true }
-                )
-            }
-        }
-    }
-
+        onSocksChange = { enabled ->
+            if (enabled) tryOpenCustomProxyDialog(
+                canEnableSpecificProxy = { appConfig.canEnableSocks5Proxy() },
+                disabledError = socks5DisabledError,
+                openDialog = ::openSocksDialog,
+            ) else disableCustomProxy(AppConfig.ProxyType.SOCKS5, "Custom SOCKS5 disabled")
+        },
+        onHttpRowClick = {
+            if (canEnableProxy && httpEnabled) openHttpDialog()
+            else if (!httpEnabled) tryOpenCustomProxyDialog(
+                canEnableSpecificProxy = { appConfig.canEnableHttpProxy() },
+                disabledError = httpDisabledError,
+                openDialog = ::openHttpDialog,
+            )
+        },
+        onHttpChange = { enabled ->
+            if (enabled) tryOpenCustomProxyDialog(
+                canEnableSpecificProxy = { appConfig.canEnableHttpProxy() },
+                disabledError = httpDisabledError,
+                openDialog = ::openHttpDialog,
+            ) else disableCustomProxy(AppConfig.ProxyType.HTTP, "Custom HTTP disabled")
+        },
+        onOrbotClick = ::enableOrbotFlow,
+        onOrbotChange = { checked -> if (checked) enableOrbotFlow() else stopOrbotForwarding(showDialog = true) },
+        onOrbotAppsClick = if (mappingViewModel != null && onOpenOrbotApps != null) ({ onOpenOrbotApps() }) else null,
+        onOpenOrbotApp = { orbotHelper.openOrbotApp() },
+        onOrbotInfo = { showOrbotInfoDialog = true },
+    )
     if (showOrbotInfoDialog) {
         RethinkConfirmDialog(
             onDismissRequest = { showOrbotInfoDialog = false },
@@ -1057,434 +908,6 @@ fun ProxySettingsScreen(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun OrbotSettingsPanel(
-    title: String,
-    description: String,
-    checked: Boolean,
-    connecting: Boolean,
-    enabled: Boolean,
-    appCount: Int?,
-    highlightedKey: String?,
-    onMainClick: () -> Unit,
-    onCheckedChange: (Boolean) -> Unit,
-    onAppsClick: (() -> Unit)?,
-    onOpenAppClick: () -> Unit,
-    onInfoClick: () -> Unit
-) {
-    val mainHighlighted = highlightedKey == "proxy_orbot"
-    val cardColor =
-        if (mainHighlighted) {
-            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.32f)
-        } else {
-            MaterialTheme.colorScheme.surfaceContainerLow
-        }
-
-    val statusText: String
-    val statusColor: Color
-    val statusBackground: Color
-    if (connecting) {
-        statusText = stringResource(R.string.status_waiting)
-        statusColor = MaterialTheme.colorScheme.primary
-        statusBackground = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
-    } else if (checked) {
-        statusText = stringResource(R.string.lbl_active)
-        statusColor = MaterialTheme.colorScheme.tertiary
-        statusBackground = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.14f)
-    } else {
-        statusText = stringResource(R.string.lbl_inactive)
-        statusColor = MaterialTheme.colorScheme.onSurfaceVariant
-        statusBackground = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.14f)
-    }
-
-    val iconTint = if (connecting || checked) statusColor else MaterialTheme.colorScheme.onSurfaceVariant
-    val showActions = enabled
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(Dimensions.cornerRadius3xl),
-        color = cardColor,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f))
-    ) {
-        Column(
-            modifier =
-                Modifier.padding(
-                    horizontal = Dimensions.spacingMd,
-                    vertical = Dimensions.spacingSmMd
-                ),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-        ) {
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .clickable(enabled = enabled, onClick = onMainClick),
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSmMd),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(12.dp),
-                    color = statusBackground,
-                    modifier = Modifier.size(34.dp)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.ic_orbot),
-                            contentDescription = null,
-                            tint = iconTint,
-                            modifier = Modifier.size(18.dp)
-                        )
-                    }
-                }
-
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(2.dp)
-                ) {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Surface(
-                        shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
-                        color = statusBackground
-                    ) {
-                        Text(
-                            text = statusText,
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = statusColor,
-                            modifier =
-                                Modifier.padding(
-                                    horizontal = 8.dp,
-                                    vertical = 2.dp
-                                )
-                        )
-                    }
-                }
-
-                Switch(
-                    checked = checked,
-                    enabled = enabled,
-                    onCheckedChange = onCheckedChange
-                )
-            }
-
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 3,
-                overflow = TextOverflow.Ellipsis
-            )
-
-            if (showActions) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.34f))
-                FlowRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm),
-                    verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-                ) {
-                    if (appCount != null && onAppsClick != null) {
-                        OrbotAppsActionChip(
-                            appCount = appCount,
-                            highlighted = highlightedKey == "proxy_orbot_apps",
-                            onClick = onAppsClick
-                        )
-                    }
-                    OrbotActionChip(
-                        label = stringResource(R.string.settings_orbot_notification_action),
-                        icon = Icons.AutoMirrored.Filled.ArrowForward,
-                        highlighted =
-                            highlightedKey == "proxy_orbot_open_app" ||
-                                highlightedKey == "proxy_orbot_notification",
-                        onClick = onOpenAppClick
-                    )
-                    OrbotActionChip(
-                        label = stringResource(R.string.lbl_info),
-                        icon = Icons.Filled.Info,
-                        highlighted = highlightedKey == "proxy_orbot_info",
-                        onClick = onInfoClick
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun OrbotAppsActionChip(
-    appCount: Int,
-    highlighted: Boolean,
-    onClick: () -> Unit
-) {
-    val containerColor =
-        if (highlighted) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.surface
-        }
-    val contentColor =
-        if (highlighted) {
-            MaterialTheme.colorScheme.onPrimaryContainer
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        }
-    val badgeColor =
-        if (highlighted) {
-            MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.12f)
-        } else {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
-        }
-
-    Surface(
-        modifier =
-            Modifier
-                .heightIn(min = Dimensions.touchTargetSm)
-                .clickable(onClick = onClick),
-        shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
-        color = containerColor,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f))
-    ) {
-        Row(
-            modifier =
-                Modifier.padding(
-                    horizontal = Dimensions.spacingMd,
-                    vertical = Dimensions.spacingXs
-                ),
-            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Apps,
-                contentDescription = null,
-                tint = contentColor,
-                modifier = Modifier.size(16.dp)
-            )
-            Text(
-                text = stringResource(R.string.lbl_apps),
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Medium,
-                color = contentColor
-            )
-            Surface(
-                shape = RoundedCornerShape(Dimensions.buttonCornerRadius),
-                color = badgeColor
-            ) {
-                Text(
-                    text = appCount.toString(),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontWeight = FontWeight.SemiBold,
-                    color = contentColor,
-                    modifier = Modifier.padding(horizontal = 7.dp, vertical = 1.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun OrbotActionChip(
-    label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    highlighted: Boolean,
-    onClick: () -> Unit
-) {
-    val containerColor =
-        if (highlighted) {
-            MaterialTheme.colorScheme.primaryContainer
-        } else {
-            MaterialTheme.colorScheme.surface
-        }
-    val contentColor =
-        if (highlighted) {
-            MaterialTheme.colorScheme.onPrimaryContainer
-        } else {
-            MaterialTheme.colorScheme.onSurface
-        }
-
-    Surface(
-        modifier =
-            Modifier
-                .heightIn(min = Dimensions.touchTargetSm)
-                .clickable(onClick = onClick),
-        shape = RoundedCornerShape(Dimensions.cornerRadiusMdLg),
-        color = containerColor,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.28f))
-    ) {
-        Row(
-            modifier =
-                Modifier.padding(
-                    horizontal = Dimensions.spacingMd,
-                    vertical = Dimensions.spacingXs
-                ),
-            horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingXs),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = contentColor,
-                modifier = Modifier.size(16.dp)
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelMedium,
-                fontWeight = FontWeight.Medium,
-                color = contentColor,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProxyOverviewCard(
-    canEnableProxy: Boolean,
-    socks5Enabled: Boolean,
-    httpEnabled: Boolean,
-    orbotEnabled: Boolean
-) {
-    val activeCount = listOf(socks5Enabled, httpEnabled, orbotEnabled).count { it }
-
-    Surface(
-        shape = RoundedCornerShape(Dimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        tonalElevation = Dimensions.Elevation.low,
-        border =
-            androidx.compose.foundation.BorderStroke(
-                Dimensions.dividerThicknessBold,
-                MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)
-            )
-    ) {
-        Column(
-            modifier = Modifier.padding(Dimensions.spacingXl),
-            verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-        ) {
-            Text(
-                text = stringResource(R.string.settings_proxy_header),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = androidx.compose.ui.text.font.FontWeight.SemiBold
-            )
-            Text(
-                text = stringResource(R.string.settings_exclude_proxy_apps_desc),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                text = "Active: $activeCount / 3",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
-            if (!canEnableProxy) {
-                Text(
-                    text = stringResource(R.string.settings_lock_down_proxy_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun WireguardEntryCard(
-    title: String,
-    description: String,
-    enabled: Boolean,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .clickable(enabled = enabled, onClick = onClick)
-    ) {
-        Row(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(Dimensions.spacingLg),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (enabled) 0.75f else 0.45f)
-                )
-            }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                contentDescription = null
-            )
-        }
-    }
-}
-
-@Composable
-private fun ProxyCard(
-    title: String,
-    description: String,
-    enabled: Boolean,
-    cardEnabled: Boolean,
-    onEnabledChange: (Boolean) -> Unit,
-    onConfigureClick: (() -> Unit)?
-) {
-    Card(modifier = Modifier.fillMaxWidth()) {
-        Column(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .padding(Dimensions.spacingLg)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium
-                )
-                Switch(
-                    checked = enabled,
-                    enabled = cardEnabled,
-                    onCheckedChange = onEnabledChange
-                )
-            }
-
-            Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = if (cardEnabled) 0.75f else 0.45f)
-            )
-
-            if (onConfigureClick != null && cardEnabled) {
-                Spacer(modifier = Modifier.height(Dimensions.spacingSm))
-                TextButton(onClick = onConfigureClick) {
-                    Text(text = stringResource(R.string.lbl_configure))
-                }
-            }
-        }
-    }
-}
-
 @Composable
 private fun OrbotModeDialog(
     supportsHttp: Boolean,
@@ -1495,44 +918,22 @@ private fun OrbotModeDialog(
 ) {
     val options =
         buildList {
-            add(AppConfig.ProxyType.SOCKS5.name to R.string.orbot_socks5)
+            add(RethinkProxyModeOption(AppConfig.ProxyType.SOCKS5.name, stringResource(R.string.orbot_socks5)))
             if (supportsHttp) {
-                add(AppConfig.ProxyType.HTTP.name to R.string.orbot_http)
-                add(AppConfig.ProxyType.HTTP_SOCKS5.name to R.string.orbot_both)
+                add(RethinkProxyModeOption(AppConfig.ProxyType.HTTP.name, stringResource(R.string.orbot_http)))
+                add(RethinkProxyModeOption(AppConfig.ProxyType.HTTP_SOCKS5.name, stringResource(R.string.orbot_both)))
             }
-            add(AppConfig.ProxyType.NONE.name to R.string.orbot_none)
+            add(RethinkProxyModeOption(AppConfig.ProxyType.NONE.name, stringResource(R.string.orbot_none)))
         }
-
-    RethinkConfirmDialog(
-        onDismissRequest = onDismiss,
+    RethinkProxyModeDialog(
         title = stringResource(R.string.orbot_title),
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(Dimensions.spacingXs)) {
-                options.forEach { (value, labelRes) ->
-                    Row(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .clickable { onSelectedMode(value) }
-                                .padding(vertical = Dimensions.spacingXs),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RadioButton(
-                            selected = selectedMode == value,
-                            onClick = { onSelectedMode(value) }
-                        )
-                        Text(
-                            text = stringResource(labelRes),
-                            style = MaterialTheme.typography.bodyLarge
-                        )
-                    }
-                }
-            }
-        },
-        confirmText = stringResource(R.string.lbl_save),
-        dismissText = stringResource(R.string.lbl_cancel),
+        options = options,
+        selectedId = selectedMode,
+        save = stringResource(R.string.lbl_save),
+        cancel = stringResource(R.string.lbl_cancel),
+        onSelected = onSelectedMode,
+        onDismiss = onDismiss,
         onConfirm = onConfirm,
-        onDismiss = onDismiss
     )
 }
 
@@ -1544,130 +945,18 @@ private fun Socks5Dialog(
     onConfirm: () -> Unit
 ) {
     val context = LocalContext.current
-
-    RethinkConfirmDialog(
-        onDismissRequest = {},
-        title = stringResource(R.string.settings_dns_proxy_dialog_header),
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-            ) {
-                OutlinedTextField(
-                    value = state.host,
-                    onValueChange = { onStateChange(state.copy(host = it, error = null)) },
-                    label = { Text(text = stringResource(R.string.proxy_host_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = state.port,
-                    onValueChange = { onStateChange(state.copy(port = it, error = null)) },
-                    label = { Text(text = stringResource(R.string.proxy_port_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = state.username,
-                    onValueChange = { onStateChange(state.copy(username = it, error = null)) },
-                    label = { Text(text = stringResource(R.string.proxy_username_optional_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedTextField(
-                    value = state.password,
-                    onValueChange = { onStateChange(state.copy(password = it, error = null)) },
-                    label = { Text(text = stringResource(R.string.proxy_password_optional_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Text(
-                    text = stringResource(R.string.settings_dns_proxy_dialog_app_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-
-                ProxyAppSelectorField(
-                    selectedPackageName = state.selectedAppPackage,
-                    options = state.appOptions,
-                    onOptionSelected = { packageName ->
-                        onStateChange(state.copy(selectedAppPackage = packageName, error = null))
-                    }
-                )
-
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                onStateChange(
-                                    state.copy(udpBlocked = !state.udpBlocked, error = null)
-                                )
-                            },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Switch(
-                        checked = state.udpBlocked,
-                        onCheckedChange = {
-                            onStateChange(state.copy(udpBlocked = it, error = null))
-                        }
-                    )
-                    Text(
-                        text = stringResource(R.string.settings_udp_block),
-                        modifier = Modifier.padding(start = Dimensions.spacingSm)
-                    )
-                }
-
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable(enabled = !state.lockdown) {
-                                onStateChange(
-                                    state.copy(
-                                        includeProxyApps = !state.includeProxyApps,
-                                        error = null
-                                    )
-                                )
-                            },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Switch(
-                        checked = state.includeProxyApps,
-                        enabled = !state.lockdown,
-                        onCheckedChange = {
-                            onStateChange(state.copy(includeProxyApps = it, error = null))
-                        }
-                    )
-                    Text(
-                        text = stringResource(R.string.settings_exclude_proxy_apps_heading),
-                        modifier = Modifier.padding(start = Dimensions.spacingSm)
-                    )
-                }
-
-                if (state.lockdown) {
-                    Text(
-                        text = stringResource(R.string.settings_lock_down_mode_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.clickable { UIUtils.openVpnProfile(context) }
-                    )
-                }
-
-                if (!state.error.isNullOrBlank()) {
-                    Text(
-                        text = state.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-        },
-        confirmText = stringResource(R.string.lbl_save),
-        dismissText = stringResource(R.string.lbl_cancel),
+    RethinkProxyConfigurationDialog(
+        kind = RethinkProxyConfigurationKind.Socks5,
+        state = state.toRethinkProxyConfiguration(),
+        strings = proxyConfigurationStrings(
+            title = stringResource(R.string.settings_dns_proxy_dialog_header),
+            description = null,
+        ),
+        onStateChange = { next -> onStateChange(next.toSocks5State(state)) },
+        onCancel = onCancel,
         onConfirm = onConfirm,
-        onDismiss = onCancel
+        onLockdownInfo = { UIUtils.openVpnProfile(context) },
+        appIcon = { option, size -> ProxyDialogAppIcon(state.appOptions.firstOrNull { it.packageName == option.id }, size) },
     )
 }
 
@@ -1679,92 +968,80 @@ private fun HttpDialog(
     onConfirm: () -> Unit
 ) {
     val context = LocalContext.current
-
-    RethinkConfirmDialog(
-        onDismissRequest = {},
-        title = stringResource(R.string.http_proxy_dialog_heading),
-        text = {
-            Column(
-                modifier = Modifier.verticalScroll(rememberScrollState()),
-                verticalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-            ) {
-                Text(
-                    text = stringResource(R.string.http_proxy_dialog_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                OutlinedTextField(
-                    value = state.host,
-                    onValueChange = { onStateChange(state.copy(host = it, error = null)) },
-                    label = { Text(text = stringResource(R.string.proxy_host_label)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
-                )
-
-                Text(
-                    text = stringResource(R.string.settings_dns_proxy_dialog_app_desc),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                ProxyAppSelectorField(
-                    selectedPackageName = state.selectedAppPackage,
-                    options = state.appOptions,
-                    onOptionSelected = { packageName ->
-                        onStateChange(state.copy(selectedAppPackage = packageName, error = null))
-                    }
-                )
-
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .clickable(enabled = !state.lockdown) {
-                                onStateChange(
-                                    state.copy(
-                                        includeProxyApps = !state.includeProxyApps,
-                                        error = null
-                                    )
-                                )
-                            },
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Switch(
-                        checked = state.includeProxyApps,
-                        enabled = !state.lockdown,
-                        onCheckedChange = {
-                            onStateChange(state.copy(includeProxyApps = it, error = null))
-                        }
-                    )
-                    Text(
-                        text = stringResource(R.string.settings_exclude_proxy_apps_heading),
-                        modifier = Modifier.padding(start = Dimensions.spacingSm)
-                    )
-                }
-
-                if (state.lockdown) {
-                    Text(
-                        text = stringResource(R.string.settings_lock_down_mode_desc),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.clickable { UIUtils.openVpnProfile(context) }
-                    )
-                }
-
-                if (!state.error.isNullOrBlank()) {
-                    Text(
-                        text = state.error,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                }
-            }
-        },
-        confirmText = stringResource(R.string.lbl_save),
-        dismissText = stringResource(R.string.lbl_cancel),
+    RethinkProxyConfigurationDialog(
+        kind = RethinkProxyConfigurationKind.Http,
+        state = state.toRethinkProxyConfiguration(),
+        strings = proxyConfigurationStrings(
+            title = stringResource(R.string.http_proxy_dialog_heading),
+            description = stringResource(R.string.http_proxy_dialog_desc),
+        ),
+        onStateChange = { next -> onStateChange(next.toHttpState(state)) },
+        onCancel = onCancel,
         onConfirm = onConfirm,
-        onDismiss = onCancel
+        onLockdownInfo = { UIUtils.openVpnProfile(context) },
+        appIcon = { option, size -> ProxyDialogAppIcon(state.appOptions.firstOrNull { it.packageName == option.id }, size) },
     )
 }
+
+@Composable
+private fun proxyConfigurationStrings(
+    title: String,
+    description: String?,
+): RethinkProxyConfigurationStrings =
+    RethinkProxyConfigurationStrings(
+        title = title,
+        description = description,
+        host = stringResource(R.string.proxy_host_label),
+        port = stringResource(R.string.proxy_port_label),
+        username = stringResource(R.string.proxy_username_optional_label),
+        password = stringResource(R.string.proxy_password_optional_label),
+        appDescription = stringResource(R.string.settings_dns_proxy_dialog_app_desc),
+        udpBlocked = stringResource(R.string.settings_udp_block),
+        includeProxyApps = stringResource(R.string.settings_exclude_proxy_apps_heading),
+        lockdownDescription = stringResource(R.string.settings_lock_down_mode_desc),
+        save = stringResource(R.string.lbl_save),
+        cancel = stringResource(R.string.lbl_cancel),
+    )
+
+private fun Socks5DialogState.toRethinkProxyConfiguration() = RethinkProxyConfigurationState(
+    host = host,
+    port = port,
+    username = username,
+    password = password,
+    selectedAppId = selectedAppPackage,
+    apps = appOptions.map { RethinkProxyAppOption(it.packageName, it.label) },
+    udpBlocked = udpBlocked,
+    includeProxyApps = includeProxyApps,
+    lockdown = lockdown,
+    error = error,
+)
+
+private fun RethinkProxyConfigurationState.toSocks5State(previous: Socks5DialogState) = previous.copy(
+    host = host,
+    port = port,
+    username = username,
+    password = password,
+    selectedAppPackage = selectedAppId,
+    udpBlocked = udpBlocked,
+    includeProxyApps = includeProxyApps,
+    error = error,
+)
+
+private fun HttpDialogState.toRethinkProxyConfiguration() = RethinkProxyConfigurationState(
+    host = host,
+    selectedAppId = selectedAppPackage,
+    apps = appOptions.map { RethinkProxyAppOption(it.packageName, it.label) },
+    includeProxyApps = includeProxyApps,
+    lockdown = lockdown,
+    error = error,
+)
+
+private fun RethinkProxyConfigurationState.toHttpState(previous: HttpDialogState) = previous.copy(
+    host = host,
+    selectedAppPackage = selectedAppId,
+    includeProxyApps = includeProxyApps,
+    error = error,
+)
 
 private fun Socks5DialogState.selectedAppLabel(): String {
     return selectedProxyAppLabel(selectedAppPackage, appOptions)
@@ -1778,112 +1055,6 @@ private fun selectedProxyAppLabel(selectedPackageName: String, options: List<Pro
     return options.firstOrNull { it.packageName == selectedPackageName }?.label
         ?: options.firstOrNull()?.label
         ?: ""
-}
-
-@Composable
-private fun ProxyAppSelectorField(
-    selectedPackageName: String,
-    options: List<ProxyDialogAppOption>,
-    onOptionSelected: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    enabled: Boolean = true
-) {
-    var expanded by remember { mutableStateOf(false) }
-    var anchorSize by remember { mutableStateOf(IntSize.Zero) }
-    var anchorOffset by remember { mutableStateOf(IntOffset.Zero) }
-    val density = LocalDensity.current
-    val selectorShape = RoundedCornerShape(Dimensions.cornerRadiusMdLg)
-    val selectedOption =
-        options.firstOrNull { it.packageName == selectedPackageName } ?: options.firstOrNull()
-    val containerColor =
-        if (enabled) {
-            MaterialTheme.colorScheme.surfaceContainerLow
-        } else {
-            MaterialTheme.colorScheme.surfaceVariant
-        }
-
-    Box(modifier = modifier.fillMaxWidth()) {
-        Surface(
-            shape = selectorShape,
-            color = containerColor,
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f)),
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .onGloballyPositioned { coordinates ->
-                        anchorSize = coordinates.size
-                        val windowPos = coordinates.positionInWindow()
-                        anchorOffset = IntOffset(windowPos.x.roundToInt(), windowPos.y.roundToInt())
-                    }
-                    .clip(selectorShape)
-                    .clickable(enabled = enabled) { expanded = true }
-        ) {
-            Row(
-                modifier =
-                    Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = Dimensions.spacingMd, vertical = Dimensions.spacingSm),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(Dimensions.spacingSm)
-            ) {
-                ProxyDialogAppIcon(option = selectedOption, size = 24.dp)
-                Text(
-                    text = selectedOption?.label.orEmpty(),
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowDown,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-
-        if (expanded && enabled && anchorSize.width > 0) {
-            Popup(
-                alignment = Alignment.TopStart,
-                offset = IntOffset(anchorOffset.x, anchorOffset.y + anchorSize.height),
-                onDismissRequest = { expanded = false },
-                properties = PopupProperties(focusable = true, clippingEnabled = true)
-            ) {
-                Surface(
-                    shape = selectorShape,
-                    color = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    shadowElevation = 8.dp,
-                    tonalElevation = 6.dp,
-                    modifier =
-                        Modifier
-                            .width(with(density) { anchorSize.width.toDp() })
-                            .heightIn(max = 360.dp)
-                            .clip(selectorShape)
-                ) {
-                    LazyColumn(modifier = Modifier.fillMaxWidth()) {
-                        items(items = options) { option ->
-                            DropdownMenuItem(
-                                leadingIcon = { ProxyDialogAppIcon(option = option, size = 20.dp) },
-                                text = {
-                                    Text(
-                                        text = option.label,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                },
-                                onClick = {
-                                    expanded = false
-                                    onOptionSelected(option.packageName)
-                                }
-                            )
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 @Composable

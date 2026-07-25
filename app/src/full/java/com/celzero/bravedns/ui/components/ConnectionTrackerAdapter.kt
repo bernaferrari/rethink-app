@@ -27,6 +27,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -82,6 +83,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 import com.celzero.bravedns.R
+import com.celzero.bravedns.ui.compose.theme.rememberReducedMotion
+import com.celzero.bravedns.ui.compose.logs.RethinkLogDetail
+import com.celzero.bravedns.ui.compose.logs.RethinkLogRow
+import com.celzero.bravedns.ui.compose.logs.RethinkLogRowModel
 import com.celzero.bravedns.database.ConnectionTracker
 import com.celzero.bravedns.service.FirewallManager
 import com.celzero.bravedns.service.FirewallRuleset
@@ -105,42 +110,6 @@ private const val MAX_TIME_TCP = 135 // seconds
 private const val MAX_TIME_UDP = 135 // seconds
 private const val NO_USER_ID = 0
 
-private data class ConnectionRowPalette(
-    val status: Color,
-    val statusContainer: Color,
-    val statusLabel: String,
-    val surfaceCollapsed: Color,
-    val surfaceExpanded: Color,
-    val surfaceSubtle: Color,
-    val line: Color,
-    val primaryText: Color,
-    val secondaryText: Color,
-    val tagBg: Color,
-    val tagText: Color,
-)
-
-@Composable
-private fun connectionRowPalette(ct: ConnectionTracker): ConnectionRowPalette {
-    val scheme = MaterialTheme.colorScheme
-    val allowedGreen = Color(0xFF2FB36B)
-    val statusColor = if (ct.isBlocked) scheme.error else allowedGreen
-    val statusContainer = if (ct.isBlocked) scheme.errorContainer.copy(alpha = 0.55f) else allowedGreen.copy(alpha = 0.2f)
-
-    return ConnectionRowPalette(
-        status = statusColor,
-        statusContainer = statusContainer,
-        statusLabel = if (ct.isBlocked) stringResource(R.string.lbl_blocked) else stringResource(R.string.lbl_allowed),
-        surfaceCollapsed = scheme.surfaceContainerLow,
-        surfaceExpanded = scheme.surfaceContainer,
-        surfaceSubtle = scheme.surfaceContainerHighest.copy(alpha = 0.3f),
-        line = scheme.outlineVariant.copy(alpha = 0.42f),
-        primaryText = scheme.onSurface,
-        secondaryText = scheme.onSurfaceVariant,
-        tagBg = scheme.surfaceContainerHighest.copy(alpha = 0.58f),
-        tagText = scheme.onSurfaceVariant,
-    )
-}
-
 @Composable
 fun ConnectionRow(
     ct: ConnectionTracker,
@@ -148,16 +117,12 @@ fun ConnectionRow(
     itemCount: Int = 1,
 ) {
     val context = LocalContext.current
-    val palette = connectionRowPalette(ct)
     val summary = summaryInfo(context, ct)
-    val hintColor = hintColor(ct) ?: palette.secondaryText
     val protocol = protocolLabel(context, ct.port, ct.protocol)
     val time = Utilities.convertLongToTime(ct.timeStamp, TIME_FORMAT_1)
     val destination = ct.dnsQuery?.takeIf { it.isNotBlank() } ?: ct.ipAddress
     val appDisplay = if (ct.appName.isBlank()) stringResource(R.string.network_log_app_name_unknown) else ct.appName
 
-    var expanded by remember(ct.id) { mutableStateOf(false) }
-    var showDetails by remember(ct.id) { mutableStateOf(false) }
     var appIcon by remember(ct.uid) { mutableStateOf<Drawable?>(null) }
     var appCount by remember(ct.uid) { mutableStateOf(1) }
 
@@ -176,204 +141,40 @@ fun ConnectionRow(
             else -> appDisplay
         }
 
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val rowScale by animateFloatAsState(
-        targetValue = if (isPressed) 0.988f else 1f,
-        animationSpec = spring(stiffness = Spring.StiffnessMediumLow, dampingRatio = Spring.DampingRatioNoBouncy),
-        label = "connRowScale",
-    )
-
-    val chevronAngle by animateFloatAsState(
-        targetValue = if (expanded) 90f else 0f,
-        animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing),
-        label = "connChevron",
-    )
-
-    val baseCardColor = if (expanded) palette.surfaceExpanded else palette.surfaceCollapsed
-    val pressedCardColor = lerp(baseCardColor, MaterialTheme.colorScheme.primaryContainer, 0.16f)
-    val cardColor by animateColorAsState(
-        targetValue = if (isPressed) pressedCardColor else baseCardColor,
-        animationSpec = tween(durationMillis = 200, easing = FastOutSlowInEasing),
-        label = "connCardColor",
-    )
-
-    val shadowElevation by animateDpAsState(
-        targetValue =
-            when {
-                isPressed -> 3.dp
-                expanded -> 6.dp
-                else -> 1.dp
-            },
-        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
-        label = "connShadow",
-    )
-
-    val stripeAlpha by animateFloatAsState(
-        targetValue = if (expanded) 1f else 0.9f,
-        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
-        label = "connStripeAlpha",
-    )
-
-    val detailsProgress by animateFloatAsState(
-        targetValue = if (expanded) 1f else 0f,
-        animationSpec = tween(durationMillis = 230, easing = FastOutSlowInEasing),
-        label = "connDetailsProgress",
-        finishedListener = { value -> if (value == 0f) showDetails = false },
-    )
-
-    LaunchedEffect(expanded) {
-        if (expanded) showDetails = true
+    val endpoint = buildString {
+        append(ct.ipAddress)
+        if (ct.port > 0) append(":${ct.port}")
     }
-
-    val cardShape = ListItemDefaults.segmentedShapes(index = index, count = itemCount)
-
-    Surface(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .scale(rowScale)
-                .clip(cardShape.shape)
-                .clickable(
-                    interactionSource = interactionSource,
-                    indication = null,
-                    onClick = { expanded = !expanded },
-                ),
-        shape = cardShape.shape,
-        color = cardColor,
-        tonalElevation = if (expanded) 2.dp else 0.dp,
-        shadowElevation = shadowElevation,
-        border = if (expanded) BorderStroke(1.dp, palette.line.copy(alpha = 0.7f)) else null,
-    ) {
-        Box(
-            modifier =
-                Modifier
-                    .fillMaxWidth()
-                    .height(IntrinsicSize.Min),
-        ) {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier =
-                        Modifier
-                            .fillMaxWidth()
-                            .padding(start = 26.dp, end = 12.dp, top = 12.dp, bottom = 11.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    AppIconSlot(
-                        appIcon = appIcon,
-                        statusColor = palette.statusContainer,
-                    )
-
-                    Column(
-                        modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(3.dp),
-                    ) {
-                        Text(
-                            text = destination,
-                            fontFamily = FontFamily.Monospace,
-                            fontWeight = FontWeight.SemiBold,
-                            fontSize = 13.sp,
-                            color = palette.primaryText,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            letterSpacing = (-0.2).sp,
-                        )
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            Text(
-                                text = appName,
-                                fontSize = 11.sp,
-                                color = palette.secondaryText,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.weight(1f, fill = false),
-                            )
-                            ProtocolTag(type = protocol, bg = palette.tagBg, textColor = palette.tagText)
-                        }
-                    }
-
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(5.dp),
-                    ) {
-                        StatusLabel(text = palette.statusLabel, color = palette.status)
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
-                        ) {
-                            Text(
-                                text = time,
-                                fontSize = 10.sp,
-                                color = palette.secondaryText.copy(alpha = 0.92f),
-                            )
-                            ChevronIcon(angle = chevronAngle, tint = palette.secondaryText)
-                        }
-                    }
-                }
-
-                if (showDetails) {
-                    Box(
-                        modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .accordionReveal(detailsProgress),
-                    ) {
-                        ConnectionDetailsPanel(
-                            ct = ct,
-                            protocol = protocol,
-                            summary = summary,
-                            panelColor = palette.surfaceSubtle,
-                            dividerColor = palette.line,
-                            textColor = palette.secondaryText,
-                            hintColor = hintColor,
-                        )
-                    }
-                }
-            }
-
-            StatusStripe(
-                color = palette.status.copy(alpha = stripeAlpha),
-                modifier =
-                    Modifier
-                        .align(Alignment.TopStart)
-                        .fillMaxHeight()
-                        .zIndex(1f),
-            )
-        }
+    val details = buildList {
+        add(RethinkLogDetail("Transport", protocol))
+        add(RethinkLogDetail("Country", countryDisplay(context, ct.flag)))
+        if (endpoint.isNotBlank()) add(RethinkLogDetail("Endpoint", endpoint, monospace = true))
+        if (!ct.dnsQuery.isNullOrBlank()) add(RethinkLogDetail("DNS", ct.dnsQuery.orEmpty(), monospace = true))
+        if (ct.blockedByRule.isNotBlank()) add(RethinkLogDetail("Rule", ct.blockedByRule, isError = ct.isBlocked))
+        if (ct.proxyDetails.isNotBlank()) add(RethinkLogDetail("Proxy", ct.proxyDetails, monospace = true))
+        if (summary.duration.isNotBlank()) add(RethinkLogDetail("Duration", summary.duration))
+        if (summary.dataUsage.isNotBlank()) add(RethinkLogDetail("Usage", summary.dataUsage))
+        if (ct.synack > 0) add(RethinkLogDetail("Latency", "${ct.synack}ms"))
+        if (summary.delay.isNotBlank()) add(RethinkLogDetail("Flags", summary.delay))
+        if (ct.message.isNotBlank()) add(RethinkLogDetail("Message", ct.message, isError = ct.isBlocked))
     }
-}
-
-private fun Modifier.accordionReveal(progress: Float): Modifier {
-    val p = progress.coerceIn(0f, 1f)
-    return this
-        .graphicsLayer { alpha = p }
-        .clipToBounds()
-        .layout { measurable, constraints ->
-            val placeable = measurable.measure(constraints)
-            val h = (placeable.height * p).roundToInt()
-            layout(placeable.width, h) {
-                if (h > 0) placeable.place(0, 0)
-            }
-        }
-}
-
-@Composable
-private fun StatusStripe(color: Color, modifier: Modifier = Modifier) {
-    Box(
-        modifier =
-            modifier
-                .padding(start = 10.dp, top = 10.dp, bottom = 10.dp)
-                .width(5.dp)
-                .fillMaxHeight()
-                .clip(RoundedCornerShape(999.dp))
-                .background(
-                    brush = Brush.verticalGradient(colors = listOf(color, color.copy(alpha = 0.38f))),
-                ),
+    RethinkLogRow(
+        model = RethinkLogRowModel(
+            id = ct.id.toString(),
+            destination = destination,
+            appLabel = appName,
+            typeLabel = protocol,
+            timeLabel = time,
+            isBlocked = ct.isBlocked,
+            allowedLabel = stringResource(R.string.lbl_allowed),
+            blockedLabel = stringResource(R.string.lbl_blocked),
+            details = details,
+            icon = { statusContainer -> AppIconSlot(appIcon, statusContainer) },
+        ),
+        index = index,
+        itemCount = itemCount,
     )
+    return
 }
 
 @Composable
@@ -409,176 +210,6 @@ private fun AppIconSlot(
     }
 }
 
-@Composable
-private fun ProtocolTag(type: String, bg: Color, textColor: Color) {
-    Box(
-        modifier =
-            Modifier
-                .clip(RoundedCornerShape(5.dp))
-                .background(bg)
-                .padding(horizontal = 6.dp, vertical = 0.dp),
-    ) {
-        Text(
-            text = type,
-            fontSize = 9.sp,
-            fontWeight = FontWeight.Bold,
-            color = textColor,
-            letterSpacing = 0.5.sp,
-        )
-    }
-}
-
-@Composable
-private fun StatusLabel(text: String, color: Color) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
-    ) {
-        Box(
-            modifier =
-                Modifier
-                    .size(5.dp)
-                    .clip(CircleShape)
-                    .background(color),
-        )
-        Text(
-            text = text,
-            fontSize = 10.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = color,
-            letterSpacing = 0.2.sp,
-        )
-    }
-}
-
-@Composable
-private fun ChevronIcon(angle: Float, tint: Color) {
-    Icon(
-        painter = painterResource(R.drawable.ic_right_arrow_small),
-        contentDescription = null,
-        tint = tint,
-        modifier =
-            Modifier
-                .size(10.dp)
-                .rotate(angle),
-    )
-}
-
-@Composable
-private fun ConnectionDetailsPanel(
-    ct: ConnectionTracker,
-    protocol: String,
-    summary: Summary,
-    panelColor: Color,
-    dividerColor: Color,
-    textColor: Color,
-    hintColor: Color,
-) {
-    val context = LocalContext.current
-    val endpoint = buildString {
-        append(ct.ipAddress)
-        if (ct.port > 0) append(":${ct.port}")
-    }
-
-    Column(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .background(panelColor),
-        verticalArrangement = Arrangement.spacedBy(0.dp),
-    ) {
-        HorizontalDivider(color = dividerColor, thickness = 0.5.dp)
-
-        Column(
-            modifier = Modifier.padding(start = 26.dp, end = 14.dp, top = 10.dp, bottom = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(0.dp),
-        ) {
-            DetailTextRow(label = "Transport", value = protocol, tint = textColor)
-            DetailTextRow(label = "Country", value = countryDisplay(context, ct.flag), tint = textColor)
-
-            if (endpoint.isNotBlank()) {
-                DetailTextRow(label = "Endpoint", value = endpoint, mono = true, tint = MaterialTheme.colorScheme.secondary)
-            }
-
-            if (!ct.dnsQuery.isNullOrBlank()) {
-                DetailTextRow(label = "DNS", value = ct.dnsQuery.orEmpty(), mono = true, tint = textColor)
-            }
-
-            if (ct.blockedByRule.isNotBlank()) {
-                DetailTextRow(
-                    label = "Rule",
-                    value = ct.blockedByRule,
-                    tint = if (ct.isBlocked) MaterialTheme.colorScheme.error else textColor,
-                )
-            }
-
-            if (ct.proxyDetails.isNotBlank()) {
-                DetailTextRow(label = "Proxy", value = ct.proxyDetails, mono = true, tint = textColor)
-            }
-
-            if (summary.duration.isNotBlank()) {
-                DetailTextRow(label = "Duration", value = summary.duration, tint = textColor)
-            }
-
-            if (summary.dataUsage.isNotBlank()) {
-                DetailTextRow(label = "Usage", value = summary.dataUsage, tint = textColor)
-            }
-
-            if (ct.synack > 0) {
-                DetailTextRow(label = "Latency", value = "${ct.synack}ms", tint = textColor)
-            }
-
-            if (summary.delay.isNotBlank()) {
-                DetailTextRow(label = "Flags", value = summary.delay, tint = hintColor)
-            }
-
-            if (ct.message.isNotBlank()) {
-                DetailTextRow(
-                    label = "Message",
-                    value = ct.message,
-                    tint = if (ct.isBlocked) MaterialTheme.colorScheme.error else textColor,
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun DetailTextRow(
-    label: String,
-    value: String,
-    mono: Boolean = false,
-    tint: Color,
-) {
-    Row(
-        modifier =
-            Modifier
-                .fillMaxWidth()
-                .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top,
-    ) {
-        Text(
-            text = label,
-            fontSize = 10.sp,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            letterSpacing = 0.4.sp,
-            modifier = Modifier.widthIn(min = 72.dp),
-        )
-        Text(
-            text = value,
-            fontSize = 11.sp,
-            color = tint,
-            fontFamily = if (mono) FontFamily.Monospace else FontFamily.Default,
-            fontWeight = FontWeight.Medium,
-            textAlign = TextAlign.End,
-            maxLines = 2,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f),
-        )
-    }
-}
-
 private fun countryDisplay(context: Context, flag: String): String {
     val unknown = context.getString(R.string.network_log_app_name_unknown)
     val countryName = UIUtils.getCountryNameFromFlag(flag).trim()
@@ -605,30 +236,6 @@ private fun protocolLabel(context: Context, port: Int, proto: Int): String {
         resolvedPort.uppercase(Locale.ROOT)
     } else {
         Protocol.getProtocolName(proto).name
-    }
-}
-
-@Composable
-private fun hintColor(ct: ConnectionTracker): Color? {
-    val blocked =
-        if (ct.blockedByRule == FirewallRuleset.RULE12.id) {
-            ct.proxyDetails.isEmpty()
-        } else {
-            ct.isBlocked
-        }
-    val rule =
-        if (ct.blockedByRule == FirewallRuleset.RULE12.id && ct.proxyDetails.isEmpty()) {
-            FirewallRuleset.RULE18.id
-        } else {
-            ct.blockedByRule
-        }
-    return when {
-        blocked -> {
-            val isError = FirewallRuleset.isProxyError(rule)
-            if (isError) MaterialTheme.colorScheme.onSurfaceVariant else MaterialTheme.colorScheme.error
-        }
-        FirewallRuleset.shouldShowHint(rule) -> MaterialTheme.colorScheme.onSurfaceVariant
-        else -> null
     }
 }
 

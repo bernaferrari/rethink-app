@@ -25,7 +25,7 @@ import androidx.room3.Update
 @Dao
 interface WgHopMapDao {
 
-    @Update fun update(map: WgHopMap)
+    @Update suspend fun update(map: WgHopMap)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(maps: List<WgHopMap>): LongArray
@@ -33,18 +33,18 @@ interface WgHopMapDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(map: WgHopMap): Long
 
-    @Delete fun delete(map: WgHopMap)
+    @Delete suspend fun delete(map: WgHopMap)
 
-    @Query("delete from WgHopMap where id = :id") fun deleteById(id: Int)
+    @Query("delete from WgHopMap where id = :id") suspend fun deleteById(id: Int)
 
-    @Query("delete from WgHopMap where src = :src and hop = :hop") fun deleteBySrcAndHop(src: String, hop: String): Int
+    @Query("delete from WgHopMap where src = :src and hop = :hop") suspend fun deleteBySrcAndHop(src: String, hop: String): Int
 
-    @Query("select * from WgHopMap where src = :src") fun getBySrc(src: String): WgHopMap?
+    @Query("select * from WgHopMap where src = :src") suspend fun getBySrc(src: String): WgHopMap?
 
-    @Query("select * from WgHopMap") fun getAll(): List<WgHopMap>
+    @Query("select * from WgHopMap") suspend fun getAll(): List<WgHopMap>
 
     @Query("select * from WgHopMap where src like :prefix || '%'")
-    fun getAllByPrefix(prefix: String): List<WgHopMap>
+    suspend fun getAllByPrefix(prefix: String): List<WgHopMap>
 
-    @Query("delete from WgHopMap") fun deleteAll()
+    @Query("delete from WgHopMap") suspend fun deleteAll()
 }

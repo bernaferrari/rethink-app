@@ -35,3 +35,5 @@ app/websiteFull/release
 # KMP / web module build outputs
 shared/build/
 web-build/build/
+/.vercel/
+.vercel

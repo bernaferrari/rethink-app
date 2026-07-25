@@ -31,12 +31,12 @@ interface ProxyApplicationMappingDAO {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(wgMapping: ProxyApplicationMapping): Long
 
-    @Update fun update(wgMapping: ProxyApplicationMapping)
+    @Update suspend fun update(wgMapping: ProxyApplicationMapping)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAll(wgMapping: List<ProxyApplicationMapping>): LongArray
 
-    @Delete fun delete(wgMapping: ProxyApplicationMapping)
+    @Delete suspend fun delete(wgMapping: ProxyApplicationMapping)
 
     @Query("delete from ProxyApplicationMapping where uid = :uid and packageName = :packageName")
     suspend fun deleteApp(uid: Int, packageName: String)
@@ -44,7 +44,7 @@ interface ProxyApplicationMappingDAO {
     @Query("delete from ProxyApplicationMapping where packageName = :packageName")
     suspend fun deleteAppByPkgName(packageName: String)
 
-    @Query("delete from ProxyApplicationMapping") fun deleteAll()
+    @Query("delete from ProxyApplicationMapping") suspend fun deleteAll()
 
     @Query("select * from ProxyApplicationMapping")
     suspend fun getWgAppMapping(): List<ProxyApplicationMapping>
