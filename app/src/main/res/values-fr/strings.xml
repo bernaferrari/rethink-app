@@ -1128,7 +1128,7 @@
     <string name="most_contacted_asn" translatable="true">Fournisseurs les plus contactés</string>
     <string name="most_blocked_asn" translatable="true">Fournisseurs les plus bloqués</string>
     <string name="adv_tasker_dialog_msg" translatable="true">Saisir les noms des paquets (séparés par des virgules) autorisés à démarrer ou à arrêter Rethink.</string>
-    <string name="adv_tasker_dialog_instructions" translatable="true">Instructions :\nÉléments requis pour la diffusion :\n• Clé : sender\n• Valeur : Nom du package de l’application appelante\n\nExemple : key : sender value : com.termux\n\nActions prises en charge :\n• Démarrer le VPN : com.celzero.bravedns.intent.action.VPN_START\n• Arrêter le VPN : com.celzero.bravedns.intent.action.VPN_STOP</string>
+    <string name="adv_tasker_dialog_instructions" translatable="true">Instructions :\nÉléments requis pour la diffusion :\n• Clé : sender\n• Valeur : Nom du package de l’application appelante\n\nExemple : key : sender value : com.termux\n\nActions prises en charge :\n• Démarrer le VPN : com.bernaferrari.bravedns.intent.action.VPN_START\n• Arrêter le VPN : com.bernaferrari.bravedns.intent.action.VPN_STOP</string>
     <string name="adv_tasker_dialog_edit_hint" translatable="true">Saisir le nom du package (exemple : net.dinglisch.android.taskerm)</string>
     <string name="download_ip_info_title" translatable="true">Afficher les informations du fournisseur</string>
     <string name="download_ip_info_desc" translatable="true">Récupère les informations du fournisseur de services pour les sites web depuis <i>rethinkdns.com</i>, propulsé par <i>%1$s</i></string>

@@ -7,7 +7,7 @@
         errorLine1="            String.format(&quot;%.1f %s&quot;, value, units[unitIndex])"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/util/UIUtils.kt"
+            file="src/full/kotlin/com/celzero/bravedns/util/UIUtils.kt"
             line="67"
             column="13"/>
     </issue>
@@ -29,7 +29,7 @@
         errorLine1="                line = line.trim { it &lt;= &apos; &apos; }"
         errorLine2="                                 ~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/wireguard/Config.kt"
+            file="src/main/kotlin/com/celzero/bravedns/wireguard/Config.kt"
             line="220"
             column="34"/>
     </issue>
@@ -40,7 +40,7 @@
         errorLine1="            message = message.substring(idx + 1).trim { it &lt;= &apos; &apos; }"
         errorLine2="                                                      ~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/util/TunnelImporter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/util/TunnelImporter.kt"
             line="165"
             column="55"/>
     </issue>
@@ -117,7 +117,7 @@
         errorLine1="enum class WgType(val value: Int) {"
         errorLine2="           ~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgConfigEditorScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgConfigEditorScreen.kt"
             line="79"
             column="12"/>
     </issue>
@@ -128,7 +128,7 @@
         errorLine1="enum class WgType(val value: Int) {"
         errorLine2="           ~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgConfigEditorScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgConfigEditorScreen.kt"
             line="79"
             column="12"/>
     </issue>
@@ -227,7 +227,7 @@
         errorLine1="                                        context.getString(R.string.ac_toast_retry_disabled),"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/settings/AntiCensorshipScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/settings/AntiCensorshipScreen.kt"
             line="223"
             column="41"/>
     </issue>
@@ -238,7 +238,7 @@
         errorLine1="                    context.getString("
         errorLine2="                    ^">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
             line="114"
             column="21"/>
     </issue>
@@ -249,7 +249,7 @@
         errorLine1="                text = context.getString(R.string.bsct_block_domain),"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
             line="194"
             column="24"/>
     </issue>
@@ -260,7 +260,7 @@
         errorLine1="                text = context.getString(R.string.bsac_title_desc),"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
             line="258"
             column="24"/>
     </issue>
@@ -271,7 +271,7 @@
         errorLine1="                                context.getString(R.string.config_add_success_toast),"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
             line="289"
             column="33"/>
     </issue>
@@ -282,7 +282,7 @@
         errorLine1="                        conf?.name ?: context.getString(R.string.settings_app_list_default_app)"
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
             line="371"
             column="39"/>
     </issue>
@@ -293,7 +293,7 @@
         errorLine1="                            context.getString(R.string.settings_app_list_default_app)"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
             line="375"
             column="29"/>
     </issue>
@@ -304,7 +304,7 @@
         errorLine1="                            context.getString(R.string.settings_app_list_default_app) + &quot; $idSuffix&quot;"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/AppDomainRulesDialog.kt"
             line="377"
             column="29"/>
     </issue>
@@ -315,7 +315,7 @@
         errorLine1="                    context.getString("
         errorLine2="                    ^">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/AppIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/AppIpRulesDialog.kt"
             line="106"
             column="21"/>
     </issue>
@@ -326,7 +326,7 @@
         errorLine1="                text = context.getString(R.string.bsct_block_ip),"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/AppIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/AppIpRulesDialog.kt"
             line="187"
             column="24"/>
     </issue>
@@ -337,7 +337,7 @@
         errorLine1="                    text = context.getString(R.string.bsct_block_domain),"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/AppIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/AppIpRulesDialog.kt"
             line="252"
             column="28"/>
     </issue>
@@ -348,7 +348,7 @@
         errorLine1="                text = context.getString(R.string.bsac_title_desc),"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/AppIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/AppIpRulesDialog.kt"
             line="273"
             column="24"/>
     </issue>
@@ -359,7 +359,7 @@
         errorLine1="                context.getString("
         errorLine2="                ^">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="96"
             column="17"/>
     </issue>
@@ -370,7 +370,7 @@
         errorLine1="                context.getString("
         errorLine2="                ^">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="104"
             column="17"/>
     </issue>
@@ -381,7 +381,7 @@
         errorLine1="                if (!bulkWifi) context.getString(R.string.fapps_unmetered_block_dialog_title)"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="143"
             column="32"/>
     </issue>
@@ -392,7 +392,7 @@
         errorLine1="                else context.getString(R.string.fapps_unmetered_unblock_dialog_title)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="144"
             column="22"/>
     </issue>
@@ -403,7 +403,7 @@
         errorLine1="                if (!bulkMobile) context.getString(R.string.fapps_metered_block_dialog_title)"
         errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="147"
             column="34"/>
     </issue>
@@ -414,7 +414,7 @@
         errorLine1="                else context.getString(R.string.fapps_metered_unblock_dialog_title)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="148"
             column="22"/>
     </issue>
@@ -425,7 +425,7 @@
         errorLine1="                if (!bulkLockdown) context.getString(R.string.fapps_isolate_block_dialog_title)"
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="151"
             column="36"/>
     </issue>
@@ -436,7 +436,7 @@
         errorLine1="                else context.getString(R.string.fapps_unblock_dialog_title)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="152"
             column="22"/>
     </issue>
@@ -447,7 +447,7 @@
         errorLine1="                if (!bulkBypass) context.getString(R.string.fapps_bypass_block_dialog_title)"
         errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="155"
             column="34"/>
     </issue>
@@ -458,7 +458,7 @@
         errorLine1="                else context.getString(R.string.fapps_unblock_dialog_title)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="156"
             column="22"/>
     </issue>
@@ -469,7 +469,7 @@
         errorLine1="                if (!bulkExclude) context.getString(R.string.fapps_exclude_block_dialog_title)"
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="159"
             column="35"/>
     </issue>
@@ -480,7 +480,7 @@
         errorLine1="                else context.getString(R.string.fapps_unblock_dialog_title)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="160"
             column="22"/>
     </issue>
@@ -491,7 +491,7 @@
         errorLine1="                if (!bulkBypassDns) context.getString(R.string.fapps_bypass_dns_firewall_dialog_title)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="163"
             column="37"/>
     </issue>
@@ -502,7 +502,7 @@
         errorLine1="                else context.getString(R.string.fapps_unblock_dialog_title)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="164"
             column="22"/>
     </issue>
@@ -513,7 +513,7 @@
         errorLine1="                if (!bulkWifi) context.getString(R.string.fapps_unmetered_block_dialog_message)"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="172"
             column="32"/>
     </issue>
@@ -524,7 +524,7 @@
         errorLine1="                else context.getString(R.string.fapps_unmetered_unblock_dialog_message)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="173"
             column="22"/>
     </issue>
@@ -535,7 +535,7 @@
         errorLine1="                if (!bulkMobile) context.getString(R.string.fapps_metered_block_dialog_message)"
         errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="176"
             column="34"/>
     </issue>
@@ -546,7 +546,7 @@
         errorLine1="                else context.getString(R.string.fapps_metered_unblock_dialog_message)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="177"
             column="22"/>
     </issue>
@@ -557,7 +557,7 @@
         errorLine1="                if (!bulkLockdown) context.getString(R.string.fapps_isolate_block_dialog_message)"
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="180"
             column="36"/>
     </issue>
@@ -568,7 +568,7 @@
         errorLine1="                else context.getString(R.string.fapps_unblock_dialog_message)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="181"
             column="22"/>
     </issue>
@@ -579,7 +579,7 @@
         errorLine1="                if (!bulkBypass) context.getString(R.string.fapps_bypass_block_dialog_message)"
         errorLine2="                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="184"
             column="34"/>
     </issue>
@@ -590,7 +590,7 @@
         errorLine1="                else context.getString(R.string.fapps_unblock_dialog_message)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="185"
             column="22"/>
     </issue>
@@ -601,7 +601,7 @@
         errorLine1="                if (!bulkBypassDns) context.getString(R.string.fapps_bypass_dns_firewall_dialog_message)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="188"
             column="37"/>
     </issue>
@@ -612,7 +612,7 @@
         errorLine1="                else context.getString(R.string.fapps_unblock_dialog_message)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="189"
             column="22"/>
     </issue>
@@ -623,7 +623,7 @@
         errorLine1="                if (!bulkExclude) context.getString(R.string.fapps_exclude_block_dialog_message)"
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="192"
             column="35"/>
     </issue>
@@ -634,7 +634,7 @@
         errorLine1="                else context.getString(R.string.fapps_unblock_dialog_message)"
         errorLine2="                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="193"
             column="22"/>
     </issue>
@@ -645,7 +645,7 @@
         errorLine1="            Utilities.showToastUiCentered(context, context.getString(R.string.refresh_complete), Toast.LENGTH_SHORT)"
         errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="300"
             column="52"/>
     </issue>
@@ -656,7 +656,7 @@
         errorLine1="                context.getString(R.string.bypass_dns_firewall_tooltip, context.getString(R.string.bypass_dns_firewall)),"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="356"
             column="17"/>
     </issue>
@@ -667,7 +667,7 @@
         errorLine1="                context.getString(R.string.bypass_dns_firewall_tooltip, context.getString(R.string.bypass_dns_firewall)),"
         errorLine2="                                                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/apps/AppListScreen.kt"
             line="356"
             column="73"/>
     </issue>
@@ -678,7 +678,7 @@
         errorLine1="        title = { Text(text = context.getString(R.string.close_conns_dialog_title)) },"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/AppWiseDomainsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/AppWiseDomainsAdapter.kt"
             line="106"
             column="31"/>
     </issue>
@@ -689,7 +689,7 @@
         errorLine1="                text = context.getString(R.string.close_conns_dialog_desc, conn.ipAddress)"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/AppWiseDomainsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/AppWiseDomainsAdapter.kt"
             line="109"
             column="24"/>
     </issue>
@@ -700,7 +700,7 @@
         errorLine1="                        context.getString(R.string.config_add_success_toast),"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/AppWiseDomainsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/AppWiseDomainsAdapter.kt"
             line="122"
             column="25"/>
     </issue>
@@ -711,7 +711,7 @@
         errorLine1="                Text(text = context.getString(R.string.lbl_proceed))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/AppWiseDomainsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/AppWiseDomainsAdapter.kt"
             line="128"
             column="29"/>
     </issue>
@@ -722,7 +722,7 @@
         errorLine1="                Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/AppWiseDomainsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/AppWiseDomainsAdapter.kt"
             line="133"
             column="29"/>
     </issue>
@@ -733,7 +733,7 @@
         errorLine1="                context.getString(R.string.ctbs_app_other_apps, info.appName, (count - 1).toString())"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
             line="123"
             column="17"/>
     </issue>
@@ -744,7 +744,7 @@
         errorLine1="                val txt = context.getString("
         errorLine2="                          ^">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
             line="130"
             column="27"/>
     </issue>
@@ -755,7 +755,7 @@
         errorLine1="                    context.getString(R.string.lbl_search),"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
             line="132"
             column="21"/>
     </issue>
@@ -766,7 +766,7 @@
         errorLine1="                    context.getString(R.string.lbl_service_providers)"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
             line="133"
             column="21"/>
     </issue>
@@ -777,7 +777,7 @@
         errorLine1="                context.getString(R.string.two_argument_colon, appNameTruncated, txt)"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
             line="135"
             column="17"/>
     </issue>
@@ -788,7 +788,7 @@
         errorLine1="                context.getString("
         errorLine2="                ^">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
             line="137"
             column="17"/>
     </issue>
@@ -799,7 +799,7 @@
         errorLine1="                    context.getString(R.string.search_universal_ips)"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
             line="140"
             column="21"/>
     </issue>
@@ -810,7 +810,7 @@
         errorLine1="                text = context.getString(R.string.brbs_title),"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="145"
             column="24"/>
     </issue>
@@ -821,7 +821,7 @@
         errorLine1="                    title = context.getString(R.string.brbs_backup_title),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="153"
             column="29"/>
     </issue>
@@ -832,7 +832,7 @@
         errorLine1="                    description = context.getString(R.string.brbs_backup_desc)"
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="154"
             column="35"/>
     </issue>
@@ -843,7 +843,7 @@
         errorLine1="                    title = context.getString(R.string.brbs_restore_title),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="161"
             column="29"/>
     </issue>
@@ -854,7 +854,7 @@
         errorLine1="                    description = context.getString(R.string.brbs_restore_desc)"
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="162"
             column="35"/>
     </issue>
@@ -865,7 +865,7 @@
         errorLine1="                text = context.getString(R.string.brbs_backup_restore_desc),"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="169"
             column="24"/>
     </issue>
@@ -876,7 +876,7 @@
         errorLine1="                title = { Text(text = context.getString(R.string.brbs_backup_dialog_title)) },"
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="186"
             column="39"/>
     </issue>
@@ -887,7 +887,7 @@
         errorLine1="                text = { Text(text = context.getString(R.string.brbs_backup_dialog_message)) },"
         errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="187"
             column="38"/>
     </issue>
@@ -898,7 +898,7 @@
         errorLine1="                        Text(text = context.getString(R.string.brbs_backup_dialog_positive))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="195"
             column="37"/>
     </issue>
@@ -909,7 +909,7 @@
         errorLine1="                        Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="200"
             column="37"/>
     </issue>
@@ -920,7 +920,7 @@
         errorLine1="                title = { Text(text = context.getString(R.string.brbs_restore_dialog_title)) },"
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="209"
             column="39"/>
     </issue>
@@ -931,7 +931,7 @@
         errorLine1="                text = { Text(text = context.getString(R.string.brbs_restore_dialog_message)) },"
         errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="210"
             column="38"/>
     </issue>
@@ -942,7 +942,7 @@
         errorLine1="                        Text(text = context.getString(R.string.brbs_restore_dialog_positive))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="218"
             column="37"/>
     </issue>
@@ -953,7 +953,7 @@
         errorLine1="                        Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="223"
             column="37"/>
     </issue>
@@ -964,7 +964,7 @@
         errorLine1="                title = { Text(text = context.getString(R.string.brbs_backup_dialog_failure_title)) },"
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="232"
             column="39"/>
     </issue>
@@ -975,7 +975,7 @@
         errorLine1="                text = { Text(text = context.getString(R.string.brbs_backup_dialog_failure_message)) },"
         errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="233"
             column="38"/>
     </issue>
@@ -986,7 +986,7 @@
         errorLine1="                        Text(text = context.getString(R.string.brbs_backup_dialog_failure_positive))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="241"
             column="37"/>
     </issue>
@@ -997,7 +997,7 @@
         errorLine1="                        Text(text = context.getString(R.string.lbl_dismiss))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="246"
             column="37"/>
     </issue>
@@ -1008,7 +1008,7 @@
         errorLine1="                title = { Text(text = context.getString(R.string.brbs_restore_dialog_failure_title)) },"
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="255"
             column="39"/>
     </issue>
@@ -1019,7 +1019,7 @@
         errorLine1="                text = { Text(text = context.getString(R.string.brbs_restore_dialog_failure_message)) },"
         errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="256"
             column="38"/>
     </issue>
@@ -1030,7 +1030,7 @@
         errorLine1="                        Text(text = context.getString(R.string.brbs_restore_dialog_failure_positive))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="264"
             column="37"/>
     </issue>
@@ -1041,7 +1041,7 @@
         errorLine1="                        Text(text = context.getString(R.string.lbl_dismiss))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/BackupRestoreDialog.kt"
             line="269"
             column="37"/>
     </issue>
@@ -1052,7 +1052,7 @@
         errorLine1="                contentDescription = context.getString(R.string.lbl_create)"
         errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="218"
             column="38"/>
     </issue>
@@ -1063,7 +1063,7 @@
         errorLine1="                title = context.getString(R.string.cd_doh_dialog_heading),"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="246"
             column="25"/>
     </issue>
@@ -1074,7 +1074,7 @@
         errorLine1="                nameLabel = context.getString(R.string.cd_doh_dialog_resolver_name),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="247"
             column="29"/>
     </issue>
@@ -1085,7 +1085,7 @@
         errorLine1="                urlLabel = context.getString(R.string.cd_doh_dialog_resolver_url),"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="248"
             column="28"/>
     </issue>
@@ -1096,7 +1096,7 @@
         errorLine1="                defaultName = context.getString(R.string.cd_custom_doh_url_name_default),"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="249"
             column="31"/>
     </issue>
@@ -1107,7 +1107,7 @@
         errorLine1="                checkboxLabel = context.getString(R.string.cd_doh_dialog_checkbox_desc),"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="251"
             column="33"/>
     </issue>
@@ -1118,7 +1118,7 @@
         errorLine1="                    context.getString(R.string.cd_custom_doh_url_name, index.toString())"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="254"
             column="21"/>
     </issue>
@@ -1129,7 +1129,7 @@
         errorLine1="                        context.getString(R.string.custom_url_error_invalid_url)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="264"
             column="25"/>
     </issue>
@@ -1140,7 +1140,7 @@
         errorLine1="                invalidUrlMessage = context.getString(R.string.custom_url_error_invalid_url),"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="267"
             column="37"/>
     </issue>
@@ -1151,7 +1151,7 @@
         errorLine1="        val title = context.getString("
         errorLine2="                    ^">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="326"
             column="21"/>
     </issue>
@@ -1162,7 +1162,7 @@
         errorLine1="            context.getString(R.string.lbl_add).replaceFirstChar(Char::titlecase),"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="328"
             column="13"/>
     </issue>
@@ -1173,7 +1173,7 @@
         errorLine1="            context.getString(R.string.lbl_dot)"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="329"
             column="13"/>
     </issue>
@@ -1184,7 +1184,7 @@
         errorLine1="                nameLabel = context.getString(R.string.cd_doh_dialog_resolver_name),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="334"
             column="29"/>
     </issue>
@@ -1195,7 +1195,7 @@
         errorLine1="                urlLabel = context.getString(R.string.cd_doh_dialog_resolver_url),"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="335"
             column="28"/>
     </issue>
@@ -1206,7 +1206,7 @@
         errorLine1="                defaultName = context.getString(R.string.lbl_dot),"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="336"
             column="31"/>
     </issue>
@@ -1217,7 +1217,7 @@
         errorLine1="                checkboxLabel = context.getString(R.string.cd_doh_dialog_checkbox_desc),"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="338"
             column="33"/>
     </issue>
@@ -1228,7 +1228,7 @@
         errorLine1="                nameForIndex = { index -> context.getString(R.string.lbl_dot) + index.toString() },"
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="340"
             column="43"/>
     </issue>
@@ -1239,7 +1239,7 @@
         errorLine1="                    list.add(context.getString(R.string.settings_app_list_default_app))"
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="395"
             column="30"/>
     </issue>
@@ -1250,7 +1250,7 @@
         errorLine1="        mutableStateOf(context.getString(R.string.cd_custom_dns_proxy_name, nextIndex.toString()))"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="435"
             column="24"/>
     </issue>
@@ -1261,7 +1261,7 @@
         errorLine1="    var ipAddress by remember { mutableStateOf(context.getString(R.string.cd_custom_dns_proxy_default_ip)) }"
         errorLine2="                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="437"
             column="48"/>
     </issue>
@@ -1272,7 +1272,7 @@
         errorLine1="            text = context.getString(R.string.dns_proxy_dialog_header_dns),"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="449"
             column="20"/>
     </issue>
@@ -1283,7 +1283,7 @@
         errorLine1="                Text(text = context.getString(R.string.settings_lock_down_mode_desc))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="455"
             column="29"/>
     </issue>
@@ -1294,7 +1294,7 @@
         errorLine1="                text = context.getString(R.string.settings_dns_proxy_dialog_app),"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="461"
             column="24"/>
     </issue>
@@ -1305,7 +1305,7 @@
         errorLine1="            label = { Text(text = context.getString(R.string.dns_proxy_name)) },"
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="487"
             column="35"/>
     </issue>
@@ -1316,7 +1316,7 @@
         errorLine1="            label = { Text(text = context.getString(R.string.dns_proxy_ip_address)) },"
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="493"
             column="35"/>
     </issue>
@@ -1327,7 +1327,7 @@
         errorLine1="            label = { Text(text = context.getString(R.string.dns_proxy_port)) },"
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="499"
             column="35"/>
     </issue>
@@ -1338,7 +1338,7 @@
         errorLine1="            Text(text = context.getString(R.string.settings_exclude_proxy_apps_heading))"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="513"
             column="25"/>
     </issue>
@@ -1349,7 +1349,7 @@
         errorLine1="                Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="526"
             column="29"/>
     </issue>
@@ -1360,7 +1360,7 @@
         errorLine1="                    val mode = context.getString(R.string.cd_dns_proxy_mode_external)"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="531"
             column="32"/>
     </issue>
@@ -1371,7 +1371,7 @@
         errorLine1="                        errorText = context.getString(R.string.cd_dns_proxy_error_text_1)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="535"
             column="37"/>
     </issue>
@@ -1382,7 +1382,7 @@
         errorLine1="                        errorText = context.getString(R.string.cd_dns_proxy_error_text_1) +"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="550"
             column="37"/>
     </issue>
@@ -1393,7 +1393,7 @@
         errorLine1="                        errorText = context.getString(R.string.cd_dns_proxy_error_text_3)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="557"
             column="37"/>
     </issue>
@@ -1404,7 +1404,7 @@
         errorLine1="                        errorText = context.getString(R.string.cd_dns_proxy_error_text_2)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="570"
             column="37"/>
     </issue>
@@ -1415,7 +1415,7 @@
         errorLine1="                Text(text = context.getString(R.string.lbl_add))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="582"
             column="29"/>
     </issue>
@@ -1426,7 +1426,7 @@
         errorLine1="    var name by remember { mutableStateOf(context.getString(R.string.cd_dns_crypt_name_default)) }"
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="700"
             column="43"/>
     </issue>
@@ -1437,7 +1437,7 @@
         errorLine1="            context.getString(R.string.cd_dns_crypt_name, dnscryptNextIndex.toString())"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="712"
             column="13"/>
     </issue>
@@ -1448,7 +1448,7 @@
         errorLine1="            context.getString(R.string.cd_dns_crypt_relay_name, relayNextIndex.toString())"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="714"
             column="13"/>
     </issue>
@@ -1459,7 +1459,7 @@
         errorLine1="            text = context.getString(R.string.cd_dns_crypt_dialog_heading),"
         errorLine2="                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="723"
             column="20"/>
     </issue>
@@ -1470,7 +1470,7 @@
         errorLine1="                Text(text = context.getString(R.string.cd_dns_crypt_resolver_heading))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="733"
             column="29"/>
     </issue>
@@ -1481,7 +1481,7 @@
         errorLine1="                Text(text = context.getString(R.string.cd_dns_crypt_relay_heading))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="737"
             column="29"/>
     </issue>
@@ -1492,7 +1492,7 @@
         errorLine1="            label = { Text(text = context.getString(R.string.cd_dns_crypt_dialog_name)) },"
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="744"
             column="35"/>
     </issue>
@@ -1503,7 +1503,7 @@
         errorLine1="            label = { Text(text = context.getString(R.string.cd_dns_crypt_dialog_stamp)) },"
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="750"
             column="35"/>
     </issue>
@@ -1514,7 +1514,7 @@
         errorLine1="            label = { Text(text = context.getString(R.string.cd_dns_crypt_dialog_desc)) },"
         errorLine2="                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="756"
             column="35"/>
     </issue>
@@ -1525,7 +1525,7 @@
         errorLine1="                Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="769"
             column="29"/>
     </issue>
@@ -1536,7 +1536,7 @@
         errorLine1="                        errorText = context.getString(R.string.custom_url_error_invalid_url)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="775"
             column="37"/>
     </issue>
@@ -1547,7 +1547,7 @@
         errorLine1="                Text(text = context.getString(R.string.lbl_add))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="791"
             column="29"/>
     </issue>
@@ -1558,7 +1558,7 @@
         errorLine1="        val title = context.getString("
         errorLine2="                    ^">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="853"
             column="21"/>
     </issue>
@@ -1569,7 +1569,7 @@
         errorLine1="            context.getString(R.string.lbl_add).replaceFirstChar(Char::uppercase),"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="855"
             column="13"/>
     </issue>
@@ -1580,7 +1580,7 @@
         errorLine1="            context.getString(R.string.lbl_odoh)"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="856"
             column="13"/>
     </issue>
@@ -1591,7 +1591,7 @@
         errorLine1="                nameLabel = context.getString(R.string.cd_doh_dialog_resolver_name),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="861"
             column="29"/>
     </issue>
@@ -1602,7 +1602,7 @@
         errorLine1="                proxyLabel = context.getString(R.string.settings_proxy_header).replaceFirstChar(Char::uppercase) +"
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="862"
             column="30"/>
     </issue>
@@ -1613,7 +1613,7 @@
         errorLine1="                    context.getString(R.string.lbl_optional),"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="863"
             column="21"/>
     </issue>
@@ -1624,7 +1624,7 @@
         errorLine1="                resolverLabel = context.getString(R.string.cd_doh_dialog_resolver_url),"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="864"
             column="33"/>
     </issue>
@@ -1635,7 +1635,7 @@
         errorLine1="                defaultName = context.getString(R.string.lbl_odoh),"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="865"
             column="31"/>
     </issue>
@@ -1646,7 +1646,7 @@
         errorLine1="                invalidUrlMessage = context.getString(R.string.custom_url_error_invalid_url),"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="868"
             column="37"/>
     </issue>
@@ -1657,7 +1657,7 @@
         errorLine1="                        context.getString(R.string.custom_url_error_invalid_url)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="877"
             column="25"/>
     </issue>
@@ -1668,7 +1668,7 @@
         errorLine1="                Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="955"
             column="29"/>
     </issue>
@@ -1679,7 +1679,7 @@
         errorLine1="                Text(text = context.getString(R.string.lbl_add))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="967"
             column="29"/>
     </issue>
@@ -1690,7 +1690,7 @@
         errorLine1="        name = context.getString(R.string.lbl_odoh) + nextIndex.toString()"
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="994"
             column="16"/>
     </issue>
@@ -1701,7 +1701,7 @@
         errorLine1="                Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="1027"
             column="29"/>
     </issue>
@@ -1712,7 +1712,7 @@
         errorLine1="                Text(text = context.getString(R.string.lbl_add))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="1038"
             column="29"/>
     </issue>
@@ -1723,7 +1723,7 @@
         errorLine1="            context.getString(R.string.download_update_dialog_message_success),"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureRethinkBasicScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureRethinkBasicScreen.kt"
             line="257"
             column="13"/>
     </issue>
@@ -1734,7 +1734,7 @@
         errorLine1="                        context.getString(R.string.download_update_dialog_failure_message),"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureRethinkBasicScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureRethinkBasicScreen.kt"
             line="389"
             column="25"/>
     </issue>
@@ -1745,7 +1745,7 @@
         errorLine1="                    context.getString("
         errorLine2="                    ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ConnectionTrackerAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ConnectionTrackerAdapter.kt"
             line="98"
             column="21"/>
     </issue>
@@ -1756,7 +1756,7 @@
         errorLine1="                    context.getString("
         errorLine2="                    ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ConnectionTrackerAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ConnectionTrackerAdapter.kt"
             line="104"
             column="21"/>
     </issue>
@@ -1767,7 +1767,7 @@
         errorLine1="                val desc = context.getString(R.string.console_log_desc)"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/settings/ConsoleLogScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/settings/ConsoleLogScreen.kt"
             line="114"
             column="28"/>
     </issue>
@@ -1778,7 +1778,7 @@
         errorLine1="                val sinceTxt = context.getString(R.string.logs_card_duration, since)"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/settings/ConsoleLogScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/settings/ConsoleLogScreen.kt"
             line="115"
             column="32"/>
     </issue>
@@ -1789,7 +1789,7 @@
         errorLine1="                infoText = context.getString(R.string.two_argument_space, desc, sinceTxt)"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/settings/ConsoleLogScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/settings/ConsoleLogScreen.kt"
             line="116"
             column="28"/>
     </issue>
@@ -1800,7 +1800,7 @@
         errorLine1="                context.getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
             line="82"
             column="17"/>
     </issue>
@@ -1811,7 +1811,7 @@
         errorLine1="                    Text(text = context.getString(R.string.lbl_delete))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
             line="132"
             column="33"/>
     </issue>
@@ -1822,7 +1822,7 @@
         errorLine1="                text = context.getString(R.string.lbl_domain),"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
             line="162"
             column="24"/>
     </issue>
@@ -1833,7 +1833,7 @@
         errorLine1="                    label = context.getString(R.string.ci_no_rule),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
             line="188"
             column="29"/>
     </issue>
@@ -1844,7 +1844,7 @@
         errorLine1="                    label = context.getString(R.string.ci_block),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
             line="204"
             column="29"/>
     </issue>
@@ -1855,7 +1855,7 @@
         errorLine1="                    label = context.getString(R.string.ci_trust_rule),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
             line="220"
             column="29"/>
     </issue>
@@ -1866,7 +1866,7 @@
         errorLine1="                title = { Text(text = context.getString(R.string.cd_remove_dialog_title)) },"
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
             line="241"
             column="39"/>
     </issue>
@@ -1877,7 +1877,7 @@
         errorLine1="                text = { Text(text = context.getString(R.string.cd_remove_dialog_message)) },"
         errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
             line="242"
             column="38"/>
     </issue>
@@ -1888,7 +1888,7 @@
         errorLine1="                                        context.getString(R.string.cd_toast_deleted),"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
             line="252"
             column="41"/>
     </issue>
@@ -1899,7 +1899,7 @@
         errorLine1="                        Text(text = context.getString(R.string.lbl_delete))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
             line="262"
             column="37"/>
     </issue>
@@ -1910,7 +1910,7 @@
         errorLine1="                        Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomDomainRulesDialog.kt"
             line="267"
             column="37"/>
     </issue>
@@ -1921,7 +1921,7 @@
         errorLine1="                context.getString(R.string.firewall_act_universal_tab).replaceFirstChar(Char::titlecase)"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
             line="82"
             column="17"/>
     </issue>
@@ -1932,7 +1932,7 @@
         errorLine1="                    Text(text = context.getString(R.string.lbl_delete))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
             line="130"
             column="33"/>
     </issue>
@@ -1943,7 +1943,7 @@
         errorLine1="                    label = context.getString(R.string.ci_no_rule),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
             line="180"
             column="29"/>
     </issue>
@@ -1954,7 +1954,7 @@
         errorLine1="                    label = context.getString(R.string.ci_block),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
             line="191"
             column="29"/>
     </issue>
@@ -1965,7 +1965,7 @@
         errorLine1="                        label = context.getString(R.string.ci_bypass_universal),"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
             line="203"
             column="33"/>
     </issue>
@@ -1976,7 +1976,7 @@
         errorLine1="                        label = context.getString(R.string.ci_trust_rule),"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
             line="215"
             column="33"/>
     </issue>
@@ -1987,7 +1987,7 @@
         errorLine1="                title = { Text(text = context.getString(R.string.univ_firewall_dialog_title)) },"
         errorLine2="                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
             line="232"
             column="39"/>
     </issue>
@@ -1998,7 +1998,7 @@
         errorLine1="                text = { Text(text = context.getString(R.string.univ_firewall_dialog_message)) },"
         errorLine2="                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
             line="233"
             column="38"/>
     </issue>
@@ -2009,7 +2009,7 @@
         errorLine1="                                        context.getString("
         errorLine2="                                        ^">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
             line="243"
             column="41"/>
     </issue>
@@ -2020,7 +2020,7 @@
         errorLine1="                        Text(text = context.getString(R.string.lbl_delete))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
             line="256"
             column="37"/>
     </issue>
@@ -2031,7 +2031,7 @@
         errorLine1="                        Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/bottomsheet/CustomIpRulesDialog.kt"
             line="261"
             column="37"/>
     </issue>
@@ -2042,7 +2042,7 @@
         errorLine1="            errorMessage = context.getString(R.string.custom_lan_ip_save_error)"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="200"
             column="28"/>
     </issue>
@@ -2053,7 +2053,7 @@
         errorLine1="                errorMessage = context.getString(R.string.custom_lan_ip_validation_error)"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="228"
             column="32"/>
     </issue>
@@ -2064,7 +2064,7 @@
         errorLine1="            errorMessage = context.getString(R.string.custom_lan_ip_save_error)"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="269"
             column="28"/>
     </issue>
@@ -2075,7 +2075,7 @@
         errorLine1="                    text = context.getString(R.string.settings_ip_text_ipv46),"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="297"
             column="28"/>
     </issue>
@@ -2086,7 +2086,7 @@
         errorLine1="                    text = context.getString(R.string.lbl_manual),"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="310"
             column="28"/>
     </issue>
@@ -2097,7 +2097,7 @@
         errorLine1="                        context.getString(R.string.custom_lan_ip_manual_desc)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="327"
             column="25"/>
     </issue>
@@ -2108,7 +2108,7 @@
         errorLine1="                        context.getString(R.string.custom_lan_ip_auto_desc)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="329"
             column="25"/>
     </issue>
@@ -2119,7 +2119,7 @@
         errorLine1="            SectionTitle(text = context.getString(R.string.custom_lan_ip_gateway))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="334"
             column="33"/>
     </issue>
@@ -2130,7 +2130,7 @@
         errorLine1="                ipHint = context.getString(R.string.settings_ip_text_ipv4),"
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="338"
             column="26"/>
     </issue>
@@ -2141,7 +2141,7 @@
         errorLine1="                prefixHint = context.getString(R.string.lbl_prefix),"
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="339"
             column="30"/>
     </issue>
@@ -2152,7 +2152,7 @@
         errorLine1="                ipHint = context.getString(R.string.settings_ip_text_ipv6),"
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="347"
             column="26"/>
     </issue>
@@ -2163,7 +2163,7 @@
         errorLine1="                prefixHint = context.getString(R.string.lbl_prefix),"
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="348"
             column="30"/>
     </issue>
@@ -2174,7 +2174,7 @@
         errorLine1="            SectionTitle(text = context.getString(R.string.custom_lan_ip_router))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="354"
             column="33"/>
     </issue>
@@ -2185,7 +2185,7 @@
         errorLine1="                ipHint = context.getString(R.string.settings_ip_text_ipv4),"
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="358"
             column="26"/>
     </issue>
@@ -2196,7 +2196,7 @@
         errorLine1="                prefixHint = context.getString(R.string.lbl_prefix),"
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="359"
             column="30"/>
     </issue>
@@ -2207,7 +2207,7 @@
         errorLine1="                ipHint = context.getString(R.string.settings_ip_text_ipv6),"
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="367"
             column="26"/>
     </issue>
@@ -2218,7 +2218,7 @@
         errorLine1="                prefixHint = context.getString(R.string.lbl_prefix),"
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="368"
             column="30"/>
     </issue>
@@ -2229,7 +2229,7 @@
         errorLine1="            SectionTitle(text = context.getString(R.string.dns_mode_info_title))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="374"
             column="33"/>
     </issue>
@@ -2240,7 +2240,7 @@
         errorLine1="                ipHint = context.getString(R.string.settings_ip_text_ipv4),"
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="378"
             column="26"/>
     </issue>
@@ -2251,7 +2251,7 @@
         errorLine1="                prefixHint = context.getString(R.string.lbl_prefix),"
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="379"
             column="30"/>
     </issue>
@@ -2262,7 +2262,7 @@
         errorLine1="                ipHint = context.getString(R.string.settings_ip_text_ipv6),"
         errorLine2="                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="387"
             column="26"/>
     </issue>
@@ -2273,7 +2273,7 @@
         errorLine1="                prefixHint = context.getString(R.string.lbl_prefix),"
         errorLine2="                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="388"
             column="30"/>
     </issue>
@@ -2284,7 +2284,7 @@
         errorLine1="                    Text(text = context.getString(R.string.lbl_reset))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="411"
             column="33"/>
     </issue>
@@ -2295,7 +2295,7 @@
         errorLine1="                    Text(text = context.getString(R.string.lbl_save))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/CustomLanIpDialog.kt"
             line="423"
             column="33"/>
     </issue>
@@ -2306,7 +2306,7 @@
         errorLine1="                explanation = context.getString(status).replaceFirstChar(Char::titlecase)"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
             line="82"
             column="31"/>
     </issue>
@@ -2317,7 +2317,7 @@
         errorLine1="            explanation = context.getString(R.string.rt_filter_parent_selected)"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
             line="86"
             column="27"/>
     </issue>
@@ -2328,7 +2328,7 @@
         errorLine1="                    title = { Text(text = context.getString(R.string.dns_crypt_custom_url_remove_dialog_title)) },"
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
             line="143"
             column="43"/>
     </issue>
@@ -2339,7 +2339,7 @@
         errorLine1="                    text = { Text(text = context.getString(R.string.dns_crypt_url_remove_dialog_message)) },"
         errorLine2="                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
             line="144"
             column="42"/>
     </issue>
@@ -2350,7 +2350,7 @@
         errorLine1="                            Text(text = context.getString(R.string.lbl_delete))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
             line="152"
             column="41"/>
     </issue>
@@ -2361,7 +2361,7 @@
         errorLine1="                            Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
             line="157"
             column="41"/>
     </issue>
@@ -2372,7 +2372,7 @@
         errorLine1="                            Text(text = context.getString(R.string.dns_info_positive))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
             line="175"
             column="41"/>
     </issue>
@@ -2383,7 +2383,7 @@
         errorLine1="                                    context.getString(R.string.copy_clipboard_label)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
             line="184"
             column="37"/>
     </issue>
@@ -2394,7 +2394,7 @@
         errorLine1="                                    context.getString(R.string.info_dialog_url_copy_toast_msg),"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
             line="188"
             column="37"/>
     </issue>
@@ -2405,7 +2405,7 @@
         errorLine1="                            Text(text = context.getString(R.string.dns_info_neutral))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
             line="193"
             column="41"/>
     </issue>
@@ -2416,7 +2416,7 @@
         errorLine1="            explanation = context.getString(status).replaceFirstChar(Char::titlecase)"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
             line="79"
             column="27"/>
     </issue>
@@ -2427,7 +2427,7 @@
         errorLine1="                    title = { Text(text = context.getString(R.string.dns_crypt_relay_remove_dialog_title)) },"
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
             line="144"
             column="43"/>
     </issue>
@@ -2438,7 +2438,7 @@
         errorLine1="                    text = { Text(text = context.getString(R.string.dns_crypt_relay_remove_dialog_message)) },"
         errorLine2="                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
             line="145"
             column="42"/>
     </issue>
@@ -2449,7 +2449,7 @@
         errorLine1="                            Text(text = context.getString(R.string.lbl_delete))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
             line="153"
             column="41"/>
     </issue>
@@ -2460,7 +2460,7 @@
         errorLine1="                            Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
             line="158"
             column="41"/>
     </issue>
@@ -2471,7 +2471,7 @@
         errorLine1="                            Text(text = context.getString(R.string.dns_info_positive))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
             line="176"
             column="41"/>
     </issue>
@@ -2482,7 +2482,7 @@
         errorLine1="                                    context.getString(R.string.copy_clipboard_label)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
             line="185"
             column="37"/>
     </issue>
@@ -2493,7 +2493,7 @@
         errorLine1="                                    context.getString(R.string.info_dialog_url_copy_toast_msg),"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
             line="189"
             column="37"/>
     </issue>
@@ -2504,7 +2504,7 @@
         errorLine1="                            Text(text = context.getString(R.string.dns_info_neutral))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
             line="194"
             column="41"/>
     </issue>
@@ -2515,7 +2515,7 @@
         errorLine1="        enableLabel = context.getString(R.string.lbbs_enabled)"
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="189"
             column="23"/>
     </issue>
@@ -2526,7 +2526,7 @@
         errorLine1="        headingText = context.getString("
         errorLine2="                      ^">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="191"
             column="23"/>
     </issue>
@@ -2537,7 +2537,7 @@
         errorLine1="        enableLabel = context.getString(R.string.lbl_disabled)"
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="201"
             column="23"/>
     </issue>
@@ -2548,7 +2548,7 @@
         errorLine1="        headingText = context.getString(R.string.lbbs_heading)"
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="203"
             column="23"/>
     </issue>
@@ -2559,7 +2559,7 @@
         errorLine1="        versionText = context.getString("
         errorLine2="                      ^">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="229"
             column="23"/>
     </issue>
@@ -2570,7 +2570,7 @@
         errorLine1="                    context.getString(R.string.blocklist_update_check_failure),"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="276"
             column="21"/>
     </issue>
@@ -2581,7 +2581,7 @@
         errorLine1="                    context.getString(R.string.blocklist_update_check_not_required),"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="288"
             column="21"/>
     </issue>
@@ -2592,7 +2592,7 @@
         errorLine1="                    context.getString(R.string.blocklist_not_available_toast),"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="298"
             column="21"/>
     </issue>
@@ -2603,7 +2603,7 @@
         errorLine1="                context.getString(R.string.config_add_success_toast),"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="346"
             column="17"/>
     </issue>
@@ -2614,7 +2614,7 @@
         errorLine1="                context.getString(R.string.ssv_toast_start_rethink),"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="382"
             column="17"/>
     </issue>
@@ -2625,7 +2625,7 @@
         errorLine1="                context.getString(R.string.ssv_toast_start_rethink),"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="415"
             column="17"/>
     </issue>
@@ -2636,7 +2636,7 @@
         errorLine1="                val desc = context.getString(R.string.smart_dns_desc)"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="458"
             column="28"/>
     </issue>
@@ -2647,7 +2647,7 @@
         errorLine1="                    val txt = context.getString(R.string.symbol_star) + &quot; &quot; + it"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="461"
             column="31"/>
     </issue>
@@ -2658,7 +2658,7 @@
         errorLine1="                context.getString(R.string.blocklist_update_check_failure),"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="513"
             column="17"/>
     </issue>
@@ -2669,7 +2669,7 @@
         errorLine1="                context.getString(R.string.blocklist_update_check_failure),"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="530"
             column="17"/>
     </issue>
@@ -2680,7 +2680,7 @@
         errorLine1="                context.getString(R.string.blocklist_update_check_failure),"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="549"
             column="17"/>
     </issue>
@@ -2691,7 +2691,7 @@
         errorLine1="                                context.getString(R.string.copy_clipboard_label)"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="626"
             column="33"/>
     </issue>
@@ -2702,7 +2702,7 @@
         errorLine1="                                context.getString(R.string.info_dialog_url_copy_toast_msg),"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="630"
             column="33"/>
     </issue>
@@ -2713,7 +2713,7 @@
         errorLine1="                                context.getString(R.string.copy_clipboard_label)"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="659"
             column="33"/>
     </issue>
@@ -2724,7 +2724,7 @@
         errorLine1="                                context.getString(R.string.info_dialog_url_copy_toast_msg),"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="663"
             column="33"/>
     </issue>
@@ -2735,7 +2735,7 @@
         errorLine1="                    context.getString(R.string.copy_clipboard_label)"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="702"
             column="21"/>
     </issue>
@@ -2746,7 +2746,7 @@
         errorLine1="                    context.getString(R.string.info_dialog_rethink_toast_msg),"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/dns/DnsDetailScreen.kt"
             line="706"
             column="21"/>
     </issue>
@@ -2757,7 +2757,7 @@
         errorLine1="    val latencyText = context.getString(R.string.dns_query_latency, log.latency.toString())"
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsLogAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsLogAdapter.kt"
             line="83"
             column="23"/>
     </issue>
@@ -2768,7 +2768,7 @@
         errorLine1="                            context.getString(R.string.network_log_app_name_unknown)"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsLogAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsLogAdapter.kt"
             line="165"
             column="29"/>
     </issue>
@@ -2779,7 +2779,7 @@
         errorLine1="        val defaultName = context.getString(R.string.cd_custom_dns_proxy_default_app)"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
             line="73"
             column="27"/>
     </issue>
@@ -2790,7 +2790,7 @@
         errorLine1="                                context.getString("
         errorLine2="                                ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
             line="114"
             column="33"/>
     </issue>
@@ -2801,7 +2801,7 @@
         errorLine1="                                context.getString("
         errorLine2="                                ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
             line="121"
             column="33"/>
     </issue>
@@ -2812,7 +2812,7 @@
         errorLine1="                    title = { Text(text = context.getString(R.string.dns_proxy_remove_dialog_title)) },"
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
             line="152"
             column="43"/>
     </issue>
@@ -2823,7 +2823,7 @@
         errorLine1="                    text = { Text(text = context.getString(R.string.dns_proxy_remove_dialog_message)) },"
         errorLine2="                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
             line="153"
             column="42"/>
     </issue>
@@ -2834,7 +2834,7 @@
         errorLine1="                            Text(text = context.getString(R.string.lbl_delete))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
             line="161"
             column="41"/>
     </issue>
@@ -2845,7 +2845,7 @@
         errorLine1="                            Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
             line="166"
             column="41"/>
     </issue>
@@ -2856,7 +2856,7 @@
         errorLine1="                            Text(text = context.getString(R.string.dns_info_positive))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
             line="178"
             column="41"/>
     </issue>
@@ -2867,7 +2867,7 @@
         errorLine1="                                        context.getString(R.string.copy_clipboard_label)"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
             line="188"
             column="41"/>
     </issue>
@@ -2878,7 +2878,7 @@
         errorLine1="                                        context.getString(R.string.info_dialog_copy_toast_msg),"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
             line="192"
             column="41"/>
     </issue>
@@ -2889,7 +2889,7 @@
         errorLine1="                                Text(text = context.getString(R.string.dns_info_neutral))"
         errorLine2="                                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsProxyEndpointAdapter.kt"
             line="197"
             column="45"/>
     </issue>
@@ -2900,7 +2900,7 @@
         errorLine1="                explanation = context.getString(status).replaceFirstChar(Char::titlecase)"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="84"
             column="31"/>
     </issue>
@@ -2911,7 +2911,7 @@
         errorLine1="            explanation = context.getString(R.string.rt_filter_parent_selected)"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="88"
             column="27"/>
     </issue>
@@ -2922,7 +2922,7 @@
         errorLine1="            context.getString("
         errorLine2="            ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="98"
             column="13"/>
     </issue>
@@ -2933,7 +2933,7 @@
         errorLine1="                context.getString(R.string.lbl_insecure)"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="101"
             column="17"/>
     </issue>
@@ -2944,7 +2944,7 @@
         errorLine1="                    title = { Text(text = context.getString(R.string.doh_custom_url_remove_dialog_title)) },"
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="152"
             column="43"/>
     </issue>
@@ -2955,7 +2955,7 @@
         errorLine1="                    text = { Text(text = context.getString(R.string.dot_custom_url_remove_dialog_message)) },"
         errorLine2="                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="153"
             column="42"/>
     </issue>
@@ -2966,7 +2966,7 @@
         errorLine1="                            Text(text = context.getString(R.string.lbl_delete))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="161"
             column="41"/>
     </issue>
@@ -2977,7 +2977,7 @@
         errorLine1="                            Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="166"
             column="41"/>
     </issue>
@@ -2988,7 +2988,7 @@
         errorLine1="                            Text(text = context.getString(R.string.dns_info_positive))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="184"
             column="41"/>
     </issue>
@@ -2999,7 +2999,7 @@
         errorLine1="                                    context.getString(R.string.copy_clipboard_label)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="193"
             column="37"/>
     </issue>
@@ -3010,7 +3010,7 @@
         errorLine1="                                    context.getString(R.string.info_dialog_url_copy_toast_msg),"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="197"
             column="37"/>
     </issue>
@@ -3021,7 +3021,7 @@
         errorLine1="                            Text(text = context.getString(R.string.dns_info_neutral))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="202"
             column="41"/>
     </issue>
@@ -3032,7 +3032,7 @@
         errorLine1="                explanation = context.getString(status).replaceFirstChar(Char::titlecase)"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="84"
             column="31"/>
     </issue>
@@ -3043,7 +3043,7 @@
         errorLine1="            explanation = context.getString(R.string.rt_filter_parent_selected)"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="88"
             column="27"/>
     </issue>
@@ -3054,7 +3054,7 @@
         errorLine1="            context.getString("
         errorLine2="            ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="98"
             column="13"/>
     </issue>
@@ -3065,7 +3065,7 @@
         errorLine1="                context.getString(R.string.lbl_insecure)"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="101"
             column="17"/>
     </issue>
@@ -3076,7 +3076,7 @@
         errorLine1="                    title = { Text(text = context.getString(R.string.doh_custom_url_remove_dialog_title)) },"
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="152"
             column="43"/>
     </issue>
@@ -3087,7 +3087,7 @@
         errorLine1="                    text = { Text(text = context.getString(R.string.doh_custom_url_remove_dialog_message)) },"
         errorLine2="                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="153"
             column="42"/>
     </issue>
@@ -3098,7 +3098,7 @@
         errorLine1="                            Text(text = context.getString(R.string.lbl_delete))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="161"
             column="41"/>
     </issue>
@@ -3109,7 +3109,7 @@
         errorLine1="                            Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="166"
             column="41"/>
     </issue>
@@ -3120,7 +3120,7 @@
         errorLine1="                            Text(text = context.getString(R.string.dns_info_positive))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="184"
             column="41"/>
     </issue>
@@ -3131,7 +3131,7 @@
         errorLine1="                                    context.getString(R.string.copy_clipboard_label)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="193"
             column="37"/>
     </issue>
@@ -3142,7 +3142,7 @@
         errorLine1="                                    context.getString(R.string.info_dialog_url_copy_toast_msg),"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="197"
             column="37"/>
     </issue>
@@ -3153,7 +3153,7 @@
         errorLine1="                            Text(text = context.getString(R.string.dns_info_neutral))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="202"
             column="41"/>
     </issue>
@@ -3164,7 +3164,7 @@
         errorLine1="        context.getString(R.string.network_log_app_name_unnamed, &quot;(${dc.uid})&quot;)"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DomainConnectionsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DomainConnectionsAdapter.kt"
             line="43"
             column="9"/>
     </issue>
@@ -3175,7 +3175,7 @@
         errorLine1="            context.getString("
         errorLine2="            ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DomainConnectionsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DomainConnectionsAdapter.kt"
             line="49"
             column="13"/>
     </issue>
@@ -3186,7 +3186,7 @@
         errorLine1="            context.getString("
         errorLine2="            ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DomainConnectionsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DomainConnectionsAdapter.kt"
             line="54"
             column="13"/>
     </issue>
@@ -3197,7 +3197,7 @@
         errorLine1="        context.getString(R.string.two_argument, upload, download)"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DomainConnectionsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DomainConnectionsAdapter.kt"
             line="58"
             column="9"/>
     </issue>
@@ -3208,7 +3208,7 @@
         errorLine1="                    context.getString("
         errorLine2="                    ^">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/logs/DomainConnectionsScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/logs/DomainConnectionsScreen.kt"
             line="84"
             column="21"/>
     </issue>
@@ -3219,7 +3219,7 @@
         errorLine1="            context.getString(R.string.firewall_status_allow)"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt"
             line="102"
             column="13"/>
     </issue>
@@ -3230,7 +3230,7 @@
         errorLine1="                    text = appInfo.appName + if (proxyEnabled) context.getString(R.string.symbol_key) else &quot;&quot;,"
         errorLine2="                                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt"
             line="135"
             column="64"/>
     </issue>
@@ -3241,7 +3241,7 @@
         errorLine1="                        context.getString("
         errorLine2="                        ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt"
             line="214"
             column="25"/>
     </issue>
@@ -3252,7 +3252,7 @@
         errorLine1="                    Text(text = context.getString(R.string.lbl_proceed))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt"
             line="241"
             column="33"/>
     </issue>
@@ -3263,7 +3263,7 @@
         errorLine1="                    Text(text = context.getString(R.string.ctbs_dialog_negative_btn))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/FirewallAppListAdapter.kt"
             line="246"
             column="33"/>
     </issue>
@@ -3274,7 +3274,7 @@
         errorLine1="    val entryText = context.getString(R.string.dc_entries, filetag.entries.toString())"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/LocalAdvancedViewAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/LocalAdvancedViewAdapter.kt"
             line="64"
             column="21"/>
     </issue>
@@ -3285,7 +3285,7 @@
         errorLine1="                            context.getString("
         errorLine2="                            ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/LocalSimpleViewAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/LocalSimpleViewAdapter.kt"
             line="112"
             column="29"/>
     </issue>
@@ -3296,7 +3296,7 @@
         errorLine1="            Button(onClick = { openUrl(context, context.getString(R.string.about_website_link)) }) {"
         errorLine2="                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/settings/MiscSettingsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/settings/MiscSettingsScreen.kt"
             line="198"
             column="49"/>
     </issue>
@@ -3307,7 +3307,7 @@
         errorLine1="            TabSpec(LogTab.CONNECTION, context.getString(R.string.firewall_act_network_monitor_tab)),"
         errorLine2="                                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/NetworkLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/NetworkLogsScreen.kt"
             line="109"
             column="40"/>
     </issue>
@@ -3318,7 +3318,7 @@
         errorLine1="            TabSpec(LogTab.DNS, context.getString(R.string.dns_mode_info_title))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/NetworkLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/NetworkLogsScreen.kt"
             line="110"
             column="33"/>
     </issue>
@@ -3329,7 +3329,7 @@
         errorLine1="                            context.getString(R.string.refresh_complete),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/NetworkLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/NetworkLogsScreen.kt"
             line="312"
             column="29"/>
     </issue>
@@ -3340,7 +3340,7 @@
         errorLine1="                            context.getString(R.string.refresh_complete),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/NetworkLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/NetworkLogsScreen.kt"
             line="430"
             column="29"/>
     </issue>
@@ -3351,7 +3351,7 @@
         errorLine1="        val autoTxt = context.getString(R.string.lbl_auto)"
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
             line="141"
             column="23"/>
     </issue>
@@ -3362,7 +3362,7 @@
         errorLine1="                    errorMessage = context.getString(R.string.blocklist_update_check_failure)"
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
             line="239"
             column="36"/>
     </issue>
@@ -3373,7 +3373,7 @@
         errorLine1="                errorMessage = context.getString(R.string.cd_dns_proxy_error_text_1)"
         errorLine2="                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
             line="259"
             column="32"/>
     </issue>
@@ -3384,7 +3384,7 @@
         errorLine1="            context.getString(R.string.config_add_success_toast),"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
             line="285"
             column="13"/>
     </issue>
@@ -3395,7 +3395,7 @@
         errorLine1="                    text = context.getString(R.string.settings_ip_text_ipv46),"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
             line="315"
             column="28"/>
     </issue>
@@ -3406,7 +3406,7 @@
         errorLine1="                    text = context.getString(R.string.lbl_manual),"
         errorLine2="                           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
             line="320"
             column="28"/>
     </issue>
@@ -3417,7 +3417,7 @@
         errorLine1="                text = context.getString(R.string.bypasses_network_restrictions),"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
             line="326"
             column="24"/>
     </issue>
@@ -3428,7 +3428,7 @@
         errorLine1="                    Text(text = context.getString(R.string.settings_ip_text_ipv4))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
             line="334"
             column="33"/>
     </issue>
@@ -3439,7 +3439,7 @@
         errorLine1="                        Text(text = context.getString(R.string.brbs_restore_title))"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
             line="338"
             column="37"/>
     </issue>
@@ -3450,7 +3450,7 @@
         errorLine1="                    Text(text = context.getString(R.string.settings_ip_text_ipv6))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
             line="378"
             column="33"/>
     </issue>
@@ -3461,7 +3461,7 @@
         errorLine1="                    Text(text = context.getString(R.string.lbl_test))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
             line="423"
             column="33"/>
     </issue>
@@ -3472,7 +3472,7 @@
         errorLine1="                    Text(text = context.getString(R.string.lbl_save))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/NetworkReachabilityDialog.kt"
             line="430"
             column="33"/>
     </issue>
@@ -3483,7 +3483,7 @@
         errorLine1="                explanation = context.getString(status).replaceFirstChar(Char::titlecase)"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
             line="89"
             column="31"/>
     </issue>
@@ -3494,7 +3494,7 @@
         errorLine1="            explanation = context.getString(R.string.rt_filter_parent_selected)"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
             line="93"
             column="27"/>
     </issue>
@@ -3505,7 +3505,7 @@
         errorLine1="                    title = { Text(text = context.getString(R.string.dot_custom_url_remove_dialog_title)) },"
         errorLine2="                                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
             line="148"
             column="43"/>
     </issue>
@@ -3516,7 +3516,7 @@
         errorLine1="                    text = { Text(text = context.getString(R.string.dot_custom_url_remove_dialog_message)) },"
         errorLine2="                                         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
             line="149"
             column="42"/>
     </issue>
@@ -3527,7 +3527,7 @@
         errorLine1="                            Text(text = context.getString(R.string.lbl_delete))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
             line="157"
             column="41"/>
     </issue>
@@ -3538,7 +3538,7 @@
         errorLine1="                            Text(text = context.getString(R.string.lbl_cancel))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
             line="162"
             column="41"/>
     </issue>
@@ -3549,7 +3549,7 @@
         errorLine1="                            Text(text = context.getString(R.string.dns_info_positive))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
             line="176"
             column="41"/>
     </issue>
@@ -3560,7 +3560,7 @@
         errorLine1="                                    context.getString(R.string.copy_clipboard_label)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
             line="185"
             column="37"/>
     </issue>
@@ -3571,7 +3571,7 @@
         errorLine1="                                    context.getString(R.string.info_dialog_url_copy_toast_msg),"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
             line="189"
             column="37"/>
     </issue>
@@ -3582,7 +3582,7 @@
         errorLine1="                            Text(text = context.getString(R.string.dns_info_neutral))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
             line="194"
             column="41"/>
     </issue>
@@ -3593,7 +3593,7 @@
         errorLine1="        mutableStateOf(context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase))"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/OneWgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/OneWgConfigAdapter.kt"
             line="119"
             column="24"/>
     </issue>
@@ -3604,7 +3604,7 @@
         errorLine1="                                context.getString("
         errorLine2="                                ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/OneWgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/OneWgConfigAdapter.kt"
             line="193"
             column="33"/>
     </issue>
@@ -3615,7 +3615,7 @@
         errorLine1="                                WgChip(text = context.getString(R.string.settings_ip_text_ipv4))"
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/OneWgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/OneWgConfigAdapter.kt"
             line="207"
             column="47"/>
     </issue>
@@ -3626,7 +3626,7 @@
         errorLine1="                                WgChip(text = context.getString(R.string.settings_ip_text_ipv6))"
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/OneWgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/OneWgConfigAdapter.kt"
             line="210"
             column="47"/>
     </issue>
@@ -3637,7 +3637,7 @@
         errorLine1="                                WgChip(text = context.getString(R.string.lbl_split))"
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/OneWgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/OneWgConfigAdapter.kt"
             line="213"
             column="47"/>
     </issue>
@@ -3648,7 +3648,7 @@
         errorLine1="    val entryText = context.getString(R.string.dc_entries, filetag.entries.toString())"
         errorLine2="                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RemoteAdvancedViewAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RemoteAdvancedViewAdapter.kt"
             line="64"
             column="21"/>
     </issue>
@@ -3659,7 +3659,7 @@
         errorLine1="                            context.getString("
         errorLine2="                            ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RemoteSimpleViewAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RemoteSimpleViewAdapter.kt"
             line="112"
             column="29"/>
     </issue>
@@ -3670,7 +3670,7 @@
         errorLine1="                        context.getString(status).replaceFirstChar(Char::titlecase)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
             line="91"
             column="25"/>
     </issue>
@@ -3681,7 +3681,7 @@
         errorLine1="                        context.getString("
         errorLine2="                        ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
             line="93"
             column="25"/>
     </issue>
@@ -3692,7 +3692,7 @@
         errorLine1="                        context.getString(status)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
             line="98"
             column="25"/>
     </issue>
@@ -3703,7 +3703,7 @@
         errorLine1="            explanation = context.getString(R.string.rt_filter_parent_selected)"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
             line="103"
             column="27"/>
     </issue>
@@ -3714,7 +3714,7 @@
         errorLine1="                context.getString(R.string.rt_edit_dialog_positive)"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
             line="144"
             column="17"/>
     </issue>
@@ -3725,7 +3725,7 @@
         errorLine1="                context.getString(R.string.dns_info_positive)"
         errorLine2="                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
             line="146"
             column="17"/>
     </issue>
@@ -3736,7 +3736,7 @@
         errorLine1="                            context.getString(R.string.copy_clipboard_label)"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
             line="170"
             column="29"/>
     </issue>
@@ -3747,7 +3747,7 @@
         errorLine1="                            context.getString(R.string.info_dialog_url_copy_toast_msg),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
             line="174"
             column="29"/>
     </issue>
@@ -3758,7 +3758,7 @@
         errorLine1="                    Text(text = context.getString(R.string.dns_info_neutral))"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RethinkEndpointAdapter.kt"
             line="179"
             column="33"/>
     </issue>
@@ -3769,7 +3769,7 @@
         errorLine1="            context.getString(R.string.dns_mode_info_title)"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RethinkLogAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RethinkLogAdapter.kt"
             line="89"
             column="13"/>
     </issue>
@@ -3780,7 +3780,7 @@
         errorLine1="                context.getString("
         errorLine2="                ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/RethinkLogAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/RethinkLogAdapter.kt"
             line="109"
             column="17"/>
     </issue>
@@ -3791,7 +3791,7 @@
         errorLine1="                            Text(text = context.getString(R.string.ada_noapp_dialog_positive))"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/rpn/RpnWinProxyDetailsScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/rpn/RpnWinProxyDetailsScreen.kt"
             line="130"
             column="41"/>
     </issue>
@@ -3802,7 +3802,7 @@
         errorLine1="            context.getString(R.string.add_remove_apps, &quot;0&quot;)"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
             line="103"
             column="13"/>
     </issue>
@@ -3813,7 +3813,7 @@
         errorLine1="            context.getString(R.string.add_remove_apps, appCount.toString())"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
             line="105"
             column="13"/>
     </issue>
@@ -3824,7 +3824,7 @@
         errorLine1="        tcpProxyDesc = context.getString(R.string.settings_https_desc)"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
             line="111"
             column="24"/>
     </issue>
@@ -3835,7 +3835,7 @@
         errorLine1="        tcpProxyAddAppsText = context.getString(R.string.add_remove_apps, &quot;0&quot;)"
         errorLine2="                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
             line="112"
             column="31"/>
     </issue>
@@ -3846,7 +3846,7 @@
         errorLine1="        tcpErrorText = context.getString(R.string.something_went_wrong)"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
             line="129"
             column="24"/>
     </issue>
@@ -3857,7 +3857,7 @@
         errorLine1="                        context.getString(R.string.tcp_proxy_warp_active_error),"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
             line="141"
             column="25"/>
     </issue>
@@ -3868,7 +3868,7 @@
         errorLine1="                        context.getString(R.string.tcp_proxy_no_apps_error),"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
             line="152"
             column="25"/>
     </issue>
@@ -3879,7 +3879,7 @@
         errorLine1="                    tcpProxyDesc = context.getString(R.string.settings_https_desc)"
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
             line="162"
             column="36"/>
     </issue>
@@ -3890,7 +3890,7 @@
         errorLine1="                        context.getString(R.string.settings_https_disabled_error, s),"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/proxy/TcpProxyMainScreen.kt"
             line="177"
             column="25"/>
     </issue>
@@ -3901,7 +3901,7 @@
         errorLine1="        return if (parts.isEmpty()) context.getString(R.string.lbl_disabled) else parts.joinToString(&quot; &quot;)"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/settings/TunnelSettingsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/settings/TunnelSettingsScreen.kt"
             line="158"
             column="37"/>
     </issue>
@@ -3912,7 +3912,7 @@
         errorLine1="                                showToastUiCentered(context, context.getString(R.string.settings_protocol_translation_dns_inactive), Toast.LENGTH_SHORT)"
         errorLine2="                                                             ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/settings/TunnelSettingsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/settings/TunnelSettingsScreen.kt"
             line="375"
             column="62"/>
     </issue>
@@ -3923,7 +3923,7 @@
         errorLine1="                                    showToastUiCentered(context, context.getString(R.string.settings_socks5_vpn_disabled_error), Toast.LENGTH_SHORT)"
         errorLine2="                                                                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/settings/TunnelSettingsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/settings/TunnelSettingsScreen.kt"
             line="415"
             column="66"/>
     </issue>
@@ -3934,7 +3934,7 @@
         errorLine1="        mutableStateOf(context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase))"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
             line="128"
             column="24"/>
     </issue>
@@ -3945,7 +3945,7 @@
         errorLine1="                                context.getString("
         errorLine2="                                ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
             line="206"
             column="33"/>
     </issue>
@@ -3956,7 +3956,7 @@
         errorLine1="                                WgChip(text = context.getString(R.string.settings_ip_text_ipv4))"
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
             line="220"
             column="47"/>
     </issue>
@@ -3967,7 +3967,7 @@
         errorLine1="                                WgChip(text = context.getString(R.string.settings_ip_text_ipv6))"
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
             line="223"
             column="47"/>
     </issue>
@@ -3978,7 +3978,7 @@
         errorLine1="                                WgChip(text = context.getString(R.string.lbl_split))"
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
             line="226"
             column="47"/>
     </issue>
@@ -3989,7 +3989,7 @@
         errorLine1="                                WgChip(text = context.getString(R.string.lbl_amnezia))"
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
             line="229"
             column="47"/>
     </issue>
@@ -4000,7 +4000,7 @@
         errorLine1="                                WgChip(text = context.getString(R.string.lbl_hopping))"
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
             line="232"
             column="47"/>
     </issue>
@@ -4011,7 +4011,7 @@
         errorLine1="                                WgChip(text = context.getString(R.string.cd_dns_crypt_relay_heading))"
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgConfigAdapter.kt"
             line="235"
             column="47"/>
     </issue>
@@ -4022,7 +4022,7 @@
         errorLine1="                        ERR_CODE_VPN_NOT_ACTIVE + context.getString(R.string.settings_socks5_vpn_disabled_error),"
         errorLine2="                                                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
             line="225"
             column="51"/>
     </issue>
@@ -4033,7 +4033,7 @@
         errorLine1="                        ERR_CODE_VPN_NOT_FULL + context.getString(R.string.wireguard_enabled_failure),"
         errorLine2="                                                ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
             line="237"
             column="49"/>
     </issue>
@@ -4044,7 +4044,7 @@
         errorLine1="                        ERR_CODE_OTHER_WG_ACTIVE + context.getString(R.string.wireguard_enabled_failure),"
         errorLine2="                                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
             line="249"
             column="52"/>
     </issue>
@@ -4055,7 +4055,7 @@
         errorLine1="                        ERR_CODE_WG_INVALID + context.getString(R.string.wireguard_enabled_failure),"
         errorLine2="                                              ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
             line="262"
             column="47"/>
     </issue>
@@ -4066,7 +4066,7 @@
         errorLine1="                                    context.getString(R.string.config_add_success_toast),"
         errorLine2="                                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
             line="362"
             column="37"/>
     </issue>
@@ -4077,7 +4077,7 @@
         errorLine1="            context.getString(R.string.public_key_copy_toast_msg),"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgConfigEditorScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgConfigEditorScreen.kt"
             line="188"
             column="13"/>
     </issue>
@@ -4088,7 +4088,7 @@
         errorLine1="                            context.getString(R.string.config_add_success_toast),"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgConfigEditorScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgConfigEditorScreen.kt"
             line="216"
             column="29"/>
     </issue>
@@ -4099,7 +4099,7 @@
         errorLine1="            context.getString("
         errorLine2="            ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
             line="84"
             column="13"/>
     </issue>
@@ -4110,7 +4110,7 @@
         errorLine1="            ) to context.getString(R.string.lbl_include)"
         errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
             line="87"
             column="18"/>
     </issue>
@@ -4121,7 +4121,7 @@
         errorLine1="            context.getString("
         errorLine2="            ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
             line="89"
             column="13"/>
     </issue>
@@ -4132,7 +4132,7 @@
         errorLine1="            ) to context.getString(R.string.lbl_remove)"
         errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
             line="92"
             column="18"/>
     </issue>
@@ -4143,7 +4143,7 @@
         errorLine1="                Text(text = context.getString(R.string.ctbs_dialog_negative_btn))"
         errorLine2="                            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
             line="123"
             column="29"/>
     </issue>
@@ -4154,7 +4154,7 @@
         errorLine1="                        context.getString(R.string.exclude_apps_from_proxy)"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
             line="158"
             column="25"/>
     </issue>
@@ -4165,7 +4165,7 @@
         errorLine1="                        context.getString("
         errorLine2="                        ^">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/WgIncludeAppsAdapter.kt"
             line="160"
             column="25"/>
     </issue>
@@ -4176,7 +4176,7 @@
         errorLine1="                        context.getString(R.string.exclude_apps_from_proxy_failure_toast),"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/WgIncludeAppsDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/WgIncludeAppsDialog.kt"
             line="158"
             column="25"/>
     </issue>
@@ -4187,7 +4187,7 @@
         errorLine1="                text = context.getString(R.string.add_remove_apps, appCount.toString()),"
         errorLine2="                       ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/WgIncludeAppsDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/WgIncludeAppsDialog.kt"
             line="185"
             column="24"/>
     </issue>
@@ -4198,7 +4198,7 @@
         errorLine1="                                        context.getString(R.string.refresh_complete),"
         errorLine2="                                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/WgIncludeAppsDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/WgIncludeAppsDialog.kt"
             line="232"
             column="41"/>
     </issue>
@@ -4209,7 +4209,7 @@
         errorLine1="            context.getString(R.string.wireguard_disclaimer, dnsName)"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgMainScreen.kt"
             line="138"
             column="13"/>
     </issue>
@@ -4220,7 +4220,7 @@
         errorLine1="                dnsNames += &quot;, &quot; + context.getString(R.string.lbl_fallback)"
         errorLine2="                                   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgMainScreen.kt"
             line="148"
             column="36"/>
     </issue>
@@ -4231,7 +4231,7 @@
         errorLine1="            context.getString(R.string.wireguard_disclaimer, dnsNames)"
         errorLine2="            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgMainScreen.kt"
             line="150"
             column="13"/>
     </issue>
@@ -4242,7 +4242,7 @@
         errorLine1="                                context.getString(msgRes),"
         errorLine2="                                ~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgMainScreen.kt"
             line="196"
             column="33"/>
     </issue>
@@ -4253,7 +4253,7 @@
         errorLine1="        context.getString(R.string.notification_action_pause_vpn).lowercase()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt"
             line="97"
             column="9"/>
     </issue>
@@ -4264,7 +4264,7 @@
         errorLine1="        context.getString(R.string.lbl_connect).lowercase()"
         errorLine2="        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt"
             line="100"
             column="9"/>
     </issue>
@@ -4275,7 +4275,7 @@
         errorLine1="    val secArg = context.getString(R.string.lbl_ssid)"
         errorLine2="                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt"
             line="103"
             column="18"/>
     </issue>
@@ -4286,7 +4286,7 @@
         errorLine1="    val exactMatchTxt = context.getString(R.string.wg_ssid_type_exact).lowercase()"
         errorLine2="                        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt"
             line="104"
             column="25"/>
     </issue>
@@ -4297,7 +4297,7 @@
         errorLine1="    val partialMatchTxt = context.getString(R.string.wg_ssid_type_wildcard).lowercase()"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt"
             line="105"
             column="27"/>
     </issue>
@@ -4308,7 +4308,7 @@
         errorLine1="    val description = context.getString(R.string.wg_ssid_dialog_description, firstArg, secArg, thirdArg)"
         errorLine2="                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/WgSsidDialog.kt"
             line="107"
             column="23"/>
     </issue>
@@ -4319,7 +4319,7 @@
         errorLine1="    ) { paddingValues ->"
         errorLine2="        ~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/alerts/AlertsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/alerts/AlertsScreen.kt"
             line="57"
             column="9"/>
     </issue>
@@ -4330,7 +4330,7 @@
         errorLine1="    ) { paddingValues ->"
         errorLine2="        ~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/navigation/HomeNavigation.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/navigation/HomeNavigation.kt"
             line="547"
             column="9"/>
     </issue>
@@ -4352,7 +4352,7 @@
         errorLine1="                context.resources.getIdentifier(m, &quot;string&quot;, context.packageName)"
         errorLine2="                                  ~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptEndpointAdapter.kt"
             line="209"
             column="35"/>
     </issue>
@@ -4363,7 +4363,7 @@
         errorLine1="                context.resources.getIdentifier(m, &quot;string&quot;, context.packageName)"
         errorLine2="                                  ~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DnsCryptRelayEndpointAdapter.kt"
             line="211"
             column="35"/>
     </issue>
@@ -4374,7 +4374,7 @@
         errorLine1="                context.resources.getIdentifier(m, &quot;string&quot;, context.packageName)"
         errorLine2="                                  ~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DoTEndpointAdapter.kt"
             line="244"
             column="35"/>
     </issue>
@@ -4385,7 +4385,7 @@
         errorLine1="                context.resources.getIdentifier(m, &quot;string&quot;, context.packageName)"
         errorLine2="                                  ~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/DohEndpointAdapter.kt"
             line="245"
             column="35"/>
     </issue>
@@ -4396,7 +4396,7 @@
         errorLine1="            val resId: Int = context.resources.getIdentifier(m, &quot;string&quot;, context.packageName)"
         errorLine2="                                               ~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
+            file="src/full/kotlin/com/celzero/bravedns/adapter/ODoHEndpointAdapter.kt"
             line="237"
             column="48"/>
     </issue>
@@ -4451,7 +4451,7 @@
         errorLine1="    private val context: Context"
         errorLine2="    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/about/AboutViewModel.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/about/AboutViewModel.kt"
             line="53"
             column="5"/>
     </issue>
@@ -4693,7 +4693,7 @@
         errorLine1="    var refreshToken by remember(uid) { mutableStateOf(0) }"
         errorLine2="                                        ~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/compose/app/AppInfoScreen.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/compose/app/AppInfoScreen.kt"
             line="120"
             column="41"/>
     </issue>
@@ -4704,7 +4704,7 @@
         errorLine1="    var refreshToken by remember { mutableStateOf(0) }"
         errorLine2="                                   ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/AppWiseDomainLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/AppWiseDomainLogsScreen.kt"
             line="254"
             column="36"/>
     </issue>
@@ -4715,7 +4715,7 @@
         errorLine1="    var refreshToken by remember { mutableStateOf(0) }"
         errorLine2="                                   ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/logs/AppWiseIpLogsScreen.kt"
             line="362"
             column="36"/>
     </issue>
@@ -4726,7 +4726,7 @@
         errorLine1="    var nextIndex by remember { mutableStateOf(0) }"
         errorLine2="                                ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="386"
             column="33"/>
     </issue>
@@ -4737,7 +4737,7 @@
         errorLine1="    var selectedAppIndex by remember { mutableStateOf(0) }"
         errorLine2="                                       ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="432"
             column="40"/>
     </issue>
@@ -4748,7 +4748,7 @@
         errorLine1="    var dnscryptNextIndex by remember { mutableStateOf(0) }"
         errorLine2="                                        ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="698"
             column="41"/>
     </issue>
@@ -4759,7 +4759,7 @@
         errorLine1="    var relayNextIndex by remember { mutableStateOf(0) }"
         errorLine2="                                     ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/dns/ConfigureOtherDnsScreen.kt"
             line="699"
             column="38"/>
     </issue>
@@ -4770,7 +4770,7 @@
         errorLine1="    var strength by remember { mutableStateOf(0) }"
         errorLine2="                               ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/rpn/RpnAvailabilityScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/rpn/RpnAvailabilityScreen.kt"
             line="63"
             column="32"/>
     </issue>
@@ -4781,7 +4781,7 @@
         errorLine1="    var maxStrength by remember { mutableStateOf(0) }"
         errorLine2="                                  ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/rpn/RpnAvailabilityScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/rpn/RpnAvailabilityScreen.kt"
             line="64"
             column="35"/>
     </issue>
@@ -4792,7 +4792,7 @@
         errorLine1="    var hopDialogSelectedId by remember { mutableStateOf(INVALID_CONF_ID) }"
         errorLine2="                                          ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgConfigDetailScreen.kt"
             line="130"
             column="43"/>
     </issue>
@@ -4803,7 +4803,7 @@
         errorLine1="        val selectedHopId = remember(selectedId) { mutableStateOf(selectedId) }"
         errorLine2="                                                   ~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/ui/dialog/WgHopDialog.kt"
+            file="src/full/kotlin/com/celzero/bravedns/ui/dialog/WgHopDialog.kt"
             line="55"
             column="52"/>
     </issue>
@@ -4814,7 +4814,7 @@
         errorLine1="    var dnsRefreshTrigger by remember { mutableStateOf(0) }"
         errorLine2="                                        ~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/ui/compose/wireguard/WgMainScreen.kt"
+            file="src/main/kotlin/com/celzero/bravedns/ui/compose/wireguard/WgMainScreen.kt"
             line="155"
             column="41"/>
     </issue>
@@ -7609,7 +7609,7 @@
         errorLine1="            val downloadUri = Uri.parse(url)"
         errorLine2="                              ~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/download/AppDownloadManager.kt"
+            file="src/full/kotlin/com/celzero/bravedns/download/AppDownloadManager.kt"
             line="405"
             column="31"/>
     </issue>
@@ -7620,7 +7620,7 @@
         errorLine1="            intent.data = Uri.parse(ORBOT_MARKET_URI)"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/util/OrbotHelper.kt"
+            file="src/main/kotlin/com/celzero/bravedns/util/OrbotHelper.kt"
             line="149"
             column="27"/>
     </issue>
@@ -7631,7 +7631,7 @@
         errorLine1="            intent.data = Uri.parse(ORBOT_MARKET_URI)"
         errorLine2="                          ~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/main/java/com/celzero/bravedns/util/OrbotHelper.kt"
+            file="src/main/kotlin/com/celzero/bravedns/util/OrbotHelper.kt"
             line="149"
             column="27"/>
     </issue>
@@ -7642,7 +7642,7 @@
         errorLine1="        return Bitmap.createScaledBitmap(source, newWidth, newHeight, false)"
         errorLine2="               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
         <location
-            file="src/full/java/com/celzero/bravedns/util/QrCodeFromFileScanner.kt"
+            file="src/full/kotlin/com/celzero/bravedns/util/QrCodeFromFileScanner.kt"
             line="83"
             column="16"/>
     </issue>

@@ -98,14 +98,14 @@ try {
 
 android {
     compileSdk = 37
-    namespace = "com.celzero.bravedns"
+    namespace = "com.bernaferrari.bravedns"
 
     androidResources {
         generateLocaleConfig = true
     }
 
     defaultConfig {
-        applicationId = "com.celzero.bravedns"
+        applicationId = "com.bernaferrari.bravedns"
         minSdk = 23
         targetSdk = 37
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -244,8 +244,8 @@ configure<DetektExtension> {
     baseline = file("$rootDir/config/detekt/baseline.xml")
     source.setFrom(
         files(
-            "src/main/java",
-            "src/full/java"
+            "src/main/kotlin",
+            "src/full/kotlin"
         )
     )
 }

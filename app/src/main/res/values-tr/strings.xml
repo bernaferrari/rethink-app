@@ -1194,7 +1194,7 @@
     <string name="most_contacted_asn" translatable="true">En çok iletişime geçilen sağlayıcılar</string>
     <string name="most_blocked_asn" translatable="true">En çok engellenen sağlayıcılar</string>
     <string name="adv_tasker_dialog_msg" translatable="true">Rethink\'i başlatmasına veya durdurmasına izin verilen paket adlarını girin (virgülle ayrılmış).</string>
-    <string name="adv_tasker_dialog_instructions" translatable="true">Talimatlar:\n Yayında gerekli ekstralar:\n • Anahtar: sender\n • Değer: Çağıran uygulamanın paket adı\n\nÖrnek: anahtar:sender değer:com.termux\n\n Desteklenen eylemler:\n • VPN Başlat – com.celzero.bravedns.intent.action.VPN_START\n • VPN Durdur – com.celzero.bravedns.intent.action.VPN_STOP</string>
+    <string name="adv_tasker_dialog_instructions" translatable="true">Talimatlar:\n Yayında gerekli ekstralar:\n • Anahtar: sender\n • Değer: Çağıran uygulamanın paket adı\n\nÖrnek: anahtar:sender değer:com.termux\n\n Desteklenen eylemler:\n • VPN Başlat – com.bernaferrari.bravedns.intent.action.VPN_START\n • VPN Durdur – com.bernaferrari.bravedns.intent.action.VPN_STOP</string>
     <string name="adv_tasker_dialog_edit_hint" translatable="true">Paket adını girin (örnek: net.dinglisch.android.taskerm)</string>
     <string name="download_ip_info_title" translatable="true">Sağlayıcı bilgilerini göster</string>
     <string name="download_ip_info_desc" translatable="true">Web siteleri için hizmet sağlayıcı bilgilerini <i>rethinkdns.com</i>\'dan alır, <i>%1$s</i> tarafından desteklenir</string>

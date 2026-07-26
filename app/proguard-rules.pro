@@ -9,7 +9,7 @@
 # and specify the fully qualified class name to the JavaScript interface
 # class:
 # commenting below, webview removed from version v053i
-#-keepclassmembers class com.celzero.bravedns.ui.DnsConfigureWebViewActivity$JSInterface {
+#-keepclassmembers class com.bernaferrari.bravedns.ui.DnsConfigureWebViewActivity$JSInterface {
 #   public *;
 #}
 

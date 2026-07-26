@@ -1,0 +1,3565 @@
+/*
+ * Copyright 2021 RethinkDNS and its authors
+ * Copyright 2019 Jigsaw Operations LLC
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * https://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.bernaferrari.bravedns.net.go
+
+import Logger
+import Logger.LOG_TAG_PROXY
+import Logger.LOG_TAG_VPN
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Context
+import android.content.Intent
+import android.content.res.Resources
+import android.net.VpnService.NOTIFICATION_SERVICE
+import android.widget.Toast
+import androidx.core.app.NotificationCompat
+import androidx.core.content.ContextCompat
+import com.bernaferrari.bravedns.R
+import com.bernaferrari.bravedns.RethinkDnsApplication.Companion.DEBUG
+import com.bernaferrari.bravedns.data.AppConfig
+import com.bernaferrari.bravedns.data.AppConfig.Companion.DOH_INDEX
+import com.bernaferrari.bravedns.data.AppConfig.Companion.DOT_INDEX
+import com.bernaferrari.bravedns.data.AppConfig.Companion.FALLBACK_DNS_IF_NET_DNS_EMPTY
+import com.bernaferrari.bravedns.data.AppConfig.TunnelOptions
+import com.bernaferrari.bravedns.database.ConnectionTrackerRepository
+import com.bernaferrari.bravedns.database.CountryConfig
+import com.bernaferrari.bravedns.database.DnsCryptRelayEndpoint
+import com.bernaferrari.bravedns.database.EventSource
+import com.bernaferrari.bravedns.database.EventType
+import com.bernaferrari.bravedns.database.ProxyEndpoint
+import com.bernaferrari.bravedns.database.Severity
+import com.bernaferrari.bravedns.net.doh.Transaction
+import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager
+import com.bernaferrari.bravedns.rpnproxy.RpnProxyManager.AUTO_SERVER_ID
+import com.bernaferrari.bravedns.service.BraveVPNService
+import com.bernaferrari.bravedns.service.BraveVPNService.Companion.NW_ENGINE_NOTIFICATION_ID
+import com.bernaferrari.bravedns.service.EventLogger
+import com.bernaferrari.bravedns.service.PersistentState
+import com.bernaferrari.bravedns.service.ProxyManager
+import com.bernaferrari.bravedns.service.ProxyManager.ID_WG_BASE
+import com.bernaferrari.bravedns.service.RethinkBlocklistManager
+import com.bernaferrari.bravedns.service.WireguardManager
+import com.bernaferrari.bravedns.ui.HomeScreenActivity
+import com.bernaferrari.bravedns.ui.compose.settings.DialStrategies
+import com.bernaferrari.bravedns.ui.compose.settings.RetryStrategies
+import com.bernaferrari.bravedns.util.Constants
+import com.bernaferrari.bravedns.util.Constants.Companion.MAX_ENDPOINT
+import com.bernaferrari.bravedns.util.Constants.Companion.ONDEVICE_BLOCKLIST_FILE_TAG
+import com.bernaferrari.bravedns.util.Constants.Companion.REMOTE_BLOCKLIST_DOWNLOAD_FOLDER_NAME
+import com.bernaferrari.bravedns.util.Constants.Companion.RETHINKDNS_DOMAIN
+import com.bernaferrari.bravedns.util.Constants.Companion.RETHINK_BASE_URL_MAX
+import com.bernaferrari.bravedns.util.Constants.Companion.RETHINK_BASE_URL_SKY
+import com.bernaferrari.bravedns.util.Constants.Companion.UNSPECIFIED_IP_IPV4
+import com.bernaferrari.bravedns.util.Constants.Companion.UNSPECIFIED_IP_IPV6
+import com.bernaferrari.bravedns.util.UIUtils.getAccentColor
+import com.bernaferrari.bravedns.util.Utilities
+import com.bernaferrari.bravedns.util.Utilities.blocklistDir
+import com.bernaferrari.bravedns.util.Utilities.blocklistFile
+import com.bernaferrari.bravedns.util.Utilities.isAtleastO
+import com.bernaferrari.bravedns.util.Utilities.isAtleastS
+import com.bernaferrari.bravedns.util.Utilities.isPlayStoreFlavour
+import com.bernaferrari.bravedns.util.Utilities.showToastUiCentered
+import com.bernaferrari.bravedns.wireguard.Config
+import com.bernaferrari.bravedns.wireguard.WgHopManager
+import com.celzero.firestack.backend.Backend
+import com.celzero.firestack.backend.Client
+import com.celzero.firestack.backend.DNSResolver
+import com.celzero.firestack.backend.DNSTransport
+import com.celzero.firestack.backend.GoMetrics
+import com.celzero.firestack.backend.NetStat
+import com.celzero.firestack.backend.Proxies
+import com.celzero.firestack.backend.Proxy
+import com.celzero.firestack.backend.RDNS
+import com.celzero.firestack.backend.RouterStats
+import com.celzero.firestack.backend.RpnEntitlement
+import com.celzero.firestack.backend.RpnOps
+import com.celzero.firestack.backend.RpnProxy
+import com.celzero.firestack.backend.RpnServer
+import com.celzero.firestack.backend.RpnServers
+import com.celzero.firestack.intra.Controller
+import com.celzero.firestack.intra.DefaultDNS
+import com.celzero.firestack.intra.Intra
+import com.celzero.firestack.intra.Tunnel
+import com.celzero.firestack.settings.Settings
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.inject
+import java.io.File
+import java.net.URI
+import java.net.URLEncoder
+
+/**
+ * This is a VpnAdapter that captures all traffic and routes it through a go-tun2socks instance with
+ * custom logic for Intra.
+ */
+class GoVpnAdapter : KoinComponent {
+    private val persistentState by inject<PersistentState>()
+    private val appConfig by inject<AppConfig>()
+    private val connTrackerDb by inject<ConnectionTrackerRepository>()
+    private val eventLogger by inject<EventLogger>()
+
+    // The Intra session object from go-tun2socks.  Initially null.
+    private var tunnel: Tunnel
+    private var context: Context
+    private var externalScope: CoroutineScope
+
+    constructor(
+        context: Context,
+        externalScope: CoroutineScope,
+        tunFd: Long,
+        ifaceAddresses: String,
+        mtu: Int,
+        nwMtu: Int,
+        opts: TunnelOptions) {
+        this.context = context
+        this.externalScope = externalScope
+        val defaultDns = newDefaultTransport(appConfig.getDefaultDns())
+        Logger.i(LOG_TAG_VPN, "$TAG connect tunnel with new params")
+        tunnel =
+            Intra.connect(
+                tunFd,
+                nwMtu.toLong(),
+                mtu.toLong(),
+                ifaceAddresses,
+                opts.fakeDns,
+                defaultDns,
+                opts.bridge
+            ) // may throw exception
+        setTunMode(opts)
+        logEvent(
+            Severity.LOW,
+            "tunnel connected",
+            "tunnel connected with new params"
+        )
+    }
+
+    suspend fun initResolverProxiesPcap(opts: TunnelOptions) {
+        Logger.v(LOG_TAG_VPN, "$TAG initResolverProxiesPcap")
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip init resolver proxies")
+            return
+        }
+
+        // setTcpProxyIfNeeded()
+        // no need to add default in init as it is already added in connect
+        // addDefaultTransport(appConfig.getDefaultDns())
+        // TODO: ideally the values required for transport, alg and rdns should be set in the
+        // opts itself.
+        setRDNS()
+        addTransport()
+        // Plus do not throw exception if the dns is not added, so check the status for client err
+        val plusDnsStatus = getDnsStatus(Backend.Plus)
+        if(plusDnsStatus == null || plusDnsStatus == Transaction.Status.CLIENT_ERROR.id) addMultipleDnsAsPlus()
+        setWireguardTunnelModeIfNeeded(opts.tunProxyMode)
+        setSocks5TunnelModeIfNeeded(opts.tunProxyMode)
+        setHttpProxyIfNeeded(opts.tunProxyMode)
+        setPcapMode(appConfig.getPcapFilePath())
+        setDnsAlg()
+        notifyLoopback()
+        setDialStrategy()
+        setTransparency()
+        undelegatedDomains()
+        setExperimentalWireGuardSettings()
+        setAutoDialsParallel()
+        setAutoMode()
+        registerSeProxyIfNeeded()
+        setFloodWgMode()
+        onLowMemory()
+        Logger.v(LOG_TAG_VPN, "$TAG initResolverProxiesPcap done")
+    }
+
+    suspend fun setPcapMode(pcapFilePath: String) {
+        Logger.v(LOG_TAG_VPN, "$TAG setPcapMode")
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip set pcap mode")
+            logEvent(
+                Severity.CRITICAL,
+                "set pcap mode error",
+                "no tunnel connected, cannot set pcap mode"
+            )
+            return
+        }
+
+        // validate pcap file path before setting
+        if (pcapFilePath.isNotEmpty() && pcapFilePath != "0") {
+            val file = File(pcapFilePath)
+            if (!file.exists() || !file.canWrite()) {
+                Logger.e(LOG_TAG_VPN, "$TAG invalid pcap file path, file does not exist or not writable: $pcapFilePath")
+                return
+            }
+        }
+
+        try {
+            Logger.i(LOG_TAG_VPN, "$TAG set pcap mode: $pcapFilePath")
+            tunnel.setPcap(pcapFilePath)
+            logEvent(
+                Severity.LOW,
+                "set pcap mode",
+                "pcap mode set with file path: $pcapFilePath"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err setting pcap($pcapFilePath): ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "set pcap mode error",
+                "error setting pcap mode with file path: $pcapFilePath, reason: ${e.message}"
+            )
+        }
+        Logger.v(LOG_TAG_VPN, "$TAG setPcapMode done")
+    }
+
+    /*
+    // commented as the setCrashFd is not working as expected, need to revisit
+    private suspend fun setCrashFd() {
+        Logger.v(LOG_TAG_VPN, "GoVpnAdapter setCrashFd")
+        val crashFd = EnhancedBugReport.getFileToWrite(context)
+        if (crashFd != null) {
+            val set = Intra.setCrashFd(crashFd.absolutePath)
+            Logger.i(LOG_TAG_VPN, "set crash fd: $crashFd, set? $set")
+        } else {
+            Logger.w(LOG_TAG_VPN, "crash fd is null, cannot set")
+        }
+    }*/
+
+    suspend fun addTransport() {
+        Logger.v(LOG_TAG_VPN, "$TAG addTransport")
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip add transport")
+            return
+        }
+
+        // TODO: #321 As of now there is no block free transport for dns types other than Rethink.
+        // introduce block free transport for other dns types when there is a UI to configure the
+        // block free transport
+        // always set the block free transport before setting the transport to the resolver
+        // because of the way the alg is implemented in the go code.
+
+        // TODO: should show notification if the transport is not added?
+        // now it will fallback to rethink default if the transport is not available in kt to add
+        when (appConfig.getDnsType()) {
+            AppConfig.DnsType.DOH -> {
+                addDohTransport(Backend.Preferred)
+            }
+
+            AppConfig.DnsType.DOT -> {
+                addDotTransport(Backend.Preferred)
+            }
+
+            AppConfig.DnsType.ODOH -> {
+                addOdohTransport(Backend.Preferred)
+            }
+
+            AppConfig.DnsType.DNSCRYPT -> {
+                addDnscryptTransport(Backend.Preferred)
+            }
+
+            AppConfig.DnsType.DNS_PROXY -> {
+                addDnsProxyTransport(Backend.Preferred)
+            }
+
+            AppConfig.DnsType.SYSTEM_DNS -> {
+                // no-op; system dns propagated by ConnectionMonitor
+            }
+
+            AppConfig.DnsType.SMART_DNS -> {
+                addMultipleDnsAsPlus()
+            }
+
+            AppConfig.DnsType.RETHINK_REMOTE -> {
+                // only rethink has different stamp for block free transport
+                // create new transport for block free
+                val rdnsRemoteUrl = appConfig.getRemoteRethinkEndpoint()?.url
+                val blockfreeUrl = appConfig.getBlockFreeRethinkEndpoint()
+
+                if (blockfreeUrl.isNotEmpty()) {
+                    Logger.i(LOG_TAG_VPN, "$TAG adding blockfree url: $blockfreeUrl")
+                    addRdnsTransport(Backend.BlockFree, blockfreeUrl)
+                } else {
+                    Logger.i(LOG_TAG_VPN, "$TAG no blockfree url found")
+                    // if blockfree url is not available, do not proceed further
+                    return
+                }
+                if (!rdnsRemoteUrl.isNullOrEmpty()) {
+                    Logger.i(LOG_TAG_VPN, "$TAG adding rdns remote url: $rdnsRemoteUrl")
+                    addRdnsTransport(Backend.Preferred, rdnsRemoteUrl)
+                } else {
+                    Logger.e(LOG_TAG_VPN, "$TAG no rdns remote url found")
+                    fallbackToRethinkDefault()
+                }
+            }
+        }
+
+        // only in rethink's remote dns, we have block free transport, so need to remove the
+        // block free transport if the selected dns type is not rethink remote, to avoid having
+        // stale block free transport when user switches from rethink remote to other dns type.
+        // for other dns types, the block free transport is not added at all, so no need to remove.
+        removeBlockFreeTransportIfNeeded()
+        Logger.v(LOG_TAG_VPN, "$TAG addTransport done")
+    }
+
+    private suspend fun fallbackToRethinkDefault() {
+        // this should never happen, but as a safeguard, fall back to rethink default
+        // to prevent silent failures. case: on a OnePlus device where the database contained
+        // values, but none of the transport types were selected, causing vpnAdapter to skip
+        // setting any preferred transport.
+        Logger.w(LOG_TAG_VPN, "$TAG fallback to rethink default")
+        val rethinkDefault = appConfig.getRethinkDefaultEndpoint()
+        if (rethinkDefault == null || rethinkDefault.url.isEmpty()) {
+            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: fallback; rethink default is empty, cannot add transport")
+            showDnsFailureToast("")
+            return
+        }
+        // this will in-turn updates the ui and calls the adapter to update the transport
+        appConfig.handleRethinkChanges(rethinkDefault)
+    }
+
+    // TODO: remove below method when there is new UI for blockfree transport
+    private suspend fun removeBlockFreeTransportIfNeeded() {
+        if (appConfig.getDnsType() != AppConfig.DnsType.RETHINK_REMOTE) {
+            Logger.i(LOG_TAG_VPN, "$TAG removing block free transport as dns type is not rethink remote")
+            removeResolver(Backend.BlockFree)
+        }
+    }
+
+    private suspend fun removeResolver(id: String): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip remove resolver $id")
+            return false
+        }
+        return try {
+            val res = getResolver()?.remove(id) ?: false
+            logEvent(
+                Severity.LOW,
+                "resolver removed? $res",
+                "removed $id from tun? $res"
+            )
+            res
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err remove resolver $id: ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "error removing resolver",
+                "Error removing resolver $id: ${e.message}"
+            )
+            false
+        }
+    }
+
+    private suspend fun addDohTransport(id: String) {
+        Logger.v(LOG_TAG_VPN, "$TAG addDohTransport")
+        var url: String? = null
+        try {
+            val doh = appConfig.getDOHDetails()
+            if (doh == null || doh.dohURL.isEmpty()) {
+                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: doh url is empty, cannot add transport")
+                fallbackToRethinkDefault()
+                return
+            }
+            url = doh.dohURL
+            val ips: String = getIpString(context, url)
+            // change the url from https to http if the isSecure is false
+            if (!doh.isSecure) {
+                Logger.d(LOG_TAG_VPN, "$TAG changing url from https to http for $url")
+                url = url.replace("https", "http")
+            }
+            // add replaces the existing transport with the same id if successful
+            // so no need to remove the transport before adding
+            Intra.addDoHTransport(tunnel, id, url, ips)
+            Logger.i(LOG_TAG_VPN, "$TAG new doh: $id (${doh.dohName}), url: $url, ips: $ips")
+            logEvent(
+                Severity.LOW,
+                "doh transport added",
+                "id: $id, url: $url, ips: $ips"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: doh failure, url: $url", e)
+            removeResolver(id)
+            showDnsFailureNotification(context.getString(R.string.other_dns_list_tab1), e.message ?: context.getString(R.string.system_dns_connection_failure))
+            showDnsFailureToast(url.orEmpty())
+            logEvent(
+                Severity.HIGH,
+                "doh transport error",
+                "error adding doh transport for url: $url, reason: ${e.message}"
+            )
+        }
+        Logger.v(LOG_TAG_VPN, "$TAG addDohTransport done")
+    }
+
+    private suspend fun addDotTransport(id: String) {
+        Logger.v(LOG_TAG_VPN, "$TAG addDotTransport, id: $id")
+        var url: String? = null
+        try {
+            val dot = appConfig.getDOTDetails()
+            if (dot == null || dot.url.isEmpty()) {
+                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dot url is empty, cannot add transport")
+                fallbackToRethinkDefault()
+                return
+            }
+            url = dot.url
+            // if tls is present, remove it and pass it to getIpString
+            val ips: String = getIpString(context, url.replace("tls://", ""))
+            if (dot.isSecure && !url.startsWith("tls")) {
+                Logger.d(LOG_TAG_VPN, "$TAG adding tls to url for $url")
+                // add tls to the url if isSecure is true and the url does not start with tls
+                url = "tls://$url"
+            }
+            // add replaces the existing transport with the same id if successful
+            // so no need to remove the transport before adding
+            Intra.addDoTTransport(tunnel, id, url, ips)
+            Logger.i(LOG_TAG_VPN, "$TAG new dot: $id (${dot.name}), url: $url, ips: $ips")
+            logEvent(
+                Severity.LOW,
+                "dot transport added",
+                "id: $id, url: $url, ips: $ips"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dot failure, url: $url", e)
+            removeResolver(id)
+            showDnsFailureNotification(context.getString(R.string.lbl_dot), e.message ?: context.getString(R.string.system_dns_connection_failure))
+            showDnsFailureToast(url.orEmpty())
+            logEvent(
+                Severity.HIGH,
+                "dot transport error",
+                "error adding dot transport for url: $url, reason: ${e.message}"
+            )
+        }
+        Logger.v(LOG_TAG_VPN, "$TAG addDotTransport done")
+    }
+
+    private suspend fun addOdohTransport(id: String) {
+        Logger.v(LOG_TAG_VPN, "$TAG addOdohTransport, id: $id")
+        var resolver: String? = null
+        try {
+            val odoh = appConfig.getODoHDetails()
+            if (odoh == null || odoh.resolver.isEmpty()) {
+                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: odoh resolver is empty, cannot add transport")
+                fallbackToRethinkDefault()
+                return
+            }
+            val proxy = odoh.proxy
+            resolver = odoh.resolver
+            val proxyIps = ""
+            // add replaces the existing transport with the same id if successful
+            // so no need to remove the transport before adding
+            Intra.addODoHTransport(tunnel, id, proxy, resolver, proxyIps)
+            Logger.i(LOG_TAG_VPN, "$TAG new odoh: $id (${odoh.name}), p: $proxy, r: $resolver")
+            logEvent(
+                Severity.LOW,
+                "odoh transport added",
+                "id: $id, proxy: $proxy, resolver: $resolver"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: odoh failure, res: $resolver", e)
+            removeResolver(id)
+            showDnsFailureNotification(context.getString(R.string.lbl_odoh), e.message ?: context.getString(R.string.system_dns_connection_failure))
+            showDnsFailureToast(resolver.orEmpty())
+            logEvent(
+                Severity.HIGH,
+                "odoh transport error",
+                "error adding odoh transport for resolver: $resolver, reason: ${e.message}"
+            )
+        }
+        Logger.v(LOG_TAG_VPN, "$TAG addOdohTransport done")
+    }
+
+    private suspend fun addDnscryptTransport(id: String) {
+        Logger.v(LOG_TAG_VPN, "$TAG addDnscryptTransport, id: $id")
+        try {
+            val dc = appConfig.getConnectedDnscryptServer()
+            if (dc == null || dc.dnsCryptURL.isEmpty()) {
+                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns-crypt is empty, cannot add transport")
+                fallbackToRethinkDefault()
+                return
+            }
+            val url = dc.dnsCryptURL
+            // add replaces the existing transport with the same id if successful
+            // so no need to remove the transport before adding
+            Intra.addDNSCryptTransport(tunnel, id, url)
+            Logger.i(LOG_TAG_VPN, "$TAG new dnscrypt: $id (${dc.dnsCryptName}), url: $url")
+            setDnscryptRelaysIfAny() // is expected to catch exceptions
+            logEvent(
+                Severity.LOW,
+                "dnscrypt transport added",
+                "id: $id, url: $url"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns crypt failure for $id", e)
+            removeResolver(id)
+            removeDnscryptRelaysIfAny()
+            showDnsFailureNotification(context.getString(R.string.dc_dns_crypt), e.message ?: context.getString(R.string.dns_crypt_connection_failure))
+            showDnscryptConnectionFailureToast()
+            logEvent(
+                Severity.HIGH,
+                "dns crypt transport error",
+                "error adding dns crypt transport, reason: ${e.message}"
+            )
+        }
+        Logger.v(LOG_TAG_VPN, "$TAG addDnscryptTransport done")
+    }
+
+    private suspend fun addDnsProxyTransport(id: String) {
+        Logger.v(LOG_TAG_VPN, "$TAG addDnsProxyTransport, id: $id")
+        try {
+            val dnsProxy = appConfig.getSelectedDnsProxyDetails()
+            if (dnsProxy == null || dnsProxy.proxyIP.isNullOrEmpty()) {
+                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns-proxy is empty, cannot add transport")
+                fallbackToRethinkDefault()
+                return
+            }
+            // append port number to each ip if multiple ips are present else add the single ip:port
+            val port = dnsProxy.proxyPort
+            val ipPortCsv = dnsProxy.proxyIP?.split(",")?.joinToString(",") {
+                "${it.trim()}:$port"
+            }
+            // add replaces the existing transport with the same id if successful
+            // so no need to remove the transport before adding
+            Intra.addDNSProxy(tunnel, id, ipPortCsv)
+            Logger.i(LOG_TAG_VPN, "$TAG new dns proxy: $id(${dnsProxy.proxyName}), ip: $ipPortCsv")
+            logEvent(
+                Severity.LOW,
+                "dns proxy transport added",
+                "id: $id, ip: $ipPortCsv"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dns proxy failure", e)
+            removeResolver(id)
+            showDnsFailureNotification(context.getString(R.string.dc_dns_proxy), e.message ?: context.getString(R.string.dns_proxy_connection_failure))
+            showDnsProxyConnectionFailureToast()
+            logEvent(
+                Severity.HIGH,
+                "dns proxy transport error",
+                "error adding dns proxy transport, reason: ${e.message}"
+            )
+        }
+        Logger.v(LOG_TAG_VPN, "$TAG addDnsProxyTransport done")
+    }
+
+    private fun showDnsFailureNotification(dnsType: String, message: String) {
+        val notifChannelId = "DNS_failure_channel"
+        ui {
+            val notificationManager =
+                context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+            if (isAtleastO()) {
+                val channelName = context.getString(R.string.status_dns_error)
+                val importance = NotificationManager.IMPORTANCE_DEFAULT
+                val channel = NotificationChannel(notifChannelId, channelName, importance)
+                notificationManager.createNotificationChannel(channel)
+            }
+
+            val pendingIntent =
+                Utilities.getActivityPendingIntent(
+                    context,
+                    Intent(context, HomeScreenActivity::class.java),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                    mutable = false
+                )
+            val dnsErrorTxt = context.getString(R.string.status_dns_error)
+            // capitalize first 3 letter of the error message (dns error => DNS Error)
+            val formattedErrTxt =
+                if (dnsErrorTxt.length >= 5) {
+                    dnsErrorTxt.replaceRange(0, 5, dnsErrorTxt.substring(0, 5).uppercase())
+                } else {
+                    dnsErrorTxt
+                }
+            val title = context.getString(R.string.two_argument_colon, formattedErrTxt, dnsType)
+            val builder =
+                NotificationCompat.Builder(context, notifChannelId)
+                    .setSmallIcon(R.drawable.ic_notification_icon)
+                    .setContentTitle(title)
+                    .setContentText(message)
+                    .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+                    .setContentIntent(pendingIntent)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setAutoCancel(true)
+            builder.color = ContextCompat.getColor(context, getAccentColor(persistentState.theme))
+            notificationManager.notify(NW_ENGINE_NOTIFICATION_ID, builder.build())
+        }
+    }
+
+    private suspend fun addRdnsTransport(id: String, url: String) {
+        Logger.v(LOG_TAG_VPN, "$TAG addRdnsTransport, id: $id, url: $url")
+        try {
+            val useDot = false
+            val ips: String = getIpString(context, url)
+            val convertedUrl = getRdnsUrl(url) ?: return
+            if (url.contains(RETHINK_BASE_URL_SKY) || !useDot) {
+                Intra.addDoHTransport(tunnel, id, convertedUrl, ips)
+                Logger.i(LOG_TAG_VPN, "$TAG new doh (rdns): $id, url: $convertedUrl, ips: $ips")
+            } else {
+                Intra.addDoTTransport(tunnel, id, convertedUrl, ips)
+                Logger.i(LOG_TAG_VPN, "$TAG new dot (rdns): $id, url: $convertedUrl, ips: $ips")
+            }
+            logEvent(
+                Severity.LOW,
+                "rdns transport added",
+                "id: $id, url: $convertedUrl, ips: $ips"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: rdns failure, url: $url ($id)", e)
+            removeResolver(id)
+            showDnsFailureNotification(context.getString(R.string.dc_rethink_dns_radio), e.message ?: context.getString(R.string.system_dns_connection_failure))
+            showDnsFailureToast(url)
+            logEvent(
+                Severity.HIGH,
+                "rdns transport error ($id)",
+                "error adding rdns transport for url: $url ($id), reason: ${e.message}"
+            )
+        }
+        Logger.v(LOG_TAG_VPN, "$TAG addRdnsTransport done")
+    }
+
+    private suspend fun getRdnsUrl(url: String, useDot: Boolean = false): String? {
+        val tls = "tls://"
+        val default = "dns-query"
+        // do not proceed if rethinkdns.com is not available
+        if (!url.contains(RETHINKDNS_DOMAIN)) return null
+
+        // if url is MAX, convert it to dot format, DOT format stamp.max.rethinkdns.com
+        // if url is SKY, convert it to doh format, DOH format https://sky.rethikdns.com/stamp
+
+        // for blockfree, the url is https://max.rethinkdns.com/dns-query
+        if (url == Constants.BLOCK_FREE_DNS_MAX && useDot) {
+            return "$tls$MAX_ENDPOINT.$RETHINKDNS_DOMAIN"
+        } else if (url == Constants.BLOCK_FREE_DNS_SKY || url == Constants.BLOCK_FREE_DNS_MAX || url == Constants.BLOCK_FREE_DNS_ZERO) {
+            return url
+        } else {
+            // no-op, pass-through
+        }
+        val stamp = getRdnsStamp(url)
+        return if (url.contains(MAX_ENDPOINT) && useDot) {
+            // if the stamp is empty or "dns-query", then remove it
+            if (stamp.isEmpty() || stamp == default) {
+                return "$tls$MAX_ENDPOINT.$RETHINKDNS_DOMAIN"
+            }
+            "$tls$stamp.$MAX_ENDPOINT.$RETHINKDNS_DOMAIN"
+        } else {
+            if (url.contains(MAX_ENDPOINT)) {
+                return "$RETHINK_BASE_URL_MAX$stamp"
+            } else {
+                return "$RETHINK_BASE_URL_SKY$stamp"
+            }
+        }
+    }
+
+    suspend fun unlink() {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip unlink")
+            return
+        }
+        try {
+            tunnel.unlink()
+            logEvent(
+                Severity.LOW,
+                "tunnel unlinked",
+                "tunnel unlinked successfully"
+            )
+            Logger.i(LOG_TAG_VPN, "$TAG tunnel unlinked")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err dispose: ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "tunnel unlink error",
+                "error unlinking tunnel, reason: ${e.message}"
+            )
+        }
+    }
+
+    private suspend fun getRdnsStamp(url: String): String {
+        val s = url.split(RETHINKDNS_DOMAIN)[1]
+        val stamp =
+            if (s.startsWith("/")) {
+                s.substring(1)
+            } else {
+                s
+            }
+        return getBase32Stamp(stamp)
+    }
+
+    private suspend fun getBase32Stamp(stamp: String): String {
+        // in v055a, the stamps are generated either by base32 or base64
+        // if the stamp is base64, then convert it to base32
+        // if the stamp is base32, then return the stamp
+        // as of now, only way to find the base 32 stamp is to get the flags and convert it to stamp
+        // with eb32 encoding
+        // sample stamp https://max.rethinkdns.com/1:-AcHAL6d_5-Yxf7zMQAKAAAI which is base64
+        // output stamp 1-7adqoaf6tx7z7ggf73ztcaakaaaaq which is base32
+        var b32Stamp: String? = null
+        try {
+            val r = getRDNS(RethinkBlocklistManager.RethinkBlocklistType.REMOTE)
+            val flags = r?.stampToFlags(stamp)
+            b32Stamp = r?.flagsToStamp(flags, Backend.EB32)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err get base32 stamp: ${e.message}")
+        }
+        return b32Stamp ?: stamp
+    }
+
+    fun setTunMode(tunnelOptionsWithoutMtu: TunnelOptions) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip set-tun-mode")
+            return
+        }
+        try {
+            Settings.setTunMode(
+                tunnelOptionsWithoutMtu.tunDnsMode.mode.toInt(),
+                tunnelOptionsWithoutMtu.tunFirewallMode.mode,
+                tunnelOptionsWithoutMtu.ptMode.id
+            )
+            logEvent(
+                Severity.LOW,
+                "set tun mode",
+                "dns mode: ${tunnelOptionsWithoutMtu.tunDnsMode}, firewall mode: ${tunnelOptionsWithoutMtu.tunFirewallMode}, pt mode: ${tunnelOptionsWithoutMtu.ptMode}"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err set tun mode: ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "set tun mode error",
+                "error setting tun mode, reason: ${e.message}"
+            )
+        }
+    }
+
+    suspend fun setRDNS() {
+        // always set the remote blocklist
+        setRDNSRemote()
+
+        // Set brave dns to tunnel - Local/Remote
+        Logger.d(LOG_TAG_VPN, "$TAG set brave dns to tunnel (local/remote)")
+
+        // enable local blocklist if enabled
+        if (persistentState.blocklistEnabled && !isPlayStoreFlavour()) {
+            setRDNSLocal()
+        } else {
+            try {
+                // remove local blocklist, if any
+                getRDNSResolver()?.setRdnsLocal(null, null, null, null)
+                Logger.i(LOG_TAG_VPN, "$TAG local-rdns disabled")
+            } catch (_: Exception) { }
+        }
+    }
+
+    private suspend fun setRDNSRemote() {
+        Logger.d(LOG_TAG_VPN, "$TAG init remote rdns mode")
+        try {
+            val remoteDir =
+                blocklistDir(
+                    context,
+                    REMOTE_BLOCKLIST_DOWNLOAD_FOLDER_NAME,
+                    persistentState.remoteBlocklistTimestamp
+                ) ?: return
+            val remoteFile =
+                blocklistFile(remoteDir.absolutePath, ONDEVICE_BLOCKLIST_FILE_TAG)
+            if (remoteFile?.exists() == true) {
+                getRDNSResolver()?.setRdnsRemote(remoteFile.absolutePath)
+                Logger.i(LOG_TAG_VPN, "$TAG remote-rdns enabled")
+                logEvent(
+                    Severity.LOW,
+                    "set remote rdns",
+                    "enabled remote rdns from file: ${remoteFile.absolutePath}"
+                )
+            } else {
+                Logger.w(LOG_TAG_VPN, "$TAG filetag.json for remote-rdns missing, file? $remoteDir/$remoteFile")
+                logEvent(
+                    Severity.MEDIUM,
+                    "set remote rdns error",
+                    "filetag.json for remote-rdns missing, cannot enable remote rdns"
+                )
+            }
+        } catch (ex: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG cannot set remote-rdns: ${ex.message}", ex)
+            logEvent(
+                Severity.HIGH,
+                "set remote rdns error",
+                "error enabling remote rdns, reason: ${ex.message}"
+            )
+        }
+    }
+
+    private suspend fun setDnscryptRelaysIfAny() {
+        val routes: String = appConfig.getDnscryptRelayServers()
+        routes.split(",").forEach {
+            if (it.isBlank()) return@forEach
+
+            Logger.i(LOG_TAG_VPN, "$TAG new dnscrypt relay: $it")
+            try {
+                Intra.addDNSCryptRelay(tunnel, it) // entire url is the id
+                logEvent(
+                    Severity.LOW,
+                    "add dnscrypt relay",
+                    "added dnscrypt relay $it"
+                )
+            } catch (ex: Exception) {
+                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: dnscrypt failure", ex)
+                appConfig.removeDnscryptRelay(it)
+                removeResolver(it)
+                logEvent(
+                    Severity.HIGH,
+                    "add dnscrypt relay error",
+                    "error adding dnscrypt relay $it, reason: ${ex.message}"
+                )
+            }
+        }
+    }
+
+    private suspend fun removeDnscryptRelaysIfAny() {
+        val routes: String = appConfig.getDnscryptRelayServers()
+        routes.split(",").forEach {
+            if (it.isBlank()) return@forEach
+
+            Logger.i(LOG_TAG_VPN, "$TAG remove dnscrypt relay: $it")
+            // remove from appConfig, as this is not from ui, but from the tunnel start up
+            appConfig.removeDnscryptRelay(it)
+            removeResolver(it)
+        }
+    }
+
+    suspend fun addDnscryptRelay(relay: DnsCryptRelayEndpoint) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip add dnscrypt relay")
+            return
+        }
+        try {
+            Intra.addDNSCryptRelay(tunnel, relay.dnsCryptRelayURL)
+            Logger.i(LOG_TAG_VPN, "$TAG new dnscrypt relay: ${relay.dnsCryptRelayURL}")
+            logEvent(
+                Severity.LOW,
+                "add dnscrypt relay",
+                "added dnscrypt relay ${relay.dnsCryptRelayURL}"
+            )
+        } catch (e: Exception) {
+            Logger.e(
+                LOG_TAG_VPN,
+                "$TAG connect-tunnel: dnscrypt relay failure: ${relay.dnsCryptRelayURL}",
+                e
+            )
+            appConfig.removeDnscryptRelay(relay.dnsCryptRelayURL)
+            removeResolver(relay.dnsCryptRelayURL)
+            logEvent(
+                Severity.HIGH,
+                "add dnscrypt relay error",
+                "error adding dnscrypt relay ${relay.dnsCryptRelayURL}, reason: ${e.message}"
+            )
+        }
+    }
+
+    suspend fun removeDnscryptRelay(relay: DnsCryptRelayEndpoint) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip remove dnscrypt relay")
+            return
+        }
+        try {
+            // no need to remove from appConfig, as it is already removed
+            val rmv = getResolver()?.remove(relay.dnsCryptRelayURL)
+            Logger.i(
+                LOG_TAG_VPN,
+                "$TAG rmv dnscrypt relay: ${relay.dnsCryptRelayURL}, success? $rmv"
+            )
+            logEvent(
+                Severity.LOW,
+                "remove dns crypt relay",
+                "remove dns crypt relay for id: ${relay.id}, url: ${relay.dnsCryptRelayURL}"
+            )
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG connect-tunnel: dnscrypt rmv failure")
+            logEvent(
+                Severity.HIGH,
+                "error; dnscrypt relay removal",
+                "Error on dnscrypt relay removal for ${relay.dnsCryptRelayURL}, ${e.message}"
+            )
+        }
+    }
+
+    /**
+     * TODO - Move these code to common place and set the tunnel mode and other parameters. Return
+     * the tunnel to the adapter.
+     */
+    private suspend fun setSocks5Proxy(
+        tunProxyMode: AppConfig.TunProxyMode,
+        userName: String?,
+        password: String?,
+        ipAddress: String?,
+        port: Int
+    ) {
+        try {
+            val url = constructSocks5ProxyUrl(userName, password, ipAddress, port)
+            if (url.isEmpty()) {
+                Logger.e(LOG_TAG_VPN, "$TAG connect-tunnel: err empty socks5 url")
+                return
+            }
+            val id =
+                if (tunProxyMode.isTunProxyOrbot()) {
+                    ProxyManager.ID_ORBOT_BASE
+                } else {
+                    ProxyManager.ID_S5_BASE
+                }
+            val res = getProxies()?.addProxy(id, url)
+            Logger.i(LOG_TAG_VPN, "$TAG socks5 set with url($id): $url, success? ${res != null}")
+            logEvent(
+                Severity.LOW,
+                "set socks5 proxy",
+                "set socks5 proxy $userName@$ipAddress:$port"
+            )
+        } catch (e: Exception) {
+            Logger.e(
+                LOG_TAG_VPN,
+                "$TAG connect-tunnel: err start proxy $userName@$ipAddress:$port",
+                e
+            )
+            logEvent(
+                Severity.HIGH,
+                "set socks5 proxy error",
+                "error setting socks5 proxy $userName@$ipAddress:$port, reason: ${e.message}"
+            )
+        }
+    }
+
+    private fun constructSocks5ProxyUrl(
+        userName: String?,
+        password: String?,
+        ipAddress: String?,
+        port: Int
+    ): String {
+        try {
+            // socks5://<username>:<password>@<ip>:<port>
+            // convert string to url
+            val proxyUrl = StringBuilder()
+            proxyUrl.append("socks5://")
+            if (!userName.isNullOrEmpty()) {
+                val encUser = URLEncoder.encode(userName, Charsets.UTF_8.name())
+                proxyUrl.append(encUser)
+                if (!password.isNullOrEmpty()) {
+                    val encPass = URLEncoder.encode(password, Charsets.UTF_8.name())
+                    proxyUrl.append(":")
+                    proxyUrl.append(encPass)
+                }
+                proxyUrl.append("@")
+            }
+            proxyUrl.append(ipAddress)
+            proxyUrl.append(":")
+            proxyUrl.append(port)
+            return URI.create(proxyUrl.toString()).toASCIIString()
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err construct sock5 url: ${e.message}")
+        }
+        return ""
+    }
+
+    private fun showDnscryptConnectionFailureToast() {
+        ui {
+            showToastUiCentered(
+                context.applicationContext,
+                context.getString(R.string.dns_crypt_connection_failure),
+                Toast.LENGTH_LONG
+            )
+        }
+    }
+
+    private fun showDnsFailureToast(url: String) {
+        ui {
+            val msg =
+                context.getString(
+                    R.string.two_argument_colon,
+                    url,
+                    context.getString(R.string.dns_proxy_connection_failure)
+                )
+            showToastUiCentered(context.applicationContext, msg, Toast.LENGTH_LONG)
+        }
+    }
+
+    private fun showWireguardFailureToast(message: String) {
+        ui { showToastUiCentered(context.applicationContext, message, Toast.LENGTH_LONG) }
+    }
+
+    private fun showDnsProxyConnectionFailureToast() {
+        ui {
+            showToastUiCentered(
+                context.applicationContext,
+                context.getString(R.string.dns_proxy_connection_failure),
+                Toast.LENGTH_SHORT
+            )
+        }
+    }
+
+    private suspend fun setWireguardTunnelModeIfNeeded(tunProxyMode: AppConfig.TunProxyMode) {
+        if (!tunProxyMode.isTunProxyWireguard()) return
+
+        val wgConfigs: List<Config> = WireguardManager.getActiveConfigs()
+        if (wgConfigs.isEmpty()) {
+            Logger.i(LOG_TAG_VPN, "$TAG no active wg-configs found")
+            return
+        }
+        // re-order the configs so that hops are added first
+        val hops = WgHopManager.getAllHop()
+        Logger.d(LOG_TAG_VPN, "$TAG total active proxies: ${wgConfigs.size}")
+        // separate the id, hop has WG1 where id is 1
+        val hopIds = hops.map { it.substring(ID_WG_BASE.length).toIntOrNull() }
+        val hopConfigs = wgConfigs.filter { it.getId() in hopIds }
+        val nonHopConfigs = wgConfigs.filter { it.getId() !in hopIds }
+        Logger.i(LOG_TAG_VPN, "$TAG added wireguards with hops: ${hopConfigs.size}")
+        // add hop wireguard first
+        hopConfigs.forEach {
+            val id = ID_WG_BASE + it.getId()
+            addWgProxy(id)
+        }
+        Logger.i(LOG_TAG_VPN, "$TAG added wireguards without hops: ${nonHopConfigs.size}")
+        nonHopConfigs.forEach {
+            val id = ID_WG_BASE + it.getId()
+            addWgProxy(id)
+        }
+    }
+
+    private suspend fun addHopIfAny(origin: String) {
+        // assumption: by this time the add call should have happened
+        val hop = WgHopManager.getHop(origin)
+        if (hop.isEmpty()) {
+            Logger.i(LOG_TAG_VPN, "$TAG no hop found for $origin")
+            return
+        }
+        try {
+            tunnel.proxies.hop(hop, origin)
+            logEvent(Severity.LOW, "set hop", "set hop for $origin -> $hop")
+            Logger.i(LOG_TAG_VPN, "$TAG new hop for $origin -> $hop")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err setting hop for $origin -> $hop; ${e.message}")
+            showHopFailureNotification(origin, hop, err = e.message)
+            logEvent(Severity.HIGH, "set hop error", "error setting hop for $origin -> $hop, reason: ${e.message}")
+        }
+    }
+
+    suspend fun hopStatus(src: String, hop: String): Pair<Int?, String> {
+        return try {
+            val status = tunnel.proxies.getProxy(src).router().via().status()
+            Logger.v(LOG_TAG_VPN, "$TAG hop $src -> $hop; status: $status")
+            Pair(status, "")
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG hop failing for $src -> $hop; ${e.message}")
+            Pair(null, e.message ?: "failure")
+        }
+    }
+
+    suspend fun removeHop(src: String): Pair<Boolean, String> {
+        var err = ""
+        try {
+            tunnel.proxies.hop("", src)
+            Logger.i(LOG_TAG_VPN, "$TAG removed hop for $src -> empty")
+            logEvent(Severity.LOW, "remove hop", "removed hop for $src")
+            return Pair(true, context.getString(R.string.config_add_success_toast))
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err removing hop: $src -> empty; ${e.message}")
+            err = e.message ?: "err removing hop"
+            logEvent(Severity.HIGH, "remove hop error", "error removing hop for $src, reason: $err")
+        }
+        return Pair(false, err)
+    }
+
+    suspend fun testHop(src: String, hop: String): Pair<Boolean, String?> {
+        // returns empty on success, err msg on failure
+        val s = tunnel.proxies.testHop(hop, src)
+        val res = s.isNullOrEmpty()
+        val err = s
+        if (!res) {
+            Logger.w(LOG_TAG_VPN, "$TAG err testing hop: $src -> $hop; $s")
+        } else {
+            Logger.i(LOG_TAG_VPN, "$TAG test hop success: $src -> $hop")
+        }
+        return Pair(res, err)
+    }
+
+    private fun showHopFailureNotification(src: String, hop: String, err: String? = "") {
+        val notifChannelId = "hop_failure_channel"
+        ui {
+            val notificationManager =
+                context.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+
+            if (isAtleastO()) {
+                val channelName = context.getString(R.string.hop_failure_notification_title)
+                val importance = NotificationManager.IMPORTANCE_DEFAULT
+                val channel = NotificationChannel(notifChannelId, channelName, importance)
+                notificationManager.createNotificationChannel(channel)
+            }
+            val msg = context.getString(
+                R.string.hop_failure_toast,
+                src,
+                hop
+            ) + if (!err.isNullOrEmpty()) " ($err)" else ""
+            showToastUiCentered(context.applicationContext, msg, Toast.LENGTH_LONG)
+            val pendingIntent =
+                Utilities.getActivityPendingIntent(
+                    context,
+                    Intent(context, HomeScreenActivity::class.java),
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+                    mutable = false
+                )
+            val builder =
+                NotificationCompat.Builder(context, notifChannelId)
+                    .setSmallIcon(R.drawable.ic_notification_icon)
+                    .setContentTitle(msg)
+                    .setContentIntent(pendingIntent)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setAutoCancel(true)
+            builder.color = ContextCompat.getColor(context, getAccentColor(persistentState.theme))
+            notificationManager.notify(NW_ENGINE_NOTIFICATION_ID, builder.build())
+        }
+    }
+
+    private suspend fun setWireGuardDns(id: String) {
+        try {
+            val p = getProxies()?.getProxy(id)
+            if (p == null) {
+                Logger.w(LOG_TAG_VPN, "$TAG wireguard proxy not found for id: $id")
+                return
+            }
+            Intra.addProxyDNS(tunnel, p) // dns transport has same id as the proxy (p)
+            logEvent(Severity.LOW, "set wireguard dns", "set wireguard dns for id: $id")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG wireguard dns failure($id)", e)
+            removeResolver(id)
+            showDnsFailureToast(id)
+            logEvent(Severity.HIGH, "set wireguard dns error", "wireguard dns failure for id: $id, reason: ${e.message}" )
+        }
+    }
+
+    suspend fun setCustomProxy(tunProxyMode: AppConfig.TunProxyMode) {
+        setSocks5TunnelModeIfNeeded(tunProxyMode)
+        setHttpProxyIfNeeded(tunProxyMode)
+    }
+
+    private suspend fun setSocks5TunnelModeIfNeeded(tunProxyMode: AppConfig.TunProxyMode) {
+        val socksEnabled = AppConfig.ProxyType.of(appConfig.getProxyType()).isSocks5Enabled()
+        if (!socksEnabled) return
+
+        val socks5: ProxyEndpoint? =
+            if (tunProxyMode.isTunProxyOrbot()) {
+                appConfig.getConnectedOrbotProxy()
+            } else {
+                appConfig.getSocks5ProxyDetails()
+            }
+        if (socks5 == null) {
+            Logger.w(
+                LOG_TAG_VPN,
+                "$TAG could not fetch socks5 details for proxyMode: $tunProxyMode"
+            )
+            return
+        }
+        setSocks5Proxy(
+            tunProxyMode,
+            socks5.userName,
+            socks5.password,
+            socks5.proxyIP,
+            socks5.proxyPort
+        )
+        Logger.i(LOG_TAG_VPN, "$TAG Socks5 mode set: " + socks5.proxyIP + "," + socks5.proxyPort)
+    }
+
+    suspend fun getProxyStatusById(id: String): Pair<Int?, String> {
+        return try {
+            if (id == Backend.RpnWin) {
+                val status = tunnel.proxies.rpn().win().status()
+                Logger.d(LOG_TAG_VPN, "$TAG rpn-win status: $status")
+                return Pair(status, "")
+            }
+            val status = getProxies()?.getProxy(id)?.status()
+            Logger.d(LOG_TAG_VPN, "$TAG proxy status($id): $status")
+            Pair(status, "")
+        } catch (ex: Exception) {
+            Logger.i(LOG_TAG_VPN, "$TAG err getProxy($id), reason: ${ex.message}")
+            Pair(null, ex.message.orEmpty())
+        }
+    }
+
+    private suspend fun setHttpProxyIfNeeded(tunProxyMode: AppConfig.TunProxyMode) {
+        if (!AppConfig.ProxyType.of(appConfig.getProxyType()).isProxyTypeHasHttp()) return
+
+        try {
+            val endpoint: ProxyEndpoint
+            val id =
+                if (tunProxyMode.isTunProxyOrbot()) {
+                    val orbotEndpoint = appConfig.getOrbotHttpEndpoint()
+                    if (orbotEndpoint == null) {
+                        Logger.e(LOG_TAG_VPN, "$TAG could not fetch Orbot HTTP endpoint for proxyMode: $tunProxyMode")
+                        return
+                    }
+                    endpoint = orbotEndpoint
+                    ProxyManager.ID_ORBOT_BASE
+                } else {
+                    val httpEndpoint = appConfig.getHttpProxyDetails()
+                    if (httpEndpoint == null) {
+                        Logger.e(LOG_TAG_VPN, "$TAG could not fetch http proxy details for proxyMode: $tunProxyMode")
+                        return
+                    }
+                    endpoint = httpEndpoint
+                    ProxyManager.ID_HTTP_BASE
+                }
+            val httpProxyUrl = endpoint.proxyIP ?: return
+
+            val p = getProxies()?.addProxy(id, httpProxyUrl)
+            logEvent(Severity.LOW, "set http proxy", "set http proxy with id: $id, url: $httpProxyUrl")
+            Logger.i(LOG_TAG_VPN, "$TAG http proxy set, url: $httpProxyUrl, success? ${p != null}")
+        } catch (e: Exception) {
+            if (tunProxyMode.isTunProxyOrbot()) {
+                appConfig.removeProxy(AppConfig.ProxyType.HTTP, AppConfig.ProxyProvider.ORBOT)
+            } else {
+                appConfig.removeProxy(AppConfig.ProxyType.HTTP, AppConfig.ProxyProvider.CUSTOM)
+            }
+            logEvent(Severity.HIGH, "set http proxy error", "error setting http proxy, reason: ${e.message}")
+            Logger.e(LOG_TAG_VPN, "$TAG error setting http proxy: ${e.message}", e)
+        }
+    }
+
+    suspend fun removeWgProxy(id: Int) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip remove wg")
+            logEvent(Severity.CRITICAL, "remove wg proxy", "removeWgProxy called with no tunnel")
+            return
+        }
+        try {
+            val wgId = ID_WG_BASE + id
+            getProxies()?.removeProxy(wgId)
+            removeResolver(wgId)
+            logEvent(Severity.LOW, "remove wg proxy", "removed wg proxy with id: $wgId")
+            Logger.i(LOG_TAG_VPN, "$TAG remove wireguard proxy with id: $id")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err removing wireguard proxy: ${e.message}", e)
+            logEvent(Severity.HIGH, "remove wg proxy error", "err removing wg proxy with id: $id, reason: ${e.message}" )
+        }
+    }
+
+    suspend fun addWgProxy(id: String, force: Boolean = false) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip add wg")
+            logEvent(Severity.CRITICAL, "add wg proxy", "addWgProxy called with no tunnel")
+            return
+        }
+        try {
+            val proxyId: Int? = id.substring(ID_WG_BASE.length).toIntOrNull()
+            if (proxyId == null) {
+                Logger.e(LOG_TAG_VPN, "$TAG invalid wg proxy id: $id")
+                return
+            }
+            try {
+                if (!force && getProxies()?.getProxy(id) != null) {
+                    Logger.i(LOG_TAG_VPN, "$TAG wg proxy already exists in tunnel $id")
+                    return
+                }
+            } catch (_: Exception) {
+                Logger.i(LOG_TAG_VPN, "$TAG wg proxy not found in tunnel $id, proceed adding")
+            }
+
+            val wgConfig = WireguardManager.getConfigById(proxyId)
+            val isOneWg = WireguardManager.getOneWireGuardProxyId() == proxyId
+            if (!isOneWg) checkAndAddProxyForHopIfNeeded(id)
+            val skipListenPort = !isOneWg && persistentState.randomizeListenPort
+            val wgUserSpaceString = wgConfig?.toWgUserspaceString(skipListenPort)
+            val p = getProxies()?.addProxy(id, wgUserSpaceString)
+            Logger.i(LOG_TAG_VPN, "$TAG added wireguard proxy with $id; success? ${p != null}")
+            logEvent(Severity.LOW, "add wg proxy", "added wg proxy with id: $id, oneWg? $isOneWg")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err adding wireguard proxy: ${e.message}", e)
+            // do not auto remove failed wg proxy, let the user decide hop UI
+            // WireguardManager.disableConfig(id)
+            showWireguardFailureToast(
+                e.message ?: context.getString(R.string.wireguard_connection_error)
+            )
+            logEvent(Severity.HIGH, "add wg proxy error", "err adding wg proxy with id: $id, reason: ${e.message}" )
+        }
+    }
+
+    suspend fun handleOnWgAdded(id: String) {
+        setWireGuardDns(id)
+        // initiate a ping request to the wg proxy
+        initiateWgPing(id)
+        addHopIfAny(id)
+    }
+
+    private suspend fun checkAndAddProxyForHopIfNeeded(id: String) {
+        // see if there is hop for this proxy, start the hop-wg if not started
+        try {
+            val hop = WgHopManager.getHop(id)
+            val hopId = hop.substring(ID_WG_BASE.length).toIntOrNull()
+            if (hopId == null) { // hop can be empty, in that case, return
+                Logger.w(LOG_TAG_VPN, "$TAG no hop for $id")
+                return
+            }
+            val config = WireguardManager.getConfigFilesById(hopId)
+            if (config == null) {
+                Logger.w(LOG_TAG_VPN, "$TAG no wg config found for id: $id, but hop: $hop")
+                return
+            }
+            Logger.i(LOG_TAG_VPN, "$TAG start hop config: $hop")
+            // this will enable the config and initiate the add proxy to the tunnel
+            WireguardManager.enableConfig(config)
+        } catch (_: Exception) {}
+    }
+
+    suspend fun closeConnections(connIds: List<String>, isUid: Boolean = false, reason: String) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip closeConns")
+            logEvent(Severity.CRITICAL, "close connections", "closeConnections called with no tunnel")
+            return
+        }
+
+        if (connIds.isEmpty()) {
+            val res = tunnel.closeConns("") // closes all connections
+            Logger.i(LOG_TAG_VPN, "$TAG close all connections($connIds), res: $res")
+            return
+        }
+
+        val connIdsStr = connIds.joinToString(",")
+        // there maybe chance that the res can be empty, when the conns are already closed
+        val res = tunnel.closeConns(connIdsStr)
+        val closedConns = res.split(",").map { it.trim() }.filter { it.isNotEmpty() }.toSet()
+        // check if all connections are closed. for any connIds not present in the result,
+        // mark their database entries as closed. These connections were either closed when
+        // the tunnel was disconnected or were missed during database update.
+        val diff = connIds.filter { !closedConns.contains(it) }
+        // check if the elements in the diff has the size equal to the connIds size,
+        // there can be case where the connIds contains uid,
+        if (diff.isNotEmpty()) {
+            try {
+                if (isUid) {
+                    // close the connections for all the uids in the diff
+                    val uids = diff.mapNotNull { it.toIntOrNull() }
+                    connTrackerDb.closeConnectionForUids(uids, reason)
+                    // event for closed conns is not needed, as bulk update triggers unnecessary events
+                    Logger.i(LOG_TAG_VPN, "$TAG closeConns: $connIds, res: $res, uids: $uids, reason: $reason")
+                } else {
+                    connTrackerDb.closeConnections(diff, reason)
+                    logEvent(Severity.LOW, "close conns", "close all connections, res: ${closedConns.size}")
+                    Logger.i(LOG_TAG_VPN, "$TAG closeConns: $connIds, res: $res, ids: $diff, reason: $reason")
+                }
+            } catch (e: Exception) {
+                Logger.i(LOG_TAG_VPN, "$TAG err closing connections: ${e.message}")
+                logEvent(Severity.MEDIUM, "close conns error", "err closing connections for diff: $diff, reason: ${e.message}")
+            }
+        }
+        Logger.i(LOG_TAG_VPN, "$TAG close connection: $connIds, res: $res")
+    }
+
+    private suspend fun refreshWgProxy(id: String) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip refreshing wg")
+            return
+        }
+
+        try {
+            getProxies()?.getProxy(id)?.refresh()
+            Logger.i(LOG_TAG_VPN, "$TAG wg proxy refreshed: $id")
+            logEvent(Severity.LOW, "refresh wg proxy", "refreshed wg proxy with id: $id")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err refreshing wg proxy: ${e.message}", e)
+            logEvent(Severity.HIGH, "refresh wg proxy error", "err refreshing wg proxy with id: $id, reason: ${e.message}" )
+        }
+    }
+
+    suspend fun refreshOrPauseOrResumeOrReAddProxies(isMobileActive: Boolean, ssid: String) {
+        val avoidReaddingProxies = true
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip refreshing proxies")
+            return
+        }
+        try {
+            // refresh proxies should never return error/exception
+            val res = getProxies()?.refreshProxies()
+            Logger.i(LOG_TAG_VPN, "$TAG wg refresh proxies: $res, mobile? $isMobileActive, ssid? $ssid")
+            // re-add the proxies if the not available in the tunnel
+            val wgConfigs: List<Config> = WireguardManager.getActiveConfigs()
+            val rpnConfigs: Set<CountryConfig> = RpnProxyManager.getEnabledConfigs()
+            if (wgConfigs.isEmpty() && rpnConfigs.isEmpty()) {
+                Logger.i(LOG_TAG_VPN, "$TAG no active wg-configs found")
+                return
+            }
+            // re-add wireguard proxies in case of failure, consider proxy stats TNT as a failure
+            // TNT means proxy UP but not responding
+            wgConfigs.forEach {
+                val id = ID_WG_BASE + it.getId()
+                val files = WireguardManager.getConfigFilesById(it.getId())
+                // skip one-wg proxy, mobile-only doesn't apply
+                val isWireGuardMobileOnly = files?.useOnlyOnMetered == true && !files.oneWireGuard
+                val canResumeMobileWg = isWireGuardMobileOnly && isMobileActive
+
+                val useOnlyOnSsid = files?.ssidEnabled == true && !files.oneWireGuard
+                val configuredSsids = files?.ssids.orEmpty()
+                val ssidMatch = WireguardManager.matchesSsidList(configuredSsids, ssid) && ssid.isNotEmpty()
+                val canResumeSsidWg = useOnlyOnSsid && ssidMatch
+
+                val canResume = canResumeMobileWg || canResumeSsidWg
+
+                Logger.d(
+                    LOG_TAG_VPN,
+                    "$TAG refresh proxy: $id, mobileOnly: $isWireGuardMobileOnly, " +
+                        "canResumeMobileWg: $canResumeMobileWg, canResumeSsidWg: $canResumeSsidWg, isMobileActive: $isMobileActive, " +
+                        "useOnlyOnSsid: $useOnlyOnSsid, ssidMatch: $ssidMatch, ssid: $ssid, canResume: $canResume, wg-ssids: $configuredSsids"
+                )
+                val stats = getProxyStatusById(id).first
+                if (stats == null || stats == Backend.TNT) {
+                    Logger.w(LOG_TAG_VPN, "$TAG proxy stats for $id is null or tnt, $stats, re-adding? $avoidReaddingProxies")
+                    // there are cases where the proxy needs to be re-added, so pingOrReAddProxy
+                    // case: some of the wg proxies are added to tunnel but erring out, so
+                    // re-adding those proxies seems working, work around for now until the
+                    // re-add logic is handled in go-tun
+                    // (github.com/celzero/firestack/blob/61187f88c1/intra/ipn/wgproxy.go#L404)
+                    if (avoidReaddingProxies) {
+                        refreshWgProxy(id)
+                    } else {
+                        addWgProxy(id, true)
+                    }
+                }
+                if (stats == Backend.TPU && canResume) {
+                    // if the proxy is paused, then resume it
+                    // this is needed when the tunnel is reconnected and the proxies are paused
+                    // so resume them, also when there is switch in wg-config for useOnlyOnMetered
+                    // or ssid change for ssidEnabled wgs
+                    val res = resumeWireguard(id)
+                    Logger.i(LOG_TAG_VPN, "$TAG resumed proxy: $id, res: $res")
+                    logEvent(
+                        Severity.LOW,
+                        "wireguard proxy resumed",
+                        "Wireguard proxy with id $id resumed"
+                    )
+                } else if (isWireGuardMobileOnly && !isMobileActive && !canResume) {
+                    // if the proxy is not paused, then pause it
+                    // this is needed when the network is on mobile data
+                    // and the wg-config is set to useOnlyOnMetered
+                    val res = pauseWireguard(id)
+                    Logger.i(LOG_TAG_VPN, "$TAG paused proxy (mobile): $id, res: $res")
+                    logEvent(
+                        Severity.LOW,
+                        "wireguard proxy paused",
+                        "Wireguard proxy with id $id paused, reason: mobile data"
+                    )
+                } else if (useOnlyOnSsid && !ssidMatch && !canResume) {
+                    // when the ssidEnabled is set and the ssid does not match
+                    val res = pauseWireguard(id)
+                    Logger.i(LOG_TAG_VPN, "$TAG paused proxy (ssid): $id, res: $res")
+                    logEvent(
+                        Severity.LOW,
+                        "wireguard proxy paused",
+                        "Wireguard proxy with id $id paused, reason: ssid mismatch"
+                    )
+                }
+
+                if (stats == Backend.TPU && !isWireGuardMobileOnly && !useOnlyOnSsid) {
+                    // if the proxy is paused, then resume it
+                    // this is needed when the tunnel is reconnected and the proxies are paused
+                    val res = getProxies()?.getProxy(id)?.resume()
+                    logEvent(
+                        Severity.LOW,
+                        "wireguard proxy resumed",
+                        "Wireguard proxy with id $id resumed successfully"
+                    )
+                    Logger.i(LOG_TAG_VPN, "$TAG resumed proxy (non-metered/ssid): $id, res: $res")
+                }
+            }
+            if (!RpnProxyManager.isRpnActive()) {
+                return
+            }
+            rpnConfigs.forEach {
+                val key = if (it.key.contains(AUTO_SERVER_ID, ignoreCase = true)) {
+                    ""
+                } else {
+                    it.key
+                }
+                val isWireGuardMobileOnly = it.mobileOnly
+                val canResumeMobileWg = isWireGuardMobileOnly && isMobileActive
+
+                val useOnlyOnSsid = it.ssidBased
+                val configuredSsids = it.ssids
+                val ssidMatch = RpnProxyManager.matchesSsidList(configuredSsids, ssid) && ssid.isNotEmpty()
+                val canResumeSsidWg = useOnlyOnSsid && ssidMatch
+
+                val canResume = canResumeMobileWg || canResumeSsidWg
+                val rpn = getWinByKey(key)
+                val status = rpn?.status()
+                if (status == Backend.TNT) {
+                    if (avoidReaddingProxies) {
+                        refreshRpnProxy(key)
+                        Logger.i(LOG_TAG_VPN, "$TAG refreshed rpn proxy: $key")
+                        logEvent(
+                            Severity.LOW,
+                            "refresh rpn proxy",
+                            "refreshed rpn proxy with key: $key"
+                        )
+                    } else {
+                        reconnectRpnProxy(key)
+                        Logger.i(LOG_TAG_VPN, "$TAG re-added rpn proxy: $key")
+                        logEvent(
+                            Severity.LOW,
+                            "re-add rpn proxy",
+                            "re-added rpn proxy with key: $key"
+                        )
+                    }
+                }
+
+                if (status == Backend.TPU && canResume) {
+                    // if the proxy is paused, then resume it
+                    // this is needed when the tunnel is reconnected and the proxies are paused
+                    // so resume them, also when there is switch in wg-config for useOnlyOnMetered
+                    // or ssid change for ssidEnabled wgs
+                    val res = rpn.resume()
+                    Logger.i(LOG_TAG_VPN, "$TAG resumed proxy: $key, res: $res")
+                    logEvent(
+                        Severity.LOW,
+                        "rpn proxy resumed",
+                        "rpn proxy with id $key resumed"
+                    )
+                } else if (isWireGuardMobileOnly && !isMobileActive && !canResume) {
+                    // if the proxy is not paused, then pause it
+                    // this is needed when the network is on mobile data
+                    // and the wg-config is set to useOnlyOnMetered
+                    val res = rpn?.pause()
+                    Logger.i(LOG_TAG_VPN, "$TAG paused proxy (mobile): $key, res: $res")
+                    logEvent(
+                        Severity.LOW,
+                        "rpn proxy paused",
+                        "rpn proxy with id $key paused, reason: mobile data"
+                    )
+                } else if (useOnlyOnSsid && !ssidMatch && !canResume) {
+                    // when the ssidEnabled is set and the ssid does not match
+                    val res = rpn?.pause()
+                    Logger.i(LOG_TAG_VPN, "$TAG paused proxy (ssid): $key, res: $res")
+                    logEvent(
+                        Severity.LOW,
+                        "rpn proxy paused",
+                        "rpn proxy with id $key paused, reason: ssid mismatch"
+                    )
+                }
+
+                if (status == Backend.TPU && !isWireGuardMobileOnly && !useOnlyOnSsid) {
+                    // if the proxy is paused, then resume it
+                    // this is needed when the tunnel is reconnected and the proxies are paused
+                    val res = rpn.resume()
+                    logEvent(
+                        Severity.LOW,
+                        "rpn proxy resumed",
+                        "rpn proxy with id $key resumed successfully"
+                    )
+                    Logger.i(LOG_TAG_VPN, "$TAG resumed proxy (non-metered/ssid): $key, res: $res")
+                }
+            }
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err refreshing proxies: ${e.message}", e)
+            logEvent(Severity.HIGH, "refresh proxies error", "err refreshing proxies, reason: ${e.message}")
+        }
+    }
+
+    suspend fun getProxyStats(id: String): RouterStats? {
+        return try {
+            if (id == Backend.RpnWin || id.startsWith(Backend.RpnWin)) {
+                val key = getWinByKey(id)
+                val stats = key?.router()?.stat()
+                Logger.d(LOG_TAG_VPN, "$TAG rpn-win proxy status: $stats")
+                stats
+            } else {
+                val stats = getProxies()?.getProxy(id)?.router()?.stat()
+                Logger.d(LOG_TAG_VPN, "$TAG wg proxy status: $stats")
+                stats
+            }
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG err getting proxy stats($id): ${e.message}")
+            null
+        }
+    }
+
+    suspend fun getWireGuardStats(id: String): WireguardManager.WgStats? {
+        return try {
+            val proxy = getProxies()?.getProxy(id)
+            val status = proxy?.status()
+
+            val router = proxy?.router()
+            val stat = router?.stat()
+            val mtu = router?.mtu()
+            val ip4 = router?.iP4()
+            val ip6 = router?.iP6()
+
+            WireguardManager.WgStats(stat, mtu, status, ip4, ip6, null, null)
+        } catch (_: java.util.concurrent.TimeoutException) {
+            Logger.w(LOG_TAG_VPN, "$TAG timeout getting wg stats($id)")
+            null
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG err getting wg stats($id): ${e.message}")
+            null
+        }
+    }
+
+    suspend fun getRpnStats(id: String): RpnProxyManager.RpnStats? {
+        return try {
+            val rpn = getWinByKey(id)
+            val status = rpn?.status()
+
+            val router = rpn?.router()
+            val stat = router?.stat()
+            val mtu = router?.mtu()
+            val ip4 = router?.iP4()
+            val ip6 = router?.iP6()
+            val client = runCatching { rpn?.client() }.getOrNull()
+            val clientV4 = runCatching { client?.iP4() }.getOrNull()
+
+            RpnProxyManager.RpnStats(stat, mtu, status, ip4, ip6, clientV4)
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG err getting rpn stats($id): ${e.message}")
+            null
+        }
+    }
+
+    suspend fun getRpnAddlInfo(id: String): RpnProxyManager.ActiveRpnAddlInfo? {
+        return try {
+            val rpn = if (id.isEmpty() || id.equals(AUTO_SERVER_ID, true) || id == Backend.RpnWin) {
+                tunnel.proxies.rpn().win().main()
+            } else {
+                var re: RpnServer? = null
+                val kids = tunnel.proxies.rpn().win().kids()
+                if (kids.len() > 0) {
+                    for (i in 0 until kids.len()) {
+                        val r = kids.get(i)
+                        if (r.key == id) {
+                            re = r
+                        }
+                    }
+                }
+                re
+            }
+            if (rpn == null) {
+                Logger.w(LOG_TAG_VPN, "$TAG rpn is null while fetching addl info, id: $id")
+                return null
+            }
+
+            val addlInfo = RpnProxyManager.ActiveRpnAddlInfo(rpn.key, rpn.name, rpn.cc, rpn.city, rpn.addrs, rpn.pubPub, rpn.load, rpn.allowed, rpn.count, rpn.excluded, rpn.link, rpn.premium)
+
+            Logger.vv(LOG_TAG_VPN, "$TAG rpn addl info for id: $id, info: $addlInfo")
+            addlInfo
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG err getting rpn addl info($id): ${e.message}")
+            null
+        }
+    }
+
+    suspend fun pauseWireguard(id: String): Boolean {
+        return try {
+            val res = getProxies()?.getProxy(id)?.pause()
+            Logger.i(LOG_TAG_VPN, "$TAG paused wg proxy: $id, res: $res")
+            logEvent(
+                Severity.LOW,
+                "wireguard proxy paused",
+                "Wireguard proxy with id $id paused successfully"
+            )
+            res ?: false
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err pausing wg proxy($id): ${e.message}", e)
+            logEvent(
+                Severity.MEDIUM,
+                "wireguard proxy pause failure",
+                "Wireguard proxy with id $id failed to pause: ${e.message}"
+            )
+            false
+        }
+    }
+
+    suspend fun resumeWireguard(id: String): Boolean {
+        return try {
+            val res = getProxies()?.getProxy(id)?.resume()
+            Logger.i(LOG_TAG_VPN, "$TAG resumed wg proxy: $id, res: $res")
+            res ?: false
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err resuming wg proxy($id): ${e.message}", e)
+            false
+        }
+    }
+
+    suspend fun getNetStat(): NetStat? {
+        return try {
+            tunnel.stat()
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err getting net stat: ${e.message}")
+            null
+        }
+    }
+
+    suspend fun getDnsStatus(id: String): Int? {
+        try {
+            if (id == Backend.RpnWin) {
+                val status = tunnel.proxies.rpn().win().status()
+                Logger.d(LOG_TAG_VPN, "$TAG rpn-win dns status: $status")
+                return status
+            }
+            val transport = getResolver()?.get(id)
+            val tid = transport?.id()
+            val status = transport?.status()
+            // some special transports like blockfree, preferred, alg etc are handled specially.
+            // in those cases, if the transport id is not there, it will serve the default transport
+            // so return null in those cases
+            if (tid != id) {
+                Logger.d(LOG_TAG_VPN, "$TAG dns status; not desired transport($id), return null")
+                return null
+            }
+            Logger.d(LOG_TAG_VPN, "$TAG dns status($id): $status for tid: $tid")
+            return status
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG err dns status($id): ${e.message}")
+        }
+        return null
+    }
+
+    suspend fun getRDNS(type: RethinkBlocklistManager.RethinkBlocklistType): RDNS? {
+        try {
+            return if (type.isLocal() && !isPlayStoreFlavour()) {
+                getRDNSResolver()?.rdnsLocal
+            } else {
+                getRDNSResolver()?.rdnsRemote
+            }
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG err getRDNS($type): ${e.message}")
+        }
+        return null
+    }
+
+    // v055, unused
+    /*suspend fun setTcpProxy() {
+        if (!appConfig.isTcpProxyEnabled()) {
+            Logger.i(LOG_TAG_VPN, "$TAG tcp proxy not enabled")
+            return
+        }
+
+        val u = TcpProxyHelper.getActiveTcpProxy()
+        if (u == null) {
+            Logger.w(LOG_TAG_VPN, "$TAG could not fetch tcp proxy details")
+            return
+        }
+
+        val ips = getIpString(context, "https://sky.rethinkdns.com/")
+        Logger.d(LOG_TAG_VPN, "$TAG ips: $ips")
+        // svc.rethinkdns.com / duplex.deno.dev
+        val testpipwsurl = "pipws://proxy.nile.workers.dev/ws/nosig"
+        val ok = getProxies()?.addProxy(ProxyManager.ID_TCP_BASE, testpipwsurl)
+        Logger.d(LOG_TAG_VPN, "$TAG tcp-mode(${ProxyManager.ID_TCP_BASE}): ${u.url}, ok? $ok")
+
+        val secWarp = RpnProxyManager.getSecWarpConfig()
+        if (secWarp == null) {
+            Logger.w(LOG_TAG_VPN, "$TAG no sec warp config found")
+            return
+        }
+        val wgUserSpaceString = secWarp.toWgUserspaceString()
+        val ok2 = getProxies()?.addProxy(ID_WG_BASE + secWarp.getId(), wgUserSpaceString)
+        Logger.d(
+            LOG_TAG_VPN,
+            "$TAG tcp-mode(wg) set(${ID_WG_BASE + secWarp.getId()}): ${secWarp.getName()}, res: $ok2"
+        )
+    }*/
+
+    fun hasTunnel(): Boolean {
+        return tunnel.isConnected
+    }
+
+    suspend fun refreshResolvers() {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip refreshing resolvers")
+            return
+        }
+
+        val id = if (appConfig.isSmartDnsEnabled()) Backend.Plus else Backend.Preferred
+        val mainDnsStatus = getDnsStatus(id)
+        val mainDnsOK = mainDnsStatus != null && mainDnsStatus != Backend.DEnd
+        Logger.i(LOG_TAG_VPN, "preferred/plus set? ${mainDnsOK}, if not set it again")
+
+        if (!mainDnsOK) {
+            addTransport()
+        }
+
+        Logger.i(LOG_TAG_VPN, "$TAG refresh resolvers")
+        try {
+            getResolver()?.refresh()
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err refreshing resolvers: ${e.message}", e)
+        }
+    }
+
+    suspend fun closeTun() {
+        try {
+            if (tunnel.isConnected) {
+                // this is not the only place where tunnel is disconnected
+                // netstack can also close the tunnel on errors
+                tunnel.disconnect()
+                logEvent(
+                    Severity.MEDIUM,
+                    "tunnel disconnected",
+                    "VPN tunnel disconnected successfully"
+                )
+            } else {
+                Logger.i(LOG_TAG_VPN, "$TAG tunnel already disconnected")
+                logEvent(
+                    Severity.LOW,
+                    "tunnel already disconnected",
+                    "VPN tunnel was already disconnected"
+                )
+            }
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err disconnect tunnel: ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "tunnel disconnect failure",
+                "Error disconnecting VPN tunnel: ${e.message}"
+            )
+        }
+    }
+
+    private fun newDefaultTransport(url: String): DefaultDNS? {
+        val fallbackDns = getDefaultFallbackDns()
+        try {
+            // when the url is empty, set the default transport to 9.9.9.9, 2620:fe::fe or
+            // null based on the value of SKIP_DEFAULT_DNS_ON_INIT
+            if (url.isEmpty()) { // empty url denotes default dns set to none (system dns)
+                if (SKIP_DEFAULT_DNS_ON_INIT && !persistentState.routeRethinkInRethink) {
+                    Logger.i(LOG_TAG_VPN, "$TAG set default dns to null, as url is empty")
+                    return null
+                }
+                Logger.i(LOG_TAG_VPN, "$TAG set default dns to $fallbackDns, as url is empty")
+                return Intra.newDefaultDNS(Backend.DNS53, fallbackDns, "")
+            }
+            val ips: String = getIpString(context, url)
+            Logger.d(LOG_TAG_VPN, "$TAG default dns url: $url ips: $ips")
+            val res = if (url.contains("http")) {
+                Intra.newDefaultDNS(Backend.DOH, url, ips)
+            } else {
+                // no need to set ips for dns53
+                Intra.newDefaultDNS(Backend.DNS53, url, "")
+            }
+            Logger.i(LOG_TAG_VPN, "$TAG new default dns: $url, $ips, success? ${res != null}")
+            return res
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG err new default dns($url): ${e.message}", e)
+            // most of the android devices have google dns, so add it as default transport
+            // TODO: notify the user that the default transport could not be set
+            try {
+                Logger.i(LOG_TAG_VPN, "$TAG; fallback; set default dns to $fallbackDns")
+                return Intra.newDefaultDNS(Backend.DNS53, fallbackDns, "")
+            } catch (e: Exception) {
+                Logger.crash(LOG_TAG_VPN, "$TAG err add $fallbackDns dns: ${e.message}", e)
+                return null
+            }
+        }
+    }
+
+    private fun getDefaultFallbackDns(): String {
+        return try {
+            val netDns1 = System.getProperty("net.dns1")
+            val netDns2 = System.getProperty("net.dns2")
+            if (netDns1?.isNotEmpty() == true && netDns2?.isNotEmpty() == true) {
+                "$netDns1,$netDns2"
+            } else if (netDns1?.isNotEmpty() == true) {
+                netDns1
+            } else if (netDns2?.isNotEmpty() == true) {
+                netDns2
+            } else {
+                FALLBACK_DNS_IF_NET_DNS_EMPTY
+            }
+        } catch (_: Exception) {
+            FALLBACK_DNS_IF_NET_DNS_EMPTY
+        }
+    }
+
+    suspend fun addDefaultTransport(url: String?): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip add default dns")
+            return false
+        }
+        var type = Backend.DNS53
+        val fallbackUrl = getDefaultFallbackDns()
+
+        val usingSysDnsAsDefaultDns = isDefaultDnsNone()
+        var usingGoos = fallbackUrl.isEmpty() // always false here, as fallbackUrl is not empty
+        // make the tun to use goos as default transport if the system dns is set as none in
+        // persistent state and not in rinr mode, as in that case the system dns
+        if (SET_SYS_DNS_AS_DEFAULT_IFF_LOOPBACK && !persistentState.routeRethinkInRethink) {
+            usingGoos = usingSysDnsAsDefaultDns
+        }
+
+        // default transport is always sent to Ipn.Exit in the go code and so dns
+        // request sent to the default transport will not be looped back into the tunnel
+        return try {
+            // when the url is empty, set the default transport to fallbackUrl
+            if (url.isNullOrEmpty()) {
+                Logger.i(LOG_TAG_VPN, "$TAG url empty, set default dns to $type, $fallbackUrl, usingGoos: $usingGoos")
+                if (usingGoos) {
+                    Intra.addDefaultTransport(tunnel, "", "", "")
+                } else {
+                    Intra.addDefaultTransport(tunnel, type, fallbackUrl, "")
+                }
+                return true
+            } else if (url.contains("http")) {
+                type = Backend.DOH
+            }
+
+            val ips: String = getIpString(context, url)
+            Intra.addDefaultTransport(tunnel, type, url, ips)
+            logEvent(
+                Severity.LOW,
+                "set default dns",
+                "Default DNS set to: $url with IPs: $ips"
+            )
+            Logger.i(LOG_TAG_VPN, "$TAG default dns set, url: $url ips: $ips, type: $type")
+            true
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG err new default dns($url): ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "set default dns failed, goos? $usingGoos",
+                "Error: ${e.message}"
+            )
+            // most of the android devices have google dns, so add it as default transport
+            // TODO: notify the user that the default transport could not be set
+            return try {
+                if (usingGoos) {
+                    Logger.i(LOG_TAG_VPN, "$TAG; fallback; set empty default dns, usingGoos: $usingGoos")
+                    Intra.addDefaultTransport(tunnel, "", "", "")
+                } else {
+                    Logger.i(LOG_TAG_VPN, "$TAG; fallback; set default dns to $fallbackUrl")
+                    Intra.addDefaultTransport(tunnel, type, fallbackUrl, "")
+                }
+                true
+            } catch (e: Exception) {
+                // fixme: this is not expected to happen, should show a notification?
+                Logger.e(LOG_TAG_VPN, "$TAG err add $fallbackUrl transport: ${e.message}", e)
+                false
+            }
+        }
+    }
+
+    private fun isDefaultDnsNone(): Boolean {
+        // if none is set then the url will either be empty or will not be one of the default dns
+        return persistentState.defaultDnsUrl.isEmpty() ||
+                !Constants.DEFAULT_DNS_LIST.any { it.url == persistentState.defaultDnsUrl }
+    }
+
+    suspend fun getSystemDns(): String? {
+        return try {
+            val sysDns = getResolver()?.get(Backend.System)?.addr
+            Logger.i(LOG_TAG_VPN, "$TAG get system dns: $sysDns")
+            logEvent(
+                Severity.LOW,
+                "get system dns",
+                "System DNS: $sysDns"
+            )
+            sysDns
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err get system dns: ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "get system dns failed",
+                "Error: ${e.message}"
+            )
+            ""
+        }
+    }
+
+    suspend fun notifyLoopback() {
+        val t = persistentState.routeRethinkInRethink
+        try {
+            Intra.loopback(t)
+            Logger.i(LOG_TAG_VPN, "$TAG notify loopback? $t")
+            logEvent(
+                Severity.LOW,
+                "notify loopback",
+                "Loopback set to: $t"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err notify loopback? $t, ${e.message}", e)
+        }
+    }
+
+    suspend fun setSystemDns(systemDns: List<String?>): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip setting system-dns")
+            logEvent(
+                Severity.CRITICAL,
+                "set system dns failed",
+                "Tunnel is not connected"
+            )
+            return false
+        }
+        // for Rethink within rethink mode, the system dns is system dns is always set to Ipn.Base
+        // in go and so dns request sent to the system dns will be looped back into the tunnel
+        return try {
+            // TODO: system dns may be non existent; see: AppConfig#updateSystemDnsServers
+            // convert list to comma separated string, as Intra expects as csv
+            val sysDnsStr = systemDns.filter { it?.isNotEmpty() == true }.joinToString(",")
+            // below code is commented out, add the code to set the system dns via resolver
+            // val transport = Intra.newDNSProxy("ID", dnsProxy.host, dnsProxy.port.toString())
+            // tunnel?.resolver?.addSystemDNS(transport)
+            Logger.i(LOG_TAG_VPN, "$TAG set system dns: $sysDnsStr")
+            // no need to send the dnsProxy.port for the below method, as it is not expecting port
+            Intra.setSystemDNS(tunnel, sysDnsStr)
+            logEvent(
+                Severity.LOW,
+                "set system dns",
+                "System DNS set to: $sysDnsStr"
+            )
+            true
+        } catch (e: Exception) { // this is not expected to happen
+            Logger.e(LOG_TAG_VPN, "$TAG set system dns: could not parse: $systemDns", e)
+            // remove the system dns, if it could not be set
+            removeResolver(Backend.System)
+            logEvent(
+                Severity.HIGH,
+                "set system dns failed",
+                "Error: ${e.message}"
+            )
+            false
+        }
+    }
+
+    suspend fun updateLinkAndRoutes(
+        tunFd: Long,
+        mtu: Int,
+        nwMtu: Int,
+        proto: Long
+    ): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG updateLink: tunnel disconnected, returning")
+            logEvent(
+                Severity.CRITICAL,
+                "update link failed",
+                "Tunnel is not connected"
+            )
+            return false
+        }
+
+        Logger.i(LOG_TAG_VPN, "$TAG updateLink with fd(${tunFd}) mtu: $mtu, nwMtu: $nwMtu, proto: $proto")
+        return try {
+            tunnel.setLinkAndRoutes2(tunFd, mtu.toLong(), nwMtu.toLong(), proto)
+            logEvent(
+                Severity.LOW,
+                "update link",
+                "Link and routes updated successfully"
+            )
+            true
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err update tun: ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "update link failed",
+                "Error: ${e.message}"
+            )
+            false
+        }
+    }
+
+    suspend fun restartTunnel(tunFd: Long, mtu: Int, nwMtu: Int, proto: Long): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG restartTunnel: tunnel is not connected, returning")
+            logEvent(
+                Severity.CRITICAL,
+                "restart tunnel failed",
+                "Tunnel is not connected"
+            )
+            return false
+        }
+
+        Logger.i(LOG_TAG_VPN, "$TAG restarting tunnel with fd(${tunFd}) mtu: $mtu, nwMtu: $nwMtu, proto: $proto")
+        try {
+            tunnel.restart(tunFd, nwMtu.toLong(), mtu.toLong(), proto)
+            logEvent(
+                Severity.LOW,
+                "restart tunnel",
+                "Tunnel restarted successfully"
+            )
+            return true
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG error restarting tunnel: ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "restart tunnel failed",
+                "Error: ${e.message}"
+            )
+            return false
+        }
+    }
+
+    suspend fun setLinkMtu(nwMtu: Int): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG setLinkMtu: tunnel is not connected, returning")
+            logEvent(
+                Severity.CRITICAL,
+                "set link mtu failed",
+                "Tunnel is not connected"
+            )
+            return false
+        }
+
+        Logger.i(LOG_TAG_VPN, "$TAG setting link mtu: $nwMtu")
+        return try {
+            val ok = tunnel.setLinkMtu(nwMtu.toLong())
+            if (ok) {
+                logEvent(Severity.LOW, "set link mtu", "Link MTU set to: $nwMtu")
+            } else {
+                Logger.vv(LOG_TAG_VPN, "$TAG set link mtu returned false")
+            }
+            true
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG error setting link mtu: ${e.message}", e)
+            logEvent(
+                Severity.CRITICAL,
+                "set link mtu failed",
+                "Error: ${e.message}"
+            )
+            false
+        }
+    }
+
+    /**
+     * Updates the DOH server URL for the VPN. If Go-DoH is enabled, DNS queries will be handled in
+     * Go, and will not use the Java DoH implementation. If Go-DoH is not enabled, this method has
+     * no effect.
+     */
+    suspend fun updateTun(tunnelOptions: TunnelOptions): Boolean {
+        // changes made in connectTunnel()
+        if (!tunnel.isConnected) {
+            // Adapter is closed.
+            Logger.e(LOG_TAG_VPN, "$TAG updateTun: tunnel is not connected, returning")
+            logEvent(
+                Severity.CRITICAL,
+                "update tun failed",
+                "Tunnel is not connected"
+            )
+            return false
+        }
+
+        Logger.i(LOG_TAG_VPN, "$TAG received update tun with opts: $tunnelOptions")
+        // ok to init again, as updateTun is called to handle edge cases
+        initResolverProxiesPcap(tunnelOptions)
+        return tunnel.isConnected
+    }
+
+    suspend fun setDnsAlg() {
+        // set translate to false for dns mode (regardless of setting in dns screen),
+        // since apps cannot understand alg ips
+        if (appConfig.getBraveMode().isDnsMode()) {
+            Logger.i(LOG_TAG_VPN, "$TAG dns mode, set translate to false")
+            getRDNSResolver()?.translate(false, false)
+            logEvent(
+                Severity.LOW,
+                "set dns alg",
+                "DNS ALG set to: false (dns mode)"
+            )
+            return
+        }
+
+        Logger.i(LOG_TAG_VPN, "$TAG set dns alg: ${persistentState.enableDnsAlg}, split dns: ${persistentState.splitDns}")
+        getRDNSResolver()?.translate(persistentState.enableDnsAlg, persistentState.splitDns)
+        logEvent(
+            Severity.LOW,
+            "set dns alg",
+            "DNS ALG set to: ${persistentState.enableDnsAlg}, split-dns set to ${persistentState.splitDns}"
+        )
+    }
+
+    suspend fun setRDNSStamp() {
+        try {
+            val rl = getRDNS(RethinkBlocklistManager.RethinkBlocklistType.LOCAL)
+            if (rl != null) {
+                Logger.i(
+                    LOG_TAG_VPN,
+                    "$TAG set local stamp: ${persistentState.localBlocklistStamp}"
+                )
+                rl.stamp = persistentState.localBlocklistStamp
+            } else {
+                Logger.w(LOG_TAG_VPN, "$TAG mode is not local, this should not happen")
+            }
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG could not set local stamp: ${e.message}", e)
+            resetLocalBlocklistStampFromTunnel()
+        }
+    }
+
+    private suspend fun resetLocalBlocklistStampFromTunnel() {
+        if (isPlayStoreFlavour()) return
+
+        try {
+            val rl = getRDNS(RethinkBlocklistManager.RethinkBlocklistType.LOCAL)
+            if (rl == null) {
+                Logger.i(LOG_TAG_VPN, "$TAG mode is not local, no need to reset local stamp")
+                return
+            }
+
+            persistentState.localBlocklistStamp =
+                rl.stamp ?: "" // throws exception if stamp is invalid
+            Logger.i(LOG_TAG_VPN, "$TAG reset local stamp: ${persistentState.localBlocklistStamp}")
+        } catch (e: Exception) {
+            persistentState.localBlocklistStamp = ""
+            Logger.e(LOG_TAG_VPN, "$TAG could not reset local stamp: ${e.message}", e)
+        }
+    }
+
+    private suspend fun setRDNSLocal() {
+        try {
+            val stamp: String = persistentState.localBlocklistStamp
+            val rdns = getRDNSResolver()
+            Logger.i(LOG_TAG_VPN, "$TAG local blocklist stamp: $stamp, rdns? ${rdns != null}")
+
+            val path: String =
+                Utilities.blocklistDownloadBasePath(
+                    context,
+                    Constants.LOCAL_BLOCKLIST_DOWNLOAD_FOLDER_NAME,
+                    persistentState.localBlocklistTimestamp
+                )
+            rdns?.setRdnsLocal(
+                path + Constants.ONDEVICE_BLOCKLIST_FILE_TD,
+                path + Constants.ONDEVICE_BLOCKLIST_FILE_RD,
+                path + Constants.ONDEVICE_BLOCKLIST_FILE_BASIC_CONFIG,
+                path + ONDEVICE_BLOCKLIST_FILE_TAG
+            )
+            rdns?.rdnsLocal?.stamp = stamp
+            Logger.i(LOG_TAG_VPN, "$TAG local brave dns object is set with stamp: $stamp")
+        } catch (ex: Exception) {
+            // Set local blocklist enabled to false and reset the timestamp
+            // if there is a failure creating bravedns
+            persistentState.blocklistEnabled = false
+            // Set local blocklist enabled to false and reset the timestamp to make sure
+            // user is prompted to download blocklists again on the next try
+            persistentState.localBlocklistTimestamp = Constants.INIT_TIME_MS
+            Logger.e(LOG_TAG_VPN, "$TAG could not set local-brave dns: ${ex.message}", ex)
+        }
+    }
+
+    companion object {
+
+        private const val TAG = "TunAdapter;"
+
+        // if the default dns is set to none then no need to set the system dns as default,
+        // set it as empty or null, which was the behaviour before v055a
+        private const val SKIP_DEFAULT_DNS_ON_INIT = true
+
+        // on system dns changes, set the system dns if default dns is none and loopback is true
+        private const val SET_SYS_DNS_AS_DEFAULT_IFF_LOOPBACK = true
+
+        fun getIpString(context: Context?, url: String?): String {
+            if (url.isNullOrEmpty()) return ""
+
+            val res: Resources? = context?.resources
+            val urls: Array<out String>? = res?.getStringArray(R.array.urls)
+            val ips: Array<out String>? = res?.getStringArray(R.array.ips)
+            if (urls == null) return ""
+            for (i in urls.indices) {
+                // either the url is a substring of urls[i] or urls[i] is a substring of url
+                if ((url.contains(urls[i])) || (urls[i].contains(url))) {
+                    if (ips != null) return ips[i]
+                }
+            }
+            return ""
+        }
+
+        fun setLogLevel(l1: Int, l2: Int = Logger.uiLogLevel.toInt(), includeFileTrace: Boolean) {
+            // 0 - very verbose, 1 - verbose, 2 - debug, 3 - info, 4 - warn, 5 - error, 6 - stacktrace, 7 - user, 8 - none
+            // from UI, if none is selected, set the log level to 7 (user), usr will send only
+            // user notifications
+            // there is no user level shown in UI, so if the user selects none, set the log level
+            // to 8 (none)
+            val goLogLevel = if (l1 == 7) 8 else l1
+            val consoleLogLevel = if (l2 == 7) 8 else l2
+            // depth to include the file trace, 9 - max, 0 - min
+            val depth = if (includeFileTrace) 9 else 0
+            Intra.logLevel(goLogLevel, consoleLogLevel, depth)
+            //Intra.logLevel(goLogLevel, consoleLogLevel)
+            Logger.i(LOG_TAG_VPN, "$TAG set go-log level: $l1, $l2, $depth")
+        }
+
+        suspend fun printStack(): String {
+            // where=0: stdout, where=1: console (no bytes returned by Go),
+            // any other value: returns goroutine stacks as bytes.
+            val where = 2
+            return withContext(Dispatchers.IO) {
+                try {
+                    val bytes = Intra.printStack(where)
+                    if (bytes == null || bytes.isEmpty()) {
+                        Logger.w(LOG_TAG_VPN, "$TAG print stack: null or empty")
+                        return@withContext ""
+                    }
+                    // The buffer may be zero-padded at the tail; trim trailing null bytes.
+                    val end = bytes.indexOfLast { it != 0.toByte() }
+                    if (end < 0) {
+                        Logger.w(LOG_TAG_VPN, "$TAG print stack: buffer entirely zero-padded")
+                        return@withContext ""
+                    }
+                    val content = bytes.copyOfRange(0, end + 1)
+                    Logger.i(LOG_TAG_VPN, "$TAG print stack: ${content.size} bytes (buffer=${bytes.size})")
+                    String(content, Charsets.UTF_8)
+                } catch (e: Exception) {
+                    Logger.e(LOG_TAG_VPN, "$TAG err print stack: ${e.message}")
+                    ""
+                }
+            }
+        }
+
+        fun getGoMetrics(): GoMetrics? {
+            return try {
+                val stat = Intra.goMet()
+                Logger.i(LOG_TAG_VPN, "$TAG net stat: $stat")
+                stat
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_VPN, "$TAG err getting net stat: ${e.message}")
+                null
+            }
+        }
+    }
+
+    suspend fun p50(id: String): Long {
+        try {
+            val transport = getResolver()?.get(id)
+            return transport?.p50() ?: -1L
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG err p50($id): ${e.message}")
+        }
+        return -1L
+    }
+
+    private suspend fun getResolver(): DNSResolver? {
+        try {
+            if (!tunnel.isConnected) {
+                Logger.i(LOG_TAG_VPN, "$TAG no tunnel, skip get resolver")
+                return null
+            }
+            return tunnel.resolver
+        } catch (e: Exception) {
+            Logger.crash(LOG_TAG_VPN, "$TAG err get resolver: ${e.message}", e)
+        }
+        return null
+    }
+
+    private suspend fun getRDNSResolver(): DNSResolver? {
+        try {
+            if (!tunnel.isConnected) {
+                Logger.w(LOG_TAG_VPN, "$TAG no tunnel, skip get resolver")
+                return null
+            }
+            return tunnel.resolver
+        } catch (e: Exception) {
+            Logger.crash(LOG_TAG_VPN, "$TAG err get resolver: ${e.message}", e)
+        }
+        return null
+    }
+
+    private suspend fun getProxies(): Proxies? {
+        try {
+            if (!tunnel.isConnected) {
+                Logger.w(LOG_TAG_VPN, "$TAG no tunnel, skip get proxies")
+                return null
+            }
+            val px = tunnel.proxies
+            return px
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err get proxies: ${e.message}", e)
+        }
+        return null
+    }
+
+    suspend fun getSupportedIpVersion(proxyId: String): Pair<Boolean, Boolean> {
+        try {
+            val router =
+                getProxies()?.getProxy(proxyId)?.router() ?: return Pair(false, false)
+            val has4 = router.iP4()
+            val has6 = router.iP6()
+            Logger.d(LOG_TAG_VPN, "$TAG supported ip version($proxyId): has4? $has4, has6? $has6")
+            return Pair(has4, has6)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err supported ip version($proxyId): ${e.message}")
+        }
+        return Pair(false, false)
+    }
+
+    suspend fun isSplitTunnelProxy(proxyId: String, pair: Pair<Boolean, Boolean>): Boolean {
+        return try {
+            val router = getProxies()?.getProxy(proxyId)?.router() ?: return false
+            // if the router contains 0.0.0.0, then it is not split tunnel for ipv4
+            // if the router contains ::, then it is not split tunnel for ipv6
+            val res: Boolean =
+                if (pair.first && pair.second) {
+                    // if the pair is true, check for both ipv4 and ipv6
+                    !router.contains(UNSPECIFIED_IP_IPV4) || !router.contains(
+                        UNSPECIFIED_IP_IPV6
+                    )
+                } else if (pair.first) {
+                    !router.contains(UNSPECIFIED_IP_IPV4)
+                } else if (pair.second) {
+                    !router.contains(UNSPECIFIED_IP_IPV6)
+                } else {
+                    false
+                }
+
+            Logger.d(
+                LOG_TAG_VPN,
+                "$TAG split tunnel proxy($proxyId): ipv4? ${pair.first}, ipv6? ${pair.second}, res? $res"
+            )
+            res
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err isSplitTunnelProxy($proxyId): ${e.message}")
+            false
+        }
+    }
+
+    suspend fun initiateWgPing(proxyId: String) {
+        try {
+            val res = getProxies()?.getProxy(proxyId)?.ping()
+            Logger.i(LOG_TAG_VPN, "$TAG initiateWgPing($proxyId): $res")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err initiateWgPing($proxyId): ${e.message}")
+        }
+    }
+
+    suspend fun getActiveProxiesIpAndMtu(): BraveVPNService.OverlayNetworks {
+        try {
+            val router = getProxies()?.router() ?: return BraveVPNService.OverlayNetworks()
+            val has4 = router.iP4()
+            val has6 = router.iP6()
+            val failOpen = !router.iP4() && !router.iP6()
+            val mtu = router.mtu().toInt()
+            Logger.i(
+                LOG_TAG_VPN,
+                "$TAG proxy ip version, has4? $has4, has6? $has6, failOpen? $failOpen"
+            )
+            return BraveVPNService.OverlayNetworks(has4, has6, failOpen, mtu)
+        } catch (e: Exception) {
+            // exceptions are expected only when the wireguard is not available
+            Logger.w(LOG_TAG_VPN, "$TAG err proxy ip version: ${e.message}")
+        }
+        return BraveVPNService.OverlayNetworks()
+    }
+
+    suspend fun onLowMemory() {
+        val limitBytes: Long = persistentState.goMaxMemory
+        Intra.lowMem(limitBytes)
+        logEvent(Severity.MEDIUM, "set low-mem", "set memory limit to $limitBytes")
+        Logger.i(LOG_TAG_VPN, "$TAG set Intra.lowMem() limit to $limitBytes")
+    }
+
+    suspend fun setDialStrategy(
+        mode: Int = persistentState.dialStrategy,
+        retry: Int = persistentState.retryStrategy,
+        tcpKeepAlive: Boolean = persistentState.tcpKeepAlive,
+        timeoutSec: Int = persistentState.dialTimeoutSec,
+        bufferSize: Int = persistentState.socketBufferSizeBytes
+    ) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip set dial strategy")
+            logEvent(Severity.CRITICAL, "dial strategy", "cannot set dial strategy, tunnel not connected")
+            return
+        }
+        try {
+            Settings.setDialerOpts(mode, retry, bufferSize, timeoutSec, tcpKeepAlive)
+            Logger.i(
+                LOG_TAG_VPN,
+                "$TAG set dial strategy: $mode, retry: $retry, tcpKeepAlive: $tcpKeepAlive, timeout: $timeoutSec, bufSize: $bufferSize"
+            )
+            logEvent(
+                Severity.LOW,
+                "dial strategy",
+                "set dial strategy to: mode=$mode, retry=$retry, tcpKeepAlive=$tcpKeepAlive, timeout=$timeoutSec, bufSize: $bufferSize"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err set dial strategy: ${e.message}", e)
+            logEvent(Severity.HIGH, "dial strategy", "error setting dial strategy: ${e.message}")
+        }
+    }
+
+    suspend fun setTransparency(eim: Boolean = persistentState.endpointIndependence) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip transparency")
+            logEvent(Severity.CRITICAL, "transparency", "cannot set transparency, tunnel not connected")
+            return
+        }
+        if (!isAtleastS()) {
+            Intra.transparency(false, false)
+            Logger.i(LOG_TAG_VPN, "$TAG Android version is less than S, set transparency: false")
+            logEvent(Severity.LOW, "transparency", "android version < S, set transparency to false")
+            return
+        }
+        // set both endpoint independent mapping and endpoint independent filtering
+        // as a single value, as for the user is concerned, it is a single setting
+        Intra.transparency(eim, eim)
+        Logger.i(LOG_TAG_VPN, "$TAG set transparency: $eim")
+        logEvent(Severity.LOW, "transparency", "set transparency to: $eim")
+    }
+
+    suspend fun undelegatedDomains(useSystemDns: Boolean = persistentState.useSystemDnsForUndelegatedDomains) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip undelegated domains")
+            logEvent(Severity.CRITICAL, "undeletegated domains", "cannot set undelegated domains, tunnel not connected")
+            return
+        }
+        try {
+            Intra.undelegatedDomains(useSystemDns)
+            Logger.i(LOG_TAG_VPN, "$TAG undelegated domains: $useSystemDns")
+            logEvent(Severity.LOW, "undelegated domains", "set undelegated domains to use system dns: $useSystemDns")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err undelegated domains: ${e.message}", e)
+            logEvent(Severity.HIGH, "undelegated domains", "error setting undelegated domains: ${e.message}")
+        }
+    }
+
+    suspend fun getRpnProps(rpnType: RpnProxyManager.RpnType): Pair<RpnProxyManager.RpnProps?, String?> {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip fetching rpn props")
+            return Pair(null, "No tun")
+        }
+
+        try {
+            var errMsg: String? = ""
+            val rpn: RpnProxy? = try {
+                when (rpnType) {
+                    RpnProxyManager.RpnType.WIN -> {
+                        tunnel.proxies.rpn().win()
+                    }
+                    RpnProxyManager.RpnType.EXIT -> {
+                        null
+                    }
+                }
+            } catch (e: Exception) {
+                Logger.w(LOG_TAG_PROXY, "$TAG err rpn proxy($rpnType): ${e.message}")
+                errMsg = e.message
+                null
+            }
+            if (rpn == null) { // exit is not an rpn proxy, so return null
+                Logger.i(LOG_TAG_PROXY, "$TAG rpn props($rpnType) is null")
+                return Pair(null, errMsg)
+            }
+
+            val id = rpn.id() ?: ""
+            val status = rpn.status()
+            val type = rpn.type() ?: ""
+            val addr = rpn.addr ?: ""
+            val created = rpn.created()
+            val expires = rpn.expires()
+            val locations = rpn.locations()
+            val who = rpn.who() ?: ""
+            val prop = RpnProxyManager.RpnProps(id, status, type, addr, created, expires, who, locations)
+            return Pair(prop, errMsg)
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG err rpn props($rpnType): ${e.message}")
+            return Pair(null, e.message)
+        }
+    }
+
+    suspend fun getRpnLocations(rpnType: RpnProxyManager.RpnType): Pair<RpnServers?, String?> {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip fetching rpn props")
+            return Pair(null, "No tun")
+        }
+
+        try {
+            var errMsg: String? = ""
+            val rpn: RpnProxy? = try {
+                when (rpnType) {
+                    RpnProxyManager.RpnType.WIN -> {
+                        tunnel.proxies.rpn().win()
+                    }
+                    RpnProxyManager.RpnType.EXIT -> {
+                        null
+                    }
+                }
+            } catch (e: Exception) {
+                Logger.w(LOG_TAG_PROXY, "$TAG err rpn locations($rpnType): ${e.message}")
+                errMsg = e.message
+                null
+            }
+            if (rpn == null) { // exit is not an rpn proxy, so return null
+                Logger.i(LOG_TAG_PROXY, "$TAG rpn locations($rpnType) is null")
+                return Pair(null, errMsg)
+            }
+
+            val locations = rpn.locations()
+            return Pair(locations, errMsg)
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG err rpn locations($rpnType): ${e.message}")
+            return Pair(null, e.message)
+        }
+    }
+
+    suspend fun getRpnClientInfoById(id: String): Client? {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip fetching rpn props by id")
+            return null
+        }
+
+        return try {
+            // if id is empty or AUTO, resolve to the current win proxy id from the tunnel
+            return if (id.isEmpty() || id.equals(AUTO_SERVER_ID, true)) {
+                tunnel.proxies.rpn().win().client()
+            } else {
+                tunnel.proxies.rpn().win().get(id).client()
+            }
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG err get rpn client info by id($id): ${e.message}")
+            null
+        }
+    }
+
+    suspend fun getWgClientInfoById(id: String): Client? {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip fetching wg client by id")
+            return null
+        }
+
+        return try {
+            tunnel.proxies.getProxy(id).client()
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG err get wg client info by id($id): ${e.message}")
+            null
+        }
+    }
+
+    suspend fun testRpnProxy(): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip test rpn proxy")
+            return false
+        }
+        try {
+            val ippcsv = tunnel.proxies.rpn().testWin()
+            Logger.i(LOG_TAG_PROXY, "$TAG test rpn-win proxy: $ippcsv")
+            logEvent(Severity.LOW, "test rpn proxy", "test rpn-win proxy, $ippcsv")
+            return !ippcsv.isNullOrEmpty()
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG err test rpn-win proxy: ${e.message}")
+        }
+        return false
+    }
+
+    suspend fun getEntitlementDetails(prevBytes: ByteArray?, deviceId: String): RpnEntitlement? {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip get entitlement details")
+            return null
+        }
+
+        try {
+            val rpnEnt = tunnel.proxies.rpn().entitlementFrom(prevBytes,  Backend.RpnWin, deviceId)
+            Logger.i(LOG_TAG_PROXY, "$TAG entitlement details: $rpnEnt")
+            return rpnEnt
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG err get entitlement details: ${e.message}")
+            return null
+        }
+
+    }
+
+    suspend fun registerAndFetchWinIfNeeded(prevBytes: ByteArray? = null, deviceId: String): ByteArray? {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_PROXY, "$TAG no tunnel, skip register win(rpn)")
+            return null
+        }
+        try {
+            if (tunnel.proxies.rpn().win() != null) {
+                Logger.i(LOG_TAG_PROXY, "$TAG win(rpn) already registered")
+                return null
+            }
+        } catch (_: Exception) {
+            Logger.i(LOG_TAG_PROXY, "$TAG win(rpn) not registered, fall through")
+        }
+        return try {
+            val rpn = tunnel.proxies.rpn()
+            Logger.i(LOG_TAG_PROXY, "$TAG start win(rpn) reg, existing bytes size: ${prevBytes?.size}, device-len: ${deviceId.length}")
+            if (DEBUG) Logger.i(LOG_TAG_PROXY, "$TAG win(rpn) reg bytes: ${prevBytes?.toString()}")
+            val bytes = rpn.registerWin(prevBytes, deviceId, constructRpnOps())
+            Logger.i(LOG_TAG_PROXY, "$TAG win(rpn) registered, ${bytes?.size} bytes")
+            logEvent(Severity.MEDIUM, "register win(rpn)", "win(rpn) registered, ${bytes?.size} bytes")
+            bytes
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG err register win(rpn), prev: ${prevBytes?.size} bytes: ${e.message}", e)
+            logEvent(Severity.CRITICAL, "register win(rpn)", "error registering win(rpn): ${e.message}")
+            null
+        }
+    }
+
+    private fun constructRpnOps(): RpnOps {
+        val rpnOps = RpnOps()
+        val dnsConfig = persistentState.rpnDnsTunTypes
+        if (dnsConfig.isEmpty()) {
+            rpnOps.setDNSConfig(RpnProxyManager.DnsMode.DEFAULT.tunType)
+        } else {
+            rpnOps.setDNSConfig(dnsConfig)
+        }
+        rpnOps.excludeCCs = persistentState.rpnAutoExcludedCcs
+        // no need to check for config in AUTO mode
+        if (!persistentState.rpnConfigHandlingManual) {
+            Logger.v(LOG_TAG_PROXY, "$TAG, using default RpnOps config: $rpnOps")
+            return rpnOps
+        }
+
+        // for now remove the permanent config, always send false
+        // persistentState.rpnUsePermanentConfig is not used
+        rpnOps.setPermaCreds(false)
+        rpnOps.setRotateCreds(persistentState.rpnAlwaysChangeIdentity)
+        rpnOps.setPort(persistentState.rpnPort)
+        Logger.v(LOG_TAG_PROXY, "$TAG, using custom RpnOps config: $rpnOps")
+        return rpnOps
+    }
+
+    suspend fun addRpnDns(id: String) {
+        // The dns mode is selected from four predefined options (Default, Anti-Ad,
+        // Parental Control, Security). In the future, this will be replaced with
+        // a user configurable screen allowing users to choose custom blocklists.
+        // The selected configuration will then be reflected in the DNS URL used here.
+        // or a screen to choose multiple user-added dns as well.
+        addRpnProxyDns(id)
+    }
+
+    private suspend fun addRpnProxyDns(id: String) {
+        Logger.v(LOG_TAG_VPN, "$TAG addRpnProxyDns, id: $id")
+        try {
+            val p = tunnel.proxies.rpn().win().get(id)
+            if (p == null) {
+                Logger.w(LOG_TAG_VPN, "$TAG addRpnProxyDns; rpn proxy not found for id: $id")
+                return
+            }
+            Intra.addProxyDNS(tunnel, p)
+            val type = persistentState.rpnDnsTunTypes
+            logEvent(
+                Severity.LOW,
+                "rpn dns($id) added",
+                "id: $id, selected: $type"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG addRpnProxyDns: dns err;", e)
+            logEvent(
+                Severity.HIGH,
+                "rpn dns($id) error",
+                "error adding rpn dns, reason: ${e.message}"
+            )
+        }
+        Logger.v(LOG_TAG_VPN, "$TAG rpn addDnsProxyTransport done")
+    }
+
+    suspend fun refreshRpnProxy(id: String): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip refresh rpn proxy")
+            return false
+        }
+
+        return try {
+            // if id is empty or AUTO, resolve to the current win proxy id from the tunnel
+            if (id.isEmpty() || id.equals(AUTO_SERVER_ID, true) || id == Backend.RpnWin) {
+                tunnel.proxies.rpn().win().refresh()
+            } else {
+                tunnel.proxies.rpn().win().get(id).refresh()
+            }
+            // refresh the dns resolvers regardless of split dns
+            refreshResolvers()
+            Logger.i(LOG_TAG_PROXY, "$TAG refreshed rpn proxy $id")
+            true
+        } catch (e: Exception) {
+            Logger.i(LOG_TAG_PROXY, "$TAG err refresh rpn proxies: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun reconnectRpnProxy(id: String): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip reconnect rpn proxy")
+            return true
+        }
+
+        return try {
+            // if id is empty or AUTO, resolve to the current win proxy id from the tunnel
+            val iid = if (id.isEmpty() || id.equals(AUTO_SERVER_ID, true)) tunnel.proxies.rpn().win().id() else id
+            Logger.vv(LOG_TAG_PROXY, "initiating reconnect for id: $iid")
+            val p = tunnel.proxies.rpn().win().fork(iid)
+            Logger.i(LOG_TAG_PROXY, "$TAG reconnected rpn proxy: ${p.id()}")
+            logEvent(Severity.LOW, "reconnect rpn proxy", "reconnected rpn proxy: ${p.id()}")
+            true
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG err reconnect rpn proxy: ${e.message}")
+            logEvent(
+                Severity.CRITICAL,
+                "reconnect rpn proxy",
+                "error reconnecting rpn proxy: ${e.message}"
+            )
+            false
+        }
+    }
+
+    suspend fun isWinRegistered(): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip is win(rpn) registered")
+            return false
+        }
+        return try {
+            val res = tunnel.proxies.rpn().win() != null
+            Logger.i(LOG_TAG_PROXY, "$TAG is win(rpn) registered? $res")
+            res
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Returns the proxy ID of the current WIN proxy as reported by the tunnel
+     * (i.e. tunnel.proxies.rpn().win().id()).  Callers should use this instead
+     * of constructing a hardcoded "rpnw**" string so that stats / status
+     * lookups always target the real, live proxy entry.
+     * Returns null when the tunnel is not connected or win is not registered.
+     */
+    suspend fun getWinProxyId(): String? {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip get win proxy id")
+            return null
+        }
+        return try {
+            val id = tunnel.proxies.rpn().win().id()
+            id
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG err get win proxy id: ${e.message}")
+            null
+        }
+    }
+
+    suspend fun getWinIdentifier(): String? {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip get win(rpn)")
+            return null
+        }
+
+        try {
+            return tunnel.proxies.rpn().win().who()
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG err get win(rpn): ${e.message}")
+            return null
+        }
+    }
+
+    suspend fun getWinByKey(key: String): Proxy? {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip get win(rpn) by key")
+            return null
+        }
+        if (key.isEmpty() || key.equals(AUTO_SERVER_ID, true) || key == Backend.RpnWin) {
+            return try {
+                tunnel.proxies.rpn().win()
+            } catch (e: Exception) {
+                Logger.w(LOG_TAG_PROXY, "$TAG err get win(rpn): ${e.message}")
+                null
+            }
+        }
+        return try {
+            val win = tunnel.proxies.rpn().win().get(key)
+            Logger.i(LOG_TAG_PROXY, "$TAG win(rpn) found by key: $key")
+            win
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG err get win(rpn) by key($key): ${e.message}")
+            null
+        }
+    }
+
+    suspend fun getActiveWinKidsProxies(): Set<String> {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip get active win(rpn) proxies")
+            return emptySet()
+        }
+
+        return try {
+            val kids = tunnel.proxies.rpn().win().kids()
+            val set: MutableSet<String> = mutableSetOf()
+            if (kids.len() > 0 ) {
+                for (i in 0 until kids.len()) {
+                    set.add(kids.get(i).key)
+                }
+            }
+            Logger.d(LOG_TAG_PROXY, "$TAG active win(rpn) proxies: $set")
+            set
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG err get active win(rpn) proxies: ${e.message}")
+            emptySet()
+        }
+    }
+
+    suspend fun initiateRpnPing(id: String): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip ping win(rpn) proxy by id")
+            return false
+        }
+        if (id.isEmpty() || id.equals(AUTO_SERVER_ID, true) || id == Backend.RpnWin) {
+            return try {
+                tunnel.proxies.rpn().win().ping()
+                true
+            } catch (e: Exception) {
+                Logger.w(LOG_TAG_PROXY, "$TAG err get win(rpn): ${e.message}")
+                false
+            }
+        }
+        return try {
+            tunnel.proxies.rpn().win().get(id).ping()
+            true
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG err ping win(rpn) proxy by id($id): ${e.message}")
+            false
+        }
+    }
+
+    suspend fun getWinExpiryTs(): Long? {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip fetching win(rpn) expires")
+            return null
+        }
+        try {
+            return tunnel.proxies.rpn().win().expires()
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG err get win(rpn) expires: ${e.message}")
+            return null
+        }
+    }
+
+    suspend fun updateWin(): ByteArray? {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip update win(rpn)")
+            return null
+        }
+        val rpn: RpnProxy? = try {
+            tunnel.proxies.rpn().win()
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG err get win(rpn) for update: ${e.message}")
+            null
+        }
+        return try {
+            val bytes = rpn?.update(constructRpnOps())
+            Logger.i(LOG_TAG_PROXY, "$TAG updated win(rpn), ${bytes?.size} bytes")
+            logEvent(Severity.MEDIUM, "update win(rpn)", "win(rpn) updated, ${bytes?.size} bytes")
+            bytes
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG err update win(rpn): ${e.message}", e)
+            logEvent(Severity.CRITICAL, "update win(rpn)", "error updating win(rpn): ${e.message}")
+            null
+        }
+    }
+
+    suspend fun onRpnOptsChange() {
+        if (!RpnProxyManager.isRpnActive()) {
+            Logger.i(LOG_TAG_PROXY, "$TAG rpn dns change, rpn not active")
+            return
+        }
+
+        try {
+            // update win will fetch the new dns config from persistent state and apply it to the
+            // win proxy, these updates will not return the bytes like the manual call
+            // so it's safe to ignore the return value here
+            updateWin()
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG err on rpn dns change: ${e.message}")
+        }
+    }
+
+    suspend fun stopRpnProxy(): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip stop win(rpn) proxy")
+            return false
+        }
+
+        return try {
+            tunnel.proxies.rpn().win().stop()
+            Logger.i(LOG_TAG_PROXY, "$TAG stopped win(rpn) proxy")
+            logEvent(Severity.HIGH, "stop win(rpn) proxy", "stopped win(rpn) proxy")
+            true
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG err stop win(rpn) proxy: ${e.message}", e)
+            logEvent(Severity.CRITICAL, "stop win(rpn) proxy", "error stopping win(rpn) proxy: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun addNewWinServer(key: String): Pair<Boolean, String> {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip add new win(rpn) server")
+            return Pair(false, "No tunnel connected")
+        }
+        if (key.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG empty country code for new win(rpn) server")
+            return Pair(false, "Empty country code for server")
+        }
+        return try {
+            // skip auto, as it will be already added while registering win
+            if (key.equals(AUTO_SERVER_ID, true)) {
+                Logger.w(LOG_TAG_PROXY, "$TAG auto server id, skipping add")
+                return Pair(true, "Already added")
+            }
+
+            val win = tunnel.proxies.rpn().win()
+
+            val alreadyAdded = win.has(key)
+            if (alreadyAdded) {
+                Logger.i(LOG_TAG_PROXY, "$TAG already added win(rpn) server: $key")
+                return Pair(true, "Already added server: $key")
+            }
+
+            val kids = win.kids()
+            val prevServerCount = kids?.len() ?: 0
+            if (prevServerCount >= RpnProxyManager.MAX_WIN_SERVERS) {
+                Logger.w(LOG_TAG_PROXY, "$TAG max win servers reached: $prevServerCount, skipping add")
+                return Pair(false, "Max servers reached: $prevServerCount, skipping add")
+            }
+            Logger.i(LOG_TAG_PROXY, "$TAG kids: $kids")
+
+            Logger.d(LOG_TAG_PROXY, "$TAG init add new win(rpn) server: $key")
+            val res = win.fork(key)
+            logEvent(Severity.MEDIUM, "add new win(rpn) server", "Added new server: $key, id? ${res.id()}")
+            return Pair(true, "Added new server: $key")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG err add new win(rpn) server: ${e.message}", e)
+            logEvent(Severity.CRITICAL, "add new win(rpn) server", "Error adding new server: ${e.message}")
+            Pair(false, e.message ?: "Error adding new server")
+        }
+    }
+
+    suspend fun handleOnRpnAddedOrUpdated(id: String) {
+        addRpnDns(id)
+        handleRpnHop(id)
+    }
+
+    suspend fun handleOnProxyRemoved(id: String): Boolean {
+        // for now, it's enough to remove the dns transport, the hop is automatically taken
+        // care in the tunnel when the proxy is removed.
+        // takes care of both rpn and wg proxies as the remove call is based on proxy id
+        return removeResolver(id)
+    }
+
+    suspend fun handleRpnHop(hopId: String, configChanged: Boolean = false): Pair<Boolean, String> {
+        val config = RpnProxyManager.getCountryConfigByKey(hopId)
+        if (config == null) {
+            Logger.w(LOG_TAG_PROXY, "$TAG no rpn config found for hop id: $hopId")
+            return Pair(false, "No rpn config found for hop id: $hopId")
+        }
+        return if (config.hopEnabled) {
+            addRpnHop(hopId)
+        } else if (configChanged){
+            val rpnWinId = Backend.RpnWin + hopId
+            removeHop(rpnWinId)
+        } else {
+            Logger.i(LOG_TAG_PROXY, "$TAG hop not enabled for $hopId, skipping add/remove")
+            Pair(true, "Hop not enabled, skipping add/remove")
+        }
+    }
+
+    private suspend fun addRpnHop(hopId: String): Pair<Boolean, String> {
+        // assumption: by this time the add call should have happened
+        val origin = getWinProxyId()
+        if (origin.isNullOrEmpty()) {
+            Logger.w(LOG_TAG_VPN, "$TAG addRpnHop; no origin win proxy id found, skip add hop for $hopId")
+            return Pair(false, "No origin win proxy id found, cannot add hop")
+        }
+        val win = tunnel.proxies.rpn().win()
+        Logger.vv(LOG_TAG_VPN, "$TAG addRpnHop; hopId: $hopId")
+        // see if the id which is passed is already in the list, if not no need to proceed
+        if (!win.has(hopId)) {
+            Logger.i(LOG_TAG_VPN, "$TAG addRpnHop; no hop found for $origin")
+            return Pair(false, "No hop found for $origin")
+        }
+        // TODO: see if the hop is already added, if so no need to redo this
+        try {
+            val rpnWinId = Backend.RpnWin + hopId
+            tunnel.proxies.hop(rpnWinId, origin)
+            logEvent(Severity.LOW, "set hop", "set hop for $origin -> $rpnWinId")
+            Logger.i(LOG_TAG_VPN, "$TAG addRpnHop; new hop for $origin -> $rpnWinId")
+            return Pair(true, "Set hop for $origin -> $hopId")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG addRpnHop; err setting hop for $origin -> $hopId; ${e.message}")
+            showHopFailureNotification(origin, hopId, err = e.message)
+            logEvent(Severity.HIGH, "set hop error", "error setting hop for $origin -> $hopId, reason: ${e.message}")
+            return Pair(false, "Error setting hop: ${e.message}")
+        }
+    }
+
+    suspend fun removeWinServer(key: String): Pair<Boolean, String> {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip remove win(rpn) server")
+            return Pair(false, "No tunnel connected")
+        }
+        if (key.isEmpty()) {
+            Logger.w(LOG_TAG_PROXY, "$TAG empty country code for remove win(rpn) server")
+            return Pair(false, "Empty country code for server")
+        }
+        // AUTO is the base win proxy and cannot be removed via purge
+        if (key.equals(AUTO_SERVER_ID, true)) {
+            Logger.w(LOG_TAG_PROXY, "$TAG auto server cannot be removed, skipping")
+            return Pair(false, "Auto server cannot be removed")
+        }
+        return try {
+            val win = tunnel.proxies.rpn().win()
+            val res = win.purge(key)
+            Logger.i(LOG_TAG_PROXY, "$TAG remove win(rpn) server: $res")
+            logEvent(Severity.MEDIUM, "remove win(rpn) server", "Removed server: $key")
+            return Pair(true, "Removed server: $key")
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG err remove win(rpn) server: ${e.message}", e)
+            logEvent(Severity.CRITICAL, "remove win(rpn) server", "Error removing server: ${e.message}")
+            Pair(false, e.message ?: "Error removing server")
+        }
+    }
+
+    suspend fun unregisterWin(): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip unregister win(rpn)")
+            return false
+        }
+        return try {
+            val rpn = tunnel.proxies.rpn()
+            // remove all the dns resolvers when unregistered
+            val kids = rpn.win().kids()
+            Logger.vv(LOG_TAG_PROXY, "$TAG unregister win, kids: $kids")
+            if (kids.len() > 0) {
+                for (i in 0 until kids.len()) {
+                    try {
+                        removeResolver(kids.get(i).key)
+                    } catch (_: Exception) { }
+                }
+            }
+            val res = rpn.unregisterWin()
+            Logger.i(LOG_TAG_PROXY, "$TAG unregister win(rpn): $res")
+            logEvent(Severity.MEDIUM, "unregister win(rpn)", "unregister win(rpn): $res")
+            res
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG err unregister win(rpn): ${e.message}")
+            logEvent(Severity.CRITICAL, "unregister win(rpn)", "error unregistering win(rpn): ${e.message}")
+            false
+        }
+    }
+
+    suspend fun setRpnAutoMode(): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip set rpn auto mode")
+            return false
+        }
+        if (!RpnProxyManager.isRpnEnabled()) {
+            Logger.i(LOG_TAG_PROXY, "$TAG rpn is not enabled, skip set rpn auto mode")
+            return false
+        }
+        return try {
+            val mode = RpnProxyManager.RpnTunMode.getTunModeForAuto()
+            val prev = Settings.setAutoMode(mode)
+
+            if (mode == prev) return false
+
+            if (!RpnProxyManager.rpnMode().isNone()) { // reset if mode is anti-censorship/hide ip
+                // set dial strategy to split_auto and retry to retry_after_split regardless
+                // of what is set in the settings
+                val dialMode = DialStrategies.SPLIT_AUTO.mode
+                val retryMode = RetryStrategies.RETRY_AFTER_SPLIT.mode
+                setDialStrategy(mode = dialMode, retry = retryMode)
+            } else {
+                // set dial strategy to default values
+                setDialStrategy()
+            }
+            Logger.i(LOG_TAG_PROXY, "$TAG set auto mode to: $mode, prev? $prev")
+            true
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_PROXY, "$TAG err set rpn auto mode: ${e.message}", e)
+            false
+        }
+    }
+
+    suspend fun isRpnReachable(csv: String): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_PROXY, "$TAG no tunnel, skip ping rpn proxy")
+            return false
+        }
+        return try {
+            val res = tunnel.proxies.rpn().win().router().reaches(csv)
+            Logger.i(LOG_TAG_PROXY, "$TAG ping rpn? ($csv) $res")
+            res
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_PROXY, "$TAG err ping rpn: ${e.message}")
+            false
+        }
+    }
+
+    suspend fun registerSeProxyIfNeeded() {
+        if (!persistentState.autoProxyEnabled) return
+
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_PROXY, "$TAG no tunnel, skip register se proxy")
+            return
+        }
+        // no-op, can be added in future if needed
+        // TODO: now the SE is removed, instead if the user has rpn, rpn will be selected
+        // automatically
+    }
+
+    suspend fun setFloodWgMode() {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip set flood wg mode")
+            return
+        }
+        try {
+            Intra.floodWireGuard(persistentState.floodWireGuard)
+            Logger.i(LOG_TAG_VPN, "$TAG set flood wg mode: ${persistentState.floodWireGuard}")
+            logEvent(
+                Severity.LOW,
+                "tun: set flood wg mode",
+                "Set flood wg mode to ${persistentState.floodWireGuard}"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err set flood wg mode: ${e.message}", e)
+        }
+    }
+
+    suspend fun unregisterSeProxyIfNeeded() {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_PROXY, "$TAG no tunnel, skip unregister se proxy")
+            return
+        }
+        // no-op, can be added in future if needed
+        // TODO: now the SE is removed, instead if the user has rpn, rpn will be selected
+        // automatically
+    }
+
+    suspend fun setExperimentalWireGuardSettings(value: Boolean = persistentState.nwEngExperimentalFeatures) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip set experimental settings")
+            return
+        }
+        try {
+            // modified from overall experimental settings to only wireguard experimental settings
+            Intra.experimentalWireGuard(value)
+            // refresh proxies on experimental settings change (required for wireguard)
+            //refreshOrReAddProxies()
+            Logger.i(LOG_TAG_VPN, "$TAG set experimental settings: $value")
+            logEvent(
+                Severity.LOW,
+                "Set experimental settings",
+                "Set experimental settings to $value"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err set experimental settings: ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "Set experimental settings failed",
+                "Failed to set experimental settings to $value: ${e.message}"
+            )
+        }
+    }
+
+    suspend fun setAutoDialsParallel(value: Boolean = persistentState.autoDialsParallel) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip set auto dial option")
+            logEvent(
+                Severity.CRITICAL,
+                "Set auto dials parallel failed",
+                "Failed to set auto dials parallel to $value: no tunnel"
+            )
+            return
+        }
+        try {
+            Settings.setAutoDialsParallel(value)
+            Logger.i(LOG_TAG_VPN, "$TAG set auto dial parallel as $value")
+            logEvent(
+                Severity.LOW,
+                "Set auto dials parallel",
+                "Set auto dials parallel to $value"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err set auto dial: ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "Set auto dials parallel failed",
+                "Failed to set auto dials parallel to $value: ${e.message}"
+            )
+        }
+    }
+
+    suspend fun setAutoMode() {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip set auto mode")
+            logEvent(
+                Severity.CRITICAL,
+                "Set auto mode failed",
+                "Failed to set auto mode: no tunnel"
+            )
+            return
+        }
+        try {
+            val retryStrategy = RetryStrategies.fromInt(persistentState.retryStrategy)
+            if (retryStrategy == null) {
+                Logger.w(LOG_TAG_VPN, "$TAG invalid retry strategy: ${persistentState.retryStrategy}, no-op set auto mode")
+                return
+            }
+            val dialStrategy = DialStrategies.fromInt(persistentState.dialStrategy)
+            if (dialStrategy == null) {
+                Logger.w(LOG_TAG_VPN, "$TAG invalid dial strategy: ${persistentState.dialStrategy}, no-op set auto mode")
+                return
+            }
+
+            // proxy + none -> remote
+            // proxy + other retry -> hybrid
+            // all other dial strategies -> local
+            var modeName = "Settings.AutoModeLocal"
+            val mode = if (dialStrategy == DialStrategies.TCP_PROXY) {
+                if (retryStrategy == RetryStrategies.RETRY_NEVER) {
+                    modeName = "Settings.AutoModeRemote"
+                    Settings.AutoModeRemote
+                } else {
+                    modeName = "Settings.AutoModeHybrid"
+                    Settings.AutoModeHybrid
+                }
+            } else {
+                Settings.AutoModeLocal
+            }
+
+            Settings.setAutoMode(mode)
+            Logger.i(LOG_TAG_VPN, "$TAG set auto mode: $mode")
+            logEvent(
+                Severity.LOW,
+                "Set auto mode",
+                "Set auto mode to $modeName (dial: ${dialStrategy.name}, retry: ${retryStrategy.name})"
+            )
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err set auto mode: ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "Set auto mode failed",
+                "Failed to set auto mode: ${e.message}"
+            )
+        }
+    }
+
+    suspend fun createHop(origin: String, hop: String): Pair<Boolean, String> {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG createHop; no tunnel, skip create hop")
+            logEvent(
+                Severity.CRITICAL,
+                "Hop creation failed",
+                "Failed to create hop from $origin to $hop: no tunnel"
+            )
+            return Pair(false, "no tunnel")
+        }
+        // to remove hop there is a separate method, so no need to check for empty
+        if (hop.isEmpty()) {
+            Logger.i(LOG_TAG_VPN, "$TAG createHop; hop is empty, returning")
+            logEvent(
+                Severity.MEDIUM,
+                "Hop creation failed",
+                "Failed to create hop from $origin to $hop: hop is empty"
+            )
+            return Pair(false, "hop is empty")
+        }
+        return try {
+            Logger.i(LOG_TAG_VPN, "$TAG create hop: $origin, hop: $hop")
+            tunnel.proxies.hop(hop, origin)
+            logEvent(
+                Severity.LOW,
+                "Hop created",
+                "Created hop from $origin to $hop"
+            )
+            Pair(true, context.getString(R.string.config_add_success_toast))
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err create hop: ${e.message}", e)
+            logEvent(
+                Severity.HIGH,
+                "Hop creation failed",
+                "Failed to create hop from $origin to $hop: ${e.message}"
+            )
+            Pair(false, e.message ?: "Hop creation failed")
+        }
+    }
+
+    suspend fun addMultipleDnsAsPlus() {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG; smart-dns; no tunnel, skip set multi dns as plus")
+            return
+        }
+
+        Logger.vv(LOG_TAG_VPN, "$TAG smart-dns; add multiple doh & dots")
+        // DoH endpoints
+        val dohList = appConfig.getAllDefaultDoHEndpoints()
+        dohList.forEach { doh ->
+            try {
+                var url: String? = null
+                url = doh.dohURL
+                // default transport-id(Plus), append index & individual id with this
+                val id = Backend.Plus + DOH_INDEX + doh.id
+
+                val ips: String = getIpString(context, url)
+                if (ips.isEmpty()) {
+                    Logger.i(LOG_TAG_VPN, "$TAG smart-dns; ips empty for $url, skip adding to plus doh")
+                    return@forEach
+                }
+                // change the url from https to http if the isSecure is false
+                if (!doh.isSecure) {
+                    Logger.d(LOG_TAG_VPN, "$TAG smart-dns; changing url from https to http for $url")
+                    url = url.replace("https", "http")
+                }
+                // add replaces the existing transport with the same id if successful
+                // so no need to remove the transport before adding
+                Intra.addDoHTransport(tunnel, id, url, ips)
+                Logger.i(
+                    LOG_TAG_VPN, "$TAG smart-dns; new doh: $id (${doh.dohName}), url: $url, ips: $ips"
+                )
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_VPN, "$TAG smart-dns; err add DoH: ${e.message}", e)
+                logEvent(Severity.CRITICAL, "Smart DNS transports added", "Error adding DoH transports to Plus: ${e.message}")
+            }
+        }
+
+        // DoT endpoints
+        val dots = appConfig.getAllDefaultDoTEndpoints()
+        dots.forEach { dot ->
+            // default transport-id(Plus), append index & individual id with this
+            val id = Backend.Plus + DOT_INDEX + dot.id
+            var url: String? = null
+            try {
+                url = dot.url
+                // skip mullvad dots
+                if (url.contains("mullvad.net") || url.contains("mullvad.org")) {
+                    return@forEach
+                }
+                // if tls is present, remove it and pass it to getIpString
+                val ips: String = getIpString(context, url.replace("tls://", ""))
+                if (ips.isEmpty()) {
+                    Logger.i(LOG_TAG_VPN, "$TAG smart-dns; ips empty for $url, skip adding")
+                    return@forEach
+                }
+                if (dot.isSecure && !url.startsWith("tls")) {
+                    Logger.d(LOG_TAG_VPN, "$TAG smart-dns; adding tls to url for $url")
+                    // add tls to the url if isSecure is true and the url does not start with tls
+                    url = "tls://$url"
+                }
+                // add replaces the existing transport with the same id if successful
+                // so no need to remove the transport before adding
+                Intra.addDoTTransport(tunnel, id, url, ips)
+                Logger.i(LOG_TAG_VPN, "$TAG smart-dns; new dot: $id (${dot.name}), url: $url, ips: $ips")
+            } catch (e: Exception) {
+                Logger.e(LOG_TAG_VPN, "$TAG smart-dns; dot failure, url: $url", e)
+                logEvent(Severity.CRITICAL, "Smart DNS transports added", "Error adding DoT transports to Plus: ${e.message}")
+            }
+        }
+        logEvent(
+            Severity.LOW,
+            "Smart DNS transports added",
+            "Added ${dohList.size} DoH and ${dots.size} DoT transports to Plus"
+        )
+        Logger.v(LOG_TAG_VPN, "$TAG smart-dns; done")
+    }
+
+    suspend fun getPlusResolvers(): List<String> {
+        if (!tunnel.isConnected) {
+            Logger.i(LOG_TAG_VPN, "$TAG no tunnel, skip get plus resolvers")
+            return emptyList()
+        }
+        return try {
+            val plusResolvers = tunnel.resolver.getMult(Backend.Plus)
+            val resolvers = plusResolvers.liveTransports()?.split(",")?.map { it.trim() }
+            Logger.i(LOG_TAG_VPN, "$TAG plus resolvers: $resolvers")
+            resolvers ?: emptyList()
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err get plus resolvers: ${e.message}")
+            emptyList()
+        }
+    }
+
+    suspend fun getPlusTransportById(id: String): DNSTransport? {
+        if (!tunnel.isConnected) {
+            Logger.w(LOG_TAG_VPN, "$TAG no tunnel, skip get plus transport by id")
+            return null
+        }
+        return try {
+            val transport = tunnel.resolver.getMult(Backend.Plus).get(id)
+            Logger.d(LOG_TAG_VPN, "$TAG get plus transport by id($id): ${transport.addr}")
+            transport
+        } catch (e: Exception) {
+            Logger.w(LOG_TAG_VPN, "$TAG err get plus transport by id($id): ${e.message}")
+            null
+        }
+    }
+
+    fun performConnectivityCheck(controller: Controller, id: String, addrPort: String): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip connectivity check")
+            return false
+        }
+        try {
+            val dummyAddrPort = "10.111.222.10:53"
+            val router = Intra.controlledRouter(controller, id, dummyAddrPort)
+            val res = router.reaches(addrPort)
+            Logger.i(LOG_TAG_VPN, "$TAG connectivity check, id($id) for addrPort($addrPort): $res")
+            return res
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err; connectivity check: ${e.message}", e)
+        }
+        return false
+    }
+
+    fun performAutoConnectivityCheck(controller: Controller, id: String, mode: String): Boolean {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip auto connectivity check")
+            return false
+        }
+        try {
+            val dummyAddrPort = "10.111.222.11:53"
+            val router = Intra.controlledRouter(controller, id, dummyAddrPort)
+            val res = router.reaches(mode)
+            Logger.i(LOG_TAG_VPN, "$TAG auto connectivity check, id($id) for mode($mode): $res")
+            return res
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err; auto connectivity check: ${e.message}")
+        }
+        return false
+    }
+
+    fun setPlusStrategy(option: Long): Tunnel {
+        // Settings.PlusFilterSafest, Settings.PlusOrderFastest
+        // default value for PlusStrategy is Safest, which is the safest strategy
+        // fastest is another strategy, which is not used for now (v055n)
+        Settings.setPlusStrategy(Settings.PlusFilterSafest)
+        return tunnel
+    }
+
+    fun tunMtu(): Int {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip tun mtu")
+            return 0
+        }
+        return try {
+            val mtu = tunnel.mtu()
+            Logger.i(LOG_TAG_VPN, "$TAG tun mtu: $mtu")
+            mtu
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err tun mtu: ${e.message}", e)
+            0
+        }
+    }
+
+    fun crashTun(type: Long) {
+        if (!tunnel.isConnected) {
+            Logger.e(LOG_TAG_VPN, "$TAG no tunnel, skip crash tun")
+            return
+        }
+        try {
+            // 0: default, 1: don't panic
+            // 0: will crash, gowtf
+            // 1: won't crash, send it to console
+            // 2: will crash, send it to console
+            val afterMs = 1000L
+            Intra.crash(type, afterMs)
+        } catch (e: Exception) {
+            Logger.e(LOG_TAG_VPN, "$TAG err crash tun: ${e.message}", e)
+        }
+    }
+
+    private fun logEvent(severity: Severity, msg: String, details: String) {
+        eventLogger.log(EventType.TUN_UPDATE, severity, msg, EventSource.VPN, false, details)
+    }
+
+    private fun ui(f: suspend () -> Unit) {
+        externalScope.launch(Dispatchers.Main) { f() }
+    }
+}
