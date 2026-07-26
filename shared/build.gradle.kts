@@ -27,7 +27,7 @@ kotlin {
     // wasmJs in one shared module; keeping both targets here makes commonMain the single source
     // of truth for Android and the browser.
     androidLibrary {
-        namespace = "com.celzero.bravedns.shared"
+        namespace = "com.bernaferrari.bravedns.shared"
         compileSdk = 37
         minSdk = 23
         compilerOptions {
@@ -131,7 +131,7 @@ tasks.register<JavaExec>("runJvmDemo") {
         layout.buildDirectory.dir("classes/kotlin/jvm/main"),
         configurations.getByName("jvmRuntimeClasspath")
     )
-    mainClass.set("com.celzero.bravedns.JvmDemoKt")
+    mainClass.set("com.bernaferrari.bravedns.JvmDemoKt")
 }
 
 room3 {

@@ -87,8 +87,8 @@
             android:exported="true"
             android:label="@string/app_name">
             <intent-filter>
-                <action android:name="com.celzero.bravedns.intent.action.VPN_START" />
-                <action android:name="com.celzero.bravedns.intent.action.VPN_STOP" />
+                <action android:name="com.bernaferrari.bravedns.intent.action.VPN_START" />
+                <action android:name="com.bernaferrari.bravedns.intent.action.VPN_STOP" />
             </intent-filter>
         </receiver>
         <receiver
@@ -121,7 +121,7 @@
 
         <provider
             android:name="androidx.core.content.FileProvider"
-            android:authorities="com.celzero.bravedns.provider;com.celzero.bravedns.backup.BackupAgent"
+            android:authorities="com.bernaferrari.bravedns.provider;com.bernaferrari.bravedns.backup.BackupAgent"
             android:exported="false"
             android:grantUriPermissions="true">
             <meta-data

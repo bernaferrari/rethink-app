@@ -6,8 +6,8 @@
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-OUTPUT_DIR="$ROOT_DIR/shared/src/commonMain/kotlin/com/celzero/bravedns/ui/icons"
-PACKAGE_NAME="com.celzero.bravedns.ui.icons"
+OUTPUT_DIR="$ROOT_DIR/shared/src/commonMain/kotlin/com/bernaferrari/bravedns/ui/icons"
+PACKAGE_NAME="com.bernaferrari.bravedns.ui.icons"
 BASE_URL="https://fonts.gstatic.com/render/v1/Material+Symbols+Rounded/24dp"
 
 # Keep this list in sync with the commonMain usages. Variants share a source file:

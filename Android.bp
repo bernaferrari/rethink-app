@@ -19,9 +19,7 @@ android_app {
     additional_manifests: ["app/src/headless/AndroidManifest.xml"],
     srcs: [
         "app/src/main/**/*.kt",
-        "app/src/main/**/*.java",
         "app/src/headless/**/*.kt",
-        "app/src/headless/**/*.java",
     ],
     asset_dirs: [
         "app/src/main/assets",
@@ -39,8 +37,8 @@ android_app {
     ],
 
     required: [
-        "privapp_whitelist_com.celzero.bravedns",
-        "com.celzero.bravedns_whitelist",
+        "privapp_whitelist_com.bernaferrari.bravedns",
+        "com.bernaferrari.bravedns_whitelist",
     ],
 
     static_libs: [
@@ -81,17 +79,17 @@ java_import {
 }
 
 prebuilt_etc {
-    name: "privapp_whitelist_com.celzero.bravedns",
+    name: "privapp_whitelist_com.bernaferrari.bravedns",
     system_ext_specific: true,
     sub_dir: "permissions",
-    src: "com.celzero.bravedns.xml",
+    src: "com.bernaferrari.bravedns.xml",
     filename_from_src: true,
 }
 
 prebuilt_etc {
-    name: "com.celzero.bravedns_whitelist",
+    name: "com.bernaferrari.bravedns_whitelist",
     system_ext_specific: true,
     sub_dir: "sysconfig",
-    src: "com.celzero.bravedns_whitelist.xml",
+    src: "com.bernaferrari.bravedns_whitelist.xml",
     filename_from_src: true,
 }
