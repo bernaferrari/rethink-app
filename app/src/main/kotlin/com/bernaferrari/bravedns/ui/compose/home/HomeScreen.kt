@@ -7,8 +7,6 @@
 package com.bernaferrari.bravedns.ui.compose.home
 
 import androidx.compose.runtime.Composable
-import androidx.compose.material3.Icon
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 
@@ -41,56 +39,30 @@ fun HomeScreen(
         uiState = uiState.toCommonUiState(),
         strings = androidHomeStrings(),
         onStartStopClick = onStartStopClick,
-        icons = androidHomeIcons(),
     )
 }
 
-@Composable
-private fun androidHomeIcons() = RethinkHomeIcons(
-    dns = { Icon(painterResource(R.drawable.dns_home_screen), null) },
-    firewall = { Icon(painterResource(R.drawable.firewall_home_screen), null) },
-    proxy = { Icon(painterResource(R.drawable.ic_vpn), null) },
-    logs = { Icon(painterResource(R.drawable.ic_logs_accent), null) },
-    apps = { Icon(painterResource(R.drawable.ic_app_info_accent), null) },
-)
-
 private fun HomeScreenUiState.toCommonUiState() = RethinkHomeUiState(
     isVpnActive = isVpnActive,
-    dnsLatency = dnsLatency,
-    dnsConnectedName = dnsConnectedName,
-    firewallUniversalRules = firewallUniversalRules,
-    firewallIpRules = firewallIpRules,
-    firewallDomainRules = firewallDomainRules,
-    proxyStatus = proxyStatus,
     networkLogsCount = networkLogsCount,
     dnsLogsCount = dnsLogsCount,
-    appsAllowed = appsAllowed,
-    appsBlocked = appsBlocked,
-    appsTotal = appsTotal,
-    appsBypassed = appsBypassed,
     protectionStatus = protectionStatus,
     isProtectionFailing = isProtectionFailing,
 )
 
 @Composable
 private fun androidHomeStrings() = RethinkHomeStrings(
-    home = stringResource(R.string.txt_home),
-    status = stringResource(R.string.lbl_status),
+    productName = stringResource(R.string.app_name),
     protection = "Protection",
     protected = "Protected",
     notActive = "Not active",
     start = stringResource(R.string.lbl_start),
     stop = stringResource(R.string.lbl_stop),
-    inactive = stringResource(R.string.lbl_inactive),
-    latency = "Latency",
-    dns = stringResource(R.string.lbl_dns),
-    firewall = stringResource(R.string.lbl_firewall),
-    proxy = stringResource(R.string.lbl_proxy),
-    logs = stringResource(R.string.lbl_logs),
-    network = stringResource(R.string.lbl_network),
-    blocked = stringResource(R.string.lbl_blocked),
-    apps = stringResource(R.string.lbl_apps),
-    allowed = stringResource(R.string.lbl_allowed),
-    bypassed = stringResource(R.string.lbl_bypassed),
-    universalRules = stringResource(R.string.lbl_universal_rules),
+    protectedSubtitle = stringResource(R.string.home_protected_subtitle),
+    inactiveSubtitle = stringResource(R.string.home_inactive_subtitle),
+    failingSubtitle = stringResource(R.string.home_failing_subtitle),
+    activity = stringResource(R.string.home_activity_title),
+    activitySubtitle = stringResource(R.string.home_activity_subtitle),
+    connections = stringResource(R.string.home_connections),
+    dnsQueries = stringResource(R.string.home_dns_queries),
 )

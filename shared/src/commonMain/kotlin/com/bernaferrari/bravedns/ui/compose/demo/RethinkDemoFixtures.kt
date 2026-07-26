@@ -53,25 +53,19 @@ internal val demoNavigationItems = listOf(
 )
 
 internal val demoHomeStrings = RethinkHomeStrings(
-    home = "Home",
-    status = "Status",
+    productName = "Rethink",
     protection = "Protection",
     protected = "Protected",
     notActive = "Not active",
     start = "Start",
     stop = "Stop",
-    inactive = "Inactive",
-    latency = "Latency",
-    dns = "DNS",
-    firewall = "Firewall",
-    proxy = "Proxy",
-    logs = "Logs",
-    network = "Network",
-    blocked = "Blocked",
-    apps = "Apps",
-    allowed = "Allowed",
-    bypassed = "Bypassed",
-    universalRules = "universal rules",
+    protectedSubtitle = "Traffic is being filtered on this device",
+    inactiveSubtitle = "Turn on protection to secure your traffic",
+    failingSubtitle = "Rethink is trying to restore your connection",
+    activity = "Activity",
+    activitySubtitle = "Since logs were last cleared",
+    connections = "Connections",
+    dnsQueries = "DNS queries",
 )
 
 internal val demoConfigureStrings = RethinkConfigureStrings(
