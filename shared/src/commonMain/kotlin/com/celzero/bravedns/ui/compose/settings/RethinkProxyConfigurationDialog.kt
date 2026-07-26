@@ -12,19 +12,15 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.draw.clip
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,13 +28,15 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkFormActionRow
+import com.celzero.bravedns.ui.compose.theme.RethinkFormTextField
 import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.celzero.bravedns.ui.compose.theme.RethinkRadioChoiceList
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
 
 enum class RethinkProxyConfigurationKind { Socks5, Http }
@@ -90,6 +88,7 @@ fun RethinkProxyConfigurationDialog(
     RethinkModalBottomSheet(
         onDismissRequest = onCancel,
         verticalSpacing = SharedDimensions.spacingLg,
+        expandOnShow = true,
     ) {
         Text(strings.title, style = MaterialTheme.typography.headlineSmall)
         Column(
@@ -133,10 +132,12 @@ fun RethinkProxyConfigurationDialog(
             }
             state.error?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            TextButton(onClick = onCancel) { Text(strings.cancel) }
-            Button(onClick = onConfirm) { Text(strings.save) }
-        }
+        RethinkFormActionRow(
+            confirmLabel = strings.save,
+            onConfirm = onConfirm,
+            dismissLabel = strings.cancel,
+            onDismiss = onCancel,
+        )
     }
 }
 
@@ -156,26 +157,12 @@ fun RethinkProxyModeDialog(
         onDismissRequest = onDismiss,
         title = title,
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-                options.forEach { option ->
-                    val selected = selectedId == option.id
-                    val shape = RoundedCornerShape(SharedDimensions.cornerRadiusMd)
-                    Surface(
-                        onClick = { onSelected(option.id) },
-                        shape = shape,
-                        color = if (selected) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.34f) else Color.Transparent,
-                        modifier = Modifier.fillMaxWidth().clip(shape),
-                    ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = SharedDimensions.spacingXs, vertical = SharedDimensions.spacingXs),
-                            verticalAlignment = Alignment.CenterVertically,
-                        ) {
-                            RadioButton(selected = selected, onClick = { onSelected(option.id) })
-                            Text(option.label, style = MaterialTheme.typography.bodyLarge)
-                        }
-                    }
-                }
-            }
+            RethinkRadioChoiceList(
+                options = options,
+                selected = { it.id == selectedId },
+                label = RethinkProxyModeOption::label,
+                onSelected = { onSelected(it.id) },
+            )
         },
         confirmText = save,
         dismissText = cancel,
@@ -186,24 +173,17 @@ fun RethinkProxyModeDialog(
 
 @Composable
 private fun RethinkProxyTextField(value: String, label: String, onValueChange: (String) -> Unit) {
-    OutlinedTextField(
-        value = value,
-        onValueChange = onValueChange,
-        label = { Text(label) },
-        singleLine = true,
-        modifier = Modifier.fillMaxWidth(),
-    )
+    RethinkFormTextField(value, onValueChange, label, singleLine = true)
 }
 
 @Composable
 private fun RethinkProxyToggleRow(label: String, checked: Boolean, enabled: Boolean = true, onCheckedChange: (Boolean) -> Unit) {
-    val shape = RoundedCornerShape(SharedDimensions.cornerRadiusMd)
     Surface(
         onClick = { onCheckedChange(!checked) },
         enabled = enabled,
-        shape = shape,
+        shape = MaterialTheme.shapes.medium,
         color = Color.Transparent,
-        modifier = Modifier.fillMaxWidth().clip(shape),
+        modifier = Modifier.fillMaxWidth().clip(MaterialTheme.shapes.medium),
     ) {
         Row(
             modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),

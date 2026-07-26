@@ -48,6 +48,8 @@ data class RethinkMiscSettingsStrings(
     val aboutSection: String,
     val websiteTitle: String,
     val websiteDescription: String,
+    val aboutTitle: String,
+    val aboutDescription: String,
 )
 
 /** Shared general-settings screen. Hosts retain preference persistence and platform actions only. */
@@ -58,6 +60,7 @@ fun RethinkMiscSettingsScreen(
     onToggleChange: (id: String, checked: Boolean) -> Unit,
     onBackupRestore: () -> Unit,
     onOpenWebsite: () -> Unit,
+    onOpenAbout: () -> Unit,
     appearanceContent: @Composable () -> Unit,
     onBackClick: (() -> Unit)? = null,
     focusedSettingId: String? = null,
@@ -136,9 +139,19 @@ fun RethinkMiscSettingsScreen(
                             leadingIcon = MaterialSymbols.Filled.Public,
                             leadingIconTint = MaterialTheme.colorScheme.tertiary,
                             leadingIconContainerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .7f),
-                            position = CardPosition.Single,
-                            highlighted = focusedSettingId == "general_website" || focusedSettingId == "general_about",
+                            position = CardPosition.First,
+                            highlighted = focusedSettingId == "general_website",
                             onClick = onOpenWebsite,
+                        )
+                        RethinkListItem(
+                            headline = strings.aboutTitle,
+                            supporting = strings.aboutDescription,
+                            leadingIcon = MaterialSymbols.Filled.Info,
+                            leadingIconTint = MaterialTheme.colorScheme.tertiary,
+                            leadingIconContainerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .7f),
+                            position = CardPosition.Last,
+                            highlighted = focusedSettingId == "general_about",
+                            onClick = onOpenAbout,
                         )
                     }
                 }

@@ -263,6 +263,7 @@ internal fun DemoWireguardScreen(modifier: Modifier, onBack: () -> Unit) {
             RethinkModalBottomSheet(
                 onDismissRequest = { showPeerEditor = false },
                 includeBottomSpacer = false,
+                expandOnShow = true,
             ) {
                 RethinkWireguardPeerEditor(
                     initialState = RethinkWireguardPeerState(endpoint = selected.endpoint, allowedIps = "0.0.0.0/0, ::/0"),
@@ -285,6 +286,7 @@ internal fun DemoWireguardScreen(modifier: Modifier, onBack: () -> Unit) {
             RethinkModalBottomSheet(
                 onDismissRequest = { showSsidEditor = false },
                 includeBottomSpacer = false,
+                expandOnShow = true,
             ) {
                 RethinkWireguardSsidEditor(
                     initialRules = ssidRules,

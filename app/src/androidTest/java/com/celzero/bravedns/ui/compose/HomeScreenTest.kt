@@ -17,6 +17,7 @@ package com.celzero.bravedns.ui.compose.home
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -48,18 +49,11 @@ class HomeScreenTest {
                 HomeScreen(
                     uiState = uiState,
                     onStartStopClick = {},
-                    onDnsClick = {},
-                    onFirewallClick = {},
-                    onProxyClick = {},
-                    onLogsClick = {},
-                    onAppsClick = {},
-                    onSponsorClick = {}
                 )
             }
         }
 
-        // Verify Start button is displayed when VPN is inactive
-        composeTestRule.onNodeWithText("Start").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("Start").assertIsDisplayed()
     }
 
     @Test
@@ -79,18 +73,11 @@ class HomeScreenTest {
                 HomeScreen(
                     uiState = uiState,
                     onStartStopClick = {},
-                    onDnsClick = {},
-                    onFirewallClick = {},
-                    onProxyClick = {},
-                    onLogsClick = {},
-                    onAppsClick = {},
-                    onSponsorClick = {}
                 )
             }
         }
 
-        // Verify Stop button is displayed when VPN is active
-        composeTestRule.onNodeWithText("Stop").assertIsDisplayed()
+        composeTestRule.onNodeWithContentDescription("Stop").assertIsDisplayed()
     }
 
     @Test
@@ -103,18 +90,11 @@ class HomeScreenTest {
                 HomeScreen(
                     uiState = uiState,
                     onStartStopClick = { clickCount++ },
-                    onDnsClick = {},
-                    onFirewallClick = {},
-                    onProxyClick = {},
-                    onLogsClick = {},
-                    onAppsClick = {},
-                    onSponsorClick = {}
                 )
             }
         }
 
-        // Click the Start button
-        composeTestRule.onNodeWithText("Start").performClick()
+        composeTestRule.onNodeWithContentDescription("Start").performClick()
 
         // Verify callback was triggered
         assert(clickCount == 1)
@@ -132,12 +112,6 @@ class HomeScreenTest {
                 HomeScreen(
                     uiState = uiState,
                     onStartStopClick = {},
-                    onDnsClick = {},
-                    onFirewallClick = {},
-                    onProxyClick = {},
-                    onLogsClick = {},
-                    onAppsClick = {},
-                    onSponsorClick = {}
                 )
             }
         }
@@ -159,12 +133,6 @@ class HomeScreenTest {
                 HomeScreen(
                     uiState = uiState,
                     onStartStopClick = {},
-                    onDnsClick = {},
-                    onFirewallClick = {},
-                    onProxyClick = {},
-                    onLogsClick = {},
-                    onAppsClick = {},
-                    onSponsorClick = {}
                 )
             }
         }
@@ -189,12 +157,6 @@ class HomeScreenTest {
                 HomeScreen(
                     uiState = uiState,
                     onStartStopClick = {},
-                    onDnsClick = {},
-                    onFirewallClick = {},
-                    onProxyClick = {},
-                    onLogsClick = {},
-                    onAppsClick = {},
-                    onSponsorClick = {}
                 )
             }
         }

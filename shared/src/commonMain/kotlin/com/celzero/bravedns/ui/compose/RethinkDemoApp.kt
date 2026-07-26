@@ -68,6 +68,7 @@ internal sealed interface DemoDetail {
     data object FirewallApps : DemoDetail
     data class AppInfo(val app: RethinkFirewallApp) : DemoDetail
     data object MiscSettings : DemoDetail
+    data object About : DemoDetail
     data object Database : DemoDetail
     data object RpnSettings : DemoDetail
     data object RpnCountries : DemoDetail
@@ -186,11 +187,6 @@ fun RethinkDemoApp(
                             ),
                             strings = demoHomeStrings,
                             onStartStopClick = { vpnOn = !vpnOn },
-                            onDnsClick = { openConfigureDetail(DemoDetail.DnsList) },
-                            onFirewallClick = { openConfigureDetail(DemoDetail.FirewallSettings) },
-                            onProxyClick = { openConfigureDetail(DemoDetail.ProxySettings) },
-                            onLogsClick = { openConfigureDetail(DemoDetail.Logs) },
-                            onAppsClick = { openConfigureDetail(DemoDetail.FirewallApps) },
                     )
                     RethinkRootDestination.Statistics -> RethinkSummaryStatisticsScreen(
                         modifier = Modifier.padding(padding),
@@ -289,7 +285,19 @@ fun RethinkDemoApp(
                             appearancePresetId = appearancePresetId,
                             onAppearanceModeChange = { appearanceMode = it },
                             onAppearancePresetChange = { appearancePresetId = it },
+                            onOpenAbout = { openDetail(DemoDetail.About) },
                             onBack = ::navigateBack,
+                        )
+                        DemoDetail.About -> RethinkAboutScreen(
+                            uiState = RethinkAboutUiState(
+                                versionName = demoDependencies.appMetadata.versionName,
+                                installSource = demoDependencies.appMetadata.installSource,
+                                buildNumber = demoDependencies.appMetadata.buildNumber,
+                                isDebug = demoDependencies.appMetadata.isDebug,
+                            ),
+                            strings = demoAboutStrings,
+                            onBackClick = ::navigateBack,
+                            modifier = Modifier.padding(padding),
                         )
                         DemoDetail.RpnAccount -> DemoRpnAccountScreen(Modifier.padding(padding), ::navigateBack)
                         DemoDetail.RpnCountries -> DemoRpnCountriesScreen(
@@ -355,28 +363,6 @@ fun RethinkDemoApp(
                             )
                         }
                     }
-                    RethinkRootDestination.About -> RethinkAboutScreen(
-                        uiState = RethinkAboutUiState(
-                            versionName = demoDependencies.appMetadata.versionName,
-                            installSource = demoDependencies.appMetadata.installSource,
-                            buildNumber = demoDependencies.appMetadata.buildNumber,
-                            isDebug = demoDependencies.appMetadata.isDebug,
-                        ),
-                        strings = demoAboutStrings,
-                        modifier = Modifier.padding(padding),
-                        appearanceContent = {
-                            RethinkAppearanceSettingsCard(
-                                selectedMode = appearanceMode,
-                                selectedPresetId = appearancePresetId,
-                                presets = demoAppearancePresets,
-                                strings = demoAppearanceStrings,
-                                dynamicColor = Color(0xFF7C8BFF),
-                                dynamicSupported = false,
-                                onModeSelected = { appearanceMode = it },
-                                onPresetSelected = { appearancePresetId = it.id },
-                            )
-                        },
-                    )
                 }
             }
         }

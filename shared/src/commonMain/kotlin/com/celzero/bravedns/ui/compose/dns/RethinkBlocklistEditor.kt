@@ -15,14 +15,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
@@ -32,6 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
+import com.celzero.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.celzero.bravedns.ui.compose.theme.RethinkSearchField
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
 
@@ -105,15 +104,25 @@ fun RethinkBlocklistEditor(
                 color = MaterialTheme.colorScheme.surfaceContainerLow,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.22f)),
             ) {
-                Row(
-                    Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+                Column(
+                    modifier = Modifier.fillMaxWidth().padding(SharedDimensions.cardPadding),
+                    verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
                 ) {
-                    Text(strings.downloadDescription, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
-                    if (isDownloading) CircularProgressIndicator(Modifier.padding(4.dp), strokeWidth = 2.dp)
-                    TextButton(onClick = onCancelDownload) { Text(strings.cancel) }
-                    Button(onClick = onDownload, enabled = !isDownloading) { Text(strings.download) }
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+                    ) {
+                        Text(strings.downloadDescription, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                        if (isDownloading) CircularProgressIndicator(Modifier.padding(4.dp), strokeWidth = 2.dp)
+                    }
+                    RethinkFormActionRow(
+                        confirmLabel = strings.download,
+                        onConfirm = onDownload,
+                        dismissLabel = strings.cancel,
+                        onDismiss = onCancelDownload,
+                        confirmEnabled = !isDownloading,
+                    )
                 }
             }
         } else if (showEditor) {
@@ -133,10 +142,12 @@ fun RethinkBlocklistEditor(
             } else {
                 RethinkBlocklistFileTagList(fileTags, strings, onFileTagToggle, onOpenUrl, Modifier.weight(1f))
             }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                TextButton(onClick = onDiscard) { Text(strings.discard) }
-                Button(onClick = onApply, modifier = Modifier.padding(start = SharedDimensions.spacingSm)) { Text(strings.apply) }
-            }
+            RethinkFormActionRow(
+                confirmLabel = strings.apply,
+                onConfirm = onApply,
+                dismissLabel = strings.discard,
+                onDismiss = onDiscard,
+            )
         }
     }
 }

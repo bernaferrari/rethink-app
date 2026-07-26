@@ -17,13 +17,11 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
@@ -38,6 +36,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.celzero.bravedns.ui.compose.theme.RethinkFormActionRow
+import com.celzero.bravedns.ui.compose.theme.RethinkFormTextField
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
 
 data class RethinkEndpointEditorStrings(
@@ -77,6 +77,7 @@ fun RethinkEndpointEditorDialog(onDismiss: () -> Unit, content: @Composable () -
         contentPadding = PaddingValues(0.dp),
         verticalSpacing = 0.dp,
         includeBottomSpacer = false,
+        expandOnShow = true,
     ) {
         content()
     }
@@ -134,8 +135,8 @@ fun RethinkUrlEndpointEditor(
         onDismiss = onDismiss,
         onConfirm = { error = onSubmit(name, endpoint, !insecure).orEmpty() },
     ) {
-        OutlinedTextField(name, onValueChange = { name = it }, label = { Text(nameLabel) }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(endpoint, onValueChange = { endpoint = it }, label = { Text(endpointLabel) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri), modifier = Modifier.fillMaxWidth())
+        RethinkFormTextField(name, onValueChange = { name = it }, label = nameLabel)
+        RethinkFormTextField(endpoint, onValueChange = { endpoint = it }, label = endpointLabel, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(insecure, onCheckedChange = { insecure = it })
             Spacer(Modifier.width(6.dp))
@@ -168,9 +169,9 @@ fun RethinkODoHEndpointEditor(
         onDismiss = onDismiss,
         onConfirm = { error = onSubmit(name, proxy, resolver).orEmpty() },
     ) {
-        OutlinedTextField(name, onValueChange = { name = it }, label = { Text(nameLabel) }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(proxy, onValueChange = { proxy = it }, label = { Text(proxyLabel) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri), modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(resolver, onValueChange = { resolver = it }, label = { Text(resolverLabel) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri), modifier = Modifier.fillMaxWidth())
+        RethinkFormTextField(name, onValueChange = { name = it }, label = nameLabel)
+        RethinkFormTextField(proxy, onValueChange = { proxy = it }, label = proxyLabel, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
+        RethinkFormTextField(resolver, onValueChange = { resolver = it }, label = resolverLabel, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri))
     }
 }
 
@@ -224,9 +225,9 @@ fun RethinkDnsProxyEndpointEditor(
                 }
             }
         }
-        OutlinedTextField(name, onValueChange = { name = it }, label = { Text(strings.name) }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(ipAddress, onValueChange = { ipAddress = it }, label = { Text(strings.ipAddress) }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(port, onValueChange = { port = it }, label = { Text(strings.port) }, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number), modifier = Modifier.fillMaxWidth())
+        RethinkFormTextField(name, onValueChange = { name = it }, label = strings.name)
+        RethinkFormTextField(ipAddress, onValueChange = { ipAddress = it }, label = strings.ipAddress)
+        RethinkFormTextField(port, onValueChange = { port = it }, label = strings.port, keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number))
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
             Text(strings.excludeApps)
             Checkbox(excludeApps, onCheckedChange = { if (!isLockdown) excludeApps = it }, enabled = !isLockdown)
@@ -311,17 +312,18 @@ fun RethinkDnsCryptEndpointEditor(
                 modifier = Modifier.weight(1f),
             ) { Text(relayLabel) }
         }
-        OutlinedTextField(name, onValueChange = { name = it }, label = { Text(nameLabel) }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(stamp, onValueChange = { stamp = it }, label = { Text(stampLabel) }, modifier = Modifier.fillMaxWidth())
-        OutlinedTextField(description, onValueChange = { description = it }, label = { Text(descriptionLabel) }, modifier = Modifier.fillMaxWidth())
+        RethinkFormTextField(name, onValueChange = { name = it }, label = nameLabel)
+        RethinkFormTextField(stamp, onValueChange = { stamp = it }, label = stampLabel)
+        RethinkFormTextField(description, onValueChange = { description = it }, label = descriptionLabel)
     }
 }
 
 @Composable
 private fun RethinkEditorActions(strings: RethinkEndpointEditorStrings, onDismiss: () -> Unit, onConfirm: () -> Unit) {
-    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-        TextButton(onClick = onDismiss) { Text(strings.cancel) }
-        Spacer(Modifier.width(8.dp))
-        Button(onClick = onConfirm) { Text(strings.add) }
-    }
+    RethinkFormActionRow(
+        confirmLabel = strings.add,
+        onConfirm = onConfirm,
+        dismissLabel = strings.cancel,
+        onDismiss = onDismiss,
+    )
 }

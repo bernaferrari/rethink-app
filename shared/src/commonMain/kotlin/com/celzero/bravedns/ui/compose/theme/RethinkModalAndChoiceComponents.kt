@@ -23,6 +23,8 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.SheetValue
+import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
@@ -164,12 +166,23 @@ fun RethinkModalBottomSheet(
     contentPadding: PaddingValues = PaddingValues(horizontal = SharedDimensions.screenPaddingHorizontal, vertical = SharedDimensions.spacingSm),
     verticalSpacing: Dp = SharedDimensions.spacingLg,
     includeBottomSpacer: Boolean = true,
+    expandOnShow: Boolean = false,
     content: @Composable ColumnScope.() -> Unit,
 ) {
+    val sheetState = rememberBottomSheetState(
+        initialValue = SheetValue.Hidden,
+        enabledValues =
+            if (expandOnShow) {
+                setOf(SheetValue.Hidden, SheetValue.Expanded)
+            } else {
+                setOf(SheetValue.Hidden, SheetValue.PartiallyExpanded, SheetValue.Expanded)
+            },
+    )
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         dragHandle = dragHandle,
         containerColor = if (containerColor == Color.Unspecified) MaterialTheme.colorScheme.surface else containerColor,
+        sheetState = sheetState,
     ) {
         Column(
             modifier = modifier.fillMaxWidth().padding(contentPadding),

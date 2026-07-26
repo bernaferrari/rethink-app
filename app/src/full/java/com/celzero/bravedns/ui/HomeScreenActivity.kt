@@ -442,20 +442,6 @@ class HomeScreenActivity : ComponentActivity() {
                     HomeScreenRoot(
                         homeUiState = homeState,
                         onHomeStartStopClick = { handleMainScreenBtnClickEvent() },
-                        onHomeDnsClick = { navigateToDnsDetailIfAllowed() },
-                        onHomeFirewallClick = { homeNavRequest = HomeNavRequest.FirewallSettings },
-                        onHomeProxyClick = {
-                            if (appConfig.isWireGuardEnabled()) {
-                                homeNavRequest = HomeNavRequest.WgMain
-                            } else {
-                                homeNavRequest = HomeNavRequest.ProxySettings
-                            }
-                        },
-                        onHomeLogsClick = { homeNavRequest = HomeNavRequest.NetworkLogs },
-                        onHomeAppsClick = { homeNavRequest = HomeNavRequest.AppList },
-                        onHomeSponsorClick = {
-                            // promptForAppSponsorship()
-                        },
                         summaryViewModel = summaryViewModel,
                         onOpenDetailedStats = { type -> openDetailedStatsUi(type) },
                         startDestination = homeStartDestination,

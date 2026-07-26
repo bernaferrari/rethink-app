@@ -34,6 +34,7 @@ fun MiscSettingsScreen(
     eventLogger: EventLogger,
     initialFocusKey: String? = null,
     onBackClick: (() -> Unit)? = null,
+    onOpenAbout: () -> Unit = {},
     onRefreshDatabase: (() -> Unit)? = null,
     onThemeModeChanged: ((Int) -> Unit)? = null,
     onThemeColorChanged: ((Int) -> Unit)? = null,
@@ -71,6 +72,8 @@ fun MiscSettingsScreen(
             aboutSection = stringResource(R.string.title_about),
             websiteTitle = stringResource(R.string.about_website),
             websiteDescription = stringResource(R.string.about_website_link),
+            aboutTitle = stringResource(R.string.title_about),
+            aboutDescription = stringResource(R.string.app_name),
         ),
         toggles = toggles,
         onToggleChange = { id, enabled ->
@@ -95,6 +98,7 @@ fun MiscSettingsScreen(
         },
         onBackupRestore = { showBackupSheet = true },
         onOpenWebsite = { openUrl(context, context.getString(R.string.about_website_link)) },
+        onOpenAbout = onOpenAbout,
         appearanceContent = {
             AppearanceSettingsCard(
                 themePreference = persistentState.theme,
