@@ -101,10 +101,10 @@ class HomeScreenTest {
     }
 
     @Test
-    fun homeScreen_displaysDnsCard() {
+    fun homeScreen_displaysActivity() {
         val uiState = HomeScreenUiState(
-            dnsLatency = "45ms",
-            dnsConnectedName = "Google DNS"
+            networkLogsCount = 432,
+            dnsLogsCount = 87,
         )
 
         composeTestRule.setContent {
@@ -116,53 +116,7 @@ class HomeScreenTest {
             }
         }
 
-        // Verify DNS latency is displayed
-        composeTestRule.onNodeWithText("45ms").assertIsDisplayed()
-    }
-
-    @Test
-    fun homeScreen_displaysFirewallCard() {
-        val uiState = HomeScreenUiState(
-            firewallUniversalRules = 15,
-            firewallIpRules = 5,
-            firewallDomainRules = 3
-        )
-
-        composeTestRule.setContent {
-            RethinkTheme {
-                HomeScreen(
-                    uiState = uiState,
-                    onStartStopClick = {},
-                )
-            }
-        }
-
-        // Verify firewall rules count is displayed
-        composeTestRule.onNodeWithText("15").assertIsDisplayed()
-    }
-
-    @Test
-    fun homeScreen_displaysAppsCard() {
-        val uiState = HomeScreenUiState(
-            appsTotal = 120,
-            appsAllowed = 100,
-            appsBlocked = 15,
-            appsBypassed = 3,
-            appsIsolated = 2,
-            appsExcluded = 0
-        )
-
-        composeTestRule.setContent {
-            RethinkTheme {
-                HomeScreen(
-                    uiState = uiState,
-                    onStartStopClick = {},
-                )
-            }
-        }
-
-        // Verify apps count is displayed
-        composeTestRule.onNodeWithText("100").assertIsDisplayed()
-        composeTestRule.onNodeWithText("120").assertIsDisplayed()
+        composeTestRule.onNodeWithText("432").assertIsDisplayed()
+        composeTestRule.onNodeWithText("87").assertIsDisplayed()
     }
 }

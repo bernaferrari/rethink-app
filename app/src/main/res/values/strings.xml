@@ -10,6 +10,13 @@
     <string name="about_title_desc" translatable="true">Detect and block network security threats</string>
 
     <string name="txt_home" translatable="true">Home</string>
+    <string name="home_protected_subtitle">Traffic is being filtered on this device</string>
+    <string name="home_inactive_subtitle">Turn on protection to secure your traffic</string>
+    <string name="home_failing_subtitle">Rethink is trying to restore your connection</string>
+    <string name="home_activity_title">Activity</string>
+    <string name="home_activity_subtitle">Since logs were last cleared</string>
+    <string name="home_connections">Connections</string>
+    <string name="home_dns_queries">DNS queries</string>
 
     <string name="accessibility_service_description" translatable="true">
         Rethink uses accessibility service to detect and firewall background applications.
