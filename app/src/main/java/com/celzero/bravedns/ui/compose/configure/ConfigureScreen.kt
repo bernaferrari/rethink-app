@@ -59,7 +59,7 @@ fun ConfigureScreen(
         ), RethinkConfigureLayout.GridFour),
         RethinkConfigureSection(system, Color(0xFF755A54), listOf(
             entry("network", stringResource(R.string.lbl_network), R.drawable.ic_network_tunnel, tint.network, onNetworkClick, keywords = listOf("network", "vpn", "tunnel")),
-            entry("settings", stringResource(R.string.title_settings), R.drawable.ic_other_settings, tint.settings, onOthersClick, keywords = listOf("settings", "theme", "backup")),
+            entry("settings", stringResource(R.string.settings_general_header), R.drawable.ic_other_settings, tint.settings, onOthersClick, keywords = listOf("settings", "general", "theme", "backup")),
             entry("logs", stringResource(R.string.lbl_logs), R.drawable.ic_logs_accent, tint.logs, onLogsClick, stringResource(R.string.settings_enable_logs_desc), listOf("logs", "events", "console")),
         ), RethinkConfigureLayout.GridTriad),
         RethinkConfigureSection(advanced, Color(0xFF6F5D2E), buildList {
@@ -78,7 +78,7 @@ fun ConfigureScreen(
         sections = sections,
         searchEntries = (deepSearch + topSearch).distinctBy { it.entry.id },
         strings = RethinkConfigureStrings(
-            title = stringResource(R.string.lbl_configure), searchHint = stringResource(R.string.configure_search_hint),
+            title = stringResource(R.string.title_settings), searchHint = stringResource(R.string.configure_search_hint),
             openSearch = stringResource(R.string.configure_search_open), closeSearch = stringResource(R.string.configure_search_close),
             clearSearch = stringResource(R.string.cd_clear_search), noResultsTitle = stringResource(R.string.configure_search_empty_title), noResultsSubtitle = stringResource(R.string.configure_search_empty_subtitle),
         ),

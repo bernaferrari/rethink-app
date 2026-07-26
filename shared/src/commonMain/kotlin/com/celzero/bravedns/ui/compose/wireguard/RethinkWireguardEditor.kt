@@ -6,7 +6,6 @@ import com.celzero.bravedns.ui.icons.MaterialSymbols
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,7 +19,6 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -34,6 +32,8 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.ui.compose.theme.PrimaryButton
+import com.celzero.bravedns.ui.compose.theme.RethinkFormSection
+import com.celzero.bravedns.ui.compose.theme.RethinkFormTextField
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SecondaryButton
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
@@ -84,7 +84,6 @@ fun RethinkWireguardEditor(
     modifier: Modifier = Modifier,
 ) {
     val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    val fieldShape = RoundedCornerShape(SharedDimensions.cornerRadiusLg)
     Scaffold(
         modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = { RethinkLargeTopBar(strings.title, onBackClick = onBackClick, scrollBehavior = scrollBehavior) },
@@ -109,55 +108,44 @@ fun RethinkWireguardEditor(
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
         ) {
             item {
-                RethinkWireguardEditorSection(strings.configuration) {
-                    OutlinedTextField(
+                RethinkFormSection(strings.configuration) {
+                    RethinkFormTextField(
                         value = state.interfaceName,
                         onValueChange = { onStateChange(state.copy(interfaceName = it)) },
-                        label = { Text(strings.name) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = fieldShape,
+                        label = strings.name,
                         singleLine = true,
                     )
-                    OutlinedTextField(
+                    RethinkFormTextField(
                         value = state.addresses,
                         onValueChange = { onStateChange(state.copy(addresses = it)) },
-                        label = { Text(strings.addresses) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = fieldShape,
+                        label = strings.addresses,
                         minLines = 2,
                     )
-                    OutlinedTextField(
+                    RethinkFormTextField(
                         value = state.dnsServers,
                         onValueChange = { onStateChange(state.copy(dnsServers = it)) },
-                        label = { Text(strings.dnsServers) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = fieldShape,
+                        label = strings.dnsServers,
                         minLines = 2,
                     )
                 }
             }
-            item { RethinkWireguardEditorDivider() }
             item {
-                RethinkWireguardEditorSection(strings.setup) {
-                    OutlinedTextField(
+                RethinkFormSection(strings.setup) {
+                    RethinkFormTextField(
                         value = state.privateKey,
                         onValueChange = { onStateChange(state.copy(privateKey = it)) },
-                        label = { Text(strings.privateKey) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = fieldShape,
+                        label = strings.privateKey,
                         singleLine = true,
                         textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
                         trailingIcon = { IconButton(onClick = onGenerateKeys) { Icon(MaterialSymbols.Filled.Refresh, strings.generateKeys) } },
                     )
-                    OutlinedTextField(
+                    RethinkFormTextField(
                         value = state.publicKey,
                         onValueChange = {},
-                        label = { Text(strings.publicKey) },
+                        label = strings.publicKey,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .clip(fieldShape)
+                            .clip(RoundedCornerShape(SharedDimensions.cornerRadiusLg))
                             .clickable(enabled = state.publicKey.isNotEmpty(), onClick = onCopyPublicKey),
-                        shape = fieldShape,
                         readOnly = true,
                         singleLine = true,
                         textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
@@ -169,60 +157,35 @@ fun RethinkWireguardEditor(
                     )
                 }
             }
-            item { RethinkWireguardEditorDivider() }
             item {
-                RethinkWireguardEditorSection(strings.network) {
+                RethinkFormSection(strings.network) {
                     if (state.showListenPort) {
-                        OutlinedTextField(
+                        RethinkFormTextField(
                             value = state.listenPort,
                             onValueChange = { onStateChange(state.copy(listenPort = it)) },
-                            label = { Text(strings.listenPort) },
-                            modifier = Modifier.fillMaxWidth(),
-                            shape = fieldShape,
+                            label = strings.listenPort,
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         )
                     }
-                    OutlinedTextField(
+                    RethinkFormTextField(
                         value = state.mtu,
                         onValueChange = { onStateChange(state.copy(mtu = it)) },
-                        label = { Text(strings.mtu) },
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = fieldShape,
+                        label = strings.mtu,
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                     )
                 }
             }
             if (state.advancedProperties.isNotEmpty()) {
-                item { RethinkWireguardEditorDivider() }
                 item {
-                    RethinkWireguardEditorSection(strings.advanced) {
+                    RethinkFormSection(strings.advanced) {
                         Text(state.advancedProperties, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
         }
     }
-}
-
-@Composable
-private fun RethinkWireguardEditorSection(
-    title: String,
-    content: @Composable ColumnScope.() -> Unit,
-) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
-    ) {
-        Text(title, style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        content()
-    }
-}
-
-@Composable
-private fun RethinkWireguardEditorDivider() {
-    HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
 }
 
 @Composable

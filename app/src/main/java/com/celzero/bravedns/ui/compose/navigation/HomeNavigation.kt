@@ -188,8 +188,7 @@ enum class HomeDestination(
 ) {
     HOME(HomeRoute.Home, R.string.txt_home, Icons.Filled.Home, Icons.Filled.Home),
     STATS(HomeRoute.Stats, R.string.title_statistics, Icons.Filled.Star, Icons.Filled.Star),
-    CONFIGURE(HomeRoute.Configure, R.string.lbl_configure, Icons.Filled.Settings, Icons.Filled.Settings),
-    ABOUT(HomeRoute.About, R.string.title_about, Icons.Filled.Info, Icons.Filled.Info)
+    CONFIGURE(HomeRoute.Configure, R.string.title_settings, Icons.Filled.Settings, Icons.Filled.Settings)
 }
 
 sealed interface HomeNavRequest {
@@ -257,12 +256,6 @@ sealed interface HomeNavRequest {
 fun HomeScreenRoot(
     homeUiState: HomeScreenUiState,
     onHomeStartStopClick: () -> Unit,
-    onHomeDnsClick: () -> Unit,
-    onHomeFirewallClick: () -> Unit,
-    onHomeProxyClick: () -> Unit,
-    onHomeLogsClick: () -> Unit,
-    onHomeAppsClick: () -> Unit,
-    onHomeSponsorClick: () -> Unit,
     summaryViewModel: SummaryStatisticsViewModel,
     onOpenDetailedStats: (SummaryStatisticsType) -> Unit,
     startDestination: HomeRoute,
@@ -720,12 +713,6 @@ fun HomeScreenRoot(
                 HomeScreen(
                     uiState = homeUiState,
                     onStartStopClick = onHomeStartStopClick,
-                    onDnsClick = onHomeDnsClick,
-                    onFirewallClick = onHomeFirewallClick,
-                    onProxyClick = onHomeProxyClick,
-                    onLogsClick = onHomeLogsClick,
-                    onAppsClick = onHomeAppsClick,
-                    onSponsorClick = onHomeSponsorClick
                 )
                 if (showGuidedTour) HomeGuidedTour {
                     persistentState.guidedTourCompleted = true
@@ -804,6 +791,7 @@ fun HomeScreenRoot(
                     eventLogger = appInfoEventLogger,
                     initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
                     onBackClick = { navController.popBackStack() },
+                    onOpenAbout = { navController.navigate(HomeRoute.About) },
                     onRefreshDatabase = onRefreshDatabase,
                     onThemeModeChanged = onThemeModeChanged,
                     onThemeColorChanged = onThemeColorChanged
@@ -1129,9 +1117,7 @@ fun HomeScreenRoot(
                     onTokenDoubleTap = onTokenDoubleTap,
                     onFossClick = onFossClick,
                     onFlossFundsClick = onFlossFundsClick,
-                    persistentState = persistentState,
-                    onThemeModeChanged = onThemeModeChanged,
-                    onThemeColorChanged = onThemeColorChanged
+                    onBackClick = { navController.popBackStack() },
                 )
             }
             composable<HomeRoute.ConfigureRethinkBasic> { entry ->

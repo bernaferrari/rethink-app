@@ -544,6 +544,7 @@ private fun RethinkFirewallFilterDialog(
         contentPadding = PaddingValues(SharedDimensions.spacingLg),
         verticalSpacing = SharedDimensions.spacingLg,
         includeBottomSpacer = false,
+        expandOnShow = true,
     ) {
         Column(
             Modifier.fillMaxWidth().heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
@@ -651,6 +652,7 @@ private fun RethinkFirewallRulesDialog(
         contentPadding = PaddingValues(SharedDimensions.spacingLg),
         verticalSpacing = SharedDimensions.spacingMd,
         includeBottomSpacer = false,
+        expandOnShow = true,
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().heightIn(max = 480.dp).verticalScroll(rememberScrollState()),

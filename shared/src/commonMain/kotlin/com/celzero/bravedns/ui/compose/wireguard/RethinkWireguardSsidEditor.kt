@@ -8,10 +8,8 @@ import com.celzero.bravedns.ui.icons.MaterialSymbols
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
@@ -20,9 +18,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
@@ -32,11 +27,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import com.celzero.bravedns.ui.compose.components.RethinkSharedIconContainer
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkFormActionRow
+import com.celzero.bravedns.ui.compose.theme.RethinkFormTextField
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
 import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 
@@ -154,19 +150,11 @@ fun RethinkWireguardSsidEditor(
                 onFirstSelected = { exact = true },
                 onSecondSelected = { exact = false },
             )
-            TextField(
+            RethinkFormTextField(
                 value = input,
                 onValueChange = { input = it },
-                label = { Text(strings.ssid) },
+                label = strings.ssid,
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
-                shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
-                colors = TextFieldDefaults.colors(
-                    focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                ),
             )
             Button(
                 onClick = {
@@ -194,14 +182,12 @@ fun RethinkWireguardSsidEditor(
                 modifier = Modifier.fillMaxWidth(),
             ) { Text(strings.add) }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            TextButton(onClick = onDismiss) { Text(strings.cancel) }
-            Spacer(Modifier.width(SharedDimensions.spacingSm))
-            Button(onClick = { onSave(rules.toList()) }) { Text(strings.save) }
-        }
+        RethinkFormActionRow(
+            confirmLabel = strings.save,
+            onConfirm = { onSave(rules.toList()) },
+            dismissLabel = strings.cancel,
+            onDismiss = onDismiss,
+        )
     }
 }
 

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -23,6 +22,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.input.KeyboardType
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkFormSection
+import com.celzero.bravedns.ui.compose.theme.RethinkFormTextField
 import com.celzero.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
 
 data class RethinkLanIpAddress(
@@ -89,35 +90,33 @@ fun RethinkCustomLanIpEditor(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
-        RethinkLanEditorCard {
-            RethinkLanAddressSection(
-                title = strings.gateway,
-                v4 = configuration.gatewayV4,
-                v6 = configuration.gatewayV6,
-                strings = strings,
-                enabled = manual,
-                onV4Change = { configuration = configuration.copy(gatewayV4 = it) },
-                onV6Change = { configuration = configuration.copy(gatewayV6 = it) },
-            )
-            RethinkLanAddressSection(
-                title = strings.router,
-                v4 = configuration.routerV4,
-                v6 = configuration.routerV6,
-                strings = strings,
-                enabled = manual,
-                onV4Change = { configuration = configuration.copy(routerV4 = it) },
-                onV6Change = { configuration = configuration.copy(routerV6 = it) },
-            )
-            RethinkLanAddressSection(
-                title = strings.dns,
-                v4 = configuration.dnsV4,
-                v6 = configuration.dnsV6,
-                strings = strings,
-                enabled = manual,
-                onV4Change = { configuration = configuration.copy(dnsV4 = it) },
-                onV6Change = { configuration = configuration.copy(dnsV6 = it) },
-            )
-        }
+        RethinkLanAddressSection(
+            title = strings.gateway,
+            v4 = configuration.gatewayV4,
+            v6 = configuration.gatewayV6,
+            strings = strings,
+            enabled = manual,
+            onV4Change = { configuration = configuration.copy(gatewayV4 = it) },
+            onV6Change = { configuration = configuration.copy(gatewayV6 = it) },
+        )
+        RethinkLanAddressSection(
+            title = strings.router,
+            v4 = configuration.routerV4,
+            v6 = configuration.routerV6,
+            strings = strings,
+            enabled = manual,
+            onV4Change = { configuration = configuration.copy(routerV4 = it) },
+            onV6Change = { configuration = configuration.copy(routerV6 = it) },
+        )
+        RethinkLanAddressSection(
+            title = strings.dns,
+            v4 = configuration.dnsV4,
+            v6 = configuration.dnsV6,
+            strings = strings,
+            enabled = manual,
+            onV4Change = { configuration = configuration.copy(dnsV4 = it) },
+            onV6Change = { configuration = configuration.copy(dnsV6 = it) },
+        )
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm, Alignment.End),
@@ -165,9 +164,10 @@ private fun RethinkLanAddressSection(
     onV4Change: (RethinkLanIpAddress) -> Unit,
     onV6Change: (RethinkLanIpAddress) -> Unit,
 ) {
-    Text(title, style = MaterialTheme.typography.titleSmall)
-    RethinkLanIpField(v4, strings.ipv4, strings.prefix, enabled, onV4Change)
-    RethinkLanIpField(v6, strings.ipv6, strings.prefix, enabled, onV6Change)
+    RethinkFormSection(title) {
+        RethinkLanIpField(v4, strings.ipv4, strings.prefix, enabled, onV4Change)
+        RethinkLanIpField(v6, strings.ipv6, strings.prefix, enabled, onV6Change)
+    }
 }
 
 @Composable
@@ -179,18 +179,18 @@ private fun RethinkLanIpField(
     onValueChange: (RethinkLanIpAddress) -> Unit,
 ) {
     Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-        OutlinedTextField(
+        RethinkFormTextField(
             value = value.address,
             onValueChange = { onValueChange(value.copy(address = it)) },
-            label = { Text(addressLabel) },
+            label = addressLabel,
             enabled = enabled,
             singleLine = true,
             modifier = Modifier.weight(1f),
         )
-        OutlinedTextField(
+        RethinkFormTextField(
             value = value.prefix,
             onValueChange = { onValueChange(value.copy(prefix = it)) },
-            label = { Text(prefixLabel) },
+            label = prefixLabel,
             enabled = enabled,
             singleLine = true,
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(keyboardType = KeyboardType.Number),

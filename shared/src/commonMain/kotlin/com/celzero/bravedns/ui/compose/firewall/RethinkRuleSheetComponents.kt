@@ -38,6 +38,9 @@ fun RethinkRuleSheetModal(
         contentPadding = PaddingValues(SharedDimensions.spacingNone),
         verticalSpacing = SharedDimensions.spacingNone,
         includeBottomSpacer = false,
+        // Rule editors and the Android LAN/reachability wrappers contain save actions. Opening
+        // them fully avoids a partially-expanded sheet hiding those actions on short viewports.
+        expandOnShow = true,
         content = content,
     )
 }

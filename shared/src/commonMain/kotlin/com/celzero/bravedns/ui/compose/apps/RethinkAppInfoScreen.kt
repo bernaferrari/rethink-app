@@ -25,18 +25,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.ui.compose.common.RethinkEmptyState
 import com.celzero.bravedns.ui.compose.theme.CardPosition
+import com.celzero.bravedns.ui.compose.theme.RethinkFormSection
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
-import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
+import com.celzero.bravedns.ui.compose.theme.rethinkGroupedListPairShape
 
 data class RethinkAppInfoLogItem(val id: String, val title: String, val subtitle: String? = null)
 
@@ -168,29 +168,32 @@ fun RethinkAppInfoScreen(
                 }
             } else {
                 item { RethinkAppStatusCard(state, strings) }
-                item { SectionHeader(strings.firewall) }
-                item { RethinkAppNetworkPair(state, strings, onWifiClick, onMobileClick) }
                 item {
-                    RethinkListGroup {
-                        RethinkAppExclusiveRow(strings.isolate, strings.isolateDescription, state.isolated, MaterialSymbols.Filled.Security, MaterialTheme.colorScheme.error, strings.enabled, strings.disabled, CardPosition.First, onIsolateClick)
-                        RethinkAppExclusiveRow(strings.bypassDns, strings.bypassDnsDescription, state.bypassDnsFirewall, MaterialSymbols.Filled.Dns, MaterialTheme.colorScheme.tertiary, strings.enabled, strings.disabled, CardPosition.Middle, onBypassDnsClick)
-                        RethinkAppExclusiveRow(strings.bypassUniversal, strings.bypassUniversalDescription, state.bypassUniversalFirewall, MaterialSymbols.Filled.Public, MaterialTheme.colorScheme.tertiary, strings.enabled, strings.disabled, CardPosition.Middle, onBypassUniversalClick)
-                        RethinkAppExclusiveRow(strings.exclude, strings.excludeDescription, state.excluded, MaterialSymbols.Filled.Apps, MaterialTheme.colorScheme.secondary, strings.enabled, strings.disabled, CardPosition.Last, onExcludeClick)
+                    RethinkFormSection(strings.firewall) {
+                        RethinkAppNetworkPair(state, strings, onWifiClick, onMobileClick)
+                        RethinkListGroup {
+                            RethinkAppExclusiveRow(strings.isolate, strings.isolateDescription, state.isolated, MaterialSymbols.Filled.Security, MaterialTheme.colorScheme.error, strings.enabled, strings.disabled, CardPosition.First, onIsolateClick)
+                            RethinkAppExclusiveRow(strings.bypassDns, strings.bypassDnsDescription, state.bypassDnsFirewall, MaterialSymbols.Filled.Dns, MaterialTheme.colorScheme.tertiary, strings.enabled, strings.disabled, CardPosition.Middle, onBypassDnsClick)
+                            RethinkAppExclusiveRow(strings.bypassUniversal, strings.bypassUniversalDescription, state.bypassUniversalFirewall, MaterialSymbols.Filled.Public, MaterialTheme.colorScheme.tertiary, strings.enabled, strings.disabled, CardPosition.Middle, onBypassUniversalClick)
+                            RethinkAppExclusiveRow(strings.exclude, strings.excludeDescription, state.excluded, MaterialSymbols.Filled.Apps, MaterialTheme.colorScheme.secondary, strings.enabled, strings.disabled, CardPosition.Last, onExcludeClick)
+                        }
                     }
                 }
-                item { SectionHeader(strings.advanced) }
                 item {
-                    RethinkListGroup {
-                        RethinkAppToggleRow(strings.proxyExclude, strings.proxyExcludeDescription, state.proxyExcluded, MaterialSymbols.Filled.Settings, CardPosition.First, onProxyExcludedChange)
-                        RethinkAppToggleRow(strings.temporaryAllow, strings.temporaryAllowDescription, state.tempAllowed, MaterialSymbols.Filled.Timer, CardPosition.Last, onTempAllowChange)
+                    RethinkFormSection(strings.advanced) {
+                        RethinkListGroup {
+                            RethinkAppToggleRow(strings.proxyExclude, strings.proxyExcludeDescription, state.proxyExcluded, MaterialSymbols.Filled.Settings, CardPosition.First, onProxyExcludedChange)
+                            RethinkAppToggleRow(strings.temporaryAllow, strings.temporaryAllowDescription, state.tempAllowed, MaterialSymbols.Filled.Timer, CardPosition.Last, onTempAllowChange)
+                        }
                     }
                 }
-                item { SectionHeader(strings.rules) }
                 item {
-                    RethinkListGroup {
-                        RethinkAppNavigationRow(strings.systemAppInfo, MaterialSymbols.Filled.Settings, CardPosition.First, onSystemAppInfo)
-                        RethinkAppNavigationRow(strings.ipRules, MaterialSymbols.Filled.Public, CardPosition.Middle, onIpRules)
-                        RethinkAppNavigationRow(strings.domainRules, MaterialSymbols.Filled.Dns, CardPosition.Last, onDomainRules)
+                    RethinkFormSection(strings.rules) {
+                        RethinkListGroup {
+                            RethinkAppNavigationRow(strings.systemAppInfo, MaterialSymbols.Filled.Settings, CardPosition.First, onSystemAppInfo)
+                            RethinkAppNavigationRow(strings.ipRules, MaterialSymbols.Filled.Public, CardPosition.Middle, onIpRules)
+                            RethinkAppNavigationRow(strings.domainRules, MaterialSymbols.Filled.Dns, CardPosition.Last, onDomainRules)
+                        }
                     }
                 }
                 item { RethinkAppLogCard(state.activeConnections, strings, onActiveConnections, onActiveEntry) }
@@ -225,15 +228,14 @@ private fun RethinkAppStatusPill(label: String, active: Boolean) {
 
 @Composable
 private fun RethinkAppNetworkPair(state: RethinkAppInfoState, strings: RethinkAppInfoStrings, onWifiClick: () -> Unit, onMobileClick: () -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), modifier = Modifier.fillMaxWidth()) {
-        RethinkAppNetworkTile(strings.wifi, strings.wifiDescription, state.wifiBlocked, MaterialSymbols.Filled.Wifi, MaterialSymbols.Filled.WifiOff, Modifier.weight(1f), onWifiClick)
-        RethinkAppNetworkTile(strings.mobile, strings.mobileDescription, state.mobileBlocked, MaterialSymbols.Filled.PhoneAndroid, MaterialSymbols.Filled.PhoneAndroid, Modifier.weight(1f), onMobileClick)
+    Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile), modifier = Modifier.fillMaxWidth()) {
+        RethinkAppNetworkTile(strings.wifi, strings.wifiDescription, state.wifiBlocked, MaterialSymbols.Filled.Wifi, MaterialSymbols.Filled.WifiOff, rethinkGroupedListPairShape(isLeadingTile = true, position = CardPosition.Single), Modifier.weight(1f), onWifiClick)
+        RethinkAppNetworkTile(strings.mobile, strings.mobileDescription, state.mobileBlocked, MaterialSymbols.Filled.PhoneAndroid, MaterialSymbols.Filled.PhoneAndroid, rethinkGroupedListPairShape(isLeadingTile = false, position = CardPosition.Single), Modifier.weight(1f), onMobileClick)
     }
 }
 
 @Composable
-private fun RethinkAppNetworkTile(title: String, description: String, blocked: Boolean, allowedIcon: androidx.compose.ui.graphics.vector.ImageVector, blockedIcon: androidx.compose.ui.graphics.vector.ImageVector, modifier: Modifier, onClick: () -> Unit) {
-    val shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl)
+private fun RethinkAppNetworkTile(title: String, description: String, blocked: Boolean, allowedIcon: androidx.compose.ui.graphics.vector.ImageVector, blockedIcon: androidx.compose.ui.graphics.vector.ImageVector, shape: androidx.compose.ui.graphics.Shape, modifier: Modifier, onClick: () -> Unit) {
     Surface(onClick = onClick, modifier = modifier.clip(shape), shape = shape, color = if (blocked) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.48f) else MaterialTheme.colorScheme.surfaceContainerLow) {
         Column(Modifier.padding(SharedDimensions.cardPadding), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
             Icon(if (blocked) blockedIcon else allowedIcon, null, tint = if (blocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
@@ -261,37 +263,44 @@ private fun RethinkAppNavigationRow(title: String, icon: androidx.compose.ui.gra
 @Composable
 private fun RethinkAppLogCard(section: RethinkAppInfoLogSection, strings: RethinkAppInfoStrings, onOpen: () -> Unit, onEntry: (RethinkAppInfoLogItem) -> Unit) {
     val headerShape = RoundedCornerShape(SharedDimensions.cornerRadiusMd)
-    Surface(
+    Column(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.cornerRadius3xl),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-        Column(Modifier.padding(SharedDimensions.cardPadding), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
-            Surface(
-                onClick = onOpen,
-                modifier = Modifier.fillMaxWidth().clip(headerShape),
-                shape = headerShape,
-                color = Color.Transparent,
+        Surface(
+            onClick = onOpen,
+            modifier = Modifier.fillMaxWidth().clip(headerShape),
+            shape = headerShape,
+            color = MaterialTheme.colorScheme.surfaceContainerLow,
+        ) {
+            Row(
+                Modifier.padding(horizontal = SharedDimensions.cardPadding, vertical = SharedDimensions.spacingSm),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Row(
-                    Modifier.padding(vertical = SharedDimensions.spacingXs),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Text(section.title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+                Text(section.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
                     RethinkAppStatusPill(section.count.toString(), section.count > 0)
+                    Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            when {
-                section.loading -> RethinkEmptyState(title = strings.loading, message = "")
-                section.empty -> RethinkEmptyState(title = strings.empty, message = "")
-                else -> section.entries.forEach { item ->
+        }
+        when {
+            section.loading -> RethinkEmptyState(title = strings.loading, message = "")
+            section.empty -> RethinkEmptyState(title = strings.empty, message = "")
+            else -> RethinkListGroup {
+                section.entries.forEachIndexed { index, item ->
                     RethinkListItem(
                         headline = item.title,
                         supporting = item.subtitle,
                         leadingIcon = MaterialSymbols.Filled.Public,
-                        position = CardPosition.Single,
-                        defaultContainerColor = MaterialTheme.colorScheme.surface,
+                        position = when {
+                            section.entries.lastIndex <= 0 -> CardPosition.Single
+                            index == 0 -> CardPosition.First
+                            index == section.entries.lastIndex -> CardPosition.Last
+                            else -> CardPosition.Middle
+                        },
+                        defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
                         showTrailingChevron = true,
                         onClick = { onEntry(item) },
                     )

@@ -22,7 +22,6 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -49,6 +48,7 @@ import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
+import com.celzero.bravedns.ui.compose.theme.RethinkFormTextField
 import com.celzero.bravedns.ui.compose.theme.RethinkSearchField
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
@@ -520,14 +520,13 @@ private fun RethinkAddFirewallRuleDialog(
         onConfirm = { error = onAdd(value.trim()).error },
         onDismiss = onDismiss,
         text = {
-            OutlinedTextField(
+            RethinkFormTextField(
                 value = value,
                 onValueChange = { value = it; error = null },
-                label = { Text(title) },
+                label = title,
                 isError = error != null,
                 supportingText = error?.let { { Text(it) } },
                 singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
             )
         },
     )

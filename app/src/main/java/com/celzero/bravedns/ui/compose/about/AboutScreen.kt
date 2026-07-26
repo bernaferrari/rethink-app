@@ -7,15 +7,11 @@ package com.celzero.bravedns.ui.compose.about
 
 import androidx.compose.foundation.Image
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.celzero.bravedns.R
-import com.celzero.bravedns.service.PersistentState
-import com.celzero.bravedns.ui.compose.settings.AppearanceSettingsCard
 
 /**
  * Keeps Android-only resources, app state, and intent dispatch out of the renderer. The complete
@@ -55,9 +51,7 @@ fun AboutScreen(
     onTokenDoubleTap: () -> Unit,
     onFossClick: () -> Unit,
     onFlossFundsClick: () -> Unit,
-    persistentState: PersistentState,
-    onThemeModeChanged: ((Int) -> Unit)? = null,
-    onThemeColorChanged: ((Int) -> Unit)? = null,
+    onBackClick: () -> Unit,
 ) {
     RethinkAboutScreen(
         uiState = RethinkAboutUiState(
@@ -135,6 +129,7 @@ fun AboutScreen(
             onFoss = onFossClick,
             onFlossFunds = onFlossFundsClick,
         ),
+        onBackClick = onBackClick,
         assets = RethinkAboutAssets(
             telegram = { tint -> Icon(painterResource(R.drawable.ic_telegram), null, tint = tint) },
             bugReport = { tint -> Icon(painterResource(R.drawable.ic_android_icon), null, tint = tint) },
@@ -148,22 +143,5 @@ fun AboutScreen(
             fossLogo = { modifier -> Image(painterResource(R.drawable.foss_logo), null, modifier = modifier, contentScale = ContentScale.Fit) },
             flossFundsLogo = { modifier -> Image(painterResource(R.drawable.ic_floss_fund_badge), null, modifier = modifier, contentScale = ContentScale.Fit) },
         ),
-        appearanceContent = {
-            AppearanceSettingsCard(
-                themePreference = persistentState.theme,
-                colorPresetId = persistentState.themeColorPreset,
-                onAppearanceModeSelected = { mode ->
-                    val theme = mode.toThemePreference()
-                    persistentState.theme = theme
-                    onThemeModeChanged?.invoke(theme)
-                },
-                onColorPresetSelected = { preset ->
-                    persistentState.themeColorPreset = preset.id
-                    onThemeColorChanged?.invoke(preset.id)
-                },
-                sectionHeaderColor = MaterialTheme.colorScheme.primary,
-                showSectionHeader = true,
-            )
-        },
     )
 }

@@ -73,6 +73,8 @@ data class RethinkHomeStrings(
     val protection: String,
     val protected: String,
     val notActive: String,
+    val start: String,
+    val stop: String,
     val inactive: String,
     val latency: String,
     val dns: String,
@@ -111,11 +113,6 @@ fun RethinkHomeScreen(
     uiState: RethinkHomeUiState,
     strings: RethinkHomeStrings,
     onStartStopClick: () -> Unit,
-    onDnsClick: () -> Unit,
-    onFirewallClick: () -> Unit,
-    onProxyClick: () -> Unit,
-    onLogsClick: () -> Unit,
-    onAppsClick: () -> Unit,
     icons: RethinkHomeIcons = RethinkHomeIcons(),
     modifier: Modifier = Modifier,
 ) {
@@ -154,14 +151,14 @@ fun RethinkHomeScreen(
                 HomeStatusSection(
                     title = strings.status,
                     items = listOf(
-                        HomeStatusItem(strings.dns, dnsSummary, homeIconDns, onDnsClick, icons.dns),
-                        HomeStatusItem(strings.firewall, firewallSummary, homeIconFirewall, onFirewallClick, icons.firewall),
-                        HomeStatusItem(strings.proxy, proxySummary, homeIconProxy, onProxyClick, icons.proxy),
-                        HomeStatusItem(strings.logs, logsSummary, homeIconLogs, onLogsClick, icons.logs),
+                        HomeStatusItem(strings.dns, dnsSummary, homeIconDns, icons.dns),
+                        HomeStatusItem(strings.firewall, firewallSummary, homeIconFirewall, icons.firewall),
+                        HomeStatusItem(strings.proxy, proxySummary, homeIconProxy, icons.proxy),
+                        HomeStatusItem(strings.logs, logsSummary, homeIconLogs, icons.logs),
                     ),
                 )
             }
-            item { AppsHealthCard(uiState, strings, onAppsClick, icons.apps) }
+            item { AppsHealthCard(uiState, strings, icons.apps) }
         }
     }
 }
@@ -170,7 +167,6 @@ private data class HomeStatusItem(
     val headline: String,
     val supporting: String,
     val accent: Color,
-    val onClick: () -> Unit,
     val icon: @Composable () -> Unit,
 )
 
@@ -191,7 +187,6 @@ private fun HomeStatusSection(title: String, items: List<HomeStatusItem>) {
                 headline = item.headline,
                 supporting = item.supporting,
                 position = cardPositionFor(index, items.lastIndex),
-                onClick = item.onClick,
                 leadingContent = {
                     Surface(
                         shape = MaterialShapes.Cookie9Sided.toShape(),
@@ -211,7 +206,7 @@ private fun HomeStatusSection(title: String, items: List<HomeStatusItem>) {
 }
 
 @Composable
-private fun ProtectionCard(uiState: RethinkHomeUiState, strings: RethinkHomeStrings, onClick: () -> Unit) {
+private fun ProtectionCard(uiState: RethinkHomeUiState, strings: RethinkHomeStrings, onStartStopClick: () -> Unit) {
     val accent = when {
         uiState.isProtectionFailing -> homeIconFirewall
         uiState.isVpnActive -> homeIconProxy
@@ -226,7 +221,6 @@ private fun ProtectionCard(uiState: RethinkHomeUiState, strings: RethinkHomeStri
     val cardShape = RoundedCornerShape(SharedDimensions.heroCornerRadius)
 
     Surface(
-        onClick = onClick,
         shape = cardShape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         border = BorderStroke(1.dp, accent.copy(alpha = 0.34f)),
@@ -261,7 +255,11 @@ private fun ProtectionCard(uiState: RethinkHomeUiState, strings: RethinkHomeStri
                     Text(strings.protection, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(status, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 }
-                StartStopButton(uiState.isVpnActive, onClick)
+                StartStopButton(
+                    isPlaying = uiState.isVpnActive,
+                    contentDescription = if (uiState.isVpnActive) strings.stop else strings.start,
+                    onClick = onStartStopClick,
+                )
             }
             Spacer(Modifier.height(SharedDimensions.spacingMd))
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
@@ -274,7 +272,7 @@ private fun ProtectionCard(uiState: RethinkHomeUiState, strings: RethinkHomeStri
 }
 
 @Composable
-private fun StartStopButton(isPlaying: Boolean, onClick: () -> Unit) {
+private fun StartStopButton(isPlaying: Boolean, contentDescription: String, onClick: () -> Unit) {
     val controlShape = RoundedCornerShape(SharedDimensions.buttonCornerRadius)
     Surface(
         onClick = onClick,
@@ -285,7 +283,7 @@ private fun StartStopButton(isPlaying: Boolean, onClick: () -> Unit) {
         Box(contentAlignment = Alignment.Center) {
             Icon(
                 imageVector = if (isPlaying) MaterialSymbols.Filled.Stop else MaterialSymbols.Filled.PlayArrow,
-                contentDescription = null,
+                contentDescription = contentDescription,
                 tint = if (isPlaying) MaterialTheme.colorScheme.onErrorContainer else MaterialTheme.colorScheme.onPrimaryContainer,
             )
         }
@@ -308,7 +306,6 @@ private fun MetricChip(label: String, value: String, modifier: Modifier = Modifi
 private fun AppsHealthCard(
     uiState: RethinkHomeUiState,
     strings: RethinkHomeStrings,
-    onClick: () -> Unit,
     appIcon: @Composable () -> Unit,
 ) {
     val progress = remember(uiState.appsAllowed, uiState.appsTotal) {
@@ -316,7 +313,6 @@ private fun AppsHealthCard(
     }
     val cardShape = RoundedCornerShape(SharedDimensions.heroCornerRadius)
     Surface(
-        onClick = onClick,
         shape = cardShape,
         color = MaterialTheme.colorScheme.surfaceContainerLow,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.36f)),

@@ -4,18 +4,12 @@ package com.celzero.bravedns.ui.compose.rpn
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,6 +21,8 @@ import com.celzero.bravedns.ui.compose.theme.RethinkFilterChip
 import com.celzero.bravedns.ui.compose.theme.RethinkListGroup
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
+import com.celzero.bravedns.ui.compose.theme.RethinkFormActionRow
+import com.celzero.bravedns.ui.compose.theme.RethinkFormTextField
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
 import com.celzero.bravedns.ui.compose.theme.cardPositionFor
 
@@ -65,6 +61,7 @@ fun RethinkRpnSupportSheet(
         ),
         verticalSpacing = SharedDimensions.spacingMd,
         includeBottomSpacer = false,
+        expandOnShow = true,
     ) {
         Text(strings.title, style = androidx.compose.material3.MaterialTheme.typography.titleLarge)
         Text(
@@ -90,11 +87,10 @@ fun RethinkRpnSupportSheet(
                     )
                 }
             }
-            OutlinedTextField(
-                modifier = Modifier.fillMaxWidth(),
+            RethinkFormTextField(
                 value = description,
                 onValueChange = { description = it },
-                label = { Text(strings.reportHint) },
+                label = strings.reportHint,
                 minLines = 3,
                 enabled = !sending,
             )
@@ -132,16 +128,13 @@ fun RethinkRpnSupportSheet(
                 }
             }
         }
-        Row(
-            Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End,
-        ) {
-            TextButton(onClick = onDismiss, enabled = !sending) { Text(strings.cancel) }
-            Spacer(Modifier.width(SharedDimensions.spacingSm))
-            Button(
-                onClick = { onSubmit(description.trim(), category, includeSubscription, includeHistory, includeDiagnostics) },
-                enabled = !sending && (description.isNotBlank() || category != null),
-            ) { Text(if (sending) strings.preparing else strings.createEmail) }
-        }
+        RethinkFormActionRow(
+            confirmLabel = if (sending) strings.preparing else strings.createEmail,
+            onConfirm = { onSubmit(description.trim(), category, includeSubscription, includeHistory, includeDiagnostics) },
+            dismissLabel = strings.cancel,
+            onDismiss = onDismiss,
+            dismissEnabled = !sending,
+            confirmEnabled = !sending && (description.isNotBlank() || category != null),
+        )
     }
 }

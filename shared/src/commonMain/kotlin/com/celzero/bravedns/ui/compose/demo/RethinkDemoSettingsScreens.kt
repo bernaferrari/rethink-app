@@ -36,6 +36,7 @@ internal fun DemoMiscSettingsScreen(
     appearancePresetId: Int,
     onAppearanceModeChange: (RethinkAppearanceMode) -> Unit,
     onAppearancePresetChange: (Int) -> Unit,
+    onOpenAbout: () -> Unit,
     onBack: () -> Unit,
 ) {
     var toggles by remember { mutableStateOf(demoMiscToggles) }
@@ -78,11 +79,14 @@ internal fun DemoMiscSettingsScreen(
             aboutSection = "About",
             websiteTitle = "Website",
             websiteDescription = "rethinkdns.com",
+            aboutTitle = "About RethinkDNS",
+            aboutDescription = "Version, support, and legal information.",
         ),
         toggles = toggles,
         onToggleChange = { id, checked -> toggles = toggles.map { if (it.id == id) it.copy(checked = checked) else it } },
         onBackupRestore = { showBackupRestore = true },
         onOpenWebsite = {},
+        onOpenAbout = onOpenAbout,
         appearanceContent = {
             RethinkAppearanceSettingsCard(
                 selectedMode = appearanceMode,
@@ -455,6 +459,7 @@ internal fun DemoTunnelSettingsScreen(modifier: Modifier, onBack: () -> Unit) {
             onDismissRequest = { showCustomLanEditor = false },
             modifier = Modifier.verticalScroll(rememberScrollState()),
             includeBottomSpacer = false,
+            expandOnShow = true,
         ) {
             RethinkCustomLanIpEditor(
                 initialConfiguration = lanConfiguration,
@@ -483,6 +488,7 @@ internal fun DemoTunnelSettingsScreen(modifier: Modifier, onBack: () -> Unit) {
             onDismissRequest = { showReachabilityEditor = false },
             modifier = Modifier.verticalScroll(rememberScrollState()),
             includeBottomSpacer = false,
+            expandOnShow = true,
         ) {
             RethinkNetworkReachabilityEditor(
                 initialConfiguration = reachabilityConfiguration,

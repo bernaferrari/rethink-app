@@ -51,7 +51,6 @@ enum class RethinkRootDestination(val route: RethinkRoute) {
     Home(RethinkRoute.Home),
     Statistics(RethinkRoute.Statistics),
     Configure(RethinkRoute.Configure),
-    About(RethinkRoute.About),
 }
 
 fun RethinkRoute.rootDestination(): RethinkRootDestination = when (this) {
@@ -66,6 +65,5 @@ fun RethinkRoute.rootDestination(): RethinkRootDestination = when (this) {
     RethinkRoute.RpnCountries, is RethinkRoute.CountryProxy, RethinkRoute.RpnAccount,
     RethinkRoute.Checkout, RethinkRoute.NetworkLogs, RethinkRoute.ConsoleLogs,
     is RethinkRoute.AppWiseIpLogs, is RethinkRoute.AppWiseDomainLogs, RethinkRoute.Alerts,
-    RethinkRoute.Events, is RethinkRoute.AppInfo -> RethinkRootDestination.Configure
-    RethinkRoute.About -> RethinkRootDestination.About
+    RethinkRoute.Events, is RethinkRoute.AppInfo, RethinkRoute.About -> RethinkRootDestination.Configure
 }

@@ -36,22 +36,11 @@ data class HomeScreenUiState(
 fun HomeScreen(
     uiState: HomeScreenUiState,
     onStartStopClick: () -> Unit,
-    onDnsClick: () -> Unit,
-    onFirewallClick: () -> Unit,
-    onProxyClick: () -> Unit,
-    onLogsClick: () -> Unit,
-    onAppsClick: () -> Unit,
-    onSponsorClick: () -> Unit,
 ) {
     RethinkHomeScreen(
         uiState = uiState.toCommonUiState(),
         strings = androidHomeStrings(),
         onStartStopClick = onStartStopClick,
-        onDnsClick = onDnsClick,
-        onFirewallClick = onFirewallClick,
-        onProxyClick = onProxyClick,
-        onLogsClick = onLogsClick,
-        onAppsClick = onAppsClick,
         icons = androidHomeIcons(),
     )
 }
@@ -90,6 +79,8 @@ private fun androidHomeStrings() = RethinkHomeStrings(
     protection = "Protection",
     protected = "Protected",
     notActive = "Not active",
+    start = stringResource(R.string.lbl_start),
+    stop = stringResource(R.string.lbl_stop),
     inactive = stringResource(R.string.lbl_inactive),
     latency = "Latency",
     dns = stringResource(R.string.lbl_dns),

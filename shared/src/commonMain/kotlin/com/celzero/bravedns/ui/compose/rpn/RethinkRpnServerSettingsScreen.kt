@@ -13,13 +13,11 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -33,6 +31,7 @@ import com.celzero.bravedns.ui.compose.theme.CardPosition
 import com.celzero.bravedns.ui.compose.theme.RethinkListItem
 import com.celzero.bravedns.ui.compose.theme.RethinkLazyColumnScreenScaffold
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.RethinkFormActionRow
 import com.celzero.bravedns.ui.compose.theme.RethinkModalBottomSheet
 import com.celzero.bravedns.ui.compose.theme.RethinkTopBar
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
@@ -212,6 +211,7 @@ private fun RethinkCountryExclusionDialog(
         onDismissRequest = onDismiss,
         verticalSpacing = SharedDimensions.spacingMd,
         includeBottomSpacer = false,
+        expandOnShow = true,
     ) {
         Text(strings.excludeLocationsTitle, style = MaterialTheme.typography.headlineSmall)
         LazyColumn(
@@ -243,9 +243,11 @@ private fun RethinkCountryExclusionDialog(
                 )
             }
         }
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            TextButton(onClick = onDismiss) { Text(strings.cancel) }
-            Button(onClick = { onSave(selected) }) { Text(strings.save) }
-        }
+        RethinkFormActionRow(
+            confirmLabel = strings.save,
+            onConfirm = { onSave(selected) },
+            dismissLabel = strings.cancel,
+            onDismiss = onDismiss,
+        )
     }
 }

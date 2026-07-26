@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -21,8 +20,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,11 +32,11 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.ui.compose.theme.RethinkConfirmDialog
+import com.celzero.bravedns.ui.compose.theme.PrimaryButton
+import com.celzero.bravedns.ui.compose.theme.RethinkFormTextField
 import com.celzero.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.celzero.bravedns.ui.compose.theme.SectionHeader
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
-import com.celzero.bravedns.ui.compose.theme.cardPositionFor
-import com.celzero.bravedns.ui.compose.theme.rethinkGroupedListShape
 
 sealed interface RethinkPingStatus {
     data object Idle : RethinkPingStatus
@@ -113,22 +110,22 @@ fun RethinkPingTestScreen(
             }
             item {
                 SectionHeader(strings.ipSection)
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    ipChecks.forEachIndexed { index, check ->
-                        PingCheckField(check, index, ipChecks.lastIndex, onValueChange)
+                Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                    ipChecks.forEach { check ->
+                        PingCheckField(check, onValueChange)
                     }
                 }
             }
             item {
                 SectionHeader(strings.hostSection)
-                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                    hostChecks.forEachIndexed { index, check ->
-                        PingCheckField(check, index, hostChecks.lastIndex, onValueChange)
+                Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                    hostChecks.forEach { check ->
+                        PingCheckField(check, onValueChange)
                     }
                 }
             }
             item {
-                Button(modifier = Modifier.fillMaxWidth(), onClick = onTest) { Text(strings.test) }
+                PrimaryButton(text = strings.test, onClick = onTest, modifier = Modifier.fillMaxWidth())
             }
             strength?.let { value ->
                 item {
@@ -180,16 +177,13 @@ private fun PingCheckCard(content: @Composable () -> Unit) {
 @Composable
 private fun PingCheckField(
     check: RethinkPingCheck,
-    index: Int,
-    lastIndex: Int,
     onValueChange: (String, String) -> Unit,
 ) {
-    TextField(
+    RethinkFormTextField(
         value = check.value,
         onValueChange = { onValueChange(check.id, it) },
+        label = null,
         readOnly = !check.editable,
-        modifier = Modifier.fillMaxWidth(),
-        shape = rethinkGroupedListShape(cardPositionFor(index, lastIndex)),
         singleLine = true,
         trailingIcon = {
             when (val status = check.status) {
@@ -203,11 +197,5 @@ private fun PingCheckField(
                 )
             }
         },
-        colors = TextFieldDefaults.colors(
-            focusedContainerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-            focusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-            unfocusedIndicatorColor = androidx.compose.ui.graphics.Color.Transparent,
-        ),
     )
 }

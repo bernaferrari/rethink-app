@@ -15,7 +15,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -30,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.celzero.bravedns.ui.compose.theme.SharedDimensions
+import com.celzero.bravedns.ui.compose.theme.RethinkFormTextField
 import com.celzero.bravedns.ui.compose.theme.RethinkTwoOptionSegmentedRow
 import kotlinx.coroutines.launch
 
@@ -211,9 +211,10 @@ private fun RethinkReachabilityField(
     testing: Boolean,
     onValueChange: (String) -> Unit,
 ) {
-    OutlinedTextField(
+    RethinkFormTextField(
         value = value,
         onValueChange = onValueChange,
+        label = null,
         enabled = enabled,
         singleLine = true,
         trailingIcon = {
@@ -222,7 +223,6 @@ private fun RethinkReachabilityField(
                 status != null -> Icon(reachabilityIcon(status), null, tint = reachabilityTint(status))
             }
         },
-        modifier = Modifier.fillMaxWidth(),
     )
 }
 
