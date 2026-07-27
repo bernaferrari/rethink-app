@@ -53,7 +53,6 @@ private fun HomeScreenUiState.toCommonUiState() = RethinkHomeUiState(
 @Composable
 private fun androidHomeStrings() = RethinkHomeStrings(
     productName = stringResource(R.string.app_name),
-    protection = "Protection",
     protected = "Protected",
     notActive = "Not active",
     start = stringResource(R.string.lbl_start),
@@ -61,8 +60,6 @@ private fun androidHomeStrings() = RethinkHomeStrings(
     protectedSubtitle = stringResource(R.string.home_protected_subtitle),
     inactiveSubtitle = stringResource(R.string.home_inactive_subtitle),
     failingSubtitle = stringResource(R.string.home_failing_subtitle),
-    activity = stringResource(R.string.home_activity_title),
-    activitySubtitle = stringResource(R.string.home_activity_subtitle),
     connections = stringResource(R.string.home_connections),
     dnsQueries = stringResource(R.string.home_dns_queries),
 )

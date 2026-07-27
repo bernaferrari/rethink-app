@@ -188,6 +188,13 @@ private fun RethinkSummaryStatisticsSectionCard(
                     RethinkListItem(
                         headline = row.headline,
                         supporting = row.supporting,
+                        // ListItem's text column begins at 16dp without a leading slot.
+                        // Text-only statistics read best with a deliberate 20dp inset.
+                        contentOffset = if (row.countryFlag.isNullOrBlank() && row.leadingContent == null) {
+                            Modifier.padding(start = 4.dp)
+                        } else {
+                            Modifier
+                        },
                         leadingContent = when {
                             !row.countryFlag.isNullOrBlank() -> {
                                 { Text(row.countryFlag, style = MaterialTheme.typography.headlineMedium) }

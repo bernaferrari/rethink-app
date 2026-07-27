@@ -27,5 +27,4 @@ if (( java_major < 17 )); then
 fi
 
 java -version
-cd "$ROOT"
-exec ./gradlew :shared:wasmJsBrowserDistribution --no-daemon --console=plain
+exec "$ROOT/scripts/verify-web-deploy.sh" --ci --web-only
