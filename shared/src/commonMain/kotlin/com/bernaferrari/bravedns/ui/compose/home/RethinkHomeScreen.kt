@@ -1,8 +1,10 @@
 /*
  * Copyright 2026 RethinkDNS and its authors
  *
- * Common render layer for the real Home screen. Platform code owns only live state, Android
- * resources, and side effects; the layout and every visual decision live here.
+ * The home screen is intentionally a control surface, not a settings summary. It gives
+ * protection a single unmistakable visual home: a live beacon that quietly maps the state of
+ * the device. Configuration belongs elsewhere; the only supporting information here is the
+ * traffic this device has actually handled.
  */
 package com.bernaferrari.bravedns.ui.compose.home
 
@@ -10,21 +12,16 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,32 +30,26 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialShapes
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.toShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.luminance
-import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -80,7 +71,6 @@ data class RethinkHomeUiState(
 
 data class RethinkHomeStrings(
     val productName: String,
-    val protection: String,
     val protected: String,
     val notActive: String,
     val start: String,
@@ -88,22 +78,14 @@ data class RethinkHomeStrings(
     val protectedSubtitle: String,
     val inactiveSubtitle: String,
     val failingSubtitle: String,
-    val activity: String,
-    val activitySubtitle: String,
     val connections: String,
     val dnsQueries: String,
 )
 
-private enum class ProtectionVisualState {
-    Protected,
-    Recovering,
-    Off,
-}
+private enum class ProtectionVisualState { Protected, Recovering, Off }
 
-private data class ProtectionMotion(
-    val rotation: Float = 0f,
-    val pulse: Float = 0f,
-)
+private const val STATE_CHANGE_MILLIS = 280
+private const val BEACON_TURN_MILLIS = 22_000
 
 @Composable
 fun RethinkHomeScreen(
@@ -111,10 +93,11 @@ fun RethinkHomeScreen(
     strings: RethinkHomeStrings,
     onStartStopClick: () -> Unit,
     modifier: Modifier = Modifier,
+    showAtmosphere: Boolean = true,
 ) {
     val visualState = when {
-        uiState.isVpnActive && !uiState.isProtectionFailing -> ProtectionVisualState.Protected
-        uiState.isProtectionFailing && uiState.isVpnActive -> ProtectionVisualState.Recovering
+        uiState.isVpnActive && uiState.isProtectionFailing -> ProtectionVisualState.Recovering
+        uiState.isVpnActive -> ProtectionVisualState.Protected
         else -> ProtectionVisualState.Off
     }
     val status = uiState.protectionStatus.ifBlank {
@@ -125,279 +108,313 @@ fun RethinkHomeScreen(
         ProtectionVisualState.Recovering -> strings.failingSubtitle
         ProtectionVisualState.Off -> strings.inactiveSubtitle
     }
+    val activeProgress by animateFloatAsState(
+        targetValue = if (uiState.isVpnActive) 1f else 0f,
+        animationSpec = tween(STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing),
+        label = "homeBeaconState",
+    )
+    val recoveringProgress by animateFloatAsState(
+        targetValue = if (visualState == ProtectionVisualState.Recovering) 1f else 0f,
+        animationSpec = tween(STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing),
+        label = "homeRecoveringProgress",
+    )
+    val phase by rememberInfiniteTransition(label = "homeAtmosphereMotion").animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(BEACON_TURN_MILLIS, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
+        ),
+        label = "homeAtmospherePhase",
+    )
+    val palette = rememberBeaconPalette(visualState)
 
     Scaffold(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface,
-    ) { paddingValues ->
-        LazyColumn(
-            state = rememberLazyListState(),
-            modifier = Modifier.fillMaxSize().padding(paddingValues),
-            contentPadding = PaddingValues(
-                start = SharedDimensions.screenPaddingHorizontal,
-                end = SharedDimensions.screenPaddingHorizontal,
-                top = SharedDimensions.spacingXl,
-                bottom = SharedDimensions.spacing3xl,
-            ),
-            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
+        containerColor = if (showAtmosphere) MaterialTheme.colorScheme.surface else Color.Transparent,
+    ) { insets ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(insets)
+                .background(
+                    if (showAtmosphere) MaterialTheme.colorScheme.surface else Color.Transparent,
+                ),
         ) {
-            item {
-                Text(
-                    text = strings.productName,
-                    style = MaterialTheme.typography.headlineLarge,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = (-0.8).sp,
-                    modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm),
+            if (showAtmosphere) {
+                ProtectionFlowBackground(
+                    phase = phase,
+                    activeProgress = activeProgress,
+                    recoveringProgress = recoveringProgress,
+                    accent = palette.accent,
+                    secondary = palette.secondary,
+                    field = palette.field,
+                    surface = MaterialTheme.colorScheme.surface,
+                    opacity = 0.90f,
+                    modifier = Modifier.fillMaxSize(),
                 )
             }
-            item {
-                ProtectionHero(
-                    visualState = visualState,
-                    status = status,
-                    subtitle = subtitle,
-                    protectionLabel = strings.protection,
-                    actionLabel = if (uiState.isVpnActive) strings.stop else strings.start,
-                    isVpnActive = uiState.isVpnActive,
-                    onStartStopClick = onStartStopClick,
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = SharedDimensions.spacingXl),
+            ) {
+                HomeMasthead(
+                    name = strings.productName,
+                    modifier = Modifier.padding(top = SharedDimensions.spacingLg),
                 )
-            }
-            item {
-                ActivitySection(
-                    title = strings.activity,
-                    subtitle = strings.activitySubtitle,
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    ProtectionBeacon(
+                        visualState = visualState,
+                        activeProgress = activeProgress,
+                        phase = phase,
+                        palette = palette,
+                        status = status,
+                        subtitle = subtitle,
+                        action = if (uiState.isVpnActive) strings.stop else strings.start,
+                        onToggle = onStartStopClick,
+                    )
+                }
+                HomeActivityFooter(
                     connectionsLabel = strings.connections,
                     dnsQueriesLabel = strings.dnsQueries,
                     connections = uiState.networkLogsCount,
                     dnsQueries = uiState.dnsLogsCount,
-                    isActive = uiState.isVpnActive,
+                    modifier = Modifier.padding(bottom = SharedDimensions.spacingLg),
                 )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ProtectionHero(
-    visualState: ProtectionVisualState,
-    status: String,
-    subtitle: String,
-    protectionLabel: String,
-    actionLabel: String,
-    isVpnActive: Boolean,
-    onStartStopClick: () -> Unit,
-) {
-    val colors = MaterialTheme.colorScheme
-    val isDark = colors.surface.luminance() < 0.5f
-    val protectedAccent = if (isDark) Color(0xFF73E2C5) else Color(0xFF167D69)
-    val protectedContainer = if (isDark) Color(0xFF113B32) else Color(0xFFDDF6EE)
-    val targetAccent = when (visualState) {
+private fun HomeMasthead(name: String, modifier: Modifier = Modifier) {
+    Row(modifier = modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = name.uppercase(),
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.8.sp,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
+        Spacer(Modifier.width(SharedDimensions.spacingSm))
+        Text(
+            text = "NETWORK PROTECTION",
+            style = MaterialTheme.typography.labelSmall,
+            letterSpacing = 1.2.sp,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+private data class BeaconPalette(
+    val accent: Color,
+    val secondary: Color,
+    val field: Color,
+    val icon: Color,
+)
+
+@Composable
+private fun rememberBeaconPalette(state: ProtectionVisualState): BeaconPalette {
+    val scheme = MaterialTheme.colorScheme
+    val dark = scheme.surface.luminance() < 0.5f
+    val protectedAccent = if (dark) Color(0xFF80E4C6) else Color(0xFF147D67)
+    val protectedSecondary = if (dark) Color(0xFF72C9F3) else Color(0xFF2D75A4)
+    val protectedField = if (dark) Color(0xFF143E34) else Color(0xFFE0F4ED)
+    val accentTarget = when (state) {
         ProtectionVisualState.Protected -> protectedAccent
-        ProtectionVisualState.Recovering -> colors.error
-        ProtectionVisualState.Off -> colors.onSurfaceVariant
+        ProtectionVisualState.Recovering -> scheme.error
+        ProtectionVisualState.Off -> scheme.outline
     }
-    val targetContainer = when (visualState) {
-        ProtectionVisualState.Protected -> protectedContainer
-        ProtectionVisualState.Recovering -> colors.errorContainer
-        ProtectionVisualState.Off -> colors.surfaceContainerHigh
+    val fieldTarget = when (state) {
+        ProtectionVisualState.Protected -> protectedField
+        ProtectionVisualState.Recovering -> scheme.errorContainer
+        ProtectionVisualState.Off -> scheme.surfaceContainerLow
     }
-    val accent by animateColorAsState(targetAccent, tween(220), label = "homeAccent")
-    val container by animateColorAsState(targetContainer, tween(220), label = "homeContainer")
-    val fieldProgress by animateFloatAsState(
-        targetValue = if (isVpnActive) 1f else 0f,
-        animationSpec = tween(240, easing = FastOutSlowInEasing),
-        label = "homeField",
-    )
-    val motion = rememberProtectionMotion(
-        isMoving = visualState == ProtectionVisualState.Protected,
-    )
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(SharedDimensions.heroCornerRadius),
-        color = container,
-        border = BorderStroke(1.dp, accent.copy(alpha = 0.22f)),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(SharedDimensions.spacingXl),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-            ) {
-                Surface(
-                    modifier = Modifier.size(9.dp),
-                    shape = CircleShape,
-                    color = accent,
-                ) {}
-                Text(
-                    text = protectionLabel.uppercase(),
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.2.sp,
-                    color = colors.onSurfaceVariant,
-                )
-            }
-
-            ProtectionField(
-                accent = accent,
-                progress = fieldProgress,
-                visualState = visualState,
-                motion = motion,
-                modifier = Modifier.fillMaxWidth().height(190.dp),
-            )
-
-            Text(
-                text = status,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                letterSpacing = (-0.5).sp,
-            )
-            Spacer(Modifier.height(SharedDimensions.spacingXs))
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = colors.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth(),
-            )
-            Spacer(Modifier.height(SharedDimensions.spacingXl))
-            StartStopButton(
-                isPlaying = isVpnActive,
-                label = actionLabel,
-                onClick = onStartStopClick,
-                modifier = Modifier.fillMaxWidth(),
-            )
-        }
+    val secondaryTarget = when (state) {
+        ProtectionVisualState.Protected -> protectedSecondary
+        ProtectionVisualState.Recovering -> scheme.tertiary
+        ProtectionVisualState.Off -> scheme.outlineVariant
     }
+    val iconTarget = when (state) {
+        ProtectionVisualState.Protected -> if (dark) Color(0xFF063C30) else Color.White
+        ProtectionVisualState.Recovering -> scheme.onError
+        ProtectionVisualState.Off -> scheme.onSurfaceVariant
+    }
+    val spec = tween<Color>(STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing)
+    val accent by animateColorAsState(accentTarget, spec, label = "beaconAccent")
+    val secondary by animateColorAsState(secondaryTarget, spec, label = "beaconSecondary")
+    val field by animateColorAsState(fieldTarget, spec, label = "beaconField")
+    val icon by animateColorAsState(iconTarget, spec, label = "beaconIcon")
+    return BeaconPalette(accent, secondary, field, icon)
 }
 
 @Composable
-private fun rememberProtectionMotion(isMoving: Boolean): ProtectionMotion {
-    if (!isMoving) return ProtectionMotion()
-
-    val transition = rememberInfiniteTransition(label = "protectionMotion")
-    val rotation by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 360f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 12_000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart,
-        ),
-        label = "protectionRotation",
+internal fun RethinkHomeAtmosphere(
+    uiState: RethinkHomeUiState,
+    modifier: Modifier = Modifier,
+) {
+    val visualState = when {
+        uiState.isVpnActive && uiState.isProtectionFailing -> ProtectionVisualState.Recovering
+        uiState.isVpnActive -> ProtectionVisualState.Protected
+        else -> ProtectionVisualState.Off
+    }
+    val activeProgress by animateFloatAsState(
+        targetValue = if (uiState.isVpnActive) 1f else 0f,
+        animationSpec = tween(STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing),
+        label = "homeAtmosphereState",
     )
-    val pulse by transition.animateFloat(
+    val recoveringProgress by animateFloatAsState(
+        targetValue = if (visualState == ProtectionVisualState.Recovering) 1f else 0f,
+        animationSpec = tween(STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing),
+        label = "homeAtmosphereRecovering",
+    )
+    val phase by rememberInfiniteTransition(label = "homeFullBleedAtmosphere").animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1_800, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse,
+            animation = tween(BEACON_TURN_MILLIS, easing = LinearEasing),
+            repeatMode = RepeatMode.Restart,
         ),
-        label = "protectionPulse",
+        label = "homeFullBleedAtmospherePhase",
     )
-    return ProtectionMotion(rotation = rotation, pulse = pulse)
+    val palette = rememberBeaconPalette(visualState)
+
+    Box(modifier = modifier) {
+        ProtectionFlowBackground(
+            phase = phase,
+            activeProgress = activeProgress,
+            recoveringProgress = recoveringProgress,
+            accent = palette.accent,
+            secondary = palette.secondary,
+            field = palette.field,
+            surface = MaterialTheme.colorScheme.surface,
+            opacity = 0.90f,
+            modifier = Modifier.fillMaxSize(),
+        )
+    }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-private fun ProtectionField(
-    accent: Color,
-    progress: Float,
+private fun ProtectionBeacon(
     visualState: ProtectionVisualState,
-    motion: ProtectionMotion,
-    modifier: Modifier = Modifier,
+    activeProgress: Float,
+    phase: Float,
+    palette: BeaconPalette,
+    status: String,
+    subtitle: String,
+    action: String,
+    onToggle: () -> Unit,
 ) {
-    Box(modifier = modifier, contentAlignment = Alignment.Center) {
-        Canvas(Modifier.fillMaxSize().clearAndSetSemantics {}) {
-            val center = Offset(size.width / 2f, size.height / 2f)
-            val orbitRadii = listOf(58.dp.toPx(), 78.dp.toPx(), 96.dp.toPx())
-
-            if (visualState == ProtectionVisualState.Protected) {
-                drawCircle(
-                    color = accent.copy(alpha = (1f - motion.pulse) * 0.13f),
-                    radius = 50.dp.toPx() + (motion.pulse * 38.dp.toPx()),
-                    center = center,
-                    style = Stroke(width = 2.dp.toPx()),
-                )
-            }
-
-            orbitRadii.forEachIndexed { index, radius ->
-                val direction = if (index % 2 == 0) 1f else -1f
-                val start = (motion.rotation * direction * (0.58f + index * 0.16f)) + index * 74f
-                drawArc(
-                    color = accent.copy(alpha = 0.11f + (progress * 0.25f)),
-                    startAngle = start,
-                    sweepAngle = 96f + index * 22f,
-                    useCenter = false,
-                    topLeft = Offset(center.x - radius, center.y - radius),
-                    size = androidx.compose.ui.geometry.Size(radius * 2f, radius * 2f),
-                    style = Stroke(width = if (index == 2) 2.dp.toPx() else 1.dp.toPx(), cap = StrokeCap.Round),
-                )
-                drawArc(
-                    color = accent.copy(alpha = 0.07f + (progress * 0.12f)),
-                    startAngle = start + 178f,
-                    sweepAngle = 54f + index * 12f,
-                    useCenter = false,
-                    topLeft = Offset(center.x - radius, center.y - radius),
-                    size = androidx.compose.ui.geometry.Size(radius * 2f, radius * 2f),
-                    style = Stroke(width = 1.dp.toPx(), cap = StrokeCap.Round),
-                )
-            }
-
-            repeat(7) { index ->
-                val angleDegrees =
-                    (motion.rotation * (if (index % 2 == 0) 1.0 else -0.72)) +
-                        index * (360.0 / 7.0)
-                val angle = angleDegrees * PI / 180.0
-                val radius = orbitRadii[index % orbitRadii.size]
-                val point = Offset(
-                    x = center.x + cos(angle).toFloat() * radius,
-                    y = center.y + sin(angle).toFloat() * radius,
-                )
-                drawCircle(
-                    color = accent.copy(alpha = 0.20f + (progress * 0.58f)),
-                    radius = if (index % 3 == 0) 4.dp.toPx() else 2.5.dp.toPx(),
-                    center = point,
-                )
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
+    ) {
+        Box(
+            modifier = Modifier
+                .size(252.dp)
+                .semantics {
+                    contentDescription = action
+                    role = Role.Button
+                },
+            contentAlignment = Alignment.Center,
+        ) {
+            BeaconField(
+                phase = phase,
+                activeProgress = activeProgress,
+                accent = palette.accent,
+                field = palette.field,
+                modifier = Modifier.fillMaxSize(),
+            )
+            Surface(
+                shape = androidx.compose.foundation.shape.CircleShape,
+                color = palette.accent,
+                modifier = Modifier.size(76.dp),
+                shadowElevation = 0.dp,
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = when (visualState) {
+                            ProtectionVisualState.Recovering -> MaterialSymbols.Filled.WarningAmber
+                            else -> MaterialSymbols.Filled.Shield
+                        },
+                        contentDescription = null,
+                        tint = palette.icon,
+                        modifier = Modifier.size(34.dp),
+                    )
+                }
             }
         }
-
-        Surface(
-            modifier = Modifier
-                .size(96.dp)
-                .graphicsLayer {
-                    rotationZ = motion.rotation * 0.32f
-                    val pulseScale = 1f + (motion.pulse * 0.025f)
-                    scaleX = pulseScale
-                    scaleY = pulseScale
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(
+                text = status,
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                letterSpacing = (-0.6f).sp,
+                color = if (visualState == ProtectionVisualState.Recovering) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurface
                 },
-            shape = MaterialShapes.Cookie9Sided.toShape(),
-            color = accent,
-            shadowElevation = if (visualState == ProtectionVisualState.Protected) 4.dp else 1.dp,
-        ) {
-            Box(contentAlignment = Alignment.Center) {
-                Icon(
-                    imageVector = when (visualState) {
-                        ProtectionVisualState.Protected -> MaterialSymbols.Filled.Shield
-                        ProtectionVisualState.Recovering -> MaterialSymbols.Filled.WarningAmber
-                        ProtectionVisualState.Off -> MaterialSymbols.Filled.ShieldMoon
-                    },
-                    contentDescription = null,
-                    tint = when (visualState) {
-                        ProtectionVisualState.Protected -> if (MaterialTheme.colorScheme.surface.luminance() < 0.5f) {
-                            Color(0xFF063C30)
-                        } else {
-                            Color.White
-                        }
-                        ProtectionVisualState.Recovering -> MaterialTheme.colorScheme.onError
-                        ProtectionVisualState.Off -> MaterialTheme.colorScheme.surface
-                    },
-                    modifier = Modifier
-                        .size(42.dp)
-                        .graphicsLayer { rotationZ = -(motion.rotation * 0.32f) },
+            )
+            Spacer(Modifier.height(SharedDimensions.spacingSm))
+            Text(
+                text = subtitle,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = SharedDimensions.spacingSm),
+            )
+        }
+        BeaconAction(
+            isActive = visualState != ProtectionVisualState.Off,
+            label = action,
+            accent = palette.accent,
+            onClick = onToggle,
+        )
+    }
+}
+
+@Composable
+private fun BeaconField(
+    phase: Float,
+    activeProgress: Float,
+    accent: Color,
+    field: Color,
+    modifier: Modifier = Modifier,
+) {
+    Canvas(modifier = modifier) {
+        val center = Offset(size.width / 2f, size.height / 2f)
+        val base = size.minDimension
+        drawCircle(
+            color = field,
+            radius = base * 0.48f,
+            center = center,
+        )
+        val ringAlphas = listOf(0.12f, 0.18f, 0.26f)
+        ringAlphas.forEachIndexed { index, alpha ->
+            val pulse = (sin((phase * 2.0 * PI + index * 1.8).toFloat()) + 1f) / 2f
+            val radius = base * (0.23f + index * 0.105f + pulse * 0.010f * activeProgress)
+            drawCircle(
+                color = accent.copy(alpha = alpha * (0.32f + 0.68f * activeProgress)),
+                radius = radius,
+                center = center,
+                style = Stroke(width = 1.25.dp.toPx()),
+            )
+        }
+        if (activeProgress > 0.01f) {
+            repeat(2) { index ->
+                val angle = (phase * 2.0 * PI + index * PI).toFloat()
+                val orbit = base * (0.37f + index * 0.025f)
+                drawCircle(
+                    color = accent.copy(alpha = 0.88f * activeProgress),
+                    radius = 3.5.dp.toPx(),
+                    center = Offset(center.x + orbit * cos(angle), center.y + orbit * sin(angle)),
                 )
             }
         }
@@ -405,149 +422,84 @@ private fun ProtectionField(
 }
 
 @Composable
-private fun StartStopButton(
-    isPlaying: Boolean,
+private fun BeaconAction(
+    isActive: Boolean,
     label: String,
+    accent: Color,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    val colors = MaterialTheme.colorScheme
-    val interactionSource = remember { MutableInteractionSource() }
-    val isPressed by interactionSource.collectIsPressedAsState()
-    val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(
-            dampingRatio = Spring.DampingRatioNoBouncy,
-            stiffness = Spring.StiffnessHigh,
-        ),
-        label = "homeActionScale",
+    val scheme = MaterialTheme.colorScheme
+    val dark = scheme.surface.luminance() < 0.5f
+    val container by animateColorAsState(
+        targetValue = if (isActive) scheme.surfaceContainerHigh else accent,
+        animationSpec = tween(STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing),
+        label = "beaconActionContainer",
     )
-
+    val content by animateColorAsState(
+        targetValue = if (isActive) scheme.onSurface else if (dark) Color(0xFF063C30) else Color.White,
+        animationSpec = tween(STATE_CHANGE_MILLIS, easing = FastOutSlowInEasing),
+        label = "beaconActionContent",
+    )
     Button(
         onClick = onClick,
-        interactionSource = interactionSource,
-        modifier = modifier.height(SharedDimensions.buttonHeight).graphicsLayer {
-            scaleX = scale
-            scaleY = scale
-        },
-        shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius),
-        colors = ButtonDefaults.buttonColors(
-            containerColor = if (isPlaying) colors.onSurface else colors.primary,
-            contentColor = if (isPlaying) colors.surface else colors.onPrimary,
-        ),
+        modifier = Modifier.height(SharedDimensions.buttonHeight),
+        colors = ButtonDefaults.buttonColors(containerColor = container, contentColor = content),
     ) {
         Icon(
-            imageVector = if (isPlaying) MaterialSymbols.Filled.Stop else MaterialSymbols.Filled.PlayArrow,
-            contentDescription = label,
+            imageVector = if (isActive) MaterialSymbols.Filled.Stop else MaterialSymbols.Filled.PlayArrow,
+            contentDescription = null,
             modifier = Modifier.size(SharedDimensions.iconSizeSm),
         )
         Spacer(Modifier.width(SharedDimensions.spacingSm))
-        Text(label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+        Text(text = label, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
     }
 }
 
 @Composable
-private fun ActivitySection(
-    title: String,
-    subtitle: String,
+private fun HomeActivityFooter(
     connectionsLabel: String,
     dnsQueriesLabel: String,
     connections: Long,
     dnsQueries: Long,
-    isActive: Boolean,
+    modifier: Modifier = Modifier,
 ) {
-    val colors = MaterialTheme.colorScheme
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surfaceContainerLow,
+        shape = androidx.compose.foundation.shape.RoundedCornerShape(SharedDimensions.cornerRadiusXl),
     ) {
-        Column(Modifier.padding(horizontal = SharedDimensions.spacingSm)) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
-            ) {
-                if (isActive) {
-                    Surface(
-                        modifier = Modifier.size(8.dp),
-                        shape = CircleShape,
-                        color = if (colors.surface.luminance() < 0.5f) Color(0xFF73E2C5) else Color(0xFF167D69),
-                    ) {}
-                }
-                Text(title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
-            }
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodySmall,
-                color = colors.onSurfaceVariant,
-            )
-        }
         Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
+            modifier = Modifier.padding(horizontal = SharedDimensions.spacingLg, vertical = SharedDimensions.spacingMd),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            ActivityMetricCard(
-                value = formatCompactCount(connections),
-                label = connectionsLabel,
-                icon = MaterialSymbols.Filled.Subject,
-                modifier = Modifier.weight(1f),
+            ActivityMetric(value = formatCompactCount(connections), label = connectionsLabel, modifier = Modifier.weight(1f))
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(34.dp)
+                    .background(MaterialTheme.colorScheme.outlineVariant),
             )
-            ActivityMetricCard(
-                value = formatCompactCount(dnsQueries),
-                label = dnsQueriesLabel,
-                icon = MaterialSymbols.Filled.Dns,
-                modifier = Modifier.weight(1f),
-            )
+            ActivityMetric(value = formatCompactCount(dnsQueries), label = dnsQueriesLabel, modifier = Modifier.weight(1f))
         }
     }
 }
 
 @Composable
-private fun ActivityMetricCard(
-    value: String,
-    label: String,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    modifier: Modifier = Modifier,
-) {
-    Surface(
-        modifier = modifier.height(126.dp),
-        shape = RoundedCornerShape(SharedDimensions.cardCornerRadiusLarge),
-        color = MaterialTheme.colorScheme.surfaceContainerLow,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.42f)),
-    ) {
-        Column(
-            modifier = Modifier.fillMaxSize().padding(SharedDimensions.cardPadding),
-            horizontalAlignment = Alignment.Start,
-            verticalArrangement = Arrangement.SpaceBetween,
-        ) {
-            Surface(
-                modifier = Modifier.size(32.dp),
-                shape = RoundedCornerShape(SharedDimensions.iconContainerRadius),
-                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.12f),
-            ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(SharedDimensions.iconSizeXs),
-                    )
-                }
-            }
-            Column {
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = (-0.5).sp,
-                )
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                )
-            }
-        }
+private fun ActivityMetric(value: String, label: String, modifier: Modifier = Modifier) {
+    Column(modifier = modifier, horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = (-0.4f).sp,
+        )
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 1,
+        )
     }
 }
 
@@ -562,9 +514,5 @@ private fun formatCompactCount(rawValue: Long): String {
 
 private fun compactUnit(value: Long, unit: Long, suffix: String): String {
     val tenths = ((value.toDouble() / unit.toDouble()) * 10.0).roundToInt()
-    return if (tenths % 10 == 0) {
-        "${tenths / 10}$suffix"
-    } else {
-        "${tenths / 10}.${tenths % 10}$suffix"
-    }
+    return if (tenths % 10 == 0) "${tenths / 10}$suffix" else "${tenths / 10}.${tenths % 10}$suffix"
 }

@@ -7,6 +7,7 @@
 package com.bernaferrari.bravedns.ui.compose
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,6 +30,7 @@ import com.bernaferrari.bravedns.ui.compose.configure.RethinkConfigureSearchEntr
 import com.bernaferrari.bravedns.ui.compose.firewall.RethinkFirewallApp
 import com.bernaferrari.bravedns.ui.compose.home.RethinkHomeScreen
 import com.bernaferrari.bravedns.ui.compose.home.RethinkHomeUiState
+import com.bernaferrari.bravedns.ui.compose.home.RethinkHomeAtmosphere
 import com.bernaferrari.bravedns.ui.compose.home.RethinkPauseScreen
 import com.bernaferrari.bravedns.ui.compose.home.RethinkPauseState
 import com.bernaferrari.bravedns.ui.compose.home.RethinkPauseStrings
@@ -96,6 +98,8 @@ fun RethinkDemoApp(
     darkTheme: Boolean = false,
     demoDependencies: RethinkWebDemoDependencies =
         RethinkWebDemoDependencies(appMetadata = RethinkWebDemoMetadata),
+    showWelcomeInitially: Boolean = true,
+    onWelcomeFinished: () -> Unit = {},
 ) {
     var appearanceMode by remember { mutableStateOf(RethinkAppearanceMode.System) }
     var appearancePresetId by remember { mutableStateOf(2) }
@@ -111,7 +115,11 @@ fun RethinkDemoApp(
         seedColor = appearanceSeed,
     ) {
         var destination by remember { mutableStateOf(RethinkRootDestination.Home) }
-        var overlay by remember { mutableStateOf(DemoOverlay.Welcome) }
+        var overlay by remember(showWelcomeInitially) {
+            mutableStateOf(
+                if (showWelcomeInitially) DemoOverlay.Welcome else DemoOverlay.None,
+            )
+        }
         var vpnOn by remember { mutableStateOf(false) }
         var statisticsWindow by remember { mutableStateOf(RethinkStatisticsWindow.TwentyFourHours) }
         var configureSearchOpen by remember { mutableStateOf(false) }
@@ -145,7 +153,10 @@ fun RethinkDemoApp(
                     ),
                 ),
                 ctaLabel = "Get started",
-                onFinish = { overlay = DemoOverlay.None },
+                onFinish = {
+                    overlay = DemoOverlay.None
+                    onWelcomeFinished()
+                },
             )
             DemoOverlay.Pause -> RethinkPauseScreen(
                 state = RethinkPauseState(
@@ -157,26 +168,39 @@ fun RethinkDemoApp(
                 onIncrease = {},
                 onResume = { overlay = DemoOverlay.None },
             )
-            DemoOverlay.None -> RethinkAdaptiveNavigationScaffold(
-                modifier = Modifier.fillMaxSize(),
-                destinations = demoNavigationItems,
-                selectedId = destination.name,
-                onDestinationSelected = { id ->
-                    destination = RethinkRootDestination.valueOf(id)
-                    detailBackStack.clear()
-                },
-            ) { padding ->
+            DemoOverlay.None -> {
+                val homeUiState = RethinkHomeUiState(
+                    isVpnActive = vpnOn,
+                    networkLogsCount = 4_320,
+                    dnsLogsCount = 1_284,
+                    protectionStatus = if (vpnOn) "Protected" else "Not active",
+                )
+                RethinkAdaptiveNavigationScaffold(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surface),
+                    destinations = demoNavigationItems,
+                    selectedId = destination.name,
+                    onDestinationSelected = { id ->
+                        destination = RethinkRootDestination.valueOf(id)
+                        detailBackStack.clear()
+                    },
+                    background = {
+                        if (destination == RethinkRootDestination.Home) {
+                            RethinkHomeAtmosphere(
+                                uiState = homeUiState,
+                                modifier = Modifier.fillMaxSize(),
+                            )
+                        }
+                    },
+                ) { padding ->
                 when (destination) {
                     RethinkRootDestination.Home -> RethinkHomeScreen(
                         modifier = Modifier.padding(padding),
-                            uiState = RethinkHomeUiState(
-                                isVpnActive = vpnOn,
-                                networkLogsCount = 4_320,
-                                dnsLogsCount = 1_284,
-                                protectionStatus = if (vpnOn) "Protected" else "Not active",
-                            ),
+                            uiState = homeUiState,
                             strings = demoHomeStrings,
                             onStartStopClick = { vpnOn = !vpnOn },
+                            showAtmosphere = false,
                     )
                     RethinkRootDestination.Statistics -> RethinkSummaryStatisticsScreen(
                         modifier = Modifier.padding(padding),
@@ -354,6 +378,7 @@ fun RethinkDemoApp(
                         }
                     }
                 }
+            }
             }
         }
     }

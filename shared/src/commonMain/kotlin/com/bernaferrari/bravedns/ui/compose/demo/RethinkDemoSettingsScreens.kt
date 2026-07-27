@@ -71,11 +71,11 @@ internal fun DemoMiscSettingsScreen(
     }
     RethinkMiscSettingsScreen(
         strings = RethinkMiscSettingsStrings(
-            title = "General settings",
+            title = "App preferences",
             backupSection = "Backup and restore",
             backupTitle = "Backup and restore",
             backupDescription = "Export or restore the demo's settings.",
-            generalSection = "General",
+            generalSection = "Behavior",
             aboutSection = "About",
             websiteTitle = "Website",
             websiteDescription = "rethinkdns.com",

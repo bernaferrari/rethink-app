@@ -37,3 +37,4 @@ shared/build/
 web-build/build/
 /.vercel/
 .vercel
+.env*

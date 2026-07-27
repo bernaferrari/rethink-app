@@ -54,7 +54,6 @@ internal val demoNavigationItems = listOf(
 
 internal val demoHomeStrings = RethinkHomeStrings(
     productName = "Rethink",
-    protection = "Protection",
     protected = "Protected",
     notActive = "Not active",
     start = "Start",
@@ -62,8 +61,6 @@ internal val demoHomeStrings = RethinkHomeStrings(
     protectedSubtitle = "Traffic is being filtered on this device",
     inactiveSubtitle = "Turn on protection to secure your traffic",
     failingSubtitle = "Rethink is trying to restore your connection",
-    activity = "Activity",
-    activitySubtitle = "Since logs were last cleared",
     connections = "Connections",
     dnsQueries = "DNS queries",
 )
@@ -631,7 +628,7 @@ internal fun demoConfigureSections(
         listOf(
             demoConfigureEntry("network", "Network", Color(0xFFA3BCFF), MaterialSymbols.Filled.VpnKey, DemoDetail.TunnelSettings, onOpenDetail),
             demoConfigureEntry("rpn", "Rethink Plus", Color(0xFF9B8CFF), MaterialSymbols.Filled.Star, DemoDetail.RpnAccount, onOpenDetail, "Account and support"),
-            demoConfigureEntry("settings", "General settings", Color(0xFFFFD878), MaterialSymbols.Filled.Settings, DemoDetail.MiscSettings, onOpenDetail, "Appearance, device, and app preferences"),
+            demoConfigureEntry("settings", "App preferences", Color(0xFFFFD878), MaterialSymbols.Filled.Settings, DemoDetail.MiscSettings, onOpenDetail, "Appearance, device, and app behavior"),
             demoConfigureEntry("logs", "Logs", Color(0xFF7EED92), MaterialSymbols.Filled.Subject, DemoDetail.Logs, onOpenDetail, "Network and DNS logging"),
             demoConfigureEntry("rpn-countries", "Rethink locations", Color(0xFF7AB6FF), MaterialSymbols.Filled.Public, DemoDetail.RpnCountries, onOpenDetail, "Select RPN servers"),
         ),

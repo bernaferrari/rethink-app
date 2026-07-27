@@ -20,10 +20,12 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.ExperimentalMaterial3AdaptiveNavigationSuiteApi
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 
@@ -47,6 +49,7 @@ fun RethinkAdaptiveNavigationScaffold(
     selectedId: String?,
     onDestinationSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
+    background: @Composable () -> Unit = {},
     content: @Composable (PaddingValues) -> Unit,
 ) {
     // Compose for web can briefly measure the root with an unbounded, zero-sized constraint while
@@ -59,35 +62,44 @@ fun RethinkAdaptiveNavigationScaffold(
                 constraints.maxWidth > 0 &&
                 constraints.maxHeight > 0
         ) {
-            NavigationSuiteScaffold(
-                navigationSuiteItems = {
-                    destinations.forEach { destination ->
-                        val selected = destination.id == selectedId
-                        item(
-                            selected = selected,
-                            onClick = { onDestinationSelected(destination.id) },
-                            icon = {
-                                Icon(
-                                    imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
-                                    contentDescription = destination.contentDescription,
-                                )
-                            },
-                            label = { Text(destination.label, style = MaterialTheme.typography.labelMedium) },
-                        )
-                    }
-                },
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                Box(
+            Box(modifier = Modifier.fillMaxSize()) {
+                background()
+                NavigationSuiteScaffold(
+                    navigationSuiteItems = {
+                        destinations.forEach { destination ->
+                            val selected = destination.id == selectedId
+                            item(
+                                selected = selected,
+                                onClick = { onDestinationSelected(destination.id) },
+                                icon = {
+                                    Icon(
+                                        imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
+                                        contentDescription = destination.contentDescription,
+                                    )
+                                },
+                                label = { Text(destination.label, style = MaterialTheme.typography.labelMedium) },
+                            )
+                        }
+                    },
                     modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.TopCenter,
+                    containerColor = Color.Transparent,
+                    navigationSuiteColors = NavigationSuiteDefaults.colors(
+                        navigationBarContainerColor = Color.Transparent,
+                        navigationRailContainerColor = Color.Transparent,
+                        navigationDrawerContainerColor = Color.Transparent,
+                    ),
                 ) {
                     Box(
-                        modifier = Modifier
-                            .widthIn(max = 720.dp)
-                            .fillMaxWidth(),
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.TopCenter,
                     ) {
-                        content(PaddingValues())
+                        Box(
+                            modifier = Modifier
+                                .widthIn(max = 720.dp)
+                                .fillMaxWidth(),
+                        ) {
+                            content(PaddingValues())
+                        }
                     }
                 }
             }

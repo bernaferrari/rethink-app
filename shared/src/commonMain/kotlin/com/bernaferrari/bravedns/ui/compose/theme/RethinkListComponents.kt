@@ -166,22 +166,27 @@ fun RethinkListItem(
                         )
                     }
                 } else null,
-                leadingContent = {
-                    when {
-                        leadingContent != null -> leadingContent()
-                        leadingIcon != null || leadingIconPainter != null -> {
-                            Surface(shape = leadingIconContainerShape, color = leadingIconContainerColor, modifier = Modifier.size(SharedDimensions.iconContainerSm)) {
-                                Box(contentAlignment = Alignment.Center, modifier = Modifier.size(SharedDimensions.iconContainerSm)) {
-                                    when {
-                                        leadingIcon != null -> androidx.compose.material3.Icon(leadingIcon, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
-                                        leadingIconPainter != null && leadingIconTint == Color.Unspecified -> Image(leadingIconPainter, null, modifier = Modifier.size(18.dp))
-                                        leadingIconPainter != null -> androidx.compose.material3.Icon(leadingIconPainter, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(18.dp))
+                // Material's ListItem reserves a leading column whenever it receives a
+                // lambda, even when that lambda emits nothing. Keep it null for text-only
+                // rows so their content aligns with the card inset instead of a phantom icon.
+                leadingContent = if (leadingContent != null || leadingIcon != null || leadingIconPainter != null) {
+                    {
+                        when {
+                            leadingContent != null -> leadingContent()
+                            leadingIcon != null || leadingIconPainter != null -> {
+                                Surface(shape = leadingIconContainerShape, color = leadingIconContainerColor, modifier = Modifier.size(SharedDimensions.iconContainerSm)) {
+                                    Box(contentAlignment = Alignment.Center, modifier = Modifier.size(SharedDimensions.iconContainerSm)) {
+                                        when {
+                                            leadingIcon != null -> androidx.compose.material3.Icon(leadingIcon, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(SharedDimensions.iconSizeSm))
+                                            leadingIconPainter != null && leadingIconTint == Color.Unspecified -> Image(leadingIconPainter, null, modifier = Modifier.size(18.dp))
+                                            leadingIconPainter != null -> androidx.compose.material3.Icon(leadingIconPainter, null, tint = leadingIconTint.copy(alpha = alpha), modifier = Modifier.size(18.dp))
+                                        }
                                     }
                                 }
                             }
                         }
                     }
-                },
+                } else null,
                 trailingContent = when {
                     trailing != null -> trailing
                     showTrailingChevron && onClick != null && enabled -> {
