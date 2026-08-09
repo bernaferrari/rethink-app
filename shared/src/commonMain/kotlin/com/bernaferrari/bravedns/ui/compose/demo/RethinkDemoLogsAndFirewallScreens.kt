@@ -28,6 +28,7 @@ import com.bernaferrari.bravedns.ui.compose.settings.*
 import com.bernaferrari.bravedns.ui.compose.statistics.*
 import com.bernaferrari.bravedns.ui.compose.theme.*
 import com.bernaferrari.bravedns.ui.compose.wireguard.*
+import kotlinx.coroutines.launch
 
 @Composable
 internal fun DemoLogsScreen(modifier: Modifier, onBack: () -> Unit) {
@@ -324,11 +325,23 @@ internal fun DemoFirewallAppListScreen(
     onAppInfo: (RethinkFirewallApp) -> Unit,
 ) {
     var apps by remember { mutableStateOf(demoFirewallApps) }
+    var isRefreshing by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     var filters by remember { mutableStateOf(RethinkFirewallFilters()) }
     var activeBulkActions by remember { mutableStateOf(emptySet<RethinkFirewallBulkAction>()) }
+    val refreshScope = androidx.compose.runtime.rememberCoroutineScope()
+    val catalogByPackage = remember {
+        RethinkWebDemoAppCatalog.entries.associateBy { it.packageName }
+    }
     val visibleApps = apps.filter { app ->
+        val catalogEntry = catalogByPackage[app.packageName]
         val queryMatches = query.isBlank() || app.appName.contains(query, ignoreCase = true) || app.packageName.contains(query, ignoreCase = true)
+        val topLevelMatches = when (filters.topLevel) {
+            RethinkFirewallTopLevelFilter.Installed -> catalogEntry?.isSystemApp != true
+            RethinkFirewallTopLevelFilter.System -> catalogEntry?.isSystemApp == true
+            RethinkFirewallTopLevelFilter.All -> true
+        }
+        val categoryMatches = filters.categories.isEmpty() || catalogEntry?.category in filters.categories
         val statusMatches = when (filters.status) {
             RethinkFirewallFilter.All -> true
             RethinkFirewallFilter.Allowed -> app.status == RethinkFirewallAppStatus.Allowed
@@ -339,7 +352,7 @@ internal fun DemoFirewallAppListScreen(
             RethinkFirewallFilter.BlockedWifi -> app.wifiBlocked
             RethinkFirewallFilter.BlockedMobile -> app.mobileBlocked
         }
-        queryMatches && statusMatches
+        queryMatches && topLevelMatches && categoryMatches && statusMatches
     }
     fun updateApp(updated: RethinkFirewallApp) {
         apps = apps.map { if (it.id == updated.id) updated else it }
@@ -351,15 +364,36 @@ internal fun DemoFirewallAppListScreen(
         filters = filters,
         activeBulkActions = activeBulkActions,
         strings = demoFirewallAppListStrings,
-        isRefreshing = false,
+        isRefreshing = isRefreshing,
         onQueryChange = { query = it; filters = filters.copy(query = it) },
-        onRefresh = {},
+        onRefresh = {
+            if (!isRefreshing) {
+                refreshScope.launch {
+                    isRefreshing = true
+                    kotlinx.coroutines.delay(450)
+                    apps = demoFirewallApps
+                    isRefreshing = false
+                }
+            }
+        },
         onFiltersChange = { filters = it; query = it.query },
         onQuickFilterChange = { filters = filters.copy(status = it) },
         onBulkAction = { action ->
             activeBulkActions = if (action in activeBulkActions) activeBulkActions - action else activeBulkActions + action
         },
-        loadCategories = { RethinkWebDemoAppCatalog.entries.map { it.category }.filter(String::isNotBlank).distinct() },
+        loadCategories = { topLevel ->
+            RethinkWebDemoAppCatalog.entries
+                .filter { entry ->
+                    when (topLevel) {
+                        RethinkFirewallTopLevelFilter.Installed -> !entry.isSystemApp
+                        RethinkFirewallTopLevelFilter.System -> entry.isSystemApp
+                        RethinkFirewallTopLevelFilter.All -> true
+                    }
+                }
+                .map { it.category }
+                .filter(String::isNotBlank)
+                .distinct()
+        },
         onAppClick = onAppInfo,
         onWifiToggle = { app -> updateApp(app.copy(wifiBlocked = !app.wifiBlocked, status = if (!app.wifiBlocked || app.mobileBlocked) RethinkFirewallAppStatus.Blocked else RethinkFirewallAppStatus.Allowed)) },
         onMobileToggle = { app -> updateApp(app.copy(mobileBlocked = !app.mobileBlocked, status = if (!app.mobileBlocked || app.wifiBlocked) RethinkFirewallAppStatus.Blocked else RethinkFirewallAppStatus.Allowed)) },
@@ -435,6 +469,12 @@ internal fun DemoAppInfoScreen(modifier: Modifier, app: RethinkFirewallApp?, onB
         onTempAllowChange = { tempAllowed = it },
         onSystemAppInfo = {}, onIpRules = {}, onDomainRules = {}, onActiveConnections = {}, onDomains = {}, onIps = {},
         onActiveEntry = {}, onDomainEntry = {}, onIpEntry = {},
-        titleLeading = { Icon(MaterialSymbols.Filled.Apps, null, tint = MaterialTheme.colorScheme.primary, modifier = Modifier.size(28.dp)) },
+        titleLeading = {
+            RethinkWebDemoAppIcon(
+                current.packageName,
+                current.appName,
+                Modifier.size(36.dp),
+            )
+        },
     )
 }

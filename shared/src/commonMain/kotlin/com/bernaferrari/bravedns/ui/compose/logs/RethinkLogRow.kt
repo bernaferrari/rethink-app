@@ -8,6 +8,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -55,6 +56,7 @@ import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 
 data class RethinkLogDetail(
     val label: String,
@@ -90,6 +92,7 @@ fun RethinkLogRow(
     itemCount: Int,
     modifier: Modifier = Modifier,
 ) {
+    val motion = LocalRethinkMotion.current
     var expanded by remember(model.id) { mutableStateOf(false) }
     var keepDetails by remember(model.id) { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
@@ -99,35 +102,35 @@ fun RethinkLogRow(
     val statusColor = if (model.isBlocked) scheme.error else allowedColor
     val statusContainer = if (model.isBlocked) scheme.errorContainer.copy(alpha = 0.55f) else allowedColor.copy(alpha = 0.2f)
     val scale by animateFloatAsState(
-        targetValue = if (pressed) 0.988f else 1f,
-        animationSpec = spring(stiffness = 420f, dampingRatio = 0.82f),
+        targetValue = if (pressed && !motion.reducedMotion) 0.988f else 1f,
+        animationSpec = if (motion.reducedMotion) snap() else spring(stiffness = 420f, dampingRatio = 0.82f),
         label = "log_row_scale_${model.id}",
     )
     val chevron by animateFloatAsState(
         targetValue = if (expanded) 90f else 0f,
-        animationSpec = tween(220, easing = FastOutSlowInEasing),
+        animationSpec = tween(if (motion.reducedMotion) 0 else 220, easing = FastOutSlowInEasing),
         label = "log_row_chevron_${model.id}",
     )
     val detailsProgress by animateFloatAsState(
         targetValue = if (expanded) 1f else 0f,
-        animationSpec = tween(230, easing = FastOutSlowInEasing),
+        animationSpec = tween(if (motion.reducedMotion) 0 else 230, easing = FastOutSlowInEasing),
         label = "log_row_details_${model.id}",
         finishedListener = { if (it == 0f) keepDetails = false },
     )
     val baseColor = if (expanded) scheme.surfaceContainer else scheme.surfaceContainerLow
     val cardColor by animateColorAsState(
         targetValue = if (pressed) androidx.compose.ui.graphics.lerp(baseColor, scheme.primaryContainer, 0.16f) else baseColor,
-        animationSpec = tween(200, easing = FastOutSlowInEasing),
+        animationSpec = tween(if (motion.reducedMotion) 0 else 200, easing = FastOutSlowInEasing),
         label = "log_row_color_${model.id}",
     )
     val elevation by animateDpAsState(
         targetValue = if (pressed) 1.dp else 0.dp,
-        animationSpec = tween(180, easing = FastOutSlowInEasing),
+        animationSpec = tween(if (motion.reducedMotion) 0 else 180, easing = FastOutSlowInEasing),
         label = "log_row_elevation_${model.id}",
     )
     val stripeAlpha by animateFloatAsState(
         targetValue = if (expanded) 1f else 0.9f,
-        animationSpec = tween(180, easing = FastOutSlowInEasing),
+        animationSpec = tween(if (motion.reducedMotion) 0 else 180, easing = FastOutSlowInEasing),
         label = "log_row_stripe_${model.id}",
     )
     val shape = rethinkGroupedListShape(cardPositionFor(index, itemCount - 1))

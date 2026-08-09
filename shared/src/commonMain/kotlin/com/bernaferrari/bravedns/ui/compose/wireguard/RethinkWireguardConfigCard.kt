@@ -21,6 +21,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
@@ -99,8 +101,16 @@ fun RethinkWireguardConfigCard(
                     }
                 }
                 when (control) {
-                    RethinkWireguardConfigControl.Switch -> Switch(state.isChecked, onCheckedChange = onCheckedChange)
-                    RethinkWireguardConfigControl.Checkbox -> Checkbox(state.isChecked, onCheckedChange = onCheckedChange)
+                    RethinkWireguardConfigControl.Switch -> Switch(
+                        state.isChecked,
+                        onCheckedChange = onCheckedChange,
+                        modifier = Modifier.semantics { contentDescription = state.name },
+                    )
+                    RethinkWireguardConfigControl.Checkbox -> Checkbox(
+                        state.isChecked,
+                        onCheckedChange = onCheckedChange,
+                        modifier = Modifier.semantics { contentDescription = state.name },
+                    )
                 }
             }
             Text(

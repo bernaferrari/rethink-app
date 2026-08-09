@@ -313,6 +313,21 @@ private fun androidFirewallAppListStrings(dialogs: AndroidBulkDialogCopy): Rethi
         cancel = stringResource(R.string.lbl_cancel),
         enabled = stringResource(R.string.lbbs_enabled),
         disabled = stringResource(R.string.lbl_disabled),
+        proxy = stringResource(R.string.lbl_proxy),
+        wifiActionLabel = { isBlocked ->
+            stringResource(
+                R.string.two_argument_colon,
+                if (isBlocked) stringResource(R.string.lbl_allowed) else blocked,
+                wifi,
+            )
+        },
+        mobileActionLabel = { isBlocked ->
+            stringResource(
+                R.string.two_argument_colon,
+                if (isBlocked) stringResource(R.string.lbl_allowed) else blocked,
+                mobile,
+            )
+        },
         bulkDescription = stringResource(R.string.fapps_info_dialog_message),
         selectedApps = { count -> stringResource(R.string.two_argument_colon, stringResource(R.string.lbl_apply), count.toString()) },
         actionLabel = { action ->

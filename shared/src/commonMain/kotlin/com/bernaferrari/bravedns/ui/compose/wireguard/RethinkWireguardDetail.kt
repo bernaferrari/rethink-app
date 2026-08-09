@@ -209,6 +209,6 @@ private fun RethinkWireguardDetailToggle(
     supporting = description,
     leadingIcon = icon,
     position = position,
-    trailing = { Switch(checked = checked, onCheckedChange = onCheckedChange) },
+    trailing = { Switch(checked = checked, onCheckedChange = null) },
     onClick = { onCheckedChange(!checked) },
 )

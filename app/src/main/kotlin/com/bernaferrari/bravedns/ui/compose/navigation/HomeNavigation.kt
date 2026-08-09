@@ -168,6 +168,7 @@ import com.bernaferrari.bravedns.viewmodel.ServerOrderHistoryViewModel
 import com.bernaferrari.bravedns.viewmodel.BlockFreeDnsViewModel
 import com.bernaferrari.bravedns.ui.compose.logs.AppWiseDomainLogsScreen
 import com.bernaferrari.bravedns.ui.compose.theme.rememberReducedMotion
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.viewmodel.WgConfigViewModel
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgMainScreen
 import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
@@ -177,8 +178,6 @@ import kotlinx.coroutines.withContext
 
 private const val BOTTOM_BAR_ENTER_DURATION = 220
 private const val BOTTOM_BAR_EXIT_DURATION = 180
-private const val NAV_ENTER_DURATION = 240
-private const val NAV_EXIT_DURATION = 200
 
 enum class HomeDestination(
     val route: HomeRoute,
@@ -374,6 +373,7 @@ fun HomeScreenRoot(
 ) {
     val navController = rememberNavController()
     val reduceMotion = rememberReducedMotion()
+    val motion = LocalRethinkMotion.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentHierarchy = currentDestination?.hierarchy.orEmpty()
@@ -643,15 +643,20 @@ fun HomeScreenRoot(
                         topLevelRoutes.contains(initialState.destination.route) &&
                             topLevelRoutes.contains(targetState.destination.route)
                     if (topLevelTransition) {
-                        fadeIn(animationSpec = tween(durationMillis = NAV_EXIT_DURATION))
+                        fadeIn(
+                            animationSpec = tween(
+                                durationMillis = motion.durationFast,
+                                easing = motion.easingDecelerate,
+                            )
+                        )
                     } else {
                         slideIntoContainer(
                             towards = AnimatedContentTransitionScope.SlideDirection.Left,
                             animationSpec = tween(
-                                durationMillis = NAV_ENTER_DURATION,
-                                easing = FastOutSlowInEasing
+                                durationMillis = motion.durationMedium,
+                                easing = motion.easingDecelerate,
                             )
-                        ) + fadeIn(animationSpec = tween(durationMillis = NAV_ENTER_DURATION))
+                        )
                     }
                 },
                 exitTransition = {
@@ -660,15 +665,14 @@ fun HomeScreenRoot(
                         topLevelRoutes.contains(initialState.destination.route) &&
                             topLevelRoutes.contains(targetState.destination.route)
                     if (topLevelTransition) {
-                        fadeOut(animationSpec = tween(durationMillis = NAV_EXIT_DURATION))
-                    } else {
-                        slideOutOfContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                        fadeOut(
                             animationSpec = tween(
-                                durationMillis = NAV_EXIT_DURATION,
-                                easing = FastOutSlowInEasing
+                                durationMillis = motion.durationFast,
+                                easing = motion.easingAccelerate,
                             )
-                        ) + fadeOut(animationSpec = tween(durationMillis = NAV_EXIT_DURATION))
+                        )
+                    } else {
+                        ExitTransition.None
                     }
                 },
                 popEnterTransition = {
@@ -677,15 +681,14 @@ fun HomeScreenRoot(
                         topLevelRoutes.contains(initialState.destination.route) &&
                             topLevelRoutes.contains(targetState.destination.route)
                     if (topLevelTransition) {
-                        fadeIn(animationSpec = tween(durationMillis = NAV_EXIT_DURATION))
-                    } else {
-                        slideIntoContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                        fadeIn(
                             animationSpec = tween(
-                                durationMillis = NAV_ENTER_DURATION,
-                                easing = FastOutSlowInEasing
+                                durationMillis = motion.durationFast,
+                                easing = motion.easingDecelerate,
                             )
-                        ) + fadeIn(animationSpec = tween(durationMillis = NAV_ENTER_DURATION))
+                        )
+                    } else {
+                        EnterTransition.None
                     }
                 },
                 popExitTransition = {
@@ -694,15 +697,20 @@ fun HomeScreenRoot(
                         topLevelRoutes.contains(initialState.destination.route) &&
                             topLevelRoutes.contains(targetState.destination.route)
                     if (topLevelTransition) {
-                        fadeOut(animationSpec = tween(durationMillis = NAV_EXIT_DURATION))
+                        fadeOut(
+                            animationSpec = tween(
+                                durationMillis = motion.durationFast,
+                                easing = motion.easingAccelerate,
+                            )
+                        )
                     } else {
                         slideOutOfContainer(
                             towards = AnimatedContentTransitionScope.SlideDirection.Right,
                             animationSpec = tween(
-                                durationMillis = NAV_EXIT_DURATION,
-                                easing = FastOutSlowInEasing
+                                durationMillis = motion.durationExit,
+                                easing = motion.easingAccelerate,
                             )
-                        ) + fadeOut(animationSpec = tween(durationMillis = NAV_EXIT_DURATION))
+                        )
                     }
                 }
             ) {

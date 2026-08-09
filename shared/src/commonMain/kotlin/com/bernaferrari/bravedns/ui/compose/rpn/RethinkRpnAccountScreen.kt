@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.PrimaryTabRow
+import androidx.compose.material3.PrimaryScrollableTabRow
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextOverflow
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
@@ -95,9 +96,16 @@ fun RethinkRpnAccountScreen(
     val tabs = listOf(strings.manageTab, strings.historyTab, strings.ordersTab, strings.entitlementTab)
     androidx.compose.material3.Scaffold(modifier = modifier, topBar = { RethinkTopBar(strings.title, onBackClick) }) { padding ->
         Column(Modifier.fillMaxSize().padding(padding)) {
-            PrimaryTabRow(selectedTabIndex = selectedTab) {
+            PrimaryScrollableTabRow(
+                selectedTabIndex = selectedTab,
+                edgePadding = SharedDimensions.spacingMd,
+            ) {
                 tabs.forEachIndexed { index, label ->
-                    Tab(selected = selectedTab == index, onClick = { selectedTab = index }, text = { Text(label) })
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = { Text(label, maxLines = 1, overflow = TextOverflow.Ellipsis) },
+                    )
                 }
             }
             when (selectedTab) {

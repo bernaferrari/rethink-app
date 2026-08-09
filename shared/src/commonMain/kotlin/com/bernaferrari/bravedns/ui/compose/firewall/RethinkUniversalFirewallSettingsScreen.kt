@@ -117,11 +117,7 @@ fun RethinkUniversalFirewallSettingsScreen(
                                     }
                                     Switch(
                                         checked = setting.checked,
-                                        onCheckedChange = { checked ->
-                                            if (onSettingChange(setting.id, checked) == RethinkUniversalFirewallChange.RequiresAccessibility) {
-                                                showAccessibilityDialog = true
-                                            }
-                                        },
+                                        onCheckedChange = null,
                                     )
                                 }
                             },

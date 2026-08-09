@@ -4,7 +4,6 @@ package com.bernaferrari.bravedns.ui.compose.settings
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -35,6 +34,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -215,7 +216,14 @@ private fun RethinkProxyToggleRow(
             position = CardPosition.Single,
             highlighted = highlighted,
             enabled = enabled,
-            trailing = { Switch(checked = checked, enabled = enabled, onCheckedChange = onCheckedChange) },
+            trailing = {
+                Switch(
+                    checked = checked,
+                    enabled = enabled,
+                    onCheckedChange = onCheckedChange,
+                    modifier = Modifier.semantics { contentDescription = title },
+                )
+            },
             onClick = onRowClick,
         )
     }
@@ -264,7 +272,12 @@ private fun RethinkOrbotPanel(
                         Text(status.first, style = MaterialTheme.typography.labelSmall, fontWeight = FontWeight.SemiBold, color = status.second, modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp))
                     }
                 }
-                Switch(checked = state.orbotEnabled, enabled = enabled, onCheckedChange = onCheckedChange)
+                Switch(
+                    checked = state.orbotEnabled,
+                    enabled = enabled,
+                    onCheckedChange = onCheckedChange,
+                    modifier = Modifier.semantics { contentDescription = strings.orbot },
+                )
             }
             Text(state.orbotDescription, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 3, overflow = TextOverflow.Ellipsis)
             if (enabled) {

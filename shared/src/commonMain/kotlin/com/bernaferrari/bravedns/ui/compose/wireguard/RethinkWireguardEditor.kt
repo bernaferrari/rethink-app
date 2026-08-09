@@ -136,7 +136,7 @@ fun RethinkWireguardEditor(
                         onValueChange = { onStateChange(state.copy(privateKey = it)) },
                         label = strings.privateKey,
                         singleLine = true,
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace),
                         trailingIcon = { IconButton(onClick = onGenerateKeys) { Icon(MaterialSymbols.Filled.Refresh, strings.generateKeys) } },
                     )
                     RethinkFormTextField(
@@ -148,7 +148,7 @@ fun RethinkWireguardEditor(
                             .clickable(enabled = state.publicKey.isNotEmpty(), onClick = onCopyPublicKey),
                         readOnly = true,
                         singleLine = true,
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontFamily = FontFamily.Monospace),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontFamily = FontFamily.Monospace),
                         trailingIcon = {
                             IconButton(onClick = onCopyPublicKey, enabled = state.publicKey.isNotEmpty()) {
                                 Icon(MaterialSymbols.Filled.ContentCopy, strings.copyPublicKey)

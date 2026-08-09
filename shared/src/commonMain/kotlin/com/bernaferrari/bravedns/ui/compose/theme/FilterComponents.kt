@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 fun RethinkSearchField(
     query: String, onQueryChange: (String) -> Unit, placeholder: String, modifier: Modifier = Modifier,
     enabled: Boolean = true, shape: RoundedCornerShape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
-    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh, textStyle: TextStyle = MaterialTheme.typography.bodyMedium,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainerHigh, textStyle: TextStyle = MaterialTheme.typography.bodyLarge,
     leadingIconTint: Color = MaterialTheme.colorScheme.primary, iconSize: Dp = SharedDimensions.iconSizeSm,
     trailingIconSize: Dp = iconSize, trailingIconButtonSize: Dp? = null, clearQueryContentDescription: String? = null,
     closeWhenEmptyContentDescription: String? = null, onClearQuery: (() -> Unit)? = null, onCloseWhenEmpty: (() -> Unit)? = null,

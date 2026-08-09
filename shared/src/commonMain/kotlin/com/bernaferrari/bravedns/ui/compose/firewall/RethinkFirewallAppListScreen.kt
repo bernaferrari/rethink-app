@@ -10,6 +10,7 @@ import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -18,6 +19,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -71,6 +73,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
 
 /** Data the portable firewall app-list renderer needs from a host. */
@@ -127,6 +130,9 @@ data class RethinkFirewallAppListStrings(
     val cancel: String,
     val enabled: String,
     val disabled: String,
+    val proxy: String,
+    val wifiActionLabel: @Composable (blocked: Boolean) -> String,
+    val mobileActionLabel: @Composable (blocked: Boolean) -> String,
     val bulkDescription: String,
     val selectedApps: @Composable (Int) -> String,
     val actionLabel: @Composable (RethinkFirewallBulkAction) -> String,
@@ -163,6 +169,7 @@ fun RethinkFirewallAppListScreen(
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
+    val motion = LocalRethinkMotion.current
     var showFilters by remember { mutableStateOf(false) }
     var showRules by remember { mutableStateOf(false) }
     var pendingBulkAction by remember { mutableStateOf<RethinkFirewallBulkAction?>(null) }
@@ -170,7 +177,7 @@ fun RethinkFirewallAppListScreen(
         filters.categories.isNotEmpty() || selectedQuickFilter != RethinkFirewallFilter.All
     val refreshRotation = rememberInfiniteTransition(label = "firewall_refresh").animateFloat(
         initialValue = 0f,
-        targetValue = if (isRefreshing) 360f else 0f,
+        targetValue = if (isRefreshing && !motion.reducedMotion) 360f else 0f,
         animationSpec = infiniteRepeatable(tween(750, easing = LinearEasing), RepeatMode.Restart),
         label = "firewall_refresh_rotation",
     )
@@ -342,7 +349,7 @@ private fun RethinkFirewallAppList(
     val state = rememberLazyListState()
     val indexKeys = remember(apps) { apps.flatMap { app -> listOf(appInitial(app), app.appName.ifBlank { app.packageName }) } }
     Box(modifier.fillMaxSize()) {
-        RethinkFirewallAppRows(
+                RethinkFirewallAppRows(
             apps = apps,
             state = state,
             query = query,
@@ -350,8 +357,11 @@ private fun RethinkFirewallAppList(
             appIcon = appIcon,
             onAppClick = onAppClick,
             onWifiToggle = onWifiToggle,
-            onMobileToggle = onMobileToggle,
-        )
+                    onMobileToggle = onMobileToggle,
+                    proxyLabel = strings.proxy,
+                    wifiActionLabel = strings.wifiActionLabel,
+                    mobileActionLabel = strings.mobileActionLabel,
+                )
         RethinkIndexedFastScroller(
             items = indexKeys,
             listState = state,
@@ -373,6 +383,9 @@ private fun RethinkFirewallAppRows(
     onAppClick: (RethinkFirewallApp) -> Unit,
     onWifiToggle: (RethinkFirewallApp) -> Unit,
     onMobileToggle: (RethinkFirewallApp) -> Unit,
+    proxyLabel: String,
+    wifiActionLabel: @Composable (Boolean) -> String,
+    mobileActionLabel: @Composable (Boolean) -> String,
 ) {
     LazyColumn(
         state = state,
@@ -407,6 +420,9 @@ private fun RethinkFirewallAppRows(
                     onClick = { onAppClick(app) },
                     onWifiToggle = { onWifiToggle(app) },
                     onMobileToggle = { onMobileToggle(app) },
+                    proxyLabel = proxyLabel,
+                    wifiActionLabel = wifiActionLabel(app.wifiBlocked),
+                    mobileActionLabel = mobileActionLabel(app.mobileBlocked),
                 )
             }
         }
@@ -433,12 +449,16 @@ private fun RethinkFirewallAppRow(
     onClick: () -> Unit,
     onWifiToggle: () -> Unit,
     onMobileToggle: () -> Unit,
+    proxyLabel: String,
+    wifiActionLabel: String,
+    mobileActionLabel: String,
 ) {
+    val motion = LocalRethinkMotion.current
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (pressed) .98f else 1f,
-        animationSpec = spring(dampingRatio = .72f),
+        targetValue = if (pressed && !motion.reducedMotion) .98f else 1f,
+        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = .72f),
         label = "firewall_app_row_scale",
     )
     val shape = rethinkGroupedListShape(position)
@@ -472,7 +492,7 @@ private fun RethinkFirewallAppRow(
                 }
                 if (app.proxyEnabled) {
                     Surface(shape = RoundedCornerShape(SharedDimensions.buttonCornerRadius), color = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = .76f)) {
-                        Text("Proxy", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp))
+                        Text(proxyLabel, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onTertiaryContainer, modifier = Modifier.padding(horizontal = 6.dp, vertical = 1.dp))
                     }
                 }
                 app.dataUsage?.takeIf { it.isNotBlank() }?.let { usage ->
@@ -483,11 +503,13 @@ private fun RethinkFirewallAppRow(
                 RethinkFirewallNetworkToggle(
                     blocked = app.wifiBlocked,
                     icon = if (app.wifiBlocked) MaterialSymbols.Filled.WifiOff else MaterialSymbols.Filled.Wifi,
+                    contentDescription = wifiActionLabel,
                     onClick = onWifiToggle,
                 )
                 RethinkFirewallNetworkToggle(
                     blocked = app.mobileBlocked,
-                    icon = if (app.mobileBlocked) MaterialSymbols.Filled.MobileOff else MaterialSymbols.Filled.Settings,
+                    icon = if (app.mobileBlocked) MaterialSymbols.Filled.MobileOff else MaterialSymbols.Filled.SignalCellularAlt,
+                    contentDescription = mobileActionLabel,
                     onClick = onMobileToggle,
                 )
             }
@@ -503,7 +525,12 @@ private fun RethinkFirewallStatusBadge(label: String, color: Color) {
 }
 
 @Composable
-private fun RethinkFirewallNetworkToggle(blocked: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, onClick: () -> Unit) {
+private fun RethinkFirewallNetworkToggle(
+    blocked: Boolean,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    contentDescription: String,
+    onClick: () -> Unit,
+) {
     val tint = if (blocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
     Surface(
         onClick = onClick,
@@ -511,7 +538,9 @@ private fun RethinkFirewallNetworkToggle(blocked: Boolean, icon: androidx.compos
         shape = CircleShape,
         color = if (blocked) MaterialTheme.colorScheme.errorContainer.copy(alpha = .52f) else Color.Transparent,
     ) {
-        Box(contentAlignment = Alignment.Center) { Icon(icon, null, tint = tint, modifier = Modifier.size(SharedDimensions.iconSizeSm)) }
+        Box(contentAlignment = Alignment.Center) {
+            Icon(icon, contentDescription, tint = tint, modifier = Modifier.size(SharedDimensions.iconSizeSm))
+        }
     }
 }
 
@@ -545,7 +574,7 @@ private fun RethinkFirewallFilterDialog(
         verticalSpacing = SharedDimensions.spacingLg,
         includeBottomSpacer = false,
         expandOnShow = true,
-    ) {
+    ) { dismissSheet ->
         Column(
             Modifier.fillMaxWidth().heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
@@ -587,7 +616,11 @@ private fun RethinkFirewallFilterDialog(
                     if (categories.isEmpty()) {
                         Text(strings.noCategories, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     } else {
-                        Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+                        FlowRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+                            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+                        ) {
                             categories.forEach { category ->
                                 RethinkFilterChip(
                                     label = category,
@@ -604,6 +637,9 @@ private fun RethinkFirewallFilterDialog(
                         }
                     }
                 }
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            TextButton(onClick = dismissSheet) { Text(strings.cancel) }
         }
     }
 }
@@ -624,7 +660,11 @@ private fun <T> RethinkFirewallFilterOptions(
     onSelect: (T) -> Unit,
     icon: (@Composable (T) -> Unit)? = null,
 ) {
-    Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()), horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
+    FlowRow(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+    ) {
         options.forEach { option ->
             RethinkFilterChip(
                 label = label(option),
@@ -653,7 +693,7 @@ private fun RethinkFirewallRulesDialog(
         verticalSpacing = SharedDimensions.spacingMd,
         includeBottomSpacer = false,
         expandOnShow = true,
-    ) {
+    ) { dismissSheet ->
         Column(
             modifier = Modifier.fillMaxWidth().heightIn(max = 480.dp).verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
@@ -684,7 +724,7 @@ private fun RethinkFirewallRulesDialog(
             }
         }
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-            TextButton(onClick = onDismiss) { Text(strings.cancel) }
+            TextButton(onClick = dismissSheet) { Text(strings.cancel) }
         }
     }
 }

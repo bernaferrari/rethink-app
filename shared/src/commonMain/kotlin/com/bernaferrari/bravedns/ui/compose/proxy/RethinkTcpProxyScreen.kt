@@ -71,7 +71,7 @@ fun RethinkTcpProxyScreen(
                     leadingIcon = MaterialSymbols.Filled.VpnKey,
                     position = cardPositionFor(0, 2),
                     onClick = { onTcpProxyEnabledChange(!tcpProxyEnabled) },
-                    trailing = { Switch(tcpProxyEnabled, onTcpProxyEnabledChange) },
+                    trailing = { Switch(tcpProxyEnabled, onCheckedChange = null) },
                 )
                 RethinkListItem(
                     headline = strings.udpRelayTitle,
@@ -79,7 +79,7 @@ fun RethinkTcpProxyScreen(
                     leadingIcon = MaterialSymbols.Filled.Settings,
                     position = cardPositionFor(1, 2),
                     onClick = { onUdpRelayEnabledChange(!udpRelayEnabled) },
-                    trailing = { Switch(udpRelayEnabled, onUdpRelayEnabledChange) },
+                    trailing = { Switch(udpRelayEnabled, onCheckedChange = null) },
                 )
                 RethinkListItem(
                     headline = strings.appsTitle,
@@ -98,7 +98,7 @@ fun RethinkTcpProxyScreen(
                 leadingIcon = MaterialSymbols.Filled.VpnKey,
                 position = cardPositionFor(0, 0),
                 onClick = { onWarpEnabledChange(!warpEnabled) },
-                trailing = { Switch(warpEnabled, onWarpEnabledChange) },
+                trailing = { Switch(warpEnabled, onCheckedChange = null) },
             )
         }
         item { Spacer(Modifier.height(SharedDimensions.spacingSm)) }

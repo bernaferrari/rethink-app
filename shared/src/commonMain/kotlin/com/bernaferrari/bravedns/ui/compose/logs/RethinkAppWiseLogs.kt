@@ -5,11 +5,6 @@ package com.bernaferrari.bravedns.ui.compose.logs
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -159,7 +154,7 @@ private fun RethinkAppWiseSearchRow(
                 placeholder = { Text(searchHint.ifEmpty { fallbackHint }, style = MaterialTheme.typography.bodyMedium, maxLines = 1, overflow = TextOverflow.Ellipsis) },
                 colors = OutlinedTextFieldDefaults.colors(focusedBorderColor = androidx.compose.ui.graphics.Color.Transparent, unfocusedBorderColor = androidx.compose.ui.graphics.Color.Transparent, focusedContainerColor = androidx.compose.ui.graphics.Color.Transparent, unfocusedContainerColor = androidx.compose.ui.graphics.Color.Transparent),
             )
-            AnimatedVisibility(query.isNotEmpty(), enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+            if (query.isNotEmpty()) {
                 IconButton(onClick = { query = "" }) { Icon(MaterialSymbols.Filled.Close, strings.clearSearch, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(SharedDimensions.iconSizeSm)) }
             }
             onDeleteClick?.let { delete -> IconButton(onClick = delete) { Icon(MaterialSymbols.Filled.Delete, strings.delete, tint = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.size(SharedDimensions.iconSizeMd)) } }

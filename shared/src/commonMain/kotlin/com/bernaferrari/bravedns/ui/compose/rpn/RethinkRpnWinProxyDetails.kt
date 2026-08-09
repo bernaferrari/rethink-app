@@ -227,5 +227,5 @@ private fun RethinkRpnWinOption(
     headline = label,
     position = position,
     onClick = { onCheckedChange(!checked) },
-    trailing = { Switch(checked = checked, onCheckedChange = onCheckedChange) },
+    trailing = { Switch(checked = checked, onCheckedChange = null) },
 )

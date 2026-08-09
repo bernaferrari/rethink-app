@@ -33,6 +33,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
@@ -60,6 +61,7 @@ fun RethinkFirewallSettingsScreen(
     onBackClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
+    val motion = LocalRethinkMotion.current
     val listState = rememberLazyListState()
     val density = LocalDensity.current
     val initialFocus = initialFocusKey?.trim().orEmpty()
@@ -77,7 +79,12 @@ fun RethinkFirewallSettingsScreen(
             else -> null
         }
         target?.let { (index, offsetDp) ->
-            listState.animateScrollToItem(index, with(density) { offsetDp.dp.toPx().roundToInt() })
+            val offset = with(density) { offsetDp.dp.toPx().roundToInt() }
+            if (motion.reducedMotion) {
+                listState.scrollToItem(index, offset)
+            } else {
+                listState.animateScrollToItem(index, offset)
+            }
             delay(900)
             if (activeFocus == key) activeFocus = null
         }

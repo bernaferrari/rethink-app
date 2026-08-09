@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -89,7 +90,7 @@ fun RethinkProxyConfigurationDialog(
         onDismissRequest = onCancel,
         verticalSpacing = SharedDimensions.spacingLg,
         expandOnShow = true,
-    ) {
+    ) { dismissSheet ->
         Text(strings.title, style = MaterialTheme.typography.headlineSmall)
         Column(
             modifier = Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState()),
@@ -127,7 +128,13 @@ fun RethinkProxyConfigurationDialog(
                     strings.lockdownDescription,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.error,
-                    modifier = if (onLockdownInfo == null) Modifier else Modifier.clickable(onClick = onLockdownInfo),
+                    modifier = if (onLockdownInfo == null) {
+                        Modifier
+                    } else {
+                        Modifier
+                            .heightIn(min = SharedDimensions.touchTargetSm)
+                            .clickable(onClick = onLockdownInfo)
+                    },
                 )
             }
             state.error?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
@@ -136,7 +143,7 @@ fun RethinkProxyConfigurationDialog(
             confirmLabel = strings.save,
             onConfirm = onConfirm,
             dismissLabel = strings.cancel,
-            onDismiss = onCancel,
+            onDismiss = dismissSheet,
         )
     }
 }

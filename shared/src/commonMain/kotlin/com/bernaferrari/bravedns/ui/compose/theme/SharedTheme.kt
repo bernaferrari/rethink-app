@@ -9,8 +9,11 @@
 package com.bernaferrari.bravedns.ui.compose.theme
 
 import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -20,6 +23,14 @@ import com.materialkolor.dynamicColorScheme
 import com.materialkolor.dynamiccolor.ColorSpec
 
 private val RethinkDefaultSeed = Color(0xFF804136)
+
+private val RethinkSharedShapes = Shapes(
+    extraSmall = RoundedCornerShape(SharedDimensions.cornerRadiusSm),
+    small = RoundedCornerShape(SharedDimensions.cornerRadiusSmMd),
+    medium = RoundedCornerShape(SharedDimensions.cornerRadiusLg),
+    large = RoundedCornerShape(SharedDimensions.cornerRadius2xl),
+    extraLarge = RoundedCornerShape(SharedDimensions.heroCornerRadius),
+)
 
 private val RethinkSharedTypography = Typography(
     displayLarge = TextStyle(fontWeight = FontWeight.Bold, fontSize = 57.sp, lineHeight = 64.sp, letterSpacing = (-0.25).sp),
@@ -43,16 +54,20 @@ private val RethinkSharedTypography = Typography(
 fun RethinkSharedTheme(
     darkTheme: Boolean,
     seedColor: Color = RethinkDefaultSeed,
+    reducedMotion: Boolean = false,
     content: @Composable () -> Unit,
 ) {
-    MaterialExpressiveTheme(
-        colorScheme = dynamicColorScheme(
-            seedColor = seedColor,
-            isDark = darkTheme,
-            style = PaletteStyle.TonalSpot,
-            specVersion = ColorSpec.SpecVersion.SPEC_2025,
-        ),
-        typography = RethinkSharedTypography,
-        content = content,
-    )
+    CompositionLocalProvider(LocalRethinkMotion provides RethinkMotion(reducedMotion)) {
+        MaterialExpressiveTheme(
+            colorScheme = dynamicColorScheme(
+                seedColor = seedColor,
+                isDark = darkTheme,
+                style = PaletteStyle.TonalSpot,
+                specVersion = ColorSpec.SpecVersion.SPEC_2025,
+            ),
+            typography = RethinkSharedTypography,
+            shapes = RethinkSharedShapes,
+            content = content,
+        )
+    }
 }

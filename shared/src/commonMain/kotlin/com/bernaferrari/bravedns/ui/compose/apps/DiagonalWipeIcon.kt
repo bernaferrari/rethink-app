@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 
 @Immutable
 object DiagonalWipeIconDefaults {
@@ -50,13 +51,17 @@ fun DiagonalWipeIcon(
     disableEasing: Easing = DiagonalWipeIconDefaults.DisableEasing,
     seamOverlapPx: Float = DiagonalWipeIconDefaults.SeamOverlapPx,
 ) {
+    val motion = LocalRethinkMotion.current
     val transition = updateTransition(targetState = blocked, label = "diagonalWipeIcon")
     val allowedPainter = rememberVectorPainter(allowedIcon)
     val blockedPainter = rememberVectorPainter(blockedIcon)
     val reveal by transition.animateFloat(
         transitionSpec = {
-            if (false isTransitioningTo true) tween(enableDurationMillis, easing = enableEasing)
-            else tween(disableDurationMillis, easing = disableEasing)
+            if (false isTransitioningTo true) {
+                tween(if (motion.reducedMotion) 0 else enableDurationMillis, easing = enableEasing)
+            } else {
+                tween(if (motion.reducedMotion) 0 else disableDurationMillis, easing = disableEasing)
+            }
         },
         label = "diagonalWipeReveal",
     ) { if (it) 1f else 0f }

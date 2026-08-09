@@ -9,6 +9,7 @@ package com.bernaferrari.bravedns.ui.compose.home
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
@@ -32,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 
 @Composable
 fun StartStopButtonShared(
@@ -41,11 +43,12 @@ fun StartStopButtonShared(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val motion = LocalRethinkMotion.current
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.97f else 1f,
-        animationSpec = spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMedium),
+        targetValue = if (isPressed && !motion.reducedMotion) 0.97f else 1f,
+        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = 0.85f, stiffness = Spring.StiffnessMedium),
         label = "buttonScale",
     )
     val containerColor =

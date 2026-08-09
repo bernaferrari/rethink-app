@@ -2,6 +2,7 @@ package com.bernaferrari.bravedns.ui.compose.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.awaitTouchSlopOrCancellation
 import androidx.compose.foundation.gestures.drag
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
@@ -58,6 +60,7 @@ fun <T> RethinkIndexedFastScroller(
 ) {
     if (items.size < minItemCount) return
 
+    val motion = LocalRethinkMotion.current
     val density = LocalDensity.current
     val hapticFeedback = LocalHapticFeedback.current
     val coroutineScope = rememberCoroutineScope()
@@ -185,7 +188,7 @@ fun <T> RethinkIndexedFastScroller(
                         } else {
                             1f
                         },
-                    animationSpec = spring(dampingRatio = 0.82f),
+                    animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = 0.82f),
                     label = "fastScrollerScale_$index",
                 )
                 val alpha by animateFloatAsState(
@@ -199,7 +202,7 @@ fun <T> RethinkIndexedFastScroller(
                         } else {
                             0.72f
                         },
-                    animationSpec = spring(),
+                    animationSpec = if (motion.reducedMotion) snap() else spring(),
                     label = "fastScrollerAlpha_$index",
                 )
 

@@ -160,7 +160,7 @@ fun RethinkLogAppFilterDialog(
         contentPadding = PaddingValues(horizontal = SharedDimensions.spacingMd, vertical = SharedDimensions.spacingSm),
         verticalSpacing = 2.dp,
         includeBottomSpacer = false,
-    ) {
+    ) { dismissSheet ->
         Column(
             modifier = Modifier.fillMaxWidth().heightIn(max = 560.dp),
             verticalArrangement = Arrangement.spacedBy(2.dp),
@@ -172,10 +172,11 @@ fun RethinkLogAppFilterDialog(
                     onClearQuery = { onSearchQueryChange("") },
                     clearQueryContentDescription = strings.clearSearchDescription,
                     closeWhenEmptyContentDescription = strings.dismissDescription,
-                    onCloseWhenEmpty = onDismiss,
+                    onCloseWhenEmpty = dismissSheet,
+                    modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(SharedDimensions.cornerRadiusMdLg),
                     containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                    textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                     iconSize = 18.dp,
                     trailingIconSize = 16.dp,
                     trailingIconButtonSize = SharedDimensions.touchTargetSm,
@@ -296,7 +297,7 @@ fun RethinkLogRulesDialog(
         contentPadding = PaddingValues(0.dp),
         verticalSpacing = 0.dp,
         includeBottomSpacer = false,
-    ) {
+    ) { dismissSheet ->
         Column(Modifier.fillMaxWidth().heightIn(max = 560.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(
@@ -319,7 +320,7 @@ fun RethinkLogRulesDialog(
                     Spacer(Modifier.weight(1f))
                     if (selectedCount > 0) TextButton(onClick = onClear) { Text(strings.clear, fontWeight = FontWeight.SemiBold) }
                     IconButton(
-                        onClick = onDismiss,
+                        onClick = dismissSheet,
                         modifier = Modifier.size(SharedDimensions.touchTargetSm),
                     ) {
                         Icon(MaterialSymbols.Filled.Close, strings.dismissDescription, modifier = Modifier.size(18.dp))

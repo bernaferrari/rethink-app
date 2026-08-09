@@ -96,6 +96,6 @@ private fun AdvancedToggleRow(
         position = position,
         onClick = { onCheckedChange(!checked) },
         leadingContent = { RethinkSharedIconContainer(accent) { Icon(icon, null, tint = accent) } },
-        trailing = { Switch(checked = checked, onCheckedChange = onCheckedChange) },
+        trailing = { Switch(checked = checked, onCheckedChange = null) },
     )
 }

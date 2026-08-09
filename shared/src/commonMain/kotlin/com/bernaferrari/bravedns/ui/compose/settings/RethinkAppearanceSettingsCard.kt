@@ -8,6 +8,7 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -52,6 +53,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 
 enum class RethinkAppearanceMode { System, Light, Dark }
 
@@ -184,32 +186,33 @@ private fun RethinkThemeColorSwatch(
     dynamicColor: Color,
     onClick: () -> Unit,
 ) {
+    val motion = LocalRethinkMotion.current
     val baseColor = if (preset.isDynamic) dynamicColor else preset.color ?: dynamicColor
     val displayColor = if (enabled) baseColor else baseColor.copy(alpha = 0.42f)
     val interactionSource = remember { MutableInteractionSource() }
     val cornerFraction by animateFloatAsState(
         targetValue = if (selected) 0.5f else 0.26f,
-        animationSpec = spring(dampingRatio = 0.7f, stiffness = 520f),
+        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = 0.7f, stiffness = 520f),
         label = "appearance_swatch_corner_${preset.id}",
     )
     val orbScale by animateFloatAsState(
         targetValue = if (selected) 1.02f else 0.86f,
-        animationSpec = spring(dampingRatio = 0.56f, stiffness = 600f),
+        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = 0.56f, stiffness = 600f),
         label = "appearance_swatch_scale_${preset.id}",
     )
     val orbRotation by animateFloatAsState(
         targetValue = if (selected) 8f else 0f,
-        animationSpec = spring(dampingRatio = 0.66f, stiffness = 420f),
+        animationSpec = if (motion.reducedMotion) snap() else spring(dampingRatio = 0.66f, stiffness = 420f),
         label = "appearance_swatch_rotation_${preset.id}",
     )
     val glowAlpha by animateFloatAsState(
         targetValue = if (selected) 1f else 0f,
-        animationSpec = tween(durationMillis = 240, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else 240, easing = FastOutSlowInEasing),
         label = "appearance_swatch_glow_${preset.id}",
     )
     val iconAlpha by animateFloatAsState(
         targetValue = if (selected) 1f else 0f,
-        animationSpec = tween(durationMillis = 180, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else 180, easing = FastOutSlowInEasing),
         label = "appearance_swatch_icon_${preset.id}",
     )
     val orbShape = RoundedCornerShape(percent = (cornerFraction * 100).toInt())

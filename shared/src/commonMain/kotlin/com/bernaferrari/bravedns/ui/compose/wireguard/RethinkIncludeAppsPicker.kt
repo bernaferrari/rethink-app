@@ -135,7 +135,7 @@ fun RethinkIncludeAppsPicker(
                         onClearQuery = { onQueryChange("") },
                         clearQueryContentDescription = strings.clearSearch,
                         containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                        textStyle = MaterialTheme.typography.bodyMedium.copy(fontWeight = FontWeight.Medium),
+                        textStyle = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.Medium),
                         iconSize = 18.dp,
                         trailingIconSize = 16.dp,
                         trailingIconButtonSize = SharedDimensions.touchTargetSm,

@@ -1,8 +1,9 @@
 /*
  * Copyright 2026 RethinkDNS and its authors.
  *
- * Inspired by Paper Shaders' Dithering shader and QuietGuard's adaptation of it. Rewritten as a
- * "cipher current": loose packets become an ordered, encrypted stream when protection is active.
+ * Inspired by the contour motion of Paper Shaders' Waves and Simplex Noise effects. Rewritten as
+ * Rethink's own "signal loom": encrypted currents cross, align, and keep flowing as protection
+ * becomes active.
  * Paper Shaders: https://github.com/paper-design/shaders
  */
 (() => {
@@ -20,7 +21,7 @@
         precision highp float;
 
         uniform vec2 u_resolution;
-        uniform float u_phase;
+        uniform float u_time;
         uniform float u_active;
         uniform float u_recovering;
         uniform float u_opacity;
@@ -69,85 +70,117 @@
             return 130.0 * dot(m, g);
         }
 
-        float bayer2(float x, float y) {
-            return mod(2.0 * x + 3.0 * y, 4.0);
+        float contour(float value, float width) {
+            float ridge = abs(fract(value) - 0.5);
+            return 1.0 - smoothstep(width, width + 0.055, ridge);
         }
 
-        float bayer4(vec2 cell) {
-            float low = bayer2(mod(cell.x, 2.0), mod(cell.y, 2.0));
-            float high = bayer2(
-                mod(floor(cell.x / 2.0), 2.0),
-                mod(floor(cell.y / 2.0), 2.0)
-            );
-            return (4.0 * low + high) / 16.0;
+        float roundedBoxSdf(vec2 point, vec2 halfSize, float radius) {
+            vec2 edge = abs(point) - halfSize + radius;
+            return min(max(edge.x, edge.y), 0.0) +
+                length(max(edge, 0.0)) -
+                radius;
         }
 
         void main() {
-            const float tau = 6.28318530718;
-            float theta = u_phase * tau;
             float enabledMix = clamp(u_active, 0.0, 1.0);
             float recoveringMix = clamp(u_recovering, 0.0, 1.0);
-            float pixelSize = max(7.0, min(u_resolution.x, u_resolution.y) * 0.008);
-            vec2 cell = floor(gl_FragCoord.xy / pixelSize);
-            vec2 pixelCoord = (cell + 0.5) * pixelSize;
-            vec2 uv = pixelCoord / u_resolution;
+            vec2 uv = gl_FragCoord.xy / u_resolution;
             float aspect = u_resolution.x / max(u_resolution.y, 1.0);
             vec2 p = uv - 0.5;
             p.x *= aspect;
 
-            vec2 loop = vec2(cos(theta), sin(theta));
-            float noise = snoise(p * 2.15 + loop * 0.52);
-            float fineNoise = snoise(p * 5.2 - loop.yx * 0.31);
-
-            float centerline =
-                0.15 * sin(p.x * 2.7 + noise * 0.72) +
-                0.045 * sin(p.x * 7.0 - theta * 2.0);
-            float fromCurrent = abs(p.y - centerline);
-            float currentWidth = 0.19 + 0.025 * sin(p.x * 5.0 + theta);
-            float currentBody = 1.0 - smoothstep(currentWidth, currentWidth + 0.25, fromCurrent);
-            float guardRails = 1.0 - smoothstep(
-                0.012,
-                0.045,
-                abs(fromCurrent - currentWidth)
+            // Independent frequencies keep the field coherent without returning to one short
+            // master loop. Their combined cycle is measured in days, not seconds.
+            float thetaA = u_time * 0.07137;
+            float thetaB = u_time * 0.04311;
+            float thetaC = u_time * 0.02653;
+            vec2 loopA = vec2(cos(thetaA), sin(thetaA));
+            vec2 loopB = vec2(
+                cos(thetaB + 2.09439510239),
+                sin(thetaB + 2.09439510239)
+            );
+            float broadNoise = snoise(p * 1.42 + loopA * 0.47);
+            float detailNoise = snoise(
+                mat2(0.82, -0.57, 0.57, 0.82) * p * 3.05 + loopB * 0.31
             );
 
-            float laneSeed = floor(cell.y / 3.0) * 0.071;
-            float packetPhase = fract(
-                (p.x / max(aspect, 0.001) + 0.5) * 4.0 -
-                    u_phase * 4.0 +
-                    laneSeed +
-                    noise * 0.055
-            );
-            float packet = 1.0 - smoothstep(0.055, 0.19, abs(packetPhase - 0.5));
-            float cipherWeave = 0.5 + 0.5 * sin(
-                (p.y - centerline) * 43.0 + p.x * 6.0 + fineNoise * 0.7
-            );
-            float ordered =
-                currentBody * (0.18 + packet * 0.55 + cipherWeave * 0.18) +
-                guardRails * 0.72;
+            float longWave =
+                0.14 * sin(p.x * 2.35 + loopA.x * 1.15) +
+                0.055 * sin(p.x * 5.4 - loopA.y * 0.85);
+            float currentField =
+                p.y + longWave + broadNoise * 0.115 + detailNoise * 0.025;
+            float crossField =
+                p.x * 0.62 -
+                p.y * 0.18 +
+                broadNoise * 0.095 +
+                0.045 * sin(p.y * 5.2 + loopB.x);
 
-            float scattered = 0.16 + (noise * 0.5 + 0.5) * 0.44;
-            float rejected =
-                (1.0 - currentBody) *
-                smoothstep(0.64, 0.86, fineNoise * 0.5 + 0.5) *
-                packet;
-            float shape = mix(scattered, ordered, enabledMix);
-            shape = max(shape, rejected * (0.38 + 0.42 * recoveringMix));
-            float mark = step(bayer4(cell), shape);
+            float primaryRibbons = contour(
+                currentField * 5.0 + u_time * 0.01271,
+                mix(0.405, 0.365, enabledMix)
+            );
+            float secondaryRibbons = contour(
+                crossField * 6.2 - u_time * 0.00833,
+                0.438
+            );
+            float fineThread = contour(
+                currentField * 10.0 -
+                    detailNoise * 0.14 -
+                    u_time * 0.01789 +
+                    sin(thetaC) * 0.11,
+                0.472
+            );
 
-            vec3 inactiveInk = mix(vec3(0.80, 0.27, 0.31), u_field, 0.28);
-            vec3 protectedInk = mix(u_accent, u_secondary, cipherWeave * 0.72);
+            float weaveGate =
+                0.5 + 0.5 * sin((currentField - crossField) * 15.0);
+            float weave =
+                primaryRibbons * (0.56 + 0.44 * weaveGate) +
+                secondaryRibbons * (0.24 + 0.28 * (1.0 - weaveGate)) * enabledMix +
+                fineThread * (0.10 + 0.12 * enabledMix);
+            weave = clamp(weave, 0.0, 1.0);
+
+            float looseSignal =
+                0.5 + 0.5 * sin(
+                    p.x * 3.1 - p.y * 4.0 + broadNoise * 2.0 + loopA.x
+                );
+            float signal = mix(looseSignal * 0.42, weave, 0.40 + enabledMix * 0.60);
+
+            // Low-pass the procedural detail behind the central tunnel. This is the shader
+            // equivalent of frosted glass: the current remains alive, but loses sharp contrast
+            // before it reaches the status control.
+            vec2 tunnelPoint = vec2(p.x, (1.0 - uv.y) - 0.34);
+            float tunnelDistance = roundedBoxSdf(
+                tunnelPoint,
+                vec2(0.078, 0.098),
+                0.035
+            );
+            float frostMask = 1.0 - smoothstep(-0.012, 0.055, tunnelDistance);
+            float frostedSignal = 0.27 + broadNoise * 0.045;
+            float frostStrength = mix(0.84, 0.58, enabledMix);
+            signal = mix(signal, frostedSignal, frostMask * frostStrength);
+
+            vec3 inactiveInk = mix(vec3(0.82, 0.29, 0.33), u_field, 0.22);
+            float colorFlow =
+                0.5 + 0.5 * sin(currentField * 8.0 + crossField * 3.0 + loopB.y);
+            vec3 protectedInk = mix(u_accent, u_secondary, colorFlow);
             vec3 ink = mix(inactiveInk, protectedInk, enabledMix);
-            ink = mix(ink, vec3(0.94, 0.34, 0.20), rejected * recoveringMix);
 
-            float centerQuiet =
-                0.12 + 0.88 * smoothstep(0.13, 0.37, length(p * vec2(0.8, 1.0)));
-            float texture = 0.78 + 0.22 * (noise * 0.5 + 0.5);
+            float recoveryPulse =
+                recoveringMix *
+                contour(currentField * 4.0 + u_time * 0.01109, 0.43);
+            ink = mix(ink, vec3(0.94, 0.34, 0.20), recoveryPulse * 0.70);
+
+            float edgePresence =
+                0.74 + 0.26 * smoothstep(0.05, 0.62, abs(p.x));
+            float microTexture =
+                0.94 + 0.06 * sin(
+                    gl_FragCoord.x * 0.37 + gl_FragCoord.y * 0.29
+                );
             float alpha =
-                mark *
-                (0.060 + 0.060 * enabledMix) *
-                centerQuiet *
-                texture *
+                (0.030 + signal * (0.105 + 0.055 * enabledMix)) *
+                edgePresence *
+                microTexture *
                 clamp(u_opacity, 0.0, 1.0);
             fragColor = vec4(ink, alpha);
         }
@@ -160,6 +193,7 @@
         program: null,
         vao: null,
         frameRequest: 0,
+        startTime: 0,
         values: null,
         uniforms: null,
     };
@@ -250,9 +284,10 @@
             state.gl = gl;
             state.program = program;
             state.vao = vao;
+            state.startTime = performance.now();
             state.uniforms = {
                 resolution: gl.getUniformLocation(program, "u_resolution"),
-                phase: gl.getUniformLocation(program, "u_phase"),
+                time: gl.getUniformLocation(program, "u_time"),
                 active: gl.getUniformLocation(program, "u_active"),
                 recovering: gl.getUniformLocation(program, "u_recovering"),
                 opacity: gl.getUniformLocation(program, "u_opacity"),
@@ -290,7 +325,10 @@
         gl.useProgram(state.program);
         gl.bindVertexArray(state.vao);
         gl.uniform2f(state.uniforms.resolution, state.canvas.width, state.canvas.height);
-        gl.uniform1f(state.uniforms.phase, value.phase);
+        gl.uniform1f(
+            state.uniforms.time,
+            (performance.now() - state.startTime) / 1000,
+        );
         gl.uniform1f(state.uniforms.active, value.active);
         gl.uniform1f(state.uniforms.recovering, value.recovering);
         gl.uniform1f(state.uniforms.opacity, value.opacity);

@@ -1,5 +1,10 @@
 {
   "name": "rethink-app-wasm-tooling",
   "private": true,
-  "packageManager": "yarn@1.22.22"
+  "devEngines": {
+    "packageManager": {
+      "name": "yarn",
+      "version": "^1.0.0"
+    }
+  }
 }
