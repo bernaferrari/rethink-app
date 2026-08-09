@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -401,6 +402,7 @@ private fun AboutPartners(strings: RethinkAboutStrings, actions: RethinkAboutAct
             assets.fossLogo(
                 Modifier
                     .width(100.dp)
+                    .heightIn(min = SharedDimensions.touchTargetSm)
                     .clip(logoShape)
                     .clickable(onClick = actions.onFoss)
                     .padding(SharedDimensions.spacingXs),
@@ -408,6 +410,7 @@ private fun AboutPartners(strings: RethinkAboutStrings, actions: RethinkAboutAct
             assets.flossFundsLogo(
                 Modifier
                     .width(100.dp)
+                    .heightIn(min = SharedDimensions.touchTargetSm)
                     .clip(logoShape)
                     .clickable(onClick = actions.onFlossFunds)
                     .padding(SharedDimensions.spacingXs),
@@ -427,7 +430,12 @@ private fun AboutFooter(uiState: RethinkAboutUiState, actions: RethinkAboutActio
                 text = uiState.firebaseToken,
                 style = MaterialTheme.typography.labelSmall,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().alpha(0.5f).padding(bottom = SharedDimensions.spacingMd).clickable(onClick = actions.onToken),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = SharedDimensions.touchTargetSm)
+                    .alpha(0.5f)
+                    .clickable(onClick = actions.onToken)
+                    .padding(bottom = SharedDimensions.spacingMd),
             )
         }
         Text(

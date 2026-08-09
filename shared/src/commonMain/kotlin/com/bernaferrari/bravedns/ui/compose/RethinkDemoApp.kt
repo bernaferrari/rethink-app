@@ -7,6 +7,15 @@
 package com.bernaferrari.bravedns.ui.compose
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -48,6 +57,7 @@ import com.bernaferrari.bravedns.ui.compose.statistics.RethinkSummaryStatisticsS
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkSummaryStatisticsStrings
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkUsageOverview
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSharedTheme
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 
 enum class DemoOverlay {
@@ -89,6 +99,12 @@ internal sealed interface DemoDetail {
     data object EventLogs : DemoDetail
 }
 
+private data class DemoNavigationState(
+    val destination: RethinkRootDestination,
+    val detail: DemoDetail?,
+    val depth: Int,
+)
+
 /**
  * Portable RethinkDNS UI shell. Hosts (Android app, wasmJs) pass nothing — all copy is
  * inline demo strings so this compiles without resources on web.
@@ -96,6 +112,7 @@ internal sealed interface DemoDetail {
 @Composable
 fun RethinkDemoApp(
     darkTheme: Boolean = false,
+    reducedMotion: Boolean = false,
     demoDependencies: RethinkWebDemoDependencies =
         RethinkWebDemoDependencies(appMetadata = RethinkWebDemoMetadata),
     showWelcomeInitially: Boolean = true,
@@ -113,6 +130,7 @@ fun RethinkDemoApp(
             RethinkAppearanceMode.Dark -> true
         },
         seedColor = appearanceSeed,
+        reducedMotion = reducedMotion,
     ) {
         var destination by remember { mutableStateOf(RethinkRootDestination.Home) }
         var overlay by remember(showWelcomeInitially) {
@@ -194,7 +212,48 @@ fun RethinkDemoApp(
                         }
                     },
                 ) { padding ->
-                when (destination) {
+                    val motion = LocalRethinkMotion.current
+                    val navigationState = DemoNavigationState(
+                        destination = destination,
+                        detail = detailBackStack.lastOrNull(),
+                        depth = detailBackStack.size,
+                    )
+                    AnimatedContent(
+                        targetState = navigationState,
+                        transitionSpec = {
+                            when {
+                                motion.reducedMotion ->
+                                    EnterTransition.None togetherWith ExitTransition.None
+                                initialState.destination != targetState.destination ->
+                                    fadeIn(
+                                        tween(motion.durationFast, easing = motion.easingDecelerate),
+                                    ) togetherWith fadeOut(
+                                        tween(motion.durationFast, easing = motion.easingAccelerate),
+                                    )
+                                targetState.depth > initialState.depth ->
+                                    slideInHorizontally(
+                                        animationSpec = tween(
+                                            motion.durationMedium,
+                                            easing = motion.easingDecelerate,
+                                        ),
+                                        initialOffsetX = { width -> width },
+                                    ) togetherWith ExitTransition.None
+                                targetState.depth < initialState.depth ->
+                                    EnterTransition.None togetherWith slideOutHorizontally(
+                                        animationSpec = tween(
+                                            motion.durationExit,
+                                            easing = motion.easingAccelerate,
+                                        ),
+                                        targetOffsetX = { width -> width },
+                                    )
+                                else ->
+                                    fadeIn(tween(motion.durationFast)) togetherWith
+                                        fadeOut(tween(motion.durationFast))
+                            }
+                        },
+                        label = "demo_screen_transition",
+                    ) { screen ->
+                when (screen.destination) {
                     RethinkRootDestination.Home -> RethinkHomeScreen(
                         modifier = Modifier.padding(padding),
                             uiState = homeUiState,
@@ -289,7 +348,7 @@ fun RethinkDemoApp(
                             ),
                         ),
                     )
-                    RethinkRootDestination.Configure -> when (val detail = detailBackStack.lastOrNull()) {
+                    RethinkRootDestination.Configure -> when (val detail = screen.detail) {
                         DemoDetail.Logs -> DemoLogsScreen(Modifier.padding(padding), ::navigateBack)
                         DemoDetail.ConsoleLogs -> DemoConsoleLogsScreen(Modifier.padding(padding), ::navigateBack)
                         DemoDetail.Database -> DemoDatabaseScreen(Modifier.padding(padding), ::navigateBack)
@@ -378,6 +437,7 @@ fun RethinkDemoApp(
                         }
                     }
                 }
+                    }
             }
             }
         }

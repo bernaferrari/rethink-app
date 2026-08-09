@@ -44,6 +44,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.cardPositionFor
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 
 enum class RethinkDnsType { Doh, RethinkRemote, SmartDns, Dot, Odoh, DnsCrypt, DnsProxy, System }
 enum class RethinkBlockFreeDnsMode { Auto, Global, Fallback }
@@ -160,14 +161,17 @@ fun RethinkDnsSettingsScreen(
     focusedSettingId: String? = null,
     modifier: Modifier = Modifier,
 ) {
+    val motion = LocalRethinkMotion.current
     val listState = rememberLazyListState()
     val rotation by animateFloatAsState(
-        targetValue = if (state.isRefreshing) 360f else 0f,
-        animationSpec = if (state.isRefreshing) infiniteRepeatable(tween(900, easing = LinearEasing), RepeatMode.Restart) else tween(0),
+        targetValue = if (state.isRefreshing && !motion.reducedMotion) 360f else 0f,
+        animationSpec = if (state.isRefreshing && !motion.reducedMotion) infiniteRepeatable(tween(900, easing = LinearEasing), RepeatMode.Restart) else tween(0),
         label = "dns_settings_refresh",
     )
     LaunchedEffect(focusedSettingId) {
-        dnsSettingsSectionFor(focusedSettingId)?.let { listState.animateScrollToItem(it) }
+        dnsSettingsSectionFor(focusedSettingId)?.let {
+            if (motion.reducedMotion) listState.scrollToItem(it) else listState.animateScrollToItem(it)
+        }
     }
 
     Scaffold(
@@ -319,8 +323,14 @@ private fun RethinkDnsRadioRow(
         highlighted = highlighted,
         trailing = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                if (onInfo != null) IconButton(onClick = onInfo) { Icon(MaterialSymbols.Filled.Public, null, Modifier.size(18.dp)) }
-                RadioButton(selected = selected, onClick = onClick)
+                if (onInfo != null) {
+                    IconButton(onClick = onInfo) {
+                        Icon(MaterialSymbols.Filled.Public, title, Modifier.size(18.dp))
+                    }
+                }
+                // The complete row is the selection target. A passive indicator avoids exposing
+                // two identical actions to keyboard and screen-reader users.
+                RadioButton(selected = selected, onClick = null)
             }
         },
         onClick = onClick,
@@ -343,7 +353,7 @@ private fun RethinkDnsToggleRow(
         leadingIcon = icon,
         position = position,
         highlighted = highlighted,
-        trailing = { Switch(checked = checked, onCheckedChange = onCheckedChange) },
+        trailing = { Switch(checked = checked, onCheckedChange = null) },
         onClick = { onCheckedChange(!checked) },
     )
 }

@@ -37,7 +37,7 @@ fun RethinkLogDetailsSheet(
     modifier: Modifier = Modifier,
     appIcon: (@Composable () -> Unit)? = null,
 ) {
-    RethinkModalBottomSheet(onDismissRequest = onDismiss, includeBottomSpacer = true) {
+    RethinkModalBottomSheet(onDismissRequest = onDismiss, includeBottomSpacer = true) { dismissSheet ->
         Column(
             modifier = modifier.fillMaxWidth(),
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingMd),
@@ -57,7 +57,7 @@ fun RethinkLogDetailsSheet(
             details.forEach { entry -> RethinkLogDetailRow(entry) }
 
             Spacer(modifier = Modifier.height(SharedDimensions.spacingXl))
-            TextButton(onClick = onDismiss, modifier = Modifier.align(Alignment.End)) {
+            TextButton(onClick = dismissSheet, modifier = Modifier.align(Alignment.End)) {
                 Text(text = dismissLabel)
             }
         }

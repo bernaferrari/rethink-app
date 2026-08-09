@@ -32,11 +32,19 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 /** Two-target shared choice control for compact manual/automatic configuration modes. */
 @Composable
@@ -167,7 +175,7 @@ fun RethinkModalBottomSheet(
     verticalSpacing: Dp = SharedDimensions.spacingLg,
     includeBottomSpacer: Boolean = true,
     expandOnShow: Boolean = false,
-    content: @Composable ColumnScope.() -> Unit,
+    content: @Composable ColumnScope.(dismiss: () -> Unit) -> Unit,
 ) {
     val sheetState = rememberBottomSheetState(
         initialValue = SheetValue.Hidden,
@@ -178,8 +186,23 @@ fun RethinkModalBottomSheet(
                 setOf(SheetValue.Hidden, SheetValue.PartiallyExpanded, SheetValue.Expanded)
             },
     )
+    LaunchedEffect(sheetState) {
+        sheetState.show()
+    }
+    val scope = rememberCoroutineScope()
+    val currentOnDismissRequest by rememberUpdatedState(onDismissRequest)
+    var dismissing by remember { mutableStateOf(false) }
+    val dismiss: () -> Unit = {
+        if (!dismissing) {
+            dismissing = true
+            scope.launch {
+                sheetState.hide()
+                currentOnDismissRequest()
+            }
+        }
+    }
     ModalBottomSheet(
-        onDismissRequest = onDismissRequest,
+        onDismissRequest = dismiss,
         dragHandle = dragHandle,
         containerColor = if (containerColor == Color.Unspecified) MaterialTheme.colorScheme.surface else containerColor,
         sheetState = sheetState,
@@ -188,7 +211,7 @@ fun RethinkModalBottomSheet(
             modifier = modifier.fillMaxWidth().padding(contentPadding),
             verticalArrangement = Arrangement.spacedBy(verticalSpacing),
         ) {
-            content()
+            content(dismiss)
             if (includeBottomSpacer) Spacer(Modifier.height(SharedDimensions.spacing2xl))
         }
     }

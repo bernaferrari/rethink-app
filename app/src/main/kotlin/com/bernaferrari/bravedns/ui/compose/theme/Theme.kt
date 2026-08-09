@@ -27,6 +27,7 @@ import androidx.compose.material3.Shapes
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -125,10 +126,14 @@ fun RethinkTheme(
         }
     }
 
-    MaterialExpressiveTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        shapes = RethinkShapes,
-        content = content
-    )
+    CompositionLocalProvider(
+        LocalRethinkMotion provides RethinkMotion(reducedMotion = rememberReducedMotion())
+    ) {
+        MaterialExpressiveTheme(
+            colorScheme = colorScheme,
+            typography = Typography,
+            shapes = RethinkShapes,
+            content = content
+        )
+    }
 }

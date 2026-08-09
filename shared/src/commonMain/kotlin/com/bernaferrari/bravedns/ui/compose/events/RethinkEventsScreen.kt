@@ -5,6 +5,12 @@ package com.bernaferrari.bravedns.ui.compose.events
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.combinedClickable
@@ -58,6 +64,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 
 enum class RethinkEventFilterMode { All, Severity, Source }
 
@@ -267,13 +274,14 @@ fun RethinkEventCard(
     onCopy: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val motion = LocalRethinkMotion.current
     val hasDetails = !event.details.isNullOrBlank()
     var expanded by remember(event.id) { mutableStateOf(false) }
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (isPressed) 0.985f else 1f,
-        animationSpec = tween(durationMillis = 120),
+        targetValue = if (isPressed && !motion.reducedMotion) 0.985f else 1f,
+        animationSpec = tween(durationMillis = if (motion.reducedMotion) 0 else 120),
         label = "event_card_scale",
     )
     val accent = event.severity.accentColor()
@@ -308,7 +316,11 @@ fun RethinkEventCard(
                     CompactEventBadge(event.eventTypeLabel, MaterialTheme.colorScheme.surfaceContainerHighest, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f))
                     if (event.userAction) CompactEventBadge("User", MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.45f), MaterialTheme.colorScheme.primary)
                 }
-                AnimatedVisibility(visible = expanded && hasDetails) {
+                AnimatedVisibility(
+                    visible = expanded && hasDetails,
+                    enter = if (motion.reducedMotion) EnterTransition.None else expandVertically() + fadeIn(),
+                    exit = if (motion.reducedMotion) ExitTransition.None else shrinkVertically() + fadeOut(),
+                ) {
                     Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                         HorizontalDivider(thickness = 1.dp, color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.24f), modifier = Modifier.padding(top = SharedDimensions.spacingXs))
                         Text(highlightedDetails, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 8, overflow = TextOverflow.Ellipsis)

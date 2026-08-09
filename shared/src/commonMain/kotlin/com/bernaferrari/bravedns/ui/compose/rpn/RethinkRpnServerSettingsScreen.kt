@@ -184,7 +184,7 @@ private fun RpnToggleRow(
     RethinkListItem(
         headline = title, supporting = description, position = position, onClick = { onCheckedChange(!checked) },
         leadingContent = { RethinkSharedIconContainer(MaterialTheme.colorScheme.primary) { Icon(icon, null, tint = MaterialTheme.colorScheme.primary) } },
-        trailing = { Switch(checked = checked, onCheckedChange = onCheckedChange) },
+        trailing = { Switch(checked = checked, onCheckedChange = null) },
     )
 }
 
@@ -212,7 +212,7 @@ private fun RethinkCountryExclusionDialog(
         verticalSpacing = SharedDimensions.spacingMd,
         includeBottomSpacer = false,
         expandOnShow = true,
-    ) {
+    ) { dismissSheet ->
         Text(strings.excludeLocationsTitle, style = MaterialTheme.typography.headlineSmall)
         LazyColumn(
             // Keep the actions visible at phone height; this list, rather than the sheet, scrolls.
@@ -247,7 +247,7 @@ private fun RethinkCountryExclusionDialog(
             confirmLabel = strings.save,
             onConfirm = { onSave(selected) },
             dismissLabel = strings.cancel,
-            onDismiss = onDismiss,
+            onDismiss = dismissSheet,
         )
     }
 }

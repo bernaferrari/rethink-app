@@ -20,6 +20,7 @@ import kotlin.math.cos
 import kotlin.math.sin
 import kotlin.random.Random
 import kotlinx.coroutines.delay
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 
 /** Target-neutral purchase celebration; hosts decide whether it appears in a dialog or a route. */
 @Composable
@@ -28,10 +29,11 @@ fun RethinkSubscriptionCelebration(
     modifier: Modifier = Modifier,
     displayDurationMillis: Long = 2_000L,
 ) {
+    val motion = LocalRethinkMotion.current
     Box(modifier = modifier.fillMaxSize()) {
-        RethinkConfettiOverlay()
+        if (!motion.reducedMotion) RethinkConfettiOverlay()
         LaunchedEffect(Unit) {
-            delay(displayDurationMillis)
+            delay(if (motion.reducedMotion) 600L else displayDurationMillis)
             onComplete()
         }
     }

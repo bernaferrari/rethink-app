@@ -29,6 +29,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkLargeTopBar
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSearchField
@@ -161,6 +163,11 @@ private fun RethinkRpnCountryRow(
     onDetails: () -> Unit,
 ) {
     val countryShape = rethinkGroupedListShape(position)
+    val label = when {
+        country.name.isNotBlank() -> country.name
+        country.isAutomatic -> strings.automaticLocation
+        else -> country.countryCode
+    }
     Surface(
         onClick = onDetails,
         shape = countryShape,
@@ -172,11 +179,6 @@ private fun RethinkRpnCountryRow(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Column(Modifier.weight(1f)) {
-                val label = when {
-                    country.name.isNotBlank() -> country.name
-                    country.isAutomatic -> strings.automaticLocation
-                    else -> country.countryCode
-                }
                 Text(label, style = MaterialTheme.typography.titleSmall)
                 Text(
                     listOf(country.location, strings.frequentlyUsed.takeIf { country.isFrequent })
@@ -191,7 +193,12 @@ private fun RethinkRpnCountryRow(
                     if (country.isFavourite) strings.removeFavourite else strings.addFavourite,
                 )
             }
-            Switch(checked = country.isEnabled, enabled = enabled, onCheckedChange = onToggle)
+            Switch(
+                checked = country.isEnabled,
+                enabled = enabled,
+                onCheckedChange = onToggle,
+                modifier = Modifier.semantics { contentDescription = label },
+            )
         }
     }
 }

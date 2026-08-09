@@ -6,6 +6,7 @@ import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
@@ -117,36 +118,41 @@ fun RethinkListItem(
     showTrailingChevron: Boolean = false,
     onClick: (() -> Unit)? = null,
 ) {
+    val motion = LocalRethinkMotion.current
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
-        targetValue = if (pressed && enabled && onClick != null) 0.985f else 1f,
-        animationSpec = spring(dampingRatio = 0.62f, stiffness = Spring.StiffnessMediumLow),
+        targetValue = if (!motion.reducedMotion && pressed && enabled && onClick != null) 0.985f else 1f,
+        animationSpec = if (motion.reducedMotion) {
+            snap()
+        } else {
+            spring(dampingRatio = 0.62f, stiffness = Spring.StiffnessMediumLow)
+        },
         label = "rethink_list_item_scale",
     )
     val highlightAlpha by animateFloatAsState(
         targetValue = if (highlighted) 1f else 0f,
-        animationSpec = tween(durationMillis = 120),
+        animationSpec = tween(durationMillis = motion.durationFast),
         label = "rethink_list_item_highlight",
     )
     val shape = rethinkGroupedListShape(position)
     val alpha = if (enabled) 1f else 0.5f
     val containerColor = lerp(defaultContainerColor, highlightContainerColor, highlightAlpha)
 
-    Column(modifier = modifier.fillMaxWidth().scale(scale)) {
-        Surface(
-            onClick = onClick ?: {},
-            enabled = enabled && onClick != null,
-            interactionSource = interactionSource,
-            shape = shape,
-            color = containerColor,
-            border = if (highlighted) BorderStroke(SharedDimensions.dividerThicknessBold, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f)) else null,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = if (position == CardPosition.First || position == CardPosition.Single) 0.dp else 2.dp)
-                .clip(shape),
-        ) {
-            ListItem(
+    val surfaceModifier = Modifier
+        .fillMaxWidth()
+        .padding(top = if (position == CardPosition.First || position == CardPosition.Single) 0.dp else 2.dp)
+        .clip(shape)
+    val border = if (highlighted) {
+        BorderStroke(
+            SharedDimensions.dividerThicknessBold,
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+        )
+    } else {
+        null
+    }
+    val content: @Composable () -> Unit = {
+        ListItem(
                 headlineContent = {
                     Text(
                         text = headlineAnnotated ?: AnnotatedString(headline),
@@ -198,6 +204,28 @@ fun RethinkListItem(
                 tonalElevation = 0.dp,
                 shadowElevation = 0.dp,
                 modifier = Modifier.clip(shape).padding(vertical = 1.dp),
+        )
+    }
+
+    Column(modifier = modifier.fillMaxWidth().scale(scale)) {
+        if (onClick != null) {
+            Surface(
+                onClick = onClick,
+                enabled = enabled,
+                interactionSource = interactionSource,
+                shape = shape,
+                color = containerColor,
+                border = border,
+                modifier = surfaceModifier,
+                content = content,
+            )
+        } else {
+            Surface(
+                shape = shape,
+                color = containerColor,
+                border = border,
+                modifier = surfaceModifier,
+                content = content,
             )
         }
     }

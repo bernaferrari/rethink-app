@@ -156,23 +156,26 @@ private fun RethinkTunnelSettingGroup(
     RethinkListGroup {
         rows.forEachIndexed { index, row ->
             val position = cardPositionFor(index, rows.lastIndex)
-            val icon = row.icon.toImageVector()
             if (row.kind == RethinkTunnelSettingKind.Toggle) {
                 RethinkListItem(
                     headline = row.title,
                     supporting = row.description,
-                    leadingIcon = icon,
                     position = position,
                     highlighted = focusedRowId == row.id,
                     enabled = row.enabled,
-                    trailing = { Switch(checked = row.checked, onCheckedChange = { onToggleChange(row.id, it) }, enabled = row.enabled) },
+                    trailing = { Switch(checked = row.checked, onCheckedChange = null, enabled = row.enabled) },
                     onClick = { onToggleChange(row.id, !row.checked) },
                 )
             } else {
                 RethinkListItem(
                     headline = row.title,
                     supporting = row.description,
-                    leadingIcon = icon,
+                    leadingIcon = row.icon
+                        .takeIf {
+                            it == RethinkTunnelSettingIcon.NetworkCheck ||
+                                it == RethinkTunnelSettingIcon.Security
+                        }
+                        ?.toImageVector(),
                     position = position,
                     highlighted = focusedRowId == row.id,
                     enabled = row.enabled,

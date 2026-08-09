@@ -230,7 +230,7 @@ private fun RethinkAppStatusPill(label: String, active: Boolean) {
 private fun RethinkAppNetworkPair(state: RethinkAppInfoState, strings: RethinkAppInfoStrings, onWifiClick: () -> Unit, onMobileClick: () -> Unit) {
     Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile), modifier = Modifier.fillMaxWidth()) {
         RethinkAppNetworkTile(strings.wifi, strings.wifiDescription, state.wifiBlocked, MaterialSymbols.Filled.Wifi, MaterialSymbols.Filled.WifiOff, rethinkGroupedListPairShape(isLeadingTile = true, position = CardPosition.Single), Modifier.weight(1f), onWifiClick)
-        RethinkAppNetworkTile(strings.mobile, strings.mobileDescription, state.mobileBlocked, MaterialSymbols.Filled.PhoneAndroid, MaterialSymbols.Filled.PhoneAndroid, rethinkGroupedListPairShape(isLeadingTile = false, position = CardPosition.Single), Modifier.weight(1f), onMobileClick)
+        RethinkAppNetworkTile(strings.mobile, strings.mobileDescription, state.mobileBlocked, MaterialSymbols.Filled.SignalCellularAlt, MaterialSymbols.Filled.MobileOff, rethinkGroupedListPairShape(isLeadingTile = false, position = CardPosition.Single), Modifier.weight(1f), onMobileClick)
     }
 }
 
@@ -252,7 +252,7 @@ private fun RethinkAppExclusiveRow(title: String, description: String, enabled: 
 
 @Composable
 private fun RethinkAppToggleRow(title: String, description: String, checked: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, position: CardPosition, onChange: (Boolean) -> Unit) {
-    RethinkListItem(headline = title, supporting = description, leadingIcon = icon, position = position, onClick = { onChange(!checked) }, trailing = { Switch(checked = checked, onCheckedChange = onChange) })
+    RethinkListItem(headline = title, supporting = description, leadingIcon = icon, position = position, onClick = { onChange(!checked) }, trailing = { Switch(checked = checked, onCheckedChange = null) })
 }
 
 @Composable

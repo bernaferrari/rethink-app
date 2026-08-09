@@ -26,6 +26,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkListGroup
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkListItem
 import com.bernaferrari.bravedns.ui.compose.theme.SectionHeader
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
+import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 
 enum class RethinkMiscSettingIcon {
     Logs, AutoStart, Tombstone, FirewallBubble, IpInfo, AppUpdates, CrashReports, Downloader,
@@ -66,6 +67,7 @@ fun RethinkMiscSettingsScreen(
     focusedSettingId: String? = null,
     modifier: Modifier = Modifier,
 ) {
+    val motion = LocalRethinkMotion.current
     val listState = rememberLazyListState()
     val focusedSection = when (focusedSettingId) {
         "general_appearance", "general_theme_mode", "general_theme_color" -> 0
@@ -74,7 +76,9 @@ fun RethinkMiscSettingsScreen(
         else -> if (focusedSettingId != null) 2 else null
     }
     LaunchedEffect(focusedSection) {
-        focusedSection?.let { listState.animateScrollToItem(it) }
+        focusedSection?.let {
+            if (motion.reducedMotion) listState.scrollToItem(it) else listState.animateScrollToItem(it)
+        }
     }
     RethinkLazyColumnScreenScaffold(
         modifier = modifier,
@@ -174,7 +178,7 @@ private fun RethinkMiscToggleRow(
         leadingIconContainerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = .7f),
         position = position,
         highlighted = highlighted,
-        trailing = { Switch(checked = toggle.checked, onCheckedChange = onCheckedChange) },
+        trailing = { Switch(checked = toggle.checked, onCheckedChange = null) },
         onClick = { onCheckedChange(!toggle.checked) },
     )
 }
