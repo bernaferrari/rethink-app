@@ -467,7 +467,7 @@ internal fun DemoAppInfoScreen(modifier: Modifier, app: RethinkFirewallApp?, onB
         onExcludeClick = { excluded = !excluded },
         onProxyExcludedChange = { proxyExcluded = it },
         onTempAllowChange = { tempAllowed = it },
-        onSystemAppInfo = {}, onIpRules = {}, onDomainRules = {}, onActiveConnections = {}, onDomains = {}, onIps = {},
+        onSystemAppInfo = {}, onIpRules = {}, onDomainRules = {}, onActiveConnections = null, onDomains = null, onIps = null,
         onActiveEntry = {}, onDomainEntry = {}, onIpEntry = {},
         titleLeading = {
             RethinkWebDemoAppIcon(
