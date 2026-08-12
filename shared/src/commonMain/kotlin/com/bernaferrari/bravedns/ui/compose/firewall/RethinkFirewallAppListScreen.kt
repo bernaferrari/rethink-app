@@ -8,6 +8,7 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.snap
@@ -54,9 +55,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -66,6 +69,7 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.components.RethinkIndexedFastScroller
+import com.bernaferrari.bravedns.ui.compose.apps.DiagonalWipeIcon
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkFilterChip
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkModalBottomSheet
@@ -346,11 +350,21 @@ private fun RethinkFirewallAppList(
         return
     }
 
+    // Hosts may return packages in install/UID order. Keep the renderer deterministic so the
+    // letter headers, fast scroller, and rows always describe the same alphabetical sequence.
+    val orderedApps = remember(apps) {
+        apps.sortedWith(
+            compareBy(
+                { it.appName.ifBlank { it.packageName }.trim().lowercase() },
+                { it.packageName.lowercase() },
+            ),
+        )
+    }
     val state = rememberLazyListState()
-    val indexKeys = remember(apps) { apps.flatMap { app -> listOf(appInitial(app), app.appName.ifBlank { app.packageName }) } }
+    val indexKeys = remember(orderedApps) { orderedApps.flatMap { app -> listOf(appInitial(app), app.appName.ifBlank { app.packageName }) } }
     Box(modifier.fillMaxSize()) {
                 RethinkFirewallAppRows(
-            apps = apps,
+            apps = orderedApps,
             state = state,
             query = query,
             strings = strings,
@@ -395,14 +409,15 @@ private fun RethinkFirewallAppRows(
             top = SharedDimensions.spacingXs,
             bottom = SharedDimensions.spacingXl,
         ),
-        verticalArrangement = Arrangement.spacedBy(2.dp),
     ) {
         apps.forEachIndexed { index, app ->
             val initial = appInitial(app)
             val previousInitial = apps.getOrNull(index - 1)?.let(::appInitial)
             val nextInitial = apps.getOrNull(index + 1)?.let(::appInitial)
             if (index == 0 || initial != previousInitial) {
-                stickyHeader(key = "firewall_header_$initial") { RethinkFirewallLetterHeader(initial) }
+                // The same initial can legitimately appear in separate groups after filtering;
+                // include the source position so LazyColumn never receives duplicate keys.
+                stickyHeader(key = "firewall_header_${initial}_$index") { RethinkFirewallLetterHeader(initial) }
             }
             val position = when {
                 previousInitial != initial && nextInitial != initial -> CardPosition.Single
@@ -500,18 +515,22 @@ private fun RethinkFirewallAppRow(
                 }
             }
             if (app.canToggleConnections) {
-                RethinkFirewallNetworkToggle(
-                    blocked = app.wifiBlocked,
-                    icon = if (app.wifiBlocked) MaterialSymbols.Filled.WifiOff else MaterialSymbols.Filled.Wifi,
-                    contentDescription = wifiActionLabel,
-                    onClick = onWifiToggle,
-                )
-                RethinkFirewallNetworkToggle(
-                    blocked = app.mobileBlocked,
-                    icon = if (app.mobileBlocked) MaterialSymbols.Filled.MobileOff else MaterialSymbols.Filled.SignalCellularAlt,
-                    contentDescription = mobileActionLabel,
-                    onClick = onMobileToggle,
-                )
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    RethinkFirewallNetworkToggle(
+                        blocked = app.wifiBlocked,
+                        allowedIcon = MaterialSymbols.Filled.Wifi,
+                        blockedIcon = MaterialSymbols.Filled.WifiOff,
+                        contentDescription = wifiActionLabel,
+                        onClick = onWifiToggle,
+                    )
+                    RethinkFirewallNetworkToggle(
+                        blocked = app.mobileBlocked,
+                        allowedIcon = MaterialSymbols.Outlined.MobiledataArrows,
+                        blockedIcon = MaterialSymbols.Outlined.MobiledataOff,
+                        contentDescription = mobileActionLabel,
+                        onClick = onMobileToggle,
+                    )
+                }
             }
         }
     }
@@ -527,19 +546,110 @@ private fun RethinkFirewallStatusBadge(label: String, color: Color) {
 @Composable
 private fun RethinkFirewallNetworkToggle(
     blocked: Boolean,
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    allowedIcon: ImageVector,
+    blockedIcon: ImageVector,
     contentDescription: String,
     onClick: () -> Unit,
 ) {
-    val tint = if (blocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant
+    val motion = LocalRethinkMotion.current
+    val interactionSource = remember { MutableInteractionSource() }
+    val pressed by interactionSource.collectIsPressedAsState()
+    val pressScale by animateFloatAsState(
+        targetValue = if (pressed && !motion.reducedMotion) 0.96f else 1f,
+        animationSpec = if (motion.reducedMotion) snap() else spring(stiffness = androidx.compose.animation.core.Spring.StiffnessHigh),
+        label = "firewall_network_toggle_press",
+    )
+    val stateTransition = androidx.compose.animation.core.updateTransition(targetState = blocked, label = "firewall_network_toggle_state")
+    val bubbleAlpha by stateTransition.animateFloat(
+        transitionSpec = {
+            if (true isTransitioningTo false) {
+                keyframes {
+                    durationMillis = motion.durationFast + 100
+                    1f at 0
+                    1f at 64
+                    0.64f at 160
+                    0f at durationMillis
+                }
+            } else {
+                if (motion.reducedMotion) snap() else spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow, dampingRatio = 0.82f)
+            }
+        },
+        label = "firewall_network_toggle_bubble_alpha",
+    ) { isBlocked -> if (isBlocked) 1f else 0f }
+    val bubbleScale by stateTransition.animateFloat(
+        transitionSpec = {
+            if (true isTransitioningTo false) {
+                keyframes {
+                    durationMillis = motion.durationFast + 100
+                    1f at 0
+                    1.1f at 64
+                    0.68f at 160
+                    0f at durationMillis
+                }
+            } else {
+                if (motion.reducedMotion) snap() else spring(stiffness = 640f, dampingRatio = 0.76f)
+            }
+        },
+        label = "firewall_network_toggle_bubble_scale",
+    ) { isBlocked -> if (isBlocked) 1f else 0f }
+    val iconScale by stateTransition.animateFloat(
+        transitionSpec = {
+            if (motion.reducedMotion) snap() else spring(
+                stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow,
+                dampingRatio = androidx.compose.animation.core.Spring.DampingRatioNoBouncy,
+            )
+        },
+        label = "firewall_network_toggle_icon_scale",
+    ) { isBlocked -> if (isBlocked) 1f else 0.9f }
+    val allowedTint = if (blocked) {
+        MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.44f)
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val blockedTint = if (blocked) {
+        MaterialTheme.colorScheme.onErrorContainer
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.9f)
+    }
+    val blockedBackground = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.88f)
     Surface(
         onClick = onClick,
-        modifier = Modifier.size(SharedDimensions.touchTargetSm).clip(CircleShape),
+        interactionSource = interactionSource,
         shape = CircleShape,
-        color = if (blocked) MaterialTheme.colorScheme.errorContainer.copy(alpha = .52f) else Color.Transparent,
+        color = Color.Transparent,
+        modifier = Modifier.size(SharedDimensions.touchTargetSm).graphicsLayer {
+            scaleX = pressScale
+            scaleY = pressScale
+        },
     ) {
         Box(contentAlignment = Alignment.Center) {
-            Icon(icon, contentDescription, tint = tint, modifier = Modifier.size(SharedDimensions.iconSizeSm))
+            Box(
+                modifier = Modifier
+                    .size(30.dp)
+                    .graphicsLayer {
+                        alpha = bubbleAlpha
+                        scaleX = bubbleScale
+                        scaleY = bubbleScale
+                    }
+                    .clip(CircleShape)
+                    .background(blockedBackground),
+            )
+            Box(
+                modifier = Modifier.size(18.dp).graphicsLayer {
+                    scaleX = iconScale
+                    scaleY = iconScale
+                },
+            ) {
+                DiagonalWipeIcon(
+                    blocked = blocked,
+                    allowedIcon = allowedIcon,
+                    blockedIcon = blockedIcon,
+                    allowedTint = allowedTint,
+                    blockedTint = blockedTint,
+                    contentDescription = contentDescription,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
     }
 }

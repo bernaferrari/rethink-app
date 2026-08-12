@@ -19,7 +19,7 @@ readonly FILLED_ICONS=(
   dark_mode delete delete_outline dns download edit edit_location_alt email event_note
   filter_list forum gavel gpp_bad group headset help_outline home http info
   keyboard_arrow_down keyboard_arrow_right language light_mode local_taxi lock map
-  mobile_off more_horiz more_vert movie music_note network_check network_ping
+  mobile_off mobiledata_arrows mobiledata_off more_horiz more_vert movie music_note network_check network_ping
   new_releases notifications notifications_off palette phone_android photo_library
   play_arrow policy public radio_button_checked radio_button_unchecked refresh remove
   restart_alt restore search security send settings share shield shield_moon shop
@@ -29,7 +29,7 @@ readonly FILLED_ICONS=(
 # Keep outline counterparts for selection-state components such as the root
 # navigation.  Selected destinations use FILL=1; inactive destinations use
 # FILL=0 while retaining the same symbol and visual weight.
-readonly OUTLINED_ICONS=(home info settings star star_border)
+readonly OUTLINED_ICONS=(home info settings star star_border mobiledata_arrows mobiledata_off)
 readonly AUTO_MIRRORED_FILLED_ICONS=(
   arrow_back arrow_forward article chat help_outline keyboard_arrow_right send subject
 )

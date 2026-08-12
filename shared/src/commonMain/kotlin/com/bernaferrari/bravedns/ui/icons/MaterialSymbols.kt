@@ -63,6 +63,8 @@ object MaterialSymbols {
         val Lock: ImageVector get() = filledLock
         val Map: ImageVector get() = filledMap
         val MobileOff: ImageVector get() = filledMobileOff
+        val MobiledataArrows: ImageVector get() = filledMobiledataArrows
+        val MobiledataOff: ImageVector get() = filledMobiledataOff
         val MoreHoriz: ImageVector get() = filledMoreHoriz
         val MoreVert: ImageVector get() = filledMoreVert
         val Movie: ImageVector get() = filledMovie
@@ -118,6 +120,8 @@ object MaterialSymbols {
         val Settings: ImageVector get() = outlinedSettings
         val Star: ImageVector get() = outlinedStar
         val StarBorder: ImageVector get() = outlinedStarBorder
+        val MobiledataArrows: ImageVector get() = outlinedMobiledataArrows
+        val MobiledataOff: ImageVector get() = outlinedMobiledataOff
     }
 
     object AutoMirrored {
