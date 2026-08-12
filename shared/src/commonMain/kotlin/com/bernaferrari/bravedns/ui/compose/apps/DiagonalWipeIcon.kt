@@ -72,8 +72,10 @@ fun DiagonalWipeIcon(
             .semantics { if (contentDescription != null) this.contentDescription = contentDescription },
     ) {
         when {
-            progress <= .001f -> Icon(allowedIcon, contentDescription, Modifier.fillMaxSize(), allowedTint)
-            progress >= .999f -> Icon(blockedIcon, contentDescription, Modifier.fillMaxSize(), blockedTint)
+            // The parent toggle owns the accessible label; keep the visual layers silent so
+            // screen readers announce one action instead of the same label twice.
+            progress <= .001f -> Icon(allowedIcon, null, Modifier.fillMaxSize(), allowedTint)
+            progress >= .999f -> Icon(blockedIcon, null, Modifier.fillMaxSize(), blockedTint)
             else -> Canvas(Modifier.fillMaxSize()) {
                 val diagonalProgress = ((progress * (size.width + size.height) + seamOverlapPx) / (size.width + size.height)).coerceIn(0f, 1f)
                 val path = diagonalRevealPath(size.width, size.height, diagonalProgress)

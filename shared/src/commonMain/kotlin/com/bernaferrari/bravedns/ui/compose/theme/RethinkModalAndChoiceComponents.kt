@@ -195,9 +195,11 @@ fun RethinkModalBottomSheet(
     val dismiss: () -> Unit = {
         if (!dismissing) {
             dismissing = true
+            // Remove the host immediately. On WebAssembly, waiting for hide() can leave the
+            // sheet's semantics/scrim mounted after it has visually disappeared.
+            currentOnDismissRequest()
             scope.launch {
                 sheetState.hide()
-                currentOnDismissRequest()
             }
         }
     }

@@ -1,0 +1,17 @@
+# Local and generated build state; Vercel runs the checked-in build script remotely.
+.git/
+.gradle/
+.kotlin/
+.idea/
+build/
+app/build/
+shared/build/
+web-build/build/
+tun2socks/target/
+local.properties
+app/google-services.json
+*.iml
+*.apk
+*.aab
+*.hprof
+.DS_Store
