@@ -74,6 +74,28 @@ data class RethinkAppearanceStrings(
     val dark: String,
 )
 
+/** Product palette used by Settings. Android maps these ids onto [RethinkColorPreset]. */
+val rethinkAppearancePresets = listOf(
+    RethinkAppearancePreset(1, "Dynamic", null, isDynamic = true),
+    RethinkAppearancePreset(2, "Coral", Color(0xFF804136)),
+    RethinkAppearancePreset(11, "Rose", Color(0xFFB23A5E)),
+    RethinkAppearancePreset(6, "Orange", Color(0xFFC76519)),
+    RethinkAppearancePreset(8, "Amber", Color(0xFFA86800)),
+    RethinkAppearancePreset(7, "Green", Color(0xFF27854A)),
+    RethinkAppearancePreset(3, "Teal", Color(0xFF167D70)),
+    RethinkAppearancePreset(9, "Cyan", Color(0xFF007C91)),
+    RethinkAppearancePreset(4, "Blue", Color(0xFF3568B7)),
+    RethinkAppearancePreset(10, "Indigo", Color(0xFF545CC9)),
+    RethinkAppearancePreset(5, "Purple", Color(0xFF7855B4)),
+)
+
+val rethinkAppearanceStrings = RethinkAppearanceStrings(
+    heading = "Appearance",
+    system = "System",
+    light = "Light",
+    dark = "Dark",
+)
+
 /**
  * Common theme picker. It intentionally always retains the responsive selection animation; hosts
  * are responsible only for applying the new persisted preference and, on Android, querying the

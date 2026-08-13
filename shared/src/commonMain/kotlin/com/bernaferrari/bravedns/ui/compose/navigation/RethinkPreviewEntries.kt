@@ -4,6 +4,8 @@ package com.bernaferrari.bravedns.ui.compose.navigation
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.EntryProviderScope
 import androidx.navigation3.runtime.NavKey
@@ -60,28 +62,27 @@ import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
     nav: RethinkNavOps,
     demoDependencies: RethinkWebDemoDependencies,
-    vpnOn: Boolean,
-    onVpnToggle: () -> Unit,
+    vpnOn: MutableState<Boolean>,
     statisticsWindow: RethinkStatisticsWindow,
     onStatisticsWindowChange: (RethinkStatisticsWindow) -> Unit,
     configureSearchOpen: Boolean,
     onConfigureSearchOpenChange: (Boolean) -> Unit,
     configureQuery: String,
     onConfigureQueryChange: (String) -> Unit,
+    appearanceContent: @Composable () -> Unit,
 ) {
-    val homeUiState = RethinkHomeUiState(
-        isVpnActive = vpnOn,
-        networkLogsCount = 4_320,
-        dnsLogsCount = 1_284,
-        protectionStatus = if (vpnOn) "Protected" else "Not active",
-    )
-
     entry<RethinkRoute.Home> {
+        val active = vpnOn.value
         RethinkCenteredScreen {
             RethinkHomeScreen(
-                uiState = homeUiState,
+                uiState = RethinkHomeUiState(
+                    isVpnActive = active,
+                    networkLogsCount = 4_320,
+                    dnsLogsCount = 1_284,
+                    protectionStatus = if (active) "Protected" else "Not active",
+                ),
                 strings = demoHomeStrings,
-                onStartStopClick = onVpnToggle,
+                onStartStopClick = { vpnOn.value = !vpnOn.value },
                 showAtmosphere = false,
             )
         }
@@ -191,6 +192,7 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
                 query = configureQuery,
                 onSearchOpenChange = onConfigureSearchOpenChange,
                 onQueryChange = onConfigureQueryChange,
+                appearanceContent = appearanceContent,
             )
         }
     }

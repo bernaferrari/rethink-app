@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -22,6 +23,10 @@ import com.bernaferrari.bravedns.ui.compose.home.RethinkWelcomeScreen
 import com.bernaferrari.bravedns.ui.compose.navigation.RethinkAppNavigation
 import com.bernaferrari.bravedns.ui.compose.navigation.RethinkRoute
 import com.bernaferrari.bravedns.ui.compose.navigation.rethinkPreviewEntries
+import com.bernaferrari.bravedns.ui.compose.settings.RethinkAppearanceMode
+import com.bernaferrari.bravedns.ui.compose.settings.RethinkAppearanceSettingsCard
+import com.bernaferrari.bravedns.ui.compose.settings.rethinkAppearancePresets
+import com.bernaferrari.bravedns.ui.compose.settings.rethinkAppearanceStrings
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkStatisticsWindow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSharedTheme
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -45,14 +50,24 @@ fun RethinkAppContent(
     onRouteNavigated: () -> Unit = {},
 ) {
     var showWelcome by remember(showWelcomeInitially) { mutableStateOf(showWelcomeInitially) }
-    var vpnOn by remember { mutableStateOf(false) }
+    val vpnOn = remember { mutableStateOf(false) }
+    var appearanceMode by remember { mutableStateOf(RethinkAppearanceMode.System) }
+    var appearancePresetId by remember { mutableIntStateOf(2) }
     var statisticsWindow by remember { mutableStateOf(RethinkStatisticsWindow.TwentyFourHours) }
     var configureSearchOpen by remember { mutableStateOf(false) }
     var configureQuery by remember { mutableStateOf("") }
+    val seedColor = rethinkAppearancePresets
+        .firstOrNull { it.id == appearancePresetId && it.color != null }
+        ?.color
+        ?: Color(0xFF804136)
 
     RethinkSharedTheme(
-        darkTheme = darkTheme,
-        seedColor = Color(0xFF804136),
+        darkTheme = when (appearanceMode) {
+            RethinkAppearanceMode.System -> darkTheme
+            RethinkAppearanceMode.Light -> false
+            RethinkAppearanceMode.Dark -> true
+        },
+        seedColor = seedColor,
         reducedMotion = reducedMotion,
     ) {
         if (showWelcome) {
@@ -89,10 +104,10 @@ fun RethinkAppContent(
                         if (current is RethinkRoute.Home) {
                             RethinkHomeAtmosphere(
                                 uiState = RethinkHomeUiState(
-                                    isVpnActive = vpnOn,
+                                    isVpnActive = vpnOn.value,
                                     networkLogsCount = 4_320,
                                     dnsLogsCount = 1_284,
-                                    protectionStatus = if (vpnOn) "Protected" else "Not active",
+                                    protectionStatus = if (vpnOn.value) "Protected" else "Not active",
                                 ),
                                 modifier = Modifier.fillMaxSize(),
                             )
@@ -103,13 +118,24 @@ fun RethinkAppContent(
                             nav = nav,
                             demoDependencies = demoDependencies,
                             vpnOn = vpnOn,
-                            onVpnToggle = { vpnOn = !vpnOn },
                             statisticsWindow = statisticsWindow,
                             onStatisticsWindowChange = { statisticsWindow = it },
                             configureSearchOpen = configureSearchOpen,
                             onConfigureSearchOpenChange = { configureSearchOpen = it },
                             configureQuery = configureQuery,
                             onConfigureQueryChange = { configureQuery = it },
+                            appearanceContent = {
+                                RethinkAppearanceSettingsCard(
+                                    selectedMode = appearanceMode,
+                                    selectedPresetId = appearancePresetId,
+                                    presets = rethinkAppearancePresets,
+                                    strings = rethinkAppearanceStrings,
+                                    dynamicColor = Color(0xFF7C8BFF),
+                                    dynamicSupported = false,
+                                    onModeSelected = { appearanceMode = it },
+                                    onPresetSelected = { appearancePresetId = it.id },
+                                )
+                            },
                         )
                     },
                 )
