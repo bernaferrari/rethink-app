@@ -107,27 +107,6 @@ internal val demoAboutStrings = RethinkAboutStrings(
     supportedBy = "Supported by Mozilla",
 )
 
-internal val demoAppearanceStrings = RethinkAppearanceStrings(
-    heading = "Appearance",
-    system = "System",
-    light = "Light",
-    dark = "Dark",
-)
-
-internal val demoAppearancePresets = listOf(
-    RethinkAppearancePreset(1, "Dynamic", null, isDynamic = true),
-    RethinkAppearancePreset(2, "Coral", Color(0xFF804136)),
-    RethinkAppearancePreset(11, "Rose", Color(0xFFB23A5E)),
-    RethinkAppearancePreset(6, "Orange", Color(0xFFC76519)),
-    RethinkAppearancePreset(8, "Amber", Color(0xFFA86800)),
-    RethinkAppearancePreset(7, "Green", Color(0xFF27854A)),
-    RethinkAppearancePreset(3, "Teal", Color(0xFF167D70)),
-    RethinkAppearancePreset(9, "Cyan", Color(0xFF007C91)),
-    RethinkAppearancePreset(4, "Blue", Color(0xFF3568B7)),
-    RethinkAppearancePreset(10, "Indigo", Color(0xFF545CC9)),
-    RethinkAppearancePreset(5, "Purple", Color(0xFF7855B4)),
-)
-
 internal val demoLogsStrings = RethinkLogsStrings(
     title = "Logs",
     network = "Network",
@@ -631,7 +610,7 @@ internal fun demoConfigureSections(
         listOf(
             demoConfigureEntry("network", "Network", Color(0xFFA3BCFF), MaterialSymbols.Filled.VpnKey, RethinkRoute.TunnelSettings(), onOpenDetail),
             demoConfigureEntry("rpn", "Rethink Plus", Color(0xFF9B8CFF), MaterialSymbols.Filled.Star, RethinkRoute.RpnAccount, onOpenDetail, "Account and support"),
-            demoConfigureEntry("settings", "App preferences", Color(0xFFFFD878), MaterialSymbols.Filled.Settings, RethinkRoute.MiscSettings(), onOpenDetail, "Appearance, device, and app behavior"),
+            demoConfigureEntry("settings", "App preferences", Color(0xFFFFD878), MaterialSymbols.Filled.Settings, RethinkRoute.MiscSettings(), onOpenDetail, "Backup, device, and app behavior"),
             demoConfigureEntry("logs", "Logs", Color(0xFF7EED92), MaterialSymbols.Filled.Subject, RethinkRoute.NetworkLogs, onOpenDetail, "Network and DNS logging"),
             demoConfigureEntry("rpn-countries", "Rethink locations", Color(0xFF7AB6FF), MaterialSymbols.Filled.Public, RethinkRoute.RpnCountries, onOpenDetail, "Select RPN servers"),
         ),

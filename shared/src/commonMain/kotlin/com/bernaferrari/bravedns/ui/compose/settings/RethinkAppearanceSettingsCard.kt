@@ -28,6 +28,7 @@ import androidx.compose.material3.ButtonGroupDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.ToggleButton
 import androidx.compose.material3.ToggleButtonDefaults
@@ -54,6 +55,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
+import com.bernaferrari.bravedns.ui.compose.theme.rethinkGroupedListShape
+import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
 
 enum class RethinkAppearanceMode { System, Light, Dark }
 
@@ -107,72 +110,94 @@ fun RethinkAppearanceSettingsCard(
         RethinkAppearanceMode.Dark to strings.dark,
     )
 
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
+    ) {
         if (showSectionHeader) {
             Text(
-                text = strings.heading,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.SemiBold,
+                text = strings.heading.uppercase(),
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
                 color = sectionHeaderColor,
-                modifier = Modifier.padding(top = SharedDimensions.spacingMd, bottom = SharedDimensions.spacingSm),
+                modifier = Modifier.padding(start = SharedDimensions.spacingLg),
             )
         }
-        FlowRow(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingSm),
-            horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
-            verticalArrangement = Arrangement.spacedBy(6.dp),
-        ) {
-            modes.forEachIndexed { index, (mode, label) ->
-                val selected = mode == appearanceMode
-                ToggleButton(
-                    checked = selected,
-                    onCheckedChange = { checked ->
-                        if (checked && mode != appearanceMode) {
-                            appearanceMode = mode
-                            onModeSelected(mode)
-                        }
-                    },
-                    shapes = when (index) {
-                        0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
-                        modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
-                        else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
-                    },
-                    colors = ToggleButtonDefaults.toggleButtonColors(
-                        checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
-                        checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    ),
-                    modifier = Modifier.semantics { role = Role.RadioButton },
+        // Mode + palette as stacked cards (2.dp gap), matching the rest of Settings.
+        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = rethinkGroupedListShape(CardPosition.First),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+            ) {
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(SharedDimensions.cardPadding),
+                    horizontalArrangement = Arrangement.spacedBy(ButtonGroupDefaults.ConnectedSpaceBetween),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Icon(
-                        imageVector = if (selected) MaterialSymbols.Filled.Check else mode.icon(),
-                        contentDescription = null,
-                        modifier = Modifier.size(ToggleButtonDefaults.IconSize),
-                    )
-                    Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-                    Text(label, style = MaterialTheme.typography.labelLarge)
+                    modes.forEachIndexed { index, (mode, label) ->
+                        val selected = mode == appearanceMode
+                        ToggleButton(
+                            checked = selected,
+                            onCheckedChange = { checked ->
+                                if (checked && mode != appearanceMode) {
+                                    appearanceMode = mode
+                                    onModeSelected(mode)
+                                }
+                            },
+                            shapes = when (index) {
+                                0 -> ButtonGroupDefaults.connectedLeadingButtonShapes()
+                                modes.lastIndex -> ButtonGroupDefaults.connectedTrailingButtonShapes()
+                                else -> ButtonGroupDefaults.connectedMiddleButtonShapes()
+                            },
+                            colors = ToggleButtonDefaults.toggleButtonColors(
+                                checkedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                                checkedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+                                contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            ),
+                            modifier = Modifier.semantics { role = Role.RadioButton },
+                        ) {
+                            Icon(
+                                imageVector = if (selected) MaterialSymbols.Filled.Check else mode.icon(),
+                                contentDescription = null,
+                                modifier = Modifier.size(ToggleButtonDefaults.IconSize),
+                            )
+                            Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
+                            Text(label, style = MaterialTheme.typography.labelLarge)
+                        }
+                    }
                 }
             }
-        }
-        FlowRow(
-            modifier = Modifier.fillMaxWidth().padding(start = SharedDimensions.spacingSm, end = SharedDimensions.spacingSm, top = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterHorizontally),
-            verticalArrangement = Arrangement.spacedBy(0.dp),
-        ) {
-            visiblePresets.forEach { preset ->
-                RethinkThemeColorSwatch(
-                    preset = preset,
-                    selected = preset.id == displayedPresetId,
-                    enabled = true,
-                    dynamicColor = dynamicColor,
-                    onClick = {
-                        if (preset.id != colorPresetId) {
-                            colorPresetId = preset.id
-                            onPresetSelected(preset)
-                        }
-                    },
-                )
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = rethinkGroupedListShape(CardPosition.Last),
+                color = MaterialTheme.colorScheme.surfaceContainerLow,
+            ) {
+                FlowRow(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(SharedDimensions.cardPadding),
+                    horizontalArrangement = Arrangement.spacedBy(0.dp, Alignment.CenterHorizontally),
+                    verticalArrangement = Arrangement.spacedBy(0.dp),
+                ) {
+                    visiblePresets.forEach { preset ->
+                        RethinkThemeColorSwatch(
+                            preset = preset,
+                            selected = preset.id == displayedPresetId,
+                            enabled = true,
+                            dynamicColor = dynamicColor,
+                            onClick = {
+                                if (preset.id != colorPresetId) {
+                                    colorPresetId = preset.id
+                                    onPresetSelected(preset)
+                                }
+                            },
+                        )
+                    }
+                }
             }
         }
     }

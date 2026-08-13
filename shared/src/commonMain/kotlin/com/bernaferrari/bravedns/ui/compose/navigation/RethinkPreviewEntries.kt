@@ -45,7 +45,6 @@ import com.bernaferrari.bravedns.ui.compose.demoFirewallApps
 import com.bernaferrari.bravedns.ui.compose.demoHomeStrings
 import com.bernaferrari.bravedns.ui.compose.home.RethinkHomeScreen
 import com.bernaferrari.bravedns.ui.compose.home.RethinkHomeUiState
-import com.bernaferrari.bravedns.ui.compose.settings.RethinkAppearanceMode
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkStatisticsWindow
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkSummaryStatisticsRow
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkSummaryStatisticsScreen
@@ -61,10 +60,6 @@ import com.bernaferrari.bravedns.ui.compose.theme.SharedDimensions
 fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
     nav: RethinkNavOps,
     demoDependencies: RethinkWebDemoDependencies,
-    appearanceMode: RethinkAppearanceMode,
-    appearancePresetId: Int,
-    onAppearanceModeChange: (RethinkAppearanceMode) -> Unit,
-    onAppearancePresetChange: (Int) -> Unit,
     vpnOn: Boolean,
     onVpnToggle: () -> Unit,
     statisticsWindow: RethinkStatisticsWindow,
@@ -212,10 +207,6 @@ fun EntryProviderScope<NavKey>.rethinkPreviewEntries(
         RethinkCenteredScreen {
             DemoMiscSettingsScreen(
                 modifier = Modifier.fillMaxSize(),
-                appearanceMode = appearanceMode,
-                appearancePresetId = appearancePresetId,
-                onAppearanceModeChange = onAppearanceModeChange,
-                onAppearancePresetChange = onAppearancePresetChange,
                 onOpenAbout = { nav.push(RethinkRoute.About) },
                 onBack = nav::popBackStack,
             )

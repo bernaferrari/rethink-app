@@ -512,8 +512,6 @@ fun HomeScreenRoot(
                     onBackClick = { nav.popBackStack() },
                     onOpenAbout = { nav.push(RethinkRoute.About) },
                     onRefreshDatabase = onRefreshDatabase,
-                    onThemeModeChanged = onThemeModeChanged,
-                    onThemeColorChanged = onThemeColorChanged
                 )
             }
             entry<RethinkRoute.PingTest> {
@@ -762,6 +760,10 @@ fun HomeScreenRoot(
                     onLogsClick = onConfigureLogsClick,
                     onAntiCensorshipClick = onConfigureAntiCensorshipClick,
                     onAdvancedClick = onConfigureAdvancedClick,
+                    persistentState = persistentState,
+                    eventLogger = appInfoEventLogger,
+                    onThemeModeChanged = onThemeModeChanged,
+                    onThemeColorChanged = onThemeColorChanged,
                     onSearchDestinationClick = { destination ->
                         when (destination) {
                             SettingsSearchDestination.Apps -> nav.push(RethinkRoute.AppList)
@@ -777,9 +779,19 @@ fun HomeScreenRoot(
                             is SettingsSearchDestination.Network -> nav.push(
                                 RethinkRoute.TunnelSettings(destination.focusKey)
                             )
-                            is SettingsSearchDestination.General -> nav.push(
-                                RethinkRoute.MiscSettings(destination.focusKey)
-                            )
+                            is SettingsSearchDestination.General -> {
+                                // Appearance is on the Settings root; other general keys open Misc.
+                                val focus = destination.focusKey
+                                if (
+                                    focus == "general_appearance" ||
+                                    focus == "general_theme_mode" ||
+                                    focus == "general_theme_color"
+                                ) {
+                                    // Already on Configure; appearance is at the top.
+                                } else {
+                                    nav.push(RethinkRoute.MiscSettings(focus))
+                                }
+                            }
                             SettingsSearchDestination.Logs -> nav.push(RethinkRoute.NetworkLogs)
                             SettingsSearchDestination.AntiCensorship -> nav.push(RethinkRoute.AntiCensorship)
                             SettingsSearchDestination.Advanced -> nav.push(RethinkRoute.AdvancedSettings)

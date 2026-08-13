@@ -22,7 +22,6 @@ import com.bernaferrari.bravedns.ui.compose.home.RethinkWelcomeScreen
 import com.bernaferrari.bravedns.ui.compose.navigation.RethinkAppNavigation
 import com.bernaferrari.bravedns.ui.compose.navigation.RethinkRoute
 import com.bernaferrari.bravedns.ui.compose.navigation.rethinkPreviewEntries
-import com.bernaferrari.bravedns.ui.compose.settings.RethinkAppearanceMode
 import com.bernaferrari.bravedns.ui.compose.statistics.RethinkStatisticsWindow
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkSharedTheme
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
@@ -45,11 +44,6 @@ fun RethinkAppContent(
     pendingRoute: RethinkRoute? = null,
     onRouteNavigated: () -> Unit = {},
 ) {
-    var appearanceMode by remember { mutableStateOf(RethinkAppearanceMode.System) }
-    var appearancePresetId by remember { mutableStateOf(2) }
-    val appearanceSeed =
-        demoAppearancePresets.firstOrNull { it.id == appearancePresetId }?.color
-            ?: Color(0xFF804136)
     var showWelcome by remember(showWelcomeInitially) { mutableStateOf(showWelcomeInitially) }
     var vpnOn by remember { mutableStateOf(false) }
     var statisticsWindow by remember { mutableStateOf(RethinkStatisticsWindow.TwentyFourHours) }
@@ -57,12 +51,8 @@ fun RethinkAppContent(
     var configureQuery by remember { mutableStateOf("") }
 
     RethinkSharedTheme(
-        darkTheme = when (appearanceMode) {
-            RethinkAppearanceMode.System -> darkTheme
-            RethinkAppearanceMode.Light -> false
-            RethinkAppearanceMode.Dark -> true
-        },
-        seedColor = appearanceSeed,
+        darkTheme = darkTheme,
+        seedColor = Color(0xFF804136),
         reducedMotion = reducedMotion,
     ) {
         if (showWelcome) {
@@ -112,10 +102,6 @@ fun RethinkAppContent(
                         rethinkPreviewEntries(
                             nav = nav,
                             demoDependencies = demoDependencies,
-                            appearanceMode = appearanceMode,
-                            appearancePresetId = appearancePresetId,
-                            onAppearanceModeChange = { appearanceMode = it },
-                            onAppearancePresetChange = { appearancePresetId = it },
                             vpnOn = vpnOn,
                             onVpnToggle = { vpnOn = !vpnOn },
                             statisticsWindow = statisticsWindow,

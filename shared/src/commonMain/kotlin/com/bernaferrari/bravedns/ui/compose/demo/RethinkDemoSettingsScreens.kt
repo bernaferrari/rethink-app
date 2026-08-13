@@ -32,10 +32,6 @@ import com.bernaferrari.bravedns.ui.compose.wireguard.*
 @Composable
 internal fun DemoMiscSettingsScreen(
     modifier: Modifier,
-    appearanceMode: RethinkAppearanceMode,
-    appearancePresetId: Int,
-    onAppearanceModeChange: (RethinkAppearanceMode) -> Unit,
-    onAppearancePresetChange: (Int) -> Unit,
     onOpenAbout: () -> Unit,
     onBack: () -> Unit,
 ) {
@@ -87,18 +83,6 @@ internal fun DemoMiscSettingsScreen(
         onBackupRestore = { showBackupRestore = true },
         onOpenWebsite = {},
         onOpenAbout = onOpenAbout,
-        appearanceContent = {
-            RethinkAppearanceSettingsCard(
-                selectedMode = appearanceMode,
-                selectedPresetId = appearancePresetId,
-                presets = demoAppearancePresets,
-                strings = demoAppearanceStrings,
-                dynamicColor = Color(0xFF7C8BFF),
-                dynamicSupported = false,
-                onModeSelected = onAppearanceModeChange,
-                onPresetSelected = { onAppearancePresetChange(it.id) },
-            )
-        },
         onBackClick = onBack,
         modifier = modifier,
     )
