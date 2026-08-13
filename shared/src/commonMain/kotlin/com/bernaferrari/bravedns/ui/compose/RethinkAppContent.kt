@@ -28,7 +28,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.RethinkSharedTheme
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
 /**
- * QuietGuard-style app shell: theme + optional welcome + one [RethinkAppNavigation].
+ * Shared app shell: theme + optional welcome + one [RethinkAppNavigation].
  *
  * Wasm uses the default preview [entryBuilder]. Android mounts the same navigation host with a
  * product [entryBuilder] (see `HomeScreenRoot`) — same routes, stack policy, and chrome.

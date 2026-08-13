@@ -453,6 +453,7 @@ internal fun DemoAppInfoScreen(modifier: Modifier, app: RethinkFirewallApp?, onB
         strings = RethinkAppInfoStrings(
             unavailable = "This app is no longer available.", back = "Back", status = "Status", temporaryAllow = "Temporarily allowed",
             firewall = "Firewall", wifi = "Wi‑Fi", wifiDescription = "Block connections on unmetered networks.", mobile = "Mobile data", mobileDescription = "Block connections on metered networks.",
+            allowed = "Allowed", blocked = "Blocked",
             isolate = "Isolate", isolateDescription = "Block all app traffic.", bypassDns = "Bypass DNS firewall", bypassDnsDescription = "Allow DNS traffic outside DNS rules.",
             bypassUniversal = "Bypass universal firewall", bypassUniversalDescription = "Ignore the universal firewall rule.", exclude = "Exclude", excludeDescription = "Keep this app outside VPN filtering.",
             advanced = "Advanced", proxyExclude = "Exclude from proxy", proxyExcludeDescription = "Keep this app outside proxy routing.",

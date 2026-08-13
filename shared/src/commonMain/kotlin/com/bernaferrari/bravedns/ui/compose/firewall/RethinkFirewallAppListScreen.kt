@@ -612,7 +612,7 @@ private fun RethinkFirewallNetworkToggle(
         },
         label = "firewall_network_toggle_bubble_scale",
     ) { isBlocked -> if (isBlocked) 1f else 0f }
-    // Spring-scaled for weight (like QuietGuard); layout box stays 18.dp so the row never remeasures.
+    // Spring-scaled for weight; layout box stays 18.dp so the row never remeasures.
     val iconScale by stateTransition.animateFloat(
         transitionSpec = {
             if (motion.reducedMotion) {

@@ -9,8 +9,8 @@ import kotlinx.serialization.modules.polymorphic
 import kotlinx.serialization.modules.subclass
 
 /**
- * Single Navigation 3 key graph for every host (Android + wasm), matching QuietGuard's one-graph
- * model. Platform differences are data/backends, not parallel route types.
+ * Single Navigation 3 key graph for every host (Android + wasm).
+ * Platform differences are data/backends, not parallel route types.
  */
 @Serializable
 sealed interface RethinkRoute : NavKey {

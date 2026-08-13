@@ -1,7 +1,7 @@
 /*
  * Copyright 2026 RethinkDNS and its authors
  *
- * Browser entry: mounts the shared RethinkAppContent shell (QuietGuard-style) via wasmJs.
+ * Browser entry: mounts the shared RethinkAppContent shell via wasmJs.
  */
 package com.bernaferrari.bravedns
 
