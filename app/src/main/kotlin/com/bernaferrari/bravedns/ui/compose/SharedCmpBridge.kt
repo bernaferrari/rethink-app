@@ -5,7 +5,7 @@
  * screens can gradually delegate portable UI (empty states, welcome/pause shells,
  * home dashboard) without pulling Android resources into commonMain.
  *
- * Full non-functional web entry: [RethinkDemoApp] in :shared commonMain (wasmJs host in :shared).
+ * Web entry: shared [RethinkAppContent] + Nav3 [RethinkAppNavigation] (wasmJs host in :shared).
  */
 package com.bernaferrari.bravedns.ui.compose
 

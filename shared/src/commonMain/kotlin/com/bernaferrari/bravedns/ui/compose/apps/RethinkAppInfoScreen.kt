@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
@@ -25,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -86,8 +88,6 @@ data class RethinkAppInfoStrings(
     val bypassUniversalDescription: String,
     val exclude: String,
     val excludeDescription: String,
-    val enabled: String,
-    val disabled: String,
     val advanced: String,
     val proxyExclude: String,
     val proxyExcludeDescription: String,
@@ -120,9 +120,9 @@ fun RethinkAppInfoScreen(
     onActiveConnections: (() -> Unit)?,
     onDomains: (() -> Unit)?,
     onIps: (() -> Unit)?,
-    onActiveEntry: (RethinkAppInfoLogItem) -> Unit,
-    onDomainEntry: (RethinkAppInfoLogItem) -> Unit,
-    onIpEntry: (RethinkAppInfoLogItem) -> Unit,
+    onActiveEntry: ((RethinkAppInfoLogItem) -> Unit)?,
+    onDomainEntry: ((RethinkAppInfoLogItem) -> Unit)?,
+    onIpEntry: ((RethinkAppInfoLogItem) -> Unit)?,
     titleLeading: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
@@ -172,10 +172,10 @@ fun RethinkAppInfoScreen(
                     RethinkFormSection(strings.firewall) {
                         RethinkAppNetworkPair(state, strings, onWifiClick, onMobileClick)
                         RethinkListGroup {
-                            RethinkAppExclusiveRow(strings.isolate, strings.isolateDescription, state.isolated, MaterialSymbols.Filled.Security, MaterialTheme.colorScheme.error, strings.enabled, strings.disabled, CardPosition.First, onIsolateClick)
-                            RethinkAppExclusiveRow(strings.bypassDns, strings.bypassDnsDescription, state.bypassDnsFirewall, MaterialSymbols.Filled.Dns, MaterialTheme.colorScheme.tertiary, strings.enabled, strings.disabled, CardPosition.Middle, onBypassDnsClick)
-                            RethinkAppExclusiveRow(strings.bypassUniversal, strings.bypassUniversalDescription, state.bypassUniversalFirewall, MaterialSymbols.Filled.Public, MaterialTheme.colorScheme.tertiary, strings.enabled, strings.disabled, CardPosition.Middle, onBypassUniversalClick)
-                            RethinkAppExclusiveRow(strings.exclude, strings.excludeDescription, state.excluded, MaterialSymbols.Filled.Apps, MaterialTheme.colorScheme.secondary, strings.enabled, strings.disabled, CardPosition.Last, onExcludeClick)
+                            RethinkAppExclusiveRow(strings.isolate, strings.isolateDescription, state.isolated, MaterialSymbols.Filled.Security, MaterialTheme.colorScheme.error, CardPosition.First, onIsolateClick)
+                            RethinkAppExclusiveRow(strings.bypassDns, strings.bypassDnsDescription, state.bypassDnsFirewall, MaterialSymbols.Filled.Dns, MaterialTheme.colorScheme.tertiary, CardPosition.Middle, onBypassDnsClick)
+                            RethinkAppExclusiveRow(strings.bypassUniversal, strings.bypassUniversalDescription, state.bypassUniversalFirewall, MaterialSymbols.Filled.Public, MaterialTheme.colorScheme.tertiary, CardPosition.Middle, onBypassUniversalClick)
+                            RethinkAppExclusiveRow(strings.exclude, strings.excludeDescription, state.excluded, MaterialSymbols.Filled.Apps, MaterialTheme.colorScheme.secondary, CardPosition.Last, onExcludeClick)
                         }
                     }
                 }
@@ -188,7 +188,10 @@ fun RethinkAppInfoScreen(
                     }
                 }
                 item {
-                    RethinkFormSection(strings.rules) {
+                    RethinkFormSection(
+                        title = strings.rules,
+                        titleModifier = Modifier.padding(horizontal = SharedDimensions.spacingSm),
+                    ) {
                         RethinkListGroup {
                             RethinkAppNavigationRow(strings.systemAppInfo, MaterialSymbols.Filled.Settings, CardPosition.First, onSystemAppInfo)
                             RethinkAppNavigationRow(strings.ipRules, MaterialSymbols.Filled.Public, CardPosition.Middle, onIpRules)
@@ -228,9 +231,11 @@ private fun RethinkAppStatusPill(label: String, active: Boolean) {
 
 @Composable
 private fun RethinkAppNetworkPair(state: RethinkAppInfoState, strings: RethinkAppInfoStrings, onWifiClick: () -> Unit, onMobileClick: () -> Unit) {
-    Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingGridTile), modifier = Modifier.fillMaxWidth()) {
+    // The two network controls form one paired surface; keep their edges touching rather than
+    // presenting them as two unrelated cards.
+    Row(horizontalArrangement = Arrangement.spacedBy(0.dp), modifier = Modifier.fillMaxWidth()) {
         RethinkAppNetworkTile(strings.wifi, strings.wifiDescription, state.wifiBlocked, MaterialSymbols.Filled.Wifi, MaterialSymbols.Filled.WifiOff, rethinkGroupedListPairShape(isLeadingTile = true, position = CardPosition.Single), Modifier.weight(1f), onWifiClick)
-        RethinkAppNetworkTile(strings.mobile, strings.mobileDescription, state.mobileBlocked, MaterialSymbols.Filled.SignalCellularAlt, MaterialSymbols.Filled.MobileOff, rethinkGroupedListPairShape(isLeadingTile = false, position = CardPosition.Single), Modifier.weight(1f), onMobileClick)
+        RethinkAppNetworkTile(strings.mobile, strings.mobileDescription, state.mobileBlocked, MaterialSymbols.Outlined.MobiledataArrows, MaterialSymbols.Outlined.MobiledataOff, rethinkGroupedListPairShape(isLeadingTile = false, position = CardPosition.Single), Modifier.weight(1f), onMobileClick)
     }
 }
 
@@ -238,7 +243,15 @@ private fun RethinkAppNetworkPair(state: RethinkAppInfoState, strings: RethinkAp
 private fun RethinkAppNetworkTile(title: String, description: String, blocked: Boolean, allowedIcon: androidx.compose.ui.graphics.vector.ImageVector, blockedIcon: androidx.compose.ui.graphics.vector.ImageVector, shape: androidx.compose.ui.graphics.Shape, modifier: Modifier, onClick: () -> Unit) {
     Surface(onClick = onClick, modifier = modifier.clip(shape), shape = shape, color = if (blocked) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.48f) else MaterialTheme.colorScheme.surfaceContainerLow) {
         Column(Modifier.padding(SharedDimensions.cardPadding), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-            Icon(if (blocked) blockedIcon else allowedIcon, null, tint = if (blocked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary)
+            DiagonalWipeIcon(
+                blocked = blocked,
+                allowedIcon = allowedIcon,
+                blockedIcon = blockedIcon,
+                allowedTint = MaterialTheme.colorScheme.primary,
+                blockedTint = MaterialTheme.colorScheme.error,
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
             Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
             Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
@@ -246,13 +259,18 @@ private fun RethinkAppNetworkTile(title: String, description: String, blocked: B
 }
 
 @Composable
-private fun RethinkAppExclusiveRow(title: String, description: String, enabled: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: androidx.compose.ui.graphics.Color, onLabel: String, offLabel: String, position: CardPosition, onClick: () -> Unit) {
+private fun RethinkAppExclusiveRow(title: String, description: String, enabled: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, tint: androidx.compose.ui.graphics.Color, position: CardPosition, onClick: () -> Unit) {
     RethinkListItem(
         headline = title,
         supporting = description,
         leadingIcon = icon,
         leadingIconTint = tint,
         position = position,
+        defaultContainerColor = if (enabled) {
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.32f)
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        },
         trailing = { Switch(checked = enabled, onCheckedChange = null) },
         onClick = onClick,
     )
@@ -260,7 +278,19 @@ private fun RethinkAppExclusiveRow(title: String, description: String, enabled: 
 
 @Composable
 private fun RethinkAppToggleRow(title: String, description: String, checked: Boolean, icon: androidx.compose.ui.graphics.vector.ImageVector, position: CardPosition, onChange: (Boolean) -> Unit) {
-    RethinkListItem(headline = title, supporting = description, leadingIcon = icon, position = position, onClick = { onChange(!checked) }, trailing = { Switch(checked = checked, onCheckedChange = null) })
+    RethinkListItem(
+        headline = title,
+        supporting = description,
+        leadingIcon = icon,
+        position = position,
+        defaultContainerColor = if (checked) {
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.32f)
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        },
+        onClick = { onChange(!checked) },
+        trailing = { Switch(checked = checked, onCheckedChange = null) },
+    )
 }
 
 @Composable
@@ -269,40 +299,33 @@ private fun RethinkAppNavigationRow(title: String, icon: androidx.compose.ui.gra
 }
 
 @Composable
-private fun RethinkAppLogCard(section: RethinkAppInfoLogSection, strings: RethinkAppInfoStrings, onOpen: (() -> Unit)?, onEntry: (RethinkAppInfoLogItem) -> Unit) {
-    val headerShape = RoundedCornerShape(SharedDimensions.cornerRadiusMd)
+private fun RethinkAppLogCard(section: RethinkAppInfoLogSection, strings: RethinkAppInfoStrings, onOpen: (() -> Unit)?, onEntry: ((RethinkAppInfoLogItem) -> Unit)?) {
     Column(
         modifier = Modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
         val header: @Composable () -> Unit = {
             Row(
-                Modifier.padding(horizontal = SharedDimensions.cardPadding, vertical = SharedDimensions.spacingSm),
+                Modifier.fillMaxWidth().padding(horizontal = SharedDimensions.spacingSm, vertical = SharedDimensions.spacingXs),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(section.title, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.SemiBold)
+                Text(section.title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.primary)
                 Row(horizontalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm), verticalAlignment = Alignment.CenterVertically) {
                     RethinkAppStatusPill(section.count.toString(), section.count > 0)
-                    Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (onOpen != null) Icon(MaterialSymbols.AutoMirrored.Filled.KeyboardArrowRight, null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
         }
         if (onOpen != null) {
             Surface(
                 onClick = onOpen,
-                modifier = Modifier.fillMaxWidth().clip(headerShape),
-                shape = headerShape,
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
+                modifier = Modifier.fillMaxWidth(),
+                color = Color.Transparent,
                 content = header,
             )
         } else {
-            Surface(
-                modifier = Modifier.fillMaxWidth().clip(headerShape),
-                shape = headerShape,
-                color = MaterialTheme.colorScheme.surfaceContainerLow,
-                content = header,
-            )
+            header()
         }
         when {
             section.loading -> RethinkEmptyState(title = strings.loading, message = "")
@@ -320,8 +343,8 @@ private fun RethinkAppLogCard(section: RethinkAppInfoLogSection, strings: Rethin
                             else -> CardPosition.Middle
                         },
                         defaultContainerColor = MaterialTheme.colorScheme.surfaceContainerLow,
-                        showTrailingChevron = true,
-                        onClick = { onEntry(item) },
+                        showTrailingChevron = onEntry != null,
+                        onClick = onEntry?.let { callback -> { callback(item) } },
                     )
                 }
             }

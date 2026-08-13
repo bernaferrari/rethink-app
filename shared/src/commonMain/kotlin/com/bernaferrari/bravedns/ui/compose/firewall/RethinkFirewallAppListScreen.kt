@@ -363,7 +363,7 @@ private fun RethinkFirewallAppList(
     val state = rememberLazyListState()
     val indexKeys = remember(orderedApps) { orderedApps.flatMap { app -> listOf(appInitial(app), app.appName.ifBlank { app.packageName }) } }
     Box(modifier.fillMaxSize()) {
-                RethinkFirewallAppRows(
+        RethinkFirewallAppRows(
             apps = orderedApps,
             state = state,
             query = query,
@@ -371,11 +371,11 @@ private fun RethinkFirewallAppList(
             appIcon = appIcon,
             onAppClick = onAppClick,
             onWifiToggle = onWifiToggle,
-                    onMobileToggle = onMobileToggle,
-                    proxyLabel = strings.proxy,
-                    wifiActionLabel = strings.wifiActionLabel,
-                    mobileActionLabel = strings.mobileActionLabel,
-                )
+            onMobileToggle = onMobileToggle,
+            proxyLabel = strings.proxy,
+            wifiActionLabel = strings.wifiActionLabel,
+            mobileActionLabel = strings.mobileActionLabel,
+        )
         RethinkIndexedFastScroller(
             items = indexKeys,
             listState = state,
@@ -556,10 +556,19 @@ private fun RethinkFirewallNetworkToggle(
     val pressed by interactionSource.collectIsPressedAsState()
     val pressScale by animateFloatAsState(
         targetValue = if (pressed && !motion.reducedMotion) 0.96f else 1f,
-        animationSpec = if (motion.reducedMotion) snap() else spring(stiffness = androidx.compose.animation.core.Spring.StiffnessHigh),
+        animationSpec = if (motion.reducedMotion) {
+            snap()
+        } else {
+            spring(stiffness = androidx.compose.animation.core.Spring.StiffnessHigh)
+        },
         label = "firewall_network_toggle_press",
     )
-    val stateTransition = androidx.compose.animation.core.updateTransition(targetState = blocked, label = "firewall_network_toggle_state")
+    // Layout boxes stay fixed (34 / 30 / 18.dp). Bubble + icon springs run only via
+    // graphicsLayer so on/off never remeasure the row.
+    val stateTransition = androidx.compose.animation.core.updateTransition(
+        targetState = blocked,
+        label = "firewall_network_toggle_state",
+    )
     val bubbleAlpha by stateTransition.animateFloat(
         transitionSpec = {
             if (true isTransitioningTo false) {
@@ -571,7 +580,14 @@ private fun RethinkFirewallNetworkToggle(
                     0f at durationMillis
                 }
             } else {
-                if (motion.reducedMotion) snap() else spring(stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow, dampingRatio = 0.82f)
+                if (motion.reducedMotion) {
+                    snap()
+                } else {
+                    spring(
+                        stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow,
+                        dampingRatio = 0.82f,
+                    )
+                }
             }
         },
         label = "firewall_network_toggle_bubble_alpha",
@@ -587,17 +603,26 @@ private fun RethinkFirewallNetworkToggle(
                     0f at durationMillis
                 }
             } else {
-                if (motion.reducedMotion) snap() else spring(stiffness = 640f, dampingRatio = 0.76f)
+                if (motion.reducedMotion) {
+                    snap()
+                } else {
+                    spring(stiffness = 640f, dampingRatio = 0.76f)
+                }
             }
         },
         label = "firewall_network_toggle_bubble_scale",
     ) { isBlocked -> if (isBlocked) 1f else 0f }
+    // Spring-scaled for weight (like QuietGuard); layout box stays 18.dp so the row never remeasures.
     val iconScale by stateTransition.animateFloat(
         transitionSpec = {
-            if (motion.reducedMotion) snap() else spring(
-                stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow,
-                dampingRatio = androidx.compose.animation.core.Spring.DampingRatioNoBouncy,
-            )
+            if (motion.reducedMotion) {
+                snap()
+            } else {
+                spring(
+                    stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow,
+                    dampingRatio = androidx.compose.animation.core.Spring.DampingRatioNoBouncy,
+                )
+            }
         },
         label = "firewall_network_toggle_icon_scale",
     ) { isBlocked -> if (isBlocked) 1f else 0.9f }
@@ -614,15 +639,20 @@ private fun RethinkFirewallNetworkToggle(
     val blockedBackground = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.88f)
     Surface(
         onClick = onClick,
-        interactionSource = interactionSource,
+        modifier = Modifier
+            .size(34.dp)
+            .graphicsLayer {
+                scaleX = pressScale
+                scaleY = pressScale
+            },
         shape = CircleShape,
         color = Color.Transparent,
-        modifier = Modifier.size(SharedDimensions.touchTargetSm).graphicsLayer {
-            scaleX = pressScale
-            scaleY = pressScale
-        },
+        interactionSource = interactionSource,
     ) {
-        Box(contentAlignment = Alignment.Center) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center,
+        ) {
             Box(
                 modifier = Modifier
                     .size(30.dp)
@@ -635,10 +665,12 @@ private fun RethinkFirewallNetworkToggle(
                     .background(blockedBackground),
             )
             Box(
-                modifier = Modifier.size(18.dp).graphicsLayer {
-                    scaleX = iconScale
-                    scaleY = iconScale
-                },
+                modifier = Modifier
+                    .size(18.dp)
+                    .graphicsLayer {
+                        scaleX = iconScale
+                        scaleY = iconScale
+                    },
             ) {
                 DiagonalWipeIcon(
                     blocked = blocked,

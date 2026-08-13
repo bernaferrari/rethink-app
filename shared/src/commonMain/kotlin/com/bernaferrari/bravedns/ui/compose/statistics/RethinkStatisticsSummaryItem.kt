@@ -83,7 +83,7 @@ fun RethinkStatisticsSummaryItem(
 
                 Spacer(Modifier.width(8.dp))
                 Text(countText, style = MaterialTheme.typography.titleMedium)
-                if (showIndicator) {
+                if (showIndicator && onClick != null) {
                     Spacer(Modifier.width(8.dp))
                     Icon(
                         MaterialSymbols.AutoMirrored.Filled.ArrowForward,

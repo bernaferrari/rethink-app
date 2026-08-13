@@ -83,6 +83,9 @@ kotlin {
             // NavigationSuiteScaffold gives the shared UI the same adaptive bottom-bar/rail
             // behavior as QuietGuard without platform-specific navigation chrome.
             implementation("org.jetbrains.compose.material3:material3-adaptive-navigation-suite:1.12.0-alpha03")
+            implementation(libs.jetbrains.navigation3.ui)
+            implementation(libs.compose.adaptive.navigation3)
+            implementation(libs.compose.lifecycle.viewmodel.navigation3)
             implementation(compose.ui)
             // Generate the same seed-based Material 3 color schemes used by QuietGuard so the
             // shared web demo can apply every appearance swatch immediately.
@@ -95,6 +98,9 @@ kotlin {
         androidMain.dependencies {
             implementation(firestackDep())
             implementation(libs.ktor.client.cio)
+            api(libs.androidx.navigation3.runtime)
+            api(libs.androidx.navigation3.ui)
+            api(libs.androidx.compose.material3.adaptive.navigation3)
             implementation(libs.kotlinx.coroutines.android)
             implementation(libs.androidx.datastore.preferences)
             implementation(libs.androidx.room.sqlite.wrapper)

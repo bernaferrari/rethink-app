@@ -62,6 +62,9 @@ fun RethinkAdaptiveNavigationScaffold(
                 constraints.maxWidth > 0 &&
                 constraints.maxHeight > 0
         ) {
+            // Match QuietGuard: content lives inside NavigationSuiteScaffold so the suite
+            // owns chrome layout (bar/rail insets). Only the bounded-viewport gate is shared
+            // for Compose for Web's transient unbounded measure pass (CMP-8543).
             Box(modifier = Modifier.fillMaxSize()) {
                 background()
                 NavigationSuiteScaffold(

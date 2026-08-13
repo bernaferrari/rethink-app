@@ -61,6 +61,7 @@ private const val DEFAULT_DNS = "1.1.1.1"
 private const val DEFAULT_LISTEN_PORT = "0"
 
 @Keep
+@kotlinx.serialization.Serializable
 enum class WgType(val value: Int) {
     DEFAULT(0),
     ONE_WG(1);
