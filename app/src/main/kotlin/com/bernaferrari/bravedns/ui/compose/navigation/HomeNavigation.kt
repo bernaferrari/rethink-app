@@ -16,36 +16,15 @@
 package com.bernaferrari.bravedns.ui.compose.navigation
 
 import android.graphics.drawable.Drawable
-import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContentTransitionScope
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.EnterTransition
-import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.tween
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Star
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.consumeWindowInsets
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
-import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -57,18 +36,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.toRoute
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.SummaryStatisticsType
@@ -168,26 +139,26 @@ import com.bernaferrari.bravedns.viewmodel.ServerOrderHistoryViewModel
 import com.bernaferrari.bravedns.viewmodel.BlockFreeDnsViewModel
 import com.bernaferrari.bravedns.ui.compose.logs.AppWiseDomainLogsScreen
 import com.bernaferrari.bravedns.ui.compose.theme.rememberReducedMotion
-import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.viewmodel.WgConfigViewModel
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgMainScreen
 import com.bernaferrari.bravedns.util.Constants.Companion.UID_EVERYBODY
 import com.bernaferrari.bravedns.util.Utilities
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-
-private const val BOTTOM_BAR_ENTER_DURATION = 220
-private const val BOTTOM_BAR_EXIT_DURATION = 180
+import androidx.compose.foundation.layout.Box
+import androidx.compose.ui.Alignment
 
 enum class HomeDestination(
-    val route: HomeRoute,
+    val root: RethinkRootDestination,
     val labelRes: Int,
     val selectedIcon: ImageVector,
     val unselectedIcon: ImageVector
 ) {
-    HOME(HomeRoute.Home, R.string.txt_home, Icons.Filled.Home, Icons.Filled.Home),
-    STATS(HomeRoute.Stats, R.string.title_statistics, Icons.Filled.Star, Icons.Filled.Star),
-    CONFIGURE(HomeRoute.Configure, R.string.title_settings, Icons.Filled.Settings, Icons.Filled.Settings)
+    HOME(RethinkRootDestination.Home, R.string.txt_home, Icons.Filled.Home, Icons.Filled.Home),
+    STATS(RethinkRootDestination.Statistics, R.string.title_statistics, Icons.Filled.Star, Icons.Filled.Star),
+    CONFIGURE(RethinkRootDestination.Configure, R.string.title_settings, Icons.Filled.Settings, Icons.Filled.Settings);
+
+    val route: RethinkRoute get() = root.route
 }
 
 sealed interface HomeNavRequest {
@@ -251,13 +222,71 @@ sealed interface HomeNavRequest {
     data object Database : HomeNavRequest
 }
 
+
+private fun HomeNavRequest.toRethinkRoute(): RethinkRoute = when (this) {
+    is HomeNavRequest.DetailedStats ->
+        RethinkRoute.DetailedStatistics(type.tid, timeCategory.value)
+    HomeNavRequest.Alerts -> RethinkRoute.Alerts
+    HomeNavRequest.RpnCountries -> RethinkRoute.RpnCountries
+    HomeNavRequest.RpnAvailability -> RethinkRoute.RpnAvailability
+    HomeNavRequest.Events -> RethinkRoute.Events
+    HomeNavRequest.FirewallSettings -> RethinkRoute.FirewallSettings()
+    HomeNavRequest.AdvancedSettings -> RethinkRoute.AdvancedSettings
+    HomeNavRequest.AntiCensorship -> RethinkRoute.AntiCensorship
+    HomeNavRequest.TunnelSettings -> RethinkRoute.TunnelSettings()
+    HomeNavRequest.MiscSettings -> RethinkRoute.MiscSettings()
+    HomeNavRequest.ConsoleLogs -> RethinkRoute.ConsoleLogs
+    HomeNavRequest.NetworkLogs -> RethinkRoute.NetworkLogs
+    HomeNavRequest.AppList -> RethinkRoute.AppList
+    is HomeNavRequest.CustomRules ->
+        RethinkRoute.CustomRules(uid = uid, tab = tab.value, mode = mode.value)
+    HomeNavRequest.ProxySettings -> RethinkRoute.ProxySettings()
+    HomeNavRequest.TcpProxyMain -> RethinkRoute.TcpProxy
+    HomeNavRequest.Welcome -> RethinkRoute.Welcome
+    HomeNavRequest.PingTest -> RethinkRoute.PingTest
+    HomeNavRequest.AppLock -> RethinkRoute.AppLock
+    HomeNavRequest.DnsDetail -> RethinkRoute.DnsDetail()
+    is HomeNavRequest.RpnWinProxyDetails -> RethinkRoute.CountryProxy(countryCode)
+    is HomeNavRequest.DomainConnections ->
+        RethinkRoute.DomainConnections(
+            typeId = type.type,
+            flag = flag,
+            domain = domain,
+            asn = asn,
+            ip = ip,
+            isBlocked = isBlocked,
+            timeCategory = timeCategory.value,
+        )
+    is HomeNavRequest.AppInfo -> RethinkRoute.AppInfo(uid)
+    is HomeNavRequest.WgConfigDetail ->
+        RethinkRoute.WireGuardDetail(configId, wgType.value)
+    is HomeNavRequest.WgConfigEditor ->
+        RethinkRoute.WireGuardEditor(configId, wgType.value)
+    is HomeNavRequest.ConfigureRethinkBasic ->
+        RethinkRoute.ConfigureRethinkBasic(
+            screenTypeOrdinal = screenType.ordinal,
+            remoteName = remoteName,
+            remoteUrl = remoteUrl,
+            uid = uid,
+        )
+    HomeNavRequest.DnsList -> RethinkRoute.DnsList
+    is HomeNavRequest.AppWiseIpLogs -> RethinkRoute.AppWiseIpLogs(uid, isAsn)
+    is HomeNavRequest.ConfigureOtherDns -> RethinkRoute.ConfigureOtherDns(dnsType)
+    HomeNavRequest.UniversalFirewallSettings -> RethinkRoute.UniversalFirewall
+    is HomeNavRequest.AppWiseDomainLogs -> RethinkRoute.AppWiseDomainLogs(uid)
+    HomeNavRequest.Checkout -> RethinkRoute.Checkout
+    HomeNavRequest.RpnAccount -> RethinkRoute.RpnAccount
+    HomeNavRequest.WgMain -> RethinkRoute.WireGuard
+    HomeNavRequest.Database -> RethinkRoute.Database
+}
+
 @Composable
 fun HomeScreenRoot(
     homeUiState: HomeScreenUiState,
     onHomeStartStopClick: () -> Unit,
     summaryViewModel: SummaryStatisticsViewModel,
     onOpenDetailedStats: (SummaryStatisticsType) -> Unit,
-    startDestination: HomeRoute,
+    startDestination: RethinkRoute,
     isDebug: Boolean,
     onConfigureAppsClick: () -> Unit,
     onConfigureDnsClick: () -> Unit,
@@ -371,350 +400,35 @@ fun HomeScreenRoot(
     onWgQrScanClick: () -> Unit,
     appDatabase: AppDatabase
 ) {
-    val navController = rememberNavController()
-    val reduceMotion = rememberReducedMotion()
-    val motion = LocalRethinkMotion.current
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
-    val currentHierarchy = currentDestination?.hierarchy.orEmpty()
-    val currentRoute = currentDestination?.route
-    val topLevelRoutes = remember {
-        HomeDestination.entries.mapNotNull { it.route::class.qualifiedName }.toSet()
-    }
-    val isHomeRoute = currentRoute == HomeRoute.Home::class.qualifiedName
-    val isWelcomeRoute = currentRoute == HomeRoute.Welcome::class.qualifiedName
-    val showBottomBar =
-        !isWelcomeRoute &&
-                currentHierarchy.any { it.route != null && topLevelRoutes.contains(it.route) }
-    val isWideScreen = LocalConfiguration.current.screenWidthDp >= 840
-    val showNavigationRail = showBottomBar && isWideScreen
-    val showNavigationBar = showBottomBar && !isWideScreen
     val navigationItems = HomeDestination.entries.map { destination ->
         RethinkNavigationItem(
-            id = destination.route::class.qualifiedName.orEmpty(),
+            id = destination.root.name,
             label = stringResource(destination.labelRes),
             selectedIcon = destination.selectedIcon,
             unselectedIcon = destination.unselectedIcon,
         )
     }
-    val selectedNavigationId = navigationItems.firstOrNull { item ->
-        currentHierarchy.any { it.route == item.id }
-    }?.id
-    val navigateToTopLevel: (String) -> Unit = { routeId ->
-        HomeDestination.entries.firstOrNull { it.route::class.qualifiedName == routeId }?.let { destination ->
-            navController.navigate(destination.route) {
-                popUpTo(navController.graph.findStartDestination().id) { saveState = true }
-                launchSingleTop = true
-                restoreState = true
-            }
-        }
-    }
 
+    // Map external activity requests onto the shared route type (QuietGuard pendingRoute).
+    var pendingRoute by remember { mutableStateOf<RethinkRoute?>(null) }
     LaunchedEffect(homeNavRequest) {
         val request = homeNavRequest ?: return@LaunchedEffect
-        when (request) {
-            is HomeNavRequest.DetailedStats -> {
-                navController.navigate(HomeRoute.DetailedStats(request.type.tid, request.timeCategory.value))
-            }
-
-            HomeNavRequest.Alerts -> {
-                navController.navigate(HomeRoute.Alerts)
-            }
-
-            HomeNavRequest.RpnCountries -> {
-                navController.navigate(HomeRoute.RpnCountries)
-            }
-
-            HomeNavRequest.RpnAvailability -> {
-                navController.navigate(HomeRoute.RpnAvailability)
-            }
-
-            HomeNavRequest.Events -> {
-                navController.navigate(HomeRoute.Events)
-            }
-
-            HomeNavRequest.FirewallSettings -> {
-                navController.navigate(HomeRoute.FirewallSettings())
-            }
-
-            HomeNavRequest.AdvancedSettings -> {
-                navController.navigate(HomeRoute.AdvancedSettings)
-            }
-
-            HomeNavRequest.AntiCensorship -> {
-                navController.navigate(HomeRoute.AntiCensorship)
-            }
-
-            HomeNavRequest.TunnelSettings -> {
-                navController.navigate(HomeRoute.TunnelSettings())
-            }
-
-            HomeNavRequest.MiscSettings -> {
-                navController.navigate(HomeRoute.MiscSettings())
-            }
-
-            HomeNavRequest.ConsoleLogs -> {
-                navController.navigate(HomeRoute.ConsoleLogs)
-            }
-
-            HomeNavRequest.NetworkLogs -> {
-                navController.navigate(HomeRoute.NetworkLogs)
-            }
-
-            HomeNavRequest.AppList -> {
-                navController.navigate(HomeRoute.AppList)
-            }
-
-            is HomeNavRequest.CustomRules -> {
-                navController.navigate(
-                    HomeRoute.CustomRules(
-                        uid = request.uid,
-                        tab = request.tab.value,
-                        mode = request.mode.value
-                    )
-                )
-            }
-
-            HomeNavRequest.ProxySettings -> {
-                navController.navigate(HomeRoute.ProxySettings())
-            }
-
-            HomeNavRequest.TcpProxyMain -> {
-                navController.navigate(HomeRoute.TcpProxyMain)
-            }
-
-            HomeNavRequest.Welcome -> {
-                navController.navigate(HomeRoute.Welcome)
-            }
-
-            HomeNavRequest.PingTest -> {
-                navController.navigate(HomeRoute.PingTest)
-            }
-
-            HomeNavRequest.AppLock -> {
-                navController.navigate(HomeRoute.AppLock)
-            }
-
-            HomeNavRequest.DnsDetail -> {
-                navController.navigate(HomeRoute.DnsDetail())
-            }
-
-            is HomeNavRequest.RpnWinProxyDetails -> {
-                navController.navigate(HomeRoute.RpnWinProxyDetails(request.countryCode))
-            }
-
-            is HomeNavRequest.DomainConnections -> {
-                navController.navigate(
-                    HomeRoute.DomainConnections(
-                        typeId = request.type.type,
-                        flag = request.flag,
-                        domain = request.domain,
-                        asn = request.asn,
-                        ip = request.ip,
-                        isBlocked = request.isBlocked,
-                        timeCategory = request.timeCategory.value
-                    )
-                )
-            }
-
-            is HomeNavRequest.AppInfo -> {
-                navController.navigate(HomeRoute.AppInfo(request.uid))
-            }
-
-            is HomeNavRequest.WgConfigDetail -> {
-                navController.navigate(HomeRoute.WgConfigDetail(request.configId, request.wgType))
-            }
-
-            is HomeNavRequest.WgConfigEditor -> {
-                navController.navigate(HomeRoute.WgConfigEditor(request.configId, request.wgType))
-            }
-
-            is HomeNavRequest.ConfigureRethinkBasic -> {
-                navController.navigate(
-                    HomeRoute.ConfigureRethinkBasic(
-                        screenTypeOrdinal = request.screenType.ordinal,
-                        remoteName = request.remoteName,
-                        remoteUrl = request.remoteUrl,
-                        uid = request.uid
-                    )
-                )
-            }
-
-            HomeNavRequest.DnsList -> {
-                navController.navigate(HomeRoute.DnsList)
-            }
-
-            is HomeNavRequest.AppWiseIpLogs -> {
-                navController.navigate(HomeRoute.AppWiseIpLogs(request.uid, request.isAsn))
-            }
-
-            is HomeNavRequest.ConfigureOtherDns -> {
-                navController.navigate(HomeRoute.ConfigureOtherDns(request.dnsType))
-            }
-
-            HomeNavRequest.UniversalFirewallSettings -> {
-                navController.navigate(HomeRoute.UniversalFirewallSettings)
-            }
-
-            is HomeNavRequest.AppWiseDomainLogs -> {
-                navController.navigate(HomeRoute.AppWiseDomainLogs(request.uid))
-            }
-
-            HomeNavRequest.Checkout -> {
-                navController.navigate(HomeRoute.Checkout)
-            }
-
-            HomeNavRequest.RpnAccount -> {
-                navController.navigate(HomeRoute.RpnAccount)
-            }
-
-            HomeNavRequest.WgMain -> {
-                navController.navigate(HomeRoute.WgMain)
-            }
-
-            HomeNavRequest.Database -> {
-                navController.navigate(HomeRoute.Database)
-            }
-        }
-        onHomeNavConsumed()
+        pendingRoute = request.toRethinkRoute()
     }
 
-    BackHandler(enabled = !isHomeRoute) {
-        if (isWelcomeRoute) {
-            persistentState.firstTimeLaunch = false
-            navController.navigate(HomeRoute.Home) {
-                popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
-                launchSingleTop = true
-            }
-        } else {
-            navController.navigate(HomeRoute.Home) {
-                popUpTo(navController.graph.findStartDestination().id) { inclusive = false }
-                launchSingleTop = true
-            }
-        }
-    }
+    Box(modifier = Modifier.fillMaxSize()) {
+        RethinkAppNavigation(
+            destinations = navigationItems,
+            startRoute = startDestination,
+            pendingRoute = pendingRoute,
+            onRouteNavigated = {
+                pendingRoute = null
+                onHomeNavConsumed()
+            },
+            modifier = Modifier.fillMaxSize(),
+            entryBuilder = { nav ->
 
-    Scaffold(
-        containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets(0, 0, 0, 0),
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
-        bottomBar = {
-            AnimatedVisibility(
-                visible = showNavigationBar,
-                enter = if (reduceMotion) EnterTransition.None else slideInVertically(
-                    initialOffsetY = { it },
-                    animationSpec = tween(
-                        durationMillis = BOTTOM_BAR_ENTER_DURATION,
-                        easing = FastOutSlowInEasing
-                    )
-                ) + fadeIn(animationSpec = tween(durationMillis = BOTTOM_BAR_ENTER_DURATION)),
-                exit = if (reduceMotion) ExitTransition.None else slideOutVertically(
-                    targetOffsetY = { it },
-                    animationSpec = tween(
-                        durationMillis = BOTTOM_BAR_EXIT_DURATION,
-                        easing = FastOutSlowInEasing
-                    )
-                ) + fadeOut(animationSpec = tween(durationMillis = BOTTOM_BAR_EXIT_DURATION))
-            ) {
-                RethinkBottomNavigation(
-                    destinations = navigationItems,
-                    selectedId = selectedNavigationId,
-                    onDestinationSelected = navigateToTopLevel,
-                    modifier = Modifier.fillMaxWidth(),
-                    windowInsets = WindowInsets.safeDrawing.only(
-                        WindowInsetsSides.Start + WindowInsetsSides.End + WindowInsetsSides.Bottom
-                    ),
-                )
-            }
-        }
-    ) { paddingValues ->
-        val navHostModifier = Modifier
-            .padding(paddingValues)
-            .consumeWindowInsets(WindowInsets.safeDrawing.only(WindowInsetsSides.Bottom))
-
-        val navHostContent: @Composable (Modifier) -> Unit = { modifier ->
-            NavHost(
-                navController = navController,
-                startDestination = startDestination,
-                modifier = modifier,
-                enterTransition = {
-                    if (reduceMotion) return@NavHost EnterTransition.None
-                    val topLevelTransition =
-                        topLevelRoutes.contains(initialState.destination.route) &&
-                            topLevelRoutes.contains(targetState.destination.route)
-                    if (topLevelTransition) {
-                        fadeIn(
-                            animationSpec = tween(
-                                durationMillis = motion.durationFast,
-                                easing = motion.easingDecelerate,
-                            )
-                        )
-                    } else {
-                        slideIntoContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                            animationSpec = tween(
-                                durationMillis = motion.durationMedium,
-                                easing = motion.easingDecelerate,
-                            )
-                        )
-                    }
-                },
-                exitTransition = {
-                    if (reduceMotion) return@NavHost ExitTransition.None
-                    val topLevelTransition =
-                        topLevelRoutes.contains(initialState.destination.route) &&
-                            topLevelRoutes.contains(targetState.destination.route)
-                    if (topLevelTransition) {
-                        fadeOut(
-                            animationSpec = tween(
-                                durationMillis = motion.durationFast,
-                                easing = motion.easingAccelerate,
-                            )
-                        )
-                    } else {
-                        ExitTransition.None
-                    }
-                },
-                popEnterTransition = {
-                    if (reduceMotion) return@NavHost EnterTransition.None
-                    val topLevelTransition =
-                        topLevelRoutes.contains(initialState.destination.route) &&
-                            topLevelRoutes.contains(targetState.destination.route)
-                    if (topLevelTransition) {
-                        fadeIn(
-                            animationSpec = tween(
-                                durationMillis = motion.durationFast,
-                                easing = motion.easingDecelerate,
-                            )
-                        )
-                    } else {
-                        EnterTransition.None
-                    }
-                },
-                popExitTransition = {
-                    if (reduceMotion) return@NavHost ExitTransition.None
-                    val topLevelTransition =
-                        topLevelRoutes.contains(initialState.destination.route) &&
-                            topLevelRoutes.contains(targetState.destination.route)
-                    if (topLevelTransition) {
-                        fadeOut(
-                            animationSpec = tween(
-                                durationMillis = motion.durationFast,
-                                easing = motion.easingAccelerate,
-                            )
-                        )
-                    } else {
-                        slideOutOfContainer(
-                            towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                            animationSpec = tween(
-                                durationMillis = motion.durationExit,
-                                easing = motion.easingAccelerate,
-                            )
-                        )
-                    }
-                }
-            ) {
-            composable<HomeRoute.Home> {
+            entry<RethinkRoute.Home> {
                 var showGuidedTour by remember {
                     mutableStateOf(!persistentState.guidedTourCompleted || persistentState.guidedTourVersion < 1)
                 }
@@ -728,99 +442,96 @@ fun HomeScreenRoot(
                     showGuidedTour = false
                 }
             }
-            composable<HomeRoute.Stats> {
+            entry<RethinkRoute.Statistics> {
                 SummaryStatisticsScreen(
                     viewModel = summaryViewModel,
                     persistentState = persistentState,
                     onSeeMoreClick = onOpenDetailedStats
                 )
             }
-            composable<HomeRoute.Alerts> {
-                AlertsScreen(onBackClick = { navController.popBackStack() })
+            entry<RethinkRoute.Alerts> {
+                AlertsScreen(onBackClick = { nav.popBackStack() })
             }
-            composable<HomeRoute.RpnCountries> {
+            entry<RethinkRoute.RpnCountries> {
                 RpnCountriesScreen(
-                    onBackClick = { navController.popBackStack() },
-                    onServerDetails = { navController.navigate(HomeRoute.RpnWinProxyDetails(it)) },
-                    onServerSettings = { navController.navigate(HomeRoute.RpnServerSettings) },
+                    onBackClick = { nav.popBackStack() },
+                    onServerDetails = { nav.push(RethinkRoute.CountryProxy(it)) },
+                    onServerSettings = { nav.push(RethinkRoute.RpnSettings) },
                 )
             }
-            composable<HomeRoute.RpnServerSettings> {
-                RpnServerSettingsScreen(persistentState = persistentState, onBackClick = { navController.popBackStack() })
+            entry<RethinkRoute.RpnSettings> {
+                RpnServerSettingsScreen(persistentState = persistentState, onBackClick = { nav.popBackStack() })
             }
-            composable<HomeRoute.RpnAvailability> {
-                RpnAvailabilityScreen(onBackClick = { navController.popBackStack() })
+            entry<RethinkRoute.RpnAvailability> {
+                RpnAvailabilityScreen(onBackClick = { nav.popBackStack() })
             }
-            composable<HomeRoute.Events> {
+            entry<RethinkRoute.Events> {
                 EventsScreen(
                     viewModel = eventsViewModel,
                     eventDao = eventDao,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.FirewallSettings> { entry ->
-                val args = entry.toRoute<HomeRoute.FirewallSettings>()
+            entry<RethinkRoute.FirewallSettings> { args ->
                 FirewallSettingsScreen(
                     onUniversalFirewallClick = onFirewallUniversalClick,
                     onCustomIpDomainClick = onFirewallCustomIpClick,
                     onAppWiseIpDomainClick = onFirewallAppWiseIpClick,
                     initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.AdvancedSettings> {
+            entry<RethinkRoute.AdvancedSettings> {
                 AdvancedSettingsScreen(
                     persistentState = persistentState,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.AntiCensorship> {
+            entry<RethinkRoute.AntiCensorship> {
                 AntiCensorshipScreen(
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.TunnelSettings> { entry ->
-                val args = entry.toRoute<HomeRoute.TunnelSettings>()
+            entry<RethinkRoute.TunnelSettings> { args ->
                 TunnelSettingsScreen(
                     persistentState = persistentState,
                     appConfig = appConfig,
                     eventLogger = appInfoEventLogger,
                     onOpenVpnProfile = onOpenVpnProfile,
                     initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.MiscSettings> { entry ->
-                val args = entry.toRoute<HomeRoute.MiscSettings>()
+            entry<RethinkRoute.MiscSettings> { args ->
                 MiscSettingsScreen(
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
                     initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
-                    onBackClick = { navController.popBackStack() },
-                    onOpenAbout = { navController.navigate(HomeRoute.About) },
+                    onBackClick = { nav.popBackStack() },
+                    onOpenAbout = { nav.push(RethinkRoute.About) },
                     onRefreshDatabase = onRefreshDatabase,
                     onThemeModeChanged = onThemeModeChanged,
                     onThemeColorChanged = onThemeColorChanged
                 )
             }
-            composable<HomeRoute.PingTest> {
+            entry<RethinkRoute.PingTest> {
                 PingTestScreen(
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.ConsoleLogs> {
+            entry<RethinkRoute.ConsoleLogs> {
                 ConsoleLogScreen(
                     viewModel = consoleLogViewModel,
                     consoleLogRepository = consoleLogRepository,
                     persistentState = persistentState,
                     onShareClick = onShareConsoleLogs,
                     onDeleteComplete = onConsoleLogsDeleteComplete,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.NetworkLogs> {
+            entry<RethinkRoute.NetworkLogs> {
                 NetworkLogsScreen(
                     connectionTrackerViewModel = connectionTrackerViewModel,
                     dnsLogViewModel = dnsLogViewModel,
@@ -830,22 +541,21 @@ fun HomeScreenRoot(
                     rethinkLogRepository = rethinkLogRepository,
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
 
-            composable<HomeRoute.AppList> {
+            entry<RethinkRoute.AppList> {
                 AppListScreen(
                     viewModel = appInfoViewModel,
                     eventLogger = appInfoEventLogger,
                     refreshDatabase = refreshDatabase,
-                    onAppClick = { uid -> navController.navigate(HomeRoute.AppInfo(uid)) },
-                    onBackClick = { navController.popBackStack() }
+                    onAppClick = { uid -> nav.push(RethinkRoute.AppInfo(uid)) },
+                    onBackClick = { nav.popBackStack() }
                 )
             }
 
-            composable<HomeRoute.CustomRules> { entry ->
-                val args = entry.toRoute<HomeRoute.CustomRules>()
+            entry<RethinkRoute.CustomRules> { args ->
                 CustomRulesScreen(
                     uid = args.uid,
                     initialTab = RulesTab.fromValue(args.tab),
@@ -853,67 +563,60 @@ fun HomeScreenRoot(
                     domainViewModel = appInfoDomainRulesViewModel,
                     ipViewModel = appInfoIpRulesViewModel,
                     eventLogger = appInfoEventLogger,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
 
-            composable<HomeRoute.ProxySettings> { entry ->
-                val args = entry.toRoute<HomeRoute.ProxySettings>()
+            entry<RethinkRoute.ProxySettings> { args ->
                 ProxySettingsScreen(
                     appConfig = appConfig,
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
                     mappingViewModel = proxyAppsMappingViewModel,
                     initialFocusKey = args.focusKey.takeIf { it.isNotBlank() },
-                    onWireguardClick = { navController.navigate(HomeRoute.WgMain) },
+                    onWireguardClick = { nav.push(RethinkRoute.WireGuard) },
                     onOpenOrbotApps = {
-                        navController.navigate(HomeRoute.OrbotAppSelect) {
-                            launchSingleTop = true
-                        }
+                        nav.push(RethinkRoute.OrbotAppSelect)
                     },
-                    onNavigateToDns = { navController.navigate(HomeRoute.DnsDetail()) },
-                    onBackClick = { navController.popBackStack() }
+                    onNavigateToDns = { nav.push(RethinkRoute.DnsDetail()) },
+                    onBackClick = { nav.popBackStack() }
                 )
             }
 
-            composable<HomeRoute.OrbotAppSelect> {
+            entry<RethinkRoute.OrbotAppSelect> {
                 WgIncludeAppsScreen(
                     viewModel = proxyAppsMappingViewModel,
                     proxyId = ProxyManager.ID_ORBOT_BASE,
                     proxyName = ProxyManager.ORBOT_PROXY_NAME,
-                    onDismiss = { navController.popBackStack() }
+                    onDismiss = { nav.popBackStack() }
                 )
             }
 
-            composable<HomeRoute.TcpProxyMain> {
+            entry<RethinkRoute.TcpProxy> {
                 TcpProxyMainScreen(
                     appConfig = appConfig,
                     mappingViewModel = proxyAppsMappingViewModel,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.Welcome> {
+            entry<RethinkRoute.Welcome> {
                 WelcomeScreen(
                     onFinish = {
                         persistentState.firstTimeLaunch = false
-                        navController.navigate(HomeRoute.Home) {
-                            popUpTo(navController.graph.findStartDestination().id) { inclusive = true }
-                            launchSingleTop = true
-                        }
+                        nav.open(RethinkRoute.Home)
                     }
                 )
             }
-            composable<HomeRoute.AppLock> {
+            entry<RethinkRoute.AppLock> {
                 AppLockScreen(
                     persistentState = persistentState,
                     onAuthResult = { result ->
                         onAppLockResult(result)
-                        navController.popBackStack()
+                        nav.popBackStack()
                     }
                 )
             }
-            composable<HomeRoute.DnsDetail> { entry ->
-                val args = entry.toRoute<HomeRoute.DnsDetail>()
+            entry<RethinkRoute.DnsDetail> { args ->
                 DnsDetailScreen(
                     viewModel = dnsSettingsViewModel,
                     persistentState = persistentState,
@@ -922,28 +625,27 @@ fun HomeScreenRoot(
                     onCustomDnsClick = onDnsCustomDnsClick,
                     onRethinkPlusDnsClick = onDnsRethinkPlusDnsClick,
                     onLocalBlocklistConfigureClick = onDnsLocalBlocklistConfigureClick,
-                    onBlockFreeDnsClick = { navController.navigate(HomeRoute.BlockFreeDns) },
-                    onBackClick = { navController.popBackStack() }
+                    onBlockFreeDnsClick = { nav.push(RethinkRoute.BlockFreeDns) },
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.BlockFreeDns> {
-                BlockFreeDnsScreen(blockFreeDnsViewModel, persistentState) { navController.popBackStack() }
+            entry<RethinkRoute.BlockFreeDns> {
+                BlockFreeDnsScreen(blockFreeDnsViewModel, persistentState) { nav.popBackStack() }
             }
-            composable<HomeRoute.AppInfo> { entry ->
-                val args = entry.toRoute<HomeRoute.AppInfo>()
+            entry<RethinkRoute.AppInfo> { args ->
                 AppInfoScreen(
                     uid = args.uid,
                     eventLogger = appInfoEventLogger,
                     ipRulesViewModel = appInfoIpRulesViewModel,
                     domainRulesViewModel = appInfoDomainRulesViewModel,
                     networkLogsViewModel = appInfoNetworkLogsViewModel,
-                    onBackClick = { navController.popBackStack() },
+                    onBackClick = { nav.popBackStack() },
                     onAppWiseIpLogsClick = { u, isAsn ->
-                        navController.navigate(HomeRoute.AppWiseIpLogs(u, isAsn))
+                        nav.push(RethinkRoute.AppWiseIpLogs(u, isAsn))
                     },
                     onCustomIpRulesClick = { u ->
-                        navController.navigate(
-                            HomeRoute.CustomRules(
+                        nav.push(
+                            RethinkRoute.CustomRules(
                                 uid = u,
                                 tab = CustomRulesTab.IP.value,
                                 mode = CustomRulesMode.APP_SPECIFIC.value
@@ -951,8 +653,8 @@ fun HomeScreenRoot(
                         )
                     },
                     onCustomDomainRulesClick = { u ->
-                        navController.navigate(
-                            HomeRoute.CustomRules(
+                        nav.push(
+                            RethinkRoute.CustomRules(
                                 uid = u,
                                 tab = CustomRulesTab.DOMAIN.value,
                                 mode = CustomRulesMode.APP_SPECIFIC.value
@@ -961,13 +663,13 @@ fun HomeScreenRoot(
                     }
                 )
             }
-            composable<HomeRoute.DnsList> {
+            entry<RethinkRoute.DnsList> {
                 DnsListScreen(
                     appConfig = appConfig,
                     onConfigureOtherDns = onConfigureOtherDns,
                     onConfigureRethinkBasic = { type ->
-                        navController.navigate(
-                            HomeRoute.ConfigureRethinkBasic(
+                        nav.push(
+                            RethinkRoute.ConfigureRethinkBasic(
                                 screenTypeOrdinal = ConfigureRethinkScreenType.entries[type].ordinal,
                                 remoteName = "",
                                 remoteUrl = "",
@@ -975,30 +677,27 @@ fun HomeScreenRoot(
                             )
                         )
                     },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.AppWiseIpLogs> { entry ->
-                val args = entry.toRoute<HomeRoute.AppWiseIpLogs>()
+            entry<RethinkRoute.AppWiseIpLogs> { args ->
                 AppWiseIpLogsScreen(
                     uid = args.uid,
                     isAsn = args.isAsn,
                     viewModel = appInfoNetworkLogsViewModel,
                     eventLogger = appInfoEventLogger,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
 
-            composable<HomeRoute.RpnWinProxyDetails> { entry ->
-                val args = entry.toRoute<HomeRoute.RpnWinProxyDetails>()
+            entry<RethinkRoute.CountryProxy> { args ->
                 RpnWinProxyDetailsScreen(
                     countryCode = args.countryCode,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
 
-            composable<HomeRoute.DomainConnections> { entry ->
-                val args = entry.toRoute<HomeRoute.DomainConnections>()
+            entry<RethinkRoute.DomainConnections> { args ->
                 val timeCategory = DomainConnectionsViewModel.TimeCategory.fromValue(args.timeCategory)
                     ?: DomainConnectionsViewModel.TimeCategory.ONE_HOUR
                 val type = DomainConnectionsInputType.fromValue(args.typeId)
@@ -1012,12 +711,11 @@ fun HomeScreenRoot(
                     ip = args.ip,
                     isBlocked = args.isBlocked,
                     timeCategory = timeCategory,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
 
-            composable<HomeRoute.DetailedStats> { entry ->
-                val args = entry.toRoute<HomeRoute.DetailedStats>()
+            entry<RethinkRoute.DetailedStatistics> { args ->
                 val type = SummaryStatisticsType.getType(args.typeId)
                 val timeCategory = SummaryStatisticsViewModel.TimeCategory.fromValue(args.timeCategory)
 
@@ -1025,36 +723,34 @@ fun HomeScreenRoot(
                     type = type,
                     timeCategory = timeCategory ?: SummaryStatisticsViewModel.TimeCategory.TWENTY_FOUR_HOUR,
                     viewModel = detailedStatsViewModel,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
 
-            composable<HomeRoute.WgConfigDetail> { entry ->
-                val args = entry.toRoute<HomeRoute.WgConfigDetail>()
+            entry<RethinkRoute.WireGuardDetail> { args ->
                 WgConfigDetailScreen(
                     configId = args.configId,
-                    wgType = args.wgType,
+                    wgType = WgType.fromInt(args.wgType),
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
                     mappingViewModel = proxyAppsMappingViewModel,
                     onEditConfig = { id, type ->
-                        navController.navigate(HomeRoute.WgConfigEditor(id, type))
+                        nav.push(RethinkRoute.WireGuardEditor(id, type.value))
                     },
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
 
-            composable<HomeRoute.WgConfigEditor> { entry ->
-                val args = entry.toRoute<HomeRoute.WgConfigEditor>()
+            entry<RethinkRoute.WireGuardEditor> { args ->
                 WgConfigEditorScreen(
                     configId = args.configId,
-                    wgType = args.wgType,
+                    wgType = WgType.fromInt(args.wgType),
                     persistentState = persistentState,
-                    onBackClick = { navController.popBackStack() },
-                    onSaveSuccess = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() },
+                    onSaveSuccess = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.Configure> {
+            entry<RethinkRoute.Configure> {
                 ConfigureScreen(
                     isDebug = isDebug,
                     onAppsClick = onConfigureAppsClick,
@@ -1068,30 +764,30 @@ fun HomeScreenRoot(
                     onAdvancedClick = onConfigureAdvancedClick,
                     onSearchDestinationClick = { destination ->
                         when (destination) {
-                            SettingsSearchDestination.Apps -> navController.navigate(HomeRoute.AppList)
-                            is SettingsSearchDestination.Dns -> navController.navigate(
-                                HomeRoute.DnsDetail(destination.focusKey)
+                            SettingsSearchDestination.Apps -> nav.push(RethinkRoute.AppList)
+                            is SettingsSearchDestination.Dns -> nav.push(
+                                RethinkRoute.DnsDetail(destination.focusKey)
                             )
-                            is SettingsSearchDestination.Firewall -> navController.navigate(
-                                HomeRoute.FirewallSettings(destination.focusKey)
+                            is SettingsSearchDestination.Firewall -> nav.push(
+                                RethinkRoute.FirewallSettings(destination.focusKey)
                             )
-                            is SettingsSearchDestination.Proxy -> navController.navigate(
-                                HomeRoute.ProxySettings(destination.focusKey)
+                            is SettingsSearchDestination.Proxy -> nav.push(
+                                RethinkRoute.ProxySettings(destination.focusKey)
                             )
-                            is SettingsSearchDestination.Network -> navController.navigate(
-                                HomeRoute.TunnelSettings(destination.focusKey)
+                            is SettingsSearchDestination.Network -> nav.push(
+                                RethinkRoute.TunnelSettings(destination.focusKey)
                             )
-                            is SettingsSearchDestination.General -> navController.navigate(
-                                HomeRoute.MiscSettings(destination.focusKey)
+                            is SettingsSearchDestination.General -> nav.push(
+                                RethinkRoute.MiscSettings(destination.focusKey)
                             )
-                            SettingsSearchDestination.Logs -> navController.navigate(HomeRoute.NetworkLogs)
-                            SettingsSearchDestination.AntiCensorship -> navController.navigate(HomeRoute.AntiCensorship)
-                            SettingsSearchDestination.Advanced -> navController.navigate(HomeRoute.AdvancedSettings)
+                            SettingsSearchDestination.Logs -> nav.push(RethinkRoute.NetworkLogs)
+                            SettingsSearchDestination.AntiCensorship -> nav.push(RethinkRoute.AntiCensorship)
+                            SettingsSearchDestination.Advanced -> nav.push(RethinkRoute.AdvancedSettings)
                         }
                     }
                 )
             }
-            composable<HomeRoute.About> {
+            entry<RethinkRoute.About> {
                 AboutScreen(
                     uiState = aboutUiState,
                     onSponsorClick = onSponsorClick,
@@ -1125,11 +821,10 @@ fun HomeScreenRoot(
                     onTokenDoubleTap = onTokenDoubleTap,
                     onFossClick = onFossClick,
                     onFlossFundsClick = onFlossFundsClick,
-                    onBackClick = { navController.popBackStack() },
+                    onBackClick = { nav.popBackStack() },
                 )
             }
-            composable<HomeRoute.ConfigureRethinkBasic> { entry ->
-                val args = entry.toRoute<HomeRoute.ConfigureRethinkBasic>()
+            entry<RethinkRoute.ConfigureRethinkBasic> { args ->
                 val screenType = ConfigureRethinkScreenType.entries.getOrElse(args.screenTypeOrdinal) {
                     ConfigureRethinkScreenType.REMOTE
                 }
@@ -1144,11 +839,10 @@ fun HomeScreenRoot(
                     localFileTagViewModel = localFileTagViewModel,
                     remoteBlocklistPacksMapViewModel = remoteBlocklistPacksMapViewModel,
                     localBlocklistPacksMapViewModel = localBlocklistPacksMapViewModel,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.ConfigureOtherDns> { entry ->
-                val args = entry.toRoute<HomeRoute.ConfigureOtherDns>()
+            entry<RethinkRoute.ConfigureOtherDns> { args ->
                 ConfigureOtherDnsScreen(
                     dnsType = DnsScreenType.fromIndex(args.dnsType),
                     appConfig = appConfig,
@@ -1159,20 +853,20 @@ fun HomeScreenRoot(
                     dnsCryptViewModel = dnsCryptViewModel,
                     dnsCryptRelayViewModel = dnsCryptRelayViewModel,
                     oDohViewModel = oDohViewModel,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.UniversalFirewallSettings> {
+            entry<RethinkRoute.UniversalFirewall> {
                 UniversalFirewallSettingsScreen(
                     persistentState = persistentState,
                     eventLogger = appInfoEventLogger,
                     connTrackerRepository = connectionTrackerRepository,
                     onNavigateToLogs = onNavigateToLogs,
                     onOpenAccessibilitySettings = onOpenAccessibilitySettings,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.Checkout> {
+            entry<RethinkRoute.Checkout> {
                 val currentCheckoutViewModel = checkoutViewModel
                 if (currentCheckoutViewModel == null) {
                     Text(text = stringResource(id = R.string.checkout_unavailable_desc))
@@ -1190,71 +884,56 @@ fun HomeScreenRoot(
                         paymentStatus = paymentStatus,
                         onStartPayment = { currentCheckoutViewModel.startPayment() },
                         onNavigateToProxy = onNavigateToProxy,
-                        onManageAccount = { navController.navigate(HomeRoute.RpnAccount) },
-                        onBackClick = { navController.popBackStack() }
+                        onManageAccount = { nav.push(RethinkRoute.RpnAccount) },
+                        onBackClick = { nav.popBackStack() }
                     )
                 }
             }
-            composable<HomeRoute.RpnAccount> {
+            entry<RethinkRoute.RpnAccount> {
                 RpnAccountScreen(
                     manageViewModel = managePurchaseViewModel,
                     historyViewModel = purchaseHistoryViewModel,
                     ordersViewModel = serverOrderHistoryViewModel,
-                    onBackClick = { navController.popBackStack() },
+                    onBackClick = { nav.popBackStack() },
                 )
             }
-            composable<HomeRoute.AppWiseDomainLogs> { entry ->
-                val args = entry.toRoute<HomeRoute.AppWiseDomainLogs>()
+            entry<RethinkRoute.AppWiseDomainLogs> { args ->
                 AppWiseDomainLogsScreen(
                     uid = args.uid,
                     viewModel = appInfoNetworkLogsViewModel,
                     eventLogger = appInfoEventLogger,
-                    onBackClick = { navController.popBackStack() }
+                    onBackClick = { nav.popBackStack() }
                 )
             }
-            composable<HomeRoute.WgMain> {
+            entry<RethinkRoute.WireGuard> {
                 WgMainScreen(
                     wgConfigViewModel = wgConfigViewModel,
                     persistentState = persistentState,
                     appConfig = appConfig,
                     eventLogger = appInfoEventLogger,
-                    onBackClick = { navController.popBackStack() },
+                    onBackClick = { nav.popBackStack() },
                     onCreateClick = onWgCreateClick,
                     onImportClick = onWgImportClick,
                     onQrScanClick = onWgQrScanClick,
                     onConfigDetailClick = { configId, wgType ->
-                        navController.navigate(HomeRoute.WgConfigDetail(configId, wgType))
+                        nav.push(RethinkRoute.WireGuardDetail(configId, wgType.value))
                     }
                 )
             }
-            composable<HomeRoute.Database> {
+            entry<RethinkRoute.Database> {
                 DatabaseScreen(
-                    onBackClick = { navController.popBackStack() },
+                    onBackClick = { nav.popBackStack() },
                     appDatabase = appDatabase
                 )
             }
-            }
-        }
 
-        if (showNavigationRail) {
-            Row(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .consumeWindowInsets(paddingValues)
-            ) {
-                RethinkSideNavigation(
-                    destinations = navigationItems,
-                    selectedId = selectedNavigationId,
-                    onDestinationSelected = navigateToTopLevel,
-                    modifier = Modifier.fillMaxHeight().width(88.dp),
-                    windowInsets = WindowInsets.safeDrawing.only(WindowInsetsSides.Start),
-                )
-
-                navHostContent(Modifier.weight(1f))
-            }
-        } else {
-            navHostContent(navHostModifier)
-        }
+            },
+        )
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth(),
+        )
     }
 }

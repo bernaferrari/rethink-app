@@ -157,7 +157,7 @@ import com.bernaferrari.bravedns.ui.compose.dns.ConfigureRethinkScreenType
 import com.bernaferrari.bravedns.ui.compose.navigation.HomeNavRequest
 import com.bernaferrari.bravedns.ui.compose.navigation.CustomRulesMode
 import com.bernaferrari.bravedns.ui.compose.navigation.CustomRulesTab
-import com.bernaferrari.bravedns.ui.compose.navigation.HomeRoute
+import com.bernaferrari.bravedns.ui.compose.navigation.RethinkRoute
 import com.bernaferrari.bravedns.ui.compose.wireguard.WgType
 import com.bernaferrari.bravedns.ui.compose.navigation.HomeScreenRoot
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
@@ -389,9 +389,9 @@ class HomeScreenActivity : ComponentActivity() {
 
         val homeStartDestination =
             if (persistentState.firstTimeLaunch && !isAppRunningOnTv()) {
-                HomeRoute.Welcome
+                RethinkRoute.Welcome
             } else {
-                HomeRoute.Home
+                RethinkRoute.Home
             }
 
         handleFrostEffectIfNeeded(resolvedThemePreference)

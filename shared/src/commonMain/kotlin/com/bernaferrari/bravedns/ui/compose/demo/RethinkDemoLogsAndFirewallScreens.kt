@@ -455,7 +455,7 @@ internal fun DemoAppInfoScreen(modifier: Modifier, app: RethinkFirewallApp?, onB
             firewall = "Firewall", wifi = "Wi‑Fi", wifiDescription = "Block connections on unmetered networks.", mobile = "Mobile data", mobileDescription = "Block connections on metered networks.",
             isolate = "Isolate", isolateDescription = "Block all app traffic.", bypassDns = "Bypass DNS firewall", bypassDnsDescription = "Allow DNS traffic outside DNS rules.",
             bypassUniversal = "Bypass universal firewall", bypassUniversalDescription = "Ignore the universal firewall rule.", exclude = "Exclude", excludeDescription = "Keep this app outside VPN filtering.",
-            enabled = "Enabled", disabled = "Disabled", advanced = "Advanced", proxyExclude = "Exclude from proxy", proxyExcludeDescription = "Keep this app outside proxy routing.",
+            advanced = "Advanced", proxyExclude = "Exclude from proxy", proxyExcludeDescription = "Keep this app outside proxy routing.",
             temporaryAllowDescription = "Allow traffic temporarily.", rules = "Rules", systemAppInfo = "System app info", ipRules = "IP rules", domainRules = "Domain rules", loading = "Loading", empty = "No activity yet.",
         ),
         onBackClick = onBack,
@@ -468,7 +468,7 @@ internal fun DemoAppInfoScreen(modifier: Modifier, app: RethinkFirewallApp?, onB
         onProxyExcludedChange = { proxyExcluded = it },
         onTempAllowChange = { tempAllowed = it },
         onSystemAppInfo = {}, onIpRules = {}, onDomainRules = {}, onActiveConnections = null, onDomains = null, onIps = null,
-        onActiveEntry = {}, onDomainEntry = {}, onIpEntry = {},
+        onActiveEntry = null, onDomainEntry = null, onIpEntry = null,
         titleLeading = {
             RethinkWebDemoAppIcon(
                 current.packageName,

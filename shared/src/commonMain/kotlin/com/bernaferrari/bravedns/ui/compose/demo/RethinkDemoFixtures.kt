@@ -33,22 +33,22 @@ import com.bernaferrari.bravedns.ui.compose.wireguard.*
 
 internal val demoNavigationItems = listOf(
     RethinkNavigationItem(
-        RethinkRootDestination.Home.name,
-        "Home",
-        MaterialSymbols.Filled.Home,
-        MaterialSymbols.Outlined.Home,
+        id = RethinkRootDestination.Home.name,
+        label = "Home",
+        selectedIcon = MaterialSymbols.Filled.Home,
+        unselectedIcon = MaterialSymbols.Outlined.Home,
     ),
     RethinkNavigationItem(
-        RethinkRootDestination.Statistics.name,
-        "Statistics",
-        MaterialSymbols.Filled.Star,
-        MaterialSymbols.Outlined.Star,
+        id = RethinkRootDestination.Statistics.name,
+        label = "Statistics",
+        selectedIcon = MaterialSymbols.Filled.Star,
+        unselectedIcon = MaterialSymbols.Outlined.Star,
     ),
     RethinkNavigationItem(
-        RethinkRootDestination.Configure.name,
-        "Settings",
-        MaterialSymbols.Filled.Settings,
-        MaterialSymbols.Outlined.Settings,
+        id = RethinkRootDestination.Configure.name,
+        label = "Settings",
+        selectedIcon = MaterialSymbols.Filled.Settings,
+        unselectedIcon = MaterialSymbols.Outlined.Settings,
     ),
 )
 
@@ -612,16 +612,16 @@ internal val demoConsoleLogs = listOf(
 )
 
 internal fun demoConfigureSections(
-    onOpenDetail: (DemoDetail) -> Unit,
+    onOpenDetail: (RethinkRoute) -> Unit,
 ) = listOf(
     RethinkConfigureSection(
         "Protection",
         Color(0xFF804136),
         listOf(
-            demoConfigureEntry("apps", "Apps", Color(0xFF74C5FF), MaterialSymbols.Filled.Apps, DemoDetail.FirewallApps, onOpenDetail),
-            demoConfigureEntry("dns", "DNS", Color(0xFFC5ACFF), MaterialSymbols.Filled.Dns, DemoDetail.DnsList, onOpenDetail),
-            demoConfigureEntry("firewall", "Firewall", Color(0xFFFF907F), MaterialSymbols.Filled.Security, DemoDetail.FirewallSettings, onOpenDetail),
-            demoConfigureEntry("proxy", "Proxy", Color(0xFF46EBC8), MaterialSymbols.Filled.VpnKey, DemoDetail.ProxySettings, onOpenDetail),
+            demoConfigureEntry("apps", "Apps", Color(0xFF74C5FF), MaterialSymbols.Filled.Apps, RethinkRoute.AppList, onOpenDetail),
+            demoConfigureEntry("dns", "DNS", Color(0xFFC5ACFF), MaterialSymbols.Filled.Dns, RethinkRoute.DnsList, onOpenDetail),
+            demoConfigureEntry("firewall", "Firewall", Color(0xFFFF907F), MaterialSymbols.Filled.Security, RethinkRoute.FirewallSettings(), onOpenDetail),
+            demoConfigureEntry("proxy", "Proxy", Color(0xFF46EBC8), MaterialSymbols.Filled.VpnKey, RethinkRoute.ProxySettings(), onOpenDetail),
         ),
         RethinkConfigureLayout.GridFour,
     ),
@@ -629,11 +629,11 @@ internal fun demoConfigureSections(
         "System",
         Color(0xFF755A54),
         listOf(
-            demoConfigureEntry("network", "Network", Color(0xFFA3BCFF), MaterialSymbols.Filled.VpnKey, DemoDetail.TunnelSettings, onOpenDetail),
-            demoConfigureEntry("rpn", "Rethink Plus", Color(0xFF9B8CFF), MaterialSymbols.Filled.Star, DemoDetail.RpnAccount, onOpenDetail, "Account and support"),
-            demoConfigureEntry("settings", "App preferences", Color(0xFFFFD878), MaterialSymbols.Filled.Settings, DemoDetail.MiscSettings, onOpenDetail, "Appearance, device, and app behavior"),
-            demoConfigureEntry("logs", "Logs", Color(0xFF7EED92), MaterialSymbols.Filled.Subject, DemoDetail.Logs, onOpenDetail, "Network and DNS logging"),
-            demoConfigureEntry("rpn-countries", "Rethink locations", Color(0xFF7AB6FF), MaterialSymbols.Filled.Public, DemoDetail.RpnCountries, onOpenDetail, "Select RPN servers"),
+            demoConfigureEntry("network", "Network", Color(0xFFA3BCFF), MaterialSymbols.Filled.VpnKey, RethinkRoute.TunnelSettings(), onOpenDetail),
+            demoConfigureEntry("rpn", "Rethink Plus", Color(0xFF9B8CFF), MaterialSymbols.Filled.Star, RethinkRoute.RpnAccount, onOpenDetail, "Account and support"),
+            demoConfigureEntry("settings", "App preferences", Color(0xFFFFD878), MaterialSymbols.Filled.Settings, RethinkRoute.MiscSettings(), onOpenDetail, "Appearance, device, and app behavior"),
+            demoConfigureEntry("logs", "Logs", Color(0xFF7EED92), MaterialSymbols.Filled.Subject, RethinkRoute.NetworkLogs, onOpenDetail, "Network and DNS logging"),
+            demoConfigureEntry("rpn-countries", "Rethink locations", Color(0xFF7AB6FF), MaterialSymbols.Filled.Public, RethinkRoute.RpnCountries, onOpenDetail, "Select RPN servers"),
         ),
         RethinkConfigureLayout.GridTriad,
     ),
@@ -641,14 +641,14 @@ internal fun demoConfigureSections(
         "Diagnostics",
         Color(0xFF796A96),
         listOf(
-            demoConfigureEntry("console", "Console logs", Color(0xFFC5ACFF), MaterialSymbols.Filled.Subject, DemoDetail.ConsoleLogs, onOpenDetail, "Engine diagnostics"),
-            demoConfigureEntry("ping", "Connectivity checks", Color(0xFF73D6FF), MaterialSymbols.Filled.Dns, DemoDetail.PingTest, onOpenDetail, "Test RPN reachability"),
-            demoConfigureEntry("anti-censorship", "Anti-censorship", Color(0xFFFFBC77), MaterialSymbols.Filled.Security, DemoDetail.AntiCensorship, onOpenDetail, "Connection splitting and retries"),
-            demoConfigureEntry("events", "Event logs", Color(0xFFFF83B1), MaterialSymbols.Filled.Subject, DemoDetail.EventLogs, onOpenDetail, "System and debug events"),
-            demoConfigureEntry("database", "Database inspector", Color(0xFF84C8FF), MaterialSymbols.Filled.Storage, DemoDetail.Database, onOpenDetail, "Browse local data"),
-            demoConfigureEntry("dns-settings", "DNS settings", Color(0xFF8AA5FF), MaterialSymbols.Filled.Dns, DemoDetail.DnsSettings, onOpenDetail, "Resolver, filtering, and advanced options"),
-            demoConfigureEntry("blocklists", "Blocklists", Color(0xFFB5A3FF), MaterialSymbols.Filled.Security, DemoDetail.Blocklists, onOpenDetail, "Choose privacy and security sources"),
-            demoConfigureEntry("wireguard", "WireGuard", Color(0xFF67D4D4), MaterialSymbols.Filled.VpnKey, DemoDetail.Wireguard, onOpenDetail, "Create, import, and manage tunnels"),
+            demoConfigureEntry("console", "Console logs", Color(0xFFC5ACFF), MaterialSymbols.Filled.Subject, RethinkRoute.ConsoleLogs, onOpenDetail, "Engine diagnostics"),
+            demoConfigureEntry("ping", "Connectivity checks", Color(0xFF73D6FF), MaterialSymbols.Filled.Dns, RethinkRoute.PingTest, onOpenDetail, "Test RPN reachability"),
+            demoConfigureEntry("anti-censorship", "Anti-censorship", Color(0xFFFFBC77), MaterialSymbols.Filled.Security, RethinkRoute.AntiCensorship, onOpenDetail, "Connection splitting and retries"),
+            demoConfigureEntry("events", "Event logs", Color(0xFFFF83B1), MaterialSymbols.Filled.Subject, RethinkRoute.Events, onOpenDetail, "System and debug events"),
+            demoConfigureEntry("database", "Database inspector", Color(0xFF84C8FF), MaterialSymbols.Filled.Storage, RethinkRoute.Database, onOpenDetail, "Browse local data"),
+            demoConfigureEntry("dns-settings", "DNS settings", Color(0xFF8AA5FF), MaterialSymbols.Filled.Dns, RethinkRoute.DnsSettings, onOpenDetail, "Resolver, filtering, and advanced options"),
+            demoConfigureEntry("blocklists", "Blocklists", Color(0xFFB5A3FF), MaterialSymbols.Filled.Security, RethinkRoute.Blocklists, onOpenDetail, "Choose privacy and security sources"),
+            demoConfigureEntry("wireguard", "WireGuard", Color(0xFF67D4D4), MaterialSymbols.Filled.VpnKey, RethinkRoute.WireGuard, onOpenDetail, "Create, import, and manage tunnels"),
         ),
         RethinkConfigureLayout.List,
     ),
@@ -659,8 +659,8 @@ private fun demoConfigureEntry(
     title: String,
     accent: Color,
     icon: ImageVector,
-    destination: DemoDetail,
-    onOpenDetail: (DemoDetail) -> Unit,
+    destination: RethinkRoute,
+    onOpenDetail: (RethinkRoute) -> Unit,
     subtitle: String? = null,
 ) = RethinkConfigureEntry(
     id = id,

@@ -1,7 +1,7 @@
 /*
  * Copyright 2026 RethinkDNS and its authors
  *
- * Browser entry: mounts commonMain RethinkDemoApp via Compose Multiplatform wasmJs.
+ * Browser entry: mounts the shared RethinkAppContent shell (QuietGuard-style) via wasmJs.
  */
 package com.bernaferrari.bravedns
 
@@ -9,7 +9,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.window.ComposeViewport
 import com.bernaferrari.bravedns.di.RethinkKoinApp
 import com.bernaferrari.bravedns.di.RethinkWebDemoDependencies
-import com.bernaferrari.bravedns.ui.compose.RethinkDemoApp
+import com.bernaferrari.bravedns.ui.compose.RethinkAppContent
 import kotlinx.browser.document
 import kotlinx.browser.window
 import org.koin.plugin.module.dsl.startKoin
@@ -24,7 +24,7 @@ fun main() {
         runCatching { window.localStorage.getItem(WELCOME_COMPLETED_KEY) == "true" }
             .getOrDefault(false)
     ComposeViewport(body) {
-        RethinkDemoApp(
+        RethinkAppContent(
             darkTheme = false,
             reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches,
             demoDependencies = demoDependencies,

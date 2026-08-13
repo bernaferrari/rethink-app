@@ -48,7 +48,22 @@ App: `ConfigIo` for streams; Firestack only via `toFirestackKey()` on Android.
 ./gradlew :app:compilePlayFullDebugKotlin
 ```
 
-**UI strategy:** portable screens/components live under `shared/.../ui/compose/` (`RethinkDemoApp`, `WelcomeScreenShared`, `HomeDashboardShared`, theme, empty states). App keeps Android-only screens/resources; incrementally delegate shells via `SharedCmpBridge`. `wasmJsMain` only mounts `RethinkDemoApp` in the browser.
+**UI strategy (QuietGuard-shaped):** one navigation host, one route graph, host-only data.
+
+```
+Android Activity  ──┐
+                    ├── RethinkAppNavigation (shared) ── entryBuilder ── screens
+Wasm ComposeViewport┘         │
+                              ├── RethinkRoute keys + canonical stacks
+                              └── RethinkNavShell (bar/rail, CMP-8543)
+```
+
+| Host | Mount | entryBuilder |
+|------|-------|----------------|
+| **Android** | `HomeScreenRoot` → `RethinkAppNavigation` | product screens + ViewModels |
+| **wasm** | `RethinkAppContent` → `RethinkAppNavigation` | `rethinkPreviewEntries` fixtures |
+
+Same stack policy (tab rebuilds root; details push), same chrome, same `RethinkRoute`. Preview data lives under `ui/compose/demo/` — not a second app.
 
 ## Still only in `:app` (expected)
 

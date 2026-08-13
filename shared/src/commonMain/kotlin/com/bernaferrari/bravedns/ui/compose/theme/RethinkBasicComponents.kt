@@ -91,13 +91,17 @@ fun RethinkFormSection(
     title: String,
     description: String? = null,
     modifier: Modifier = Modifier,
+    titleModifier: Modifier = Modifier,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm),
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
+        Column(
+            modifier = titleModifier,
+            verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs),
+        ) {
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,

@@ -434,8 +434,6 @@ fun AppInfoScreen(
             bypassUniversalDescription = stringResource(R.string.firewall_status_whitelisted),
             exclude = stringResource(R.string.ada_app_exclude),
             excludeDescription = stringResource(R.string.firewall_status_excluded),
-            enabled = stringResource(R.string.lbbs_enabled),
-            disabled = stringResource(R.string.lbl_disabled),
             advanced = stringResource(R.string.lbl_advanced),
             proxyExclude = stringResource(R.string.exclude_apps_from_proxy),
             proxyExcludeDescription = stringResource(R.string.settings_exclude_proxy_apps_desc),
