@@ -13,6 +13,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
+import com.bernaferrari.bravedns.database.EventSource
+import com.bernaferrari.bravedns.database.EventType
+import com.bernaferrari.bravedns.database.Severity
+import com.bernaferrari.bravedns.service.EventLogger
+import com.bernaferrari.bravedns.service.PersistentState
+import com.bernaferrari.bravedns.ui.compose.settings.AppearanceSettingsCard
+import com.bernaferrari.bravedns.ui.compose.theme.RethinkColorPreset
 
 /** Android resources, navigation, and state adapter for the common Configure renderer. */
 @Composable
@@ -27,6 +34,10 @@ fun ConfigureScreen(
     onLogsClick: () -> Unit,
     onAntiCensorshipClick: () -> Unit,
     onAdvancedClick: () -> Unit,
+    persistentState: PersistentState,
+    eventLogger: EventLogger,
+    onThemeModeChanged: ((Int) -> Unit)? = null,
+    onThemeColorChanged: ((Int) -> Unit)? = null,
     onSearchDestinationClick: ((SettingsSearchDestination) -> Unit)? = null,
 ) {
     var query by rememberSaveable { mutableStateOf("") }
@@ -59,7 +70,7 @@ fun ConfigureScreen(
         ), RethinkConfigureLayout.GridFour),
         RethinkConfigureSection(system, Color(0xFF755A54), listOf(
             entry("network", stringResource(R.string.lbl_network), R.drawable.ic_network_tunnel, tint.network, onNetworkClick, keywords = listOf("network", "vpn", "tunnel")),
-            entry("settings", stringResource(R.string.settings_general_header), R.drawable.ic_other_settings, tint.settings, onOthersClick, keywords = listOf("settings", "general", "theme", "backup")),
+            entry("settings", stringResource(R.string.settings_general_header), R.drawable.ic_other_settings, tint.settings, onOthersClick, stringResource(R.string.settings_general_customize), keywords = listOf("settings", "general", "backup")),
             entry("logs", stringResource(R.string.lbl_logs), R.drawable.ic_logs_accent, tint.logs, onLogsClick, stringResource(R.string.settings_enable_logs_desc), listOf("logs", "events", "console")),
         ), RethinkConfigureLayout.GridTriad),
         RethinkConfigureSection(advanced, Color(0xFF6F5D2E), buildList {
@@ -84,6 +95,38 @@ fun ConfigureScreen(
         ),
         searchOpen = searchOpen, query = query,
         onSearchOpenChange = { searchOpen = it; if (!it) query = "" }, onQueryChange = { query = it },
+        appearanceContent = {
+            AppearanceSettingsCard(
+                themePreference = persistentState.theme,
+                colorPresetId = persistentState.themeColorPreset,
+                onAppearanceModeSelected = { mode ->
+                    val themeId = mode.toThemePreference()
+                    persistentState.theme = themeId
+                    onThemeModeChanged?.invoke(themeId)
+                    eventLogger.log(
+                        EventType.UI_SETTING_CHANGED,
+                        Severity.LOW,
+                        "Appearance",
+                        EventSource.UI,
+                        true,
+                        "Theme set to ${mode.name.lowercase()}",
+                    )
+                },
+                onColorPresetSelected = { preset: RethinkColorPreset ->
+                    persistentState.themeColorPreset = preset.id
+                    onThemeColorChanged?.invoke(preset.id)
+                    eventLogger.log(
+                        EventType.UI_SETTING_CHANGED,
+                        Severity.LOW,
+                        "Appearance color",
+                        EventSource.UI,
+                        true,
+                        "Color preset set to ${preset.name.lowercase()}",
+                    )
+                },
+                showSectionHeader = true,
+            )
+        },
     )
 }
 

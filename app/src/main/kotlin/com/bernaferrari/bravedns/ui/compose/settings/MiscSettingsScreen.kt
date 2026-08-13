@@ -36,8 +36,6 @@ fun MiscSettingsScreen(
     onBackClick: (() -> Unit)? = null,
     onOpenAbout: () -> Unit = {},
     onRefreshDatabase: (() -> Unit)? = null,
-    onThemeModeChanged: ((Int) -> Unit)? = null,
-    onThemeColorChanged: ((Int) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     var logsEnabled by remember { mutableStateOf(persistentState.logsEnabled) }
@@ -99,24 +97,6 @@ fun MiscSettingsScreen(
         onBackupRestore = { showBackupSheet = true },
         onOpenWebsite = { openUrl(context, context.getString(R.string.about_website_link)) },
         onOpenAbout = onOpenAbout,
-        appearanceContent = {
-            AppearanceSettingsCard(
-                themePreference = persistentState.theme,
-                colorPresetId = persistentState.themeColorPreset,
-                onAppearanceModeSelected = { mode ->
-                    val themeId = mode.toThemePreference()
-                    persistentState.theme = themeId
-                    onThemeModeChanged?.invoke(themeId)
-                    eventLogger.log(EventType.UI_SETTING_CHANGED, Severity.LOW, "Appearance", EventSource.UI, true, "Theme set to ${mode.name.lowercase()}")
-                },
-                onColorPresetSelected = { preset ->
-                    persistentState.themeColorPreset = preset.id
-                    onThemeColorChanged?.invoke(preset.id)
-                    eventLogger.log(EventType.UI_SETTING_CHANGED, Severity.LOW, "Appearance color", EventSource.UI, true, "Color preset set to ${preset.name.lowercase()}")
-                },
-                showSectionHeader = true,
-            )
-        },
         onBackClick = onBackClick,
         focusedSettingId = initialFocusKey?.takeIf { it.isNotBlank() },
     )

@@ -90,6 +90,8 @@ fun RethinkConfigureScreen(
     onSearchOpenChange: (Boolean) -> Unit,
     onQueryChange: (String) -> Unit,
     modifier: Modifier = Modifier,
+    /** Optional appearance block shown at the top of Settings (theme mode + color swatches). */
+    appearanceContent: (@Composable () -> Unit)? = null,
 ) {
     val scrollBehavior = if (searchOpen) TopAppBarDefaults.pinnedScrollBehavior() else TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
     val normalizedQuery = query.normalize()
@@ -150,6 +152,9 @@ fun RethinkConfigureScreen(
             verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
         ) {
             if (normalizedQuery.isBlank()) {
+                appearanceContent?.let { content ->
+                    item { content() }
+                }
                 sections.forEach { section -> item { ConfigureSection(section) } }
                 item { Spacer(Modifier.height(SharedDimensions.spacingSm)) }
             } else {

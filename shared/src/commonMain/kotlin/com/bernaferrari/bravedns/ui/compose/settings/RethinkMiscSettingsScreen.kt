@@ -62,18 +62,17 @@ fun RethinkMiscSettingsScreen(
     onBackupRestore: () -> Unit,
     onOpenWebsite: () -> Unit,
     onOpenAbout: () -> Unit,
-    appearanceContent: @Composable () -> Unit,
     onBackClick: (() -> Unit)? = null,
     focusedSettingId: String? = null,
     modifier: Modifier = Modifier,
 ) {
     val motion = LocalRethinkMotion.current
     val listState = rememberLazyListState()
+    // Appearance lives on root Settings; sections here are backup / general / about.
     val focusedSection = when (focusedSettingId) {
-        "general_appearance", "general_theme_mode", "general_theme_color" -> 0
-        "general_backup", "general_backup_restore" -> 1
-        "general_about", "general_website" -> 3
-        else -> if (focusedSettingId != null) 2 else null
+        "general_backup", "general_backup_restore" -> 0
+        "general_about", "general_website" -> 2
+        else -> if (focusedSettingId != null) 1 else null
     }
     LaunchedEffect(focusedSection) {
         focusedSection?.let {
@@ -93,9 +92,6 @@ fun RethinkMiscSettingsScreen(
         ),
         verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingLg),
     ) {
-            item {
-                appearanceContent()
-            }
             item {
                 Column(verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingSm)) {
                     SectionHeader(strings.backupSection)
