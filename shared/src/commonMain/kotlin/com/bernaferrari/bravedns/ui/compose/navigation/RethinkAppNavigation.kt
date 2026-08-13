@@ -5,12 +5,17 @@ import androidx.compose.animation.ContentTransform
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.viewmodel.navigation3.rememberViewModelStoreNavEntryDecorator
 import androidx.navigation3.runtime.EntryProviderScope
@@ -43,8 +48,13 @@ fun RethinkAppNavigation(
     val startStack = remember(startRoute) { canonicalStackFor(startRoute).toTypedArray() }
     val backStack = rememberNavBackStack(rethinkNavSavedStateConfiguration, *startStack)
     val motion = LocalRethinkMotion.current
+    // Tab bar switches replace the stack; they must not inherit the detail slide.
+    var tabTransition by remember { mutableStateOf(false) }
+
+    fun currentRoute(): RethinkRoute? = backStack.lastOrNull() as? RethinkRoute
 
     fun popBackStack() {
+        tabTransition = false
         if (backStack.size > 1) backStack.removeAt(backStack.lastIndex)
     }
 
@@ -54,16 +64,23 @@ fun RethinkAppNavigation(
     }
 
     fun push(destination: RethinkRoute) {
+        tabTransition = false
         if (backStack.lastOrNull() != destination) {
             backStack.add(destination)
         }
     }
 
     fun open(destination: RethinkRoute) {
-        setStack(*canonicalStackFor(destination).toTypedArray())
+        val next = canonicalStackFor(destination)
+        tabTransition = next.size == 1 &&
+            currentRoute()?.rootDestination() != destination.rootDestination()
+        setStack(*next.toTypedArray())
     }
 
     fun selectRoot(destination: RethinkRootDestination) {
+        val current = currentRoute()
+        if (current == destination.route) return
+        tabTransition = current?.rootDestination() != destination
         setStack(destination.route)
     }
 
@@ -88,6 +105,18 @@ fun RethinkAppNavigation(
 
     // Push/pop motion applied as NavDisplay defaults
     // (https://developer.android.com/guide/navigation/navigation-3/animate-destinations).
+    // Root tabs cross-fade; details keep the horizontal slide.
+    val fadeMillis = if (motion.reducedMotion) 0 else motion.durationFast
+    val fadeTransition: ContentTransform = remember(motion) {
+        ContentTransform(
+            targetContentEnter = fadeIn(
+                animationSpec = tween(durationMillis = fadeMillis, easing = motion.easingDecelerate),
+            ),
+            initialContentExit = fadeOut(
+                animationSpec = tween(durationMillis = fadeMillis, easing = motion.easingStandard),
+            ),
+        )
+    }
     val forwardTransition: ContentTransform = remember(motion) {
         ContentTransform(
             targetContentEnter = slideInHorizontally(
@@ -130,9 +159,9 @@ fun RethinkAppNavigation(
                 rememberSaveableStateHolderNavEntryDecorator(),
                 rememberViewModelStoreNavEntryDecorator(),
             ),
-            transitionSpec = { forwardTransition },
-            popTransitionSpec = { popTransition },
-            predictivePopTransitionSpec = { popTransition },
+            transitionSpec = { if (tabTransition) fadeTransition else forwardTransition },
+            popTransitionSpec = { if (tabTransition) fadeTransition else popTransition },
+            predictivePopTransitionSpec = { if (tabTransition) fadeTransition else popTransition },
             entryProvider = entryProvider {
                 entryBuilder(liveOps)
             },
