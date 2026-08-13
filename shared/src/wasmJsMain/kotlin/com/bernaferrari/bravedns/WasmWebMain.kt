@@ -25,7 +25,7 @@ fun main() {
             .getOrDefault(false)
     ComposeViewport(body) {
         RethinkAppContent(
-            darkTheme = false,
+            darkTheme = window.matchMedia("(prefers-color-scheme: dark)").matches,
             reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches,
             demoDependencies = demoDependencies,
             showWelcomeInitially = !hasCompletedWelcome,
