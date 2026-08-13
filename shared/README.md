@@ -48,7 +48,7 @@ App: `ConfigIo` for streams; Firestack only via `toFirestackKey()` on Android.
 ./gradlew :app:compilePlayFullDebugKotlin
 ```
 
-**UI strategy (QuietGuard-shaped):** one navigation host, one route graph, host-only data.
+**UI strategy:** one navigation host, one route graph, host-only data.
 
 ```
 Android Activity  ──┐

@@ -22,13 +22,13 @@ import androidx.navigation3.ui.NavDisplay
 import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 
 /**
- * Single QuietGuard-style navigation host for Android and wasm.
+ * Shared navigation host for Android and wasm.
  *
  * Hosts differ only in [entryBuilder] (real screens vs preview fixtures) and optional chrome
  * labels — not in stack policy, suite layout, or route types.
  *
- * Forward/back animations are set globally on [NavDisplay] (Nav3 defaults), matching QuietGuard's
- * detail push/pop motion without per-entry metadata.
+ * Forward/back animations are set globally on [NavDisplay] (Nav3 defaults)
+ * without per-entry metadata.
  */
 @Composable
 fun RethinkAppNavigation(
@@ -86,8 +86,8 @@ fun RethinkAppNavigation(
         onRouteNavigated()
     }
 
-    // Same timings/easings as QuietGuard's detailTransitionMetadata, applied as NavDisplay
-    // defaults (https://developer.android.com/guide/navigation/navigation-3/animate-destinations).
+    // Push/pop motion applied as NavDisplay defaults
+    // (https://developer.android.com/guide/navigation/navigation-3/animate-destinations).
     val forwardTransition: ContentTransform = remember(motion) {
         ContentTransform(
             targetContentEnter = slideInHorizontally(

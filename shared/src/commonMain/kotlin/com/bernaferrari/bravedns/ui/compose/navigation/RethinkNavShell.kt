@@ -29,7 +29,7 @@ import com.bernaferrari.bravedns.ui.compose.theme.LocalRethinkMotion
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkMotion
 
 /**
- * QuietGuard-shaped navigation chrome shared by every host: adaptive suite (bar/rail) with a
+ * Navigation chrome shared by every host: adaptive suite (bar/rail) with a
  * bounded-viewport gate for Compose for Web (CMP-8543). Hosts own the Nav3 back stack and
  * [androidx.navigation3.ui.NavDisplay] content.
  */

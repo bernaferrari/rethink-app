@@ -3,7 +3,19 @@ package com.bernaferrari.bravedns.ui.compose.apps
 
 import com.bernaferrari.bravedns.ui.icons.MaterialSymbols
 
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -14,6 +26,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -23,13 +37,20 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.ui.compose.common.RethinkEmptyState
 import com.bernaferrari.bravedns.ui.compose.theme.CardPosition
@@ -80,6 +101,8 @@ data class RethinkAppInfoStrings(
     val wifiDescription: String,
     val mobile: String,
     val mobileDescription: String,
+    val allowed: String,
+    val blocked: String,
     val isolate: String,
     val isolateDescription: String,
     val bypassDns: String,
@@ -169,6 +192,7 @@ fun RethinkAppInfoScreen(
             } else {
                 item { RethinkAppStatusCard(state, strings) }
                 item {
+                    // Compact network cards sit above the firewall settings rows.
                     RethinkFormSection(strings.firewall) {
                         RethinkAppNetworkPair(state, strings, onWifiClick, onMobileClick)
                         RethinkListGroup {
@@ -230,32 +254,192 @@ private fun RethinkAppStatusPill(label: String, active: Boolean) {
 }
 
 @Composable
-private fun RethinkAppNetworkPair(state: RethinkAppInfoState, strings: RethinkAppInfoStrings, onWifiClick: () -> Unit, onMobileClick: () -> Unit) {
-    // The two network controls form one paired surface; keep their edges touching rather than
-    // presenting them as two unrelated cards.
-    Row(horizontalArrangement = Arrangement.spacedBy(0.dp), modifier = Modifier.fillMaxWidth()) {
-        RethinkAppNetworkTile(strings.wifi, strings.wifiDescription, state.wifiBlocked, MaterialSymbols.Filled.Wifi, MaterialSymbols.Filled.WifiOff, rethinkGroupedListPairShape(isLeadingTile = true, position = CardPosition.Single), Modifier.weight(1f), onWifiClick)
-        RethinkAppNetworkTile(strings.mobile, strings.mobileDescription, state.mobileBlocked, MaterialSymbols.Outlined.MobiledataArrows, MaterialSymbols.Outlined.MobiledataOff, rethinkGroupedListPairShape(isLeadingTile = false, position = CardPosition.Single), Modifier.weight(1f), onMobileClick)
+private fun RethinkAppNetworkPair(
+    state: RethinkAppInfoState,
+    strings: RethinkAppInfoStrings,
+    onWifiClick: () -> Unit,
+    onMobileClick: () -> Unit,
+) {
+    // Compact horizontal network cards with a 2.dp gap like list rows.
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(2.dp),
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        RethinkAppNetworkTile(
+            label = strings.wifi,
+            blocked = state.wifiBlocked,
+            allowedLabel = strings.allowed,
+            blockedLabel = strings.blocked,
+            allowedIcon = MaterialSymbols.Filled.Wifi,
+            blockedIcon = MaterialSymbols.Filled.WifiOff,
+            shape = rethinkGroupedListPairShape(isLeadingTile = true, position = CardPosition.Single),
+            modifier = Modifier.weight(1f),
+            onClick = onWifiClick,
+        )
+        RethinkAppNetworkTile(
+            label = strings.mobile,
+            blocked = state.mobileBlocked,
+            allowedLabel = strings.allowed,
+            blockedLabel = strings.blocked,
+            allowedIcon = MaterialSymbols.Outlined.MobiledataArrows,
+            blockedIcon = MaterialSymbols.Outlined.MobiledataOff,
+            shape = rethinkGroupedListPairShape(isLeadingTile = false, position = CardPosition.Single),
+            modifier = Modifier.weight(1f),
+            onClick = onMobileClick,
+        )
+    }
+}
+
+/**
+ * Compact allow/block network card:
+ * fixed 72.dp height, circular icon pill, and Allowed/Blocked status text.
+ */
+@Composable
+private fun RethinkAppNetworkTile(
+    label: String,
+    blocked: Boolean,
+    allowedLabel: String,
+    blockedLabel: String,
+    allowedIcon: ImageVector,
+    blockedIcon: ImageVector,
+    shape: Shape,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val density = LocalDensity.current
+    val baseRounded = shape as? RoundedCornerShape ?: RoundedCornerShape(20.dp)
+    val animatedShape = RoundedCornerShape(
+        topStart = animateCorner(baseRounded.topStart, 28.dp, blocked, density),
+        topEnd = animateCorner(baseRounded.topEnd, 28.dp, blocked, density),
+        bottomEnd = animateCorner(baseRounded.bottomEnd, 28.dp, blocked, density),
+        bottomStart = animateCorner(baseRounded.bottomStart, 28.dp, blocked, density),
+    )
+    val containerColor by animateColorAsState(
+        targetValue = if (blocked) {
+            MaterialTheme.colorScheme.errorContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerLow
+        },
+        animationSpec = tween(400, easing = FastOutSlowInEasing),
+        label = "app_network_tile_bg",
+    )
+    val contentColor by animateColorAsState(
+        targetValue = if (blocked) {
+            MaterialTheme.colorScheme.onErrorContainer
+        } else {
+            MaterialTheme.colorScheme.onSurface
+        },
+        animationSpec = tween(400),
+        label = "app_network_tile_title",
+    )
+    val secondaryColor by animateColorAsState(
+        targetValue = if (blocked) {
+            MaterialTheme.colorScheme.error
+        } else {
+            MaterialTheme.colorScheme.onSurfaceVariant
+        },
+        animationSpec = tween(400),
+        label = "app_network_tile_status",
+    )
+    val iconContainerColor by animateColorAsState(
+        targetValue = if (blocked) {
+            MaterialTheme.colorScheme.error.copy(alpha = 0.2f)
+        } else {
+            MaterialTheme.colorScheme.surfaceContainerHigh
+        },
+        animationSpec = tween(400),
+        label = "app_network_tile_icon_bg",
+    )
+    val iconBlockedTint = if (blocked) {
+        MaterialTheme.colorScheme.error
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+    val iconAllowedTint = if (blocked) {
+        MaterialTheme.colorScheme.error.copy(alpha = 0.44f)
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant
+    }
+
+    Surface(
+        onClick = onClick,
+        modifier = modifier.height(72.dp),
+        shape = animatedShape,
+        color = containerColor,
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(CircleShape)
+                    .background(iconContainerColor),
+                contentAlignment = Alignment.Center,
+            ) {
+                DiagonalWipeIcon(
+                    blocked = blocked,
+                    allowedIcon = allowedIcon,
+                    blockedIcon = blockedIcon,
+                    allowedTint = iconAllowedTint,
+                    blockedTint = iconBlockedTint,
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+            }
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.Center,
+            ) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = contentColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                AnimatedContent(
+                    targetState = blocked,
+                    transitionSpec = {
+                        (slideInVertically { height -> if (targetState) height else -height } + fadeIn()) togetherWith
+                            (slideOutVertically { height -> if (targetState) -height else height } + fadeOut())
+                    },
+                    label = "app_network_tile_status_text",
+                ) { isBlocked ->
+                    Text(
+                        text = if (isBlocked) blockedLabel else allowedLabel,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Bold,
+                        color = secondaryColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+            }
+        }
     }
 }
 
 @Composable
-private fun RethinkAppNetworkTile(title: String, description: String, blocked: Boolean, allowedIcon: androidx.compose.ui.graphics.vector.ImageVector, blockedIcon: androidx.compose.ui.graphics.vector.ImageVector, shape: androidx.compose.ui.graphics.Shape, modifier: Modifier, onClick: () -> Unit) {
-    Surface(onClick = onClick, modifier = modifier.clip(shape), shape = shape, color = if (blocked) MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.48f) else MaterialTheme.colorScheme.surfaceContainerLow) {
-        Column(Modifier.padding(SharedDimensions.cardPadding), verticalArrangement = Arrangement.spacedBy(SharedDimensions.spacingXs)) {
-            DiagonalWipeIcon(
-                blocked = blocked,
-                allowedIcon = allowedIcon,
-                blockedIcon = blockedIcon,
-                allowedTint = MaterialTheme.colorScheme.primary,
-                blockedTint = MaterialTheme.colorScheme.error,
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-            )
-            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.SemiBold)
-            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 2, overflow = TextOverflow.Ellipsis)
-        }
-    }
+private fun animateCorner(
+    base: CornerSize,
+    targetDp: Dp,
+    blocked: Boolean,
+    density: Density,
+): CornerSize {
+    val basePx = base.toPx(Size(100f, 100f), density)
+    val baseDp = with(density) { basePx.toDp() }
+    val currentDp by animateDpAsState(
+        targetValue = if (blocked) targetDp else baseDp,
+        animationSpec = tween(400, easing = FastOutSlowInEasing),
+        label = "app_network_tile_corner",
+    )
+    return CornerSize(currentDp)
 }
 
 @Composable

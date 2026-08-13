@@ -23,7 +23,7 @@ plugins {
 }
 
 kotlin {
-    // This is the same AGP-backed KMP library target used by QuietGuard. It can coexist with
+    // AGP-backed KMP library target. It can coexist with
     // wasmJs in one shared module; keeping both targets here makes commonMain the single source
     // of truth for Android and the browser.
     androidLibrary {
@@ -81,13 +81,13 @@ kotlin {
             // target so Android and Wasm render the same commonMain controls and shapes.
             implementation("org.jetbrains.compose.material3:material3:1.12.0-alpha03")
             // NavigationSuiteScaffold gives the shared UI the same adaptive bottom-bar/rail
-            // behavior as QuietGuard without platform-specific navigation chrome.
+            // behavior without platform-specific navigation chrome.
             implementation("org.jetbrains.compose.material3:material3-adaptive-navigation-suite:1.12.0-alpha03")
             implementation(libs.jetbrains.navigation3.ui)
             implementation(libs.compose.adaptive.navigation3)
             implementation(libs.compose.lifecycle.viewmodel.navigation3)
             implementation(compose.ui)
-            // Generate the same seed-based Material 3 color schemes used by QuietGuard so the
+            // Generate seed-based Material 3 color schemes so the
             // shared web demo can apply every appearance swatch immediately.
             implementation("com.materialkolor:material-kolor:5.0.0")
         }

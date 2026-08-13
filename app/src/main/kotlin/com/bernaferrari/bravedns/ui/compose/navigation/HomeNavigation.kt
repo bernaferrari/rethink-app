@@ -409,7 +409,7 @@ fun HomeScreenRoot(
         )
     }
 
-    // Map external activity requests onto the shared route type (QuietGuard pendingRoute).
+    // Map external activity requests onto the shared route type (pendingRoute).
     var pendingRoute by remember { mutableStateOf<RethinkRoute?>(null) }
     LaunchedEffect(homeNavRequest) {
         val request = homeNavRequest ?: return@LaunchedEffect

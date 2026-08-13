@@ -426,6 +426,8 @@ fun AppInfoScreen(
             wifiDescription = stringResource(R.string.firewall_status_block_unmetered),
             mobile = stringResource(R.string.lbl_mobile_data),
             mobileDescription = stringResource(R.string.firewall_status_block_metered),
+            allowed = stringResource(R.string.lbl_allowed),
+            blocked = stringResource(R.string.lbl_blocked),
             isolate = stringResource(R.string.ada_app_isolate),
             isolateDescription = stringResource(R.string.firewall_status_isolate),
             bypassDns = stringResource(R.string.ada_app_bypass_dns_firewall),

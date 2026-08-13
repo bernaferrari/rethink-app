@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.nativeCanvas
  * protection activates; outliers remain outside the tunnel and turn warm while recovering.
  *
  * The simplex field and Bayer thresholding are adapted from Paper Shaders' Dithering shader,
- * following QuietGuard's implementation structure, with new geometry and state behavior.
+ * with dedicated geometry and state behavior.
  *
  * @see <a href="https://github.com/paper-design/shaders">Paper Shaders</a>
  */

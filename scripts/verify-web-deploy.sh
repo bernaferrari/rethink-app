@@ -11,7 +11,7 @@ SERVE_MODE=false
 for arg in "$@"; do
   case "$arg" in
     --ci|--web-only)
-      # Accepted so local invocations match QuietGuard's CI command. This
+      # Accepted so local invocations match common CI flags. This
       # project has no separate Android setup step in the web verification.
       ;;
     --skip-build) SKIP_BUILD=true ;;
