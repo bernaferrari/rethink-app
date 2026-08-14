@@ -3,6 +3,7 @@ package com.bernaferrari.bravedns.ui.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.RemoteBlocklistPacksMap
 import com.bernaferrari.bravedns.ui.compose.dns.RethinkBlocklistPack
@@ -14,10 +15,12 @@ import com.bernaferrari.bravedns.ui.rethink.RethinkBlocklistState
 @Composable
 fun RemoteSimpleBlocklistRow(map: RemoteBlocklistPacksMap, showHeader: Boolean, onToggle: (Boolean) -> Unit) {
     val context = LocalContext.current
+    val blocklistCountText = stringResource(R.string.rsv_blocklist_count_text)
+    val entriesText = stringResource(R.string.dc_entries)
     RethinkBlocklistPackRow(
         pack = RethinkBlocklistPack("${map.pack}:${map.level}", map.toRethinkGroup(context), map.pack, map.blocklistIds.size, RethinkBlocklistState.getSelectedFileTags().containsAll(map.blocklistIds), map.blocklistIds.toSet()),
         showGroupHeader = showHeader,
-        strings = RethinkBlocklistRowStrings({ context.getString(R.string.rsv_blocklist_count_text, it.toString()) }, { context.getString(R.string.dc_entries, it.toString()) }),
+        strings = RethinkBlocklistRowStrings({ blocklistCountText.format(it.toString()) }, { entriesText.format(it.toString()) }),
         onToggle = onToggle,
     )
 }

@@ -28,6 +28,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConnection
@@ -45,7 +46,7 @@ import kotlinx.coroutines.withContext
 fun ConnectionRow(dc: AppConnection) {
     val context = LocalContext.current
     val fallbackName = if (dc.appOrDnsName.isNullOrEmpty()) {
-        context.getString(R.string.network_log_app_name_unnamed, "(${dc.uid})")
+        stringResource(R.string.network_log_app_name_unnamed, "(${dc.uid})")
     } else {
         dc.appOrDnsName
     }
@@ -53,16 +54,16 @@ fun ConnectionRow(dc: AppConnection) {
     val uploadBytes = dc.uploadBytes
     val totalUsageText = if (downloadBytes != null && uploadBytes != null) {
         val download =
-            context.getString(
+            stringResource(
                 R.string.symbol_download,
                 Utilities.humanReadableByteCount(downloadBytes, true)
             )
         val upload =
-            context.getString(
+            stringResource(
                 R.string.symbol_upload,
                 Utilities.humanReadableByteCount(uploadBytes, true)
             )
-        context.getString(R.string.two_argument, upload, download)
+        stringResource(R.string.two_argument, upload, download)
     } else {
         null
     }

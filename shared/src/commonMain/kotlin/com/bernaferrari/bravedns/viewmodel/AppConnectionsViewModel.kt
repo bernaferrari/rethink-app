@@ -131,14 +131,10 @@ class AppConnectionsViewModel(
             .cachedIn(viewModelScope)
 
     fun getRethinkDomainLogsLimited(): Flow<PagingData<AppConnection>> =
-        Pager(pagingConfig) { rinrDao.getDomainLogsLimited(nowMillis() - ONE_WEEK_MILLIS) }
-            .flow
-            .cachedIn(viewModelScope)
+        rinrDao.getDomainLogsLimited(nowMillis() - ONE_WEEK_MILLIS).toPagingData()
 
     fun getRethinkIpLogsLimited(): Flow<PagingData<AppConnection>> =
-        Pager(pagingConfig) { rinrDao.getIpLogsLimited(nowMillis() - ONE_WEEK_MILLIS) }
-            .flow
-            .cachedIn(viewModelScope)
+        rinrDao.getIpLogsLimited(nowMillis() - ONE_WEEK_MILLIS).toPagingData()
 
     fun getAsnLogsLimited(uid: Int): Flow<PagingData<AppConnection>> =
         statsDao.getAsnLogsLimited(uid, nowMillis() - ONE_WEEK_MILLIS).toPagingData()

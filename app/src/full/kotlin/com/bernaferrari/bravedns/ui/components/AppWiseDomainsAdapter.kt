@@ -16,10 +16,10 @@
 package com.bernaferrari.bravedns.ui.components
 
 
-import android.content.Context
 import android.widget.Toast
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConnection
 import com.bernaferrari.bravedns.service.DomainRulesManager
@@ -86,12 +86,13 @@ fun CloseConnsDialog(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val successToast = stringResource(R.string.config_add_success_toast)
     RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        title = context.getString(R.string.close_conns_dialog_title),
-        message = context.getString(R.string.close_conns_dialog_desc, conn.ipAddress),
-        confirmText = context.getString(R.string.lbl_proceed),
-        dismissText = context.getString(R.string.lbl_cancel),
+        title = stringResource(R.string.close_conns_dialog_title),
+        message = stringResource(R.string.close_conns_dialog_desc, conn.ipAddress),
+        confirmText = stringResource(R.string.lbl_proceed),
+        dismissText = stringResource(R.string.lbl_cancel),
         onConfirm = {
             VpnController.closeConnectionsByUidDomain(
                 conn.uid,
@@ -100,7 +101,7 @@ fun CloseConnsDialog(
             )
             showToastUiCentered(
                 context,
-                context.getString(R.string.config_add_success_toast),
+                successToast,
                 Toast.LENGTH_LONG
             )
             onConfirm()

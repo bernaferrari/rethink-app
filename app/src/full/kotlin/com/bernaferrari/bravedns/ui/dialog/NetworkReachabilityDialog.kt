@@ -57,6 +57,8 @@ fun NetworkReachabilitySheet(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val successToast = stringResource(R.string.config_add_success_toast)
+    val validationErrorText = stringResource(R.string.cd_dns_proxy_error_text_1)
     val defaults = remember { defaultReachabilityConfiguration() }
     val initial = remember(
         persistentState.performAutoNetworkConnectivityChecks,
@@ -96,11 +98,11 @@ fun NetworkReachabilitySheet(
                         persistentState = persistentState,
                         configuration = configuration,
                         onSuccess = {
-                            Toast.makeText(context, context.getString(R.string.config_add_success_toast), Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, successToast, Toast.LENGTH_LONG).show()
                             scope.launch(Dispatchers.IO) { VpnController.notifyConnectionMonitor() }
                             onDismiss()
                         },
-                        validationError = context.getString(R.string.cd_dns_proxy_error_text_1),
+                        validationError = validationErrorText,
                     )
                 },
             )

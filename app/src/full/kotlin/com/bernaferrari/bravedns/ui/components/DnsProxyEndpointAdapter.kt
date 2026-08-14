@@ -24,6 +24,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.DnsProxyEndpoint
@@ -39,6 +40,9 @@ private const val TAG = "DnsProxyEndpointAdapter"
 fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val defaultName = stringResource(R.string.cd_custom_dns_proxy_default_app)
+    val dialogMessageTemplate = stringResource(R.string.dns_proxy_dialog_message)
+    val dialogMessageNoAppTemplate = stringResource(R.string.dns_proxy_dialog_message_no_app)
     var explanation by remember(endpoint.id) { mutableStateOf("") }
     var infoDialog by remember(endpoint.id) { mutableStateOf<DnsInfoDialogModel?>(null) }
     var deleteDialog by remember(endpoint.id) { mutableStateOf<DnsDeleteDialogModel?>(null) }
@@ -48,7 +52,6 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
             withContext(Dispatchers.IO) {
                 FirewallManager.getAppInfoByPackage(endpoint.proxyAppName)?.appName
             }
-        val defaultName = context.getString(R.string.cd_custom_dns_proxy_default_app)
         val resolvedAppName =
             if (endpoint.proxyName != defaultName) {
                 appName ?: defaultName
@@ -79,15 +82,13 @@ fun DnsProxyEndpointRow(endpoint: DnsProxyEndpoint, appConfig: AppConfig) {
                         FirewallManager.getAppInfoByPackage(endpoint.getPackageName())?.appName
                     val message =
                         if (!app.isNullOrEmpty()) {
-                            context.getString(
-                                R.string.dns_proxy_dialog_message,
+                            dialogMessageTemplate.format(
                                 app,
                                 endpoint.proxyIP,
                                 endpoint.proxyPort.toString()
                             )
                         } else {
-                            context.getString(
-                                R.string.dns_proxy_dialog_message_no_app,
+                            dialogMessageNoAppTemplate.format(
                                 endpoint.proxyIP,
                                 endpoint.proxyPort.toString()
                             )

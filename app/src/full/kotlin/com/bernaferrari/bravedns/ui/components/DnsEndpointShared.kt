@@ -28,6 +28,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.service.VpnController
 import com.bernaferrari.bravedns.ui.compose.theme.RethinkConfirmDialog
@@ -65,15 +66,19 @@ internal fun DnsInfoDialog(
     onDismiss: () -> Unit
 ) {
     val context = LocalContext.current
+    val copyClipboardLabel = stringResource(R.string.copy_clipboard_label)
+    val copyToast = stringResource(model.copyToastRes)
     RethinkMultiActionDialog(
         onDismissRequest = onDismiss,
         title = model.title,
         message = model.message,
-        primaryText = context.getString(model.confirmTextRes),
+        primaryText = stringResource(model.confirmTextRes),
         onPrimary = onDismiss,
         secondaryText =
-            model.copyValue?.takeIf { it.isNotEmpty() }?.let {
-                context.getString(model.copyTextRes)
+            if (model.copyValue.isNullOrEmpty()) {
+                null
+            } else {
+                stringResource(model.copyTextRes)
             },
         onSecondary = {
             val copyValue = model.copyValue
@@ -81,11 +86,11 @@ internal fun DnsInfoDialog(
             clipboardCopy(
                 context,
                 copyValue,
-                context.getString(R.string.copy_clipboard_label)
+                copyClipboardLabel
             )
             Utilities.showToastUiCentered(
                 context,
-                context.getString(model.copyToastRes),
+                copyToast,
                 Toast.LENGTH_SHORT
             )
         }
@@ -98,13 +103,12 @@ internal fun DnsDeleteDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit
 ) {
-    val context = LocalContext.current
     RethinkConfirmDialog(
         onDismissRequest = onDismiss,
-        title = context.getString(model.titleRes),
-        message = context.getString(model.messageRes),
-        confirmText = context.getString(R.string.lbl_delete),
-        dismissText = context.getString(R.string.lbl_cancel),
+        title = stringResource(model.titleRes),
+        message = stringResource(model.messageRes),
+        confirmText = stringResource(R.string.lbl_delete),
+        dismissText = stringResource(R.string.lbl_cancel),
         isConfirmDestructive = true,
         onConfirm = { onConfirm(model.id) },
         onDismiss = onDismiss

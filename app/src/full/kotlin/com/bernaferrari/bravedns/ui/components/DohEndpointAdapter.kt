@@ -23,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.DoHEndpoint
@@ -47,10 +48,10 @@ fun DoHEndpointRow(endpoint: DoHEndpoint, appConfig: AppConfig) {
         if (endpoint.isSecure) {
             endpoint.dohName
         } else {
-            context.getString(
+            stringResource(
                 R.string.ci_desc,
                 endpoint.dohName,
-                context.getString(R.string.lbl_insecure)
+                stringResource(R.string.lbl_insecure)
             )
         }
     DnsEndpointRow(

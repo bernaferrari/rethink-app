@@ -25,6 +25,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.data.AppConfig
 import com.bernaferrari.bravedns.database.RethinkDnsEndpoint
@@ -90,10 +91,12 @@ fun RethinkEndpointRow(
         val editEnabled = info.endpoint.isEditable(context)
         val positiveText =
             if (editEnabled) {
-                context.getString(R.string.rt_edit_dialog_positive)
+                stringResource(R.string.rt_edit_dialog_positive)
             } else {
-                context.getString(R.string.dns_info_positive)
+                stringResource(R.string.dns_info_positive)
             }
+        val copyClipboardLabel = stringResource(R.string.copy_clipboard_label)
+        val copyToast = stringResource(R.string.info_dialog_url_copy_toast_msg)
         RethinkMultiActionDialog(
             onDismissRequest = { dialogState = null },
             title = info.endpoint.name,
@@ -105,16 +108,16 @@ fun RethinkEndpointRow(
                     openEditConfiguration(context, endpoint, onEditConfiguration)
                 }
             },
-            secondaryText = context.getString(R.string.dns_info_neutral),
+            secondaryText = stringResource(R.string.dns_info_neutral),
             onSecondary = {
                 clipboardCopy(
                     context,
                     info.endpoint.url,
-                    context.getString(R.string.copy_clipboard_label)
+                    copyClipboardLabel
                 )
                 Utilities.showToastUiCentered(
                     context,
-                    context.getString(R.string.info_dialog_url_copy_toast_msg),
+                    copyToast,
                     Toast.LENGTH_SHORT
                 )
             }

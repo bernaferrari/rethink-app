@@ -116,6 +116,8 @@ private fun WgIncludeAppsDialogScreen(
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val excludeFailureToast = stringResource(R.string.exclude_apps_from_proxy_failure_toast)
+    val refreshCompleteToast = stringResource(R.string.refresh_complete)
     val refreshDatabase = remember { RefreshDatabaseProvider.get() }
     var query by remember { mutableStateOf("") }
     var selectedFilter by remember { mutableStateOf(TopLevelFilter.ALL_APPS) }
@@ -137,7 +139,7 @@ private fun WgIncludeAppsDialogScreen(
                 withContext(Dispatchers.Main) {
                     Utilities.showToastUiCentered(
                         context,
-                        context.getString(R.string.exclude_apps_from_proxy_failure_toast),
+                        excludeFailureToast,
                         Toast.LENGTH_LONG
                     )
                 }
@@ -226,7 +228,7 @@ private fun WgIncludeAppsDialogScreen(
                 isRefreshing = false
                 Utilities.showToastUiCentered(
                     context,
-                    context.getString(R.string.refresh_complete),
+                    refreshCompleteToast,
                     Toast.LENGTH_SHORT
                 )
             }

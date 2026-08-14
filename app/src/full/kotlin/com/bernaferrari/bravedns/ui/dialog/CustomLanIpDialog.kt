@@ -46,6 +46,8 @@ fun CustomLanIpSheet(
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
+    val validationErrorText = stringResource(R.string.custom_lan_ip_validation_error)
+    val saveErrorText = stringResource(R.string.custom_lan_ip_save_error)
     val defaults = remember { defaultLanConfiguration() }
     val initial = remember(persistentState.customLanIpMode) {
         persistentState.toLanConfiguration(defaults)
@@ -87,8 +89,8 @@ fun CustomLanIpSheet(
                             ).show()
                             onDismiss()
                         },
-                        errorText = context.getString(R.string.custom_lan_ip_validation_error),
-                        saveErrorText = context.getString(R.string.custom_lan_ip_save_error),
+                        errorText = validationErrorText,
+                        saveErrorText = saveErrorText,
                     )
                 },
                 onReset = {

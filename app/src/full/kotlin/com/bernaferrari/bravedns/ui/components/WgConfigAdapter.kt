@@ -49,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -128,11 +129,19 @@ fun WgConfigRow(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
+    val disabledStatus = stringResource(R.string.lbl_disabled).replaceFirstChar(Char::titlecase)
+    val identifierText = stringResource(R.string.single_argument_parenthesis, config.id.toString())
+    val ipv4Label = stringResource(R.string.settings_ip_text_ipv4)
+    val ipv6Label = stringResource(R.string.settings_ip_text_ipv6)
+    val splitLabel = stringResource(R.string.lbl_split)
+    val amneziaLabel = stringResource(R.string.lbl_amnezia)
+    val hoppingLabel = stringResource(R.string.lbl_hopping)
+    val relayLabel = stringResource(R.string.cd_dns_crypt_relay_heading)
     var isChecked by remember(config.id, config.isActive) {
         mutableStateOf(config.isActive && VpnController.hasTunnel())
     }
     var statusText by remember(config.id) {
-        mutableStateOf(context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase))
+        mutableStateOf(disabledStatus)
     }
     var appsText by remember(config.id) { mutableStateOf("") }
     var showActiveLayout by remember(config.id) { mutableStateOf(false) }
@@ -184,14 +193,14 @@ fun WgConfigRow(
     RethinkWireguardConfigCard(
         state = RethinkWireguardConfigCardState(
             name = config.name,
-            identifier = context.getString(R.string.single_argument_parenthesis, config.id.toString()),
+            identifier = identifierText,
             chips = buildList {
-                if (chips.ipv4) add(context.getString(R.string.settings_ip_text_ipv4))
-                if (chips.ipv6) add(context.getString(R.string.settings_ip_text_ipv6))
-                if (chips.splitTunnel) add(context.getString(R.string.lbl_split))
-                if (chips.amnezia) add(context.getString(R.string.lbl_amnezia))
-                if (chips.hopSrc) add(context.getString(R.string.lbl_hopping))
-                if (chips.hopping) add(context.getString(R.string.cd_dns_crypt_relay_heading))
+                if (chips.ipv4) add(ipv4Label)
+                if (chips.ipv6) add(ipv6Label)
+                if (chips.splitTunnel) add(splitLabel)
+                if (chips.amnezia) add(amneziaLabel)
+                if (chips.hopSrc) add(hoppingLabel)
+                if (chips.hopping) add(relayLabel)
                 if (chips.properties.isNotEmpty()) add(chips.properties)
             },
             isChecked = isChecked,

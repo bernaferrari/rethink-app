@@ -120,11 +120,16 @@ fun OneWgConfigRow(
     val context = LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current
     val scope = rememberCoroutineScope()
+    val disabledStatus = stringResource(R.string.lbl_disabled).replaceFirstChar(Char::titlecase)
+    val identifierText = stringResource(R.string.single_argument_parenthesis, config.id.toString())
+    val ipv4Label = stringResource(R.string.settings_ip_text_ipv4)
+    val ipv6Label = stringResource(R.string.settings_ip_text_ipv6)
+    val splitLabel = stringResource(R.string.lbl_split)
     var isChecked by remember(config.id, config.isActive) {
         mutableStateOf(config.isActive && VpnController.hasTunnel())
     }
     var statusText by remember(config.id) {
-        mutableStateOf(context.getString(R.string.lbl_disabled).replaceFirstChar(Char::titlecase))
+        mutableStateOf(disabledStatus)
     }
     var appsText by remember(config.id) { mutableStateOf("") }
     var showAppsCount by remember(config.id) { mutableStateOf(false) }
@@ -172,13 +177,13 @@ fun OneWgConfigRow(
     RethinkWireguardConfigCard(
         state = RethinkWireguardConfigCardState(
             name = config.name,
-            identifier = context.getString(R.string.single_argument_parenthesis, config.id.toString()),
+            identifier = identifierText,
             chips =
                 if (!isChecked) emptyList()
                 else buildList {
-                    if (protocolChips.ipv4) add(context.getString(R.string.settings_ip_text_ipv4))
-                    if (protocolChips.ipv6) add(context.getString(R.string.settings_ip_text_ipv6))
-                    if (protocolChips.splitTunnel) add(context.getString(R.string.lbl_split))
+                    if (protocolChips.ipv4) add(ipv4Label)
+                    if (protocolChips.ipv6) add(ipv6Label)
+                    if (protocolChips.splitTunnel) add(splitLabel)
                 },
             isChecked = isChecked,
             statusText = statusText,

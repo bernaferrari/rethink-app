@@ -31,6 +31,8 @@ fun WgSsidDialog(
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
+    val ssidLabel = stringResource(R.string.lbl_ssid)
+    val descriptionTemplate = stringResource(R.string.wg_ssid_dialog_description)
     RethinkWireguardDialog(onDismissRequest = onDismiss) {
         RethinkWireguardDialogColumn(scrollable = true) {
             RethinkWireguardSsidEditor(
@@ -39,7 +41,7 @@ fun WgSsidDialog(
                     title = stringResource(R.string.wg_setting_ssid_title),
                     action = stringResource(R.string.lbl_action),
                     criteria = stringResource(R.string.lbl_criteria),
-                    ssid = stringResource(R.string.lbl_ssid),
+                    ssid = ssidLabel,
                     connect = stringResource(R.string.lbl_connect),
                     pause = stringResource(R.string.notification_action_pause_vpn),
                     exact = stringResource(R.string.wg_ssid_type_exact),
@@ -50,12 +52,7 @@ fun WgSsidDialog(
                     delete = stringResource(R.string.lbl_delete),
                     invalidName = stringResource(R.string.wg_ssid_invalid_error, stringResource(R.string.lbl_ssids)),
                     description = { action, criteria ->
-                        context.getString(
-                            R.string.wg_ssid_dialog_description,
-                            action,
-                            context.getString(R.string.lbl_ssid),
-                            criteria.lowercase(),
-                        )
+                        descriptionTemplate.format(action, ssidLabel, criteria.lowercase())
                     },
                 ),
                 onSave = { rules ->
