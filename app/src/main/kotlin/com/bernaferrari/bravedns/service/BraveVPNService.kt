@@ -269,6 +269,24 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     private lateinit var logsCountManager: LogsCountManager
     private lateinit var firewallStatsManager: FirewallStatsManager
 
+    private val connectionFirewall by lazy {
+        ConnectionFirewall(
+            domainRule = ::getDomainRule,
+            ipRule = ::ipStatus,
+            allowOrbot = ::allowOrbot,
+            onUntrackedApp = { uid -> io("addNewApp") { rdb.addNewApp(uid) } },
+            resolveNewAppBlocked = ::waitAndCheckIfUidBlocked,
+            resolveBackgroundBlocked = ::blockBackgroundData,
+            resolveIsUidSystemApp = { FirewallManager.isUidSystemApp(it) },
+            resolveDeviceLocked = {
+                if (keyguardManager == null) {
+                    keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
+                }
+                keyguardManager?.isKeyguardLocked == true
+            }
+        )
+    }
+
     private var rethinkUid: Int = INVALID_UID
 
     // used to store the conn-ids that are allowed and active, to show in network logs
@@ -591,241 +609,76 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
     ): FirewallRuleset {
         val connId = connInfo.connId
         try {
-            if (connInfo.uid == rethinkUid && !rinr) {
+            val uid = connInfo.uid
+            if (uid == rethinkUid && !rinr) {
                 logd("firewall($connId): rethink uid, $rethinkUid, not processing firewall rules")
                 return FirewallRuleset.RULE0
             }
 
-            logd("firewall($connId): $connInfo")
-            val uid = connInfo.uid
             val appStatus = FirewallManager.appStatus(uid)
             val connectionStatus = FirewallManager.connectionStatus(uid)
             val isTempAllowed = FirewallManager.isTempAllowed(uid)
 
-            if (allowOrbot(uid)) {
-                return FirewallRuleset.RULE9B
+            val verdict =
+                connectionFirewall.evaluate(
+                    ConnectionRequest(
+                        connId = connId,
+                        destIP = connInfo.destIP,
+                        destPort = connInfo.destPort,
+                        protocol = connInfo.protocol,
+                        query = connInfo.query,
+                        domains = domains,
+                        anyRealIpBlocked = anyRealIpBlocked,
+                        isSplApp = isSplApp,
+                        rinr = rinr,
+                        debugConnInfo = connInfo.toString(),
+                        app =
+                            AppFirewallSnapshot(
+                                uid = uid,
+                                rethinkUid = rethinkUid,
+                                appStatus = appStatus,
+                                connectionStatus = connectionStatus,
+                                isTempAllowed = isTempAllowed,
+                                allowOrbot = false,
+                                isMissingOrInvalidUid = isMissingOrInvalidUid(uid),
+                                isUidSystemApp = false,
+                                newAppStillBlocked = false,
+                                backgroundBlocked = false
+                            ),
+                        flags =
+                            FirewallFlags(
+                                blockMeteredConnections = persistentState.getBlockMeteredConnections(),
+                                universalLockdown = persistentState.getUniversalLockdown(),
+                                blockHttpConnections = persistentState.getBlockHttpConnections(),
+                                blockWhenDeviceLocked = persistentState.getBlockWhenDeviceLocked(),
+                                deviceLocked = false,
+                                udpBlocked = persistentState.getUdpBlocked(),
+                                blockUnknownConnections = persistentState.getBlockUnknownConnections(),
+                                blockNewlyInstalledApp = persistentState.getBlockNewlyInstalledApp(),
+                                disallowDnsBypass = persistentState.getDisallowDnsBypass(),
+                                preventDnsLeaks = appConfig.preventDnsLeaks(),
+                                isDnsFirewallMode = appConfig.getBraveMode().isDnsFirewallMode(),
+                                isLockdown = isLockdown(),
+                                isAppPaused = isAppPaused()
+                            ),
+                        network = NetworkSnapshot(),
+                        isMetered = { isConnectionMetered(connInfo.destIP) }
+                    )
+                )
+
+            if (!verdict.matchedQuery.isNullOrEmpty()) {
+                connInfo.query = verdict.matchedQuery
             }
-
-            if (unknownAppBlocked(uid)) {
-                logd("firewall($connId): unknown app blocked, $uid")
-                return FirewallRuleset.RULE5
-            }
-
-            // if the app is new (ie unknown), refresh the db
-            if (appStatus.isUntracked() && uid != INVALID_UID) {
-                io("addNewApp") { rdb.addNewApp(uid) }
-                if (newAppBlocked(uid)) {
-                    logd("firewall($connId): new app blocked, $uid")
-                    return FirewallRuleset.RULE1B
-                }
-            }
-
-            if (isTempAllowed) {
-                logd("firewall($connId): temp allowed, $uid")
-                return FirewallRuleset.RULE19
-            }
-
-            // check for app rules (unmetered, metered connections)
-            val appRuleset = appBlocked(connInfo, connectionStatus)
-            if (appRuleset != null) {
-                logd("firewall($connId): app blocked, $uid")
-                return appRuleset
-            }
-
-            if (isLockdown() && isAppPaused()) {
-                logd("firewall($connId): lockdown, app paused, $uid")
-                return FirewallRuleset.RULE16
-            }
-
-            // returns a pair of domain rule and matched domain
-            val dp = getDomainRule(domains, uid)
-            // assign the query only if we have a matched domain
-            if (!dp.second.isNullOrEmpty()) {
-                connInfo.query = dp.second
-            }
-            when (dp.first) {
-                DomainRulesManager.Status.BLOCK -> {
-                    logd("firewall($connId): domain blocked, $uid")
-                    return FirewallRuleset.RULE2E
-                }
-
-                DomainRulesManager.Status.TRUST -> {
-                    logd("firewall($connId): domain trusted, $uid")
-                    return FirewallRuleset.RULE2F
-                }
-
-                DomainRulesManager.Status.NONE -> {
-                    // fall-through
-                }
-            }
-
-            // IP rules
-            when (uidIpStatus(uid, connInfo.destIP, connInfo.destPort)) {
-                IpRulesManager.IpRuleStatus.BLOCK -> {
-                    logd("firewall($connId): ip blocked, $uid")
-                    return FirewallRuleset.RULE2
-                }
-
-                IpRulesManager.IpRuleStatus.TRUST -> {
-                    logd("firewall($connId): ip trusted, $uid")
-                    return FirewallRuleset.RULE2B
-                }
-
-                IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL -> {
-                    // no-op; pass-through
-                    // By-pass universal should be validated after app-firewall rules
-                }
-
-                IpRulesManager.IpRuleStatus.NONE -> {
-                    // no-op; pass-through
-                }
-            }
-
-            // by-pass dns firewall, go-through app specific ip and domain rules before applying
-            if (appStatus.bypassDnsFirewall()) {
-                logd("firewall($connId): bypass dns firewall, $uid")
-                return FirewallRuleset.RULE1H
-            }
-
-            // isolate mode
-            if (appStatus.isolate()) {
-                logd("firewall($connId): isolate mode, $uid")
-                return FirewallRuleset.RULE1G
-            }
-
-            // returns a pair of domain rule and matched domain
-            val globalDomainPair = getDomainRule(domains, UID_EVERYBODY)
-            val globalDomainRule = globalDomainPair.first
-            if (!globalDomainPair.second.isNullOrEmpty()) {
-                connInfo.query = globalDomainPair.second
-            }
-
-            // should firewall rules by-pass universal firewall rules (previously whitelist)
-            if (appStatus.bypassUniversal()) {
-                // bypass universal should block the domains that are blocked by dns (local/remote)
-                // unless the domain is trusted by the user
-                if (anyRealIpBlocked && globalDomainRule != DomainRulesManager.Status.TRUST) {
-                    logd("firewall($connId): bypass universal, dns blocked, $uid, ${connInfo.query}")
-                    return FirewallRuleset.RULE2G
-                }
-
-                return if (dnsProxied(connInfo.destPort)) {
-                    logd("firewall($connId): bypass universal, dns proxied, $uid")
-                    FirewallRuleset.RULE9
-                } else {
-                    logd("firewall($connId): bypass universal, $uid")
-                    FirewallRuleset.RULE8
-                }
-            }
-
-            // check for global domain allow/block domains
-            when (globalDomainRule) {
-                DomainRulesManager.Status.TRUST -> {
-                    logd("firewall($connId): global domain trusted, $uid, ${connInfo.query}")
-                    return FirewallRuleset.RULE2I
-                }
-
-                DomainRulesManager.Status.BLOCK -> {
-                    logd("firewall($connId): global domain blocked, $uid, ${connInfo.query}")
-                    return FirewallRuleset.RULE2H
-                }
-
-                else -> {
-                    // fall through
-                }
-            }
-
-            // should ip rules by-pass or block universal firewall rules
-            when (globalIpRule(connInfo.destIP, connInfo.destPort)) {
-                IpRulesManager.IpRuleStatus.BLOCK -> {
-                    logd("firewall($connId): global ip blocked, $uid, ${connInfo.destIP}")
-                    return FirewallRuleset.RULE2D
-                }
-
-                IpRulesManager.IpRuleStatus.BYPASS_UNIVERSAL -> {
-                    logd("firewall($connId): global ip bypass universal, $uid, ${connInfo.destIP}")
-                    return FirewallRuleset.RULE2C
-                }
-
-                IpRulesManager.IpRuleStatus.TRUST -> {
-                    // no-op; pass-through
-                }
-
-                IpRulesManager.IpRuleStatus.NONE -> {
-                    // no-op; pass-through
-                }
-            }
-
-            // if any of the real ip is blocked then allow only if it is trusted,
-            // otherwise no need to check further
-            if (anyRealIpBlocked) {
-                logd("firewall($connId): dns blocked, $uid, ${connInfo.query}")
-                return FirewallRuleset.RULE2G
-            } else {
-                // no-op; pass-through
-            }
-
-            // apps which are used to forward dns proxy, socks5 or https proxy are handled as spl
-            // no need to handle universal firewall rules for these apps
-            if (isSplApp) {
-                logd("firewall($connId): special app, $uid, ${connInfo.query}")
-                // placeholder rule (RULE0) for special app rules
-                return FirewallRuleset.RULE0
-            }
-
-            val isMetered = isConnectionMetered(connInfo.destIP)
-            // block all metered connections (Universal firewall setting)
-            if (persistentState.getBlockMeteredConnections() && isMetered) {
-                logd("firewall($connId): metered blocked, $uid")
-                return FirewallRuleset.RULE1F
-            }
-
-            // block apps when universal lockdown is enabled
-            if (universalLockdown()) {
-                logd("firewall($connId): universal lockdown, $uid")
-                return FirewallRuleset.RULE11
-            }
-
-            if (httpBlocked(connInfo.destPort)) {
-                logd("firewall($connId): http blocked, $uid")
-                return FirewallRuleset.RULE10
-            }
-
-            if (deviceLocked()) {
+            if (verdict.closeTrackedOnDeviceLock) {
                 closeTrackedConnsOnDeviceLock()
-                logd("firewall($connId): device locked, $uid")
-                return FirewallRuleset.RULE3
             }
-
-            if (udpBlocked(uid, connInfo.protocol, connInfo.destPort)) {
-                logd("firewall($connId): udp blocked, $uid")
-                return FirewallRuleset.RULE6
-            }
-
-            if (blockBackgroundData(uid)) {
-                logd("firewall($connId): background data blocked, $uid")
-                return FirewallRuleset.RULE4
-            }
-
-            // if all packets on port 53 needs to be trapped
-            if (dnsProxied(connInfo.destPort)) {
-                logd("firewall($connId): dns proxied, $uid")
-                return FirewallRuleset.RULE9
-            }
-
-            // if connInfo.query is empty, then it is not resolved by user set dns
-            if (dnsBypassed(connInfo.query)) {
-                logd("firewall($connId): dns bypassed, $uid")
-                return FirewallRuleset.RULE7
-            }
+            verdict.logs.forEach { logd(it) }
+            return verdict.rule
         } catch (iex: Exception) {
             // TODO: show alerts to user on such exceptions, in a separate ui?
             Logger.crash(LOG_TAG_VPN, "unexpected err in firewall()($connId), block anyway", iex)
             return FirewallRuleset.RULE1C
         }
-
-        logd("no firewall rule($connId), uid=${connInfo.uid}")
-        return FirewallRuleset.RULE0
     }
 
     private fun getDomainRule(domain: String?, uid: Int): Pair<DomainRulesManager.Status, String?> {
@@ -856,36 +709,9 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         return Pair(DomainRulesManager.Status.NONE, domains.firstOrNull())
     }
 
-    private fun universalLockdown(): Boolean {
-        return persistentState.getUniversalLockdown()
-    }
-
-    private fun httpBlocked(port: Int): Boolean {
-        // no need to check if the port is not HTTP port
-        if (port != KnownPorts.HTTP_PORT) {
-            return false
-        }
-
-        return persistentState.getBlockHttpConnections()
-    }
-
     private suspend fun allowOrbot(uid: Int): Boolean {
         return settingUpOrbot.get() &&
                 OrbotHelper.ORBOT_PACKAGE_NAME == FirewallManager.getPackageNameByUid(uid)
-    }
-
-    private fun dnsProxied(port: Int): Boolean {
-        return (appConfig.getBraveMode().isDnsFirewallMode() &&
-                appConfig.preventDnsLeaks() &&
-                isDns(port))
-    }
-
-    private fun dnsBypassed(query: String?): Boolean {
-        return if (!persistentState.getDisallowDnsBypass()) {
-            false
-        } else {
-            query.isNullOrEmpty()
-        }
     }
 
     private suspend fun waitAndCheckIfUidBlocked(uid: Int): Boolean {
@@ -895,24 +721,8 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         return !allowed
     }
 
-    private suspend fun newAppBlocked(uid: Int): Boolean {
-        return if (!persistentState.getBlockNewlyInstalledApp() || isMissingOrInvalidUid(uid)) {
-            false
-        } else {
-            waitAndCheckIfUidBlocked(uid)
-        }
-    }
-
-    private fun uidIpStatus(uid: Int, destIp: String, destPort: Int): IpRulesManager.IpRuleStatus {
-        return ipStatus(uid, destIp, destPort)
-    }
-
     private fun is4in6FilterRequired(): Boolean {
         return persistentState.filterIpv4inIpv6
-    }
-
-    private fun globalIpRule(destIp: String, destPort: Int): IpRulesManager.IpRuleStatus {
-        return ipStatus(UID_EVERYBODY, destIp, destPort)
     }
 
     private fun ipStatus(uid: Int, destIp: String, destPort: Int): IpRulesManager.IpRuleStatus {
@@ -942,14 +752,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         return statusIpPort
     }
 
-    private fun unknownAppBlocked(uid: Int): Boolean {
-        return if (!persistentState.getBlockUnknownConnections()) {
-            false
-        } else {
-            isMissingOrInvalidUid(uid)
-        }
-    }
-
     private suspend fun testWithBackoff(
         stallSec: Long = 20,
         durationSec: Long = 10,
@@ -968,21 +770,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
         delay(minWaitMs + remainingWaitMs)
 
         return false
-    }
-
-    private suspend fun udpBlocked(uid: Int, protocol: Int, port: Int): Boolean {
-        val hasUserBlockedUdp = persistentState.getUdpBlocked()
-        if (!hasUserBlockedUdp) return false
-
-        val isUdp = protocol == Protocol.UDP.protocolType
-        if (!isUdp) return false
-
-        // fall through dns requests, other rules might catch as appropriate
-        // https://github.com/celzero/rethink-app/issues/492#issuecomment-1299090538
-        if (isDns(port)) return false
-
-        val isNtpFromSystemApp = KnownPorts.isNtp(port) && FirewallManager.isUidSystemApp(uid)
-        return !isNtpFromSystemApp
     }
 
     private fun isVpnDns(ip: String): Boolean {
@@ -1047,42 +834,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
 
     private fun isPrivateDns(port: Int): Boolean {
         return KnownPorts.isDoT(port)
-    }
-
-    // Modified the logic of "Block connections when screen is locked".
-    // Earlier the screen lock is detected with receiver received for Action
-    // user_present/screen_off.
-    // Now the code only checks whether the KeyguardManager#isKeyguardLocked() is true/false.
-    // if isKeyguardLocked() is true, the connections will be blocked.
-    private fun deviceLocked(): Boolean {
-        if (!persistentState.getBlockWhenDeviceLocked()) return false
-
-        if (keyguardManager == null) {
-            keyguardManager = getSystemService(KEYGUARD_SERVICE) as KeyguardManager
-        }
-        return (keyguardManager?.isKeyguardLocked == true)
-    }
-
-    // Check if the app has firewall rules set
-    // refer: FirewallManager.kt line-no#58
-    private fun appBlocked(
-        connInfo: ConnTrackerMetaData,
-        connectionStatus: FirewallManager.ConnectionStatus
-    ): FirewallRuleset? {
-        if (isAppBlocked(connectionStatus)) {
-            return FirewallRuleset.RULE1
-        }
-
-        val isMetered = isConnectionMetered(connInfo.destIP)
-        if (isWifiBlockedForUid(connectionStatus) && !isMetered) {
-            return FirewallRuleset.RULE1D
-        }
-
-        if (isMobileDataBlockedForUid(connectionStatus) && isMetered) {
-            return FirewallRuleset.RULE1E
-        }
-
-        return null
     }
 
     private fun isConnectionMetered(dst: String): Boolean {
@@ -1191,20 +942,6 @@ class BraveVPNService : VpnService(), ConnectionMonitor.NetworkListener, Bridge 
             curnet.isActiveNetworkCellular = isCellular
         }
         return curnet.isActiveNetworkCellular
-    }
-
-    private fun isAppBlocked(connectionStatus: FirewallManager.ConnectionStatus): Boolean {
-        return connectionStatus.blocked()
-    }
-
-    private fun isMobileDataBlockedForUid(
-        connectionStatus: FirewallManager.ConnectionStatus
-    ): Boolean {
-        return connectionStatus.mobileData()
-    }
-
-    private fun isWifiBlockedForUid(connectionStatus: FirewallManager.ConnectionStatus): Boolean {
-        return connectionStatus.wifi()
     }
 
     private suspend fun blockBackgroundData(uid: Int): Boolean {

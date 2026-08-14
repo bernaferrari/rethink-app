@@ -137,6 +137,8 @@ fun ConfigureRethinkBasicScreen(
     val downloadFailureMessage = stringResource(R.string.download_update_dialog_failure_message)
     val filterDescriptionTemplate = stringResource(R.string.rt_filter_desc)
     val filterDescriptionSubgroupsTemplate = stringResource(R.string.rt_filter_desc_subgroups)
+    val blocklistCountTemplate = stringResource(R.string.rsv_blocklist_count_text)
+    val entriesTemplate = stringResource(R.string.dc_entries)
 
     val blocklistType = remember {
         if (screenType == ConfigureRethinkScreenType.LOCAL) {
@@ -914,6 +916,8 @@ private fun RethinkBlocklistContent(
     }
 
     val selected = selectedTags
+    val blocklistCountTemplate = stringResource(R.string.rsv_blocklist_count_text)
+    val entriesTemplate = stringResource(R.string.dc_entries)
     val packs: RethinkBlocklistFeed<RethinkBlocklistPack>
     val tags: RethinkBlocklistFeed<RethinkBlocklistFileTag>
     if (blocklistType.isLocal()) {
@@ -950,9 +954,9 @@ private fun RethinkBlocklistContent(
             filterHint = filterLabelText.ifEmpty { stringResource(R.string.rt_filter_hint) },
             apply = stringResource(R.string.lbl_apply),
             discard = stringResource(R.string.notif_dialog_pause_dialog_negative),
-            blocklistCount = { context.getString(R.string.rsv_blocklist_count_text, it.toString()) },
-            entries = { context.getString(R.string.dc_entries, it.toString()) },
-            empty = context.getString(R.string.configure_search_empty_title),
+            blocklistCount = { blocklistCountTemplate.format(it.toString()) },
+            entries = { entriesTemplate.format(it.toString()) },
+            empty = stringResource(R.string.configure_search_empty_title),
         ),
         onViewChange = { onActiveViewChanged(if (it == RethinkBlocklistEditorView.Packs) RethinkBlocklistState.BlocklistView.PACKS else RethinkBlocklistState.BlocklistView.ADVANCED) },
         onQueryChange = { query -> if (!restoreStampIfPresent(query)) updateFilters { it.query = formatQuery(query) } },

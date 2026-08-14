@@ -52,6 +52,7 @@ fun AntiCensorshipScreen(
     var dialSelection by remember { mutableStateOf(initialDial) }
     var retrySelection by remember { mutableStateOf(RetryStrategies.fromInt(persistentState.retryStrategy) ?: RetryStrategies.RETRY_WITH_SPLIT) }
     val context = LocalContext.current
+    val retryDisabledToast = stringResource(R.string.ac_toast_retry_disabled)
     val dialOptions = dialOptions(desyncSupported)
     val retryOptions = retryOptions(dialSelection)
     RethinkAntiCensorshipScreen(
@@ -88,7 +89,7 @@ fun AntiCensorshipScreen(
             retrySelection = RetryStrategies.fromInt(mode) ?: strategy
             logChange(eventLogger, "Anti-censorship retry strategy changed to $mode")
         },
-        onRetryDisabled = { Utilities.showToastUiCentered(context, context.getString(R.string.ac_toast_retry_disabled), Toast.LENGTH_LONG) },
+        onRetryDisabled = { Utilities.showToastUiCentered(context, retryDisabledToast, Toast.LENGTH_LONG) },
         onBackClick = onBackClick,
     )
 }

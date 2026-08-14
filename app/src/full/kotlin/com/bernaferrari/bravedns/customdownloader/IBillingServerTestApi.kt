@@ -61,7 +61,7 @@ import retrofit2.http.Query
  * [com.bernaferrari.bravedns.iab.BillingBackendClient] resolves which interface to use per-request
  * via its internal `resolveApi()` helper.
  */
-interface IBillingServerApiTest {
+interface IBillingServerTestApi {
 
     /*
       * Register or resolve a customer account with the server (test path).

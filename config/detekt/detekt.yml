@@ -31,6 +31,12 @@ style:
   ReturnCount:
     active: false
 
+naming:
+  FunctionNaming:
+    # Composables are PascalCase by Compose convention; not a naming defect.
+    ignoreAnnotated:
+      - 'Composable'
+
 exceptions:
   SwallowedException:
     active: true

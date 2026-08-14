@@ -3,8 +3,6 @@ package com.bernaferrari.bravedns.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.paging.Pager
-import androidx.paging.PagingConfig
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.bernaferrari.bravedns.data.AppConnection
@@ -12,7 +10,6 @@ import com.bernaferrari.bravedns.data.DataUsageSummary
 import com.bernaferrari.bravedns.database.ConnectionTracker
 import com.bernaferrari.bravedns.database.ConnectionTrackerDAO
 import com.bernaferrari.bravedns.database.StatsSummaryDao
-import com.bernaferrari.bravedns.util.Constants
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -84,6 +81,8 @@ class SummaryStatisticsViewModel(
                     statsDao.getMostBlockedDomains(start),
                     statsDao.getMostContactedDomains(start),
                     statsDao.getMostContactedCountries(start),
+                    connectionTrackerDAO.getMostContactedIps(start),
+                    connectionTrackerDAO.getMostBlockedIps(start),
                 )
             ) { lists ->
                 SummaryCardLists(
@@ -95,6 +94,8 @@ class SummaryStatisticsViewModel(
                     blockedDomains = lists[5],
                     contactedDomains = lists[6],
                     contactedCountries = lists[7],
+                    contactedIps = lists[8],
+                    blockedIps = lists[9],
                 )
             }
         }.shareIn(viewModelScope, SharingStarted.Lazily, replay = 1)
@@ -113,10 +114,10 @@ class SummaryStatisticsViewModel(
         summaryCards.toPagingData { it.blockedDomains }
     val mcd: Flow<PagingData<AppConnection>> =
         summaryCards.toPagingData { it.contactedDomains }
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val getMostContactedIps = recentPaging { connectionTrackerDAO.getMostContactedIps(startTime.value) }
-    @OptIn(ExperimentalCoroutinesApi::class)
-    val getMostBlockedIps = recentPaging { connectionTrackerDAO.getMostBlockedIps(startTime.value) }
+    val getMostContactedIps: Flow<PagingData<AppConnection>> =
+        summaryCards.toPagingData { it.contactedIps }
+    val getMostBlockedIps: Flow<PagingData<AppConnection>> =
+        summaryCards.toPagingData { it.blockedIps }
     val getMostContactedCountries: Flow<PagingData<AppConnection>> =
         summaryCards.toPagingData { it.contactedCountries }
 
@@ -139,16 +140,6 @@ class SummaryStatisticsViewModel(
     ): Flow<PagingData<AppConnection>> =
         map { PagingData.from(select(it)) }.cachedIn(viewModelScope)
 
-    @OptIn(ExperimentalCoroutinesApi::class)
-    private fun recentPaging(
-        source: () -> androidx.paging.PagingSource<Int, AppConnection>
-    ): Flow<PagingData<AppConnection>> =
-        refreshTick.flatMapLatest {
-            Pager(PagingConfig(Constants.PAGING_PAGE_SIZE), pagingSourceFactory = source)
-                .flow
-                .cachedIn(viewModelScope)
-        }
-
     private val TimeCategory.durationMillis: Long
         get() = when (this) {
             TimeCategory.ONE_HOUR -> ONE_HOUR_MILLIS
@@ -165,6 +156,8 @@ class SummaryStatisticsViewModel(
         val blockedDomains: List<AppConnection>,
         val contactedDomains: List<AppConnection>,
         val contactedCountries: List<AppConnection>,
+        val contactedIps: List<AppConnection>,
+        val blockedIps: List<AppConnection>,
     )
 
     private companion object {

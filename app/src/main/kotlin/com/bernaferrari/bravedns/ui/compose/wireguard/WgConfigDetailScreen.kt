@@ -468,6 +468,7 @@ fun WgConfigDetailScreen(
         return
     }
     val ssidSupported = SsidPermissionManager.isDeviceSupported(context)
+    val manageAppsTemplate = stringResource(R.string.add_remove_apps)
     val ssidSummary = buildString {
         append(stringResource(R.string.wg_setting_ssid_desc, lblSsidsText))
         if (ssids.isNotEmpty()) append("\n${ssids.joinToString { it.name }}")
@@ -494,7 +495,7 @@ fun WgConfigDetailScreen(
             delete = stringResource(R.string.lbl_delete),
             deleteDescription = stringResource(R.string.config_delete_dialog_title),
             apps = stringResource(R.string.lbl_apps),
-            manageApps = { count -> context.getString(R.string.add_remove_apps, count.toString()) },
+            manageApps = { count -> manageAppsTemplate.format(count.toString()) },
             manageHops = stringResource(R.string.hop_add_remove_title),
             advanced = stringResource(R.string.lbl_advanced),
             catchAll = stringResource(R.string.catch_all_wg_dialog_title),

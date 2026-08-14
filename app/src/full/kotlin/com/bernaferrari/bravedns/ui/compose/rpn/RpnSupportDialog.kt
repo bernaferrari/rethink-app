@@ -58,6 +58,9 @@ import java.util.zip.ZipOutputStream
 internal fun RpnSupportDialog(onDismiss: () -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val mailTo = stringResource(R.string.about_mail_to)
+    val supportSubject = stringResource(R.string.rpn_support_subject)
+    val emailChooser = stringResource(R.string.rpn_support_email_chooser)
     var sending by remember { mutableStateOf(false) }
 
     RethinkRpnSupportSheet(
@@ -94,7 +97,15 @@ internal fun RpnSupportDialog(onDismiss: () -> Unit) {
                     )
                 }
                 sending = false
-                RpnSupportDiagnostics.launchEmail(context, report, selectedCategory, attachment)
+                RpnSupportDiagnostics.launchEmail(
+                    context,
+                    report,
+                    selectedCategory,
+                    attachment,
+                    mailTo,
+                    supportSubject,
+                    emailChooser,
+                )
                 onDismiss()
             }
         },
@@ -160,8 +171,15 @@ private object RpnSupportDiagnostics : KoinComponent {
         archive.takeIf { it.exists() && it.length() > 0L }
     }.getOrNull()
 
-    fun launchEmail(context: Context, description: String, category: String?, attachment: File?) {
-        val recipient = context.getString(R.string.about_mail_to)
+    fun launchEmail(
+        context: Context,
+        description: String,
+        category: String?,
+        attachment: File?,
+        recipient: String,
+        subject: String,
+        chooserTitle: String,
+    ) {
         val body = buildString {
             appendLine("Hello Rethink Support,")
             appendLine()
@@ -175,7 +193,7 @@ private object RpnSupportDiagnostics : KoinComponent {
         val intent = Intent(Intent.ACTION_SEND).apply {
             type = "message/rfc822"
             putExtra(Intent.EXTRA_EMAIL, arrayOf(recipient))
-            putExtra(Intent.EXTRA_SUBJECT, context.getString(R.string.rpn_support_subject) + category?.let { ": $it" }.orEmpty())
+            putExtra(Intent.EXTRA_SUBJECT, subject + category?.let { ": $it" }.orEmpty())
             putExtra(Intent.EXTRA_TEXT, body)
             attachmentUri?.let { uri ->
                 putExtra(Intent.EXTRA_STREAM, uri)
@@ -183,7 +201,7 @@ private object RpnSupportDiagnostics : KoinComponent {
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
         }
-        runCatching { context.startActivity(Intent.createChooser(intent, context.getString(R.string.rpn_support_email_chooser))) }
+        runCatching { context.startActivity(Intent.createChooser(intent, chooserTitle)) }
     }
 
     private fun addFile(zip: ZipOutputStream, file: File, name: String) {

@@ -180,7 +180,12 @@ fun AppListScreen(
     }
 
     val loadedApps by viewModel.appInfo.collectAsState()
-    val portableApps = remember(loadedApps, context) { loadedApps.map { it.toRethinkFirewallApp(context) } }
+    val uploadTemplate = stringResource(R.string.symbol_upload)
+    val downloadTemplate = stringResource(R.string.symbol_download)
+    val twoArgumentTemplate = stringResource(R.string.two_argument)
+    val portableApps = remember(loadedApps, context, uploadTemplate, downloadTemplate, twoArgumentTemplate) {
+        loadedApps.map { it.toRethinkFirewallApp(context, uploadTemplate, downloadTemplate, twoArgumentTemplate) }
+    }
     fun requestConnectionToggle(app: RethinkFirewallApp, wifi: Boolean) {
         scope.launch(Dispatchers.IO) {
             val packages = FirewallManager.getAppNamesByUid(app.uid)
@@ -377,7 +382,12 @@ private fun androidFirewallAppListStrings(dialogs: AndroidBulkDialogCopy): Rethi
     )
 }
 
-private fun AppInfo.toRethinkFirewallApp(context: Context): RethinkFirewallApp {
+private fun AppInfo.toRethinkFirewallApp(
+    context: Context,
+    uploadTemplate: String,
+    downloadTemplate: String,
+    twoArgumentTemplate: String,
+): RethinkFirewallApp {
     val appStatus = FirewallManager.FirewallStatus.getStatus(firewallStatus)
     val connection = FirewallManager.ConnectionStatus.getStatus(connectionStatus)
     val status = when (appStatus) {
@@ -395,7 +405,7 @@ private fun AppInfo.toRethinkFirewallApp(context: Context): RethinkFirewallApp {
         status = status,
         wifiBlocked = appStatus == FirewallManager.FirewallStatus.NONE && (connection == FirewallManager.ConnectionStatus.UNMETERED || connection == FirewallManager.ConnectionStatus.BOTH),
         mobileBlocked = appStatus == FirewallManager.FirewallStatus.NONE && (connection == FirewallManager.ConnectionStatus.METERED || connection == FirewallManager.ConnectionStatus.BOTH),
-        dataUsage = dataUsageText(context, this),
+        dataUsage = dataUsageText(this, uploadTemplate, downloadTemplate, twoArgumentTemplate),
         proxyEnabled = !isProxyExcluded && ProxyManager.getProxyIdForApp(uid) != ProxyManager.ID_NONE,
         hasInternetPermission = hasInternetPermission(context.packageManager),
         tombstoned = tombstoneTs > 0,
@@ -403,11 +413,16 @@ private fun AppInfo.toRethinkFirewallApp(context: Context): RethinkFirewallApp {
     )
 }
 
-private fun dataUsageText(context: Context, app: AppInfo): String? {
+private fun dataUsageText(
+    app: AppInfo,
+    uploadTemplate: String,
+    downloadTemplate: String,
+    twoArgumentTemplate: String,
+): String? {
     if (app.uploadBytes <= 0L && app.downloadBytes <= 0L) return null
-    val upload = context.getString(R.string.symbol_upload, Utilities.humanReadableByteCount(app.uploadBytes, true))
-    val download = context.getString(R.string.symbol_download, Utilities.humanReadableByteCount(app.downloadBytes, true))
-    return context.getString(R.string.two_argument, upload, download)
+    val upload = uploadTemplate.format(Utilities.humanReadableByteCount(app.uploadBytes, true))
+    val download = downloadTemplate.format(Utilities.humanReadableByteCount(app.downloadBytes, true))
+    return twoArgumentTemplate.format(upload, download)
 }
 
 @Composable

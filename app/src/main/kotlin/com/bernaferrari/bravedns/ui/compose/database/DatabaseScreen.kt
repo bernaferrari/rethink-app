@@ -30,6 +30,8 @@ import kotlinx.coroutines.withContext
 fun DatabaseScreen(onBackClick: () -> Unit, appDatabase: AppDatabase) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val previewLoadFailed = stringResource(R.string.blocklist_update_check_failure)
+    val copiedClipboard = stringResource(R.string.copied_clipboard)
     var tables by remember { mutableStateOf<List<String>>(emptyList()) }
     var selectedTable by remember { mutableStateOf<String?>(null) }
     var preview by remember { mutableStateOf<RethinkDatabaseTablePreview?>(null) }
@@ -46,7 +48,7 @@ fun DatabaseScreen(onBackClick: () -> Unit, appDatabase: AppDatabase) {
             runCatching { loadTablePreview(appDatabase, table) }
                 .onSuccess { result -> withContext(Dispatchers.Main) { preview = result; loadingPreview = false } }
                 .onFailure { error -> withContext(Dispatchers.Main) {
-                    errorText = error.message ?: context.getString(R.string.blocklist_update_check_failure)
+                    errorText = error.message ?: previewLoadFailed
                     loadingPreview = false
                 } }
         }
@@ -58,7 +60,7 @@ fun DatabaseScreen(onBackClick: () -> Unit, appDatabase: AppDatabase) {
         scope.launch(Dispatchers.IO) {
             val dump = buildTableDump(appDatabase, table)
             withContext(Dispatchers.Main) {
-                context.copyToClipboard("db_dump", dump)
+                context.copyToClipboard("db_dump", dump, copiedClipboard)
                 copying = false
             }
         }
@@ -153,8 +155,8 @@ private fun Cursor.valueAsText(index: Int): String = when (getType(index)) {
     else -> getString(index).orEmpty()
 }
 
-private fun Context.copyToClipboard(label: String, text: String) {
+private fun Context.copyToClipboard(label: String, text: String, copiedMessage: String) {
     val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     clipboard.setPrimaryClip(ClipData.newPlainText(label, text))
-    Toast.makeText(this, getString(R.string.copied_clipboard), Toast.LENGTH_SHORT).show()
+    Toast.makeText(this, copiedMessage, Toast.LENGTH_SHORT).show()
 }

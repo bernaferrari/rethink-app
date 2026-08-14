@@ -50,12 +50,13 @@ import org.koin.core.component.inject
  *    state between app launches; it is always reconciled against Play on connect.
  * 2. **Expiry comes exclusively from Play** via [InAppBillingHandler.calculateExpiryTime].
  */
-class SubscriptionStateMachineV2 : KoinComponent {
+class SubscriptionStateMachineV2(
+    // Test seam: an UnconfinedTestDispatcher scope makes init coroutines complete in-constructor.
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.IO),
+) : KoinComponent {
 
     private val subscriptionDb by inject<SubscriptionStatusRepository>()
     private val dbSyncService: StateMachineDatabaseSyncService by inject()
-
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     // Lock ordering (must always be acquired in this order to prevent deadlocks)
     // 1. InAppBillingHandler.connectionMutex(outermost protects billing API calls)
     // 2. stateLock(protects state machine transitions)

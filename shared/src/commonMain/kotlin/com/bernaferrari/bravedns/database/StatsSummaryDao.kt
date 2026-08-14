@@ -198,7 +198,7 @@ interface StatsSummaryDao {
             LIMIT 3
         """
     )
-    fun getAsnLogsLimited(uid: Int, to: Long): PagingSource<Int, AppConnection>
+    fun getAsnLogsLimited(uid: Int, to: Long): Flow<List<AppConnection>>
 
     @Query(
         """
@@ -313,7 +313,7 @@ interface StatsSummaryDao {
                    LIMIT 3
                """
     )
-    fun getTopActiveConns(uid: Int, to: Long): PagingSource<Int, AppConnection>
+    fun getTopActiveConns(uid: Int, to: Long): Flow<List<AppConnection>>
 
     @Query(
         """
@@ -341,7 +341,7 @@ interface StatsSummaryDao {
                        LIMIT 3
                    """
     )
-    fun getRethinkTopActiveConns(to: Long): PagingSource<Int, AppConnection>
+    fun getRethinkTopActiveConns(to: Long): Flow<List<AppConnection>>
 
     @Query (
         """
@@ -1023,7 +1023,7 @@ interface StatsSummaryDao {
         LIMIT 3
         """
     )
-    fun getMostDomainsByUid(uid: Int, to: Long): PagingSource<Int, AppConnection>
+    fun getMostDomainsByUid(uid: Int, to: Long): Flow<List<AppConnection>>
 
     @Query(
         """

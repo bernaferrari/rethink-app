@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.CountryConfig
@@ -23,7 +22,9 @@ fun RpnCountriesScreen(
     onServerDetails: (String) -> Unit = {},
     onServerSettings: () -> Unit = {},
 ) {
-    val context = LocalContext.current
+    val loadFailed = stringResource(R.string.rpn_countries_load_failed)
+    val refreshFailed = stringResource(R.string.rpn_countries_refresh_failed)
+    val resetFailed = stringResource(R.string.rpn_countries_reset_failed)
     var servers by remember { mutableStateOf<List<CountryConfig>>(emptyList()) }
     var frequent by remember { mutableStateOf<Set<String>>(emptySet()) }
     var busyKey by remember { mutableStateOf<String?>(null) }
@@ -43,7 +44,7 @@ fun RpnCountriesScreen(
                     .thenBy { it.city },
             )
             frequent = frequentCodes
-        }.onFailure { errorMessage = it.message ?: context.getString(R.string.rpn_countries_load_failed) }
+        }.onFailure { errorMessage = it.message ?: loadFailed }
     }
 
     RethinkRpnCountriesScreen(
@@ -72,7 +73,7 @@ fun RpnCountriesScreen(
             busyKey = "refresh"
             scope.launch {
                 runCatching { withContext(Dispatchers.IO) { RpnProxyManager.updateWinProxy() } }
-                    .onFailure { errorMessage = it.message ?: context.getString(R.string.rpn_countries_refresh_failed) }
+                    .onFailure { errorMessage = it.message ?: refreshFailed }
                 busyKey = null
                 reloadToken++
             }
@@ -81,7 +82,7 @@ fun RpnCountriesScreen(
             busyKey = "reset"
             scope.launch {
                 runCatching { withContext(Dispatchers.IO) { RpnProxyManager.resetAndRefetchRpn() } }
-                    .onFailure { errorMessage = it.message ?: context.getString(R.string.rpn_countries_reset_failed) }
+                    .onFailure { errorMessage = it.message ?: resetFailed }
                 busyKey = null
                 reloadToken++
             }

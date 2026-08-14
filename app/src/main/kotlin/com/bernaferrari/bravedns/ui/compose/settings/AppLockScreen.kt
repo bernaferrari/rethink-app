@@ -84,6 +84,7 @@ fun AppLockScreen(
     val appName = stringResource(R.string.app_name)
     val biometricTitle = stringResource(R.string.hs_biometeric_title)
     val biometricDesc = stringResource(R.string.hs_biometeric_desc)
+    val biometricError = stringResource(R.string.hs_biometeric_error)
 
     var authState by remember { mutableStateOf<AppLockResult>(AppLockResult.Pending) }
     var biometricPrompt by remember { mutableStateOf<BiometricPrompt?>(null) }
@@ -108,7 +109,7 @@ fun AppLockScreen(
                 Logger.e(TAG, "$TAG no FragmentActivity host for BiometricPrompt (context=$context)")
                 showToastUiCentered(
                     context,
-                    context.getString(R.string.hs_biometeric_error),
+                    biometricError,
                     Toast.LENGTH_SHORT
                 )
                 authState = AppLockResult.Failure

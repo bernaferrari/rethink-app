@@ -49,6 +49,7 @@ fun MiscSettingsScreen(
     var showBackupSheet by remember { mutableStateOf(false) }
     val showFirewallBubble = isAtleastQ()
     val isFdroid = isFdroidFlavour()
+    val websiteLink = stringResource(R.string.about_website_link)
     val toggles = listOfNotNull(
         RethinkMiscToggle("general_logs", stringResource(R.string.settings_enable_logs), stringResource(R.string.settings_enable_logs_desc), logsEnabled, Logs),
         RethinkMiscToggle("general_autostart", stringResource(R.string.settings_autostart_bootup_heading), stringResource(R.string.settings_autostart_bootup_desc), autoStartEnabled, AutoStart),
@@ -69,7 +70,7 @@ fun MiscSettingsScreen(
             generalSection = stringResource(R.string.settings_general_header).titlecaseFirst(),
             aboutSection = stringResource(R.string.title_about),
             websiteTitle = stringResource(R.string.about_website),
-            websiteDescription = stringResource(R.string.about_website_link),
+            websiteDescription = websiteLink,
             aboutTitle = stringResource(R.string.title_about),
             aboutDescription = stringResource(R.string.app_name),
         ),
@@ -95,7 +96,7 @@ fun MiscSettingsScreen(
             )
         },
         onBackupRestore = { showBackupSheet = true },
-        onOpenWebsite = { openUrl(context, context.getString(R.string.about_website_link)) },
+        onOpenWebsite = { openUrl(context, websiteLink) },
         onOpenAbout = onOpenAbout,
         onBackClick = onBackClick,
         focusedSettingId = initialFocusKey?.takeIf { it.isNotBlank() },

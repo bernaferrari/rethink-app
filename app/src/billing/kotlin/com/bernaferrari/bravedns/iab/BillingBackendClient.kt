@@ -21,7 +21,7 @@ import android.os.Build
 import com.android.billingclient.api.BillingClient.ProductType
 import com.bernaferrari.bravedns.RethinkDnsApplication.Companion.DEBUG
 import com.bernaferrari.bravedns.customdownloader.IBillingServerApi
-import com.bernaferrari.bravedns.customdownloader.IBillingServerApiTest
+import com.bernaferrari.bravedns.customdownloader.IBillingServerTestApi
 import com.bernaferrari.bravedns.customdownloader.RetrofitManager
 import com.bernaferrari.bravedns.customdownloader.SafeResponseConverterFactory
 import com.bernaferrari.bravedns.iab.BillingBackendClient.Companion.DB_SESSION_UNCONSTRAINED
@@ -1005,7 +1005,7 @@ class BillingBackendClient(
      * Fetches raw purchase/order history from `GET /g/tx` for the given credentials.
      *
      * The appropriate test/production API is selected via [resolveApi].
-     * For the test path [IBillingServerApiTest.getPurchaseHistory] is used (no `deviceId`
+     * For the test path [IBillingServerTestApi.getPurchaseHistory] is used (no `deviceId`
      * header; `accountId` is sent as a query param instead).
      * For the production path [IBillingServerApi.getPurchaseHistory] is used (headers).
      *
@@ -1169,7 +1169,7 @@ class BillingBackendClient(
      * query param must be passed as `null` for every call to ensure it is omitted
      * from the URL entirely.
      *
-     * [Test] carries the [IBillingServerApiTest] instance plus the non-null test
+     * [Test] carries the [IBillingServerTestApi] instance plus the non-null test
      * string that must be forwarded as the `test` query param.
      */
     private sealed class ApiHandle {
@@ -1180,7 +1180,7 @@ class BillingBackendClient(
             override val envLabel = "prod"
         }
         /** Use for test entitlements. Pass `test = testValue` to every endpoint. */
-        data class Test(val api: IBillingServerApiTest, val testValue: Boolean) : ApiHandle() {
+        data class Test(val api: IBillingServerTestApi, val testValue: Boolean) : ApiHandle() {
             override val envLabel = "test"
         }
     }
@@ -1246,7 +1246,7 @@ class BillingBackendClient(
      * Test calls always target [Constants.RPN_FALLBACK_URL] directly — no primary/fallback
      * split is needed for the test path.
      */
-    private fun buildTestApi(): IBillingServerApiTest {
+    private fun buildTestApi(): IBillingServerTestApi {
         val client = RetrofitManager
             .okHttpClient(persistentState.routeRethinkInRethink)
             .newBuilder()
@@ -1261,7 +1261,7 @@ class BillingBackendClient(
             .addConverterFactory(SafeResponseConverterFactory())
             .addConverterFactory(retrofitJson.asConverterFactory(jsonMediaType))
             .build()
-            .create(IBillingServerApiTest::class.java)
+            .create(IBillingServerTestApi::class.java)
     }
 
     /**
@@ -1287,7 +1287,7 @@ class BillingBackendClient(
      * passes through the session interceptor again, so session headers (bookmarks, DID token)
      * are attached correctly to the fallback request too.
      *
-     * Only used for [IBillingServerApi] (production). [IBillingServerApiTest] already
+     * Only used for [IBillingServerApi] (production). [IBillingServerTestApi] already
      * targets [Constants.RPN_FALLBACK_URL] directly and does not need this interceptor.
      */
     private fun buildFallbackInterceptor(): Interceptor = Interceptor { chain ->

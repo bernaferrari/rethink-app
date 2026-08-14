@@ -21,7 +21,6 @@ import com.android.billingclient.api.Purchase
 import com.bernaferrari.bravedns.database.SubscriptionStatus
 import com.bernaferrari.bravedns.database.SubscriptionStatusRepository
 import com.bernaferrari.bravedns.iab.PurchaseDetail
-import com.bernaferrari.bravedns.rpnproxy.SubscriptionStateMachineV2Test.Companion.MACHINE_INIT_WAIT_MS
 import com.bernaferrari.bravedns.service.PersistentState
 import io.mockk.Runs
 import io.mockk.clearAllMocks
@@ -33,9 +32,12 @@ import io.mockk.just
 import io.mockk.mockk
 import io.mockk.mockkObject
 import io.mockk.unmockkAll
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -58,8 +60,8 @@ import org.robolectric.annotation.Config
  * - All Koin dependencies ([SubscriptionStatusRepository], [com.bernaferrari.bravedns.rpnproxy.StateMachineDatabaseSyncService],
  *   [PersistentState]) are replaced with MockK relaxed mocks.
  * - [RpnProxyManager] is a Kotlin `object`; mocked via [mockkObject].
- * - [createMachine] constructs a fresh machine and waits [MACHINE_INIT_WAIT_MS] for the
- *   `initializeStateMachine()` coroutine (launched on Dispatchers.IO) to complete.
+ * - [createMachine] constructs a fresh machine with an unconfined test scope, so the
+ *   `initializeStateMachine()` coroutine completes before the constructor returns.
  * - By default `loadStateFromDatabase()` returns `null` so init is a no-op and the machine
  *   settles in [com.bernaferrari.bravedns.rpnproxy.SubscriptionStateMachineV2.SubscriptionState.Initial].
  * - Tests that need a specific starting state call [transitionToActive] /
@@ -79,7 +81,6 @@ class SubscriptionStateMachineV2Test : KoinTest {
 
     companion object {
         /** Time (ms) to wait after constructing a machine for its IO-dispatched init to complete. */
-        private const val MACHINE_INIT_WAIT_MS = 300L
         /** Time (ms) to wait for `scope.launch { }` side-effects (deactivateRpn, processRpnPurchase). */
         private const val SIDE_EFFECT_WAIT_MS = 500L
 
@@ -1306,16 +1307,15 @@ class SubscriptionStateMachineV2Test : KoinTest {
     // =========================================================================
 
     /**
-     * Constructs a fresh [SubscriptionStateMachineV2] and waits [MACHINE_INIT_WAIT_MS] for the
-     * `initializeStateMachine()` coroutine (which runs on [kotlinx.coroutines.Dispatchers.IO]) to
-     * complete.  With the default mock of `loadStateFromDatabase() = null`, the machine settles at
-     * [SubscriptionStateMachineV2.SubscriptionState.Initial].
+     * Constructs a fresh [SubscriptionStateMachineV2]. The injected unconfined scope runs
+     * `initializeStateMachine()` eagerly, so the machine has already settled at
+     * [SubscriptionStateMachineV2.SubscriptionState.Initial] when this returns
+     * (with the default mock of `loadStateFromDatabase() = null`).
      */
-    private fun createMachine(): SubscriptionStateMachineV2 {
-        val machine = SubscriptionStateMachineV2()
-        Thread.sleep(MACHINE_INIT_WAIT_MS)
-        return machine
-    }
+    private fun createMachine(): SubscriptionStateMachineV2 =
+        SubscriptionStateMachineV2(
+            scope = CoroutineScope(SupervisorJob() + UnconfinedTestDispatcher())
+        )
 
     /** Creates a [PurchaseDetail] representing a freshly-purchased active subscription. */
     private fun makePurchaseDetail(

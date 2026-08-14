@@ -45,6 +45,9 @@ fun TcpProxyMainScreen(
     var showIncludeAppsDialog by remember { mutableStateOf(false) }
     val appCount by mappingViewModel.getAppCountById(ProxyManager.ID_TCP_BASE).collectAsState(initial = 0)
     val defaultDescription = stringResource(R.string.settings_https_desc)
+    val warpActiveError = stringResource(R.string.tcp_proxy_warp_active_error)
+    val noAppsError = stringResource(R.string.tcp_proxy_no_apps_error)
+    val httpsDisabledError = stringResource(R.string.settings_https_disabled_error)
     LaunchedEffect(Unit) { tcpDescription = defaultDescription }
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) { TcpProxyHelper.getActiveTcpProxy() }.let { proxy ->
@@ -64,11 +67,11 @@ fun TcpProxyMainScreen(
                 when {
                     enabled && warpEnabled -> {
                         tcpEnabled = false
-                        Utilities.showToastUiCentered(context, context.getString(R.string.tcp_proxy_warp_active_error), Toast.LENGTH_SHORT)
+                        Utilities.showToastUiCentered(context, warpActiveError, Toast.LENGTH_SHORT)
                     }
                     enabled && !hasApps -> {
                         tcpEnabled = false
-                        Utilities.showToastUiCentered(context, context.getString(R.string.tcp_proxy_no_apps_error), Toast.LENGTH_SHORT)
+                        Utilities.showToastUiCentered(context, noAppsError, Toast.LENGTH_SHORT)
                     }
                     !enabled -> {
                         scope.launch(Dispatchers.IO) { TcpProxyHelper.disable() }
@@ -78,7 +81,7 @@ fun TcpProxyMainScreen(
                     !appConfig.canEnableTcpProxy() -> {
                         tcpEnabled = false
                         val provider = appConfig.getProxyProvider().lowercase().replaceFirstChar(Char::titlecase)
-                        Utilities.showToastUiCentered(context, String.format(context.getString(R.string.settings_https_disabled_error), provider), Toast.LENGTH_SHORT)
+                        Utilities.showToastUiCentered(context, httpsDisabledError.format(provider), Toast.LENGTH_SHORT)
                     }
                     else -> scope.launch(Dispatchers.IO) { TcpProxyHelper.enable() }
                 }

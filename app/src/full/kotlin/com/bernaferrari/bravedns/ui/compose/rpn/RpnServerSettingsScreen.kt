@@ -7,7 +7,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.bernaferrari.bravedns.R
 import com.bernaferrari.bravedns.database.CountryConfig
@@ -21,8 +20,9 @@ import kotlinx.coroutines.withContext
 /** Android repository and preference adapter for the common RPN server-settings UI. */
 @Composable
 fun RpnServerSettingsScreen(persistentState: PersistentState, onBackClick: () -> Unit) {
-    val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    val exclusionsCountTemplate = stringResource(R.string.rpn_server_exclusions_count)
+    val resetFailed = stringResource(R.string.rpn_server_reset_failed)
     var dnsModes by remember {
         mutableStateOf<Set<RethinkRpnDnsMode>>(
             DnsMode.setFromCsv(persistentState.rpnDnsTunTypes).map { it.toRethinkMode() }.toSet(),
@@ -68,7 +68,7 @@ fun RpnServerSettingsScreen(persistentState: PersistentState, onBackClick: () ->
             changeIdentityDescription = stringResource(R.string.rpn_server_change_identity_desc),
             exclusionsTitle = stringResource(R.string.rpn_server_auto_exclusions),
             noExclusions = stringResource(R.string.rpn_server_no_exclusions),
-            exclusionsCount = { count -> context.getString(R.string.rpn_server_exclusions_count, count) },
+            exclusionsCount = { count -> exclusionsCountTemplate.format(count) },
             maintenanceTitle = stringResource(R.string.rpn_server_maintenance_title),
             maintenanceDescription = stringResource(R.string.rpn_server_maintenance_desc),
             resetTitle = stringResource(R.string.rpn_server_reset_configuration),
@@ -99,7 +99,7 @@ fun RpnServerSettingsScreen(persistentState: PersistentState, onBackClick: () ->
             working = true
             scope.launch {
                 runCatching { withContext(Dispatchers.IO) { RpnProxyManager.resetAndRefetchRpn() } }
-                    .onFailure { message = it.message ?: context.getString(R.string.rpn_server_reset_failed) }
+                    .onFailure { message = it.message ?: resetFailed }
                 working = false
             }
         },
